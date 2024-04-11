@@ -28,13 +28,17 @@ Available commands:
       var3[a,t], -var3$(a.val < 18)  # Equivalent to var2
     ;
   $BLOCK <block name> <equations> $ENDBLOCK
-    A block is a data structure containing equations.
+    A block is a data structure containing equations and associated endogenous variables.
     New equations should always be defined using the $BLOCK command rather than a GAMS EQUATIONS statement.
-    The block command bundles together equations so that they can be manipulated together more easily, using other gamY commands such as $LOOP or $MODEL.
+
     Example:
-    $BLOCK B_myBlock
-      E_eq1[t].. v1[t] =E= v2;
+    $BLOCK myBlock
+      v1[t]$(tx0[t]).. v1[t] =E= v2;
     $EndBlock
+    
+    $FIX All; $UNFIX myBlock_endogenous;
+    solve myBlock_model using CNS;
+
   $MODEL <model name> <equations and/or blocks/models>;
     $MODEL can use a mix of Models, Blocks, and Equations.
     Example:
@@ -507,17 +511,16 @@ class Precompiler:
   def block_define(self, match, text):
     """
     Block command syntax example:
-    $Block B_block_name
-      E_eq1[t].. v1[t] =E= v2;
+    $Block MyBlock
+      v1[t]$(tx0[t]).. v1[t] =E= v2;
     $EndBlock
+
     ==>
-    #  ***block_name****
-    Equation E_eq1[t];
-    Variable j_eq1[t];
-    j_eq1.L[t] = 0;
-    Variable jr_eq1[t];
-    jr_eq1.L[t] = 0;
-    E_eq1[t].. v1[t] =E= (1+jr_eq1[t]) * (j_eq1[t] + v2);
+
+    #  ***MyBlock****
+    Equation E_v1_tx0[t];
+    Model MyBlock_model / E_v1_tx0 /;
+    $GROUP MyBlock_endogenous v1[t]$(tx0[t]);
     """
     equation_pattern = re.compile(r"""
       (?:^|\,)             #  Check only beginning of line or after a comma.
@@ -541,10 +544,19 @@ class Precompiler:
       "\n# " + "-"*100 + "\n"
     )
     self.blocks[block_name] = Block()
+    replacement_text += f"\n$GROUP {block_name}_endogenous empty_group_dummy;\n"
     for e_match in equation_pattern.finditer(content):
       eq = Equation(*[v if v is not None else "" for v in e_match.groups()])
+      var_name = eq.name
+      # Replace [..] with nothing in eq.conditions
+      suffix = eq.conditions
+      suffix = re.sub("\[.+?\]", "", suffix)
+      suffix = re.sub("[\$\(\)]", "", suffix)
+      suffix = re.sub(" ", "_", suffix)
+      eq.name = f"{var_name}_{suffix}"
       self.blocks[block_name][eq.name] = eq
       replacement_text += f"EQUATION {eq.name}{eq.sets};"
+      replacement_text += f"$GROUP {block_name}_endogenous {block_name}_endogenous, {var_name}{eq.sets}$({eq.conditions[1:]});"
 
       RHS = eq.RHS
       if self.add_adjust:
@@ -578,7 +590,7 @@ class Precompiler:
         RHS = f"(1+{self.mult_adjust}{eq._name}{eq.sets}) * ({RHS})"
       replacement_text += "\n"+f"{eq.name}{eq.sets}{eq.conditions}.. {eq.LHS} =E= {RHS};"+"\n"
 
-    replacement_text += f"$MODEL {block_name} {block_name};"
+    replacement_text += f"$MODEL {block_name}_equations {block_name};"
     return replacement_text
 
   def model_define(self, match, text):
