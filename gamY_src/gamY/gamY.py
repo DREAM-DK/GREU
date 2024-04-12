@@ -333,7 +333,7 @@ class Precompiler:
     if key in in_scope:
       return in_scope[key]
     else:
-      self.warning(f"\%{key}\% is not defined and was not replaced")
+      self.warning(f"\\%{key}\\% is not defined and was not replaced")
       return self.PERCENT_SUB + key + self.PERCENT_SUB
 
   def user_function(self, match, text):
@@ -1344,10 +1344,11 @@ def cmd_call():
 
   sys.exit(process.returncode)
 
-def py_call(args):
+def py_call(*args):
   start_time = timer()
 
   # Read any execution paremeters
+  args = ["", *args] # Pad args to have the same indexing as the cmd-call
   if len(args) < 2 or args[1][-4:] != ".gms":
     raise ValueError("No .gms file specified")
   else:
@@ -1470,7 +1471,7 @@ def gams_error(gams_file, check_error=False):
                 'Locally Infeasible',
                 'Terminated By Solver',
                 'Solver Failure',
-                "**** MODEL STATUS      6 Intermediate Infeasible",
+                "Intermediate Infeasible",
               ]
               for error in errors:
                   if error in line:
