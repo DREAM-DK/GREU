@@ -549,7 +549,7 @@ class Precompiler:
       eq = Equation(*[v if v is not None else "" for v in e_match.groups()])
       var_name = eq.name
       # Replace [..] with nothing in eq.conditions
-      suffix = eq.conditions
+      suffix = "_" + eq.sets[1:-1].replace(",","_") + "_" + eq.conditions
       suffix = re.sub("\[.+?\]", "", suffix)
       suffix = re.sub("[\$\(\)]", "", suffix)
       suffix = re.sub(" ", "_", suffix)
@@ -661,6 +661,26 @@ class Precompiler:
 
     return replacement_text
 
+  def sets_to_conditions(self, condition_sets_string, definition_sets_string, item_conditions):
+    """
+    Used in Group defition to turn sub-sets into dollar-conditons.
+    Example:
+    x[a,b]
+    x[a1,'b']$(a2[a1]) -> x[a,b]$(a1[a] and sameas['b',b] and a2[a])
+    """
+    condition_sets = condition_sets_string[1:-1].split(",")
+    definition_sets = definition_sets_string[1:-1].split(",")
+    for con_set, def_set in zip(condition_sets, definition_sets):
+      if con_set == def_set:
+        continue
+      if item_conditions:
+        item_conditions = re.sub(fr"\b{con_set}\b", def_set, item_conditions, flags=re.IGNORECASE)
+      if "'" in con_set or '"' in con_set:
+        item_conditions = self.combine_conditions(item_conditions, f"sameas({con_set},{def_set})")
+      else:
+        item_conditions = self.combine_conditions(item_conditions, f"{con_set}[{def_set}]")
+    return item_conditions
+
   def group_define(self, match, text, init_val="0", parameter_group=False):
     """
     Parse $GROUP command
@@ -733,6 +753,9 @@ class Precompiler:
           self.error(
             f"""Conditionals in the GROUP statement must be surrounded by parentheses, e.g. $(d1[d]).
 Error in {group_name}: {name}{sets}{item_conditions}""")
+
+        if sets and (sets != var.sets):
+          item_conditions = self.sets_to_conditions(sets, var.sets, item_conditions)
 
         if remove:
           if var.name not in new_group:
