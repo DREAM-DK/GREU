@@ -1,0 +1,10 @@
+*.g00
+*.lst
+*.gmy
+*.pkl
+*.lyx~
+*.pyc
+*.dat
+
+*.gdx
+!gamY_src/previous_baseline.gdx
