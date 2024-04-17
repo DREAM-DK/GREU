@@ -548,11 +548,14 @@ class Precompiler:
     for e_match in equation_pattern.finditer(content):
       eq = Equation(*[v if v is not None else "" for v in e_match.groups()])
       var_name = eq.name
-      # Replace [..] with nothing in eq.conditions
-      suffix = "_" + eq.sets[1:-1].replace(",","_") + "_" + eq.conditions
-      suffix = re.sub("\[.+?\]", "", suffix)
-      suffix = re.sub("[\$\(\)]", "", suffix)
-      suffix = re.sub(" ", "_", suffix)
+      suffixes = eq.sets[1:-1].split(",")
+      if eq.conditions:
+        conditions_suffix = eq.conditions
+        conditions_suffix = re.sub("\[.+?\]", "", conditions_suffix) # Removes sets in suffix from conditions
+        conditions_suffix = re.sub("[\$\(\)]", "", conditions_suffix) # Remove special characters
+        conditions_suffix = re.sub(" ", "_", conditions_suffix) # Replace spaces with underscores
+        suffixes.append(conditions_suffix)
+      suffix = "_".join(suffixes)
       eq.name = f"{var_name}_{suffix}"
       self.blocks[block_name][eq.name] = eq
       replacement_text += f"EQUATION {eq.name}{eq.sets};"
@@ -699,7 +702,7 @@ class Precompiler:
       \s*
       ([^$#*\s(\[,]+)    #  Name of variable ($2)
       ([(\[].*?[)\]])?            #  Optional sets  ($3)
-      (\$[(\[].+?[)\]])?          #  Optional conditions  ($4)
+      (\$[(\[].*?[)\]])?          #  Optional conditions  ($4)
       \s*
       ('.*?'|".*?")?        #  Optional label  ($5)
       (\s+-?\d+(?:\.\d*)?)? #  Optional initial value of variable  ($6)
@@ -732,6 +735,9 @@ class Precompiler:
     for item in group_variable_pattern.finditer(content):
       remove, name, sets, item_conditions, label, level = item.group(1, 2, 3, 4, 5, 6)
 
+      if item_conditions is None or item_conditions == "$()":
+        item_conditions = ""
+
       if name in GROUPS:
         variables = GROUPS[name].values()
         old_group_conditions = CONDITIONS[name]
@@ -752,7 +758,7 @@ class Precompiler:
         if sets and "$" in sets:
           self.error(
             f"""Conditionals in the GROUP statement must be surrounded by parentheses, e.g. $(d1[d]).
-Error in {group_name}: {name}{sets}{item_conditions}""")
+Error in {group_name}: {name}{sets}{item_conditions}\n""")
 
         if sets and (sets != var.sets):
           item_conditions = self.sets_to_conditions(sets, var.sets, item_conditions)
