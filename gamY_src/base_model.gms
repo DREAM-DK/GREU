@@ -27,6 +27,7 @@ $GROUP value_variables empty_group_dummy[t];
 $GROUP other_variables empty_group_dummy[t];
 
 $IMPORT input_output.gms
+$IMPORT aggregates.gms
 
 @inf_growth_adjust()
 
@@ -38,6 +39,7 @@ $GROUP all_variables
 
 $GROUP data_covered_variables # Variables that are covered by data
   io_data_variables
+  # aggregate_data_variables
 ;
 
 # For each variable, create a dummy that is 1 if the variable exists for the combination of set elements
@@ -59,6 +61,7 @@ set_time_periods(%first_data_year%+1, %terminal_year%);
 
 model calibration_model /
   input_output_calibration_model
+  aggregates_calibration_model
 
   $LOOP all_variables:
     {name}({name}_exists_dummy)
@@ -67,6 +70,8 @@ model calibration_model /
 
 $GROUP calibration_endogenous
   input_output_calibration_endogenous
+  aggregates_calibration_endogenous
+
   -nonexisting
 ;
 
