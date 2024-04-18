@@ -17,14 +17,16 @@ $SETLOCAL terminal_year 2023;
 $SETLOCAL base_year 2010;
 
 $IMPORT sets.gms
-$IMPORT growth_adjustments.gms
-
 set_time_periods(%first_data_year%, %terminal_year%);
 
-$GROUP price_variables empty_group_dummy[t];
-$GROUP quantity_variables empty_group_dummy[t];
-$GROUP value_variables empty_group_dummy[t];
-$GROUP other_variables empty_group_dummy[t];
+$GROUP price_variables empty_group_dummy[t]$(0);
+$GROUP quantity_variables empty_group_dummy[t]$(0);
+$GROUP value_variables empty_group_dummy[t]$(0);
+$GROUP other_variables empty_group_dummy[t]$(0);
+
+$GROUP data_covered_variables empty_group_dummy[t]$(0);
+
+$IMPORT growth_adjustments.gms
 
 $IMPORT input_output.gms
 $IMPORT aggregates.gms
@@ -34,12 +36,8 @@ $IMPORT aggregates.gms
 $GROUP all_variables
   price_variables
   quantity_variables
+  value_variables
   other_variables
-;
-
-$GROUP data_covered_variables # Variables that are covered by data
-  io_data_variables
-  # aggregate_data_variables
 ;
 
 # For each variable, create a dummy that is 1 if the variable exists for the combination of set elements

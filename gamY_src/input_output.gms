@@ -49,7 +49,7 @@ $GROUP other_variables other_variables
 # ------------------------------------------------------------------------------
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
-$GROUP io_data_variables
+$GROUP input_output_data_variables
   pY_d_s, qY_d_s, tY_d_s
   pM_d_s, qM_d_s, tM_d_s
 
@@ -71,7 +71,8 @@ $GROUP io_data_variables
   # pM, qY
   # pGDP, qGDP
 ;
-@load(io_data_variables, "../data/data.gdx")
+@load(input_output_data_variables, "../data/data.gdx")
+$GROUP data_covered_variables data_covered_variables, input_output_data_variables;
 
 d1Y_d_s[d,s,t] = qY_d_s.l[d,s,t] <> 0;
 d1M_d_s[d,s,t] = qM_d_s.l[d,s,t] <> 0;

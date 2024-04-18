@@ -24,6 +24,9 @@ $GROUP quantity_variables quantity_variables
   qGDP[t] "Real GDP."
 ;
 
+# ------------------------------------------------------------------------------
+# Equations
+# ------------------------------------------------------------------------------
 $BLOCK aggregates
   # Aggregate demand deflators
   pC[t]$(t1_[t]).. pC[t] * qC[t] =E= sum(c, pC_c[c,t] * qC_c[c,t]);
@@ -70,6 +73,7 @@ $GROUP aggregates_data_variables
   pGDP, qGDP
 ;
 @load(aggregates_data_variables, "../data/data.gdx")
+# $GROUP data_covered_variables data_covered_variables aggregates_data_variables;
 
 pC.l[tBase] = 1;
 pX.l[tBase] = 1;
