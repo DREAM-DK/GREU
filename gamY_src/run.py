@@ -1,21 +1,31 @@
-## imports
-import os 
+%load_ext autoreload
+%autoreload 2
+
 import sys
-import glob
-import shutil
 import subprocess
-import webbrowser
+
+# sys.path.insert(0, r"P:\mkb\dream-tools")
 import dreamtools as dt
+dt.gamY.require_variable_with_equation = True
+dt.gamY.block_equations_suffix = "_equations"
 
-## set paths to programs
-from paths import GAMS_path, gamY_path
+## Set local paths
+sys.path.insert(0, dt.find_root())
+import paths
 
-sys.path.insert(0, gamY_path)
-import gamY
-os.environ["GAMSDIR"] = GAMS_path
-os.environ["GAMS"] = GAMS_path + r"\gams.exe"
+## Set working directory
+# os.chdir(fr"{root}/Model")
 
-gamY.py_call("base_model.gms")
-gamY.gams_error("base_model.gms", check_error=True)
+## Install python modules in python installation that comes with GAMS
+# subprocess.check_call(["curl", "https://bootstrap.pypa.io/get-pip.py", "-o", "get-pip.py"])
+# subprocess.check_call([sys.executable, "get-pip.py"])
+# subprocess.check_call([sys.executable, "-m", "pip", "install", 
+#                        "numpy", "scipy", "statsmodels", "xlwings", "dream-tools", 
+#                        "plotly", "kaleido==0.1.0.post1", "xhtml2pdf",
+#                        "--upgrade",])
 
+dt.gamY.run("calibration.gms")
 db = dt.Gdx("calibration.gdx")
+
+dt.multiindex_plotly.large_figure_layout
+dt.plot(db.qY_s)
