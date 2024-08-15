@@ -86,7 +86,6 @@ pM.l[tBase] = 1;
 # Calibration
 # ------------------------------------------------------------------------------
 $BLOCK aggregates_calibration
-  empty_group_dummy[t]$(0).. 0 =E= 0;
 $ENDBLOCK
 
 $GROUP aggregates_calibration_endogenous
@@ -103,5 +102,5 @@ $GROUP aggregates_calibration_endogenous
 
 model aggregates_calibration_model /
   aggregates_equations
-  aggregates_calibration_equations
+  # aggregates_calibration_equations
 /;
