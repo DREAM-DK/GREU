@@ -2,30 +2,33 @@
 %autoreload 2
 
 import sys
-import subprocess
-
-# sys.path.insert(0, r"P:\mkb\dream-tools")
+import shutil
+import os
+# sys.path.insert(0, r"P:\mkb\dream-tools") # Til udvikling af dream-tools
 import dreamtools as dt
 dt.gamY.require_variable_with_equation = True
 dt.gamY.block_equations_suffix = "_equations"
+# dt.gamY.default_initial_level = None
+dt.gamY.automatic_dummy_suffix = "_exists_dummy"
 
 ## Set local paths
-sys.path.insert(0, dt.find_root())
+root = dt.find_root()
+sys.path.insert(0, root)
 import paths
 
 ## Set working directory
-# os.chdir(fr"{root}/Model")
+os.chdir(fr"{root}/gamY_src")
 
-## Install python modules in python installation that comes with GAMS
-# subprocess.check_call(["curl", "https://bootstrap.pypa.io/get-pip.py", "-o", "get-pip.py"])
-# subprocess.check_call([sys.executable, "get-pip.py"])
-# subprocess.check_call([sys.executable, "-m", "pip", "install", 
-#                        "numpy", "scipy", "statsmodels", "xlwings", "dream-tools", 
-#                        "plotly", "kaleido==0.1.0.post1", "xhtml2pdf",
-#                        "--upgrade",])
-
-dt.gamY.run("calibration.gms")
+dt.gamY.run("base_model.gms")
 db = dt.Gdx("calibration.gdx")
 
-dt.multiindex_plotly.large_figure_layout
+dt.time(2000, 2040)
 dt.plot(db.qY_s)
+
+## Save calibration.gdx as previous_calibration.gdx
+shutil.copy("calibration.gdx", "previous_calibration.gdx")
+
+dt.REFERENCE_DATABASE = data = dt.Gdx("../data/data.gdx")
+dt.prt(db.vY_s, "i")
+
+db.vtY_d_i.loc["k", "public"]

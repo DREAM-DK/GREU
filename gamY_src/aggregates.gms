@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Variable definitions
 # ------------------------------------------------------------------------------
-$GROUP price_variables price_variables
+$GROUP+ price_variables
   pC[t] "Aggregate private consumption deflator."
   pG[t] "Aggregate government consumption deflator."
   pX[t] "Aggregate exports deflator."
@@ -12,7 +12,7 @@ $GROUP price_variables price_variables
 
   pGDP[t] "GDP deflator."
 ;
-$GROUP quantity_variables quantity_variables
+$GROUP+ quantity_variables
   qC[t] "Real aggregate private consumption."
   qG[t] "Real aggregate government consumption."
   qX[t] "Real aggregate exports."
@@ -27,38 +27,41 @@ $GROUP quantity_variables quantity_variables
 # ------------------------------------------------------------------------------
 # Equations
 # ------------------------------------------------------------------------------
-$BLOCK aggregates
+$BLOCK aggregates $(t1.val <= t.val and t.val <= tEnd.val)
   # Aggregate demand deflators
-  pC[t]$(t1_[t]).. pC[t] * qC[t] =E= sum(c, pC_c[c,t] * qC_c[c,t]);
-  pX[t]$(t1_[t]).. pX[t] * qX[t] =E= sum(x, pX_x[x,t] * qX_x[x,t]);
-  pI[t]$(t1_[t]).. pI[t] * qI[t] =E= sum(i, pI_i[i,t] * qI_i[i,t]);
+  pC[t].. pC[t] * qC[t] =E= sum(c, pC_c[c,t] * qC_c[c,t]);
+  pX[t].. pX[t] * qX[t] =E= sum(x, pX_x[x,t] * qX_x[x,t]);
+  pI[t].. pI[t] * qI[t] =E= sum(k, pI_k[k,t] * qI_k[k,t]);
 
-  pGDP[t]$(t1_[t]).. pGDP[t] * qGDP[t] =E= pC[t] * qC[t]
+  pGDP[t].. pGDP[t] * qGDP[t] =E= pC[t] * qC[t]
                                          + pG[t] * qG[t]
                                          + pI[t] * qI[t]
                                          + pX[t] * qX[t]
                                          - pM[t] * qM[t];
                                              
   # Aggregate demand quantities
-  qC[t]$(t1_[t]).. pC[t-1]/fp * qC[t] =E= sum(c, pC_c[c,t-1]/fp * qC_c[c,t]);
-  qI[t]$(t1_[t]).. pI[t-1]/fp * qI[t] =E= sum(i, pI_i[i,t-1]/fp * qI_i[i,t]);
-  qX[t]$(t1_[t]).. pX[t-1]/fp * qX[t] =E= sum(x, pX_x[x,t-1]/fp * qX_x[x,t]);
+  qC[t].. pC[t-1]/fp * qC[t] =E= sum(c, pC_c[c,t-1]/fp * qC_c[c,t]);
+  qI[t].. pI[t-1]/fp * qI[t] =E= sum(k, pI_k[k,t-1]/fp * qI_k[k,t]);
+  qX[t].. pX[t-1]/fp * qX[t] =E= sum(x, pX_x[x,t-1]/fp * qX_x[x,t]);
 
-  qGDP[t]$(t1_[t]).. pGDP[t-1]/fp * qGDP[t] =E= pC[t-1]/fp * qC[t]
+  qGDP[t].. pGDP[t-1]/fp * qGDP[t] =E= pC[t-1]/fp * qC[t]
                                               + pG[t-1]/fp * qG[t]
                                               + pI[t-1]/fp * qI[t]
                                               + pX[t-1]/fp * qX[t]
                                               - pM[t-1]/fp * qM[t];
 
   # Aggregate supply deflators
-  pY[t]$(t1_[t]).. pY[t] * qY[t] =E= sum(s, pY_s[s,t] * qY_s[s,t]);
-  pM[t]$(t1_[t]).. pM[t] * qM[t] =E= sum(s, pM_s[s,t] * qM_s[s,t]);
+  pY[t].. pY[t] * qY[t] =E= sum(i, pY_i[i,t] * qY_i[i,t]);
+  pM[t].. pM[t] * qM[t] =E= sum(i, pM_i[i,t] * qM_i[i,t]);
 
   # Aggregate supply
-  qY[t]$(t1_[t]).. pY[t-1]/fp * qY[t] =E= sum(s, pY_s[s,t-1]/fp * qY_s[s,t]);
-  qM[t]$(t1_[t]).. pM[t-1]/fp * qM[t] =E= sum(s, pM_s[s,t-1]/fp * qM_s[s,t]);
+  qY[t].. pY[t-1]/fp * qY[t] =E= sum(i, pY_i[i,t-1]/fp * qY_i[i,t]);
+  qM[t].. pM[t-1]/fp * qM[t] =E= sum(i, pM_i[i,t-1]/fp * qM_i[i,t]);
 $ENDBLOCK
 
+# Add equation and endogenous variables to main model
+model main / aggregates_equations /;
+$GROUP+ main_endogenous aggregates_endogenous;
 
 # ------------------------------------------------------------------------------
 # Data and exogenous parameters
@@ -85,22 +88,24 @@ pM.l[tBase] = 1;
 # ------------------------------------------------------------------------------
 # Calibration
 # ------------------------------------------------------------------------------
-$BLOCK aggregates_calibration
+$BLOCK aggregates_calibration $(t1.val <= t.val and t.val <= tEnd.val)
 $ENDBLOCK
 
-$GROUP aggregates_calibration_endogenous
+# Add equations and calibration equations to calibration model
+model calibration /
+  aggregates_equations
+  # aggregates_calibration_equations
+/;
+# Add endogenous variables to calibration model
+$GROUP calibration_endogenous
   aggregates_calibration_endogenous
   aggregates_endogenous
-
   -pC[tBase], pC[t0]
   -pX[tBase], pX[t0]
   -pI[tBase], pI[t0]
   -pGDP[tBase], pGDP[t0]
   -pY[tBase], pY[t0]
   -pM[tBase], pM[t0]
-;
 
-model aggregates_calibration_model /
-  aggregates_equations
-  # aggregates_calibration_equations
-/;
+  calibration_endogenous
+;

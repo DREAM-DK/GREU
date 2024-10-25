@@ -31,7 +31,7 @@ Prefix naming system:
 Suffixes and aggregation:
 To allow for varying levels of aggregation, depending on the number of submodules included, we start with the shortest names for them most aggregate variables and add suffixes denoting disaggregate versions of the same variable. E.g. pC[t] is the price index of aggregate pricate consumption in year $t$. In the documentation, this appears as $p^C_{t}$ The price index of a specific type of consumption, $c$, is written as pC_c[c,t] in the GAMS source code. In the documentation, this appears as $p^C_{c,t}$, as we ommit the suffix. qC_c[c,t] is the equivalent real quantity of consumption in the source code. In the documentation we ommit the $q$ prefix and simply write $C_{c,t}$.
 
-Multi-word identifiers are written in snake_case.
+Multi-word identifiers are written in CamelCase.
 
 ## GAMS and gamY
 MAKRO is written in GAMS but uses a pre-processor, *gamY*, that implements additional features convenient for working with large models.
