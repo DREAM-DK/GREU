@@ -5,6 +5,8 @@ $GROUP+ price_variables
 ;
 $GROUP+ quantity_variables
 ;
+$GROUP+ value_variables
+;
 $GROUP+ other_variables
 ;
 
@@ -24,7 +26,7 @@ $GROUP+ main_endogenous template_endogenous;
 $GROUP template_data_variables
 ;
 @load(template_data_variables, "../data/data.gdx")
-$GROUP data_covered_variables data_covered_variables, template_data_variables;
+$GROUP+ data_covered_variables template_data_variables;
 
 # ------------------------------------------------------------------------------
 # Calibration
