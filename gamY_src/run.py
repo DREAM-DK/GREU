@@ -19,6 +19,8 @@ import paths
 ## Set working directory
 os.chdir(fr"{root}/gamY_src")
 
+dt.gamY.run("../data/data_from_GR.gms")
+
 dt.gamY.run("base_model.gms")
 db = dt.Gdx("calibration.gdx")
 

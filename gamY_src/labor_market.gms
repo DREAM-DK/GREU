@@ -13,11 +13,10 @@ $GROUP+ quantity_variables
   qLfrictions[t] "Effect of real frictions on efficiency units of labor"
 ;
 $GROUP+ value_variables
-  vW[t] "Wage level."
+  vWages_i[i,t] "Compensation of employees by industry."
 ;
 $GROUP+ other_variables
   nL[t] "Total employment."
-  nL_i[i,t] "Employment by industry."
 ;
 
 # ------------------------------------------------------------------------------
@@ -34,8 +33,7 @@ $BLOCK labor_market $(t1.val <= t.val and t.val <= tEnd.val)
   pL[t].. pL[t] =E= pW[t] + pLfrictions[t];
 
   # Mapping between efficiency units and actual employees and wages
-  vW[t].. vW[t] =E= pW[t] * qProductivity[t];
-  nL_i[i,t].. nL_i[i,t] / nL[t] =E= qL_i[i,t] / qL[t];
+  vWages_i[i,t].. vWages_i[i,t] =E= pW[t] * qL_i[i,t];
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -46,11 +44,16 @@ $GROUP+ main_endogenous labor_market_endogenous;
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
 $GROUP labor_market_data_variables
-  vW[t]
+  vWages_i[i,t]
   nL[t]
 ;
 @load(labor_market_data_variables, "../data/data.gdx")
-$GROUP+ data_covered_variables labor_market_data_variables;
+
+pW.l[tBase] = 1;
+
+$GROUP+ data_covered_variables
+  labor_market_data_variables
+;
 
 # ------------------------------------------------------------------------------
 # Calibration
@@ -68,7 +71,8 @@ model calibration /
 $GROUP calibration_endogenous
   labor_market_calibration_endogenous
   labor_market_endogenous
-  -vW[t1], qProductivity[t1]
+  -vWages_i[i,t1], qL_i[i,t1]
+  -pW[t1], qProductivity[t1]
 
   calibration_endogenous
 ;
