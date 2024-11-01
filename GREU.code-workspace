@@ -32,7 +32,10 @@
 			"titleBar.activeForeground": "#000000",
 			"titleBar.inactiveBackground": "#5CD272",
 			"titleBar.inactiveForeground": "#000000",
-		}
+		},
+		"editor.rulers": [120],
+		"jupyter.interactiveWindow.textEditor.executeSelection": true,
+		"jupyter.interactiveWindow.creationMode": "multiple",
 	},
   "extensions": {
     "recommendations": [
@@ -40,7 +43,6 @@
       "teabyii.ayu" // Color themes, inludes dark, light and mirage themes
 			"ms-toolsai.jupyter" // Jupyter notebook support
 			"ms-python.python" // Python support
-			"mhutchie.git-graph" // Git graph
     ]
   },
 }
