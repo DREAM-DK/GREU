@@ -3,6 +3,7 @@ $IMPORT settings.gms
 
 $IMPORT sets/time.sets.gms
 $IMPORT sets/input_output.sets.gms
+$IMPORT sets/output.sets.gms
 
 set_time_periods(%first_data_year%, %terminal_year%);
 
@@ -29,7 +30,8 @@ $IMPORT growth_adjustments.gms
 # Import modules
 # ------------------------------------------------------------------------------
 # $IMPORT test_module.gms
-$IMPORT labor_market.gms
+#  $IMPORT labor_market.gms
+$IMPORT energy_markets.gms
 # $IMPORT input_output.gms
 # $IMPORT aggregates.gms
 # $IMPORT imports.gms

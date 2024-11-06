@@ -4,10 +4,11 @@
 import sys
 import shutil
 import os
-# sys.path.insert(0, r"P:\mkb\dream-tools") # Til udvikling af dream-tools
+sys.path.insert(0, r"P:\mkb\dream-tools") # Til udvikling af dream-tools
 import dreamtools as dt
 dt.gamY.require_variable_with_equation = True
 dt.gamY.block_equations_suffix = "_equations"
+dt.gamY.variable_equation_prefix = "E_"
 # dt.gamY.default_initial_level = None
 dt.gamY.automatic_dummy_suffix = "_exists_dummy"
 
