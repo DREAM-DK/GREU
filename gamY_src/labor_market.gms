@@ -24,16 +24,16 @@ $GROUP+ other_variables
 # ------------------------------------------------------------------------------
 $BLOCK labor_market $(t1.val <= t.val and t.val <= tEnd.val)
   # Aggregating labor demand from industries
-  qL[t].. qL[t] =E= sum(i, qL_i[i,t]);
+  .. qL[t] =E= sum(i, qL_i[i,t]);
 
   # Equilibrium condition: labor demand = labor supply
   pW[t].. qL[t] =E= qProductivity[t] * nL[t] - qLfrictions[t];
 
   # Usercost of labor is wage + any frictions
-  pL[t].. pL[t] =E= pW[t] + pLfrictions[t];
+  .. pL[t] =E= pW[t] + pLfrictions[t];
 
   # Mapping between efficiency units and actual employees and wages
-  vWages_i[i,t].. vWages_i[i,t] =E= pW[t] * qL_i[i,t];
+  .. vWages_i[i,t] =E= pW[t] * qL_i[i,t];
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -47,13 +47,10 @@ $GROUP labor_market_data_variables
   vWages_i[i,t]
   nL[t]
 ;
+$GROUP+ data_covered_variables labor_market_data_variables;
+
 @load(labor_market_data_variables, "../data/data.gdx")
-
 pW.l[tBase] = 1;
-
-$GROUP+ data_covered_variables
-  labor_market_data_variables
-;
 
 # ------------------------------------------------------------------------------
 # Calibration
