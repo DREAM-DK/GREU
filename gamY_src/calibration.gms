@@ -42,9 +42,14 @@ execute_unload 'static_calibration.gdx';
  # @load_as(G_load, "previous_calibration.gdx", .l);
  $IMPORT extend_dummies.gms
 
- $LOOP calibration_endogenous: # Set starting values for endogenous variables value in t1
- {name}.l{sets}$({conditions} and {name}.l{sets} = 0) = {name}.l{sets}{$}[<t>t1];
- $ENDLOOP
+ #Extending variables with "flat forecast" after last data year
+	 $LOOP G_energy_markets_flat_after_last_data_year:
+		{name}.l{sets}{$}[<t>t_dummies]$({conditions}) = {name}.l{sets}{$}[<t>'%calibration_year%'];
+	 $ENDLOOP
+ # Set starting values for endogenous variables value in t1
+	 $LOOP calibration_endogenous: 
+	 {name}.l{sets}$({conditions} and {name}.l{sets} = 0) = {name}.l{sets}{$}[<t>t1];
+	 $ENDLOOP
 
  $FIX all_variables; $UNFIX calibration_endogenous;
  execute_unloaddi "calibration_pre.gdx";
