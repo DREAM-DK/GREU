@@ -1,5 +1,5 @@
 
-set i "Production industries.";
+set i "Production industries."; alias(i,i_a);
 set m[i] "Industries with imports.";
 
 set d "Demand components.";
