@@ -7,8 +7,11 @@ set k[d] "Capital types.";
 set c[d] "Private consumption types.";
 set g[d] "Government consumption types.";
 set x[d] "Export types.";
-set di[d] "Intermediate input types.";
+set e[d] "Energy types";
 
 $gdxIn ../data/data.gdx
-$load i
+$load i, d, k, c, g, x, m
 $gdxIn
+;
+
+set r[d] "Intermediate input types." / set.i /;
