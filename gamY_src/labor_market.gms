@@ -22,7 +22,7 @@ $GROUP+ other_variables
 # ------------------------------------------------------------------------------
 # Equations
 # ------------------------------------------------------------------------------
-$BLOCK labor_market $(t1.val <= t.val and t.val <= tEnd.val)
+$BLOCK labor_market labor_market_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
   # Aggregating labor demand from industries
   qL[t].. qL[t] =E= sum(i, qL_i[i,t]);
 
@@ -58,7 +58,7 @@ $GROUP+ data_covered_variables
 # ------------------------------------------------------------------------------
 # Calibration
 # ------------------------------------------------------------------------------
-$BLOCK labor_market_calibration $(t1.val <= t.val and t.val <= tEnd.val)
+$BLOCK labor_market_calibration labor_market_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
   qProductivity[t]$(t.val > t1.val).. qProductivity[t] =E= qProductivity[t1];
 $ENDBLOCK
 

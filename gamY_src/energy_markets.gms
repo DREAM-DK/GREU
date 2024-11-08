@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Variable and group creation
+# Variable, dummy and group creation
 # ------------------------------------------------------------------------------
 	
 	#DEMAND PRICES
@@ -19,6 +19,7 @@
 		$PGROUP PG_energy_markets_prices_flat_dummies 
 			PG_energy_markets_prices_dummies 
 		;
+
 
 		$GROUP G_energy_markets_prices 
 			pXEpj[pps,ene,t]$(d1pXEpj_base[pps,ene,t]) ""
@@ -47,16 +48,19 @@
 		;
 
 		$GROUP G_energy_markets_prices_flat_after_last_data_year 
-			tpRE
-			tqRE
-			tpLE
-			tpCE
-			tpXE
+			G_energy_markets_prices
+			G_energy_markets_prices_other
 
-			fpRE
-			fpxE
-			fpLE
-			fpCE
+			# tpRE
+			# tqRE
+			# tpLE
+			# tpCE
+			# tpXE
+
+			# fpRE
+			# fpxE
+			# fpLE
+			# fpCE
 		;
 
 		$GROUP G_energy_markets_prices_data 
@@ -122,20 +126,26 @@
 	        pY_CET[out,i,t]$(d1pY_CET[out,i,t]) "Move to production at later point" 
 	    ;
 
-	    $GROUP G_energy_markets_clearing_flat_after_last_data_year 
-	    	qREpj
-			qCEpj
-			qLEpj
-			qXEpj
-			qTLpj
-			sY_AGG
-			sM_AGG
-			pY_CET 
-			pM_CET 
+	  $GROUP G_energy_markets_clearing_flat_after_last_data_year 
+			G_energy_markets_clearing_prices
+			G_energy_markets_clearing_quantities
+			G_energy_markets_clearing_values
+			G_energy_markets_clearing_other
+		;
+
+	   	# qREpj
+			# qCEpj
+			# qLEpj
+			# qXEpj
+			# qTLpj
+			# sY_AGG
+			# sM_AGG
+			# pY_CET 
+			# pM_CET 
 		;
 
 		$GROUP G_energy_markets_clearing_data 
-	    	qREpj
+			qREpj
 			qCEpj
 			qLEpj
 			qXEpj
@@ -150,7 +160,7 @@
 
     #RETAIL AND WHOLESALE MARGINS ON ENERGY 
 		$PGROUP PG_energy_margins_dummies 
-			d1pEAV_RE[pps,ene,i,t]
+				d1pEAV_RE[pps,ene,i,t]
 	    	d1pDAV_RE[pps,ene,i,t]
 	    	d1pCAV_RE[pps,ene,i,t]
 
@@ -198,13 +208,16 @@
 	    ;
 
 	    $GROUP G_energy_markets_margins_flat_after_last_data_year
-	    	fpEAV_RE
-			fpDAV_RE
-			fpCAV_RE
+				G_energy_markets_margins_prices
+				G_energy_markets_margins_values
+				G_energy_markets_margins_other
+	    	# fpEAV_RE
+				# fpDAV_RE
+				# fpCAV_RE
 
-			fpEAV_CE
-			fpDAV_CE
-			fpCAV_CE
+				# fpEAV_CE
+				# fpDAV_CE
+				# fpCAV_CE
 		;
 
 		$GROUP G_energy_markets_margins_data 
@@ -224,12 +237,12 @@
 			PG_energy_markets_margins_flat_dummies 
 		;
 
+		$GROUP G_energy_markets_flat_after_last_data_year
+			G_energy_markets_prices_flat_after_last_data_year
+			G_energy_markets_clearing_flat_after_last_data_year
+			G_energy_markets_margins_flat_after_last_data_year
+		;
 
-    	$GROUP G_energy_markets_flat_after_last_data_year
-    		G_energy_markets_prices_flat_after_last_data_year
-    		G_energy_markets_clearing_flat_after_last_data_year
-    		G_energy_markets_margins_flat_after_last_data_year
-    	;
 
     	$GROUP G_energy_markets_data
     		G_energy_markets_prices_data
@@ -262,6 +275,15 @@
 		G_energy_markets_margins_other
 	;
 
+	#Add dummies to main flat-group 
+	$PGROUP+ PG_flat_after_last_data_year
+		PG_energy_markets_flat_dummies
+	;
+		# Add dummies to main groups
+	$GROUP+ G_flat_after_last_data_year
+		G_energy_markets_flat_after_last_data_year
+	;
+
 # ------------------------------------------------------------------------------
 # Equations
 # ------------------------------------------------------------------------------
@@ -270,7 +292,7 @@
 	# Demand prices
 	# ------------------------------------------------------------------------------
 
-	$BLOCK energy_demand_prices$(t1.val <= t.val and t.val <= tEnd.val) 
+	$BLOCK energy_demand_prices energy_demand_prices_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
 
 	  pREpj_base[pps,ene,i,t]$(d1pREpj_base[pps,ene,i,t]).. pREpj_base[pps,ene,i,t] =E= (1+fpRE[pps,ene,i,t]) * pE_avg[ene,t];
 
@@ -296,7 +318,7 @@
 	# Market clearing
 	# ------------------------------------------------------------------------------
 
-	$BLOCK energy_markets_clearing$(t1.val <= t.val and t.val <= tEnd.val)
+	$BLOCK energy_markets_clearing energy_markets_clearing_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 		qY_CET&_SeveralNonExoSuppliers[ene,i,t]$(d1pY_CET[ene,i,t] and not d1OneSX[ene,t])..
 		     qY_CET[ene,i,t] * (sum(i_a$d1pY_CET[ene,i_a,t], sY_AGG[ene,i_a,t] * pY_CET[ene,i_a,t] ** (-eAgg[ene])) + sum(i_a$d1pM_CET[ene,i_a,t], sM_AGG[ene,i_a,t] * pM_CET[ene,i_a,t]**(-eAgg[ene]))) 
           				=E= sY_AGG[ene,i,t] * pY_CET[ene,i,t] **(-eAgg[ene]) * qEtot[ene,t];
@@ -340,7 +362,7 @@
 	# Retail and wholesale margins on energy
 	# ------------------------------------------------------------------------------
 
-      $BLOCK energy_margins 
+      $BLOCK energy_margins energy_margins_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
       	vEAV_RE[pps,ene,i,t]..
             vEAV_RE[pps,ene,i,t] =E= pEAV_RE[pps,ene,i,t] * qREpj[pps,ene,i,t];
 
@@ -403,7 +425,7 @@
       $ENDBLOCK
 
 # Add equation and endogenous variables to main model
-model main / energy_demand_prices_equations  energy_markets_clearing_equations energy_margins_equations/;
+model main / energy_demand_prices  energy_markets_clearing energy_margins/;
 $GROUP+ main_endogenous 
 		energy_demand_prices_endogenous 
 		energy_markets_clearing_endogenous 
@@ -419,6 +441,7 @@ $GROUP+ main_endogenous
 	  G_energy_markets_data
 	;
 
+	pREpj_base.l[pps,ene,i,t]$(not qREpj.l[pps,ene,i,t]) = no;
 
 # ------------------------------------------------------------------------------
 # Exogenous variables
@@ -435,6 +458,8 @@ $GROUP+ main_endogenous
 	d1pLEpj_base[pps,ene,t]   = yes$(pLEpj_base.l[pps,ene,t]); 
 	d1pCEpj_base[pps,ene,t]   = yes$(pCEpj_base.l[pps,ene,t]);
 	d1pREpj_base[pps,ene,i,t] = yes$(pREpj_base.l[pps,ene,i,t]);
+
+	d1qTL[pps,ene,t] = yes$(qTLpj.l[pps,ene,t]);
 
 	d1tpRE[pps,ene,i,t]  = tpRE.l[pps,ene,i,t];
 	d1tqRE[pps,ene,i,t]  = tqRE.l[pps,ene,i,t];
@@ -475,7 +500,7 @@ $GROUP+ main_endogenous
 # Calibration
 # ------------------------------------------------------------------------------
 
-$BLOCK energy_markets_clearing_calibration $(t1.val <= t.val and t.val <= tEnd.val)
+$BLOCK energy_markets_clearing_calibration energy_markets_clearing_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
 		qY_CET&_SeveralNonExoSuppliers_calib[ene,i,t]$(t.val > t1.val and d1pY_CET[ene,i,t] and not d1OneSX[ene,t])..
 		     qY_CET[ene,i,t] * (sum(i_a$d1pY_CET[ene,i_a,t], sY_AGG[ene,i_a,t] * pY_CET[ene,i_a,t] ** (-eAgg[ene])) + sum(i_a$d1pM_CET[ene,i_a,t], sM_AGG[ene,i_a,t] * pM_CET[ene,i_a,t]**(-eAgg[ene]))) 
@@ -486,23 +511,23 @@ $BLOCK energy_markets_clearing_calibration $(t1.val <= t.val and t.val <= tEnd.v
           				=E= sM_AGG[ene,i,t] * pM_CET[ene,i,t] **(-eAgg[ene]) * qEtot[ene,t];
 
 
-        sY_AGG[ene,i,t]$(t1[t] and d1pY_CET[ene,i,t] and not d1OneSX[ene,t]).. sY_AGG[ene,i,t] =E= qY_CET[ene,i,t]/qEtot[ene,t] * pY_CET[ene,i,t]**eAgg[ene];
+		sY_AGG[ene,i,t]$(t1[t] and d1pY_CET[ene,i,t] and not d1OneSX[ene,t]).. sY_AGG[ene,i,t] =E= qY_CET[ene,i,t]/qEtot[ene,t] * pY_CET[ene,i,t]**eAgg[ene];
 
-        sM_AGG[ene,i,t]$(t1[t] and d1pM_CET[ene,i,t] and not d1OneSX[ene,t]).. sM_AGG[ene,i,t] =E= qM_CET[ene,i,t]/qEtot[ene,t] * pM_CET[ene,i,t]**eAgg[ene];
+		sM_AGG[ene,i,t]$(t1[t] and d1pM_CET[ene,i,t] and not d1OneSX[ene,t]).. sM_AGG[ene,i,t] =E= qM_CET[ene,i,t]/qEtot[ene,t] * pM_CET[ene,i,t]**eAgg[ene];
 
 $ENDBLOCK
 
 
 # Add equations and calibration equations to calibration model
 model calibration /
-  energy_demand_prices_equations
+  energy_demand_prices
 
-  energy_markets_clearing_equations
+  energy_markets_clearing
   -E_qY_CET_SeveralNonExoSuppliers
   -E_qM_CET_SeveralNonExoSuppliers
-  energy_markets_clearing_calibration_equations
+  energy_markets_clearing_calibration
 
-  energy_margins_equations
+  energy_margins
 /;
 # Add endogenous variables to calibration model
 $GROUP calibration_endogenous
