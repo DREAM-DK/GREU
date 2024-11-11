@@ -42,6 +42,8 @@ set pf_bottom_ene[pf]/  machine_energy
                         biogas_for_processing
                       /;
 
+set pf_bottom_capital[pf]/set.k/;
+
 set pf_bottom_notene[pf];
 pf_bottom_notene[pf] = not pf_bottom_ene[pf];
 

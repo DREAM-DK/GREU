@@ -28,6 +28,7 @@ $FIX all_variables; $UNFIX calibration_endogenous;
 # $GROUP G_load calibration_endogenous, - G_do_not_load;
 # @load_as(G_load, "previous_calibration.gdx", .l);
 
+d1pProd_uc_tEnd = no;
 execute_unload 'static_calibration_pre.gdx';
 solve calibration using CNS;
 execute_unload 'static_calibration.gdx';
@@ -64,11 +65,14 @@ execute_unload 'static_calibration.gdx';
 		$GROUP G_calibration_endogenous_x 
 			calibration_endogenous
 			-uY_CET$(sameas[out,'WholeAndRetailSaleMarginE']) #Den her flytter sig en my...
+			-uY_CET$(sameas[out,'Firewood and woodchips'])    #Den her flytter sig en my..
+			-jpProd                                                  
+			-pProd[pf_bottom_capital,i,t]
 		;
 		
 	@set(G_calibration_endogenous_x, _endosaved, .l); # Save values of data covered variables prior to calibration
 
-
+ d1pProd_uc_tEnd = yes;
  $FIX all_variables; $UNFIX calibration_endogenous;
  execute_unloaddi "calibration_pre.gdx";
  solve calibration using CNS;

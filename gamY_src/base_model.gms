@@ -48,3 +48,12 @@ $IMPORT exist_dummies.gms
 
 $IMPORT calibration.gms
 
+# ------------------------------------------------------------------------------
+
+$FIX all_variables;
+$UNFIX main_endogenous;
+
+@set(main_endogenous, _mainendosaved, .l); # Save values of data covered variables prior to calibration
+
+Solve main using CNS;
+@assert_no_difference(main_endogenous, 1e-6, _mainendosaved, .l, "Main model does not produce zero-shock");

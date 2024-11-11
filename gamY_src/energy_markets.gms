@@ -355,6 +355,18 @@
 				 			                                           - sum(i,   pY_CET[ene,i,t] * qY_CET[ene,i,t])
 				 			                                           - sum(i,   pM_CET[ene,i,t] * qM_CET[ene,i,t]);
 
+	    #Clearing demand for energy margins
+			qY_CET&WholeAndRetailSaleMarginE[out,i,t]$(d1pY_CET[out,i,t] and sameas[out,'WholeAndRetailSaleMarginE']).. 
+				qY_CET['WholeAndRetailSaleMarginE',i,t]	
+							=E=  
+							+ sum((pps,ene,i_a)$(d1pEAV_RE[pps,ene,i_a,t]), qREpj[pps,ene,i_a,t])$(sameas[i,'46000'])
+							+ sum((pps,ene)$(d1pEAV_CE[pps,ene,t]), qCEpj[pps,ene,t])$(sameas[i,'46000'])
+							+ sum((pps,ene,i_a)$(d1pDAV_RE[pps,ene,i_a,t]), qREpj[pps,ene,i_a,t])$(sameas[i,'47000'])
+							+ sum((pps,ene)$(d1pDAV_CE[pps,ene,t]), qCEpj[pps,ene,t])$(sameas[i,'47000'])
+							+ sum((pps,ene,i_a)$(d1pCAV_RE[pps,ene,i_a,t]), qREpj[pps,ene,i_a,t])$(sameas[i,'45000'])
+							+ sum((pps,ene)$(d1pCAV_CE[pps,ene,t]), qCEpj[pps,ene,t])$(sameas[i,'45000'])
+							;
+
     $ENDBLOCK 
 
 
