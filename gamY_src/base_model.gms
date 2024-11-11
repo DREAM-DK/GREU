@@ -1,3 +1,5 @@
+$onMulti
+
 $IMPORT functions.gms;
 $IMPORT settings.gms
 
@@ -10,7 +12,6 @@ set_time_periods(%first_data_year%, %terminal_year%);
 # ------------------------------------------------------------------------------
 # Initialize models and groups used accross modules
 # ------------------------------------------------------------------------------
-$onMulti
 model main;
 model calibration;
 
@@ -34,7 +35,7 @@ $IMPORT growth_adjustments.gms
 # $IMPORT energy_markets.gms
 $IMPORT input_output.gms
 # $IMPORT aggregates.gms
-# $IMPORT imports.gms
+$IMPORT imports.gms
 # $IMPORT households.gms
 
 # ------------------------------------------------------------------------------
