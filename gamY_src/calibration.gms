@@ -66,8 +66,14 @@ execute_unload 'static_calibration.gdx';
 			calibration_endogenous
 			-uY_CET$(sameas[out,'WholeAndRetailSaleMarginE']) #Den her flytter sig en my...
 			-uY_CET$(sameas[out,'Firewood and woodchips'])    #Den her flytter sig en my..
+			-uY_CET$(sameas[out,'Natural gas (Extraction)'])
+			-uY_CET
 			-jpProd                                                  
 			-pProd[pf_bottom_capital,i,t]
+			-G_emissions_BU_quantities 
+			
+			-G_emissions_aggregates_quantities
+			-G_emissions_aggregates_other
 		;
 		
 	@set(G_calibration_endogenous_x, _endosaved, .l); # Save values of data covered variables prior to calibration

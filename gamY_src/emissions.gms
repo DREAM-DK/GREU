@@ -215,51 +215,34 @@
 
       #Energy-related emissions    
       uEmmE&_production_link[em,i,t]$(d1EmmE[em,i,t] and not sameas[em,'CO2e'])..
-          qEmmE[em,i,t] =E= sum((e,es), qEmmRE[em,es,e,i,t]);
+          qEmmE[em,i,t] =E= sum((e,es)$(d1pREpj_base[es,e,i,t] and d1EmmRE[em,es,e,i,t]), qEmmRE[em,es,e,i,t]);
+                              #AKB: @Martin: Hvorfor er mine dummies i ovenstående nødvendige?
 
-      # uEmmE&_cHouEne_link[em,d,t]$(d1EmmE[em,d,t] and sameas[d,'cHouEne'] and not sameas[em,'CO2e'])..
-      #     qEmmE[em,d,t] =E= sum((e,es)$(not sameas[es,'Transport']), qEmmCE[em,es,e,t]);
+      uEmmE&_cHouEne_link[em,d,t]$(d1EmmE[em,d,t] and sameas[d,'cHouEne'] and not sameas[em,'CO2e'])..
+          qEmmE[em,d,t] =E= sum((e,es)$(not sameas[es,'Transport']), qEmmCE[em,es,e,t]);
 
-      # uEmmE&_cCarEne_link[em,d,t]$(d1EmmE[em,d,t] and sameas[d,'cCarEne'] and not sameas[em,'CO2e'])..
-      #     qEmmE[em,d,t] =E= sum((e,es)$(sameas[es,'Transport']), qEmmCE[em,es,e,t]);
+      uEmmE&_cCarEne_link[em,d,t]$(d1EmmE[em,d,t] and sameas[d,'cCarEne'] and not sameas[em,'CO2e'])..
+          qEmmE[em,d,t] =E= sum((e,es)$(sameas[es,'Transport']), qEmmCE[em,es,e,t]);
 
 
       #Non-energy related emissions
-      uEmmxE&_production_link[em,i,t]$(d1EmmxE[em,i,t] and not sameas[em,'CO2e'])..
-          qEmmxE[em,i,t] =E= qEmmRxE[em,i,t];
+      # uEmmxE&_production_link[em,i,t]$(d1EmmxE[em,i,t] and not sameas[em,'CO2e'])..
+      #     qEmmxE[em,i,t] =E= qEmmRxE[em,i,t];
 
       # uEmmxE&_cNonFood_link[em,d,t]$(d1EmmxE[em,d,t] and sameas[d,'cNonFood'] and not sameas[em,'CO2e'])..
       #     qEmmxE[em,d,t] =E= qEmmCxE[em,t];
 
-
-      #Energy-related emissions    
-  #     uEmmE[em,i,t]$(d1EmmE[em,i,t] and not sameas[em,'CO2e'])..
-  #         qEmmE[em,i,t] =E= sum((e,es), qEmmRE[em,es,e,i,t]);
-
-  #     uEmmE[em,d,t]$(d1EmmE[em,d,t] and sameas[d,'cHouEne'] and not sameas[em,'CO2e'])..
-  #         qEmmE[em,'cHouEne',t] =E= sum((e,es)$(not sameas[es,'Transport']), qEmmCE[em,es,e,i,t]);
-
-  #     qEmmE&_cCarEne_link[em,t]$(d1EmmE[em,'cCarEne',t] and not sameas[em,'CO2e'])..
-  #         qEmmE[em,'cCarEne',t] =E= sum((e,es)$(sameas[es,'Transport']), qEmmCE[em,es,e,i,t]);
-
-
-  #     #Non-energy related emissions
-  #     qEmmxE&_production_link[em,i,t]$(d1EmmxE[em,i,t] and not sameas[em,'CO2e'])..
-  #         qEmmxE[em,i,t] =E= sum(i, qEmmRxE[em,i,t]);
-
-  #     qEmmxE&_cNonFood_link[em,t]$(d1EmmxE[em,'cNonFood',t] and not sameas[em,'CO2e'])..
-  #         qEmmxE[em,'cNonFood',t] =E= qEmmCxE[em,t];
   $ENDBLOCK 
 
 model main / 
             emissions_aggregates 
             emissions_BU
-            # emissions_aggregates_link
+            emissions_aggregates_link
             /;
 $GROUP+ main_endogenous 
   emissions_aggregates_endogenous
   emissions_BU_endogenous
-  # emissions_aggregates_link_endogenous
+  emissions_aggregates_link_endogenous
 ;
 
 # ------------------------------------------------------------------------------
@@ -306,14 +289,16 @@ $GROUP+ data_covered_variables G_emissions_data;
 model calibration /
   emissions_aggregates
   emissions_BU
-  # emissions_aggregates_link
+  emissions_aggregates_link
 /;
 
 # Add endogenous variables to calibration model
 $GROUP calibration_endogenous
   emissions_aggregates_endogenous
   uEmmE[em,i,t1]$(not sameas[em,'CO2e']), -qEmmE[em,i,t1]$(not sameas[em,'CO2e'])
+  # uEmmE[em,d,t1]$(not i[d] and not sameas[em,'CO2e']), -qEmmE[em,d,t1]$(not i[d] and not sameas[em,'CO2e'])
   uEmmxE[em,i,t1]$(not sameas[em,'CO2e']), -qEmmxE[em,i,t1]$(not sameas[em,'CO2e'])
+  # uEmmxE[em,d,t1]$(not i[d] and not sameas[em,'CO2e']), -qEmmxE[em,d,t1]$(not i[d] and not sameas[em,'CO2e'])
   uEmmLULUCF5[land5,t1], -qEmmLULUCF5[land5,t1]
 
   emissions_BU_endogenous
@@ -322,9 +307,12 @@ $GROUP calibration_endogenous
   uEmmCE[em,es,e,t1], -qEmmCE[em,es,e,t1]
   uEmmCxE[em,t1], -qEmmCxE[em,t1]
 
-  # emissions_aggregates_link_endogenous
-  # qEmmE[em,i,t1]$(not sameas[em,'CO2e'])
+  emissions_aggregates_link_endogenous
+  qEmmE[em,i,t1]$(not sameas[em,'CO2e'])
+  qEmmE[em,'cHouEne',t1]$(not sameas[em,'CO2e'])
+  qEmmE[em,'cCarEne',t1]$(not sameas[em,'CO2e'])
   # qEmmxE[em,i,t1]$(not sameas[em,'CO2e'])
+  # qEmmxE[em,'cNonFood',t1]$(not sameas[em,'CO2e'])
 
   calibration_endogenous
 ;
