@@ -2,7 +2,7 @@
 # Variable and group creation
 # ------------------------------------------------------------------------------
 
-	$PGROUP PG_industries_ergydemand_dummies 
+	$PGROUP PG_industries_energydemand_dummies 
 		d1pREa[es,e_a,i,t]
 		d1pREa_inNest[es,e_a,i,t]
 		d1pEes[es,i,t]
@@ -10,25 +10,25 @@
 		d1Prod[pf,i,t]
 	;
 	
-	$PGROUP PG_industries_ergydemand_flat_dummies 
-		PG_industries_ergydemand_dummies
+	$PGROUP PG_industries_energydemand_flat_dummies 
+		PG_industries_energydemand_dummies
 	;
 	
-	$GROUP G_industries_ergydemand_prices 
+	$GROUP G_industries_energydemand_prices 
 		pREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) ""
 		pREes[es,i,t]$(d1pEes[es,i,t]) 			""
 		pREmachine[i,t]$(d1pREmachine[i,t]) 		""
 		pProd[pf,i,t]$(d1Prod[pf,i,t]) ""
 	;
 	
-	$GROUP G_industries_ergydemand_quantities 
+	$GROUP G_industries_energydemand_quantities 
 		qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) ""
 		qREes[es,i,t]$(d1pEes[es,i,t]) ""
 		qREmachine[i,t]$(d1pREmachine[i,t]) ""
 		qProd[pf,i,t]$(d1Prod[pf,i,t]) ""
 	;
 	
-	$GROUP G_industries_ergydemand_other 
+	$GROUP G_industries_energydemand_other 
 		eREa[es,i] ""
 		uREes[es,i,t] ""
 	
@@ -36,22 +36,22 @@
 		uREa[es,e_a,i,t]$(d1pREa_inNest[es,e_a,i,t]) ""
 	;
 	
-	$GROUP G_industries_ergydemand_flat_after_last_data_year 
-		$LOOP G_industries_ergydemand_prices:
+	$GROUP G_industries_energydemand_flat_after_last_data_year 
+		$LOOP G_industries_energydemand_prices:
 			{name}
 		$ENDLOOP 
 
-		$LOOP G_industries_ergydemand_quantities:
+		$LOOP G_industries_energydemand_quantities:
 			{name}
 		$ENDLOOP
 
-		$LOOP G_industries_ergydemand_other:
+		$LOOP G_industries_energydemand_other:
 			{name}
 		$ENDLOOP
 
 	;
 	
-	$GROUP G_industries_ergydemand_data 
+	$GROUP G_industries_energydemand_data 
 		
 	;
 
@@ -60,27 +60,27 @@
 # ------------------------------------------------------------------------------
 
 	$GROUP+ price_variables
-		G_industries_ergydemand_prices
+		G_industries_energydemand_prices
 	;
 
 	$GROUP+ quantity_variables
-		G_industries_ergydemand_quantities
+		G_industries_energydemand_quantities
 
 	;
 
 	$GROUP+ other_variables
-		G_industries_ergydemand_other
+		G_industries_energydemand_other
 	;
 
 	#Add dummies to main flat-group 
 	$PGROUP+ PG_flat_after_last_data_year
 		# PG_flat_after_last_data_year 
-		PG_industries_ergydemand_flat_dummies
+		PG_industries_energydemand_flat_dummies
 	;
 		# Add dummies to main groups
 	$GROUP+ G_flat_after_last_data_year
 		# G_flat_after_last_data_year 
-		G_industries_ergydemand_flat_after_last_data_year
+		G_industries_energydemand_flat_after_last_data_year
 	;
 
 
@@ -88,14 +88,14 @@
 # Equations
 # ------------------------------------------------------------------------------
 
-	$BLOCK industries_ergy_demand industries_ergy_demand_endogenous $(t.val>=t1.val and t.val<=tEnd.val)
+	$BLOCK industries_energy_demand industries_energy_demand_endogenous $(t.val>=t1.val and t.val<=tEnd.val)
 		qREa&_inNest[es,e_a,i,t]$(d1pREa_inNest[es,e_a,i,t]).. 
 			qREa[es,e_a,i,t] =E= uREa[es,e_a,i,t] * (pREes[es,i,t]/pREa[es,e_a,i,t])**(-eREa[es,i]) * qREes[es,i,t];
 	
 		pREes[es,i,t]$(d1pEes[es,i,t]).. pREes[es,i,t]*qREes[es,i,t] =E= sum((e_a)$(d1pREa_inNest[es,e_a,i,t]), pREa[es,e_a,i,t] * qREa[es,e_a,i,t]);
 	
 	
-		qREes&_machine_ergy[es,i,t]$(d1pEes[es,i,t] and not (sameas[es,'heating'] or sameas[es,'transport']))..
+		qREes&_machine_energy[es,i,t]$(d1pEes[es,i,t] and not (sameas[es,'heating'] or sameas[es,'transport']))..
 			qREes[es,i,t] =E= uREes[es,i,t] * (pREes[es,i,t]/pREmachine[i,t])**(-eREes[i]) * qREmachine[i,t];
 	
 	
@@ -104,20 +104,20 @@
 	
 	$ENDBLOCK		
 
-	$BLOCK industries_ergy_demand_link industries_ergy_demand_link_endogenous $(t.val>=t1.val and t.val<=tEnd.val)
+	$BLOCK industries_energy_demand_link industries_energy_demand_link_endogenous $(t.val>=t1.val and t.val<=tEnd.val)
 	    qREes&_heating[es,i,t]$(d1pEes[es,i,t] and sameas[es,'heating'])..
-	      qREes['heating',i,t] =E= qProd['heating_ergy',i,t];
+	      qREes['heating',i,t] =E= qProd['heating_energy',i,t];
 	  
 	  
 	    qREes&_transport[es,i,t]$(d1pEes[es,i,t] and sameas[es,'transport'])..
-	      qREes['transport',i,t] =E= qProd['transport_ergy',i,t];
+	      qREes['transport',i,t] =E= qProd['transport_energy',i,t];
 
 	$ENDBLOCK
 
 # Add equation and endogenous variables to main model
-model main / industries_ergy_demand/;
+model main / industries_energy_demand/;
 $GROUP+ main_endogenous 
-		industries_ergy_demand_endogenous
+		industries_energy_demand_endogenous
 		;
 
 
@@ -160,12 +160,12 @@ $GROUP+ main_endogenous
 
 # Add equations and calibration equations to calibration model
 model calibration /
-	industries_ergy_demand
+	industries_energy_demand
 /;
 
 # Add endogenous variables to calibration model
 $GROUP calibration_endogenous
-  industries_ergy_demand_endogenous
+  industries_energy_demand_endogenous
   -qREa[es,e_a,i,t1], uREa[es,e_a,i,t1]
   -pREes[es,i,t1], qREes[es,i,t1]
   uREes[es,i,t1]

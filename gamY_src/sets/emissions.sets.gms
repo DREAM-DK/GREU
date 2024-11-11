@@ -1,4 +1,4 @@
-set em  "Emission-types";
+set em  "Emission-types"; alias(em,em_a);
 set em_accounts "Different accounting levels of emissions inventories";
 set land5 "Five aggregate land-use categories";
 

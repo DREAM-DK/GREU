@@ -3,9 +3,9 @@ set factors_of_production /
   "labor"
   RxE #Non-ergy input
   set.k, # Types of capital
-  machine_ergy
-  transport_ergy
-  heating_ergy
+  machine_energy
+  transport_energy
+  heating_energy
 
   refinery_crudeoil
   naturalgas_for_distribution
@@ -33,9 +33,9 @@ set pf_bottom[pf] / set.factors_of_production /;
 set pfNest[pf] / set.production_nests /;
 set pf_top[pf]/ TopPfunction/;
 
-set pf_bottom_e[pf]/  machine_ergy
-                        transport_ergy
-                        heating_ergy
+set pf_bottom_e[pf]/  machine_energy
+                        transport_energy
+                        heating_energy
 
                         refinery_crudeoil
                         naturalgas_for_distribution
@@ -54,9 +54,9 @@ pf_bottom_note[pf] = not pf_bottom_e[pf];
 
 set pf_mapping[pfNest,pf,i] /
   #Standard sectors
-  KE . (im, machine_ergy) . set.i_standard
-  TE . (it, transport_ergy) . set.i_standard
-  BE . (ib, heating_ergy) . set.i_standard
+  KE . (im, machine_energy) . set.i_standard
+  TE . (it, transport_energy) . set.i_standard
+  BE . (ib, heating_energy) . set.i_standard
 
   KETE     . (KE      , TE) . set.i_standard
   KETEL    . (KETE    , labor) . set.i_standard
@@ -64,9 +64,9 @@ set pf_mapping[pfNest,pf,i] /
   TopPfunction . (KETELBE , RxE) . set.i_standard
 
   #35002
-  KE . (im, machine_ergy) . 35002
-  TE . (it, transport_ergy) . 35002
-  BE . (ib, heating_ergy) . 35002
+  KE . (im, machine_energy) . 35002
+  TE . (it, transport_energy) . 35002
+  BE . (ib, heating_energy) . 35002
 
   KETE . (KE , TE) . 35002
   KETEL . (KETE , labor) . 35002
@@ -75,9 +75,9 @@ set pf_mapping[pfNest,pf,i] /
 
 
   #19000
-  KE . (im, machine_ergy) . 19000
-  TE . (it, transport_ergy) . 19000
-  BE . (ib, heating_ergy) . 19000
+  KE . (im, machine_energy) . 19000
+  TE . (it, transport_energy) . 19000
+  BE . (ib, heating_energy) . 19000
 
   KETE . (KE , TE) . 19000
   KETEL . (KETE , labor) . 19000
