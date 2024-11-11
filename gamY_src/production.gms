@@ -122,7 +122,8 @@ $GROUP+ G_flat_after_last_data_year
 
   $BLOCK production_usercost production_usercost_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
     pProd[pf,i,t]$(t1.val <= t.val and t.val<tEnd.val and d1Prod[pf,i,t] and pf_bottom_capital[pf]).. 
-      pProd[pf,i,t] =E= (1+rFirms[i,t+1]) - (1-delta[pf,i,t])*fv + jpProd[pf,i,t];
+      # pProd[pf,i,t] =E= (1+rFirms[i,t+1]) - (1-delta[pf,i,t])*fv + jpProd[pf,i,t];
+      pProd[pf,i,t] =E= 1  - (1-delta[pf,i,t])/(1+rFirms[i,t+1])*fv + jpProd[pf,i,t]; #Primo-dateret user-cost kommer til at se sådan her ud
 
     pProd&_tEnd[pf,i,t]$(t.val=tEnd.val and d1Prod[pf,i,t] and pf_bottom_capital[pf] and d1pProd_uc_tEnd).. 
       pProd[pf,i,t] =E= pProd[pf,i,t-1];   
@@ -180,7 +181,7 @@ rFirms.l[i,t]$(sum(pf,d1Prod[pf,i,t] and pf_bottom_capital[pf])) = 0.07;
 # ------------------------------------------------------------------------------
 
 pProd.l[pfNest,i,tDataEnd] = 1;
-pProd.l[pf_bottom_capital,i,tDataEnd] = (1+rFirms.l[i,tDataEnd]) - (1-delta.l[pf_bottom_capital,i,tDataEnd])*fv;
+pProd.l[pf_bottom_capital,i,tDataEnd] = 1  - (1-delta.l[pf_bottom_capital,i,tDataEnd])/(1+rFirms.l[i,tDataEnd])*fv;
 
 qProd.l[pfNest,i,t] =  sum(pf_bottom$(pf_mapping[pfNest,pf_bottom,i]), pProd.l[pf_bottom,i,t]*qProd.l[pf_bottom,i,t]);
 qProd.l[pfNest,i,t] =  sum(pf$(pf_mapping[pfNest,pf,i]), pProd.l[pf,i,t]*qProd.l[pf,i,t]);
