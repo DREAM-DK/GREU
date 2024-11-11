@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------
 	
 	#DEMAND PRICES
-		$PGROUP PG_ergy_markets_prices_dummies
+		$PGROUP PG_energy_markets_prices_dummies
 			d1pXEpj_base[es,e,t] ""
 			d1pLEpj_base[es,e,t] ""
 			d1pCEpj_base[es,e,t] ""
@@ -16,12 +16,12 @@
 			d1tpXE[es,e,t] ""
 		;	
 
-		$PGROUP PG_ergy_markets_prices_flat_dummies 
-			PG_ergy_markets_prices_dummies 
+		$PGROUP PG_energy_markets_prices_flat_dummies 
+			PG_energy_markets_prices_dummies 
 		;
 
 
-		$GROUP G_ergy_markets_prices 
+		$GROUP G_energy_markets_prices 
 			pXEpj[es,e,t]$(d1pXEpj_base[es,e,t]) ""
 			pLEpj[es,e,t]$(d1pLEpj_base[es,e,t]) ""
 			pCEpj[es,e,t]$(d1pCEpj_base[es,e,t]) ""
@@ -34,7 +34,7 @@
 
 		;
 
-		$GROUP G_ergy_markets_prices_other
+		$GROUP G_energy_markets_prices_other
 			tpRE[es,e,i,t]$(d1pREpj_base[es,e,i,t]) ""
 			tqRE[es,e,i,t]$(d1tqRE[es,e,i,t]) ""
 			tpLE[es,e,t]$(d1pLEpj_base[es,e,t]) ""
@@ -47,9 +47,9 @@
 			fpCE[es,e,t]$(d1pCEpj_base[es,e,t]) ""
 		;
 
-		$GROUP G_ergy_markets_prices_flat_after_last_data_year 
-			G_ergy_markets_prices
-			G_ergy_markets_prices_other
+		$GROUP G_energy_markets_prices_flat_after_last_data_year 
+			G_energy_markets_prices
+			G_energy_markets_prices_other
 
 			# tpRE
 			# tqRE
@@ -63,7 +63,7 @@
 			# fpCE
 		;
 
-		$GROUP G_ergy_markets_prices_data 
+		$GROUP G_energy_markets_prices_data 
 			pXEpj_base[es,e,t]
 			pLEpj_base[es,e,t]
 			pCEpj_base[es,e,t]
@@ -77,7 +77,7 @@
 		;
 
 	#MARKET-CLEARING
-		$PGROUP PG_ergy_markets_clearing_dummies 
+		$PGROUP PG_energy_markets_clearing_dummies 
 			d1pY_CET[out,i,t] ""
 			d1pM_CET[out,i,t] ""
 			d1qY_CET[out,i,t] ""
@@ -91,18 +91,18 @@
 			d1qTL[es,e,t] ""
 		;
 
-		$PGROUP PG_ergy_markets_clearing_flat_dummies 
-			PG_ergy_markets_clearing_dummies
+		$PGROUP PG_energy_markets_clearing_flat_dummies 
+			PG_energy_markets_clearing_dummies
 		;
 
 
-		$GROUP G_ergy_markets_clearing_prices 
+		$GROUP G_energy_markets_clearing_prices 
 	        pE_avg[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]))    "Average supply price of ergy"
 	        pM_CET[out,i,t]$(d1pM_CET[out,i,t])  "M"
 
 		;
 
-		$GROUP G_ergy_markets_clearing_quantities 
+		$GROUP G_energy_markets_clearing_quantities 
 	        qY_CET[out,i,t]$(d1pY_CET[out,i,t])  "Domestic production of various products and services - the set 'out' contains all out puts of the economy"
 	        qM_CET[out,i,t]$(d1pM_CET[out,i,t])  "Import of various producets (out)"
 	        qEtot[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]))     "Total demand/supply of ergy in the models ergy-market"
@@ -114,11 +114,11 @@
 	        qTLpj[es,e,t]$(d1qTL[es,e,t]) ""
 		;
 
-		 $GROUP G_ergy_markets_clearing_values 
+		 $GROUP G_energy_markets_clearing_values 
 		 	vDistributionProfits[e,t] ""
 		 ;
 
-		$GROUP G_ergy_markets_clearing_other
+		$GROUP G_energy_markets_clearing_other
 	        sY_AGG[e,i,t]$(d1pY_CET[e,i,t]) ""
 	        sM_AGG[e,i,t]$(d1pM_CET[e,i,t]) ""
 	        eAGG[out] ""    
@@ -126,11 +126,11 @@
 	        pY_CET[out,i,t]$(d1pY_CET[out,i,t]) "Move to production at later point" 
 	    ;
 
-	  $GROUP G_ergy_markets_clearing_flat_after_last_data_year 
-			G_ergy_markets_clearing_prices
-			G_ergy_markets_clearing_quantities
-			G_ergy_markets_clearing_values
-			G_ergy_markets_clearing_other
+	  $GROUP G_energy_markets_clearing_flat_after_last_data_year 
+			G_energy_markets_clearing_prices
+			G_energy_markets_clearing_quantities
+			G_energy_markets_clearing_values
+			G_energy_markets_clearing_other
 		;
 
 	   	# qREpj
@@ -144,7 +144,7 @@
 			# pM_CET 
 		;
 
-		$GROUP G_ergy_markets_clearing_data 
+		$GROUP G_energy_markets_clearing_data 
 			qREpj
 			qCEpj
 			qLEpj
@@ -159,8 +159,8 @@
 		;
 
     #RETAIL AND WHOLESALE MARGINS ON eRGY 
-		$PGROUP PG_ergy_margins_dummies 
-				d1pEAV_RE[es,e,i,t]
+		$PGROUP PG_energy_margins_dummies 
+			d1pEAV_RE[es,e,i,t]
 	    	d1pDAV_RE[es,e,i,t]
 	    	d1pCAV_RE[es,e,i,t]
 
@@ -169,11 +169,11 @@
 	    	d1pCAV_CE[es,e,t]
 		;
 
-		$PGROUP PG_ergy_markets_margins_flat_dummies 
-			PG_ergy_margins_dummies
+		$PGROUP PG_energy_markets_margins_flat_dummies 
+			PG_energy_margins_dummies
 		;
 
-	    $GROUP G_ergy_markets_margins_prices 
+	    $GROUP G_energy_markets_margins_prices 
 	    	pEAV_RE[es,e,i,t]$(d1pEAV_RE[es,e,i,t]) ""
 	    	pDAV_RE[es,e,i,t]$(d1pDAV_RE[es,e,i,t]) ""
 	    	pCAV_RE[es,e,i,t]$(d1pCAV_RE[es,e,i,t]) ""
@@ -183,7 +183,7 @@
 	    	pCAV_CE[es,e,t]$(d1pCAV_CE[es,e,t]) ""
 	    ;
 
-	    $GROUP G_ergy_markets_margins_values 
+	    $GROUP G_energy_markets_margins_values 
 	    	vEAV_RE[es,e,i,t]$(d1pEAV_RE[es,e,i,t]) ""
 	    	vDAV_RE[es,e,i,t]$(d1pDAV_RE[es,e,i,t]) ""
 	    	vCAV_RE[es,e,i,t]$(d1pCAV_RE[es,e,i,t]) ""
@@ -197,7 +197,7 @@
 	    	vOtherDistributionProfits_CAV[t] ""
 	    ;
 
-	    $GROUP G_ergy_markets_margins_other
+	    $GROUP G_energy_markets_margins_other
 	    	fpEAV_RE[es,e,i,t]$(d1pEAV_RE[es,e,i,t]) ""
 	    	fpDAV_RE[es,e,i,t]$(d1pDAV_RE[es,e,i,t]) ""
 	    	fpCAV_RE[es,e,i,t]$(d1pCAV_RE[es,e,i,t]) ""
@@ -207,10 +207,10 @@
 	    	fpCAV_CE[es,e,t]$(d1pCAV_CE[es,e,t]) ""
 	    ;
 
-	    $GROUP G_ergy_markets_margins_flat_after_last_data_year
-				G_ergy_markets_margins_prices
-				G_ergy_markets_margins_values
-				G_ergy_markets_margins_other
+	    $GROUP G_energy_markets_margins_flat_after_last_data_year
+				G_energy_markets_margins_prices
+				G_energy_markets_margins_values
+				G_energy_markets_margins_other
 	    	# fpEAV_RE
 				# fpDAV_RE
 				# fpCAV_RE
@@ -220,7 +220,7 @@
 				# fpCAV_CE
 		;
 
-		$GROUP G_ergy_markets_margins_data 
+		$GROUP G_energy_markets_margins_data 
 			vEAV_RE
 			vDAV_RE
 			vCAV_RE
@@ -231,23 +231,23 @@
 
 	#AGGREGATE GROUPS 
 
-		$PGROUP PG_ergy_markets_flat_dummies 
-			PG_ergy_markets_prices_flat_dummies
-			PG_ergy_markets_clearing_flat_dummies
-			PG_ergy_markets_margins_flat_dummies 
+		$PGROUP PG_energy_markets_flat_dummies 
+			PG_energy_markets_prices_flat_dummies
+			PG_energy_markets_clearing_flat_dummies
+			PG_energy_markets_margins_flat_dummies 
 		;
 
-		$GROUP G_ergy_markets_flat_after_last_data_year
-			G_ergy_markets_prices_flat_after_last_data_year
-			G_ergy_markets_clearing_flat_after_last_data_year
-			G_ergy_markets_margins_flat_after_last_data_year
+		$GROUP G_energy_markets_flat_after_last_data_year
+			G_energy_markets_prices_flat_after_last_data_year
+			G_energy_markets_clearing_flat_after_last_data_year
+			G_energy_markets_margins_flat_after_last_data_year
 		;
 
 
-    	$GROUP G_ergy_markets_data
-    		G_ergy_markets_prices_data
-    		G_ergy_markets_clearing_data 
-    		G_ergy_markets_margins_data 
+    	$GROUP G_energy_markets_data
+    		G_energy_markets_prices_data
+    		G_energy_markets_clearing_data 
+    		G_energy_markets_margins_data 
     	;
 
 # ------------------------------------------------------------------------------
@@ -255,33 +255,33 @@
 # ------------------------------------------------------------------------------
 
 	$GROUP+ price_variables
-		G_ergy_markets_prices
-		G_ergy_markets_clearing_prices
-		G_ergy_markets_margins_prices
+		G_energy_markets_prices
+		G_energy_markets_clearing_prices
+		G_energy_markets_margins_prices
 	;
 
 	$GROUP+ quantity_variables
-		G_ergy_markets_clearing_quantities
+		G_energy_markets_clearing_quantities
 
 	;
 
 	$GROUP+ value_variables
-		G_ergy_markets_clearing_values
-		G_ergy_markets_margins_values
+		G_energy_markets_clearing_values
+		G_energy_markets_margins_values
 	;
 	$GROUP+ other_variables
-		G_ergy_markets_prices_other
-		G_ergy_markets_clearing_other
-		G_ergy_markets_margins_other
+		G_energy_markets_prices_other
+		G_energy_markets_clearing_other
+		G_energy_markets_margins_other
 	;
 
 	#Add dummies to main flat-group 
 	$PGROUP+ PG_flat_after_last_data_year
-		PG_ergy_markets_flat_dummies
+		PG_energy_markets_flat_dummies
 	;
 		# Add dummies to main groups
 	$GROUP+ G_flat_after_last_data_year
-		G_ergy_markets_flat_after_last_data_year
+		G_energy_markets_flat_after_last_data_year
 	;
 
 # ------------------------------------------------------------------------------
@@ -447,10 +447,10 @@ $GROUP+ main_endogenous
 # Data 
 # ------------------------------------------------------------------------------
 
-	@load(G_ergy_markets_data, "../data/data.gdx")
+	@load(G_energy_markets_data, "../data/data.gdx")
 
 	$GROUP+ data_covered_variables
-	  G_ergy_markets_data
+	  G_energy_markets_data
 	;
 
 	pREpj_base.l[es,e,i,t]$(not qREpj.l[es,e,i,t]) = no;

@@ -1,10 +1,17 @@
 set t "Time periods." / 1980*2099/;
 set i "Production industries.";
-set k "Capital types" /im,it,ib/ ;
 set d "Demand components.";
+set k "Capital types" /im,it,ib/ ;
+set c "Consumption categories; ";
+set g "Public consumption categories";
+set x "Export types";
+
 set out "All product types produced by industries, including ergy and margins";
 set e[out] "ergy products produced by industries";
-set es "ergy-service";
+set es "Energy-service";
+set em "Emissiontype" ;
+set em_accounts "Different accounting levels of emissions inventories";
+set land5 "Five aggregate land-use categories";
 
 set factors_of_production /
   "labor"
@@ -73,6 +80,15 @@ parameters GREU_data
   qProd[factors_of_production,i,t]
   pProd[factors_of_production,i,t]
 
+  qEmmConsE[t,em,es,e]
+  qEmmConsxE[t,em]
+  qEmmProdE[i,t,em,es,e]
+  qEmmProdxE[i,t,em]
+  qEmmtot[t,em,em_accounts]
+  qEmmLULUCF5[land5,t]
+  qEmmLULUCF[t] 
+  sBioNatGasAvgAdj[t]
+
 
 ;
 
@@ -84,6 +100,9 @@ $load qEtot=qEtot.l,  pY_CET = pY_CET.l, pM_CET=pM_CET.l, qY_CET=qY_CET.l, qM_CE
 $load qRepj=qREgj.l, qCEpj=qCE.l, qLEpj=qLE.l, qXEpj=qXE.l,qTLpj=qTL.l
 $load vEAV_RE=vEAV_RE.l, vDAV_RE=vDAV_RE.l, vCAV_RE=vCAV_RE.l, vEAV_CE=vEAV_CE.l, vDAV_CE=vDAV_CE.l, vCAV_CE= vCAV_CE.l
 $load pL ,pK, qK, qRxE, pRxE
+$load em =emm_eq, em_accounts=accounts_all, land5
+$load qEmmConsE=qEmmConsE.l, qEmmConsxE=qEmmConsxE.l, qEmmProdE=qEmmProdE.l, qEmmProdxE=qEmmProdxE.l, qEmmtot=qEmmtot.l, qEmmLULUCF=qEmmLULUCF.l, qEmmLULUCF5=qEmmLULUCF5.l, sBioNatGasAvgAdj=sBioNatGasAvgAdj.l
+$load c, x, g
 $gdxIn 
 
 vWages_i[i,t] = w.l[t] * qL.l[i,t];
@@ -103,5 +122,7 @@ pProd[factors_of_production,i,t] = 1;
 execute_unloaddi "data", vWages_i, nL, es, out, e, pXEpj_base, pLEpj_base, pCEpj_base, pREpj_base, pE_avg, tpRE, tqRE, tpLE, tpCE, tpXE, qEtot, pE_avg, pY_CET, pM_CET, qY_CET, qM_CET,
                         qREpj, qCEpj, qLEpj, qXEpj, qTLpj
                         vEAV_RE = vEAV_RE.l, vDAV_RE = vDAV_RE.l, vCAV_RE = vCAV_RE.l, 
-                        vEAV_CE = vEAV_CE.l, vDAV_CE = vDAV_CE.l, vCAV_CE = vCAV_CE.l, k,
-                        qProd, pProd;
+                        vEAV_CE = vEAV_CE.l, vDAV_CE = vDAV_CE.l, vCAV_CE = vCAV_CE.l, 
+                        qProd, pProd,
+                        em, em_accounts, land5, qEmmConsE, qEmmConsxE, qEmmProdE, qEmmProdxE, qEmmtot, qEmmLULUCF5, qEmmLULUCF, sBioNatGasAvgAdj,
+                        c, x, k, g;
