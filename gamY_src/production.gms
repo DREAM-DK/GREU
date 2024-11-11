@@ -129,15 +129,15 @@ $GROUP+ G_flat_after_last_data_year
       pProd[pf,i,t] =E= pProd[pf,i,t-1];   
   $ENDBLOCK
 
-  $BLOCK production_energydemand_link production_energydemand_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-      pProd&_machine_energy[pf,i,t]$(d1Prod[pf,i,t] and sameas[pf,'machine_energy'])..
+  $BLOCK production_ergydemand_link production_ergydemand_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+      pProd&_machine_ergy[pf,i,t]$(d1Prod[pf,i,t] and sameas[pf,'machine_ergy'])..
         pProd[pf,i,t] =E= pREmachine[i,t]; 
 
-      pProd&_heating[pf,i,t]$(d1Prod[pf,i,t] and sameas[pf,'heating_energy'])..
-        pProd[pf,i,t] =E= pREPPS['heating',i,t];
+      pProd&_heating[pf,i,t]$(d1Prod[pf,i,t] and sameas[pf,'heating_ergy'])..
+        pProd[pf,i,t] =E= pREes['heating',i,t];
 
-      pProd&_transport[pf,i,t]$(d1Prod[pf,i,t] and sameas[pf,'transport_energy'])..
-        pProd[pf,i,t] =E= pREPPS['transport',i,t];
+      pProd&_transport[pf,i,t]$(d1Prod[pf,i,t] and sameas[pf,'transport_ergy'])..
+        pProd[pf,i,t] =E= pREes['transport',i,t];
   $ENDBLOCK    
 
 # $BLOCK production_labormarket_link production_labormarket_link_endogenous $(t1.val and t.val <= tEnd.val)
@@ -147,13 +147,13 @@ $GROUP+ G_flat_after_last_data_year
 
 # Add equation and endogenous variables to main model
 model main / production 
-             production_energydemand_link
+             production_ergydemand_link
             #  production_labormarket_link
             production_usercost
             /;
 $GROUP+ main_endogenous 
   production_endogenous
-  production_energydemand_link_endogenous
+  production_ergydemand_link_endogenous
   # production_labormarket_link_endogenous
   production_usercost_endogenous
   ;
@@ -217,7 +217,7 @@ d1Y[i,t]       = yes$(sum(out,d1pY_CET[out,i,t]));
 # Add equations and calibration equations to calibration model
 model calibration /
   production
-  production_energydemand_link
+  production_ergydemand_link
   production_usercost
   production_calibration
 /;
@@ -225,7 +225,7 @@ model calibration /
 # Add endogenous variables to calibration model
 $GROUP calibration_endogenous
   production_endogenous
-  production_energydemand_link_endogenous
+  production_ergydemand_link_endogenous
 
   -qProd[pf_bottom,i,t1], uProd[pf_bottom,i,t1]
   -pProd[pfNest,i,t1]$(not pf_top[pfNest]), uProd[pfNest,i,t1]$(not pf_top[pfNest])

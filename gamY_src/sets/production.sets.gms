@@ -1,11 +1,11 @@
 
 set factors_of_production /
   "labor"
-  RxE #Non-energy input
+  RxE #Non-ergy input
   set.k, # Types of capital
-  machine_energy
-  transport_energy
-  heating_energy
+  machine_ergy
+  transport_ergy
+  heating_ergy
 
   refinery_crudeoil
   naturalgas_for_distribution
@@ -14,9 +14,9 @@ set factors_of_production /
 
 
 set production_nests /
-  KE "machine capial and energy for machine"
-  TE "Transport capital and energy for transport"
-  BE "Structures capital and heating energy"
+  KE "machine capial and ergy for machine"
+  TE "Transport capital and ergy for transport"
+  BE "Structures capital and heating ergy"
   KETE "Nest of KE and TE"
   KETEL    
   KETELBE  
@@ -33,9 +33,9 @@ set pf_bottom[pf] / set.factors_of_production /;
 set pfNest[pf] / set.production_nests /;
 set pf_top[pf]/ TopPfunction/;
 
-set pf_bottom_ene[pf]/  machine_energy
-                        transport_energy
-                        heating_energy
+set pf_bottom_e[pf]/  machine_ergy
+                        transport_ergy
+                        heating_ergy
 
                         refinery_crudeoil
                         naturalgas_for_distribution
@@ -44,8 +44,8 @@ set pf_bottom_ene[pf]/  machine_energy
 
 set pf_bottom_capital[pf]/set.k/;
 
-set pf_bottom_notene[pf];
-pf_bottom_notene[pf] = not pf_bottom_ene[pf];
+set pf_bottom_note[pf];
+pf_bottom_note[pf] = not pf_bottom_e[pf];
 
 
 @define_set_complement(i_standard,i,['35002','19000'],'fromlist');
@@ -54,9 +54,9 @@ pf_bottom_notene[pf] = not pf_bottom_ene[pf];
 
 set pf_mapping[pfNest,pf,i] /
   #Standard sectors
-  KE . (im, machine_energy) . set.i_standard
-  TE . (it, transport_energy) . set.i_standard
-  BE . (ib, heating_energy) . set.i_standard
+  KE . (im, machine_ergy) . set.i_standard
+  TE . (it, transport_ergy) . set.i_standard
+  BE . (ib, heating_ergy) . set.i_standard
 
   KETE     . (KE      , TE) . set.i_standard
   KETEL    . (KETE    , labor) . set.i_standard
@@ -64,9 +64,9 @@ set pf_mapping[pfNest,pf,i] /
   TopPfunction . (KETELBE , RxE) . set.i_standard
 
   #35002
-  KE . (im, machine_energy) . 35002
-  TE . (it, transport_energy) . 35002
-  BE . (ib, heating_energy) . 35002
+  KE . (im, machine_ergy) . 35002
+  TE . (it, transport_ergy) . 35002
+  BE . (ib, heating_ergy) . 35002
 
   KETE . (KE , TE) . 35002
   KETEL . (KETE , labor) . 35002
@@ -75,9 +75,9 @@ set pf_mapping[pfNest,pf,i] /
 
 
   #19000
-  KE . (im, machine_energy) . 19000
-  TE . (it, transport_energy) . 19000
-  BE . (ib, heating_energy) . 19000
+  KE . (im, machine_ergy) . 19000
+  TE . (it, transport_ergy) . 19000
+  BE . (ib, heating_ergy) . 19000
 
   KETE . (KE , TE) . 19000
   KETEL . (KETE , labor) . 19000
@@ -101,12 +101,12 @@ set pf_mapping[pfNest,pf,i] /
 # set pf_mapping_readdata[pfNest,pf,i];
 #   pf_mapping_readdata[pfNest,pf,i] = 
 
-#  set pf_energy2(pf_bottom_ene,pps)
-#    machine_energy . 
+#  set pf_ergy2(pf_bottom_e,es)
+#    machine_ergy . 
 
 #Right-side of the separate nests to enable writign CES-shares as 1-sum(OtherShares)
 #  set pf_right[pf]/
-#    machine_energy
-#    transport_energy
-#    heating_energy
+#    machine_ergy
+#    transport_ergy
+#    heating_ergy
 

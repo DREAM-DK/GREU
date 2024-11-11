@@ -1,7 +1,7 @@
 
 set sector "Sectors of the economy as defined in national accounts." /
   Corp "Financial and non-financial corporations including subsectors."
-  Gov "General government including subsectors."
+  Gov "Geral government including subsectors."
   Hh "Households and non-profit institutions serving households."
   RoW "Rest of the world including subsectors."
 /;
@@ -9,7 +9,7 @@ set sector "Sectors of the economy as defined in national accounts." /
 set ESA10_sectors "ESA 2010 sectors as defined in the European System of Accounts." /
   S11 "Financial corporations including subsectors."
   S12 "Non-financial corporations including subsectors."
-  S13 "General government including subsectors."
+  S13 "Geral government including subsectors."
   S14 "Households."
   S15 "Non-profit institutions serving households."
   S2 "Rest of the world including subsectors."

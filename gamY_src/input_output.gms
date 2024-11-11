@@ -10,7 +10,7 @@ $GROUP+ price_variables
   pM_i[i,t] "Price of imports by industry."
 
   pR_di[di,t] "Price of intermediate inputs by industry demanding the inputs."
-  pE_di[di,t] "Price of energy inputs by industry demanding the energy."
+  pE_di[di,t] "Price of ergy inputs by industry demanding the ergy."
   pI_k[k,t] "Price of investment goods."
   pC_c[c,t] "Price of private consumption goods."
   pG_g[g,t] "Price of government consumption goods."
@@ -24,7 +24,7 @@ $GROUP+ quantity_variables
   qM_i[i,t]$(m[i]) "Real imports by industry."
 
   qR_di[di,t] "Real intermediate inputs, by industry demanding the inputs."
-  qE_di[di,t] "Real energy inputs, by industry demanding the energy."
+  qE_di[di,t] "Real ergy inputs, by industry demanding the ergy."
   qI_k[k,t] "Real investments."
   qC_c[c,t] "Real private consumption."
   qG_g[g,t] "Real government consumption."
@@ -38,7 +38,7 @@ $GROUP+ value_variables
   vM_i[i,t]$(m[i]) "Imports by industry."
 
   vR_di[di,t] "Intermediate inputs, by industry demanding the inputs."
-  vE_di[di,t] "Energy inputs, by industry demanding the energy."
+  vE_di[di,t] "ergy inputs, by industry demanding the ergy."
   vI_k[k,t] "Investments."
   vC_c[c,t] "Private consumption."
   vG_g[g,t] "Government consumption."

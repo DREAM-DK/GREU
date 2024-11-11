@@ -1,18 +1,18 @@
 
 
-set out "All product types produced by industries, including energy and margins";
-set ene[out] "Energy products produced by industries"; alias(ene,ene_a);
-set pps "End-purpose of energy";
+set out "All product types produced by industries, including ergy and margins";
+set e[out] "ergy products produced by industries"; alias(e,e_a);
+set es "End-purpose of ergy";
 
-set prd/heating,transport,OtherEnergy/;
+set prd/heating,transport,Otherergy/;
 
-#  set mapPrd2PPs(prd,pps)/
+#  set mapPrd2es(prd,es)/
 #  	heating . heating 
 #  	transport . transport 
-#  	OtherEnergy . (process_normal,process_special, in_ETS)
+#  	Otherergy . (process_normal,process_special, in_ETS)
 #  	/;
 
 $gdxIn ../data/data.gdx
-$load out, ene, pps
+$load out, e, es
 $gdxIn
-#  execute_loaddc '..\data\data.gdx' out ene pps;
+#  execute_loaddc '..\data\data.gdx' out e es;
