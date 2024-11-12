@@ -28,7 +28,7 @@ $FUNCTION inf_growth_adjust():
   abort$(INF_GROWTH_ADJUSTED) "Trying to adjust for inflation and growth, but model is already adjusted.";
   $offlisting
     $LOOP price_variables:
-      {name}.l{sets} = {name}.l{sets} / fpt[t];
+      {name}.l{sets}= {name}.l{sets} / fpt[t];
       {name}.lo{sets} = {name}.lo{sets} / fpt[t];
       {name}.up{sets} = {name}.up{sets} / fpt[t];
     $ENDLOOP
