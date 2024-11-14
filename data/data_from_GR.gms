@@ -13,6 +13,30 @@ set em "Emissiontype" ;
 set em_accounts "Different accounting levels of emissions inventories";
 set land5 "Five aggregate land-use categories";
 
+set etaxes 
+    / CO2_tax
+      EAFG_tax
+      SO2_tax
+      NOx_tax
+      PM_tax
+      VOC_tax
+      NH3_tax
+      BC_tax
+      OC_tax
+      CH4_tax
+      N2O_tax
+      F_gas_tax
+      HFCs_tax
+      PFCs_tax
+      SF6_tax
+      NF3_tax
+      CFCs_tax
+      HCFCs_tax
+      HFOs_tax
+      PSO_tax
+  /;
+
+
 set factors_of_production /
   "labor"
   RxE #Non-ergy input
@@ -37,7 +61,6 @@ variables
   qRxE[i,t]
   pRxE[i,t]
 
- 
 ;
 
 parameters GREU_data
@@ -55,6 +78,10 @@ parameters GREU_data
   tpLE[es,e,t] ""
   tpCE[es,e,t] ""
   tpXE[es,e,t] ""
+
+  tCO2_REmarg_load[es,e,i,t,em]
+  tCO2_REmarg[em,es,e,i,t]
+  # tCO2_REmarg_GJ[purpose,energy19,r,t,emm_eq]
 
   qEtot[e,t] ""
   pE_avg[e,t] ""
@@ -98,7 +125,31 @@ parameters GREU_data
 
   GWP[em]
 
+  vtRE_duty[etaxes,es,e,i,t]
+  vtRE_vat[es,e,i,t]
 
+  vtCO2_RE[es,e,i,t]
+  vtEAFG_RE[es,e,i,t]
+  vtSO2_RE[es,e,i,t]
+  vtNOx_RE[es,e,i,t]
+  vtPSO_RE[es,e,i,t]
+  vtVAT_RE[es,e,i,t]
+
+  vtCE_duty[etaxes,es,e,t]  
+  vtCE_vat[es,e,t]
+
+  vtCO2_CE[es,e,t]
+  vtEAFG_CE[es,e,t]
+  vtSO2_CE[es,e,t]
+  vtNOX_CE[es,e,t]
+  vtPSO_CE[es,e,t]
+  vtVAT_CE[es,e,t]
+
+  vtCO2_ETS[i,t] 
+  qCO2_ETS_freeallowances[i,t]
+
+  vtNetproductionRest[i,t]
+  vtCAP_prodsubsidy[i,t]
 ;
 
 $gdxIn P:\akg\Til_EU_projekt\EU_GR_data.gdx
@@ -113,9 +164,15 @@ $load em =emm_eq, em_accounts=accounts_all, land5
 $load qEmmCE_load=qEmmConsE.l, qEmmCxE_load=qEmmConsxE.l, qEmmRE_load=qEmmProdE.l, qEmmRxE_load=qEmmProdxE.l, qEmmtot_load=qEmmtot.l, qEmmLULUCF=qEmmLULUCF.l, qEmmLULUCF5=qEmmLULUCF5.l, sBioNatGas=sBioNatGasAvgAdj.l
 $load c, x, g
 $load GWP=GWP.l
+$load vtCO2_RE = vtCO2_RE.l, vtEAFG_RE = vtEAFG_RE.l, vtSO2_RE = vtSO2_RE.l, vtNOX_RE = vtNOX_RE.l, vtPSO_RE = vtPSO_RE.l, vtVAT_RE = vtVAT_RE.l
+$load vtCO2_CE = vtCO2_CE.l, vtEAFG_CE = vtEAFG_CE.l, vtSO2_CE = vtSO2_CE.l, vtNOX_CE = vtNOX_CE.l, vtPSO_CE = vtPSO_CE.l, vtVAT_CE = vtVAT_CE.l
+$load tCO2_REmarg_load = tCO2_REmarg.l
+$load vtCO2_ETS = vtCO2_ETS.l, qCO2_ETS_freeallowances=qEmmProdE_dedETS.l
+$load vtNetproductionRest=vtNetproductionRest.l
+$load vtCAP_prodsubsidy=vtCAP_top.l
 $gdxIn 
 
-
+#Production
 vWages_i[i,t] = w.l[t] * qL.l[i,t];
 nL[t] = nEmployed.l[t];
 
@@ -129,11 +186,30 @@ qProd['transport_energy',i,t]    = sum((es,e)$(sameas[es,'Transport']), pREpj[es
 qProd['heating_energy',i,t]      = sum((es,e)$(sameas[es,'heating']), pREpj[es,e,i,t]*qREpj[es,e,i,t]);
 pProd[factors_of_production,i,t] = 1;
 
+#Emissions
 qEmmCE[em,es,e,t] = qEmmCE_load[t,em,es,e];
 qEmmCxE[em,t] = qEmmCxE_load[t,em];
 qEmmRE[em,es,e,i,t] = qEmmRE_load[i,t,em,es,e];
 qEmmRxE[em,i,t] = qEmmRxE_load[i,t,em];
 qEmmtot[em,em_accounts,t] = qEmmTot_load[t,em,em_accounts];
+
+#Taxes 
+vtRE_duty['CO2_tax',es,e,i,t]  = vtCO2_RE[es,e,i,t];
+vtRE_duty['EAFG_tax',es,e,i,t] = vtEAFG_RE[es,e,i,t];
+vtRE_duty['SO2_tax',es,e,i,t]  = vtSO2_RE[es,e,i,t];
+vtRE_duty['NOx_tax',es,e,i,t]  = vtNOx_RE[es,e,i,t];
+vtRE_duty['PSO_tax',es,e,i,t]  = vtPSO_RE[es,e,i,t];
+vtRE_vat[es,e,i,t]             = vtVAT_RE[es,e,i,t];
+
+vtCE_duty['CO2_tax',es,e,t]  = vtCO2_CE[es,e,t];
+vtCE_duty['EAFG_tax',es,e,t] = vtEAFG_CE[es,e,t];
+vtCE_duty['SO2_tax',es,e,t]  = vtSO2_CE[es,e,t];
+vtCE_duty['NOx_tax',es,e,t]  = vtNOx_CE[es,e,t];
+vtCE_duty['PSO_tax',es,e,t]  = vtPSO_CE[es,e,t];
+vtCE_vat[es,e,t]             = vtVAT_CE[es,e,t];
+
+tCO2_REmarg[em,es,e,i,t]    = tCO2_REmarg_load[es,e,i,t,em];
+
 
 execute_unloaddi "data", vWages_i, nL, es, out, e, pXEpj_base, pLEpj_base, pCEpj_base, pREpj_base, pE_avg, tpRE, tqRE, tpLE, tpCE, tpXE, qEtot, pE_avg, pY_CET, pM_CET, qY_CET, qM_CET,
                         qREpj, qCEpj, qLEpj, qXEpj, qTLpj
@@ -142,4 +218,11 @@ execute_unloaddi "data", vWages_i, nL, es, out, e, pXEpj_base, pLEpj_base, pCEpj
                         qProd, pProd,
                         em, em_accounts, land5, qEmmCE, qEmmCxE, qEmmRE, qEmmRxE, qEmmtot, qEmmLULUCF5, qEmmLULUCF, sBioNatGas,
                         c, x, k, g,
-                        GWP;
+                        GWP,
+                        vtRE_duty, vtRE_vat
+                        vtCE_duty, vtCE_vat
+                        tCO2_REmarg
+                        vtCO2_RE
+                        vtCO2_ETS, qCO2_ETS_freeallowances
+                         vtNetproductionRest,
+                         vtCAP_prodsubsidy;

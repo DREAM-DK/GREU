@@ -24,6 +24,11 @@ $GROUP G_production_quantities
 
 $GROUP G_production_values
   vtBotded[i,t]$(d1Y[i,t]) "Value of bottom-up deductions"
+  vProdOtherProductionCosts[i,t]$(d1Y[i,t]) "Other production costs not in CES-nesting tree"
+  vtNetproductionRest[i,t]$(d1Y[i,t])       "Net production subsidies and taxes not internalized in user-cost of capital and not included in other items listed below"
+  vDiffMarginAvgE[i,t]$(d1Y[i,t])           "Difference between marginal and average energy-costs"
+  vtEmmRxE[i,t]$(d1Y[i,t])                  "Taxes on non-energy related emissions"
+  vtCAP_prodsubsidy[i,t]$(d1Y[i,t])         "Agricultural subsidies from EU CAP subsidizing production directly"
 ;
 
 $GROUP G_production_other 
@@ -57,6 +62,8 @@ $GROUP G_production_flat_after_last_data_year
 $GROUP G_production_data_variables
   pProd
   qProd
+  vtNetproductionRest
+  vtCAP_prodsubsidy
 ;
 
 # ------------------------------------------------------------------------------
@@ -105,7 +112,8 @@ $GROUP+ G_flat_after_last_data_year
 
     #Computing marginal costs. These are marginal cost of production from CES-production (pProd['KETELBER']), net of installation costs, and other costs not covered in the production function
     pY0[i,t]$(d1Y[i,t]).. 
-      pY0[i,t] * qY[i,t] =E=  pProd['TopPfunction',i,t] * (qProd['TopPfunction',i,t]+ vtBotded[i,t]);  #- qKinstcost[i,t])
+      pY0[i,t] * qY[i,t] =E=  pProd['TopPfunction',i,t] * qProd['TopPfunction',i,t] 
+                            + vProdOtherProductionCosts[i,t];  #- qKinstcost[i,t])
                           
 
     qProd&_top[pf,i,t]$(d1Prod[pf,i,t] and pf_top[pf]).. 
@@ -117,6 +125,16 @@ $GROUP+ G_flat_after_last_data_year
 
     pProd&_nest[pfNest,i,t]$(d1Prod[pfNest,i,t])..
       pProd[pfNest,i,t] * qProd[pfNest,i,t] =E= sum(pf$(pf_mapping[pfNest,pf,i]), pProd[pf,i,t]*qProd[pf,i,t]);
+
+    #Computing other production costs, not in nesting tree 
+
+    vProdOtherProductionCosts[i,t]$(d1Y[i,t]).. 
+      vProdOtherProductionCosts[i,t] =E= vtNetproductionRest[i,t] #Net production subsidies and taxes not internalized in user-cost of capital and not included in other items listed below
+                                       - vtBotded[i,t]            #"Bottom deductions on energy-use"
+                                       - vDiffMarginAvgE[i,t]     #"Difference between marginal and average energy-costs"
+                                       + vtEmmRxE[i,t]            #Taxes on non-energy related emissions
+                                       - vtCAP_prodsubsidy[i,t]   #Agricultural subsidies from EU CAP subsidizing production directly.
+                                       ;
 
   $ENDBLOCK
 

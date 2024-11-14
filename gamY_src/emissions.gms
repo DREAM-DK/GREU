@@ -9,9 +9,7 @@
 	      d1EmmRE[em,es,e,i,t]
 	      d1EmmRxE[em,i,t]
 
-
         d1Sbionatgas[t]
-
 		;	
 
 		$PGROUP PG_emissions_BU_flat_dummies 
@@ -137,6 +135,7 @@
 # Equations
 # ------------------------------------------------------------------------------
 
+  #BLOCK 1/3, BOTTOM-UP EMISSIONS
   $BLOCK emissions_BU emissions_BU_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
     #Energy-related emissions
@@ -183,6 +182,7 @@
 
   $ENDBLOCK 
 
+  #BLOCK 2/3 EMISSIONS AGGREGATES - CAN RUN SEPARATELY OF BOTTOM-UP EMISSIONS. WHEN LINKING 1 AND 2 (THROUGH 3) CALIBRATION VARAIBLES IN 2 ARE ENDOGENIZED TO MATCH BOTTOM-UP EMISSIONS
   $BLOCK emissions_aggregates emissions_aggregates_endogenous $(t1.val <= t.val and t1.val <=tEnd.val)
       #Energy-related emissions
       qEmmE&_production[em,i,t]$(d1EmmE[em,i,t] and not sameas[em,'CO2e'])..
@@ -220,7 +220,7 @@
 
   $ENDBLOCK 
 
-  #If these equations are added to the model (the default) then the aggregates are based on bottom-up emissions.
+  #BLOCK 3/3, LINKING EMISSIONS AGGREGATES AND BOTTOM-UP EMISSIONS
   $BLOCK emissions_aggregates_link emissions_aggregates_link_endogenous $(t1.val <= t.val and t1.val <=tEnd.val)
 
       #Energy-related emissions    
@@ -249,6 +249,7 @@ model main /
             emissions_BU
             emissions_aggregates_link
             /;
+            
 $GROUP+ main_endogenous 
   emissions_aggregates_endogenous
   emissions_BU_endogenous
@@ -289,11 +290,9 @@ $GROUP+ data_covered_variables G_emissions_data;
   d1GWP[em]                  = yes$(GWP.l[em]);
   d1Sbionatgas[t]            = yes$(sBioNatGas.l[t]);
 
-  PARAMETER d1xEwhat[em,i,t];
-  d1xEwhat[em,i,t] = yes$(d1EmmxE[em,i,t] and not d1EmmRxE[em,i,t]);
 # ------------------------------------------------------------------------------
 # Calibration
-
+# ------------------------------------------------------------------------------
 
 # Add equations and calibration equations to calibration model
 model calibration /

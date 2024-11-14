@@ -45,7 +45,7 @@ execute_unload 'static_calibration.gdx';
 
  #Extending dummies with "flat forecast" after last data year
 	$LOOP all_variables: #Extending exist dummies
-	{name}_exists_dummy{sets}{$}[<t>t_dummies] = {name}_exists_dummy{sets}{$}[<t>'%calibration_year%'];
+		{name}_exists_dummy{sets}{$}[<t>t_dummies] = {name}_exists_dummy{sets}{$}[<t>'%calibration_year%'];
 	$ENDLOOP
 
 	$LOOP PG_flat_after_last_data_year: #Extending model dummies 
@@ -62,7 +62,7 @@ execute_unload 'static_calibration.gdx';
 	 {name}.l{sets}$({conditions} and {name}.l{sets} = 0) = {name}.l{sets}{$}[<t>t1];
 	 $ENDLOOP
 
-		$GROUP G_calibration_endogenous_x 
+	 $GROUP G_calibration_endogenous_x 
 			calibration_endogenous
 			-uY_CET$(sameas[out,'WholeAndRetailSaleMarginE']) #Den her flytter sig en my...
 			-uY_CET$(sameas[out,'Firewood and woodchips'])    #Den her flytter sig en my..
@@ -74,12 +74,12 @@ execute_unload 'static_calibration.gdx';
 			
 			-G_emissions_aggregates_quantities
 			-G_emissions_aggregates_other
-		;
+	 ;
 		
-	@set(G_calibration_endogenous_x, _endosaved, .l); # Save values of data covered variables prior to calibration
 
  d1pProd_uc_tEnd = yes;
  $FIX all_variables; $UNFIX calibration_endogenous;
+	@set(G_calibration_endogenous_x, _endosaved, .l); # Save values of data covered variables prior to calibration
  execute_unloaddi "calibration_pre.gdx";
  solve calibration using CNS;
  execute_unloaddi "calibration.gdx";
