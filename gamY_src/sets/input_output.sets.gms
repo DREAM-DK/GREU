@@ -13,7 +13,6 @@ $load g_load = g
 $load x_load = x
 $gdxIn
 
-
 set d "Demand components."/
   set.i_load 
   set.k_load 
@@ -21,7 +20,7 @@ set d "Demand components."/
   set.g_load 
   set.x_load
   /;
-  ;
+  
 set di[d] "Intermediate input types."
   /set.i_load/
   ;

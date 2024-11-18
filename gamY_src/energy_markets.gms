@@ -68,8 +68,8 @@
 			pCEpj_base[es,e,t]
 			pREpj_base[es,e,i,t]
 
-			tpRE[es,e,i,t]
-			tqRE[es,e,i,t]
+			# tpRE[es,e,i,t]
+			# tqRE[es,e,i,t]
 			tpLE[es,e,t]
 			tpCE[es,e,t]
 			tpXE[es,e,t]
