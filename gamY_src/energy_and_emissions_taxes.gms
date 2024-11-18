@@ -72,10 +72,15 @@
 
   ;
 
+  $GROUP G_energy_taxes_other 
+    jvtRE_duty[etaxes,es,e,i,t]$(d1tRE_duty[etaxes,es,e,i,t]) "J-term to capture instances ,where data contains a revenue, but the marginal rate is zero."
+  ;
+
   $GROUP G_energy_taxes_flat_after_last_data_year
     G_energy_taxes_rates
     G_energy_taxes_quantities
     G_energy_taxes_values
+    G_energy_taxes_other
   ;
 
   $GROUP G_energy_taxes_data  
@@ -103,6 +108,7 @@
 
 	$GROUP+ other_variables
     G_energy_taxes_rates
+    G_energy_taxes_other
 	;
 
 	#Add dummies to main flat-group 
@@ -121,7 +127,7 @@
   $BLOCK energy_and_emissions_taxes energy_and_emissions_taxes_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
     #INDUSTRIES
       vtRE_duty[etaxes,es,e,i,t]$(d1tRE_duty[etaxes,es,e,i,t]).. 
-        vtRE_duty[etaxes,es,e,i,t] =E= tREmarg_duty[etaxes,es,e,i,t] * (qREpj[es,e,i,t] - qREpj_duty_deductible[etaxes,es,e,i,t]);
+        vtRE_duty[etaxes,es,e,i,t] =E= tREmarg_duty[etaxes,es,e,i,t] * (qREpj[es,e,i,t] - qREpj_duty_deductible[etaxes,es,e,i,t]) +  jvtRE_duty[etaxes,es,e,i,t];
 
       vtRE_vat[es,e,i,t]$(d1tRE_vat[es,e,i,t])..
         vtRE_vat[es,e,i,t] =E=  tRE_vat[es,e,i,t] *(pREpj_base[es,e,i,t]*qREpj[es,e,i,t] 
@@ -314,7 +320,8 @@ model calibration /
 $GROUP calibration_endogenous
   energy_and_emissions_taxes_endogenous
   -vtRE_duty[etaxes,es,e,i,t1], tREmarg_duty[etaxes,es,e,i,t1]
-  # -tREmarg_duty['EAFG_tax',es,e,i,t1], qREpj_duty_deductible['EAFG_tax',es,e,i,t1] 
+  -tREmarg_duty['EAFG_tax',es,e,i,t1]$(d1tRE_duty['EAFG_tax',es,e,i,t1] and tREmarg_duty.l['EAFG_tax',es,e,i,t1] <>0), qREpj_duty_deductible['EAFG_tax',es,e,i,t1]$(d1tRE_duty['EAFG_tax',es,e,i,t1] and tREmarg_duty.l['EAFG_tax',es,e,i,t1] <>0)
+  -tREmarg_duty['EAFG_tax',es,e,i,t1]$(d1tRE_duty['EAFG_tax',es,e,i,t1] and tREmarg_duty.l['EAFG_tax',es,e,i,t1] =0), jvtRE_duty['EAFG_tax',es,e,i,t1]$(d1tRE_duty['EAFG_tax',es,e,i,t1] and tREmarg_duty.l['EAFG_tax',es,e,i,t1] =0)
   -vtRE_vat[es,e,i,t1], tRE_vat[es,e,i,t1]
 
   -vtCE_duty[etaxes,es,e,t1], tCE_duty[etaxes,es,e,t1]
