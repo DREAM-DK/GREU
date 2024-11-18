@@ -41,6 +41,7 @@ parameters auxiliary_data_parameters
   qM_CET[out,i,t] ""
 
   vtRE_duty[etaxes,es,e,i,t]
+  tEAFG_REmarg[es,e,i,t]
   vtRE_vat[es,e,i,t]
 
   vtCO2_RE[es,e,i,t]
@@ -87,6 +88,8 @@ parameters GREU_data
 
   tCO2_REmarg_load[es,e,i,t,em]
   tCO2_REmarg[em,es,e,i,t]
+  tREmarg_duty[etaxes,es,e,i,t]
+  
   # tCO2_REmarg_GJ[purpose,energy19,r,t,emm_eq]
 
   qEtot[e,t] ""
@@ -124,7 +127,7 @@ $load qEmmCE_load=qEmmConsE.l, qEmmCxE_load=qEmmConsxE.l, qEmmRE_load=qEmmProdE.
 $load GWP=GWP.l
 $load vtCO2_RE = vtCO2_RE.l, vtEAFG_RE = vtEAFG_RE.l, vtSO2_RE = vtSO2_RE.l, vtNOX_RE = vtNOX_RE.l, vtPSO_RE = vtPSO_RE.l, vtVAT_RE = vtVAT_RE.l
 $load vtCO2_CE = vtCO2_CE.l, vtEAFG_CE = vtEAFG_CE.l, vtSO2_CE = vtSO2_CE.l, vtNOX_CE = vtNOX_CE.l, vtPSO_CE = vtPSO_CE.l, vtVAT_CE = vtVAT_CE.l
-$load tCO2_REmarg_load = tCO2_REmarg.l
+$load tCO2_REmarg_load = tCO2_REmarg.l, tEAFG_REmarg = tEAFG_REmarg.l
 $load vtCO2_ETS = vtCO2_ETS.l, qCO2_ETS_freeallowances=qEmmProdE_dedETS.l
 $load vtNetproductionRest=vtNetproductionRest.l
 $load vtCAP_prodsubsidy=vtCAP_top.l
@@ -165,7 +168,8 @@ $import create_energybalance.gms #Here GreenREFORM variables are combine to crea
   vtCE_vat[es,e,t]            = Energybalance['VAT','household_consumption','cCarEne',es,e,t];
   vtCE_vat[es,e,t]            = Energybalance['VAT','household_consumption','cHouEne',es,e,t];
 
-  tCO2_REmarg[em,es,e,i,t]    = tCO2_REmarg_load[es,e,i,t,em];
+  tCO2_REmarg[em,es,e,i,t]          = tCO2_REmarg_load[es,e,i,t,em];
+  tREmarg_duty['EAFG_tax',es,e,i,t] = tEAFG_REmarg[es,e,i,t]/1000; #Dividing by 1000 to convert from kroner per GJ to bio. kroner per Pj.
 
 
 execute_unloaddi "data", vWages_i, nL, es, out, e, pXEpj_base, pLEpj_base, pCEpj_base, pREpj_base, pE_avg, 
@@ -178,7 +182,7 @@ execute_unloaddi "data", vWages_i, nL, es, out, e, pXEpj_base, pLEpj_base, pCEpj
                         em, em_accounts, land5, qEmmCE, qEmmCxE, qEmmRE, qEmmRxE, qEmmtot, qEmmLULUCF5, qEmmLULUCF, sBioNatGas,
                         c, x, k, g,
                         GWP,
-                        vtRE_duty, vtRE_vat
+                        vtRE_duty, vtRE_vat, tREmarg_duty
                         vtCE_duty, vtCE_vat
                         tCO2_REmarg
                         vtCO2_RE

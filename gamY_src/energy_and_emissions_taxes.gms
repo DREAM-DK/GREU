@@ -85,6 +85,7 @@
     vtCE_vat
 
     tCO2_REmarg
+    tREmarg_duty
     qCO2_ETS_freeallowances
   ;
 
@@ -265,7 +266,6 @@
 
    tCO2_REmarg.l[em,es,'District heat',i,t] = no;
 
-
    tCO2_ETS.l[t] = 750;
    tCO2_ETS2.l[t] = 375; 
 
@@ -314,6 +314,7 @@ model calibration /
 $GROUP calibration_endogenous
   energy_and_emissions_taxes_endogenous
   -vtRE_duty[etaxes,es,e,i,t1], tREmarg_duty[etaxes,es,e,i,t1]
+  # -tREmarg_duty['EAFG_tax',es,e,i,t1], qREpj_duty_deductible['EAFG_tax',es,e,i,t1] 
   -vtRE_vat[es,e,i,t1], tRE_vat[es,e,i,t1]
 
   -vtCE_duty[etaxes,es,e,t1], tCE_duty[etaxes,es,e,t1]

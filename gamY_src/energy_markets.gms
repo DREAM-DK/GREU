@@ -46,6 +46,13 @@
 			fpCE[es,e,t]$(d1pCEpj_base[es,e,t]) ""
 		;
 
+		$GROUP G_energy_markets_prices_values
+			vRE_base[es,e,i,t]$(d1pREpj_base[es,e,i,t]) ""
+			vCE_base[es,e,t]$(d1pCEpj_base[es,e,t]) ""
+			vLE_base[es,e,t]$(d1pLEpj_base[es,e,t]) ""
+			vXE_base[es,e,t]$(d1pXEpj_base[es,e,t]) ""
+		;
+
 		$GROUP G_energy_markets_prices_flat_after_last_data_year 
 			G_energy_markets_prices
 			G_energy_markets_prices_other
@@ -265,6 +272,7 @@
 	;
 
 	$GROUP+ value_variables
+		G_energy_markets_prices_values
 		G_energy_markets_clearing_values
 		G_energy_markets_margins_values
 	;
