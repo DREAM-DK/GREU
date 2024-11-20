@@ -32,15 +32,20 @@
 			"titleBar.activeForeground": "#000000",
 			"titleBar.inactiveBackground": "#5CD272",
 			"titleBar.inactiveForeground": "#000000",
-		}
-	},
+		},
+		"editor.rulers": [120],
+		"jupyter.interactiveWindow.textEditor.executeSelection": true,
+		"jupyter.interactiveWindow.creationMode": "multiple",
+		"python.REPL.enableREPLSmartSend": false,
+		"python.REPL.sendToNativeREPL": false,
+    "notebook.output.scrolling": true
+},
   "extensions": {
     "recommendations": [
 			"jeppekinslev.gamY-syntax-highlighting", // gamY syntax highlighting
-      "teabyii.ayu" // Color themes, inludes dark, light and mirage themes
-			"ms-toolsai.jupyter" // Jupyter notebook support
+      "teabyii.ayu", // Color themes, inludes dark, light and mirage themes
+			"ms-toolsai.jupyter", // Jupyter notebook support
 			"ms-python.python" // Python support
-			"mhutchie.git-graph" // Git graph
     ]
   },
 }
