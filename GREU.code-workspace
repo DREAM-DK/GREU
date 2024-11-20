@@ -38,7 +38,8 @@
 		"jupyter.interactiveWindow.creationMode": "multiple",
 		"python.REPL.enableREPLSmartSend": false,
 		"python.REPL.sendToNativeREPL": false,
-    "notebook.output.scrolling": true
+    "notebook.output.scrolling": true,
+		"python.defaultInterpreterPath": "/usr/bin/python",
 },
   "extensions": {
     "recommendations": [
