@@ -19,6 +19,8 @@ set d "Demand components."/
   set.c_load 
   set.g_load 
   set.x_load
+  invt
+  tl
   /;
   
 set di[d] "Intermediate input types."
@@ -47,3 +49,13 @@ set g[d] "Public consumption categories"
 set x[d] "Export types."
   /set.x_load/
   ;
+
+set invt[d] "Invetories"
+  /
+  invt 
+  /
+;
+set tl[d] "Transmission losses"
+  /
+  tl 
+  /;

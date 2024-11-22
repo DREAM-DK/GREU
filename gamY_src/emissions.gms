@@ -4,11 +4,7 @@
 	
 	#BOTTOM-UP EMISSIONS
 		$PGROUP PG_emissions_BU_dummies
-	      d1EmmCE[em,es,e,t]
-	      d1EmmCxE[em,t]
-	      d1EmmRE[em,es,e,i,t]
-	      d1EmmRxE[em,i,t]
-
+        d1EmmE_BU[em,es,e,d,t]
         d1Sbionatgas[t]
 		;	
 
@@ -16,41 +12,30 @@
 			PG_emissions_BU_dummies  
 		;
 
+    $PGROUP+ PG_flat_after_last_data_year
+      PG_emissions_BU_flat_dummies
+    ;
+
 
 		$GROUP G_emissions_BU_quantities 
-			qEmmRE[em,es,e,i,t]$(d1EmmRE[em,es,e,i,t]) "Industries emissions related to combustion of energy e for energy-service es, measured in kilotonnes emitted gas"
-			qEmmRxE[em,i,t]$(d1EmmRxE[em,i,t]) "Industries emissions not related to combustion of energy. Measured in kilotonnes emitted gas"
-			qEmmCE[em,es,e,t]$(d1EmmCE[em,es,e,t]) "Consumers emissions related to combustion of energy. Measured in kilotonnes emitted gas"
-      qEmmCxE[em,t]$(d1EmmCxE[em,t]) "Consumers emissions not related to combustion of energy. Measured in kilotonnes emitted gas" 
-
+      qEmmE_BU[em,es,e,d,t]$(d1EmmE_BU[em,es,e,d,t]) "Emissions, lowest model level (BU=Bottom up) related to combustion of energy, measured in kilotonnes emitted gas"
     ;
 
 		$GROUP G_emissions_BU_other
-			uEmmRE[em,es,e,i,t]$(d1EmmRE[em,es,e,i,t]) "Unit emissions related to combustion of energy e for energy-service es, measured in kilotonnes emitted gas per unit of energy"
-			uEmmRxE[em,i,t]$(d1EmmRxE[em,i,t]) "Unit emissions not related to combustion of energy. Measured in kilotonnes emitted gas per unit of energy"
-
-			uEmmCE[em,es,e,t]$(d1EmmCE[em,es,e,t]) "Unit emissions related to combustion of energy. Measured in kilotonnes emitted gas per unit of energy"
-			uEmmCxE[em,t]$(d1EmmCxE[em,t]) "Unit emissions not related to combustion of energy. Measured in kilotonnes emitted gas per unit of energy"
-
-			sBioNatGas[t]$(d1Sbionatgas[t]) "Share of bio-natural gas in total natural gas consumption"
-
-
+      uEmmE_BU[em,es,e,d,t]$(d1EmmE_BU[em,es,e,d,t]) "Emission coefficient related to energy use. Measured in kilotonnes emitted gas per peta Joule of energy"
+			sBioNatGas[t]$(d1Sbionatgas[t])                "Share of bio-natural gas in total natural gas consumption, should perhaps be modelled through emission coefficient in future"
 		;
 
-		$GROUP G_emissions_BU_flat_after_last_data_year 
+		$GROUP+ G_flat_after_last_data_year 
 			G_emissions_BU_quantities
 			G_emissions_BU_other
 		;
 
     #AKB: It would be nice to have an "add from group, but excluding dummies feature"
 		$GROUP G_emissions_BU_data 
-      qEmmRE
-      qEmmRxE
-      qEmmCE
-      qEmmCxE
+      qEmmE_BU
       sBioNatGas
-      # G_emissions_other
-		;
+  	;
 
 
     #AGGREGATE EMISSIONS
@@ -65,6 +50,10 @@
 
     $PGROUP PG_emissions_aggregates_flat_dummies 
       PG_emissions_aggregates_dummies
+    ;
+
+    $PGROUP+ PG_flat_after_last_data_year
+      PG_emissions_aggregates_flat_dummies
     ;
 
 
@@ -84,7 +73,7 @@
       uEmmLULUCF5[land5,t]$(d1EmmLULUCF5[land5,t]) "Emission coefficient on land-use, land-use change and forestry"
     ;
 
-    $GROUP G_emissions_aggregates_flat_after_last_data_year
+    $GROUP+ G_flat_after_last_data_year
       G_emissions_aggregates_quantities
       G_emissions_aggregates_other
     ;
@@ -94,11 +83,7 @@
       qEmmLULUCF5
       qEmmLULUCF
       GWP
-      # G_emissions_aggregates_quantities
     ;
-
-
-
 
 # ------------------------------------------------------------------------------
 # Add to main groups
@@ -119,18 +104,6 @@
     G_emissions_aggregates_other
 	;
 
-	#Add dummies to main flat-group 
-	$PGROUP+ PG_flat_after_last_data_year
-		PG_emissions_BU_flat_dummies
-    PG_emissions_aggregates_flat_dummies
-	;
-		# Add dummies to main groups
-	$GROUP+ G_flat_after_last_data_year
-		G_emissions_BU_flat_after_last_data_year
-    G_emissions_aggregates_flat_after_last_data_year
-	;
-
-
 # ------------------------------------------------------------------------------
 # Equations
 # ------------------------------------------------------------------------------
@@ -139,46 +112,19 @@
   $BLOCK emissions_BU emissions_BU_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
     #Energy-related emissions
-      #Firms
-      qEmmRE&_notNatgas[em,es,e,i,t]$(d1pREpj_base[es,e,i,t] and d1EmmRE[em,es,e,i,t] and not sameas[em,'CO2e'] and not (sameas[e,'Natural gas incl. biongas'] and (sameas[em,'CO2ubio'] or sameas[em,'CO2bio'])))..
-        qEmmRE[em,es,e,i,t] =E= uEmmRE[em,es,e,i,t] * qREpj[es,e,i,t]*fqt[t];
+      qEmmE_BU&_notNatgas[em,es,e,d,t]$(not sameas[em,'CO2e'] and not (sameas[e,'Natural gas incl. biongas'] and (sameas[em,'CO2ubio'] or sameas[em,'CO2bio'])))..
+        qEmmE_BU[em,es,e,d,t] =E= uEmmE_BU[em,es,e,d,t] * qEpj[es,e,d,t];
 
-      qEmmRE&_BioNatgas[em,es,e,i,t]$(d1pREpj_base[es,e,i,t] and d1EmmRE[em,es,e,i,t] and sameas[e,'Natural gas incl. biongas'] and sameas[em,'CO2bio'])..
-        qEmmRE[em,es,e,i,t] =E= sBioNatGas[t] * uEmmRE[em,es,e,i,t] * qREpj[es,e,i,t]*fqt[t];
+      qEmmE_BU&_BioNatgas[em,es,e,d,t]$(not sameas[em,'CO2e'] and sameas[e,'Natural gas incl. biongas'] and sameas[em,'CO2bio'])..
+        qEmmE_BU[em,es,e,d,t] =E= sBioNatGas[t] * uEmmE_BU[em,es,e,d,t] * qEpj[es,e,d,t];
 
-      qEmmRE&_FossileNatgas[em,es,e,i,t]$(d1pREpj_base[es,e,i,t] and d1EmmRE[em,es,e,i,t] and sameas[e,'Natural gas incl. biongas'] and sameas[em,'CO2ubio'])..
-        qEmmRE[em,es,e,i,t] =E= (1-sBioNatGas[t]) * uEmmRE[em,es,e,i,t] * qREpj[es,e,i,t]*fqt[t];
+      qEmmE_BU&_FossileNatgas[em,es,e,d,t]$(not sameas[em,'CO2e'] and sameas[e,'Natural gas incl. biongas'] and sameas[em,'CO2ubio'])..
+        qEmmE_BU[em,es,e,d,t] =E= (1-sBioNatGas[t]) * uEmmE_BU[em,es,e,d,t] * qEpj[es,e,d,t];
 
-      qEmmRE&_CO2e[em,es,e,i,t]$(d1pREpj_base[es,e,i,t] and d1EmmRE[em,es,e,i,t] and sameas[em,'CO2e'])..
-        qEmmRE['CO2e',es,e,i,t] =E= sum(em_a$(not sameas[em_a,'CO2e']), GWP[em_a] * qEmmRE[em_a,es,e,i,t]);
+      #CO2e
+      qEmmE_BU&_CO2e[em,es,e,d,t]$(sameas[em,'CO2e'])..
+        qEmmE_BU['CO2e',es,e,d,t] =E= sum(em_a$(not sameas[em_a,'CO2e']), GWP[em_a] * qEmmE_BU[em_a,es,e,d,t]);
 
-      #Consumers
-      qEmmCE&_notNatgas[em,es,e,t]$(d1pCEpj_base[es,e,t] and d1EmmCE[em,es,e,t] and not sameas[em,'CO2e'] and not (sameas[e,'Natural gas incl. biongas'] and (sameas[em,'CO2ubio'] or sameas[em,'CO2bio'])))..
-        qEmmCE[em,es,e,t] =E= uEmmCE[em,es,e,t] * qCEpj[es,e,t]*fqt[t];
-
-      qEmmCE&_BioNatgas[em,es,e,t]$(d1pCEpj_base[es,e,t] and d1EmmCE[em,es,e,t] and sameas[e,'Natural gas incl. biongas'] and sameas[em,'CO2bio'])..
-        qEmmCE[em,es,e,t] =E= sBioNatGas[t] * uEmmCE[em,es,e,t] * qCEpj[es,e,t]*fqt[t];
-
-      qEmmCE&_FossileNatgas[em,es,e,t]$(d1pCEpj_base[es,e,t] and d1EmmCE[em,es,e,t] and sameas[e,'Natural gas incl. biongas'] and sameas[em,'CO2ubio'])..
-        qEmmCE[em,es,e,t] =E= (1-sBioNatGas[t]) * uEmmCE[em,es,e,t] * qCEpj[es,e,t]*fqt[t];
-
-      qEmmCE&_CO2e[em,es,e,t]$(d1pCEpj_base[es,e,t] and d1EmmCE[em,es,e,t] and sameas[em,'CO2e'])..
-        qEmmCE['CO2e',es,e,t] =E= sum(em_a$(not sameas[em_a,'CO2e']), GWP[em_a] * qEmmCE[em_a,es,e,t]);
-
-    #Non-energy related emissions 
-      #Firms
-      qEmmRxE[em,i,t]$(d1EmmRxE[em,i,t] and not sameas[em,'CO2e'])..
-        qEmmRxE[em,i,t] =E= uEmmRxE[em,i,t] * qProd['RxE',i,t]*fqt[t];
-
-      qEmmRxE&_CO2e[em,i,t]$(d1EmmRxE[em,i,t] and sameas[em,'CO2e'])..
-        qEmmRxE['CO2e',i,t] =E= sum(em_a$(not sameas[em_a,'CO2e'] and d1EmmRxE[em_a,i,t]), GWP[em_a] * qEmmRxE[em_a,i,t]); 
-                                                              #AKB: Hmm, troede ikke dummies i ovenstående sum skulle være nødvendige med nye setup. Undersøg, hvorfor
-      #Consumers
-      qEmmCxE[em,t]$(d1EmmCxE[em,t] and not sameas[em,'CO2e'])..
-        qEmmCxE[em,t] =E= uEmmCxE[em,t]; # * qProd['RxE',i,t]*fqt[t]; #AKB: Need to be coupled with consumption module
-
-      qEmmCxE&_CO2e[em,t]$(d1EmmCxE[em,t] and sameas[em,'CO2e'])..    
-        qEmmCxE['CO2e',t] =E= sum(em_a$(not sameas[em_a,'CO2e'] and d1EmmCxE[em,t]), GWP[em_a] * qEmmCxE[em_a,t]);
 
   $ENDBLOCK 
 
@@ -186,7 +132,7 @@
   $BLOCK emissions_aggregates emissions_aggregates_endogenous $(t1.val <= t.val and t1.val <=tEnd.val)
       #Energy-related emissions
       qEmmE&_production[em,i,t]$(d1EmmE[em,i,t] and not sameas[em,'CO2e'])..
-        qEmmE[em,i,t] =E= uEmmE[em,i,t] * (qProd['Machine_energy',i,t] + qProd['Transport_energy',i,t] + qProd['Heating_energy',i,t])*fqt[t];
+        qEmmE[em,i,t] =E= uEmmE[em,i,t] * (qProd['Machine_energy',i,t] + qProd['Transport_energy',i,t] + qProd['Heating_energy',i,t]);
 
       qEmmE&not_production[em,d,t]$(d1EmmE[em,d,t] and not i[d] and not sameas[em,'CO2e'])..
         qEmmE[em,d,t] =E= uEmmE[em,d,t];
@@ -194,9 +140,9 @@
       qEmmE&_CO2e[em,d,t]$(d1EmmE[em,d,t] and sameas[em,'CO2e'])..
         qEmmE['CO2e',d,t] =E= sum(em_a$(not sameas[em_a,'CO2e']), GWP[em_a] * qEmmE[em_a,d,t]); 
 
-      Non-energy related emissions
+      # Non-energy related emissions
       qEmmxE&_production[em,i,t]$(d1EmmxE[em,i,t] and not sameas[em,'CO2e'])..
-        qEmmxE[em,i,t] =E= uEmmxE[em,i,t] * sum(pf_top, (qProd[pf_top,i,t]*fqt[t]));
+        qEmmxE[em,i,t] =E= uEmmxE[em,i,t] * sum(pf_top, qProd[pf_top,i,t]);
 
       qEmmxE&not_production[em,d,t]$(d1EmmxE[em,d,t] and not i[d] and not sameas[em,'CO2e'])..
         qEmmxE[em,d,t] =E= uEmmxE[em,d,t];
@@ -205,7 +151,7 @@
         qEmmxE['CO2e',d,t] =E= sum(em_a$(not sameas[em_a,'CO2e']), GWP[em_a] * qEmmxE[em_a,d,t]);
 
 
-      # LULUCF (is measured in CO2e from the get-go)
+      # LULUCF (is measured in CO2e from the get-go, and we didn't need LULUCF5, if this is only a matter of hitting total emissions in official inventories)
       qEmmLULUCF5[land5,t]$(d1EmmLULUCF5[land5,t])..
         qEmmLULUCF5[land5,t] =E= uEmmLULUCF5[land5,t];
 
@@ -223,36 +169,20 @@
   #BLOCK 3/3, LINKING EMISSIONS AGGREGATES AND BOTTOM-UP EMISSIONS
   $BLOCK emissions_aggregates_link emissions_aggregates_link_endogenous $(t1.val <= t.val and t1.val <=tEnd.val)
 
-      #Energy-related emissions    
-      uEmmE&_production_link[em,i,t]$(d1EmmE[em,i,t] and not sameas[em,'CO2e'])..
-          qEmmE[em,i,t] =E= sum((e,es)$(d1pREpj_base[es,e,i,t] and d1EmmRE[em,es,e,i,t]), qEmmRE[em,es,e,i,t]);
-                              #AKB: @Martin: Hvorfor er mine dummies i ovenstående nødvendige?
-
-      uEmmE&_cHouEne_link[em,d,t]$(d1EmmE[em,d,t] and sameas[d,'cHouEne'] and not sameas[em,'CO2e'])..
-          qEmmE[em,d,t] =E= sum((e,es)$(not sameas[es,'Transport']), qEmmCE[em,es,e,t]);
-
-      uEmmE&_cCarEne_link[em,d,t]$(d1EmmE[em,d,t] and sameas[d,'cCarEne'] and not sameas[em,'CO2e'])..
-          qEmmE[em,d,t] =E= sum((e,es)$(sameas[es,'Transport']), qEmmCE[em,es,e,t]);
-
-
-      #Non-energy related emissions
-      uEmmxE&_production_link[em,i,t]$(d1EmmxE[em,i,t] and not sameas[em,'CO2e'])..
-          qEmmxE[em,i,t] =E= qEmmRxE[em,i,t];
-
-      uEmmxE&_cNonFood_link[em,d,t]$(d1EmmxE[em,d,t] and sameas[d,'cNonFood'] and not sameas[em,'CO2e'])..
-          qEmmxE[em,d,t] =E= qEmmCxE[em,t];
+      #Energy-related emissions
+      uEmmE[em,d,t]$(not sameas[em,'CO2e']).. qEmmE[em,d,t] =E= sum((e,es), qEmmE_BU[em,es,e,d,t]);
 
   $ENDBLOCK 
 
 model main / 
-            emissions_aggregates 
             emissions_BU
+            emissions_aggregates 
             emissions_aggregates_link
             /;
             
 $GROUP+ main_endogenous 
-  emissions_aggregates_endogenous
   emissions_BU_endogenous
+  emissions_aggregates_endogenous
   emissions_aggregates_link_endogenous
 ;
 
@@ -266,23 +196,14 @@ $GROUP+ data_covered_variables G_emissions_data;
 # ------------------------------------------------------------------------------
 # Initial values 
 # ------------------------------------------------------------------------------
-
-  qEmmE.l[em,i,t]         = sum((es,e)$(d1pREpj_base[es,e,i,t]), qEmmRE.l[em,es,e,i,t]);
-  qEmmE.l[em,'cHouEne',t] = sum((es,e)$(not sameas[es,'Transport'] and d1pCEpj_base[es,e,t]), qEmmCE.l[em,es,e,t]); 
-  qEmmE.l[em,'cCarEne',t] = sum((es,e)$(sameas[es,'Transport'] and d1pCEpj_base[es,e,t]),     qEmmCE.l[em,es,e,t]); 
-
-  qEmmxE.l[em,i,t]          = qEmmRxE.l[em,i,t];
-  qEmmxE.l[em,'cNonFood',t] = qEmmCxE.l[em,t]; 
+  
+  qEmmE.l[em,d,t] = sum((es,e), qEmmE_BU.l[em,es,e,d,t]);
 
 # ------------------------------------------------------------------------------
 # Dummies
 # ------------------------------------------------------------------------------
-
-  d1EmmCE[em,es,e,t]         = yes$(qEmmCE.l[em,es,e,t]);
-  d1EmmCxE[em,t]             = yes$(qEmmCxE.l[em,t]);
-  d1EmmRE[em,es,e,i,t]       = yes$(qEmmRE.l[em,es,e,i,t]);
-  d1EmmRxE[em,i,t]           = yes$(qEmmRxE.l[em,i,t]);
-  d1EmmE[em,d,t]             = yes$(qEmmE.l[em,d,t]);
+  d1EmmE_BU[em,es,e,d,t]     = yes$(qEmmE_BU.l[em,es,e,d,t] and d1pEpj_base[es,e,d,t]);
+  d1EmmE[em,d,t]             = yes$(sum((es,e), d1EmmE_BU[em,es,e,d,t]));
   d1EmmxE[em,d,t]            = yes$(qEmmxE.l[em,d,t]);
   d1EmmLULUCF5[land5,t]      = yes$(qEmmLULUCF5.l[land5,t]);
   d1EmmLULUCF[t]             = yes$(qEmmLULUCF.l[t]);
@@ -296,32 +217,23 @@ $GROUP+ data_covered_variables G_emissions_data;
 
 # Add equations and calibration equations to calibration model
 model calibration /
-  emissions_aggregates
   emissions_BU
+  emissions_aggregates
   emissions_aggregates_link
 /;
 
 # Add endogenous variables to calibration model
 $GROUP calibration_endogenous
+  emissions_BU_endogenous
+  uEmmE_BU[em,es,e,d,t1]$(not sameas[em,'CO2e']), -qEmmE_BU[em,es,e,d,t1]$(not sameas[em,'CO2e'])
+
   emissions_aggregates_endogenous
   uEmmE[em,i,t1]$(not sameas[em,'CO2e']),               -qEmmE[em,i,t1]$(not sameas[em,'CO2e'])
   uEmmE[em,d,t1]$(not i[d] and not sameas[em,'CO2e']),  -qEmmE[em,d,t1]$(not i[d] and not sameas[em,'CO2e'])
-  uEmmxE[em,i,t1]$(not sameas[em,'CO2e']),              -qEmmxE[em,i,t1]$(not sameas[em,'CO2e'])
-  uEmmxE[em,d,t1]$(not i[d] and not sameas[em,'CO2e']), -qEmmxE[em,d,t1]$(not i[d] and not sameas[em,'CO2e'])
-  uEmmLULUCF5[land5,t1],                                -qEmmLULUCF5[land5,t1]
-
-  emissions_BU_endogenous
-  uEmmRE[em,es,e,i,t1]$(not sameas[em,'CO2e']), -qEmmRE[em,es,e,i,t1]$(not sameas[em,'CO2e'])
-  uEmmCE[em,es,e,t1]$(not sameas[em,'CO2e']),   -qEmmCE[em,es,e,t1]$(not sameas[em,'CO2e'])
-  uEmmRxE[em,i,t1]$(not sameas[em,'CO2e']),     -qEmmRxE[em,i,t1]$(not sameas[em,'CO2e'])
-  uEmmCxE[em,t1]$(not sameas[em,'CO2e']),       -qEmmCxE[em,t1]$(not sameas[em,'CO2e'])
 
   emissions_aggregates_link_endogenous
   qEmmE[em,i,t1]$(not sameas[em,'CO2e'])
-  qEmmE[em,'cHouEne',t1]$(not sameas[em,'CO2e'])
-  qEmmE[em,'cCarEne',t1]$(not sameas[em,'CO2e']) 
-  qEmmxE[em,i,t1]$(not sameas[em,'CO2e'])
-  qEmmxE[em,'cNonFood',t1]$(not sameas[em,'CO2e'])
+  qEmmE[em,c,t1]$(not sameas[em,'CO2e'])
 
   calibration_endogenous
 ;

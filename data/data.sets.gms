@@ -121,6 +121,14 @@ set transaction /
   "household_consumption"
   /;
 
+set demand_transaction[transaction] / 
+  "input_in_production"
+  "household_consumption"
+  "export"
+  "inventory"
+  "transmission_losses"
+  /;
+
 set etaxes[ebalitems] 
     / CO2_tax
       EAFG_tax

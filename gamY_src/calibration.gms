@@ -28,6 +28,7 @@ $FIX all_variables; $UNFIX calibration_endogenous;
 # $GROUP G_load calibration_endogenous, - G_do_not_load;
 # @load_as(G_load, "previous_calibration.gdx", .l);
 
+
 d1pProd_uc_tEnd = no;
 execute_unload 'static_calibration_pre.gdx';
 solve calibration using CNS;
@@ -70,13 +71,12 @@ execute_unload 'static_calibration.gdx';
 			-uY_CET
 			-jpProd                                                  
 			-pProd[pf_bottom_capital,i,t]
-			-G_emissions_BU_quantities 
+			# -G_emissions_BU_quantities 
 			
-			-G_emissions_aggregates_quantities
-			-G_emissions_aggregates_other
+			# -G_emissions_aggregates_quantities
+			# -G_emissions_aggregates_other
 	 ;
 		
-
  d1pProd_uc_tEnd = yes;
  $FIX all_variables; $UNFIX calibration_endogenous;
 	@set(G_calibration_endogenous_x, _endosaved, .l); # Save values of data covered variables prior to calibration

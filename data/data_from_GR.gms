@@ -35,6 +35,11 @@ parameters auxiliary_data_parameters
   vDAV_CE[es,e,t]
   vCAV_CE[es,e,t]
 
+  vEAV[es,e,d,t]
+  vDAV[es,e,d,t]
+  vCAV[es,e,d,t]
+
+
   pY_CET[out,i,t] ""
   pM_CET[out,i,t] ""  
   qY_CET[out,i,t] ""
@@ -73,6 +78,19 @@ parameters auxiliary_data_parameters
   qEmmRxE[em,i,t]
   qEmmtot[em,em_accounts,t]
 
+  #Nye på d 
+  pEpj_base[es,e,d,t]
+  qEpj[es,e,d,t]
+  tqE[es,e,d,t]
+  tpE[es,e,d,t]
+  qEmmE_BU[em,es,e,d,t]
+  qEmmxE[em,d,t]
+
+
+  vtE_duty[etaxes,es,e,d,t]
+  vtE_vat[es,e,d,t]
+  tCO2_Emarg[em,es,e,d,t] 
+  tEmarg_duty[etaxes,es,e,d,t]
 ;
 
 parameters GREU_data
@@ -148,15 +166,22 @@ $gdxIn
   pProd[factors_of_production,i,t] = 1;
 
 #Energy and emissions.
-$import create_energybalance.gms #Here GreenREFORM variables are combine to create the full energybalance as we would preferably receive it from the Statistical Office.
+  $import create_energybalance.gms #Here GreenREFORM variables are combine to create the full energybalance as we would preferably receive it from the Statistical Office.
+
+  pEpj_base[es,e,d,t]$(sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t])) = sum(demand_transaction, Energybalance['BASE',demand_transaction,d,es,e,t])/sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
+  qEpj[es,e,d,t] = sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
+
+  vEAV[es,e,d,t] = sum(demand_transaction, Energybalance['EAV',demand_transaction,d,es,e,t]);
+  vCAV[es,e,d,t] = sum(demand_transaction, Energybalance['CAV',demand_transaction,d,es,e,t]);
+  vDAV[es,e,d,t] = sum(demand_transaction, Energybalance['DAV',demand_transaction,d,es,e,t]);
 
 #Emissions
-  qEmmCE[em,es,e,t]         = sum(c,Energybalance[em,'household_consumption',c,es,e,t]);
-  qEmmCxE[em,t]             = NonEnergyEmissions[em,'household_consumption','cHouEne',t];
+  qEmmE_BU[em,es,e,d,t]     = sum(demand_transaction,Energybalance[em,demand_transaction,d,es,e,t]);
+  qEmmxE[em,d,t]            = sum(demand_transaction,NonEnergyEmissions[em,demand_transaction,d,t]);
 
-  qEmmRE[em,es,e,i,t]       = Energybalance[em,'input_in_production',i,es,e,t];
-  qEmmRxE[em,i,t]           = NonEnergyEmissions[em,'input_in_production',i,t];
   qEmmtot[em,em_accounts,t] = qEmmTot_load[t,em,em_accounts];
+
+#Margins 
 
 
 #Taxes 
@@ -171,21 +196,23 @@ $import create_energybalance.gms #Here GreenREFORM variables are combine to crea
   tCO2_REmarg[em,es,e,i,t]          = tCO2_REmarg_load[es,e,i,t,em];
   tREmarg_duty['EAFG_tax',es,e,i,t] = tEAFG_REmarg[es,e,i,t]/1000; #Dividing by 1000 to convert from kroner per GJ to bio. kroner per Pj.
 
+  vtE_duty[etaxes,es,e,d,t] = sum(demand_transaction, Energybalance[etaxes,demand_transaction,d,es,e,t]);
+  vtE_vat[es,e,d,t]          = sum(demand_transaction, Energybalance['VAT',demand_transaction,d,es,e,t]);
+  tCO2_Emarg[em,es,e,i,t]    = tCO2_REmarg[em,es,e,i,t];
+  tEmarg_duty['EAFG_tax',es,e,i,t]      = tEAFG_REmarg[es,e,i,t]/1000; #Dividing by 1000 to convert from kroner per GJ to bio. kroner per Pj.
 
-execute_unloaddi "data", vWages_i, nL, es, out, e, pXEpj_base, pLEpj_base, pCEpj_base, pREpj_base, pE_avg, 
-                        tpLE, tpCE, tpXE, 
+
+execute_unloaddi "data", vWages_i, nL, es, out, e, 
+                        pE_avg, 
                         qEtot, pE_avg, pY_CET, pM_CET, qY_CET, qM_CET,
-                        qREpj, qCEpj, qLEpj, qXEpj, qTLpj
-                        vEAV_RE = vEAV_RE.l, vDAV_RE = vDAV_RE.l, vCAV_RE = vCAV_RE.l, 
-                        vEAV_CE = vEAV_CE.l, vDAV_CE = vDAV_CE.l, vCAV_CE = vCAV_CE.l, 
+                        vEAV, vDAV, vCAV,
                         qProd, pProd,
-                        em, em_accounts, land5, qEmmCE, qEmmCxE, qEmmRE, qEmmRxE, qEmmtot, qEmmLULUCF5, qEmmLULUCF, sBioNatGas,
+                        em, em_accounts, land5, qEmmE_BU, qEmmxE, qEmmtot, qEmmLULUCF5, qEmmLULUCF, sBioNatGas,
                         c, x, k, g,
                         GWP,
-                        vtRE_duty, vtRE_vat, tREmarg_duty
-                        vtCE_duty, vtCE_vat
-                        tCO2_REmarg
-                        vtCO2_RE
                         vtCO2_ETS, qCO2_ETS_freeallowances
-                         vtNetproductionRest,
-                         vtCAP_prodsubsidy;
+                        vtNetproductionRest,
+                        vtCAP_prodsubsidy
+                        pEpj_base, qEpj
+                        vtE_duty, vtE_vat, tCO2_Emarg, tEmarg_duty
+                        Energybalance, NonEnergyEmissions;

@@ -36,11 +36,11 @@ $IMPORT growth_adjustments.gms
 
 # $IMPORT test_module.gms
 #  $IMPORT labor_market.gms
-$IMPORT energy_markets.gms
-$IMPORT industries_CES_energydemand.gms
-$IMPORT production.gms 
-$IMPORT emissions.gms
-$IMPORT energy_and_emissions_taxes.gms
+$IMPORT energy_markets.gms; 
+$IMPORT industries_CES_energydemand.gms; 
+$IMPORT production.gms; 
+$IMPORT emissions.gms; 
+$IMPORT energy_and_emissions_taxes.gms; 
 # $IMPORT input_output.gms
 # $IMPORT aggregates.gms
 # $IMPORT imports.gms
@@ -61,5 +61,14 @@ $UNFIX main_endogenous;
 @set(main_endogenous, _mainendosaved, .l); # Save values of data covered variables prior to calibration
 
 Solve main using CNS;
+execute_unload 'zero_shock.gdx';
 @assert_no_difference(main_endogenous, 1e-6, _mainendosaved, .l, "Main model does not produce zero-shock");
 $import sanitychecks.gms
+
+#Shock
+tCO2_Emarg.l[em,es,e,i,t] = 1.1 * tCO2_Emarg.l[em,es,e,i,t]; #Increase in CO2-tax of 10%
+$FIX all_variables;
+$UNFIX main_endogenous;
+Solve main using CNS;
+execute_unload 'shock.gdx';
+
