@@ -105,15 +105,15 @@
      ..   vtE_duty[etaxes,es,e,d,t] =E= tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] - qEpj_duty_deductible[etaxes,es,e,d,t]) +  jvtE_duty[etaxes,es,e,d,t];
 
      ..   vtE_vat[es,e,d,t] =E= tE_vat[es,e,d,t] * (pEpj_base[es,e,d,t]*qEpj[es,e,d,t]
-                                                  + sum(etaxes$(d1tE_duty[etaxes,es,e,d,t]), tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] - qEpj_duty_deductible[etaxes,es,e,d,t]))
+                                                  + sum(etaxes, tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] - qEpj_duty_deductible[etaxes,es,e,d,t]))
                                                   + pEAV[es,e,d,t]*qEpj[es,e,d,t]
                                                   + pDAV[es,e,d,t]*qEpj[es,e,d,t]
                                                   + pCAV[es,e,d,t]*qEpj[es,e,d,t]);
 
       ..   vtE[es,e,d,t] =E= vtE_vat[es,e,d,t] 
-                            + sum(etaxes$(d1tE_duty[etaxes,es,e,d,t]), vtE_duty[etaxes,es,e,d,t])
-                            + sum(em$d1tCO2_ETS_E[em,es,e,d,t], tCO2_ETS_pj[em,es,e,d,t]*qEpj[es,e,d,t])
-                            + sum(em$d1tCO2_ETS2_E[em,es,e,d,t], tCO2_ETS2_pj[em,es,e,d,t]*qEpj[es,e,d,t])
+                            + sum(etaxes, vtE_duty[etaxes,es,e,d,t])
+                            + sum(em, tCO2_ETS_pj[em,es,e,d,t]*qEpj[es,e,d,t])
+                            + sum(em, tCO2_ETS2_pj[em,es,e,d,t]*qEpj[es,e,d,t])
                             ;                   
 
       ..   vtEmarg[es,e,d,t] =E= (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t] * qEpj[es,e,d,t];
