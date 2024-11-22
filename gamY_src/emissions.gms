@@ -131,36 +131,33 @@
   #BLOCK 2/3 EMISSIONS AGGREGATES - CAN RUN SEPARATELY OF BOTTOM-UP EMISSIONS. WHEN LINKING 1 AND 2 (THROUGH 3) CALIBRATION VARAIBLES IN 2 ARE ENDOGENIZED TO MATCH BOTTOM-UP EMISSIONS
   $BLOCK emissions_aggregates emissions_aggregates_endogenous $(t1.val <= t.val and t1.val <=tEnd.val)
       #Energy-related emissions
-      qEmmE&_production[em,i,t]$(d1EmmE[em,i,t] and not CO2e[em])..
+      qEmmE&_production[em,i,t]$(not CO2e[em])..
         qEmmE[em,i,t] =E= uEmmE[em,i,t] * (qProd['Machine_energy',i,t] + qProd['Transport_energy',i,t] + qProd['Heating_energy',i,t]);
 
-      qEmmE&not_production[em,d,t]$(d1EmmE[em,d,t] and not i[d] and not CO2e[em])..
+      qEmmE&not_production[em,d,t]$(not i[d] and not CO2e[em])..
         qEmmE[em,d,t] =E= uEmmE[em,d,t];
 
-      qEmmE&_CO2e[em,d,t]$(d1EmmE[em,d,t] and CO2e[em])..
+      qEmmE&_CO2e[em,d,t]$(CO2e[em])..
         qEmmE['CO2e',d,t] =E= sum(em_a$(not CO2e[em_a]), GWP[em_a] * qEmmE[em_a,d,t]); 
 
       # Non-energy related emissions
-      qEmmxE&_production[em,i,t]$(d1EmmxE[em,i,t] and not CO2e[em])..
+      qEmmxE&_production[em,i,t]$(not CO2e[em])..
         qEmmxE[em,i,t] =E= uEmmxE[em,i,t] * sum(pf_top, qProd[pf_top,i,t]);
 
-      qEmmxE&not_production[em,d,t]$(d1EmmxE[em,d,t] and not i[d] and not CO2e[em])..
+      qEmmxE&not_production[em,d,t]$(not i[d] and not CO2e[em])..
         qEmmxE[em,d,t] =E= uEmmxE[em,d,t];
 
-      qEmmxE&_CO2e[em,d,t]$(d1EmmxE[em,d,t] and CO2e[em])..
+      qEmmxE&_CO2e[em,d,t]$(CO2e[em])..
         qEmmxE['CO2e',d,t] =E= sum(em_a$(not CO2e[em_a]), GWP[em_a] * qEmmxE[em_a,d,t]);
 
 
       # LULUCF (is measured in CO2e from the get-go, and we didn't need LULUCF5, if this is only a matter of hitting total emissions in official inventories)
-      qEmmLULUCF5[land5,t]$(d1EmmLULUCF5[land5,t])..
-        qEmmLULUCF5[land5,t] =E= uEmmLULUCF5[land5,t];
+      ..  qEmmLULUCF5[land5,t] =E= uEmmLULUCF5[land5,t];
 
-      qEmmLULUCF[t]$(d1EmmLULUCF[t])..
-        qEmmLULUCF[t] =E= sum(land5, qEmmLULUCF5[land5,t]);
+      ..  qEmmLULUCF[t] =E= sum(land5, qEmmLULUCF5[land5,t]);
 
       #Total emissions
-      qEmmTot[em,em_accounts,t]$(d1EmmTot[em,em_accounts,t])..
-        qEmmTot[em,em_accounts,t] =E= sum(d, qEmmE[em,d,t]) 
+      ..  qEmmTot[em,em_accounts,t] =E= sum(d, qEmmE[em,d,t]) 
                                     + sum(d, qEmmxE[em,d,t]) 
                                     + qEmmLULUCF[t];
 

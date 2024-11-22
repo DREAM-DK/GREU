@@ -118,38 +118,38 @@
 
       ..   vtEmarg[es,e,d,t] =E= (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t] * qEpj[es,e,d,t];
 
-      tpE[es,e,d,t]$(d1tE[es,e,d,t])..
+      tpE[es,e,d,t]..
         (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t] 
           =E= (1+tE_vat[es,e,d,t]) * (pEpj_base[es,e,d,t]
-                                      + sum(etaxes$(d1tE_duty[etaxes,es,e,d,t]), tEmarg_duty[etaxes,es,e,d,t])
+                                      + sum(etaxes, tEmarg_duty[etaxes,es,e,d,t])
                                       + pEAV[es,e,d,t]
                                       + pDAV[es,e,d,t]
                                       + pCAV[es,e,d,t])
-                                      + sum(em$(d1tCO2_E[em,es,e,d,t]), tCO2_Emarg_pj[em,es,e,d,t])
-                                      + sum(em$(d1tCO2_ETS_E[em,es,e,d,t]), tCO2_ETS_pj[em,es,e,d,t])
+                                      + sum(em, tCO2_Emarg_pj[em,es,e,d,t])
+                                      + sum(em, tCO2_ETS_pj[em,es,e,d,t])
                                       ;        
 
         #CO2-taxes based on emissions (currently only industries) 
           #Domestic CO2-tax                                                                                                                                                                                     #AKB: Depending on how EOP-abatement i modelled this should be adjusted for EOP
-          tCO2_Emarg_pj&_notNatgas[em,es,e,i,t]$(d1tCO2_E[em,es,e,i,t] and not natgas[e]).. tCO2_Emarg_pj[em,es,e,i,t] =E= tCO2_Emarg[em,es,e,i,t] /10**6 * uEmmE_BU[em,es,e,i,t];
+          tCO2_Emarg_pj&_notNatgas[em,es,e,i,t]$(not natgas[e]).. tCO2_Emarg_pj[em,es,e,i,t] =E= tCO2_Emarg[em,es,e,i,t] /10**6 * uEmmE_BU[em,es,e,i,t];
 
           #Consider removing as emission coefficient is the same for ubio/bio
-          tCO2_Emarg_pj&_NatgasBio[em,es,e,i,t]$(d1tCO2_E[em,es,e,i,t] and natgas[e] and CO2bio[em]).. 
+          tCO2_Emarg_pj&_NatgasBio[em,es,e,i,t]$(natgas[e] and CO2bio[em]).. 
             tCO2_Emarg_pj[em,es,e,i,t] =E= tCO2_Emarg[em,es,e,i,t] /10**6 * uEmmE_BU[em,es,e,i,t] * sBioNatGas[t]; 
 
-          tCO2_Emarg_pj&_NatgasuBio[em,es,e,i,t]$(d1tCO2_E[em,es,e,i,t] and natgas[e] and CO2ubio[em]).. 
+          tCO2_Emarg_pj&_NatgasuBio[em,es,e,i,t]$(natgas[e] and CO2ubio[em]).. 
               tCO2_Emarg_pj[em,es,e,i,t] =E= tCO2_Emarg[em,es,e,i,t] /10**6 * uEmmE_BU[em,es,e,i,t] * (1-sBioNatGas[t]); 
 
-          #Linking to per PJ tax-rate (currently only industries)
+          #Linking to per PJ tax-rate (currently only industries)   #AKB: Kan ikke fjerne dummies her, undersøg hvorfor
           tEmarg_duty[etaxes,es,e,i,t]$(sum(em,d1tCO2_E[em,es,e,i,t]) and d1tE_duty[etaxes,es,e,i,t] and CO2_tax[etaxes]).. 
-            tEmarg_duty[etaxes,es,e,i,t] =E= sum(em$(d1tCO2_E[em,es,e,i,t]), tCO2_Emarg_pj[em,es,e,i,t]);
+            tEmarg_duty[etaxes,es,e,i,t] =E= sum(em$(d1tCO2_E[em,es,e,i,t]), tCO2_Emarg_pj[em,es,e,i,t]); 
 
           #Non-energy related emissions
           .. vtCO2_xE[d,t] =E=  tCO2_xEmarg[d,t]/10**6 * qEmmxE['CO2ubio',d,t];
 
         #ETS1
           #Energy
-          tCO2_ETS_pj&_notNatgas[em,es,e,i,t]$(d1tCO2_ETS_E[em,es,e,i,t] and not natgas[e])..
+          tCO2_ETS_pj&_notNatgas[em,es,e,i,t]$(d1tCO2_ETS_E[em,es,e,i,t] and not natgas[e]).. #Kan heller ikke umiddelbart fjerne disse dummies
             tCO2_ETS_pj[em,es,e,i,t] =E= tCO2_ETS[t]/10**6 * uEmmE_BU[em,es,e,i,t];
 
           tCO2_ETS_pj&_NatgasBio[em,es,e,i,t]$(d1tCO2_ETS_E[em,es,e,i,t] and natgas[e] and CO2bio[em])..
@@ -162,13 +162,13 @@
             ..  vtCO2_ETS_xE[i,t] =E= tCO2_ETS[t]/10**6 * qEmmxE['CO2ubio',i,t];
 
         #ETS2 (note that whereas ETS1 is only households, ETS2 extends to households as well)
-          tCO2_ETS2_pj&_notNatgas[em,es,e,d,t]$(d1tCO2_ETS2_E[em,es,e,d,t] and not natgas[e])..
+          tCO2_ETS2_pj&_notNatgas[em,es,e,d,t]$(not natgas[e])..
             tCO2_ETS2_pj[em,es,e,d,t] =E= tCO2_ETS2[t]/10**6 * uEmmE_BU[em,es,e,d,t];
 
-          tCO2_ETS2_pj&_NatgasBio[em,es,e,d,t]$(d1tCO2_ETS2_E[em,es,e,d,t] and natgas[e] and CO2bio[em])..
+          tCO2_ETS2_pj&_NatgasBio[em,es,e,d,t]$(natgas[e] and CO2bio[em])..
             tCO2_ETS2_pj[em,es,e,d,t] =E= tCO2_ETS2[t]/10**6 * uEmmE_BU[em,es,e,d,t] * sBioNatGas[t];
 
-          tCO2_ETS2_pj&_NatgasuBio[em,es,e,d,t]$(d1tCO2_ETS2_E[em,es,e,d,t] and natgas[e] and CO2ubio[em])..
+          tCO2_ETS2_pj&_NatgasuBio[em,es,e,d,t]$(natgas[e] and CO2ubio[em])..
             tCO2_ETS2_pj[em,es,e,d,t] =E= tCO2_ETS2[t]/10**6 * uEmmE_BU[em,es,e,d,t] * (1-sBioNatGas[t]);
 
   $ENDBLOCK           

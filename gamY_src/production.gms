@@ -105,14 +105,14 @@ $GROUP+ data_covered_variables
                             + vProdOtherProductionCosts[i,t];  #- qKinstcost[i,t])
                           
 
-    qProd&_top[pf,i,t]$(d1Prod[pf,i,t] and pf_top[pf]).. 
+    qProd&_top[pf,i,t]$(pf_top[pf]).. 
       qProd[pf,i,t] =E= qY[i,t];  #+ qKinstcost[i,t];
 
     #CES-nests in production function
-    qProd[pf,i,t]$(d1Prod[pf,i,t] and not pf_top[pf])..
+    qProd[pf,i,t]$(not pf_top[pf])..
       qProd[pf,i,t] =E= uProd[pf,i,t] * sum(pfNest$(pf_mapping[pfNest,pf,i]), (pProd[pfNest,i,t]/pProd[pf,i,t])**(-eProd[pfNest,i])*qProd[pFnest,i,t]);  
 
-    pProd&_nest[pfNest,i,t]$(d1Prod[pfNest,i,t])..
+    pProd&_nest[pfNest,i,t]..
       pProd[pfNest,i,t] * qProd[pfNest,i,t] =E= sum(pf$(pf_mapping[pfNest,pf,i]), pProd[pf,i,t]*qProd[pf,i,t]);
 
     #Computing other production costs, not in nesting tree 
@@ -129,22 +129,22 @@ $GROUP+ data_covered_variables
   $ENDBLOCK
 
   $BLOCK production_usercost production_usercost_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-    pProd[pf,i,t]$(t1.val <= t.val and t.val<tEnd.val and d1Prod[pf,i,t] and pf_bottom_capital[pf]).. 
+    pProd[pf,i,t]$(t1.val <= t.val and t.val<tEnd.val and pf_bottom_capital[pf]).. 
       # pProd[pf,i,t] =E= (1+rFirms[i,t+1]) - (1-delta[pf,i,t])*fv + jpProd[pf,i,t];
       pProd[pf,i,t] =E= 1  - (1-delta[pf,i,t])/(1+rFirms[i,t+1])*fv + jpProd[pf,i,t]; #Primo-dateret user-cost kommer til at se sådan her ud
 
-    pProd&_tEnd[pf,i,t]$(t.val=tEnd.val and d1Prod[pf,i,t] and pf_bottom_capital[pf] and d1pProd_uc_tEnd).. 
+    pProd&_tEnd[pf,i,t]$(t.val=tEnd.val and pf_bottom_capital[pf] and d1pProd_uc_tEnd).. 
       pProd[pf,i,t] =E= pProd[pf,i,t-1];   
   $ENDBLOCK
 
   $BLOCK production_energydemand_link production_energydemand_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-      pProd&_machine_energy[pf,i,t]$(d1Prod[pf,i,t] and machine_energy[pf])..
+      pProd&_machine_energy[pf,i,t]$(machine_energy[pf])..
         pProd[pf,i,t] =E= pREmachine[i,t]; 
 
-      pProd&_heating[pf,i,t]$(d1Prod[pf,i,t] and heating_energy[pf])..
+      pProd&_heating[pf,i,t]$(heating_energy[pf])..
         pProd[pf,i,t] =E= pREes['heating',i,t];
 
-      pProd&_transport[pf,i,t]$(d1Prod[pf,i,t] and transport_energy[pf])..
+      pProd&_transport[pf,i,t]$(transport_energy[pf])..
         pProd[pf,i,t] =E= pREes['transport',i,t];
   $ENDBLOCK    
 
@@ -215,10 +215,8 @@ $GROUP+ data_covered_variables
 # ------------------------------------------------------------------------------
 
  $BLOCK production_calibration production_calibration_endogenous $(t.val=t1.val)
-  markup[out,i,t]$(d1pY_CET[out,i,t]).. 
-    markup[out,i,t] =E= markup_calib[i,t];
-
-    
+  markup[out,i,t].. 
+    markup[out,i,t] =E= markup_calib[i,t];   
  $ENDBLOCK
 
 # Add equations and calibration equations to calibration model

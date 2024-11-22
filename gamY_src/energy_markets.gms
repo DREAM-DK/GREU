@@ -214,57 +214,57 @@
 	# ------------------------------------------------------------------------------
 
 	$BLOCK energy_markets_clearing energy_markets_clearing_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-		qY_CET&_SeveralNonExoSuppliers[e,i,t]$(d1pY_CET[e,i,t] and not d1OneSX[e,t])..
-		     qY_CET[e,i,t] * (sum(i_a$d1pY_CET[e,i_a,t], sY_Dist[e,i_a,t] * pY_CET[e,i_a,t] ** (-eDist[e])) + sum(i_a$d1pM_CET[e,i_a,t], sM_Dist[e,i_a,t] * pM_CET[e,i_a,t]**(-eDist[e]))) 
-          				=E= sY_Dist[e,i,t] * pY_CET[e,i,t] **(-eDist[e]) * qEtot[e,t];
+		qY_CET&_SeveralNonExoSuppliers[e,i,t]$(not d1OneSX[e,t])..
+				qY_CET[e,i,t] * (sum(i_a$d1pY_CET[e,i_a,t], sY_Dist[e,i_a,t] * pY_CET[e,i_a,t] ** (-eDist[e])) + sum(i_a$d1pM_CET[e,i_a,t], sM_Dist[e,i_a,t] * pM_CET[e,i_a,t]**(-eDist[e]))) 
+									=E= sY_Dist[e,i,t] * pY_CET[e,i,t] **(-eDist[e]) * qEtot[e,t];
 
-		qM_CET&_SeveralNonExoSuppliers[e,i,t]$(d1pM_CET[e,i,t] and not d1OneSX[e,t])..
-		     qM_CET[e,i,t] * (sum(i_a$d1pY_CET[e,i_a,t], sY_Dist[e,i_a,t] * pY_CET[e,i_a,t] ** (-eDist[e])) + sum(i_a$d1pM_CET[e,i_a,t], sM_Dist[e,i_a,t] * pM_CET[e,i_a,t]**(-eDist[e]))) 
-          				=E= sM_Dist[e,i,t] * pM_CET[e,i,t] **(-eDist[e]) * qEtot[e,t];
-
-
+		qM_CET&_SeveralNonExoSuppliers[e,i,t]$(not d1OneSX[e,t])..
+				qM_CET[e,i,t] * (sum(i_a$d1pY_CET[e,i_a,t], sY_Dist[e,i_a,t] * pY_CET[e,i_a,t] ** (-eDist[e])) + sum(i_a$d1pM_CET[e,i_a,t], sM_Dist[e,i_a,t] * pM_CET[e,i_a,t]**(-eDist[e]))) 
+									=E= sM_Dist[e,i,t] * pM_CET[e,i,t] **(-eDist[e]) * qEtot[e,t];
 
 
-        pE_avg[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t])).. pE_avg[e,t] * qEtot[e,t] =E=  sum(i$(d1pY_CET[e,i,t]), pY_CET[e,i,t]*qY_CET[e,i,t]) 
-        											    + sum(i$(d1pM_CET[e,i,t]), pM_CET[e,i,t]*qM_CET[e,i,t]);
 
 
-        #Supply by one side
-        qY_CET&_OneSupplierOrExoSuppliers[e,i,t]$(d1OneSX_y[e,t]).. qY_CET[e,i,t] =E= qEtot[e,t] - sum(i_a, qM_CET[e,i_a,t]);
-        qM_CET&_OneSupplierOrExoSuppliers[e,i,t]$(d1OneSX_m[e,t]).. qM_CET[e,i,t] =E= qEtot[e,t] - sum(i_a, qY_CET[e,i_a,t]);
+		pE_avg[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t])).. pE_avg[e,t] * qEtot[e,t] =E=  sum(i$(d1pY_CET[e,i,t]), pY_CET[e,i,t]*qY_CET[e,i,t]) 
+															+ sum(i$(d1pM_CET[e,i,t]), pM_CET[e,i,t]*qM_CET[e,i,t]);
 
 
-				.. qEtot[e,t] =E= sum((es,d)$(d1pEpj_base[es,e,d,t] or tl[d]), qEpj[es,e,d,t]);
+		#Supply by one side
+		qY_CET&_OneSupplierOrExoSuppliers[e,i,t]$(d1OneSX_y[e,t]).. qY_CET[e,i,t] =E= qEtot[e,t] - sum(i_a, qM_CET[e,i_a,t]);
+		qM_CET&_OneSupplierOrExoSuppliers[e,i,t]$(d1OneSX_m[e,t]).. qM_CET[e,i,t] =E= qEtot[e,t] - sum(i_a, qY_CET[e,i_a,t]);
 
-        .. vDistributionProfits[e,t] =E= sum((es,d), pEpj_base[es,e,d,t] * qEpj[es,e,d,t])
-																																	- sum(i,   pY_CET[e,i,t] * qY_CET[e,i,t])
-																																	- sum(i,   pM_CET[e,i,t] * qM_CET[e,i,t]);
 
-	    #Clearing demand for ergy margins
-			qY_CET&WholeAndRetailSaleMarginE_Wholesale46000[out,i,t]$(d1pY_CET[out,i,t] and energyDistmargin[out] and i_wholesale[i]).. 
-				qY_CET['WholeAndRetailSaleMarginE','46000',t]	
-							=E=  
-							sum((es,e,d)$(d1pEAV[es,e,d,t]), qEpj[es,e,d,t])	
-							;
+		.. qEtot[e,t] =E= sum((es,d)$(d1pEpj_base[es,e,d,t] or tl[d]), qEpj[es,e,d,t]);
 
-			qY_CET&WholeAndRetailSaleMarginE_Cardealerships45000[out,i,t]$(d1pY_CET[out,i,t] and energyDistmargin[out] and i_cardealers[i]).. 
-				qY_CET['WholeAndRetailSaleMarginE','45000',t]	
-							=E=  
-							sum((es,e,d)$(d1pCAV[es,e,d,t]), qEpj[es,e,d,t])			
-							;
+		.. vDistributionProfits[e,t] =E= sum((es,d), pEpj_base[es,e,d,t] * qEpj[es,e,d,t])
+																															- sum(i,   pY_CET[e,i,t] * qY_CET[e,i,t])
+																															- sum(i,   pM_CET[e,i,t] * qM_CET[e,i,t]);
 
-			qY_CET&WholeAndRetailSaleMarginE_Retail[out,i,t]$(d1pY_CET[out,i,t] and energyDistmargin[out] and i_retail[i]).. 
-				qY_CET['WholeAndRetailSaleMarginE','47000',t]	
-							=E=  
-							sum((es,e,d)$(d1pDAV[es,e,d,t]), qEpj[es,e,d,t])				
-							;
+	#Clearing demand for ergy margins
+	qY_CET&WholeAndRetailSaleMarginE_Wholesale46000[out,i,t]$(energyDistmargin[out] and i_wholesale[i]).. 
+		qY_CET['WholeAndRetailSaleMarginE','46000',t]	
+					=E=  
+					sum((es,e,d)$(d1pEAV[es,e,d,t]), qEpj[es,e,d,t])	
+					;
+
+	qY_CET&WholeAndRetailSaleMarginE_Cardealerships45000[out,i,t]$(energyDistmargin[out] and i_cardealers[i]).. 
+		qY_CET['WholeAndRetailSaleMarginE','45000',t]	
+					=E=  
+					sum((es,e,d)$(d1pCAV[es,e,d,t]), qEpj[es,e,d,t])			
+					;
+
+	qY_CET&WholeAndRetailSaleMarginE_Retail[out,i,t]$(energyDistmargin[out] and i_retail[i]).. 
+		qY_CET['WholeAndRetailSaleMarginE','47000',t]	
+					=E=  
+					sum((es,e,d)$(d1pDAV[es,e,d,t]), qEpj[es,e,d,t])				
+					;
 
 
     $ENDBLOCK 
 
 
 		$BLOCK energy_markets_clearing_link energy_markets_clearing_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-			qEpj&_from_firms[es,e,i,t]$(d1pEpj_base[es,e,i,t]).. qEpj[es,e,i,t] =E= qREa[es,e,i,t] + j_abatement_qREa[es,e,i,t];
+			.. qEpj[es,e,i,t] =E= qREa[es,e,i,t] + j_abatement_qREa[es,e,i,t];
 		$ENDBLOCK  
 
 
@@ -286,24 +286,19 @@
 
 				.. vCAV[es,e,d,t] =E= pCAV[es,e,d,t]  * qEpj[es,e,d,t];
 
-			
-
-        vOtherDistributionProfits_EAV[t]..
-          vOtherDistributionProfits_EAV[t] =E= sum((es,e,d), vEAV[es,e,d,t])
+				..  vOtherDistributionProfits_EAV[t] =E= sum((es,e,d), vEAV[es,e,d,t])
                                               - pY_CET['WholeAndRetailSaleMarginE','46000',t]*qY_CET['WholeAndRetailSaleMarginE','46000',t]
                                               ;
 
-        vOtherDistributionProfits_DAV[t]..
-          vOtherDistributionProfits_DAV[t] =E= sum((es,e,d), vCAV[es,e,d,t])
+       
+        ..  vOtherDistributionProfits_DAV[t] =E= sum((es,e,d), vCAV[es,e,d,t])
                                               - pY_CET['WholeAndRetailSaleMarginE','47000',t]*qY_CET['WholeAndRetailSaleMarginE','47000',t]
                                               ;
 
-        vOtherDistributionProfits_CAV[t]..
-          vOtherDistributionProfits_CAV[t] =E= sum((es,e,d), vDAV[es,e,d,t])
+
+	      ..  vOtherDistributionProfits_CAV[t] =E= sum((es,e,d), vDAV[es,e,d,t])
                                               - pY_CET['WholeAndRetailSaleMarginE','45000',t]*qY_CET['WholeAndRetailSaleMarginE','45000',t]
                                               ;
-
-
       $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -369,18 +364,18 @@ $GROUP+ main_endogenous
 
 $BLOCK energy_markets_clearing_calibration energy_markets_clearing_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
-		qY_CET&_SeveralNonExoSuppliers_calib[e,i,t]$(t.val > t1.val and d1pY_CET[e,i,t] and not d1OneSX[e,t])..
+		qY_CET&_SeveralNonExoSuppliers_calib[e,i,t]$(t.val > t1.val and not d1OneSX[e,t])..
 		     qY_CET[e,i,t] * (sum(i_a$d1pY_CET[e,i_a,t], sY_Dist[e,i_a,t] * pY_CET[e,i_a,t] ** (-eDist[e])) + sum(i_a$d1pM_CET[e,i_a,t], sM_Dist[e,i_a,t] * pM_CET[e,i_a,t]**(-eDist[e]))) 
           				=E= sY_Dist[e,i,t] * pY_CET[e,i,t] **(-eDist[e]) * qEtot[e,t];
 
-		qM_CET&_SeveralNonExoSuppliers_calib[e,i,t]$(t.val > t1.val and d1pM_CET[e,i,t] and not d1OneSX[e,t])..
+		qM_CET&_SeveralNonExoSuppliers_calib[e,i,t]$(t.val > t1.val and not d1OneSX[e,t])..
 		     qM_CET[e,i,t] * (sum(i_a$d1pY_CET[e,i_a,t], sY_Dist[e,i_a,t] * pY_CET[e,i_a,t] ** (-eDist[e])) + sum(i_a$d1pM_CET[e,i_a,t], sM_Dist[e,i_a,t] * pM_CET[e,i_a,t]**(-eDist[e]))) 
           				=E= sM_Dist[e,i,t] * pM_CET[e,i,t] **(-eDist[e]) * qEtot[e,t];
 
 
-		sY_Dist[e,i,t]$(t1[t] and d1pY_CET[e,i,t] and not d1OneSX[e,t]).. sY_Dist[e,i,t] =E= qY_CET[e,i,t]/qEtot[e,t] * pY_CET[e,i,t]**eDist[e];
+		sY_Dist[e,i,t]$(t1[t] and not d1OneSX[e,t]).. sY_Dist[e,i,t] =E= qY_CET[e,i,t]/qEtot[e,t] * pY_CET[e,i,t]**eDist[e];
 
-		sM_Dist[e,i,t]$(t1[t] and d1pM_CET[e,i,t] and not d1OneSX[e,t]).. sM_Dist[e,i,t] =E= qM_CET[e,i,t]/qEtot[e,t] * pM_CET[e,i,t]**eDist[e];
+		sM_Dist[e,i,t]$(t1[t] and not d1OneSX[e,t]).. sM_Dist[e,i,t] =E= qM_CET[e,i,t]/qEtot[e,t] * pM_CET[e,i,t]**eDist[e];
 
 $ENDBLOCK
 
