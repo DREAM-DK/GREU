@@ -29,6 +29,10 @@ set pf "Factor inputs and their nests in production function" /
   set.production_nests
 /;
 
+set machine_energy[pf]/machine_energy/;
+set transport_energy[pf]/transport_energy/;
+set heating_energy[pf]/heating_energy/;
+
 set pf_bottom[pf] / set.factors_of_production /;
 set pfNest[pf] / set.production_nests /;
 set pf_top[pf]/ TopPfunction/;

@@ -59,3 +59,11 @@ set tl[d] "Transmission losses"
   /
   tl 
   /;
+
+sets i_refineries[i]/19000/ 
+     i_gasdistribution[i]/35002/
+     i_cardealers[i]/45000/
+     i_wholesale[i]/46000/
+     i_retail[i]/47000/
+     i_service_for_industries[i]/71000/
+     ;

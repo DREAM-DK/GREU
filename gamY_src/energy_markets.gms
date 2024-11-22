@@ -76,7 +76,7 @@
 	        qEtot[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]))     "Total demand/supply of ergy in the models ergy-market"
 
 					qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 									 "Industries demand for energy activity (e_a). When abatement is turned off, the energy-activity is measured in PJ, and corresponds 1:1 to qEpj"		#Skal flyttes til industries_CES_energydemand.gms, når vi får stages
-					qEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or sameas[d,'tl']) "Sector demand for energy on end purpose (es), measured in PJ"
+					qEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or tl[d]) "Sector demand for energy on end purpose (es), measured in PJ"
 					
 					j_abatement_qREa[es,e,i,t]$(d1pEpj_base[es,e,i,t])       "J-term to be activated by abatement-module. When abatement is on qREa =/= qEpj, but is guided by abatement module, endogenizing this variable"
 		;
@@ -234,26 +234,26 @@
         qM_CET&_OneSupplierOrExoSuppliers[e,i,t]$(d1OneSX_m[e,t]).. qM_CET[e,i,t] =E= qEtot[e,t] - sum(i_a, qY_CET[e,i_a,t]);
 
 
-				.. qEtot[e,t] =E= sum((es,d)$(d1pEpj_base[es,e,d,t] or sameas[d,'tl']), qEpj[es,e,d,t]);
+				.. qEtot[e,t] =E= sum((es,d)$(d1pEpj_base[es,e,d,t] or tl[d]), qEpj[es,e,d,t]);
 
         .. vDistributionProfits[e,t] =E= sum((es,d), pEpj_base[es,e,d,t] * qEpj[es,e,d,t])
 																																	- sum(i,   pY_CET[e,i,t] * qY_CET[e,i,t])
 																																	- sum(i,   pM_CET[e,i,t] * qM_CET[e,i,t]);
 
 	    #Clearing demand for ergy margins
-			qY_CET&WholeAndRetailSaleMarginE_Wholesale46000[out,i,t]$(d1pY_CET[out,i,t] and sameas[out,'WholeAndRetailSaleMarginE'] and sameas[i,'46000']).. 
+			qY_CET&WholeAndRetailSaleMarginE_Wholesale46000[out,i,t]$(d1pY_CET[out,i,t] and energyDistmargin[out] and i_wholesale[i]).. 
 				qY_CET['WholeAndRetailSaleMarginE','46000',t]	
 							=E=  
 							sum((es,e,d)$(d1pEAV[es,e,d,t]), qEpj[es,e,d,t])	
 							;
 
-			qY_CET&WholeAndRetailSaleMarginE_Cardealerships45000[out,i,t]$(d1pY_CET[out,i,t] and sameas[out,'WholeAndRetailSaleMarginE'] and sameas[i,'45000']).. 
+			qY_CET&WholeAndRetailSaleMarginE_Cardealerships45000[out,i,t]$(d1pY_CET[out,i,t] and energyDistmargin[out] and i_cardealers[i]).. 
 				qY_CET['WholeAndRetailSaleMarginE','45000',t]	
 							=E=  
 							sum((es,e,d)$(d1pCAV[es,e,d,t]), qEpj[es,e,d,t])			
 							;
 
-			qY_CET&WholeAndRetailSaleMarginE_Retail[out,i,t]$(d1pY_CET[out,i,t] and sameas[out,'WholeAndRetailSaleMarginE'] and sameas[i,'47000']).. 
+			qY_CET&WholeAndRetailSaleMarginE_Retail[out,i,t]$(d1pY_CET[out,i,t] and energyDistmargin[out] and i_retail[i]).. 
 				qY_CET['WholeAndRetailSaleMarginE','47000',t]	
 							=E=  
 							sum((es,e,d)$(d1pDAV[es,e,d,t]), qEpj[es,e,d,t])				
@@ -344,7 +344,7 @@ $GROUP+ main_endogenous
 
 	#Market clearing
 	d1OneSX[e,t] = yes;
-	d1OneSX[e,t] = no$(sameas[e,'Straw for energy purposes'] or sameas[e,'Electricity'] or sameas[e,'District heat']);
+	d1OneSX[e,t] = no$(straw[e] or el[e] or distheat[e]);
 
 	d1OneSX_y[e,t] = yes$(d1OneSX[e,t] and sum(i, d1pY_CET[e,i,t]));
 	d1OneSX_m[e,t] = yes$(d1OneSX[e,t] and sum(i, d1pM_CET[e,i,t]));

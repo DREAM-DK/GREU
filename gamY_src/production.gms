@@ -138,13 +138,13 @@ $GROUP+ data_covered_variables
   $ENDBLOCK
 
   $BLOCK production_energydemand_link production_energydemand_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-      pProd&_machine_energy[pf,i,t]$(d1Prod[pf,i,t] and sameas[pf,'machine_energy'])..
+      pProd&_machine_energy[pf,i,t]$(d1Prod[pf,i,t] and machine_energy[pf])..
         pProd[pf,i,t] =E= pREmachine[i,t]; 
 
-      pProd&_heating[pf,i,t]$(d1Prod[pf,i,t] and sameas[pf,'heating_energy'])..
+      pProd&_heating[pf,i,t]$(d1Prod[pf,i,t] and heating_energy[pf])..
         pProd[pf,i,t] =E= pREes['heating',i,t];
 
-      pProd&_transport[pf,i,t]$(d1Prod[pf,i,t] and sameas[pf,'transport_energy'])..
+      pProd&_transport[pf,i,t]$(d1Prod[pf,i,t] and transport_energy[pf])..
         pProd[pf,i,t] =E= pREes['transport',i,t];
   $ENDBLOCK    
 
@@ -170,45 +170,45 @@ $GROUP+ data_covered_variables
 # Data 
 # ------------------------------------------------------------------------------
 
-@load(G_production_data_variables, "../data/data.gdx")
-$GROUP+ data_covered_variables G_production_data_variables;
+  @load(G_production_data_variables, "../data/data.gdx")
+  $GROUP+ data_covered_variables G_production_data_variables;
 
 # ------------------------------------------------------------------------------
 # Exogenous variables 
 # ------------------------------------------------------------------------------
 
-eProd.l[pFnest,i]$(not sameas[pFnest,'TopPfunction']) = 0.1;
-eCET.l[i] = 5;
+  eProd.l[pFnest,i]$(not pf_top[pFnest]) = 0.1;
+  eCET.l[i] = 5;
 
-delta.l[pf,i,t]$(d1Prod[pf,i,t] and pf_bottom_capital[pf]) = 0.05;
-rFirms.l[i,t]$(sum(pf,d1Prod[pf,i,t] and pf_bottom_capital[pf])) = 0.07;
+  delta.l[pf,i,t]$(d1Prod[pf,i,t] and pf_bottom_capital[pf]) = 0.05;
+  rFirms.l[i,t]$(sum(pf,d1Prod[pf,i,t] and pf_bottom_capital[pf])) = 0.07;
 
 # ------------------------------------------------------------------------------
 # Initial values  
 # ------------------------------------------------------------------------------
 
-pProd.l[pfNest,i,tDataEnd] = 1;
-pProd.l[pf_bottom_capital,i,tDataEnd] = 1  - (1-delta.l[pf_bottom_capital,i,tDataEnd])/(1+rFirms.l[i,tDataEnd])*fv;
+  pProd.l[pfNest,i,tDataEnd] = 1;
+  pProd.l[pf_bottom_capital,i,tDataEnd] = 1  - (1-delta.l[pf_bottom_capital,i,tDataEnd])/(1+rFirms.l[i,tDataEnd])*fv;
 
-qProd.l[pfNest,i,t] =  sum(pf_bottom$(pf_mapping[pfNest,pf_bottom,i]), pProd.l[pf_bottom,i,t]*qProd.l[pf_bottom,i,t]);
-qProd.l[pfNest,i,t] =  sum(pf$(pf_mapping[pfNest,pf,i]), pProd.l[pf,i,t]*qProd.l[pf,i,t]);
-qProd.l[pfNest,i,t] =  sum(pf$(pf_mapping[pfNest,pf,i]), pProd.l[pf,i,t]*qProd.l[pf,i,t]);
-qProd.l[pfNest,i,t] =  sum(pf$(pf_mapping[pfNest,pf,i]), pProd.l[pf,i,t]*qProd.l[pf,i,t]);
-qProd.l[pfNest,i,t] =  sum(pf$(pf_mapping[pfNest,pf,i]), pProd.l[pf,i,t]*qProd.l[pf,i,t]);
+  qProd.l[pfNest,i,t] =  sum(pf_bottom$(pf_mapping[pfNest,pf_bottom,i]), pProd.l[pf_bottom,i,t]*qProd.l[pf_bottom,i,t]);
+  qProd.l[pfNest,i,t] =  sum(pf$(pf_mapping[pfNest,pf,i]), pProd.l[pf,i,t]*qProd.l[pf,i,t]);
+  qProd.l[pfNest,i,t] =  sum(pf$(pf_mapping[pfNest,pf,i]), pProd.l[pf,i,t]*qProd.l[pf,i,t]);
+  qProd.l[pfNest,i,t] =  sum(pf$(pf_mapping[pfNest,pf,i]), pProd.l[pf,i,t]*qProd.l[pf,i,t]);
+  qProd.l[pfNest,i,t] =  sum(pf$(pf_mapping[pfNest,pf,i]), pProd.l[pf,i,t]*qProd.l[pf,i,t]);
 
-qY.l[i,t] = qProd.l['TopPfunction',i,t];
+  qY.l[i,t] = qProd.l['TopPfunction',i,t];
 
-pY0.l[i,tDataEnd] = 1;
-pY0_CET.l[out,i,t]$(d1pY_CET[out,i,t]) = pY_CET.l[out,i,t]; 
+  pY0.l[i,tDataEnd] = 1;
+  pY0_CET.l[out,i,t]$(d1pY_CET[out,i,t]) = pY_CET.l[out,i,t]; 
 
-vtBotded.l[i,tDataEnd] = 0.05;
+  vtBotded.l[i,tDataEnd] = 0.05;
 
 # ------------------------------------------------------------------------------
 # Dummies 
 # ------------------------------------------------------------------------------
 
-d1Prod[pf,i,t] = yes$(qProd.l[pf,i,t]);
-d1Y[i,t]       = yes$(sum(out,d1pY_CET[out,i,t]));
+  d1Prod[pf,i,t] = yes$(qProd.l[pf,i,t]);
+  d1Y[i,t]       = yes$(sum(out,d1pY_CET[out,i,t]));
 
 # ------------------------------------------------------------------------------
 # Calibration

@@ -94,24 +94,24 @@
 			pREes[es,i,t]$(d1pEes[es,i,t]).. pREes[es,i,t]*qREes[es,i,t] =E= sum((e_a)$(d1pREa_inNest[es,e_a,i,t]), pREa[es,e_a,i,t] * qREa[es,e_a,i,t]);
 		
 		
-			qREes&_machine_energy[es,i,t]$(d1pEes[es,i,t] and not (sameas[es,'heating'] or sameas[es,'transport']))..
+			qREes&_machine_energy[es,i,t]$(d1pEes[es,i,t] and not (heating[es] or transport[es]))..
 				qREes[es,i,t] =E= uREes[es,i,t] * (pREes[es,i,t]/pREmachine[i,t])**(-eREes[i]) * qREmachine[i,t];
 		
 		
 			pREmachine[i,t]$(d1pREmachine[i,t])..
-				pREmachine[i,t]*qREmachine[i,t] =E= sum(es$(d1pEes[es,i,t] and not (sameas[es,'heating'] or sameas[es,'transport'])), pREes[es,i,t]*qREes[es,i,t]);
+				pREmachine[i,t]*qREmachine[i,t] =E= sum(es$(d1pEes[es,i,t] and not (heating[es] or transport[es])), pREes[es,i,t]*qREes[es,i,t]);
 
 		#Not in nests 
-			qREa&_crudeoilrefineries[es,e_a,i,t]$(d1pREa_NotinNest[es,e_a,i,t] and sameas[es,'process_special'] and sameas[e_a,'crude oil'] and sameas[i,'19000']).. 
+			qREa&_crudeoilrefineries[es,e_a,i,t]$(d1pREa_NotinNest[es,e_a,i,t] and process_special[es] and crudeoil[e_a] and i_refineries[i]).. 
 				qREa[es,e_a,i,t] =E= uREa[es,e_a,i,t] * qProd['TopPfunction',i,t];
 
-			qREa&_BiogasForConverting[es,e_a,i,t]$(d1pREa_NotinNest[es,e_a,i,t] and sameas[es,'process_special'] and sameas[e_a,'Biogas'] and sameas[i,'35002'])..
+			qREa&_BiogasForConverting[es,e_a,i,t]$(d1pREa_NotinNest[es,e_a,i,t] and process_special[es] and biogas[e_a] and i_gasdistribution[i])..
 				qREa[es,e_a,i,t] =E= uREa[es,e_a,i,t] * qREa_BiogasForConvertingData[t];
 
-			qREa&_ElectricityForDatacenters[es,e_a,i,t]$(d1pREa_NotinNest[es,e_a,i,t] and sameas[es,'process_special'] and sameas[e_a,'electricity'] and sameas[i,'71000'])..	
+			qREa&_ElectricityForDatacenters[es,e_a,i,t]$(d1pREa_NotinNest[es,e_a,i,t] and process_special[es] and el[e_a] and i_service_for_industries[i])..	
 				qREa[es,e_a,i,t] =E= uREa[es,e_a,i,t] * qREa_ElectricityForDatacentersData[t];
 
-			qREa&_Natural[es,e_a,i,t]$(d1pREa_NotinNest[es,e_a,i,t] and sameas[es,'process_special'] and sameas[e_a,'electricity'] and sameas[i,'71000'])..	
+			qREa&_Natural[es,e_a,i,t]$(d1pREa_NotinNest[es,e_a,i,t] and process_special[es] and el[e_a] and i_service_for_industries[i])..	
 				qREa[es,e_a,i,t] =E= uREa[es,e_a,i,t] * (qY_CET['Natural gas incl. biongas','35002',t] - qREa['process_special','Biogas','35002',t]);
 		
 			vEnergycostsnotinnesting[i,t].. vEnergycostsnotinnesting[i,t] =E= sum((es,e_a)$(d1pREa_NotinNest[es,e_a,i,t]), pREa[es,e_a,i,t] * qREa[es,e_a,i,t]);
@@ -119,10 +119,10 @@
 	$ENDBLOCK		
 
 	$BLOCK industries_energy_demand_link industries_energy_demand_link_endogenous $(t.val>=t1.val and t.val<=tEnd.val)
-	    qREes&_heating[es,i,t]$(d1pEes[es,i,t] and sameas[es,'heating'])..
+	    qREes&_heating[es,i,t]$(d1pEes[es,i,t] and heating[es])..
 	      qREes['heating',i,t] =E= qProd['heating_energy',i,t] + jqREes[es,i,t];
 	  
-	    qREes&_transport[es,i,t]$(d1pEes[es,i,t] and sameas[es,'transport'])..
+	    qREes&_transport[es,i,t]$(d1pEes[es,i,t] and transport[es])..
 	      qREes['transport',i,t] =E= qProd['transport_energy',i,t] + jqREes[es,i,t];
 
 			qREmachine[i,t]$(d1pREmachine[i,t])..
@@ -168,16 +168,16 @@ $GROUP+ main_endogenous
 # Set dummies 
 # ------------------------------------------------------------------------------
 
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and sameas[es,'process_special'] and sameas[e_a,'crude oil'] and sameas[i,'19000']) = yes; #Refinery feedstock of crude oil
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and sameas[es,'process_special'] and sameas[e_a,'Natural gas (extraction)'] and sameas[i,'35002']) = yes; #Input of fossile natural gas in gas distribution sector
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and sameas[es,'process_special'] and sameas[e_a,'Biogas'] and sameas[i,'35002']) = yes; #Input of biogas for converting to natural gas in gas distribution sector
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and sameas[es,'process_special'] and sameas[e_a,'electricity'] and sameas[i,'71000']) = yes; #Electricity for data centers (only applies when calibrated to Climate Outlook)
+	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and crudeoil[e_a] and i_refineries[i]) = yes; #Refinery feedstock of crude oil
+	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and natgas_ext[e_a] and i_gasdistribution[i]) = yes; #Input of fossile natural gas in gas distribution sector
+	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and biogas[e_a] and i_gasdistribution[i]) = yes; #Input of biogas for converting to natural gas in gas distribution sector
+	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and el[e_a] and i_service_for_industries[i]) = yes; #Electricity for data centers (only applies when calibrated to Climate Outlook)
 
 	d1pREa_inNest[es,e_a,i,t]    = yes$(pEpj_base.l[es,e_a,i,t] and not d1pREa_NotinNest[es,e_a,i,t]);
 	d1pREa[es,e_a,i,t]           = yes$(d1pREa_inNest[es,e_a,i,t] or d1pREa_NotinNest[es,e_a,i,t]);
 
 	d1pEes[es,i,t] 			 				 = yes$(sum(e_a, d1pREa_inNest[es,e_a,i,t]));	
-	d1pREmachine[i,t]            = yes$(sum(es$(not (sameas[es,'Heating'] or sameas[es,'Transport'])), d1pEes[es,i,t]));
+	d1pREmachine[i,t]            = yes$(sum(es$(not (heating[es] or transport[es])), d1pEes[es,i,t]));
 	d1Prod[pf,i,t]               = yes$(pProd.l[pf,i,t]);
 
 

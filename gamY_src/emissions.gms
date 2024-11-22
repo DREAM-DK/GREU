@@ -112,18 +112,18 @@
   $BLOCK emissions_BU emissions_BU_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
     #Energy-related emissions
-      qEmmE_BU&_notNatgas[em,es,e,d,t]$(not sameas[em,'CO2e'] and not (sameas[e,'Natural gas incl. biongas'] and (sameas[em,'CO2ubio'] or sameas[em,'CO2bio'])))..
+      qEmmE_BU&_notNatgas[em,es,e,d,t]$(not CO2e[em] and not (natgas[e] and (CO2ubio[em] or CO2bio[em])))..
         qEmmE_BU[em,es,e,d,t] =E= uEmmE_BU[em,es,e,d,t] * qEpj[es,e,d,t];
 
-      qEmmE_BU&_BioNatgas[em,es,e,d,t]$(not sameas[em,'CO2e'] and sameas[e,'Natural gas incl. biongas'] and sameas[em,'CO2bio'])..
+      qEmmE_BU&_BioNatgas[em,es,e,d,t]$(not CO2e[em] and natgas[e] and CO2bio[em])..
         qEmmE_BU[em,es,e,d,t] =E= sBioNatGas[t] * uEmmE_BU[em,es,e,d,t] * qEpj[es,e,d,t];
 
-      qEmmE_BU&_FossileNatgas[em,es,e,d,t]$(not sameas[em,'CO2e'] and sameas[e,'Natural gas incl. biongas'] and sameas[em,'CO2ubio'])..
+      qEmmE_BU&_FossileNatgas[em,es,e,d,t]$(not CO2e[em] and natgas[e] and CO2ubio[em])..
         qEmmE_BU[em,es,e,d,t] =E= (1-sBioNatGas[t]) * uEmmE_BU[em,es,e,d,t] * qEpj[es,e,d,t];
 
       #CO2e
-      qEmmE_BU&_CO2e[em,es,e,d,t]$(sameas[em,'CO2e'])..
-        qEmmE_BU['CO2e',es,e,d,t] =E= sum(em_a$(not sameas[em_a,'CO2e']), GWP[em_a] * qEmmE_BU[em_a,es,e,d,t]);
+      qEmmE_BU&_CO2e[em,es,e,d,t]$(CO2e[em])..
+        qEmmE_BU['CO2e',es,e,d,t] =E= sum(em_a$(not CO2e[em_a]), GWP[em_a] * qEmmE_BU[em_a,es,e,d,t]);
 
 
   $ENDBLOCK 
@@ -131,24 +131,24 @@
   #BLOCK 2/3 EMISSIONS AGGREGATES - CAN RUN SEPARATELY OF BOTTOM-UP EMISSIONS. WHEN LINKING 1 AND 2 (THROUGH 3) CALIBRATION VARAIBLES IN 2 ARE ENDOGENIZED TO MATCH BOTTOM-UP EMISSIONS
   $BLOCK emissions_aggregates emissions_aggregates_endogenous $(t1.val <= t.val and t1.val <=tEnd.val)
       #Energy-related emissions
-      qEmmE&_production[em,i,t]$(d1EmmE[em,i,t] and not sameas[em,'CO2e'])..
+      qEmmE&_production[em,i,t]$(d1EmmE[em,i,t] and not CO2e[em])..
         qEmmE[em,i,t] =E= uEmmE[em,i,t] * (qProd['Machine_energy',i,t] + qProd['Transport_energy',i,t] + qProd['Heating_energy',i,t]);
 
-      qEmmE&not_production[em,d,t]$(d1EmmE[em,d,t] and not i[d] and not sameas[em,'CO2e'])..
+      qEmmE&not_production[em,d,t]$(d1EmmE[em,d,t] and not i[d] and not CO2e[em])..
         qEmmE[em,d,t] =E= uEmmE[em,d,t];
 
-      qEmmE&_CO2e[em,d,t]$(d1EmmE[em,d,t] and sameas[em,'CO2e'])..
-        qEmmE['CO2e',d,t] =E= sum(em_a$(not sameas[em_a,'CO2e']), GWP[em_a] * qEmmE[em_a,d,t]); 
+      qEmmE&_CO2e[em,d,t]$(d1EmmE[em,d,t] and CO2e[em])..
+        qEmmE['CO2e',d,t] =E= sum(em_a$(not CO2e[em_a]), GWP[em_a] * qEmmE[em_a,d,t]); 
 
       # Non-energy related emissions
-      qEmmxE&_production[em,i,t]$(d1EmmxE[em,i,t] and not sameas[em,'CO2e'])..
+      qEmmxE&_production[em,i,t]$(d1EmmxE[em,i,t] and not CO2e[em])..
         qEmmxE[em,i,t] =E= uEmmxE[em,i,t] * sum(pf_top, qProd[pf_top,i,t]);
 
-      qEmmxE&not_production[em,d,t]$(d1EmmxE[em,d,t] and not i[d] and not sameas[em,'CO2e'])..
+      qEmmxE&not_production[em,d,t]$(d1EmmxE[em,d,t] and not i[d] and not CO2e[em])..
         qEmmxE[em,d,t] =E= uEmmxE[em,d,t];
 
-      qEmmxE&_CO2e[em,d,t]$(d1EmmxE[em,d,t] and sameas[em,'CO2e'])..
-        qEmmxE['CO2e',d,t] =E= sum(em_a$(not sameas[em_a,'CO2e']), GWP[em_a] * qEmmxE[em_a,d,t]);
+      qEmmxE&_CO2e[em,d,t]$(d1EmmxE[em,d,t] and CO2e[em])..
+        qEmmxE['CO2e',d,t] =E= sum(em_a$(not CO2e[em_a]), GWP[em_a] * qEmmxE[em_a,d,t]);
 
 
       # LULUCF (is measured in CO2e from the get-go, and we didn't need LULUCF5, if this is only a matter of hitting total emissions in official inventories)
@@ -170,7 +170,7 @@
   $BLOCK emissions_aggregates_link emissions_aggregates_link_endogenous $(t1.val <= t.val and t1.val <=tEnd.val)
 
       #Energy-related emissions
-      uEmmE[em,d,t]$(not sameas[em,'CO2e']).. qEmmE[em,d,t] =E= sum((e,es), qEmmE_BU[em,es,e,d,t]);
+      uEmmE[em,d,t]$(not CO2e[em]).. qEmmE[em,d,t] =E= sum((e,es), qEmmE_BU[em,es,e,d,t]);
 
   $ENDBLOCK 
 
@@ -225,15 +225,15 @@ model calibration /
 # Add endogenous variables to calibration model
 $GROUP calibration_endogenous
   emissions_BU_endogenous
-  uEmmE_BU[em,es,e,d,t1]$(not sameas[em,'CO2e']), -qEmmE_BU[em,es,e,d,t1]$(not sameas[em,'CO2e'])
+  uEmmE_BU[em,es,e,d,t1]$(not CO2e[em]), -qEmmE_BU[em,es,e,d,t1]$(not CO2e[em])
 
   emissions_aggregates_endogenous
-  uEmmE[em,i,t1]$(not sameas[em,'CO2e']),               -qEmmE[em,i,t1]$(not sameas[em,'CO2e'])
-  uEmmE[em,d,t1]$(not i[d] and not sameas[em,'CO2e']),  -qEmmE[em,d,t1]$(not i[d] and not sameas[em,'CO2e'])
+  uEmmE[em,i,t1]$(not CO2e[em]),               -qEmmE[em,i,t1]$(not CO2e[em])
+  uEmmE[em,d,t1]$(not i[d] and not CO2e[em]),  -qEmmE[em,d,t1]$(not i[d] and not CO2e[em])
 
   emissions_aggregates_link_endogenous
-  qEmmE[em,i,t1]$(not sameas[em,'CO2e'])
-  qEmmE[em,c,t1]$(not sameas[em,'CO2e'])
+  qEmmE[em,i,t1]$(not CO2e[em])
+  qEmmE[em,c,t1]$(not CO2e[em])
 
   calibration_endogenous
 ;
