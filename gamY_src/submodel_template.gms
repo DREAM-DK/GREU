@@ -1,18 +1,18 @@
 # ------------------------------------------------------------------------------
 # Variable definitions
 # ------------------------------------------------------------------------------
-$Group+ price_variables
+$IF %stage% == "variables":
+
+$Group+ all_variables
 ;
-$Group+ quantity_variables
-;
-$Group+ value_variables
-;
-$Group+ other_variables
-;
+
+$ENDIF # variables
 
 # ------------------------------------------------------------------------------
 # Equations
 # ------------------------------------------------------------------------------
+$IF %stage% == "equations":
+
 $BLOCK template_equations template_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 $ENDBLOCK
 
@@ -20,17 +20,25 @@ $ENDBLOCK
 model main / template_equations /;
 $Group+ main_endogenous template_endogenous;
 
+$ENDIF # equations
+
 # ------------------------------------------------------------------------------
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
+$IF %stage% == "exogenous_values":
+
 $Group template_data_variables
 ;
 @load(template_data_variables, "../data/data.gdx")
 $Group+ data_covered_variables template_data_variables;
 
+$ENDIF # exogenous_values
+
 # ------------------------------------------------------------------------------
 # Calibration
 # ------------------------------------------------------------------------------
+$IF %stage% == "calibration":
+
 $BLOCK template_calibration_equations template_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 $ENDBLOCK
 
@@ -46,3 +54,5 @@ $Group calibration_endogenous
 
   calibration_endogenous
 ;
+
+$ENDIF # calibration
