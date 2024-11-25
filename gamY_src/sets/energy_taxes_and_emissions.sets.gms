@@ -1,4 +1,5 @@
-set etaxes 
+
+sets etaxes 
     / CO2_tax
       EAFG_tax
       SO2_tax
@@ -17,6 +18,11 @@ set etaxes
       NF3_tax
       CFCs_tax
       HCFCs_tax
-      HFOs 
-  /;
+      HFOs_tax
+      PSO_tax
+  /
 
+  CO2_tax[etaxes]/CO2_tax/
+  EAFG_tax[etaxes]/EAFG_tax/
+  ;
+      
