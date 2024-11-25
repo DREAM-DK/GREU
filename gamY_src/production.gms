@@ -1,105 +1,59 @@
 # ------------------------------------------------------------------------------
 # Variable, dummy and group creation
 # ------------------------------------------------------------------------------
-	
-$SetGroup SG_production_dummies
-  d1Prod[pf,i,t] "Dummy for production function"
-  d1Y[i,t] "Dummy for production function"
-;	
-
-$SetGroup SG_production_dummies_flat_dummies 
-  SG_production_dummies 
-;
+$IF %stage% == "variables":
 
 $SetGroup+ SG_flat_after_last_data_year
-  SG_production_dummies_flat_dummies
-;
+  d1Prod[pf,i,t] "Dummy for production function"
+  d1Y_i[i,t] "Dummy for production function"
+;	
 
-$Group G_production_prices 
-  pProd[pf,i,t]$(d1Prod[pf,i,t])           "Production price index, both nests and factors"
-  pY0_CET[out,i,t]$(d1pY_CET[out,i,t])     "Cost price CET index of production in CET-split"
-  pY0[i,t]$(d1Y[i,t])                      "Cost price index, net of installation costs and other costs not in CES-nesting tree"
-;
+$Group+ all_variables
+  pProd[pf,i,t]$(d1Prod[pf,i,t]) "Production price index, both nests and factors"
+  pY0_CET[out,i,t]$(d1pY_CET[out,i,t]) "Cost price CET index of production in CET-split"
+  pY0[i,t]$(d1Y_i[i,t]) "Cost price index, net of installation costs and other costs not in CES-nesting tree"
 
-$Group G_production_quantities 
-  qProd[pf,i,t]$(d1Prod[pf,i,t])             "Production quantity, both nests and factors"
-  qY[i,t]$(d1Y[i,t])                         "Production quantity net of installation costs"
-;
+  qProd[pf,i,t]$(d1Prod[pf,i,t]) "Production quantity, both nests and factors"
+  qY[i,t]$(d1Y_i[i,t]) "Production quantity net of installation costs"
 
-$Group G_production_values
-  vtBotded[i,t]$(d1Y[i,t])                  "Value of bottom-up deductions, bio kroner"
-  vProdOtherProductionCosts[i,t]$(d1Y[i,t]) "Other production costs not in CES-nesting tree, bio. kroner"
-  vtNetproductionRest[i,t]$(d1Y[i,t])       "Net production subsidies and taxes not internalized in user-cost of capital and not included in other items listed below, bio. kroner"
-  vDiffMarginAvgE[i,t]$(d1Y[i,t])           "Difference between marginal and average energy-costs, bio. kroner"
-  vtEmmRxE[i,t]$(d1Y[i,t])                  "Taxes on non-energy related emissions, bio. kroner"
-  vtCAP_prodsubsidy[i,t]$(d1Y[i,t])         "Agricultural subsidies from EU CAP subsidizing production directly, bio. kroner"
-;
+  vtBotded[i,t]$(d1Y_i[i,t]) "Value of bottom-up deductions, bio kroner"
+  vProdOtherProductionCosts[i,t]$(d1Y_i[i,t]) "Other production costs not in CES-nesting tree, bio. kroner"
+  vtNetproductionRest[i,t]$(d1Y_i[i,t]) "Net production subsidies and taxes not internalized in user-cost of capital and not included in other items listed below, bio. kroner"
+  vDiffMarginAvgE[i,t]$(d1Y_i[i,t]) "Difference between marginal and average energy-costs, bio. kroner"
+  vtEmmRxE[i,t]$(d1Y_i[i,t]) "Taxes on non-energy related emissions, bio. kroner"
+  vtCAP_prodsubsidy[i,t]$(d1Y_i[i,t]) "Agricultural subsidies from EU CAP subsidizing production directly, bio. kroner"
 
-$Group G_production_other 
-  uProd[pf,i,t]$(d1Prod[pf,i,t])            "CES-Share of production for nest or factor (pf)"
-  eProd[pFnest,i]                           "Elasticity of substitution between production nests"
-  markup[out,i,t]$(d1pY_CET[out,i,t])       "Markup on production"
-  uY_CET[out,i,t]$(d1pY_CET[out,i,t])       "Share of production in CET-split"
-  eCET[i]                                   "Elasticity of substitution in CET-split"
-  markup_calib[i,t]$(d1Y[i,t])              "Markup on production, used in calibration"
-  rFirms[i,t]$(d1Y[i,t])                    "Firms' discount rate, nominal"
+  uProd[pf,i,t]$(d1Prod[pf,i,t]) "CES-Share of production for nest or factor (pf)"
+  eProd[pFnest,i] "Elasticity of substitution between production nests"
+  markup[out,i,t]$(d1pY_CET[out,i,t]) "Markup on production"
+  uY_CET[out,i,t]$(d1pY_CET[out,i,t]) "Share of production in CET-split"
+  eCET[i] "Elasticity of substitution in CET-split"
+  markup_calib[i,t]$(d1Y_i[i,t]) "Markup on production, used in calibration"
+  rFirms[i,t]$(d1Y_i[i,t]) "Firms' discount rate, nominal"
   delta[pf,i,t]$(d1Prod[pf,i,t] and pf_bottom_capital[pf]) "Depreciation rate of capital"
-  jpProd[pf,i,t]$(d1Prod[pf,i,t])     "j-T"
+  jpProd[pf,i,t]$(d1Prod[pf,i,t]) "j-T"
 ;
 
-$Group+ G_flat_after_last_data_year 
-  G_production_prices
-  G_production_quantities
-  G_production_values
-  G_production_other, -jpProd
-;
-
-$Group G_production_data_variables
-  pProd
-  qProd
-  vtNetproductionRest
-  vtCAP_prodsubsidy
-;
-
-# ------------------------------------------------------------------------------
-# Add to main groups
-# ------------------------------------------------------------------------------
-
-$Group+ price_variables 
-  G_production_prices
-;
-$Group+ quantity_variables
-  G_production_quantities
-;
-$Group+ value_variables
-  G_production_values
-;
-$Group+ other_variables
-  G_production_other
-;
-
-$Group+ data_covered_variables 
-  G_production_data_variables
-;
+$ENDIF # variables
 
 # ------------------------------------------------------------------------------
 # Equations
 # ------------------------------------------------------------------------------
+$IF %stage% == "equations":
 
   $BLOCK production production_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-
     pY_CET[out,i,t]$(d1pY_CET[out,i,t]).. 
       pY_CET[out,i,t] =E= pY0_CET[out,i,t] * (1 + markup[out,i,t]);
 
     pY0_CET[out,i,t]$(d1pY_CET[out,i,t]).. 
       qY_CET[out,i,t] =E= uY_CET[out,i,t] * (pY0_CET[out,i,t]/pY0[i,t])**eCET[i] *qY[i,t];  
 
-    qY[i,t]$(d1Y[i,t]).. 
+    qY[i,t]$(d1Y_i[i,t]).. 
       pY0[i,t] * qY[i,t] =E= sum(out$d1pY_CET[out,i,t], pY0_CET[out,i,t] * qY_CET[out,i,t]); 
 
 
     #Computing marginal costs. These are marginal cost of production from CES-production (pProd['TopPfunction']), net of installation costs, and other costs not covered in the production function
-    pY0[i,t]$(d1Y[i,t]).. 
+    pY0[i,t]$(d1Y_i[i,t]).. 
       pY0[i,t] * qY[i,t] =E=  pProd['TopPfunction',i,t] * qProd['TopPfunction',i,t] 
                             + vProdOtherProductionCosts[i,t];  #- qKinstcost[i,t])
                           
@@ -116,7 +70,7 @@ $Group+ data_covered_variables
 
     #Computing other production costs, not in nesting tree 
 
-    vProdOtherProductionCosts[i,t]$(d1Y[i,t]).. 
+    vProdOtherProductionCosts[i,t]$(d1Y_i[i,t]).. 
       vProdOtherProductionCosts[i,t] =E= vtNetproductionRest[i,t]      #Net production subsidies and taxes not internalized in user-cost of capital and not included in other items listed below
                                        - vtBotded[i,t]                 #"Bottom deductions on energy-use"
                                        - vDiffMarginAvgE[i,t]          #"Difference between marginal and average energy-costs"
@@ -165,9 +119,21 @@ $Group+ data_covered_variables
     production_usercost_endogenous
     ;
 
+$ENDIF # equations
+
+# ------------------------------------------------------------------------------
+# Data and exogenous parameters
+# ------------------------------------------------------------------------------
+$IF %stage% == "exogenous_values":
 # ------------------------------------------------------------------------------
 # Data 
 # ------------------------------------------------------------------------------
+$Group G_production_data_variables
+  pProd
+  qProd
+  vtNetproductionRest
+  vtCAP_prodsubsidy
+;
 
   @load(G_production_data_variables, "../data/data.gdx")
   $Group+ data_covered_variables G_production_data_variables;
@@ -205,18 +171,19 @@ $Group+ data_covered_variables
 # ------------------------------------------------------------------------------
 # Dummies 
 # ------------------------------------------------------------------------------
-
   d1Prod[pf,i,t] = yes$(qProd.l[pf,i,t]);
-  d1Y[i,t]       = yes$(sum(out,d1pY_CET[out,i,t]));
+  d1Y_i[i,t]       = yes$(sum(out,d1pY_CET[out,i,t]));
+
+$ENDIF # exogenous_values
 
 # ------------------------------------------------------------------------------
 # Calibration
 # ------------------------------------------------------------------------------
+$IF %stage% == "calibration":
 
- $BLOCK production_calibration production_calibration_endogenous $(t.val=t1.val)
-  markup[out,i,t].. 
-    markup[out,i,t] =E= markup_calib[i,t];   
- $ENDBLOCK
+$BLOCK production_calibration production_calibration_endogenous $(t1[t])
+  .. markup[out,i,t] =E= markup_calib[i,t];   
+$ENDBLOCK
 
 # Add equations and calibration equations to calibration model
 model calibration /
@@ -243,3 +210,12 @@ $Group calibration_endogenous
 
   calibration_endogenous
 ;
+
+$Group+ G_flat_after_last_data_year 
+  markup
+  uProd
+  uProd
+  uY_CET
+;
+
+$ENDIF # calibration
