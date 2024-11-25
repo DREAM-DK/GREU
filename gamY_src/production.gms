@@ -6,7 +6,6 @@ $SetGroup SG_production_dummies
   d1Prod[pf,i,t] "Dummy for production function"
   d1Y[i,t] "Dummy for production function"
 ;	
-Scalar d1pProd_uc_tEnd "" / No /;
 
 $SetGroup SG_production_dummies_flat_dummies 
   SG_production_dummies 
@@ -129,11 +128,11 @@ $Group+ data_covered_variables
   $ENDBLOCK
 
   $BLOCK production_usercost production_usercost_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-    pProd[pf,i,t]$(t1.val <= t.val and t.val<tEnd.val and pf_bottom_capital[pf]).. 
+    pProd[pf,i,t]$(not tEnd[t] and pf_bottom_capital[pf]).. 
       # pProd[pf,i,t] =E= (1+rFirms[i,t+1]) - (1-delta[pf,i,t])*fv + jpProd[pf,i,t];
       pProd[pf,i,t] =E= 1  - (1-delta[pf,i,t])/(1+rFirms[i,t+1])*fv + jpProd[pf,i,t]; #Primo-dateret user-cost kommer til at se sådan her ud
 
-    pProd&_tEnd[pf,i,t]$(t.val=tEnd.val and pf_bottom_capital[pf] and d1pProd_uc_tEnd).. 
+    pProd&_tEnd[pf,i,t]$(tEnd[t] and pf_bottom_capital[pf] and t1.val <> tEnd.val).. 
       pProd[pf,i,t] =E= pProd[pf,i,t-1];   
   $ENDBLOCK
 
