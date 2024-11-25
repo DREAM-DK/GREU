@@ -13,7 +13,7 @@ $Group+ other_variables
 # ------------------------------------------------------------------------------
 # Equations
 # ------------------------------------------------------------------------------
-$BLOCK template $(t1.val <= t.val and t.val <= tEnd.val)
+$BLOCK template_equations template_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -31,7 +31,7 @@ $Group+ data_covered_variables template_data_variables;
 # ------------------------------------------------------------------------------
 # Calibration
 # ------------------------------------------------------------------------------
-$BLOCK template_calibration $(t1.val <= t.val and t.val <= tEnd.val)
+$BLOCK template_calibration_equations template_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model

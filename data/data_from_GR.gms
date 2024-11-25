@@ -78,7 +78,7 @@ parameters auxiliary_data_parameters
   qEmmRxE[em,i,t]
   qEmmtot[em,em_accounts,t]
 
-  #Nye pÃ¥ d 
+  #Nye på d 
   pEpj_base[es,e,d,t]
   qEpj[es,e,d,t]
   tqE[es,e,d,t]
