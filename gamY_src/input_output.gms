@@ -5,7 +5,7 @@ set d1Y_d_i[d,i,t] "Dummy. Does the IO cell exist? (for domestic deliveries from
 set d1M_d_i[d,i,t] "Dummy. Does the IO cell exist? (for imports from industry i to demand d)" / /;
 set d1YM_d_i[d,i,t] "Dummy. Does the IO cell exist? (for demand d and industry i)" / /;
 
-$GROUP+ price_variables
+$Group+ price_variables
   pY_i[i,t] "Price of domestic output by industry."
   pM_i[i,t] "Price of imports by industry."
 
@@ -13,13 +13,13 @@ $GROUP+ price_variables
   pE_di[di,t] "Price of ergy inputs by industry demanding the ergy."
   pI_k[k,t] "Price of investment goods."
   pC_c[c,t] "Price of private consumption goods."
-  pG_g[g,t] "Price of government consumption goods."
+  SG_g[g,t] "Price of government consumption goods."
   pX_x[x,t] "Price of export goods."
 
   pY_d_i[d,i,t]$(d1Y_d_i[d,i,t]) "Price of domestic output by industry and demand component."
   pM_d_i[d,i,t]$(d1M_d_i[d,i,t]) "Price of imports by industry and demand component."
 ;
-$GROUP+ quantity_variables
+$Group+ quantity_variables
   qY_i[i,t] "Real output by industry."
   qM_i[i,t]$(m[i]) "Real imports by industry."
 
@@ -33,7 +33,7 @@ $GROUP+ quantity_variables
   qY_d_i[d,i,t]$(d1Y_d_i[d,i,t]) "Real output by industry and demand component."
   qM_d_i[d,i,t]$(d1M_d_i[d,i,t]) "Real imports by industry and demand component."
 ;
-$GROUP+ value_variables
+$Group+ value_variables
   vY_i[i,t] "Output by industry."
   vM_i[i,t]$(m[i]) "Imports by industry."
 
@@ -52,7 +52,7 @@ $GROUP+ value_variables
   vtY_i[i,t] "Net duties on domestic production."
   vtM_i[i,t]$(m[i]) "Net duties on imports."
 ;
-$GROUP+ other_variables
+$Group+ other_variables
   tY_d_i[d,i,t]$(d1Y_d_i[d,i,t]) "Duties on domestic output by industry and demand component."
   tM_d_i[d,i,t]$(d1M_d_i[d,i,t]) "Duties on imports by industry and demand component."
   jfpY_d[d,t] "Deviation from average industry price."
@@ -108,7 +108,7 @@ $BLOCK input_output $(t1.val <= t.val and t.val <= tEnd.val)
   pE_di[di,t].. pE_di[di,t] * qE_di[di,t] =E= vE_di[di,t];
   pI_k[k,t].. pI_k[k,t] * qI_k[k,t] =E= vI_k[k,t];
   pC_c[c,t].. pC_c[c,t] * qC_c[c,t] =E= vC_c[c,t];
-  pG_g[g,t].. pG_g[g,t] * qG_g[g,t] =E= vG_g[g,t];
+  SG_g[g,t].. SG_g[g,t] * qG_g[g,t] =E= vG_g[g,t];
   pX_x[x,t].. pX_x[x,t] * qX_x[x,t] =E= vX_x[x,t];
 
   vR_di[di,t].. vR_di[di,t] =E= sum(r, vY_d_i[di,r,t] + vM_d_i[di,r,t]);
@@ -121,12 +121,12 @@ $ENDBLOCK
 
 # Add equation and endogenous variables to main model
 model main / input_output_equations /;
-$GROUP+ main_endogenous input_output_endogenous;
+$Group+ main_endogenous input_output_endogenous;
 
 # ------------------------------------------------------------------------------
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
-$GROUP input_output_data_variables
+$Group input_output_data_variables
   vY_d_i, vtY_d_i, tY_d_i
   vM_d_i, vtM_d_i, tM_d_i
 
@@ -135,7 +135,7 @@ $GROUP input_output_data_variables
 
   pC_c, qC_c, vC_c
   pX_x, qX_x, vX_x
-  pG_g, qG_g, vG_g
+  SG_g, qG_g, vG_g
   pI_k, qI_k, vI_k
   pR_di, qR_di, vR_di
   pE_di, qE_di, vE_di
@@ -150,7 +150,7 @@ $GROUP input_output_data_variables
 ;
 # @load(input_output_data_variables, "../data/data.gdx")
 $FIX(1) input_output_data_variables;
-$GROUP+ data_covered_variables input_output_data_variables;
+$Group+ data_covered_variables input_output_data_variables;
 
 d1Y_d_i[d,i,t] = vY_d_i.l[d,i,t] <> 0;
 d1M_d_i[d,i,t] = vM_d_i.l[d,i,t] <> 0;
@@ -171,10 +171,10 @@ model calibration /
   # input_output_calibration_equations
 /;
 # Add endogenous variables to calibration model
-$GROUP+ input_output_calibration_endogenous
+$Group+ input_output_calibration_endogenous
   input_output_endogenous
   -vtY_d_i, tY_d_i$(d1Y_d_i[d,i,t])
   -vtM_d_i, tM_d_i$(d1M_d_i[d,i,t])
   -vY_d_i, -vM_d_i, rYM, rM$(d1M_d_i[d,i,t] and d1Y_d_i[d,i,t]) 
 ;
-$GROUP+ calibration_endogenous input_output_calibration_endogenous;
+$Group+ calibration_endogenous input_output_calibration_endogenous;

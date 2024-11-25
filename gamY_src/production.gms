@@ -2,32 +2,32 @@
 # Variable, dummy and group creation
 # ------------------------------------------------------------------------------
 	
-$PGROUP PG_production_dummies
+$SetGroup SG_production_dummies
   d1Prod[pf,i,t] "Dummy for production function"
   d1Y[i,t] "Dummy for production function"
-  d1pProd_uc_tEnd
 ;	
+Scalar d1pProd_uc_tEnd "" / No /;
 
-$PGROUP PG_production_dummies_flat_dummies 
-  PG_production_dummies 
+$SetGroup SG_production_dummies_flat_dummies 
+  SG_production_dummies 
 ;
 
-$PGROUP+ PG_flat_after_last_data_year
-  PG_production_dummies_flat_dummies
+$SetGroup+ SG_flat_after_last_data_year
+  SG_production_dummies_flat_dummies
 ;
 
-$GROUP G_production_prices 
+$Group G_production_prices 
   pProd[pf,i,t]$(d1Prod[pf,i,t])           "Production price index, both nests and factors"
   pY0_CET[out,i,t]$(d1pY_CET[out,i,t])     "Cost price CET index of production in CET-split"
   pY0[i,t]$(d1Y[i,t])                      "Cost price index, net of installation costs and other costs not in CES-nesting tree"
 ;
 
-$GROUP G_production_quantities 
+$Group G_production_quantities 
   qProd[pf,i,t]$(d1Prod[pf,i,t])             "Production quantity, both nests and factors"
   qY[i,t]$(d1Y[i,t])                         "Production quantity net of installation costs"
 ;
 
-$GROUP G_production_values
+$Group G_production_values
   vtBotded[i,t]$(d1Y[i,t])                  "Value of bottom-up deductions, bio kroner"
   vProdOtherProductionCosts[i,t]$(d1Y[i,t]) "Other production costs not in CES-nesting tree, bio. kroner"
   vtNetproductionRest[i,t]$(d1Y[i,t])       "Net production subsidies and taxes not internalized in user-cost of capital and not included in other items listed below, bio. kroner"
@@ -36,7 +36,7 @@ $GROUP G_production_values
   vtCAP_prodsubsidy[i,t]$(d1Y[i,t])         "Agricultural subsidies from EU CAP subsidizing production directly, bio. kroner"
 ;
 
-$GROUP G_production_other 
+$Group G_production_other 
   uProd[pf,i,t]$(d1Prod[pf,i,t])            "CES-Share of production for nest or factor (pf)"
   eProd[pFnest,i]                           "Elasticity of substitution between production nests"
   markup[out,i,t]$(d1pY_CET[out,i,t])       "Markup on production"
@@ -48,14 +48,14 @@ $GROUP G_production_other
   jpProd[pf,i,t]$(d1Prod[pf,i,t])     "j-T"
 ;
 
-$GROUP+ G_flat_after_last_data_year 
+$Group+ G_flat_after_last_data_year 
   G_production_prices
   G_production_quantities
   G_production_values
   G_production_other, -jpProd
 ;
 
-$GROUP G_production_data_variables
+$Group G_production_data_variables
   pProd
   qProd
   vtNetproductionRest
@@ -66,20 +66,20 @@ $GROUP G_production_data_variables
 # Add to main groups
 # ------------------------------------------------------------------------------
 
-$GROUP+ price_variables 
+$Group+ price_variables 
   G_production_prices
 ;
-$GROUP+ quantity_variables
+$Group+ quantity_variables
   G_production_quantities
 ;
-$GROUP+ value_variables
+$Group+ value_variables
   G_production_values
 ;
-$GROUP+ other_variables
+$Group+ other_variables
   G_production_other
 ;
 
-$GROUP+ data_covered_variables 
+$Group+ data_covered_variables 
   G_production_data_variables
 ;
 
@@ -159,7 +159,7 @@ $GROUP+ data_covered_variables
               #  production_labormarket_link
               production_usercost
               /;
-  $GROUP+ main_endogenous 
+  $Group+ main_endogenous 
     production_endogenous
     production_energydemand_link_endogenous
     # production_labormarket_link_endogenous
@@ -171,7 +171,7 @@ $GROUP+ data_covered_variables
 # ------------------------------------------------------------------------------
 
   @load(G_production_data_variables, "../data/data.gdx")
-  $GROUP+ data_covered_variables G_production_data_variables;
+  $Group+ data_covered_variables G_production_data_variables;
 
 # ------------------------------------------------------------------------------
 # Exogenous variables 
@@ -228,7 +228,7 @@ model calibration /
 /;
 
 # Add endogenous variables to calibration model
-$GROUP calibration_endogenous
+$Group calibration_endogenous
   production_endogenous
   production_energydemand_link_endogenous
 

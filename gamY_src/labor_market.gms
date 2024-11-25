@@ -1,21 +1,21 @@
 # ------------------------------------------------------------------------------
 # Variable definitions
 # ------------------------------------------------------------------------------
-$GROUP+ price_variables
+$Group+ price_variables
   pL[t] "Usercost of labor."
   pW[t] "Wage pr. efficiency unit of labor."
   pLfrictions[t] "Effect of real and nominal frictions on usercost of labor."
 ;
-$GROUP+ quantity_variables
+$Group+ quantity_variables
   qProductivity[t] "Labor augmenting productivity."
   qL[t] "Labor in efficiency units."
   qL_i[i,t] "Labor in efficiency units by industry."
   qLfrictions[t] "Effect of real frictions on efficiency units of labor"
 ;
-$GROUP+ value_variables
+$Group+ value_variables
   vWages_i[i,t] "Compensation of employees by industry."
 ;
-$GROUP+ other_variables
+$Group+ other_variables
   nL[t] "Total employment."
 ;
 
@@ -38,12 +38,12 @@ $ENDBLOCK
 
 # Add equation and endogenous variables to main model
 model main / labor_market_equations /;
-$GROUP+ main_endogenous labor_market_endogenous;
+$Group+ main_endogenous labor_market_endogenous;
 
 # ------------------------------------------------------------------------------
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
-$GROUP labor_market_data_variables
+$Group labor_market_data_variables
   vWages_i[i,t]
   nL[t]
 ;
@@ -51,7 +51,7 @@ $GROUP labor_market_data_variables
 
 pW.l[tBase] = 1;
 
-$GROUP+ data_covered_variables
+$Group+ data_covered_variables
   labor_market_data_variables
 ;
 
@@ -68,7 +68,7 @@ model calibration /
   labor_market_calibration_equations
 /;
 # Add endogenous variables to calibration model
-$GROUP calibration_endogenous
+$Group calibration_endogenous
   labor_market_calibration_endogenous
   labor_market_endogenous
   -vWages_i[i,t1], qL_i[i,t1]

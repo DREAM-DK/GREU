@@ -3,63 +3,63 @@
 # ------------------------------------------------------------------------------
 	
 	#BOTTOM-UP EMISSIONS
-		$PGROUP PG_emissions_BU_dummies
-        d1EmmE_BU[em,es,e,d,t]
-        d1Sbionatgas[t]
+		$SetGroup SG_emissions_BU_dummies
+        d1EmmE_BU[em,es,e,d,t] ""
+        d1Sbionatgas[t] ""
 		;	
 
-		$PGROUP PG_emissions_BU_flat_dummies 
-			PG_emissions_BU_dummies  
+		$SetGroup SG_emissions_BU_flat_dummies 
+			SG_emissions_BU_dummies
 		;
 
-    $PGROUP+ PG_flat_after_last_data_year
-      PG_emissions_BU_flat_dummies
+    $SetGroup+ SG_flat_after_last_data_year
+      SG_emissions_BU_flat_dummies
     ;
 
 
-		$GROUP G_emissions_BU_quantities 
+		$Group G_emissions_BU_quantities 
       qEmmE_BU[em,es,e,d,t]$(d1EmmE_BU[em,es,e,d,t]) "Emissions, lowest model level (BU=Bottom up) related to combustion of energy, measured in kilotonnes emitted gas"
     ;
 
-		$GROUP G_emissions_BU_other
+		$Group G_emissions_BU_other
       uEmmE_BU[em,es,e,d,t]$(d1EmmE_BU[em,es,e,d,t]) "Emission coefficient related to energy use. Measured in kilotonnes emitted gas per peta Joule of energy"
 			sBioNatGas[t]$(d1Sbionatgas[t])                "Share of bio-natural gas in total natural gas consumption, should perhaps be modelled through emission coefficient in future"
 		;
 
-		$GROUP+ G_flat_after_last_data_year 
+		$Group+ G_flat_after_last_data_year 
 			G_emissions_BU_quantities
 			G_emissions_BU_other
 		;
 
     #AKB: It would be nice to have an "add from group, but excluding dummies feature"
-		$GROUP G_emissions_BU_data 
+		$Group G_emissions_BU_data 
       qEmmE_BU
       sBioNatGas
   	;
 
 
     #AGGREGATE EMISSIONS
-    $PGROUP PG_emissions_aggregates_dummies 
-	      d1EmmLULUCF5[land5,t]
-        d1EmmLULUCF[t]
-        d1EmmE[em,d,t]
-        d1EmmxE[em,d,t]
-        d1EmmTot[em,em_accounts,t]
-        d1GWP[em]
-        d1EmmBorderTrade[em,t]
-        d1EmmInternationlAviation[em,t]
+    $SetGroup SG_emissions_aggregates_dummies 
+	      d1EmmLULUCF5[land5,t] ""
+        d1EmmLULUCF[t] ""
+        d1EmmE[em,d,t] ""
+        d1EmmxE[em,d,t] ""
+        d1EmmTot[em,em_accounts,t] ""
+        d1GWP[em] ""
+        d1EmmBorderTrade[em,t] ""
+        d1EmmInternationlAviation[em,t] ""
     ;
 
-    $PGROUP PG_emissions_aggregates_flat_dummies 
-      PG_emissions_aggregates_dummies
+    $SetGroup SG_emissions_aggregates_flat_dummies 
+      SG_emissions_aggregates_dummies
     ;
 
-    $PGROUP+ PG_flat_after_last_data_year
-      PG_emissions_aggregates_flat_dummies
+    $SetGroup+ SG_flat_after_last_data_year
+      SG_emissions_aggregates_flat_dummies
     ;
 
 
-    $GROUP G_emissions_aggregates_quantities
+    $Group G_emissions_aggregates_quantities
         qEmmE[em,d,t]$(d1EmmE[em,d,t]) "Aggregate energy-related emissions. Measured in kilotonnes CO2e"
         qEmmxE[em,d,t]$(d1EmmxE[em,d,t]) "Aggregate non-energy related emissions. Measured in kilotonnes CO2e"
 
@@ -72,19 +72,19 @@
 
     ;
 
-    $GROUP G_emissions_aggregates_other
+    $Group G_emissions_aggregates_other
       uEmmE[em,d,t]$(d1EmmE[em,d,t]) "Emission coefficient on energy"
       uEmmxE[em,d,t]$(d1EmmxE[em,d,t]) "Emission coefficient on non-energy"
       GWP[em]$(d1GWP[em]) "Global warming potential of emitted gas"
       uEmmLULUCF5[land5,t]$(d1EmmLULUCF5[land5,t]) "Emission coefficient on land-use, land-use change and forestry"
     ;
 
-    $GROUP+ G_flat_after_last_data_year
+    $Group+ G_flat_after_last_data_year
       G_emissions_aggregates_quantities
       G_emissions_aggregates_other
     ;
 
-    $GROUP G_emissions_aggregates_data 
+    $Group G_emissions_aggregates_data 
       qEmmTot
       qEmmLULUCF5
       qEmmLULUCF
@@ -96,17 +96,17 @@
 # Add to main groups
 # ------------------------------------------------------------------------------
 
-  $GROUP G_emissions_data 
+  $Group G_emissions_data 
     G_emissions_BU_data
     G_emissions_aggregates_data
   ;
 
-	$GROUP+ quantity_variables
+	$Group+ quantity_variables
 		G_emissions_BU_quantities #AKB: Should be removed but remains for existence groups
     G_emissions_aggregates_quantities
 	;
 
-	$GROUP+ other_variables
+	$Group+ other_variables
     G_emissions_BU_other
     G_emissions_aggregates_other
 	;
@@ -189,7 +189,7 @@ model main /
             emissions_aggregates_link
             /;
             
-$GROUP+ main_endogenous 
+$Group+ main_endogenous 
   emissions_BU_endogenous
   emissions_aggregates_endogenous
   emissions_aggregates_link_endogenous
@@ -200,7 +200,7 @@ $GROUP+ main_endogenous
 # ------------------------------------------------------------------------------
 
 @load(G_emissions_data, "../data/data.gdx")
-$GROUP+ data_covered_variables G_emissions_data;
+$Group+ data_covered_variables G_emissions_data;
 
 # ------------------------------------------------------------------------------
 # Initial values 
@@ -234,7 +234,7 @@ model calibration /
 /;
 
 # Add endogenous variables to calibration model
-$GROUP calibration_endogenous
+$Group calibration_endogenous
   emissions_BU_endogenous
   uEmmE_BU[em,es,e,d,t1]$(not CO2e[em]), -qEmmE_BU[em,es,e,d,t1]$(not CO2e[em])
 

@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Variable definitions
 # ------------------------------------------------------------------------------
-$GROUP+ price_variables
+$Group+ price_variables
   pC[t] "Aggregate private consumption deflator."
   pG[t] "Aggregate government consumption deflator."
   pX[t] "Aggregate exports deflator."
@@ -12,7 +12,7 @@ $GROUP+ price_variables
 
   pGDP[t] "GDP deflator."
 ;
-$GROUP+ quantity_variables
+$Group+ quantity_variables
   qC[t] "Real aggregate private consumption."
   qG[t] "Real aggregate government consumption."
   qX[t] "Real aggregate exports."
@@ -61,12 +61,12 @@ $ENDBLOCK
 
 # Add equation and endogenous variables to main model
 model main / aggregates_equations /;
-$GROUP+ main_endogenous aggregates_endogenous;
+$Group+ main_endogenous aggregates_endogenous;
 
 # ------------------------------------------------------------------------------
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
-$GROUP aggregates_data_variables
+$Group aggregates_data_variables
   pC, qC
   pG, qG
   pX, qX
@@ -76,7 +76,7 @@ $GROUP aggregates_data_variables
   pGDP, qGDP
 ;
 @load(aggregates_data_variables, "../data/data.gdx")
-# $GROUP data_covered_variables data_covered_variables aggregates_data_variables;
+# $Group data_covered_variables data_covered_variables aggregates_data_variables;
 
 pC.l[tBase] = 1;
 pX.l[tBase] = 1;
@@ -97,7 +97,7 @@ model calibration /
   # aggregates_calibration_equations
 /;
 # Add endogenous variables to calibration model
-$GROUP calibration_endogenous
+$Group calibration_endogenous
   aggregates_calibration_endogenous
   aggregates_endogenous
   -pC[tBase], pC[t0]

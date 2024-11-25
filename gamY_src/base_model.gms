@@ -17,16 +17,16 @@ $onMulti
 model main;
 model calibration;
 
-$GROUP price_variables ; # Variables that are adjusted for steady state inflation
-$GROUP quantity_variables ; # Variables that are adjusted for steady state productivity growth
-$GROUP value_variables ; # Variables that are adjusted for both steady state inflation and productivity growth
-$GROUP other_variables ; # Variables that are not adjusted for steady state inflation or productivity growth
-$GROUP data_covered_variables ; # Variables that are covered by data
-$GROUP G_flat_after_last_data_year ; # Variables that are extended with "flat forecast" after last data year
-$PGROUP PG_flat_after_last_data_year ""; # Dummies that are extended with "flat forecast" after last data year
+$Group price_variables ; # Variables that are adjusted for steady state inflation
+$Group quantity_variables ; # Variables that are adjusted for steady state productivity growth
+$Group value_variables ; # Variables that are adjusted for both steady state inflation and productivity growth
+$Group other_variables ; # Variables that are not adjusted for steady state inflation or productivity growth
+$Group data_covered_variables ; # Variables that are covered by data
+$Group G_flat_after_last_data_year ; # Variables that are extended with "flat forecast" after last data year
+$SetGroup SG_flat_after_last_data_year ; # Dummies that are extended with "flat forecast" after last data year
 
-$GROUP main_endogenous "";
-$GROUP calibration_endogenous "";
+$Group main_endogenous ;
+$Group calibration_endogenous ;
 
 $IMPORT growth_adjustments.gms
 
@@ -35,7 +35,7 @@ $IMPORT growth_adjustments.gms
 # ------------------------------------------------------------------------------
 
 # $IMPORT test_module.gms
-#  $IMPORT labor_market.gms
+# $IMPORT labor_market.gms
 $IMPORT energy_markets.gms; 
 $IMPORT industries_CES_energydemand.gms; 
 $IMPORT production.gms; 

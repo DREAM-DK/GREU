@@ -10,7 +10,7 @@ model calibration /
 
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
 
-$GROUP+ calibration_endogenous - nonexisting;
+$Group+ calibration_endogenous - nonexisting;
 
 # ------------------------------------------------------------------------------
 # Static calibration
@@ -24,8 +24,8 @@ $ENDLOOP
 $FIX all_variables; $UNFIX calibration_endogenous;
 
 # Starting values to hot-start solver
-# $GROUP G_do_not_load ;
-# $GROUP G_load calibration_endogenous, - G_do_not_load;
+# $Group G_do_not_load ;
+# $Group G_load calibration_endogenous, - G_do_not_load;
 # @load_as(G_load, "previous_calibration.gdx", .l);
 
 
@@ -40,8 +40,8 @@ execute_unload 'static_calibration.gdx';
  
  set_time_periods(%calibration_year%, %terminal_year%);
  # Starting values to hot-start solver
- # $GROUP G_do_not_load ;
- # $GROUP G_load calibration_endogenous, - G_do_not_load;
+ # $Group G_do_not_load ;
+ # $Group G_load calibration_endogenous, - G_do_not_load;
  # @load_as(G_load, "previous_calibration.gdx", .l);
 
  #Extending dummies with "flat forecast" after last data year
@@ -49,7 +49,7 @@ execute_unload 'static_calibration.gdx';
 		{name}_exists_dummy{sets}{$}[<t>t_dummies] = {name}_exists_dummy{sets}{$}[<t>'%calibration_year%'];
 	$ENDLOOP
 
-	$LOOP PG_flat_after_last_data_year: #Extending model dummies 
+	$LOOP SG_flat_after_last_data_year: #Extending model dummies 
 		{name}{sets}{$}[<t>t_dummies] = {name}{sets}{$}[<t>'%calibration_year%'];
 	$ENDLOOP 
 
@@ -63,7 +63,7 @@ execute_unload 'static_calibration.gdx';
 	 {name}.l{sets}$({conditions} and {name}.l{sets} = 0) = {name}.l{sets}{$}[<t>t1];
 	 $ENDLOOP
 
-	 $GROUP G_calibration_endogenous_x 
+	 $Group G_calibration_endogenous_x 
 			calibration_endogenous
 			-uY_CET$(sameas[out,'WholeAndRetailSaleMarginE']) #Den her flytter sig en my...
 			-uY_CET$(sameas[out,'Firewood and woodchips'])    #Den her flytter sig en my..

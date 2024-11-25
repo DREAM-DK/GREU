@@ -1,7 +1,7 @@
 # Group of all variables, identical to all grouup, except containing only elements that exist (not dummied out)
 # We use all_variables instead of All for performance reasons, to avoid accessing elements that are dummied out.
 # E.g. use $FIX all_variables; instead of $FIX All;
-$GROUP all_variables
+$Group all_variables
   price_variables
   quantity_variables
   value_variables
@@ -9,7 +9,7 @@ $GROUP all_variables
 ;
 
 # Group of all elements that are dummied out and should not be accessed
-$GROUP nonexisting
+$Group nonexisting
   All, -all_variables
 ;
 

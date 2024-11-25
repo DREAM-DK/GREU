@@ -1,13 +1,13 @@
 # ------------------------------------------------------------------------------
 # Variable definitions
 # ------------------------------------------------------------------------------
-$GROUP+ price_variables
+$Group+ price_variables
 ;
-$GROUP+ quantity_variables
+$Group+ quantity_variables
 ;
-$GROUP+ value_variables
+$Group+ value_variables
 ;
-$GROUP+ other_variables
+$Group+ other_variables
 ;
 
 # ------------------------------------------------------------------------------
@@ -18,15 +18,15 @@ $ENDBLOCK
 
 # Add equation and endogenous variables to main model
 model main / template_equations /;
-$GROUP+ main_endogenous template_endogenous;
+$Group+ main_endogenous template_endogenous;
 
 # ------------------------------------------------------------------------------
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
-$GROUP template_data_variables
+$Group template_data_variables
 ;
 @load(template_data_variables, "../data/data.gdx")
-$GROUP+ data_covered_variables template_data_variables;
+$Group+ data_covered_variables template_data_variables;
 
 # ------------------------------------------------------------------------------
 # Calibration
@@ -40,7 +40,7 @@ model calibration /
   template_calibration_equations
 /;
 # Add endogenous variables to calibration model
-$GROUP calibration_endogenous
+$Group calibration_endogenous
   template_calibration_endogenous
   template_endogenous
 

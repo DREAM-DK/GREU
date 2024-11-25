@@ -2,30 +2,30 @@
 # Variable, dummy and group creation
 # ------------------------------------------------------------------------------
   
-  $PGROUP PG_energy_taxes_dummies 
-    d1tE_duty_tot[d,t]            
-    d1tE_vat_tot[d,t]                   
+  $SetGroup SG_energy_taxes_dummies 
+    d1tE_duty_tot[d,t] "" 
+    d1tE_vat_tot[d,t] ""
     
-    d1tE_duty[etaxes,es,e,d,t] 
-    d1tE_vat[es,e,d,t]  
-    d1tE[es,e,d,t]
-    d1tCO2_ETS[d,t]
-    d1tCO2_ETS2[d,t]
-    d1tCO2_E[em,es,e,d,t]
-    d1tCO2_xE[d,t]
-    d1tCO2_ETS_E[em,es,e,d,t]
-    d1tCO2_ETS2_E[em,es,e,d,t]
+    d1tE_duty[etaxes,es,e,d,t] "" 
+    d1tE_vat[es,e,d,t] ""  
+    d1tE[es,e,d,t] ""
+    d1tCO2_ETS[d,t] ""
+    d1tCO2_ETS2[d,t] ""
+    d1tCO2_E[em,es,e,d,t] ""
+    d1tCO2_xE[d,t] ""
+    d1tCO2_ETS_E[em,es,e,d,t] ""
+    d1tCO2_ETS2_E[em,es,e,d,t] ""
   ;
 
-  $PGROUP PG_energy_taxes_flat_dummies 
-    PG_energy_taxes_dummies
+  $SetGroup SG_energy_taxes_flat_dummies 
+    SG_energy_taxes_dummies
   ;
 
-  $PGROUP+ PG_flat_after_last_data_year
-    PG_energy_taxes_flat_dummies
+  $SetGroup+ SG_flat_after_last_data_year
+    SG_energy_taxes_flat_dummies
   ;
 
-  $GROUP G_energy_taxes_rates
+  $Group G_energy_taxes_rates
     tCO2_ETS[t]                                               "ETS1 carbon price, measured in kroner per ton CO2"
     tCO2_ETS2[t]                                              "ETS2 carbon price, measured in kroner per ton CO2"
 
@@ -40,12 +40,12 @@
 
   ;
 
-    $GROUP G_energy_taxes_quantities
+    $Group G_energy_taxes_quantities
     qEpj_duty_deductible[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "Marginal duty-rates on firms energy input. Measured in bio. kr. per PJ energy input"
     qCO2_ETS_freeallowances[i,t]$(d1tCO2_ETS[i,t]) "This one needs to have added non-energy related emissions"
   ;
 
-  $GROUP G_energy_taxes_values 
+  $Group G_energy_taxes_values 
 
     vtE_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "Tax revenue from duties on energy"
     vtE_duty_tot[d,t]$(d1tE_duty_tot[d,t]) "Total tax revenue from duties on energy"
@@ -60,18 +60,18 @@
     vtCO2_xE[d,t]$(d1tCO2_xE[d,t] and d1EmmxE['CO2ubio',d,t])      "Tax revenue from national carbon tax, non-energy related emissions"
   ;
 
-  $GROUP G_energy_taxes_other 
+  $Group G_energy_taxes_other 
     jvtE_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "J-term to capture instances ,where data contains a revenue, but the marginal rate is zero."
   ;
 
-  $GROUP+ G_flat_after_last_data_year
+  $Group+ G_flat_after_last_data_year
     G_energy_taxes_rates
     G_energy_taxes_quantities
     G_energy_taxes_values
     G_energy_taxes_other
   ;
 
-  $GROUP G_energy_taxes_data  
+  $Group G_energy_taxes_data  
     vtE_duty
     vtE_vat 
     tCO2_Emarg 
@@ -83,15 +83,15 @@
 # Add to main groups
 # ------------------------------------------------------------------------------
 
-	$GROUP+ quantity_variables
+	$Group+ quantity_variables
     G_energy_taxes_quantities
 	;
 
-  $GROUP+ value_variables
+  $Group+ value_variables
     G_energy_taxes_values
   ;
 
-	$GROUP+ other_variables
+	$Group+ other_variables
     G_energy_taxes_rates
     G_energy_taxes_other
 	;
@@ -194,7 +194,7 @@
           energy_and_emissions_taxes
           energy_and_emissions_taxes_links
             /;
-  $GROUP+ main_endogenous 
+  $Group+ main_endogenous 
     energy_and_emissions_taxes_endogenous
     energy_and_emissions_taxes_links_endogenous
   ;
@@ -204,7 +204,7 @@
 # ------------------------------------------------------------------------------
 
   @load(G_energy_taxes_data, "../data/data.gdx")
-  $GROUP+ data_covered_variables G_energy_taxes_data;
+  $Group+ data_covered_variables G_energy_taxes_data;
 
 
 # ------------------------------------------------------------------------------
@@ -250,7 +250,7 @@ model calibration /
 /;
 
 # Add endogenous variables to calibration model
-$GROUP calibration_endogenous
+$Group calibration_endogenous
   energy_and_emissions_taxes_endogenous 
   -vtE_duty[etaxes,es,e,d,t1], tEmarg_duty[etaxes,es,e,d,t1]
   -tEmarg_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] <>0), qEpj_duty_deductible['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] <>0)

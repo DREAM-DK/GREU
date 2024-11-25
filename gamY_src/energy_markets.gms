@@ -3,74 +3,74 @@
 # ------------------------------------------------------------------------------
 	
 	#DEMAND PRICES
-		$PGROUP PG_energy_markets_prices_dummies
-			d1pEpj_base[es,e,d,t] 
-			d1tqEpj[es,e,d,t] 
+		$SetGroup SG_energy_markets_prices_dummies
+			d1pEpj_base[es,e,d,t] ""
+			d1tqEpj[es,e,d,t] ""
 		;	
 
-		$PGROUP PG_energy_markets_prices_flat_dummies 
-			PG_energy_markets_prices_dummies 
+		$SetGroup SG_energy_markets_prices_flat_dummies 
+			SG_energy_markets_prices_dummies 
 		;
 
 		#Adding to main-group
-		$PGROUP+ PG_flat_after_last_data_year
-			PG_energy_markets_prices_flat_dummies
+		$SetGroup+ SG_flat_after_last_data_year
+			SG_energy_markets_prices_flat_dummies
 		;
 
 
-		$GROUP G_energy_markets_prices 
+		$Group G_energy_markets_prices 
 			pEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 								"Base price of energy for demand sector d, measured in bio. kroner per PJ (or equivalently 1000 DKR per GJ)"
 			pEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Price of energy, including taxes and margins, for demand sector d, defined if either a base price or a quantity-tax exists, measured in bio. kroner per PJ (or equivalently 1000 DKR per GJ)"
 		;
 
-		$GROUP G_energy_markets_prices_other
+		$Group G_energy_markets_prices_other
 			tpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Aggregate marginal tax-rate on priced energy, measured as a mark-up over base price"
 			tqE[es,e,d,t]$(d1tqEpj[es,e,d,t]) 												 "Aggregate marginal tax-rate on non-priced energy, measured as bio. kroner per PJ (or equivalently 1000 DKR per GJ)" 
 
 			fpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Sector average margin between average supplier price, and sector base price"
 		;
 
-		$GROUP+ G_flat_after_last_data_year
+		$Group+ G_flat_after_last_data_year
 			G_energy_markets_prices
 			G_energy_markets_prices_other
 		;
 
-		$GROUP G_energy_markets_prices_data 
+		$Group G_energy_markets_prices_data 
 			pEpj_base[es,e,d,t]
 		;
 
 	#MARKET-CLEARING
-		$PGROUP PG_energy_markets_clearing_dummies 
-			d1pY_CET[out,i,t] 
-			d1pM_CET[out,i,t] 
-			d1qY_CET[out,i,t] 
-			d1qM_CET[out,i,t] 
+		$SetGroup SG_energy_markets_clearing_dummies 
+			d1pY_CET[out,i,t] ""
+			d1pM_CET[out,i,t] ""
+			d1qY_CET[out,i,t] ""
+			d1qM_CET[out,i,t] ""
 
-			d1pE_avg[e,t] 
-			d1OneSX[out,t] 
-			d1OneSX_y[out,t] 
-			d1OneSX_m[out,t] 
-			d1qTL[es,e,t] 
+			d1pE_avg[e,t] ""
+			d1OneSX[out,t] ""
+			d1OneSX_y[out,t] ""
+			d1OneSX_m[out,t] ""
+			d1qTL[es,e,t] ""
 
-			d1pREa[es,e_a,i,t]  #Skal flyttes til industries_CES_energydemand.gms, når vi får stages
+			d1pREa[es,e_a,i,t] "" #Skal flyttes til industries_CES_energydemand.gms, når vi får stages
 		;
 
-		$PGROUP PG_energy_markets_clearing_flat_dummies 
-			PG_energy_markets_clearing_dummies
+		$SetGroup SG_energy_markets_clearing_flat_dummies 
+			SG_energy_markets_clearing_dummies
 		;
 
 		#Adding to main group
-		$PGROUP+ PG_flat_after_last_data_year
-			PG_energy_markets_clearing_flat_dummies
+		$SetGroup+ SG_flat_after_last_data_year
+			SG_energy_markets_clearing_flat_dummies
 		;
 
-		$GROUP G_energy_markets_clearing_prices 
+		$Group G_energy_markets_clearing_prices 
 	        pE_avg[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]))    "Average supply price of ergy"
 	        pM_CET[out,i,t]$(d1pM_CET[out,i,t])  "M"
 
 		;
 
-		$GROUP G_energy_markets_clearing_quantities 
+		$Group G_energy_markets_clearing_quantities 
 	        qY_CET[out,i,t]$(d1pY_CET[out,i,t])  "Domestic production of various products and services - the set 'out' contains all out puts of the economy, for energy the output is measured in PJ and non-energy in bio. DKK base 2019"
 	        qM_CET[out,i,t]$(d1pM_CET[out,i,t])  "Import of various products and services - the set 'out' contains all out puts of the economy, for energy the output is measured in PJ and non-energy in bio. DKK base 2019"
 	        qEtot[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]))     "Total demand/supply of ergy in the models ergy-market"
@@ -81,11 +81,11 @@
 					j_abatement_qREa[es,e,i,t]$(d1pEpj_base[es,e,i,t])       "J-term to be activated by abatement-module. When abatement is on qREa =/= qEpj, but is guided by abatement module, endogenizing this variable"
 		;
 
-		 $GROUP G_energy_markets_clearing_values 
+		 $Group G_energy_markets_clearing_values 
 		 		vDistributionProfits[e,t] 																"With different margins between average supply price, and sector base price, there is scope for what we call distribution profits. They can be negative. Measured in bio. DKK"
 		 ;
 
-		$GROUP G_energy_markets_clearing_other
+		$Group G_energy_markets_clearing_other
 	        sY_Dist[e,i,t]$(d1pY_CET[e,i,t]) 												"For the purpose of clearing energy markets, a fictive agent, the energy-distributor, gathers a bundle of domestically and imported energy, before selling it to the end-sector. This is the energy-distibutors preference parameter for domestic energy"
 	        sM_Dist[e,i,t]$(d1pM_CET[e,i,t]) 												"For the purpose of clearing energy markets, a fictive agent, the energy-distributor, gathers a bundle of domestically and imported energy, before selling it to the end-sector. This is the energy-distibutors preference parameter for imported energy"
 	        eDist[out] 																							"The energy distributors elasticity of demand between different energy suppliers"    
@@ -94,13 +94,13 @@
 	    ;
 
 
-		$GROUP+ G_flat_after_last_data_year
+		$Group+ G_flat_after_last_data_year
 			G_energy_markets_clearing_prices
 			G_energy_markets_clearing_quantities
 			G_energy_markets_clearing_other
 		;
 
-		$GROUP G_energy_markets_clearing_data 
+		$Group G_energy_markets_clearing_data 
 			qY_CET 
 			qM_CET
 			pY_CET 
@@ -111,27 +111,27 @@
 		;
 
     #RETAIL AND WHOLESALE MARGINS ON eRGY 
-		$PGROUP PG_energy_margins_dummies 
-				d1pEAV[es,e,d,t]
-				d1pDAV[es,e,d,t]
-				d1pCAV[es,e,d,t]
+		$SetGroup SG_energy_margins_dummies 
+				d1pEAV[es,e,d,t] ""
+				d1pDAV[es,e,d,t] ""
+				d1pCAV[es,e,d,t] ""
 		;
 
-		$PGROUP PG_energy_markets_margins_flat_dummies 
-			PG_energy_margins_dummies
+		$SetGroup SG_energy_markets_margins_flat_dummies 
+			SG_energy_margins_dummies
 		;
 
-		$PGROUP+ PG_flat_after_last_data_year
-			PG_energy_markets_margins_flat_dummies
+		$SetGroup+ SG_flat_after_last_data_year
+			SG_energy_markets_margins_flat_dummies
 		;
 
-		$GROUP G_energy_markets_margins_prices 
+		$Group G_energy_markets_margins_prices 
 			pEAV[es,e,d,t]$(d1pEAV[es,e,d,t]) "Wholesale margin on energy-goods, measured in bio. DKK per PJ (or equivalently 1000 DKK per GJ)"
 			pDAV[es,e,d,t]$(d1pDAV[es,e,d,t]) "Retail margin on energy-goods, measured in bio. DKK per PJ (or equivalently 1000 DKK per GJ)"
 			pCAV[es,e,d,t]$(d1pCAV[es,e,d,t]) "Car dealerships margin on energy-goods, measured in bio. DKK per PJ (or equivalently 1000 DKK per GJ)"
 		;
 
-		$GROUP G_energy_markets_margins_values 
+		$Group G_energy_markets_margins_values 
 			vEAV[es,e,d,t]$(d1pEAV[es,e,d,t]) "Value of wholesale margin on energy-goods, measured in bio. DKK"
 			vDAV[es,e,d,t]$(d1pDAV[es,e,d,t]) "Value of retail margin on energy-goods, measured in bio. DKK"
 			vCAV[es,e,d,t]$(d1pCAV[es,e,d,t]) "Value of car dealerships margin on energy-goods, measured in bio. DKK"
@@ -141,20 +141,20 @@
 			vOtherDistributionProfits_CAV[t] "Total value of car dealerships on energy-goods, measured in bio. DKK"
 		;
 
-		$GROUP G_energy_markets_margins_other
+		$Group G_energy_markets_margins_other
 			fpEAV[es,e,d,t]$(d1pEAV[es,e,d,t]) "Sector specific margin between average wholesale price and the sector specific margin"
 			fpDAV[es,e,d,t]$(d1pDAV[es,e,d,t]) "Sector specific margin between average retail price and the sector specific margin"
 			fpCAV[es,e,d,t]$(d1pCAV[es,e,d,t]) "Sector specific margin between average car dealership price and the sector specific margin"
 		;
 
 
-		$GROUP+ G_flat_after_last_data_year
+		$Group+ G_flat_after_last_data_year
 			G_energy_markets_margins_prices
 			G_energy_markets_margins_values
 			G_energy_markets_margins_other
 		;
 
-		$GROUP G_energy_markets_margins_data 
+		$Group G_energy_markets_margins_data 
 			vEAV 
 			vDAV 
 			vCAV
@@ -162,7 +162,7 @@
 
 	#AGGREGATE DATA-GROUP 
 
-    	$GROUP G_energy_markets_data
+    	$Group G_energy_markets_data
     		G_energy_markets_prices_data
     		G_energy_markets_clearing_data 
     		G_energy_markets_margins_data 
@@ -172,21 +172,21 @@
 # Add to main groups (£ AKB: overvej at føje til hovedgrupper undervejs)
 # ------------------------------------------------------------------------------
 
-	$GROUP+ price_variables
+	$Group+ price_variables
 		G_energy_markets_prices
 		G_energy_markets_clearing_prices
 		G_energy_markets_margins_prices
 	;
 
-	$GROUP+ quantity_variables
+	$Group+ quantity_variables
 		G_energy_markets_clearing_quantities
 	;
 
-	$GROUP+ value_variables
+	$Group+ value_variables
 		G_energy_markets_clearing_values
 		G_energy_markets_margins_values
 	;
-	$GROUP+ other_variables
+	$Group+ other_variables
 		G_energy_markets_prices_other
 		G_energy_markets_clearing_other
 		G_energy_markets_margins_other
@@ -307,7 +307,7 @@ model main / energy_demand_prices
 						 energy_margins
 						 energy_markets_clearing_link/;
 
-$GROUP+ main_endogenous 
+$Group+ main_endogenous 
 		energy_demand_prices_endogenous 
 		energy_markets_clearing_endogenous 
 		energy_margins_endogenous
@@ -320,7 +320,7 @@ $GROUP+ main_endogenous
 
 	@load(G_energy_markets_data, "../data/data.gdx")
 
-	$GROUP+ data_covered_variables
+	$Group+ data_covered_variables
 	  G_energy_markets_data
 	;
 
@@ -393,7 +393,7 @@ model calibration /
 	energy_markets_clearing_link
 /;
 # Add endogenous variables to calibration model
-$GROUP calibration_endogenous
+$Group calibration_endogenous
   energy_demand_prices_endogenous
 	fpE[es,e,d,t1],  -pEpj_base[es,e,d,t1]
 
