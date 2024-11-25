@@ -1,4 +1,7 @@
+$onMulti
+
 set t "Time periods." / 1980*2099/;
+singleton set t1[t] /2019/;
 set out "All product types produced by industries, including ergy and margins";
 set e[out] "ergy products produced by industries";
 set es "Energy-service";
@@ -6,69 +9,30 @@ set em_load "Emissiontype" ;
 set em_accounts "Different accounting levels of emissions inventories";
 set land5 "Five aggregate land-use categories";
 
-set i_load "Production industries.";
-set k_load "Capital types.";
-set c_load "Private consumption types.";
-set g_load "Government consumption types.";
-set x_load "Export types.";
+set a_rows_ "Other rows of the input-output table.";
 
-$gdxIn P:\akg\Til_EU_projekt\EU_GR_data.gdx
-$load i_load = s
-$load k_load = k 
-$load c_load = c 
-$load g_load = g 
-$load x_load = x
-$load em_load = emm_eq
-$gdxIn
+set d "Demand components.";
+set re[d<] "Energy types";
+set rx[d<] "Intermediate input types.";
+set k[d<] "Capital types.";
+set c[d<] "Private consumption types.";
+set g[d<] "Government consumption types.";
+set x[d<] "Export types." / xOth /;
+Singleton Set invt[d<] "Inventories" / invt /;
+Singleton Set tl[d<] "Transmission losses" / tl /;
 
-set d "Demand components."/
-  set.i_load 
-  set.k_load 
-  set.c_load 
-  set.g_load 
-  set.x_load
-  invt 
-  tl 
-  /;
-  
-set di[d] "Intermediate input types."
-  /set.i_load/
-  ;
-
-set i[d] "Industries producing demand components."
-  /set.i_load/
-  ;
-
-set i "Production industries."; alias(i,i_a);
+set i[d<] "Production industries."; alias(i,i_a);
 set m[i] "Industries with imports.";
 
-set k[d] "Capital types."
-  /set.k_load/
-  ;
+$gdxIn %data_path%
+$load a_rows_
+$gdxIn
 
-set invt[d] "Invetories"
-  /
-  invt 
-  /
-;
-
-set tl[d] "Transmission losses"
-  /
-  tl 
-  /;
-
-set c[d] "Consumption categories."
-  /set.c_load/
-  ;
-
-set g[d] "Public consumption categories"
-  /set.g_load/
-  ;
-
-set x[d] "Export types."
-  /set.x_load/
-  ;
-
+$gdxIn %data_path%
+$load rx=s, re=energy19, k, c, g
+$load i=s
+$load em_load = emm_eq
+$gdxIn
 
 set ebalitems
      /

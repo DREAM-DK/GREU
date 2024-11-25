@@ -1,70 +1,27 @@
+Set d "Demand components.";
+Set re[d<] "Energy types";
+Set rx[d<] "Intermediate input types other than energy.";
+Set k[d<] "Capital types.";
+Set c[d<] "Private consumption types.";
+Set g[d<] "Government consumption types.";
+Set x[d<] "Export types.";
+Singleton Set invt[d<] "Inventories" / invt /;
+Singleton Set tl[d<] "Transmission losses" / tl /;
 
-set i_load "Production industries.";
-set k_load "Capital types.";
-set c_load "Private consumption types.";
-set g_load "Government consumption types.";
-set x_load "Export types.";
+# Set i "Production industries."; alias(i,i_a);
+Set i[d<] "Production industries."; alias(i,i_a);  # i should not be subset of d - use re or rx instead
+Set m[i] "Industries with imports.";
 
 $gdxIn ../data/data.gdx
-$load i_load = i
-$load k_load = k 
-$load c_load = c 
-$load g_load = g 
-$load x_load = x
+$load i, m
+$load rx=i, re, k, c, g, x
 $gdxIn
-
-set d "Demand components."/
-  set.i_load 
-  set.k_load 
-  set.c_load 
-  set.g_load 
-  set.x_load
-  invt
-  tl
-  /;
-  
-set di[d] "Intermediate input types."
-  /set.i_load/
-  ;
-
-set i[d] "Industries producing demand components."
-  /set.i_load/
-  ;
-
-set i "Production industries."; alias(i,i_a);
-set m[i] "Industries with imports.";
-
-set k[d] "Capital types."
-  /set.k_load/
-  ;
-
-set c[d] "Consumption categories."
-  /set.c_load/
-  ;
-
-set g[d] "Public consumption categories"
-  /set.g_load/
-  ;
-
-set x[d] "Export types."
-  /set.x_load/
-  ;
-
-set invt[d] "Invetories"
-  /
-  invt 
-  /
 ;
-set tl[d] "Transmission losses"
-  /
-  tl 
-  /;
 
-sets i_refineries[i]/19000/ 
-     i_gasdistribution[i]/35002/
-     i_cardealers[i]/45000/
-     i_wholesale[i]/46000/
-     i_retail[i]/47000/
-     i_service_for_industries[i]/71000/
-     i_international_aviation[i]/51009/
-     ;
+Set i_refineries[i] / 19000 /;
+Set i_gasdistribution[i] / 35002 /;
+Set i_cardealers[i] / 45000 /;
+Set i_wholesale[i] / 46000 /;
+Set i_retail[i] / 47000 /;
+Set i_service_for_industries[i] / 71000 /;
+Set i_international_aviation[i] / 51009 /;
