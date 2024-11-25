@@ -13,6 +13,8 @@ set em "Emissiontype" ;
 set em_accounts "Different accounting levels of emissions inventories";
 set land5 "Five aggregate land-use categories";
 
+set l "Technologies";
+
 set factors_of_production /
   "labor"
   RxE #Non-ergy input
@@ -98,10 +100,17 @@ parameters GREU_data
 
   GWP[em]
 
+  # Abatement
+  theta_load[l,es,i,e,t] "Potential, technology."
+  uTE_load[l,es,i,e,t] "Energy use, technology."
+  uTK_load[l,es,i,e,t] "Capital use, technology."
 
+  theta[l,es,i,t] "Potential, technology."
+  uTE[l,es,e,i,t] "Energy use, technology."
+  uTK[l,es,i,t] "Capital use, technology."
 ;
 
-$gdxIn P:\akg\Til_EU_projekt\EU_GR_data.gdx
+$gdxIn C:\Users\b165541\Documents\Modeller\EU\Fra_Asbjorn\EU_GR_data.gdx
 $load i=s, w, qL, nEmployed
 $load es=purpose, out=out, e=energy19, pXEpj_base=pXE_base.l, pLEpj_base=pLE_base.l, pCEpj_base=pCE_base.l, pREpj_base=pRE_base.l, pE_avg=pEtot.l, pREpj = pREgj.l
 $load tpRE=tvRE.l, tqRE=tqRE.l, tpLE=tLE.l, tpCE=tCE.l, tpXE=tXE_.l
@@ -115,6 +124,9 @@ $load c, x, g
 $load GWP=GWP.l
 $gdxIn 
 
+$gdxIn EU_tech_data_disagg.gdx
+$load l=l theta_load=theta.l, uTE_load=uTE.l, uTK_load=uTK.l
+$gdxIn
 
 vWages_i[i,t] = w.l[t] * qL.l[i,t];
 nL[t] = nEmployed.l[t];
@@ -135,6 +147,10 @@ qEmmRE[em,es,e,i,t] = qEmmRE_load[i,t,em,es,e];
 qEmmRxE[em,i,t] = qEmmRxE_load[i,t,em];
 qEmmtot[em,em_accounts,t] = qEmmTot_load[t,em,em_accounts];
 
+theta[l,es,i,t] = sum(e, theta_load[l,es,i,e,t]);
+uTE[l,es,e,i,t] = uTE_load[l,es,i,e,t];
+uTK[l,es,i,t] = sum(e, uTK_load[l,es,i,e,t]);
+
 execute_unloaddi "data", vWages_i, nL, es, out, e, pXEpj_base, pLEpj_base, pCEpj_base, pREpj_base, pE_avg, tpRE, tqRE, tpLE, tpCE, tpXE, qEtot, pE_avg, pY_CET, pM_CET, qY_CET, qM_CET,
                         qREpj, qCEpj, qLEpj, qXEpj, qTLpj
                         vEAV_RE = vEAV_RE.l, vDAV_RE = vDAV_RE.l, vCAV_RE = vCAV_RE.l, 
@@ -142,4 +158,5 @@ execute_unloaddi "data", vWages_i, nL, es, out, e, pXEpj_base, pLEpj_base, pCEpj
                         qProd, pProd,
                         em, em_accounts, land5, qEmmCE, qEmmCxE, qEmmRE, qEmmRxE, qEmmtot, qEmmLULUCF5, qEmmLULUCF, sBioNatGas,
                         c, x, k, g,
-                        GWP;
+                        GWP,
+                        theta, uTE, uTK;
