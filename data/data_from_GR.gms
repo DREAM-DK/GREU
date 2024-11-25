@@ -7,9 +7,12 @@ parameters
   vIO_y[i,d,t]
   vIO_m[i,d,t]
   vIO_a[a_rows_,d,t]
+  vIOxE_y[i,d,t]
+  vIOxE_m[i,d,t]
+  vIOxE_a[i,d,t]
 ;
 $gdxIn %data_path%
-$load vIO_y, vIO_m, vIO_a
+$load vIO_y, vIO_m, vIO_a, vIOxE_y, vIOxE_m, vIOxE_a
 $gdxIn
 m[i] = yes$sum(d, vIO_m[i,d,t1]);
 
@@ -114,10 +117,10 @@ parameters GREU_data
   # Input-output
   vY_i_d[i,d,t] "Output by industry and demand component."
   vM_i_d[i,d,t] "Imports by industry and demand component."
-  vYM_i_d[i,d,t] "Supply by industry and demand component."
   vtY_i_d[i,d,t] "Net duties on domestic production by industry and demand component."
   vtM_i_d[i,d,t] "Net duties on imports by industry and demand component."
-  vtYM_i_d[i,d,t] "Net duties by industry and demand component."
+  vD_d[d,t] "Demand by demand component."
+  vtYM_d[d,t] "Net duties by demand component."
 
   Energybalance[ebalitems,transaction,d,es,e,t] "Main data input with regards to energy and energy-related emissions"
   NonEnergyEmissions[ebalitems,transaction,d,t] "Main data input with regards to non-energy related emissions"
@@ -181,12 +184,14 @@ vWages_i[i,t] = vIO_a["SalEmpl",i,t];
 # Input-output
 vY_i_d[i,d,t] = vIO_y[i,d,t];
 vM_i_d[i,d,t] = vIO_m[i,d,t];
-# vY_i_d[re,d,t] = 
-# vM_i_d[re,d,t] =
-vYM_i_d[i,d,t] = vY_i_d[i,d,t] + vM_i_d[i,d,t];
-vtYM_i_d[i,d,t] = vIO_a["TaxSub",d,t] + vIO_a["Moms",d,t];
-vtY_i_d[i,d,t]$(vYM_i_d[i,d,t] <> 0) = vtYM_i_d[i,d,t] * vY_i_d[i,d,t] / vYM_i_d[i,d,t];
-vtM_i_d[i,d,t] = vtYM_i_d[i,d,t] - vtY_i_d[i,d,t];
+vY_i_d[i,rx,t] = vIOxE_y[i,rx,t];
+vM_i_d[i,rx,t] = vIOxE_m[i,rx,t];
+vY_i_d[i,re,t] = vIO_y[i,re,t] - vIOxE_y[i,re,t];
+vM_i_d[i,re,t] = vIO_m[i,re,t] - vIOxE_m[i,re,t];
+vD_d[d,t] = sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
+vtYM_d[d,t] = vIO_a["TaxSub",d,t] + vIO_a["Moms",d,t];
+vtY_i_d[i,d,t] = vY_i_d[i,d,t] / vD_d[d,t] * vtYM_d[d,t];
+vtM_i_d[i,d,t] = vM_i_d[i,d,t] / vD_d[d,t] * vtYM_d[d,t];
 
 #Production
   qProd['RxE',i,t]                 = qRxE.l[i,t];
