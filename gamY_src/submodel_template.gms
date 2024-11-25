@@ -1,9 +1,10 @@
 # ------------------------------------------------------------------------------
-# Variable definitions
+# Variable and dummy definitions
 # ------------------------------------------------------------------------------
 $IF %stage% == "variables":
 
 $Group+ all_variables
+  submodel_template_test_variable[t] "Test variable from submodel template."
 ;
 
 $ENDIF # variables
@@ -14,6 +15,7 @@ $ENDIF # variables
 $IF %stage% == "equations":
 
 $BLOCK template_equations template_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+  .. submodel_template_test_variable[t] =E= 1;
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -29,7 +31,7 @@ $IF %stage% == "exogenous_values":
 
 $Group template_data_variables
 ;
-@load(template_data_variables, "../data/data.gdx")
+# @load(template_data_variables, "../data/data.gdx")
 $Group+ data_covered_variables template_data_variables;
 
 $ENDIF # exogenous_values
@@ -45,7 +47,7 @@ $ENDBLOCK
 # Add equations and calibration equations to calibration model
 model calibration /
   template_equations
-  template_calibration_equations
+  # template_calibration_equations
 /;
 # Add endogenous variables to calibration model
 $Group calibration_endogenous

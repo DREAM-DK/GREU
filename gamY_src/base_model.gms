@@ -34,6 +34,7 @@ $Group calibration_endogenous ;
 # ------------------------------------------------------------------------------
 $FUNCTION import_from_modules(stage_key):
   $SETGLOBAL stage stage_key;
+  $IMPORT submodel_template.gms
   # $IMPORT test_module.gms
   # $IMPORT labor_market.gms
   # $IMPORT energy_markets.gms; 
@@ -48,7 +49,7 @@ $FUNCTION import_from_modules(stage_key):
 $ENDFUNCTION
 
 # ------------------------------------------------------------------------------
-# Define variables
+# Define variables and dummies
 # ------------------------------------------------------------------------------
 @import_from_modules("variables")
 
