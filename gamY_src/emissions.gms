@@ -46,6 +46,8 @@
         d1EmmxE[em,d,t]
         d1EmmTot[em,em_accounts,t]
         d1GWP[em]
+        d1EmmBorderTrade[em,t]
+        d1EmmInternationlAviation[em,t]
     ;
 
     $PGROUP PG_emissions_aggregates_flat_dummies 
@@ -64,6 +66,10 @@
         qEmmTot[em,em_accounts,t]$(d1EmmTot[em,em_accounts,t]) "Total emissions in the economy. Measured in kilotonnes CO2e"
         qEmmLULUCF5[land5,t]$(d1EmmLULUCF5[land5,t]) "Emissions from land-use, land-use change and forestry. Measured in kilotonnes CO2e"
         qEmmLULUCF[t]$(d1EmmLULUCF[t]) "Total emissions from land-use, land-use change and forestry. Measured in kilotonnes CO2e"
+
+        qEmmBorderTrade[em,t]$(d1EmmBorderTrade[em,t])    "Exogenous emissions from border trade. Measured in kilotonnes CO2e"
+        qEmmInternationalAviation[em,t]$(d1EmmInternationlAviation[em,t]) "Emissions from international aviation. Measured in kilotonnes CO2e"
+
     ;
 
     $GROUP G_emissions_aggregates_other
@@ -83,6 +89,7 @@
       qEmmLULUCF5
       qEmmLULUCF
       GWP
+      qEmmBorderTrade
     ;
 
 # ------------------------------------------------------------------------------
@@ -159,7 +166,10 @@
       #Total emissions
       ..  qEmmTot[em,em_accounts,t] =E= sum(d, qEmmE[em,d,t]) 
                                     + sum(d, qEmmxE[em,d,t]) 
-                                    + qEmmLULUCF[t];
+                                    + qEmmLULUCF[t]
+                                    + qEmmBorderTrade[em,t]$(gna[em_accounts])
+                                    - qEmmInternationalAviation[em,t]$(unfccc[em_accounts])
+      ;
 
   $ENDBLOCK 
 
@@ -168,6 +178,8 @@
 
       #Energy-related emissions
       uEmmE[em,d,t]$(not CO2e[em]).. qEmmE[em,d,t] =E= sum((e,es), qEmmE_BU[em,es,e,d,t]);
+
+      .. qEmmInternationalAviation[em,t] =E= sum(i_international_aviation,qEmmE_BU[em,'transport','jet petroleum',i_international_aviation,t]);
 
   $ENDBLOCK 
 
@@ -207,6 +219,8 @@ $GROUP+ data_covered_variables G_emissions_data;
   d1EmmTot[em,em_accounts,t] = yes$(qEmmTot.l[em,em_accounts,t]);
   d1GWP[em]                  = yes$(GWP.l[em]);
   d1Sbionatgas[t]            = yes$(sBioNatGas.l[t]);
+  d1EmmBorderTrade[em,t]     = yes$(qEmmBorderTrade.l[em,t]);
+  d1EmmInternationlAviation[em,t] = yes$(sum(i_international_aviation, qEmmE_BU.l[em,'transport','jet petroleum',i_international_aviation,t])) ;
 
 # ------------------------------------------------------------------------------
 # Calibration

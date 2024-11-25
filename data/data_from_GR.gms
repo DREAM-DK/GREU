@@ -91,6 +91,8 @@ parameters auxiliary_data_parameters
   vtE_vat[es,e,d,t]
   tCO2_Emarg[em,es,e,d,t] 
   tEmarg_duty[etaxes,es,e,d,t]
+
+  qEmmBorderTrade_load[t,em]
 ;
 
 parameters GREU_data
@@ -99,6 +101,7 @@ parameters GREU_data
 
   Energybalance[ebalitems,transaction,d,es,e,t] "Main data input with regards to energy and energy-related emissions"
   NonEnergyEmissions[ebalitems,transaction,d,t] "Main data input with regards to non-energy related emissions"
+  qEmmBorderTrade[em,t]
 
   tpLE[es,e,t] ""
   tpCE[es,e,t] ""
@@ -139,7 +142,7 @@ $load qEtot=qEtot.l,  pY_CET = pY_CET.l, pM_CET=pM_CET.l, qY_CET=qY_CET.l, qM_CE
 $load qRepj=qREgj.l, qCEpj=qCE.l, qLEpj=qLE.l, qXEpj=qXE.l,qTLpj=qTL.l
 $load vEAV_RE=vEAV_RE.l, vDAV_RE=vDAV_RE.l, vCAV_RE=vCAV_RE.l, vEAV_CE=vEAV_CE.l, vDAV_CE=vDAV_CE.l, vCAV_CE= vCAV_CE.l
 $load pL ,pK, qK, qRxE, pRxE
-# $load em =emm_eq
+$load qEmmBorderTrade_load =qEmmBorderTrade.l
 $load em_accounts=accounts_all, land5
 $load qEmmCE_load=qEmmConsE.l, qEmmCxE_load=qEmmConsxE.l, qEmmRE_load=qEmmProdE.l, qEmmRxE_load=qEmmProdxE.l, qEmmtot_load=qEmmtot.l, qEmmLULUCF=qEmmLULUCF.l, qEmmLULUCF5=qEmmLULUCF5.l, sBioNatGas=sBioNatGasAvgAdj.l
 $load GWP=GWP.l
@@ -181,6 +184,7 @@ $gdxIn
 
   qEmmtot[em,em_accounts,t] = qEmmTot_load[t,em,em_accounts];
 
+  qEmmBorderTrade[em,t]     = qEmmBorderTrade_load[t,em];
 #Margins 
 
 
@@ -207,7 +211,7 @@ execute_unloaddi "data", vWages_i, nL, es, out, e,
                         qEtot, pE_avg, pY_CET, pM_CET, qY_CET, qM_CET,
                         vEAV, vDAV, vCAV,
                         qProd, pProd,
-                        em, em_accounts, land5, qEmmE_BU, qEmmxE, qEmmtot, qEmmLULUCF5, qEmmLULUCF, sBioNatGas,
+                        em, em_accounts, land5, qEmmE_BU, qEmmxE, qEmmtot, qEmmLULUCF5, qEmmLULUCF, sBioNatGas, qEmmBorderTrade
                         c, x, k, g,
                         GWP,
                         vtCO2_ETS, qCO2_ETS_freeallowances

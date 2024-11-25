@@ -66,4 +66,5 @@ sets i_refineries[i]/19000/
      i_wholesale[i]/46000/
      i_retail[i]/47000/
      i_service_for_industries[i]/71000/
+     i_international_aviation[i]/51009/
      ;

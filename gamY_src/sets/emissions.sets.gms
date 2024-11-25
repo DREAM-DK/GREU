@@ -11,3 +11,6 @@ $gdxIn
 set CO2e[em]/CO2e/;
 set CO2bio[em]/CO2bio/;
 set CO2ubio[em]/CO2ubio/;
+
+set gna[em_accounts]/GNA/
+    unfccc[em_accounts]/UNFCCC/;
