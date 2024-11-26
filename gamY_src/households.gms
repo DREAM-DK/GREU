@@ -28,7 +28,7 @@ $BLOCK households_equations households_endogenous $(t1.val <= t.val and t.val <=
   .. vC[t] =E= rC[t] * vHhIncome[t];
 
   # Link to input-output model - households choose private consumption by purpose
-  .. vD_d[c,t] =E= rC_c[c,t] * vC[t];
+  qD[c,t].. vD[c,t] =E= rC_c[c,t] * vC[t];
 
   .. vHhIncome[t] =E= vWages[t]
                     + vHhTransfers[t]
@@ -72,7 +72,7 @@ model calibration /
 $Group calibration_endogenous
   households_endogenous
   households_calibration_endogenous
-  -vD_d[c,t1], rC_c[c,t1]
+  -qD[c,t1], rC_c[c,t1]
 
   calibration_endogenous
 ;
