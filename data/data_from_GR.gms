@@ -17,7 +17,6 @@ $gdxIn
 m[i] = yes$sum(d, vIO_m[i,d,t1]);
 
 variables
-  w[t]
   nEmployed[t]
 
   qK[k,i,t]
@@ -113,6 +112,7 @@ parameters GREU_data
   # Labor-market
   vWages_i[i,t] "Compensation of employees by industry."
   nL[t] "Total employment."
+  vW[t] "Compensation pr. employee."
 
   # Input-output
   vY_i_d[i,d,t] "Output by industry and demand component."
@@ -158,13 +158,13 @@ parameters GREU_data
 
 
 $gdxIn %data_path%
-$load w, qL, nEmployed
+$load nEmployed
 $load es=purpose, out=out, e=energy19, pXEpj_base=pXE_base.l, pLEpj_base=pLE_base.l, pCEpj_base=pCE_base.l, pREpj_base=pRE_base.l, pE_avg=pEtot.l
 $load tpLE=tLE.l, tpCE=tCE.l, tpXE=tXE_.l
 $load qEtot=qEtot.l,  pY_CET = pY_CET.l, pM_CET=pM_CET.l, qY_CET=qY_CET.l, qM_CET=qM_CET.l
 $load qRepj=qREgj.l, qCEpj=qCE.l, qLEpj=qLE.l, qXEpj=qXE.l,qTLpj=qTL.l
 $load vEAV_RE=vEAV_RE.l, vDAV_RE=vDAV_RE.l, vCAV_RE=vCAV_RE.l, vEAV_CE=vEAV_CE.l, vDAV_CE=vDAV_CE.l, vCAV_CE= vCAV_CE.l
-$load pL ,pK, qK, qRxE, pRxE
+$load pL, qL, pK, qK, qRxE, pRxE
 $load qEmmBorderTrade_load =qEmmBorderTrade.l
 $load em_accounts=accounts_all, land5
 $load qEmmCE_load=qEmmConsE.l, qEmmCxE_load=qEmmConsxE.l, qEmmRE_load=qEmmProdE.l, qEmmRxE_load=qEmmProdxE.l, qEmmtot_load=qEmmtot.l, qEmmLULUCF=qEmmLULUCF.l, qEmmLULUCF5=qEmmLULUCF5.l, sBioNatGas=sBioNatGasAvgAdj.l
@@ -178,8 +178,9 @@ $load vtCAP_prodsubsidy=vtCAP_top.l
 $gdxIn 
 
 # Labor-market
-nL[t] = nEmployed.l[t];
 vWages_i[i,t] = vIO_a["SalEmpl",i,t];
+nL[t] = nEmployed.l[t];
+vW[t] = sum(i, vWages_i[i,t]) / nL[t];
 
 # Input-output
 vY_i_d[i,d,t] = vIO_y[i,d,t];
@@ -244,7 +245,7 @@ vtM_i_d[i,d,t] = vM_i_d[i,d,t] / vD_d[d,t] * vtYM_d[d,t];
 
 execute_unloaddi "data",
   # Labor-market
-  vWages_i, nL,
+  vWages_i, nL, vW
   
   # Input-output
   d, rx, re, k, c, g, x, i, m,

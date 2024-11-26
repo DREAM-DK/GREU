@@ -22,10 +22,12 @@ $Group+ all_variables
   pY_i[i,t] "Price of domestic output by industry."
   qY_i[i,t] "Real output by industry."
   vY_i[i,t] "Output by industry."
+  vY[t] "Total output."
 
   pM_i[i,t] "Price of imports by industry."
   qM_i[i,t]$(m[i]) "Real imports by industry."
   vM_i[i,t]$(m[i]) "Imports by industry."
+  vM[t] "Total imports."
 
   vY_d[d,t]$(d1Y_d[d,t]) "Output by demand component."
   vM_d[d,t]$(d1M_d[d,t]) "Imports by demand component."
@@ -46,8 +48,10 @@ $Group+ all_variables
   tM_i_d[i,d,t]$(d1M_i_d[i,d,t]) "Duties on imports by industry and demand component."
   vtY_i_d[i,d,t]$(d1Y_i_d[i,d,t]) "Net duties on domestic production by industry and demand component."
   vtM_i_d[i,d,t]$(d1M_i_d[i,d,t]) "Net duties on imports by industry and demand component."
-  vtY_i[i,t] "Net duties on domestic production."
-  vtM_i[i,t]$(m[i]) "Net duties on imports."
+  vtY_i[i,t] "Net duties on domestic production by industry."
+  vtM_i[i,t]$(m[i]) "Net duties on imports by industry."
+  vtY[t] "Net duties on domestic production."
+  vtM[t] "Net duties on imports."
 
   jfpY_i_d[i,d,t] "Deviation from average industry price."
   jfpM_i_d[i,d,t] "Deviation from average industry price."
@@ -66,9 +70,11 @@ $IF %stage% == "equations":
 $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
   # Equilibrium condition: supply + net duties = demand in each industry.
   .. vY_i[i,t] + vtY_i[i,t] =E= sum(d, vY_i_d[i,d,t]);
+  .. vY[t] =E= sum(i, vY_i[i,t]);
 
   # Aggregate imports from each import industry
   .. vM_i[i,t] + vtM_i[i,t] =E= sum(d, vM_i_d[i,d,t]);
+  .. vM[t] =E= sum(i, vM_i[i,t]);
 
   # Net duties on domestic production and imports
   .. vtY_i_d[i,d,t] =E= tY_i_d[i,d,t] * (vY_i_d[i,d,t] - vtY_i_d[i,d,t]);
@@ -78,8 +84,8 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. vtM_i[i,t] =E= sum(d, vtM_i_d[i,d,t]);
 
   # Demand aggregates.
-  # The quantities, qD_d, are determined in other modules. E.g. consumption chosen by households, factor inputs by firms.
-  .. vD_d[d,t] =E= vY_d[d,t] + vM_d[d,t];
+  # Expenditure, vD_d, is determined in other modules. E.g. consumption chosen by households, factor inputs by firms.
+  qD_d[d,t].. vD_d[d,t] =E= vY_d[d,t] + vM_d[d,t];
   .. pD_d[d,t] * qD_d[d,t] =E= vD_d[d,t];
 
   .. vY_d[d,t] =E= sum(i, vY_i_d[i,d,t]);
@@ -153,7 +159,7 @@ $Group+ input_output_calibration_endogenous
   -vtY_i_d[i,d,t1], tY_i_d[i,d,t1]
   -vtM_i_d[i,d,t1], tM_i_d[i,d,t1]
   -vY_i_d[i,d,t1], -vM_i_d[i,d,t1], rYM[i,d,t1], rM[i,d,t]$(t1[t] and d1M_i_d[i,d,t] and d1Y_i_d[i,d,t]) 
-  -pD_d[d,t1], qD_d[d,t1]
+  -pD_d[d,t1], vD_d[d,t1]
 ;
 $Group+ calibration_endogenous input_output_calibration_endogenous;
 

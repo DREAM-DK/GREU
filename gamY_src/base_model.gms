@@ -4,6 +4,7 @@ $IMPORT functions.gms;
 $IMPORT settings.gms
 
 $IMPORT sets/time.sets.gms
+$IMPORT sets/sectors.sets.gms
 $IMPORT sets/input_output.sets.gms
 $IMPORT sets/output.sets.gms
 $IMPORT sets/production.sets.gms
@@ -18,14 +19,16 @@ set_time_periods(%first_data_year%, %terminal_year%);
 $FUNCTION import_from_modules(stage_key):
   $SETGLOBAL stage stage_key;
   $IMPORT submodel_template.gms
+  $IMPORT financial_accounts.gms
   # $IMPORT test_module.gms
-  # $IMPORT labor_market.gms
+  $IMPORT labor_market.gms
   # $IMPORT energy_markets.gms; 
   # $IMPORT industries_CES_energydemand.gms; 
   # $IMPORT production.gms; 
   # $IMPORT emissions.gms; 
   # $IMPORT energy_and_emissions_taxes.gms; 
-  # $IMPORT input_output.gms
+  $IMPORT input_output.gms
+  $IMPORT households.gms
   # $IMPORT aggregates.gms
   # $IMPORT imports.gms
   # $IMPORT households.gms
