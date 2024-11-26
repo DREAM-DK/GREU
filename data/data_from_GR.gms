@@ -1,7 +1,24 @@
+$set data_path P:/akg/Til_EU_projekt/EU_GR_data.gdx
+
 #Industries, demand components, capital types and energybalance
 $import data.sets.gms
 
+
 set l "Technologies";
+
+parameters
+  vIO_y[i,d,t]
+  vIO_m[i,d,t]
+  vIO_a[a_rows_,d,t]
+  vIOxE_y[i,d,t]
+  vIOxE_m[i,d,t]
+  vIOxE_a[i,d,t]
+;
+$gdxIn %data_path%
+$load vIO_y, vIO_m, vIO_a, vIOxE_y, vIOxE_m, vIOxE_a
+$gdxIn
+m[i] = yes$sum(d, vIO_m[i,d,t1]);
+
 
 variables
   w[t]
@@ -97,8 +114,17 @@ parameters auxiliary_data_parameters
 ;
 
 parameters GREU_data
+  # Labor-market
   vWages_i[i,t] "Compensation of employees by industry."
   nL[t] "Total employment."
+
+  # Input-output
+  vY_i_d[i,d,t] "Output by industry and demand component."
+  vM_i_d[i,d,t] "Imports by industry and demand component."
+  vtY_i_d[i,d,t] "Net duties on domestic production by industry and demand component."
+  vtM_i_d[i,d,t] "Net duties on imports by industry and demand component."
+  vD_d[d,t] "Demand by demand component."
+  vtYM_d[d,t] "Net duties by demand component."
 
   Energybalance[ebalitems,transaction,d,es,e,t] "Main data input with regards to energy and energy-related emissions"
   NonEnergyEmissions[ebalitems,transaction,d,t] "Main data input with regards to non-energy related emissions"
@@ -144,7 +170,7 @@ parameters GREU_data
 
 
 
-$gdxIn P:\akg\Til_EU_projekt\EU_GR_data.gdx
+$gdxIn %data_path%
 $load w, qL, nEmployed
 $load es=purpose, out=out, e=energy19, pXEpj_base=pXE_base.l, pLEpj_base=pLE_base.l, pCEpj_base=pCE_base.l, pREpj_base=pRE_base.l, pE_avg=pEtot.l
 $load tpLE=tLE.l, tpCE=tCE.l, tpXE=tXE_.l
@@ -168,10 +194,23 @@ $gdxIn EU_tech_data_disagg.gdx
 $load l=l theta_load=theta.l, uTE_load=uTE.l, uTK_load=uTK.l
 $gdxIn
 
+# Labor-market
+nL[t] = nEmployed.l[t];
+vWages_i[i,t] = vIO_a["SalEmpl",i,t];
+
+# Input-output
+vY_i_d[i,d,t] = vIO_y[i,d,t];
+vM_i_d[i,d,t] = vIO_m[i,d,t];
+vY_i_d[i,rx,t] = vIOxE_y[i,rx,t];
+vM_i_d[i,rx,t] = vIOxE_m[i,rx,t];
+vY_i_d[i,re,t] = vIO_y[i,re,t] - vIOxE_y[i,re,t];
+vM_i_d[i,re,t] = vIO_m[i,re,t] - vIOxE_m[i,re,t];
+vD_d[d,t] = sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
+vtYM_d[d,t] = vIO_a["TaxSub",d,t] + vIO_a["Moms",d,t];
+vtY_i_d[i,d,t] = vY_i_d[i,d,t] / vD_d[d,t] * vtYM_d[d,t];
+vtM_i_d[i,d,t] = vM_i_d[i,d,t] / vD_d[d,t] * vtYM_d[d,t];
 
 #Production
-  vWages_i[i,t] = w.l[t] * qL.l[i,t];
-  nL[t] = nEmployed.l[t];
   qProd['RxE',i,t]                 = qRxE.l[i,t];
   qProd['labor',i,t]               = qL.l[i,t];
   qProd['im',i,t]                  = qK.l['im',i,t];
@@ -224,19 +263,28 @@ $gdxIn
   uTE[l,es,e,i,t] = uTE_load[l,es,i,e,t];
   uTK[l,es,i,t] = sum(e, uTK_load[l,es,i,e,t]);
 
-execute_unloaddi "data", vWages_i, nL, es, out, e, 
-                        pE_avg, 
-                        qEtot, pE_avg, pY_CET, pM_CET, qY_CET, qM_CET,
-                        vEAV, vDAV, vCAV,
-                        qProd, pProd,
-                        em, em_accounts, land5, qEmmE_BU, qEmmxE, qEmmtot, qEmmLULUCF5, qEmmLULUCF, sBioNatGas, qEmmBorderTrade
-                        c, x, k, g,
-                        GWP,
-                        vtCO2_ETS, qCO2_ETS_freeallowances
-                        vtNetproductionRest,
-                        vtCAP_prodsubsidy
-                        pEpj_base, qEpj
-                        vtE_duty, vtE_vat, tCO2_Emarg, tEmarg_duty
-                        Energybalance, NonEnergyEmissions
-                        theta, uTE, uTK;
+
+execute_unloaddi "data",
+  # Labor-market
+  vWages_i, nL,
+  
+  # Input-output
+  d, rx, re, k, c, g, x, i, m,
+  vY_i_d, vM_i_d, vtY_i_d, vtM_i_d,
+
+  es, out, e, 
+  pE_avg, 
+  qEtot, pE_avg, pY_CET, pM_CET, qY_CET, qM_CET,
+  vEAV, vDAV, vCAV,
+  qProd, pProd,
+  em, em_accounts, land5, qEmmE_BU, qEmmxE, qEmmtot, qEmmLULUCF5, qEmmLULUCF, sBioNatGas, qEmmBorderTrade
+  GWP,
+  vtCO2_ETS, qCO2_ETS_freeallowances
+  vtNetproductionRest,
+  vtCAP_prodsubsidy
+  pEpj_base, qEpj
+  vtE_duty, vtE_vat, tCO2_Emarg, tEmarg_duty
+  Energybalance, NonEnergyEmissions
+  theta, uTE, uTK
+;
 

@@ -2,7 +2,7 @@
 # Variable and group creation
 # ------------------------------------------------------------------------------
 
-	$PGROUP PG_industries_energydemand_dummies 
+	$SetGroup SG_industries_energydemand_dummies 
 		# d1pREa[es,e_a,i,t] #£Skal flyttes hertil, når vi får stages. Pt i energy_markets
 		d1pREa_inNest[es,e_a,i,t] ""
 		d1pREa_NotinNest[es,e_a,i,t] ""
@@ -11,22 +11,22 @@
 		d1Prod[pf,i,t] ""
 	;
 	
-	$PGROUP PG_industries_energydemand_flat_dummies 
-		PG_industries_energydemand_dummies
+	$SetGroup SG_industries_energydemand_flat_dummies 
+		SG_industries_energydemand_dummies
 	;
 
-	$PGROUP+ PG_flat_after_last_data_year
-		PG_industries_energydemand_flat_dummies
+	$SetGroup+ SG_flat_after_last_data_year
+		SG_industries_energydemand_flat_dummies
 	;
 	
-	$GROUP G_industries_energydemand_prices 
+	$Group G_industries_energydemand_prices 
 		pREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t])   	"Price of energy-activity (e_a), split on services (es) measured in DKK per peta Joule (when abatement is turned off)"
 		pREes[es,i,t]$(d1pEes[es,i,t]) 						"Price of nest of energy-activities, aggregated to energy-services, CES-price index."
 		pREmachine[i,t]$(d1pREmachine[i,t]) 			"Price of machine energy, CES-price index."
 		pProd[pf,i,t]$(d1Prod[pf,i,t]) 						"Production price of production function pf in sector i at time t" #Should be moved to production.gms when stages are implemented
 	;
 	
-	$GROUP G_industries_energydemand_quantities 
+	$Group G_industries_energydemand_quantities 
 		# qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) "" £Skal flyttes hertil, når vi får stages. Pt i energy_markets
 		qREes[es,i,t]$(d1pEes[es,i,t]) 						"CES-Quantity of energy-services, measured in bio 2019-DKK"
 		qREmachine[i,t]$(d1pREmachine[i,t]) 			"CES-Quantity of machine energy, measured in bio 2019-DKK"
@@ -35,11 +35,11 @@
 		qREa_ElectricityForDatacentersData[t] 		"Quantity of electricity for data centers, measured in peta Joule"
 	;
 
-	$GROUP G_industries_energydemand_values 
+	$Group G_industries_energydemand_values 
 		  vEnergycostsnotinnesting[i,t]  					"Total cost of energy not in in CES-nested production function (but added to production costs), measured in bio kroner"
 	;
 	
-	$GROUP G_industries_energydemand_other 
+	$Group G_industries_energydemand_other 
 		eREa[es,i] 																	"Elasticity of substitution between energy-activities for a given energy-service"
 		uREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 			"CES-share for energy-activity in industry i"
 	
@@ -50,14 +50,14 @@
 		jqREmachine[i,t]$(d1pREmachine[i,t]) 				"Calibration term to avoid problem between static and dynamic calibration"
 	;
 	
-	$GROUP+ G_flat_after_last_data_year
+	$Group+ G_flat_after_last_data_year
 		G_industries_energydemand_prices
 		G_industries_energydemand_quantities
 		G_industries_energydemand_values
 		G_industries_energydemand_other
 	;
 
-	$GROUP G_industries_energydemand_data 
+	$Group G_industries_energydemand_data 
 		
 	;
 
@@ -65,19 +65,19 @@
 # Add to main groups
 # ------------------------------------------------------------------------------
 
-	$GROUP+ price_variables
+	$Group+ price_variables
 		G_industries_energydemand_prices
 	;
 
-	$GROUP+ quantity_variables
+	$Group+ quantity_variables
 		G_industries_energydemand_quantities
 	;
 
-	$GROUP+ value_variables
+	$Group+ value_variables
 		G_industries_energydemand_values
 	;
 
-	$GROUP+ other_variables
+	$Group+ other_variables
 		G_industries_energydemand_other
 	;
 
@@ -133,7 +133,7 @@
 # Add equation and endogenous variables to main model
 model main / industries_energy_demand
 						  industries_energy_demand_link/;
-$GROUP+ main_endogenous 
+$Group+ main_endogenous 
 		industries_energy_demand_endogenous
 		industries_energy_demand_link_endogenous
 		
@@ -192,7 +192,7 @@ model calibration /
 /;
 
 # Add endogenous variables to calibration model
-$GROUP calibration_endogenous
+$Group calibration_endogenous
   industries_energy_demand_endogenous
   -qREa[es,e_a,i,t1], uREa[es,e_a,i,t1]
   -pREes[es,i,t1],    qREes[es,i,t1]
