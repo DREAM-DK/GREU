@@ -5,6 +5,8 @@ $IF %stage% == "variables":
 
 $Group+ all_variables
   submodel_template_test_variable[t] "Test variable from submodel template."
+  test_scalar "Test variable with no indices."
+  test_constant[i] "Test variable with no time index."
 ;
 
 $ENDIF # variables
@@ -30,7 +32,7 @@ $ENDIF # equations
 $IF %stage% == "exogenous_values":
 
 $Group template_data_variables
-  submodel_template_test_variable
+  submodel_template_test_variable[t]
 ;
 # @load(template_data_variables, "../data/data.gdx")
 submodel_template_test_variable.l[t] = 1;

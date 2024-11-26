@@ -1,4 +1,4 @@
-$onMulti
+$onMulti # Allows adding to an already defined set or model with multiple "model" or "set" statements
 
 $IMPORT functions.gms;
 $IMPORT settings.gms
@@ -40,11 +40,8 @@ $Group main_endogenous ;
 $Group data_covered_variables ; # Variables that are covered by data
 $Group G_flat_after_last_data_year ; # Variables that are extended with "flat forecast" after last data year
 $SetGroup SG_flat_after_last_data_year ; # Dummies that are extended with "flat forecast" after last data year
-
 @import_from_modules("variables")
-
-$IMPORT growth_adjustments.gms
-@inf_growth_adjust()
+$IMPORT variable_groups.gms
 
 # ------------------------------------------------------------------------------
 # Define equations
@@ -52,13 +49,16 @@ $IMPORT growth_adjustments.gms
 model main;
 model calibration;
 @import_from_modules("equations")
+@add_exist_dummies_to_model(main) # Limit the main model to only include elements that are not dummied out
 
 # ------------------------------------------------------------------------------
 # Import data and set parameters
 # ------------------------------------------------------------------------------
 @import_from_modules("exogenous_values")
+$IMPORT growth_adjustments.gms
+@inf_growth_adjust()
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
-$IMPORT exist_dummies.gms
+@update_exist_dummies()
 
 # ------------------------------------------------------------------------------
 # Calibrate model

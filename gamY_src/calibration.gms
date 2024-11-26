@@ -1,18 +1,12 @@
 # ==============================================================================
 # Calibration
 # ==============================================================================
-# Limit the model to only include elements that are not dummied out
-model calibration /
-  $LOOP all_variables:
-    {name}({name}_exists_dummy)
-  $ENDLOOP
-/;
+@add_exist_dummies_to_model(calibration) # Limit the main model to only include elements that are not dummied out
 
 # ------------------------------------------------------------------------------
 # Static calibration
 # ------------------------------------------------------------------------------
 set_time_periods(%calibration_year%, %calibration_year%);
-@update_exist_dummies()
 
 # Set starting values for main_endogenous variables if no other value is given
 $LOOP calibration_endogenous:
@@ -35,9 +29,11 @@ $LOOP SG_flat_after_last_data_year: #Extending model dummies
 	{name}{sets}$(t.val > t1.val) = {name}{sets}{$}[<t>t1];
 $ENDLOOP 
 
+@update_exist_dummies()
+
 # For testing partial models only, we extend all data covered variables with "flat forecast" after last data year
-$GROUP+ G_flat_after_last_data_year
-	all_variables
+$Group+ G_flat_after_last_data_year
+	all_variables_except_constants
 	# $LOOP data_covered_variables: {name}
 	# $ENDLOOP
 ;
