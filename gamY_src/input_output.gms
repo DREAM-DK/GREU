@@ -128,9 +128,9 @@ d1YM_d[d,t] = d1Y_d[d,t] or d1M_d[d,t];
 rM.l[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t]) = 1;
 rM.l[i,d,t]$(d1Y_i_d[i,d,t] and not d1M_i_d[i,d,t]) = 0;
 
-pY_i.l[i,t] = 1;
-pM_i.l[i,t] = 1;
-pD_d.l[d,t] = 1;
+pY_i.l[i,t] = fpt[t];
+pM_i.l[i,t] = fpt[t];
+pD_d.l[d,t] = fpt[t];
 
 $ENDIF # exogenous_values
 

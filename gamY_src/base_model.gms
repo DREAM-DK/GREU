@@ -42,6 +42,7 @@ $Group G_flat_after_last_data_year ; # Variables that are extended with "flat fo
 $SetGroup SG_flat_after_last_data_year ; # Dummies that are extended with "flat forecast" after last data year
 @import_from_modules("variables")
 $IMPORT variable_groups.gms
+$IMPORT growth_adjustments.gms
 
 # ------------------------------------------------------------------------------
 # Define equations
@@ -50,12 +51,12 @@ model main;
 model calibration;
 @import_from_modules("equations")
 @add_exist_dummies_to_model(main) # Limit the main model to only include elements that are not dummied out
+main.optfile=1;
 
 # ------------------------------------------------------------------------------
 # Import data and set parameters
 # ------------------------------------------------------------------------------
 @import_from_modules("exogenous_values")
-$IMPORT growth_adjustments.gms
 @inf_growth_adjust()
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
 @update_exist_dummies()
@@ -65,6 +66,7 @@ $IMPORT growth_adjustments.gms
 # ------------------------------------------------------------------------------
 $Group calibration_endogenous ;
 @import_from_modules("calibration")
+calibration.optfile=1;
 $IMPORT calibration.gms
 
 # ------------------------------------------------------------------------------
