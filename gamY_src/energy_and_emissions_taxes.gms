@@ -176,12 +176,12 @@
   $BLOCK energy_and_emissions_taxes_links energy_and_emissions_taxes_links_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
     #Bottom deductions 
-      vtBotded[i,t]$(d1Y[i,t])..
+      vtBotded[i,t]$(d1Y_i[i,t])..
         vtBotded[i,t] =E= sum((es,e), vtEmarg[es,e,i,t] - vtE[es,e,i,t])
                         - tCO2_ETS[t]/10**6 * qCO2_ETS_freeallowances[i,t]; 
 
     #Non-energy related taxes
-      vtEmmRxE[i,t]$(d1Y[i,t])..
+      vtEmmRxE[i,t]$(d1Y_i[i,t])..
         vtEmmRxE[i,t] =E=  vtCO2_xE[i,t] + vtCO2_ETS_xE[i,t];
 
 
