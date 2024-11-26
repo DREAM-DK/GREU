@@ -22,7 +22,7 @@ os.chdir(fr"{root}/gamY_src")
 
 dt.gamY.run("../data/data_from_GR.gms")
 
-dt.gamY.run("base_model.gms")
+dt.gamY.run("base_model.gms", s="Saved/Base_model")
 db = dt.Gdx("calibration.gdx")
 
 dt.time(2000, 2040)
@@ -35,3 +35,7 @@ dt.REFERENCE_DATABASE = data = dt.Gdx("../data/data.gdx")
 dt.prt(db.vY_s, "i")
 
 db.vtY_d_i.loc["k", "public"]
+
+## Running the partial abatement model
+dt.gamY.run("abatement_model_partial.gms")
+

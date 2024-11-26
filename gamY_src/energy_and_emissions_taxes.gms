@@ -3,18 +3,18 @@
 # ------------------------------------------------------------------------------
   
   $PGROUP PG_energy_taxes_dummies 
-    d1tE_duty_tot[d,t]            
-    d1tE_vat_tot[d,t]                   
+    d1tE_duty_tot[d,t] ""
+    d1tE_vat_tot[d,t] ""                
     
-    d1tE_duty[etaxes,es,e,d,t] 
-    d1tE_vat[es,e,d,t]  
-    d1tE[es,e,d,t]
-    d1tCO2_ETS[d,t]
-    d1tCO2_ETS2[d,t]
-    d1tCO2_E[em,es,e,d,t]
-    d1tCO2_xE[d,t]
-    d1tCO2_ETS_E[em,es,e,d,t]
-    d1tCO2_ETS2_E[em,es,e,d,t]
+    d1tE_duty[etaxes,es,e,d,t] ""
+    d1tE_vat[es,e,d,t]  ""
+    d1tE[es,e,d,t] ""
+    d1tCO2_ETS[d,t] ""
+    d1tCO2_ETS2[d,t] ""
+    d1tCO2_E[em,es,e,d,t] ""
+    d1tCO2_xE[d,t] ""
+    d1tCO2_ETS_E[em,es,e,d,t] ""
+    d1tCO2_ETS2_E[em,es,e,d,t] ""
   ;
 
   $PGROUP PG_energy_taxes_flat_dummies 

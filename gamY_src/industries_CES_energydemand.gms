@@ -4,11 +4,11 @@
 
 	$PGROUP PG_industries_energydemand_dummies 
 		# d1pREa[es,e_a,i,t] #£Skal flyttes hertil, når vi får stages. Pt i energy_markets
-		d1pREa_inNest[es,e_a,i,t] 
-		d1pREa_NotinNest[es,e_a,i,t] 
-		d1pEes[es,i,t]
-		d1pREmachine[i,t]
-		d1Prod[pf,i,t]
+		d1pREa_inNest[es,e_a,i,t] ""
+		d1pREa_NotinNest[es,e_a,i,t] ""
+		d1pEes[es,i,t] ""
+		d1pREmachine[i,t] ""
+		d1Prod[pf,i,t] ""
 	;
 	
 	$PGROUP PG_industries_energydemand_flat_dummies 

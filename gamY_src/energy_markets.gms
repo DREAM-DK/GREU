@@ -4,8 +4,8 @@
 	
 	#DEMAND PRICES
 		$PGROUP PG_energy_markets_prices_dummies
-			d1pEpj_base[es,e,d,t] 
-			d1tqEpj[es,e,d,t] 
+			d1pEpj_base[es,e,d,t] ""
+			d1tqEpj[es,e,d,t] ""
 		;	
 
 		$PGROUP PG_energy_markets_prices_flat_dummies 
@@ -36,23 +36,23 @@
 		;
 
 		$GROUP G_energy_markets_prices_data 
-			pEpj_base[es,e,d,t]
+			pEpj_base[es,e,d,t] ""
 		;
 
 	#MARKET-CLEARING
 		$PGROUP PG_energy_markets_clearing_dummies 
-			d1pY_CET[out,i,t] 
-			d1pM_CET[out,i,t] 
-			d1qY_CET[out,i,t] 
-			d1qM_CET[out,i,t] 
+			d1pY_CET[out,i,t] ""
+			d1pM_CET[out,i,t] ""
+			d1qY_CET[out,i,t] ""
+			d1qM_CET[out,i,t] ""
 
-			d1pE_avg[e,t] 
-			d1OneSX[out,t] 
-			d1OneSX_y[out,t] 
-			d1OneSX_m[out,t] 
-			d1qTL[es,e,t] 
+			d1pE_avg[e,t] ""
+			d1OneSX[out,t] ""
+			d1OneSX_y[out,t] ""
+			d1OneSX_m[out,t] ""
+			d1qTL[es,e,t] ""
 
-			d1pREa[es,e_a,i,t]  #Skal flyttes til industries_CES_energydemand.gms, når vi får stages
+			d1pREa[es,e_a,i,t]  "" #Skal flyttes til industries_CES_energydemand.gms, når vi får stages
 		;
 
 		$PGROUP PG_energy_markets_clearing_flat_dummies 
@@ -112,9 +112,9 @@
 
     #RETAIL AND WHOLESALE MARGINS ON eRGY 
 		$PGROUP PG_energy_margins_dummies 
-				d1pEAV[es,e,d,t]
-				d1pDAV[es,e,d,t]
-				d1pCAV[es,e,d,t]
+				d1pEAV[es,e,d,t] ""
+				d1pDAV[es,e,d,t] ""
+				d1pCAV[es,e,d,t] ""
 		;
 
 		$PGROUP PG_energy_markets_margins_flat_dummies 

@@ -4,8 +4,8 @@
 	
 	#BOTTOM-UP EMISSIONS
 		$PGROUP PG_emissions_BU_dummies
-        d1EmmE_BU[em,es,e,d,t]
-        d1Sbionatgas[t]
+        d1EmmE_BU[em,es,e,d,t] ""
+        d1Sbionatgas[t] ""
 		;	
 
 		$PGROUP PG_emissions_BU_flat_dummies 
@@ -40,14 +40,14 @@
 
     #AGGREGATE EMISSIONS
     $PGROUP PG_emissions_aggregates_dummies 
-	      d1EmmLULUCF5[land5,t]
-        d1EmmLULUCF[t]
-        d1EmmE[em,d,t]
-        d1EmmxE[em,d,t]
-        d1EmmTot[em,em_accounts,t]
-        d1GWP[em]
-        d1EmmBorderTrade[em,t]
-        d1EmmInternationlAviation[em,t]
+	      d1EmmLULUCF5[land5,t] ""
+        d1EmmLULUCF[t] ""
+        d1EmmE[em,d,t] ""
+        d1EmmxE[em,d,t] ""
+        d1EmmTot[em,em_accounts,t] ""
+        d1GWP[em] ""
+        d1EmmBorderTrade[em,t] ""
+        d1EmmInternationlAviation[em,t] ""
     ;
 
     $PGROUP PG_emissions_aggregates_flat_dummies 

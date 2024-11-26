@@ -5,7 +5,7 @@
 $PGROUP PG_production_dummies
   d1Prod[pf,i,t] "Dummy for production function"
   d1Y[i,t] "Dummy for production function"
-  d1pProd_uc_tEnd
+  d1pProd_uc_tEnd ""
 ;	
 
 $PGROUP PG_production_dummies_flat_dummies 
