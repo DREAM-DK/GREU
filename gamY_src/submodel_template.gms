@@ -30,8 +30,10 @@ $ENDIF # equations
 $IF %stage% == "exogenous_values":
 
 $Group template_data_variables
+  submodel_template_test_variable
 ;
 # @load(template_data_variables, "../data/data.gdx")
+submodel_template_test_variable.l[t] = 1;
 $Group+ data_covered_variables template_data_variables;
 
 $ENDIF # exogenous_values
@@ -51,8 +53,8 @@ model calibration /
 /;
 # Add endogenous variables to calibration model
 $Group calibration_endogenous
-  template_calibration_endogenous
   template_endogenous
+  template_calibration_endogenous
 
   calibration_endogenous
 ;

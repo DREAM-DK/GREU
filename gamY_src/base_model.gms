@@ -13,23 +13,6 @@ $IMPORT sets/energy_taxes_and_emissions.sets.gms
 set_time_periods(%first_data_year%, %terminal_year%);
 
 # ------------------------------------------------------------------------------
-# Initialize models and groups used accross modules
-# ------------------------------------------------------------------------------
-model main;
-model calibration;
-
-# Group of all variables, identical to ALL group, except containing only elements that exist (not dummied out)
-$Group all_variables ; # All variables in the model
-
-$Group constant_variables ; # Variables without a time index
-$Group data_covered_variables ; # Variables that are covered by data
-$Group G_flat_after_last_data_year ; # Variables that are extended with "flat forecast" after last data year
-$SetGroup SG_flat_after_last_data_year ; # Dummies that are extended with "flat forecast" after last data year
-
-$Group main_endogenous ;
-$Group calibration_endogenous ;
-
-# ------------------------------------------------------------------------------
 # Select modules
 # ------------------------------------------------------------------------------
 $FUNCTION import_from_modules(stage_key):
@@ -42,7 +25,7 @@ $FUNCTION import_from_modules(stage_key):
   # $IMPORT production.gms; 
   # $IMPORT emissions.gms; 
   # $IMPORT energy_and_emissions_taxes.gms; 
-  $IMPORT input_output.gms
+  # $IMPORT input_output.gms
   # $IMPORT aggregates.gms
   # $IMPORT imports.gms
   # $IMPORT households.gms
@@ -51,6 +34,13 @@ $ENDFUNCTION
 # ------------------------------------------------------------------------------
 # Define variables and dummies
 # ------------------------------------------------------------------------------
+# Group of all variables, identical to ALL group, except containing only elements that exist (not dummied out)
+$Group all_variables ; # All variables in the model
+$Group main_endogenous ;
+$Group data_covered_variables ; # Variables that are covered by data
+$Group G_flat_after_last_data_year ; # Variables that are extended with "flat forecast" after last data year
+$SetGroup SG_flat_after_last_data_year ; # Dummies that are extended with "flat forecast" after last data year
+
 @import_from_modules("variables")
 
 $IMPORT growth_adjustments.gms
@@ -59,6 +49,8 @@ $IMPORT growth_adjustments.gms
 # ------------------------------------------------------------------------------
 # Define equations
 # ------------------------------------------------------------------------------
+model main;
+model calibration;
 @import_from_modules("equations")
 
 # ------------------------------------------------------------------------------
@@ -71,6 +63,7 @@ $IMPORT exist_dummies.gms
 # ------------------------------------------------------------------------------
 # Calibrate model
 # ------------------------------------------------------------------------------
+$Group calibration_endogenous ;
 @import_from_modules("calibration")
 $IMPORT calibration.gms
 
