@@ -22,7 +22,7 @@ os.chdir(fr"{root}/gamY_src")
 
 dt.gamY.run("../data/data_from_GR.gms")
 
-dt.gamY.run("base_model.gms", s="Saved/Base_model")
+dt.gamY.run("base_model.gms")
 db = dt.Gdx("calibration.gdx")
 
 dt.time(2000, 2040)
