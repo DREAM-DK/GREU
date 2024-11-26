@@ -5,9 +5,6 @@ $Group nonexisting All, -all_variables; # Group of all elements that are dummied
 $Group constant_variables ; # Variables without a time index
 $Group scalar_variables ; # Variables without a time index
 
-$Group G_flat_after_last_data_year ; # Variables that are extended with "flat forecast" after last data year
-$SetGroup SG_flat_after_last_data_year ; # Dummies that are extended with "flat forecast" after last data year
-
 $Group+ constant_variables
   $EvalPython
     ",".join(
