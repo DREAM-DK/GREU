@@ -119,7 +119,7 @@ parameters GREU_data
   vM_i_d[i,d,t] "Imports by industry and demand component."
   vtY_i_d[i,d,t] "Net duties on domestic production by industry and demand component."
   vtM_i_d[i,d,t] "Net duties on imports by industry and demand component."
-  vD_d[d,t] "Demand by demand component."
+  vD[d,t] "Demand by demand component."
   vtYM_d[d,t] "Net duties by demand component."
 
   Energybalance[ebalitems,transaction,d,es,e,t] "Main data input with regards to energy and energy-related emissions"
@@ -189,10 +189,10 @@ vY_i_d[i,rx,t] = vIOxE_y[i,rx,t];
 vM_i_d[i,rx,t] = vIOxE_m[i,rx,t];
 vY_i_d[i,re,t] = vIO_y[i,re,t] - vIOxE_y[i,re,t];
 vM_i_d[i,re,t] = vIO_m[i,re,t] - vIOxE_m[i,re,t];
-vD_d[d,t] = sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
+vD[d,t] = sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
 vtYM_d[d,t] = vIO_a["TaxSub",d,t] + vIO_a["Moms",d,t];
-vtY_i_d[i,d,t] = vY_i_d[i,d,t] / vD_d[d,t] * vtYM_d[d,t];
-vtM_i_d[i,d,t] = vM_i_d[i,d,t] / vD_d[d,t] * vtYM_d[d,t];
+vtY_i_d[i,d,t] = vY_i_d[i,d,t] / vD[d,t] * vtYM_d[d,t];
+vtM_i_d[i,d,t] = vM_i_d[i,d,t] / vD[d,t] * vtYM_d[d,t];
 
 #Production
   qProd['RxE',i,t]                 = qRxE.l[i,t];

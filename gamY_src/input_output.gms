@@ -32,9 +32,9 @@ $Group+ all_variables
   vY_d[d,t]$(d1Y_d[d,t]) "Output by demand component."
   vM_d[d,t]$(d1M_d[d,t]) "Imports by demand component."
 
-  pD_d[d,t]$(d1YM_d[d,t]) "Price of demand component."
-  qD_d[d,t]$(d1YM_d[d,t]) "Real demand by demand component."
-  vD_d[d,t]$(d1YM_d[d,t]) "Demand by demand component."
+  pD[d,t]$(d1YM_d[d,t]) "Price of demand component."
+  qD[d,t]$(d1YM_d[d,t]) "Real demand by demand component."
+  vD[d,t]$(d1YM_d[d,t]) "Demand by demand component."
 
   pY_i_d[i,d,t]$(d1Y_i_d[i,d,t]) "Price of domestic output by industry and demand component."
   qY_i_d[i,d,t]$(d1Y_i_d[i,d,t]) "Real output by industry and demand component."
@@ -84,9 +84,9 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. vtM_i[i,t] =E= sum(d, vtM_i_d[i,d,t]);
 
   # Demand aggregates.
-  # Expenditure, vD_d, is determined in other modules. E.g. consumption chosen by households, factor inputs by firms.
-  qD_d[d,t].. vD_d[d,t] =E= vY_d[d,t] + vM_d[d,t];
-  .. pD_d[d,t] * qD_d[d,t] =E= vD_d[d,t];
+  # Real demand, qD, is determined in other modules. E.g. consumption chosen by households, factor inputs by firms.
+  .. vD[d,t] =E= vY_d[d,t] + vM_d[d,t];
+  .. pD[d,t] * qD[d,t] =E= vD[d,t];
 
   .. vY_d[d,t] =E= sum(i, vY_i_d[i,d,t]);
   .. vM_d[d,t] =E= sum(i, vM_i_d[i,d,t]);
@@ -98,8 +98,8 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
 
   # rYM is the real industry-composition for each demand - rYM is exogenous here, but can be endogenized in submodels
   # rM is the real import-share for each demand - rM is exogenous here, but can be endogenized in submodels
-  .. qY_i_d[i,d,t] =E= (1-rM[i,d,t]) * rYM[i,d,t] * qD_d[d,t];
-  .. qM_i_d[i,d,t] =E= rM[i,d,t] * rYM[i,d,t] * qD_d[d,t];
+  .. qY_i_d[i,d,t] =E= (1-rM[i,d,t]) * rYM[i,d,t] * qD[d,t];
+  .. qM_i_d[i,d,t] =E= rM[i,d,t] * rYM[i,d,t] * qD[d,t];
 
   .. vY_i_d[i,d,t] =E= pY_i_d[i,d,t] * qY_i_d[i,d,t];
   .. vM_i_d[i,d,t] =E= pM_i_d[i,d,t] * qM_i_d[i,d,t];
@@ -136,7 +136,7 @@ rM.l[i,d,t]$(d1Y_i_d[i,d,t] and not d1M_i_d[i,d,t]) = 0;
 
 pY_i.l[i,t] = fpt[t];
 pM_i.l[i,t] = fpt[t];
-pD_d.l[d,t] = fpt[t];
+pD.l[d,t] = fpt[t];
 
 $ENDIF # exogenous_values
 
@@ -154,14 +154,16 @@ model calibration /
   # input_output_calibration_equations
 /;
 # Add endogenous variables to calibration model
-$Group+ input_output_calibration_endogenous
+$Group+ calibration_endogenous
   input_output_endogenous
+  input_output_calibration_endogenous
   -vtY_i_d[i,d,t1], tY_i_d[i,d,t1]
   -vtM_i_d[i,d,t1], tM_i_d[i,d,t1]
   -vY_i_d[i,d,t1], -vM_i_d[i,d,t1], rYM[i,d,t1], rM[i,d,t]$(t1[t] and d1M_i_d[i,d,t] and d1Y_i_d[i,d,t]) 
-  -pD_d[d,t1], vD_d[d,t1]
+  -pD[d,t1], qD[d,t1]
+
+  calibration_endogenous
 ;
-$Group+ calibration_endogenous input_output_calibration_endogenous;
 
 $Group G_flat_after_last_data_year
   rYM, rM
