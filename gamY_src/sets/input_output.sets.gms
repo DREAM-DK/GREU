@@ -5,8 +5,8 @@ Set k[d<] "Capital types.";
 Set c[d<] "Private consumption types.";
 Set g[d<] "Government consumption types.";
 Set x[d<] "Export types.";
-Singleton Set invt[d<] "Inventories" / invt /;
-Singleton Set tl[d<] "Transmission losses" / tl /;
+Set invt[d<] "Inventories" / invt /;
+Set tl[d<] "Transmission losses" / tl /;
 
 # Set i "Production industries."; alias(i,i_a);
 Set i[d<] "Production industries."; alias(i,i_a);  # i should not be subset of d - use re or rx instead
@@ -17,6 +17,9 @@ $load i, m
 $load rx=i, re, k, c, g, x
 $gdxIn
 ;
+
+Set i_public[i] "Public industries." / off /;
+Set i_private[i] "Private industries." / set.i - off /;
 
 Set i_refineries[i] / 19000 /;
 Set i_gasdistribution[i] / 35002 /;

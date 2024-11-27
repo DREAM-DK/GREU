@@ -12,8 +12,8 @@ set land5 "Five aggregate land-use categories";
 set a_rows_ "Other rows of the input-output table.";
 
 set d "Demand components.";
-set re[d<] "Energy types";
-set rx[d<] "Intermediate input types.";
+set re[d<] "Energy intermediate input types" ;
+set rx[d<] "Non-energy intermediate input types.";
 set k[d<] "Capital types.";
 set c[d<] "Private consumption types.";
 set g[d<] "Government consumption types.";

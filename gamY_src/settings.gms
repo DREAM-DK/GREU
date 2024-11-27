@@ -12,7 +12,7 @@ OPTION
 
 $SETLOCAL first_data_year 1983;
 $SETLOCAL calibration_year 2019;
-$SETLOCAL terminal_year 2023;
+$SETLOCAL terminal_year 2040;
 $SETLOCAL base_year 2019;
 
 parameter gp "Steady state rate of inflation." /0.02/;

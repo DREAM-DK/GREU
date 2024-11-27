@@ -8,11 +8,9 @@ $Group+ all_variables
 
   vC[t] "Household and non-profit (NPISH) consumption expenditure."
 
-  rC[t] "Consumption to income ratio."
+  vC2vHhIncome[t] "Consumption to income ratio."
   rC_c[c,t] "Share of total consumption expenditure by purpose."
 
-  vHhTaxes[t] "Taxes on income and wealth of households and non-profits."
-  vHhTransfers[t] "Transfers to households and non-profits from government."
   vNetInterests[sector,t] "Interests by sector."
   vNetRevaluations[sector,t] "Revaluations by sector."
 ;
@@ -25,10 +23,10 @@ $ENDIF # variables
 $IF %stage% == "equations":
 
 $BLOCK households_equations households_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-  .. vC[t] =E= rC[t] * vHhIncome[t];
+  qD&_Ctotal[c,t]$(first(c)).. vC[t] =E= vC2vHhIncome[t] * vHhIncome[t];
 
   # Link to input-output model - households choose private consumption by purpose
-  qD[c,t].. vD[c,t] =E= rC_c[c,t] * vC[t];
+  qD[c,t]$(not first(c)).. vD[c,t] =E= rC_c[c,t] * vC[t];
 
   .. vHhIncome[t] =E= vWages[t]
                     + vHhTransfers[t]
@@ -48,9 +46,10 @@ $ENDIF # equations
 $IF %stage% == "exogenous_values":
 
 $Group households_data_variables
+  qD[c,t]
 ;
-# @load(households_data_variables, "../data/data.gdx")
-$Group+ data_covered_variables households_data_variables;
+@load(households_data_variables, "../data/data.gdx")
+$Group+ data_covered_variables households_data_variables$(t.val <= %calibration_year%);
 
 $ENDIF # exogenous_values
 
@@ -60,25 +59,24 @@ $ENDIF # exogenous_values
 $IF %stage% == "calibration":
 
 $BLOCK households_calibration_equations households_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-  rC[t]$(t1[t]).. sum(c, rC_c[c,t]) =E= 1;
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
 model calibration /
   households_equations
-  households_calibration_equations
+  # households_calibration_equations
 /;
 # Add endogenous variables to calibration model
 $Group calibration_endogenous
   households_endogenous
   households_calibration_endogenous
-  -qD[c,t1], rC_c[c,t1]
+  -qD[c,t1], rC_c[c,t1], vC2vHhIncome[t1]
 
   calibration_endogenous
 ;
 
 $Group G_flat_after_last_data_year
-  rC[t]
+  vC2vHhIncome[t]
   rC_c[c,t]
 ;
 

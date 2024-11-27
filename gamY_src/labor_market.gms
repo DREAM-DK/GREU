@@ -8,7 +8,6 @@ $Group+ all_variables
 
   pL[t] "Usercost of labor."
   qL[t] "Labor in efficiency units."
-  qL_i[i,t] "Labor in efficiency units by industry."
 
   pLWedge[t] "Wedge between wage and usercost of labor (e.g. matching costs)."
 
@@ -17,6 +16,7 @@ $Group+ all_variables
   vWages_i[i,t] "Compensation of employees by industry."
   vWages[t] "Total compensation of employees."
   vW[t] "Compensation pr. employee."
+  rWageInflation[t] "Wage inflation, based on vW."
 
   # Phillips curve
   snL[t] "Structural employment."
@@ -47,12 +47,19 @@ $BLOCK labor_market_equations labor_market_endogenous $(t1.val <= t.val and t.va
   .. vWages[t] =E= sum(i, vWages_i[i,t]);
   .. vW[t] =E= pW[t] * qProductivity[t];
 
+  .. rWageInflation[t] =E= vW[t] / (vW[t-1]/fv) - 1;
+
   # Phillips curve
   nL[t]$(not tEnd[t])..
-    pW[t] / pW[t-1]*fp =E= uPhillipsCurveEmpl[t] * nL[t] / snL[t]
-                         + uPhillipsCurveExpWage[t] * pW[t+1]*fp / pW[t]
-                         + jnL[t];
-  nL&_tEnd[t]$(tEnd[t]).. nL[t] =E= snL[t] + jnL[t];
+    rWageInflation[t] =E= rWageInflation[t-1]
+                        + uPhillipsCurveEmpl[t] * (nL[t] / snL[t] - 1)
+                        + uPhillipsCurveExpWage[t] * (rWageInflation[t+1] - rWageInflation[t-1])
+                        + jnL[t];
+  nL&_tEnd[t]$(tEnd[t])..
+    # nL[t] =E= snL[t] + jnL[t];
+    rWageInflation[t] =E= rWageInflation[t-1]
+                        + uPhillipsCurveEmpl[t] * (nL[t] / snL[t] - 1)
+                        + jnL[t];
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -65,8 +72,8 @@ $ENDIF # equations
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
 $IF %stage% == "exogenous_values":
-uPhillipsCurveEmpl.l[t] = 0.5;
-uPhillipsCurveExpWage.l[t] = 0.3;
+uPhillipsCurveEmpl.l[t] = 20;
+uPhillipsCurveExpWage.l[t] = 0.5;
 
 $Group labor_market_data_variables
   vWages_i[i,t]
@@ -77,6 +84,7 @@ $GROUP+ data_covered_variables labor_market_data_variables$(t.val <= %calibratio
 
 @load(labor_market_data_variables, "../data/data.gdx")
 pW.l[t] = fpt[t];
+rWageInflation.l[t] = fv-1;
 
 $ENDIF # exogenous_values
 
@@ -86,12 +94,13 @@ $ENDIF # exogenous_values
 $IF %stage% == "calibration":
 
 $BLOCK labor_market_calibration_equations labor_market_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+  $(not t1[t]).. snL[t] =E= snL[t1];
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
 model calibration /
   labor_market_equations
-  # labor_market_calibration_equations
+  labor_market_calibration_equations
 /;
 # Add endogenous variables to calibration model
 $Group calibration_endogenous
@@ -99,7 +108,7 @@ $Group calibration_endogenous
   labor_market_endogenous
   -vWages_i[i,t1], qL_i[i,t1]
   -pW[t1], qProductivity[t1]
-  -nL[t], snL[t]
+  -nL[t1], snL[t1]
 
   calibration_endogenous
 ;

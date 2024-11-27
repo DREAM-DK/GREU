@@ -1,5 +1,5 @@
 # ======================================================================================================================
-# Functions
+# Functions and macros
 # ======================================================================================================================
 # In this file we define functions and macros to be used elsewhere in the model
 # Macros are a vanilla GAMS feature
@@ -59,6 +59,11 @@ $FUNCTION assert_no_difference({group}, {threshold}, {suffix1}, {suffix2}, {msg}
   $onlisting
 $ENDFUNCTION
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Set operations
+# ----------------------------------------------------------------------------------------------------------------------
+$macro first(x) ord(x)=1
+$macro last(x) ord(x)=card(x)
 
 $FUNCTION define_set_complement({name_set_c},{set},{set_c},{isitalist}):   
   #Set compliment is defined on mother-set

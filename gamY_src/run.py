@@ -23,8 +23,7 @@ dt.gamY.run("base_model.gms")
 ## Save calibration.gdx as previous_calibration.gdx
 # shutil.copy("calibration.gdx", "previous_calibration.gdx")
 
-# dt.REFERENCE_DATABASE = data = dt.Gdx("../data/data.gdx")
-# db = dt.Gdx("static_calibration.gdx")
-# dt.time(2019)
-
-# db = dt.Gdx("calibration.gdx")
+dt.REFERENCE_DATABASE = calibration = dt.Gdx("calibration.gdx")
+db = dt.Gdx("shock.gdx")
+dt.time(2019, 2025)
+dt.plot([db.vGDP, db.vC, db.vI, db.vG, db.vX, db.vM], "m")

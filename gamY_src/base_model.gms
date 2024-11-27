@@ -19,7 +19,7 @@ set_time_periods(%first_data_year%, %terminal_year%);
 $FUNCTION import_from_modules(stage_key):
   $SETGLOBAL stage stage_key;
   $IMPORT submodel_template.gms
-  $IMPORT financial_accounts.gms
+  # $IMPORT financial_accounts.gms
   # $IMPORT test_module.gms
   $IMPORT labor_market.gms
   # $IMPORT energy_markets.gms; 
@@ -29,9 +29,11 @@ $FUNCTION import_from_modules(stage_key):
   # $IMPORT energy_and_emissions_taxes.gms; 
   $IMPORT input_output.gms
   $IMPORT households.gms
+  $IMPORT government.gms
+  $IMPORT exports.gms
+  $IMPORT factor_demand.gms
   # $IMPORT aggregates.gms
   # $IMPORT imports.gms
-  # $IMPORT households.gms
 $ENDFUNCTION
 
 # ------------------------------------------------------------------------------
@@ -89,10 +91,15 @@ Solve main using CNS;
 # ------------------------------------------------------------------------------
 # Shock model
 # ------------------------------------------------------------------------------
-# #Shock
-# tCO2_Emarg.l[em,es,e,i,t] = 1.1 * tCO2_Emarg.l[em,es,e,i,t]; #Increase in CO2-tax of 10%
-# $FIX all_variables;
-# $UNFIX main_endogenous;
-# Solve main using CNS;
-# execute_unload 'shock.gdx';
+set_time_periods(2020, %terminal_year%);
 
+# MPC shock
+vC2vHhIncome.l[t]$(t.val >= t1.val) = vC2vHhIncome.l[t] + 0.01;
+
+# Increase in CO2-tax of 10%
+# tCO2_Emarg.l[em,es,e,i,t]$(t.val >= t1.val) = 1.1 * tCO2_Emarg.l[em,es,e,i,t]; 
+
+$FIX all_variables;
+$UNFIX main_endogenous;
+Solve main using CNS;
+execute_unload 'shock.gdx';

@@ -19,7 +19,6 @@ $IF %stage% == "equations":
 
 $BLOCK exports_market_equations exports_market_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
   .. qD[x,t] =E= pX2pRoW_x[x,t]**(-eX[x]) * qXMarket[x,t];
-
   .. pX2pRoW_x[x,t] =E= pD[x,t] / pRoW_x[x,t];
 $ENDBLOCK
 
@@ -37,10 +36,10 @@ eX.l[x] = 5;
 pRoW_x.l[x,t] = 1;
 
 $Group exports_market_data_variables
+  qD[x,t]
 ;
+@load(exports_market_data_variables, "../data/data.gdx")
 $GROUP+ data_covered_variables exports_market_data_variables$(t.val <= %calibration_year%);
-
-# @load(exports_market_data_variables, "../data/data.gdx")
 
 $ENDIF # exogenous_values
 

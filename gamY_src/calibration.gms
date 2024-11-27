@@ -32,11 +32,7 @@ $ENDLOOP
 @update_exist_dummies()
 
 # For testing partial models only, we extend all data covered variables with "flat forecast" after last data year
-$Group+ G_flat_after_last_data_year
-	all_variables_except_constants
-	# $LOOP data_covered_variables: {name}
-	# $ENDLOOP
-;
+$Group+ G_flat_after_last_data_year all_variables_except_constants;
 
 # Extending variables with "flat forecast" after last data year
 $LOOP G_flat_after_last_data_year:
@@ -57,4 +53,3 @@ $FIX all_variables; $UNFIX calibration_endogenous;
 execute_unloaddi "calibration_pre.gdx";
 solve calibration using CNS;
 execute_unloaddi "calibration.gdx";
-

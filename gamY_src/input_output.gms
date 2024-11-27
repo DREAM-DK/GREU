@@ -19,6 +19,16 @@ $SetGroup+ SG_flat_after_last_data_year
 ;
 
 $Group+ all_variables
+  vGDP[t] "Gross Domestic product."
+  vGVA[t] "Gross value added."
+
+  vR[t] "Non-energy intermediate inputs."
+  vE[t] "Energy intermediate inputs."
+  vI[t] "Investments."
+  vC[t] "Private consumption."
+  vG[t] "Public consumption."
+  vX[t] "Exports."
+
   pY_i[i,t] "Price of domestic output by industry."
   qY_i[i,t] "Real output by industry."
   vY_i[i,t] "Output by industry."
@@ -28,9 +38,6 @@ $Group+ all_variables
   qM_i[i,t]$(m[i]) "Real imports by industry."
   vM_i[i,t]$(m[i]) "Imports by industry."
   vM[t] "Total imports."
-
-  vY_d[d,t]$(d1Y_d[d,t]) "Output by demand component."
-  vM_d[d,t]$(d1M_d[d,t]) "Imports by demand component."
 
   pD[d,t]$(d1YM_d[d,t]) "Price of demand component."
   qD[d,t]$(d1YM_d[d,t]) "Real demand by demand component."
@@ -68,9 +75,23 @@ $ENDIF # variables
 $IF %stage% == "equations":
 
 $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+  .. vGDP[t] =E= vC[t] + vI[t] + vG[t] + vX[t] - vM[t];
+  .. vGVA[t] =E= vY[t] - vR[t] - vE[t];
+
+  # Demand aggregates
+  .. vR[t] =E= sum(rx, vD[rx,t]);
+  .. vE[t] =E= sum(re, vD[re,t]);
+  .. vI[t] =E= sum(k, vD[k,t]) + vD['invt',t];
+  .. vC[t] =E= sum(c, vD[c,t]);
+  .. vG[t] =E= sum(g, vD[g,t]);
+  .. vX[t] =E= sum(x, vD[x,t]);
+
   # Equilibrium condition: supply + net duties = demand in each industry.
   .. vY_i[i,t] + vtY_i[i,t] =E= sum(d, vY_i_d[i,d,t]);
   .. vY[t] =E= sum(i, vY_i[i,t]);
+
+  .. qY_i[i,t] =E= sum(d, qY_i_d[i,d,t]);
+  .. qM_i[i,t] =E= sum(d, qM_i_d[i,d,t]);
 
   # Aggregate imports from each import industry
   .. vM_i[i,t] + vtM_i[i,t] =E= sum(d, vM_i_d[i,d,t]);
@@ -83,13 +104,9 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. vtY_i[i,t] =E= sum(d, vtY_i_d[i,d,t]);
   .. vtM_i[i,t] =E= sum(d, vtM_i_d[i,d,t]);
 
-  # Demand aggregates.
   # Real demand, qD, is determined in other modules. E.g. consumption chosen by households, factor inputs by firms.
-  .. vD[d,t] =E= vY_d[d,t] + vM_d[d,t];
+  .. vD[d,t] =E= sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
   .. pD[d,t] * qD[d,t] =E= vD[d,t];
-
-  .. vY_d[d,t] =E= sum(i, vY_i_d[i,d,t]);
-  .. vM_d[d,t] =E= sum(i, vM_i_d[i,d,t]);
 
   # Input-output prices reflect industry-prices or import prices, plus any taxes
   # jfp[YM]_d can be endogenized by submodels to reflect pricing-to-market etc.
@@ -160,7 +177,6 @@ $Group+ calibration_endogenous
   -vtY_i_d[i,d,t1], tY_i_d[i,d,t1]
   -vtM_i_d[i,d,t1], tM_i_d[i,d,t1]
   -vY_i_d[i,d,t1], -vM_i_d[i,d,t1], rYM[i,d,t1], rM[i,d,t]$(t1[t] and d1M_i_d[i,d,t] and d1Y_i_d[i,d,t]) 
-  -pD[d,t1], qD[d,t1]
 
   calibration_endogenous
 ;

@@ -20,6 +20,7 @@ variables
   nEmployed[t]
 
   qK[k,i,t]
+  qI_s[*,i,t]
   pK[k,i,t]
   pL[i,t]
   qL[i,t]
@@ -120,7 +121,15 @@ parameters GREU_data
   vtY_i_d[i,d,t] "Net duties on domestic production by industry and demand component."
   vtM_i_d[i,d,t] "Net duties on imports by industry and demand component."
   vD[d,t] "Demand by demand component."
+  qD[d,t] "Real demand by demand component."
   vtYM_d[d,t] "Net duties by demand component."
+
+  # Factor demand
+  qK_k_i[k,i,t] "Real capital stock by capital type and industry."
+  qL_i[i,t] "Labor in efficiency units by industry."
+  qR_i[i,t] "Intermediate input by industry."
+  qI_k_i[k,i,t] "Real investments by capital type and industry."
+  qInvt_i[i,t] "Inventory investments by industry."
 
   Energybalance[ebalitems,transaction,d,es,e,t] "Main data input with regards to energy and energy-related emissions"
   NonEnergyEmissions[ebalitems,transaction,d,t] "Main data input with regards to non-energy related emissions"
@@ -164,7 +173,7 @@ $load tpLE=tLE.l, tpCE=tCE.l, tpXE=tXE_.l
 $load qEtot=qEtot.l,  pY_CET = pY_CET.l, pM_CET=pM_CET.l, qY_CET=qY_CET.l, qM_CET=qM_CET.l
 $load qRepj=qREgj.l, qCEpj=qCE.l, qLEpj=qLE.l, qXEpj=qXE.l,qTLpj=qTL.l
 $load vEAV_RE=vEAV_RE.l, vDAV_RE=vDAV_RE.l, vCAV_RE=vCAV_RE.l, vEAV_CE=vEAV_CE.l, vDAV_CE=vDAV_CE.l, vCAV_CE= vCAV_CE.l
-$load pL, qL, pK, qK, qRxE, pRxE
+$load pL, qL, pK, qK, qI_s, qRxE, pRxE
 $load qEmmBorderTrade_load =qEmmBorderTrade.l
 $load em_accounts=accounts_all, land5
 $load qEmmCE_load=qEmmConsE.l, qEmmCxE_load=qEmmConsxE.l, qEmmRE_load=qEmmProdE.l, qEmmRxE_load=qEmmProdxE.l, qEmmtot_load=qEmmtot.l, qEmmLULUCF=qEmmLULUCF.l, qEmmLULUCF5=qEmmLULUCF5.l, sBioNatGas=sBioNatGasAvgAdj.l
@@ -193,6 +202,15 @@ vD[d,t] = sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
 vtYM_d[d,t] = vIO_a["TaxSub",d,t] + vIO_a["Moms",d,t];
 vtY_i_d[i,d,t] = vY_i_d[i,d,t] / vD[d,t] * vtYM_d[d,t];
 vtM_i_d[i,d,t] = vM_i_d[i,d,t] / vD[d,t] * vtYM_d[d,t];
+
+qD[d,t] = vD[d,t];
+
+# Factor demand
+qK_k_i[k,i,t] = qK.l[k,i,t];
+qI_k_i[k,i,t] = qI_s.l[k,i,t];
+qR_i[i,t] = qRxE.l[i,t];
+qL_i[i,t] = qL.l[i,t];
+qInvt_i[i,t] = qI_s.l['invt',i,t];
 
 #Production
   qProd['RxE',i,t]                 = qRxE.l[i,t];
@@ -250,6 +268,10 @@ execute_unloaddi "data",
   # Input-output
   d, rx, re, k, c, g, x, i, m,
   vY_i_d, vM_i_d, vtY_i_d, vtM_i_d,
+  qD
+
+  # Factor demand
+  qK_k_i, qI_k_i, qR_i, qInvt_i
 
   es, out, e, 
   pE_avg, 
