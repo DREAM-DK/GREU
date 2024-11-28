@@ -25,7 +25,7 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
   qD&_Gtotal[g,t]$(first(g)).. vG[t] =E= vG2vGDP[t] * vGDP[t];
   qD[g,t]$(not first(g)).. vD[g,t] =E= rG_g[g,t] * vG[t];
 
-  vHhTaxes[t].. vHhTaxes[t] =E= vHhTaxes2vGDP[t] * vGDP[t];
+  .. vHhTaxes[t] =E= vHhTaxes2vGDP[t] * vGDP[t];
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -44,7 +44,6 @@ $Group government_data_variables
 ;
 @load(government_data_variables, "../data/data.gdx")
 $Group+ data_covered_variables government_data_variables$(t.val <= %calibration_year%);
-vHhTaxes2vGDP.l[t] = 0.0;
 
 $ENDIF # exogenous_values
 
@@ -54,19 +53,20 @@ $ENDIF # exogenous_values
 $IF %stage% == "calibration":
 
 $BLOCK government_calibration_equations government_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+  # We assume a balanced budget in the baseline for now, adjusting taxes to keep debt-to-GDP ratio constant
+  vHhTaxes2vGDP[t].. vNetFinAssets['Gov',t] / vGDP[t] =E= 0;#vNetFinAssets['Gov',t-1] / vGDP[t-1];
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
 model calibration /
   government_equations
-  # government_calibration_equations
+  government_calibration_equations
 /;
 # Add endogenous variables to calibration model
 $Group calibration_endogenous
   government_endogenous
   government_calibration_endogenous
   -qD[g,t1], rG_g[g,t1], vG2vGDP[t1]
-  # -vHhTaxes[t1], vHhTaxes2vGDP[t1]
 
   calibration_endogenous
 ;
