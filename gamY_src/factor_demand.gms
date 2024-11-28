@@ -22,6 +22,7 @@ $Group+ all_variables
   qR2qY_i[i,t] "Intermediate input to output ratio by industry."
   qInvt2qY_i[i,t] "Inventory investment to output ratio by industry."
   vCashProfit_i[i,t] "Cash profit by industry."
+  qRE2qY_i[i,t] "Demand for intermediate energy inputs to output ratio by industry."
 ;
 
 $ENDIF # variables
@@ -55,6 +56,9 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
 
   # Capital accumulation (firms demand capital directly, investments are residual from capital accumulation)
   .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq;
+
+  .. qD[re,t] =E=sum(i$i2re(i,re),  qRE2qY_i[i,t] * qY_i[i,t]);
+
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -72,6 +76,8 @@ $Group factor_demand_data_variables
   qK_k_i[k,i,t]
   qI_k_i[k,i,t]
   qD[i,t]
+  # qD['energy',t]
+  qD[re,t]
   qInvt_i[i,t]
 ;
 @load(factor_demand_data_variables, "../data/data.gdx")
@@ -103,6 +109,8 @@ $Group calibration_endogenous
   -qD[i,t1], qR2qY_i[i,t1]
   -qI_k_i[k,i,t1], rKDepr_k_i[k,i,t1]
   -qInvt_i[i,t1], qInvt2qY_i[i,t1]
+  -qD[re,t1], qRE2qY_i[i,t1]
+  # -qD[energy,t1], qDenergy2sumqY[t1]
 
   calibration_endogenous
 ;

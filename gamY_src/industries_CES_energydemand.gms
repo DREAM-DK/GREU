@@ -2,7 +2,8 @@
 # Variable and group creation
 # ------------------------------------------------------------------------------
 
-	$SetGroup SG_industries_energydemand_dummies 
+$IF %stage% == "variables":
+	$SetGroup+ SG_flat_after_last_data_year
 		# d1pREa[es,e_a,i,t] #£Skal flyttes hertil, når vi får stages. Pt i energy_markets
 		d1pREa_inNest[es,e_a,i,t] ""
 		d1pREa_NotinNest[es,e_a,i,t] ""
@@ -11,35 +12,18 @@
 		d1Prod[pf,i,t] ""
 	;
 	
-	$SetGroup SG_industries_energydemand_flat_dummies 
-		SG_industries_energydemand_dummies
-	;
-
-	$SetGroup+ SG_flat_after_last_data_year
-		SG_industries_energydemand_flat_dummies
-	;
-	
-	$Group G_industries_energydemand_prices 
+	$Group+ all_variables 
 		pREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t])   	"Price of energy-activity (e_a), split on services (es) measured in DKK per peta Joule (when abatement is turned off)"
 		pREes[es,i,t]$(d1pEes[es,i,t]) 						"Price of nest of energy-activities, aggregated to energy-services, CES-price index."
 		pREmachine[i,t]$(d1pREmachine[i,t]) 			"Price of machine energy, CES-price index."
 		pProd[pf,i,t]$(d1Prod[pf,i,t]) 						"Production price of production function pf in sector i at time t" #Should be moved to production.gms when stages are implemented
-	;
-	
-	$Group G_industries_energydemand_quantities 
 		# qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) "" £Skal flyttes hertil, når vi får stages. Pt i energy_markets
 		qREes[es,i,t]$(d1pEes[es,i,t]) 						"CES-Quantity of energy-services, measured in bio 2019-DKK"
 		qREmachine[i,t]$(d1pREmachine[i,t]) 			"CES-Quantity of machine energy, measured in bio 2019-DKK"
 		qProd[pf,i,t]$(d1Prod[pf,i,t]) 						"CES-quantity of production function pf in sector i at time t" #Should be moved to production.gms when stages are implemented
 		qREa_BiogasForConvertingData[t] 					"Quantity of biogas for converting to natural gas in gas distribution sector, measured in peta Joule"
 		qREa_ElectricityForDatacentersData[t] 		"Quantity of electricity for data centers, measured in peta Joule"
-	;
-
-	$Group G_industries_energydemand_values 
-		  vEnergycostsnotinnesting[i,t]  					"Total cost of energy not in in CES-nested production function (but added to production costs), measured in bio kroner"
-	;
-	
-	$Group G_industries_energydemand_other 
+		vEnergycostsnotinnesting[i,t]  					"Total cost of energy not in in CES-nested production function (but added to production costs), measured in bio kroner"
 		eREa[es,i] 																	"Elasticity of substitution between energy-activities for a given energy-service"
 		uREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 			"CES-share for energy-activity in industry i"
 	
@@ -49,47 +33,18 @@
 		jqREes[es,i,t]$(d1pEes[es,i,t]) 						"Calibration term to avoid problem between static and dynamic calibration"
 		jqREmachine[i,t]$(d1pREmachine[i,t]) 				"Calibration term to avoid problem between static and dynamic calibration"
 	;
-	
-	$Group+ G_flat_after_last_data_year
-		G_industries_energydemand_prices
-		G_industries_energydemand_quantities
-		G_industries_energydemand_values
-		G_industries_energydemand_other
-	;
-
-	$Group G_industries_energydemand_data 
-		
-	;
-
-# ------------------------------------------------------------------------------
-# Add to main groups
-# ------------------------------------------------------------------------------
-
-	$Group+ price_variables
-		G_industries_energydemand_prices
-	;
-
-	$Group+ quantity_variables
-		G_industries_energydemand_quantities
-	;
-
-	$Group+ value_variables
-		G_industries_energydemand_values
-	;
-
-	$Group+ other_variables
-		G_industries_energydemand_other
-	;
+$ENDIF
 
 # ------------------------------------------------------------------------------
 # Equations
 # ------------------------------------------------------------------------------
 
+$IF %stage% == "equations":
 	$BLOCK industries_energy_demand industries_energy_demand_endogenous $(t.val>=t1.val and t.val<=tEnd.val)
 
 		#In nests
 			qREa&_inNest[es,e_a,i,t]$(d1pREa_inNest[es,e_a,i,t]).. 
-				qREa[es,e_a,i,t] =E= uREa[es,e_a,i,t] * (pREes[es,i,t]/pREa[es,e_a,i,t])**(-eREa[es,i]) * qREes[es,i,t];
+				qREa[es,e_a,i,t] =E= uREa[es,e_a,i,t] * (pREa[es,e_a,i,t]/pREes[es,i,t])**(-eREa[es,i]) * qREes[es,i,t];
 		
 			pREes[es,i,t]$(d1pEes[es,i,t]).. pREes[es,i,t]*qREes[es,i,t] =E= sum((e_a)$(d1pREa_inNest[es,e_a,i,t]), pREa[es,e_a,i,t] * qREa[es,e_a,i,t]);
 		
@@ -130,20 +85,22 @@
 
 	$ENDBLOCK
 
-# Add equation and endogenous variables to main model
-model main / industries_energy_demand
-						  industries_energy_demand_link/;
-$Group+ main_endogenous 
-		industries_energy_demand_endogenous
-		industries_energy_demand_link_endogenous
-		
-		;
+	# Add equation and endogenous variables to main model
+	model main / industries_energy_demand
+								industries_energy_demand_link/;
+	$Group+ main_endogenous 
+			industries_energy_demand_endogenous
+			industries_energy_demand_link_endogenous
+			
+			;
 
-
+$ENDIF
 
 # ------------------------------------------------------------------------------
 # Exogenous values 
 # ------------------------------------------------------------------------------
+
+$IF %stage% == "exogenous_values":
 
 	eREa.l[es,i] = 0.1;
 	eREes.l[i] = 0.1;
@@ -180,28 +137,32 @@ $Group+ main_endogenous
 	d1pREmachine[i,t]            = yes$(sum(es$(not (heating[es] or transport[es])), d1pEes[es,i,t]));
 	d1Prod[pf,i,t]               = yes$(pProd.l[pf,i,t]);
 
+$ENDIF
 
 # ------------------------------------------------------------------------------
 # Calibration
 # ------------------------------------------------------------------------------
 
-# Add equations and calibration equations to calibration model
-model calibration /
-	industries_energy_demand
-	industries_energy_demand_link
-/;
+$IF %stage% == "calibration":
 
-# Add endogenous variables to calibration model
-$Group calibration_endogenous
-  industries_energy_demand_endogenous
-  -qREa[es,e_a,i,t1], uREa[es,e_a,i,t1]
-  -pREes[es,i,t1],    qREes[es,i,t1]
-  uREes[es,i,t1]
-  -pREmachine[i,t1], qREmachine[i,t1]
+	# Add equations and calibration equations to calibration model
+	model calibration /
+		industries_energy_demand
+		industries_energy_demand_link
+	/;
 
-	industries_energy_demand_link_endogenous
-	jqREmachine[i,t1]
-	jqREes[es,i,t1] #When linked, quantities are back in exogenously
+	# Add endogenous variables to calibration model
+	$Group calibration_endogenous
+		industries_energy_demand_endogenous
+		-qREa[es,e_a,i,t1], uREa[es,e_a,i,t1]
+		-pREes[es,i,t1],    qREes[es,i,t1]
+		uREes[es,i,t1]
+		-pREmachine[i,t1], qREmachine[i,t1]
 
-    calibration_endogenous
-;
+		industries_energy_demand_link_endogenous
+		jqREmachine[i,t1]
+		jqREes[es,i,t1] #When linked, quantities are back in exogenously
+
+			calibration_endogenous
+	;
+$ENDIF

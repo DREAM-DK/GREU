@@ -16,6 +16,12 @@ $Group+ constant_variables
 ;
 $Display constant_variables;
 
+#Hack 
+$Group+ constant_variables
+  eDist[out]
+#   GWP[em]
+;
+
 $Group+ scalar_variables
   $EvalPython
     ",".join(
@@ -87,7 +93,7 @@ $GROUP+ value_variables
 # For each variable, set a dummy that is 1 if the variable exists for the combination of set elements
 $FUNCTION update_exist_dummies():
   $LOOP all_variables_except_scalars:
-    {name}_exists_dummy{sets}$({conditions}) = yes;
+    {name}_exists_dummy{sets} = {conditions};
   $ENDLOOP
 $ENDFUNCTION
 

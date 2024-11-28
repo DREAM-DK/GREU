@@ -64,7 +64,10 @@ $Group+ all_variables
   jfpM_i_d[i,d,t] "Deviation from average industry price."
 
   rYM[i,d,t]$(d1YM_i_d[i,d,t]) "industry composition of demand."
+  rYM_energy[i,t]$(sum(re, d1Y_i_d[i,re,t])) "Used in linking between energy-markets and input-output."
+
   rM[i,d,t]$(d1YM_i_d[i,d,t]) "Import share."
+  rM_energy[i,t]$(sum(re, d1M_i_d[i,re,t])) "Used in linking between energy-markets and input-output."
   fYM[d,t] "Deviation from law of one price."
 ;
 $ENDIF # variables
@@ -140,6 +143,7 @@ $Group input_output_data_variables
   vY_i_d, vtY_i_d
   vM_i_d, vtM_i_d
 ;
+# $Group+ data_covered_variables input_output_data_variables$(t.val <= %calibration_year%),-vY_i_d[i,'energy',t];
 $Group+ data_covered_variables input_output_data_variables$(t.val <= %calibration_year%);
 
 @load(input_output_data_variables, "../data/data.gdx")
