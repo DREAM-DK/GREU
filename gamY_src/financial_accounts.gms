@@ -68,7 +68,7 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
                             + vM[t]
                             - vX[t];
 
-  .. vEBITDA_i[i,t] =E= vY_i[i,t] - vWages_i[i,t] - vD[i,t];# - vE_i[i,t]; # Net duties should be subtracted here
+  .. vEBITDA_i[i,t] =E= vY_i[i,t] - vWages_i[i,t] - vD[i,t] - vE_i[i,t]; # Net duties should be subtracted here
 
   # For now, we assume that households own all domestic equity going forward
   .. vNetEquity[Gov,t] =E= 0;
@@ -86,7 +86,6 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
     -vNetDividends['Corp',t] =E= sum(i$i_private[i], vEBITDA_i[i,t]) - vI_private[t]
                                + vNetInterests['Corp',t] # is negative
                                - vCorpTaxes[t]
-                              #  - (vNetEquity['Corp',t] - vNetEquity['Corp',t-1]/fv); # Share buybacks (issuing stocks)
                                - (vNetDebtInstruments['Corp',t] - vNetDebtInstruments['Corp',t-1]/fv); # Purchasing securities or repaying debt (issuing debt or selling securities)
 
     # For now assume no non-domestic equities

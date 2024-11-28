@@ -10,7 +10,7 @@ $Group+ constant_variables
     ",".join(
       name
       for name, var in self.groups["all"].items()
-      if not (var.sets = "[t]" or var.sets.endswith(",t]"))
+      if not (var.sets == "[t]" or var.sets.endswith(",t]"))
     )
   $EndEvalPython
 ;
