@@ -17,6 +17,8 @@ $Group+ all_variables
   qInvt_i[i,t] "Net real inventory investments by industry."
   vInvt_i[i,t] "Net inventory investments by industry."
 
+  pK_k_i[k,i,t]$(d1K_k_i[k,i,t]) "User cost of capital by capital type and industry."
+
   qK2qY_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Capital to output ratio by capital type and industry."
   qL2qY_i[i,t] "Labor to output ratio by industry."
   qR2qY_i[i,t] "Intermediate input to output ratio by industry."
@@ -63,6 +65,10 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
 
   # Capital accumulation (firms demand capital directly, investments are residual from capital accumulation)
   .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq;
+
+    $(not tEnd[t]).. pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rFirms[i,t+1]) * pD[k,t+1]*fp;
+    pK_k_i&_tEnd[k,i,t]$(tEnd[t])..
+      pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rFirms[i,t]) * pD[k,t]*fp;
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -87,6 +93,8 @@ $Group factor_demand_data_variables
 $Group+ data_covered_variables factor_demand_data_variables$(t.val <= %calibration_year%);
 
 d1K_k_i[k,i,t] = abs(qK_k_i.l[k,i,t]) > 1e-9;
+
+rKDepr_k_i.l[k,i,t] = 0.05;
 
 $ENDIF # exogenous_values
 

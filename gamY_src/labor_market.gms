@@ -6,10 +6,10 @@ $IF %stage% == "variables":
 $Group+ all_variables
   nL[t] "Total employment."
 
-  pL[t] "Usercost of labor."
+  pL_i[i,t] "Usercost of labor, by industry."
   qL[t] "Labor in efficiency units."
 
-  pLWedge[t] "Wedge between wage and usercost of labor (e.g. matching costs)."
+  pLWedge_i[i,t] "Wedge between wage and usercost of labor (e.g. matching costs), by industry."
 
   pW[t] "Wage pr. efficiency unit of labor."
   qProductivity[t] "Labor augmenting productivity."
@@ -40,7 +40,7 @@ $BLOCK labor_market_equations labor_market_endogenous $(t1.val <= t.val and t.va
   pW[t].. qL[t] =E= qProductivity[t] * nL[t];
 
   # Usercost of labor is wage + any frictions
-  .. pL[t] =E= pW[t] + pLWedge[t];
+  .. pL_i[i,t] =E= pW[t] + pLWedge_i[i,t];
 
   # Mapping between efficiency units and actual employees and wages
   .. vWages_i[i,t] =E= pW[t] * qL_i[i,t];
