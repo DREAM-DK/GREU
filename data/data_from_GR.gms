@@ -196,14 +196,12 @@ vY_i_d[i,d,t] = vIO_y[i,d,t];
 vM_i_d[i,d,t] = vIO_m[i,d,t];
 vY_i_d[i,rx,t] = vIOxE_y[i,rx,t];
 vM_i_d[i,rx,t] = vIOxE_m[i,rx,t];
+
 # vY_i_d[i,'energy',t] = sum(rx, vIO_y[i,rx,t] - vIOxE_y[i,rx,t]);
 # vM_i_d[i,'energy',t]
+
 vY_i_d[i,re,t] = sum(rx2re(rx,re) , vIO_y[i,rx,t] - vIOxE_y[i,rx,t]);
 vM_i_d[i,re,t] = sum(rx2re(rx,re) , vIO_m[i,rx,t] - vIOxE_m[i,rx,t]);
-
-
-# vY_i_d[i,re,t] = vIO_y[i,re,t] - vIOxE_y[i,re,t];
-# vM_i_d[i,re,t] = vIO_m[i,re,t] - vIOxE_m[i,re,t];
 
 vD[d,t] = sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
 

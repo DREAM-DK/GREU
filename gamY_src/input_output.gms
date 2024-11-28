@@ -141,7 +141,7 @@ $Group input_output_data_variables
   vM_i_d, vtM_i_d
 ;
 # $Group+ data_covered_variables input_output_data_variables$(t.val <= %calibration_year%),-vY_i_d[i,'energy',t];
-$Group+ data_covered_variables input_output_data_variables$(t.val <= %calibration_year%),-vY_i_d[i,re,t],-vM_i_d[i,re,t];
+$Group+ data_covered_variables input_output_data_variables$(t.val <= %calibration_year%);
 
 @load(input_output_data_variables, "../data/data.gdx")
 
