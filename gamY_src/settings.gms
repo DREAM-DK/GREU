@@ -10,9 +10,9 @@ OPTION
   CNS=CONOPT4  # Choose solver
 ;
 
-$SETLOCAL first_data_year 1983;
+$SETLOCAL first_data_year 2015;
 $SETLOCAL calibration_year 2019;
-$SETLOCAL terminal_year 2040;
+$SETLOCAL terminal_year 2030;
 $SETLOCAL base_year 2019;
 
 parameter gp "Steady state rate of inflation." /0.02/;

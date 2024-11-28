@@ -25,5 +25,5 @@ dt.gamY.run("base_model.gms")
 
 dt.REFERENCE_DATABASE = calibration = dt.Gdx("calibration.gdx")
 db = dt.Gdx("shock.gdx")
-dt.time(2019, 2025)
+dt.time(2019, 2030)
 dt.plot([db.vGDP, db.vC, db.vI, db.vG, db.vX, db.vM], "m")

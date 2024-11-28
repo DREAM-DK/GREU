@@ -19,7 +19,7 @@ set_time_periods(%first_data_year%, %terminal_year%);
 $FUNCTION import_from_modules(stage_key):
   $SETGLOBAL stage stage_key;
   $IMPORT submodel_template.gms
-  # $IMPORT financial_accounts.gms
+  $IMPORT financial_accounts.gms
   # $IMPORT test_module.gms
   $IMPORT labor_market.gms
   # $IMPORT energy_markets.gms; 

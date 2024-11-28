@@ -19,7 +19,8 @@ $gdxIn
 ;
 
 Set i_public[i] "Public industries." / off /;
-Set i_private[i] "Private industries." / set.i - off /;
+Set i_private[i] "Private industries.";
+i_private[i] = not i_public[i];
 
 Set i_refineries[i] / 19000 /;
 Set i_gasdistribution[i] / 35002 /;

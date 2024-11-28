@@ -104,6 +104,9 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. vtY_i[i,t] =E= sum(d, vtY_i_d[i,d,t]);
   .. vtM_i[i,t] =E= sum(d, vtM_i_d[i,d,t]);
 
+  .. vtY[t] =E= sum(i, vtY_i[i,t]);
+  .. vtM[t] =E= sum(i, vtM_i[i,t]);
+
   # Real demand, qD, is determined in other modules. E.g. consumption chosen by households, factor inputs by firms.
   .. vD[d,t] =E= sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
   .. pD[d,t] * qD[d,t] =E= vD[d,t];
