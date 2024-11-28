@@ -1,8 +1,10 @@
 # ------------------------------------------------------------------------------
 # Variable, dummy and group creation
 # ------------------------------------------------------------------------------
-  
-  $SetGroup SG_energy_taxes_dummies 
+
+$IF %stage% == "variables":
+
+  $SetGroup+ SG_flat_after_last_data_year 
     d1tE_duty_tot[d,t] "" 
     d1tE_vat_tot[d,t] ""
     
@@ -17,15 +19,7 @@
     d1tCO2_ETS2_E[em,es,e,d,t] ""
   ;
 
-  $SetGroup SG_energy_taxes_flat_dummies 
-    SG_energy_taxes_dummies
-  ;
-
-  $SetGroup+ SG_flat_after_last_data_year
-    SG_energy_taxes_flat_dummies
-  ;
-
-  $Group G_energy_taxes_rates
+  $Group+ all_variables
     tCO2_ETS[t]                                               "ETS1 carbon price, measured in kroner per ton CO2"
     tCO2_ETS2[t]                                              "ETS2 carbon price, measured in kroner per ton CO2"
 
@@ -37,15 +31,8 @@
     tCO2_xEmarg[d,t]$(d1tCO2_xE[d,t])                         "Marginal CO2 tax per PJ energy input, measured in kroner per ton CO2"
     tCO2_ETS_pj[em,es,e,d,t]$(d1tCO2_ETS_E[em,es,e,d,t])      "ETS1 carbon price per PJ energy input, measured in kroner per ton CO2"
     tCO2_ETS2_pj[em,es,e,d,t]$(d1tCO2_ETS2_E[em,es,e,d,t])    "ETS2 carbon price per PJ energy input, measured in kroner per ton CO2"
-
-  ;
-
-    $Group G_energy_taxes_quantities
     qEpj_duty_deductible[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "Marginal duty-rates on firms energy input. Measured in bio. kr. per PJ energy input"
     qCO2_ETS_freeallowances[i,t]$(d1tCO2_ETS[i,t]) "This one needs to have added non-energy related emissions"
-  ;
-
-  $Group G_energy_taxes_values 
 
     vtE_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "Tax revenue from duties on energy"
     vtE_duty_tot[d,t]$(d1tE_duty_tot[d,t]) "Total tax revenue from duties on energy"
@@ -58,17 +45,8 @@
     vtCO2_ETS2[d,t]$(d1tCO2_ETS2[d,t]) "Tax revenue from ETS2"
     vtCO2_ETS_xE[d,t]$(d1tCO2_ETS[d,t] and d1EmmxE['CO2ubio',d,t]) "Tax revenue from ETS1, non-energy related emissions"
     vtCO2_xE[d,t]$(d1tCO2_xE[d,t] and d1EmmxE['CO2ubio',d,t])      "Tax revenue from national carbon tax, non-energy related emissions"
-  ;
 
-  $Group G_energy_taxes_other 
     jvtE_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "J-term to capture instances ,where data contains a revenue, but the marginal rate is zero."
-  ;
-
-  $Group+ G_flat_after_last_data_year
-    G_energy_taxes_rates
-    G_energy_taxes_quantities
-    G_energy_taxes_values
-    G_energy_taxes_other
   ;
 
   $Group G_energy_taxes_data  
@@ -78,28 +56,13 @@
     tEmarg_duty
     qCO2_ETS_freeallowances
   ;
-
-# ------------------------------------------------------------------------------
-# Add to main groups
-# ------------------------------------------------------------------------------
-
-	$Group+ quantity_variables
-    G_energy_taxes_quantities
-	;
-
-  $Group+ value_variables
-    G_energy_taxes_values
-  ;
-
-	$Group+ other_variables
-    G_energy_taxes_rates
-    G_energy_taxes_other
-	;
-
+$ENDIF 
 
 # ------------------------------------------------------------------------------
 # Equations
 # ------------------------------------------------------------------------------
+
+$IF %stage% == "equations":
 
   $BLOCK energy_and_emissions_taxes energy_and_emissions_taxes_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
      ..   vtE_duty[etaxes,es,e,d,t] =E= tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] - qEpj_duty_deductible[etaxes,es,e,d,t]) +  jvtE_duty[etaxes,es,e,d,t];
@@ -199,17 +162,23 @@
     energy_and_emissions_taxes_links_endogenous
   ;
 
+$ENDIF
+
 # ------------------------------------------------------------------------------
 # Data
 # ------------------------------------------------------------------------------
 
+$IF %stage% == "exogenous_values":
+
+  @inf_growth_adjust()
   @load(G_energy_taxes_data, "../data/data.gdx")
-  $Group+ data_covered_variables G_energy_taxes_data;
+  @remove_inf_growth_adjustment()
+  $Group+ data_covered_variables G_energy_taxes_data$(t.val <= %calibration_year%), -tEmarg_duty,-tCO2_Emarg; #Find ud af hvad, der går galt med de to her
 
 
-# ------------------------------------------------------------------------------
-# Initial values 
-# ------------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------
+  # Initial values 
+  # ------------------------------------------------------------------------------
 
    tCO2_Emarg.l[em,es,'District heat',d,t] = no;
 
@@ -219,9 +188,9 @@
    tCO2_xEmarg.l['23001',t] = 125;
    tCO2_xEmarg.l['23002',t] = 125;
    
-# ------------------------------------------------------------------------------
-# Dummies 
-# ------------------------------------------------------------------------------
+  # ------------------------------------------------------------------------------
+  # Dummies 
+  # ------------------------------------------------------------------------------
 
     d1tE_duty[etaxes,es,e,d,t] = yes$(vtE_duty.l[etaxes,es,e,d,t] and d1pEpj_base[es,e,d,t]);
     d1tE_duty_tot[d,t]         = yes$(sum((etaxes,es,e), d1tE_duty[etaxes,es,e,d,t]));
@@ -238,28 +207,31 @@
     d1tCO2_ETS2_E[em,es,e,d,t]  = yes$(d1EmmE_BU[em,es,e,d,t] and CO2ubio[em] and d1pEpj_base[es,e,d,t] and not in_ETS[es]);
     d1tCO2_ETS2_E[em,es,e,d,t]$(d1EmmE_BU[em,es,e,d,t] and CO2bio[em] and d1pEpj_base[es,e,d,t] and not in_ETS[es] and natgas[e]) = yes;
 
-
+$ENDIF
 # ------------------------------------------------------------------------------
 # Calibration
 # ------------------------------------------------------------------------------
 
-# Add equations and calibration equations to calibration model
-model calibration /
-  energy_and_emissions_taxes
-  energy_and_emissions_taxes_links
-/;
+$IF %stage% == "calibration":
 
-# Add endogenous variables to calibration model
-$Group calibration_endogenous
-  energy_and_emissions_taxes_endogenous 
-  -vtE_duty[etaxes,es,e,d,t1], tEmarg_duty[etaxes,es,e,d,t1]
-  -tEmarg_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] <>0), qEpj_duty_deductible['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] <>0)
-  -tEmarg_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] =0), jvtE_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] =0)
-  -vtE_vat[es,e,d,t1], tE_vat[es,e,d,t1]
+  # Add equations and calibration equations to calibration model
+  model calibration /
+    energy_and_emissions_taxes
+    energy_and_emissions_taxes_links
+  /;
 
-  qEpj_duty_deductible[etaxes,es,e,d,t1]$(d1tE_duty[etaxes,es,e,d,t] and CO2_tax[etaxes] and sum(em,d1tCO2_E[em,es,e,d,t]) and i[d])
+  # Add endogenous variables to calibration model
+  $Group calibration_endogenous
+    energy_and_emissions_taxes_endogenous 
+    -vtE_duty[etaxes,es,e,d,t1], tEmarg_duty[etaxes,es,e,d,t1]
+    -tEmarg_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] <>0), qEpj_duty_deductible['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] <>0)
+    -tEmarg_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] =0), jvtE_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] =0)
+    -vtE_vat[es,e,d,t1], tE_vat[es,e,d,t1]
 
-  energy_and_emissions_taxes_links_endogenous
+    qEpj_duty_deductible[etaxes,es,e,d,t1]$(d1tE_duty[etaxes,es,e,d,t] and CO2_tax[etaxes] and sum(em,d1tCO2_E[em,es,e,d,t]) and i[d])
 
-  calibration_endogenous
-;
+    energy_and_emissions_taxes_links_endogenous
+
+    calibration_endogenous
+  ;
+$ENDIF

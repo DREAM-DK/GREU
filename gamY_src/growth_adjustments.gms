@@ -30,19 +30,19 @@ $FUNCTION inf_growth_adjust():
   abort$(INF_GROWTH_ADJUSTED) "Trying to adjust for inflation and growth, but model is already adjusted.";
   $offlisting
     $LOOP price_variables:
-      {name}.l{sets}= {name}.l{sets} / fpt[t];
-      {name}.lo{sets} = {name}.lo{sets} / fpt[t];
-      {name}.up{sets} = {name}.up{sets} / fpt[t];
+      {name}.l{sets}$({name}.l{sets})= {name}.l{sets} / fpt[t];
+      {name}.lo{sets}$({name}.l{sets}) = {name}.lo{sets} / fpt[t];
+      {name}.up{sets}$({name}.l{sets}) = {name}.up{sets} / fpt[t];
     $ENDLOOP
     $LOOP quantity_variables:
-      {name}.l{sets} = {name}.l{sets} / fqt[t];
-      {name}.lo{sets} = {name}.lo{sets} / fqt[t];
-      {name}.up{sets} = {name}.up{sets} / fqt[t];
+      {name}.l{sets}$({name}.l{sets}) = {name}.l{sets} / fqt[t];
+      {name}.lo{sets}$({name}.l{sets}) = {name}.lo{sets} / fqt[t];
+      {name}.up{sets}$({name}.l{sets}) = {name}.up{sets} / fqt[t];
     $ENDLOOP
     $LOOP value_variables:
-      {name}.l{sets} = {name}.l{sets} / fvt[t];
-      {name}.lo{sets} = {name}.lo{sets} / fvt[t];
-      {name}.up{sets} = {name}.up{sets} / fvt[t];
+      {name}.l{sets}$({name}.l{sets}) = {name}.l{sets} / fvt[t];
+      {name}.lo{sets}$({name}.l{sets}) = {name}.lo{sets} / fvt[t];
+      {name}.up{sets}$({name}.l{sets}) = {name}.up{sets} / fvt[t];
     $ENDLOOP
   $onlisting
   INF_GROWTH_ADJUSTED = Yes;
@@ -53,19 +53,19 @@ $FUNCTION remove_inf_growth_adjustment():
   abort$(not INF_GROWTH_ADJUSTED) "Trying to remove inflation and growth adjustment, but model is already nominal.";
   $offlisting
     $LOOP price_variables:
-      {name}.l{sets} = {name}.l{sets} * fpt[t];
-      {name}.lo{sets} = {name}.lo{sets} * fpt[t];
-      {name}.up{sets} = {name}.up{sets} * fpt[t];
+      {name}.l{sets}$({name}.l{sets}) = {name}.l{sets} * fpt[t];
+      {name}.lo{sets}$({name}.l{sets}) = {name}.lo{sets} * fpt[t];
+      {name}.up{sets}$({name}.l{sets}) = {name}.up{sets} * fpt[t];
     $ENDLOOP
     $LOOP quantity_variables:
-      {name}.l{sets} = {name}.l{sets} * fqt[t];
-      {name}.lo{sets} = {name}.lo{sets} * fqt[t];
-      {name}.up{sets} = {name}.up{sets} * fqt[t];
+      {name}.l{sets}$({name}.l{sets}) = {name}.l{sets} * fqt[t];
+      {name}.lo{sets}$({name}.l{sets}) = {name}.lo{sets} * fqt[t];
+      {name}.up{sets}$({name}.l{sets}) = {name}.up{sets} * fqt[t];
     $ENDLOOP
     $LOOP value_variables:
-      {name}.l{sets} = {name}.l{sets} * fvt[t];
-      {name}.lo{sets} = {name}.lo{sets} * fvt[t];
-      {name}.up{sets} = {name}.up{sets} * fvt[t];
+      {name}.l{sets}$({name}.l{sets}) = {name}.l{sets} * fvt[t];
+      {name}.lo{sets}$({name}.l{sets}) = {name}.lo{sets} * fvt[t];
+      {name}.up{sets}$({name}.l{sets}) = {name}.up{sets} * fvt[t];
     $ENDLOOP
   $onlisting
   INF_GROWTH_ADJUSTED = No;

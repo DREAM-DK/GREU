@@ -22,11 +22,12 @@ $FUNCTION import_from_modules(stage_key):
   # $IMPORT financial_accounts.gms
   # $IMPORT test_module.gms
   $IMPORT labor_market.gms
-  # $IMPORT energy_markets.gms; 
-  # $IMPORT industries_CES_energydemand.gms; 
-  # $IMPORT production.gms; 
-  # $IMPORT emissions.gms; 
-  # $IMPORT energy_and_emissions_taxes.gms; 
+  $IMPORT energy_markets.gms; 
+  $IMPORT industries_CES_energydemand.gms; 
+  $IMPORT production.gms; 
+  $IMPORT production_CET.gms;
+  $IMPORT emissions.gms; 
+  $IMPORT energy_and_emissions_taxes.gms; 
   $IMPORT input_output.gms
   $IMPORT households.gms
   $IMPORT government.gms
@@ -97,7 +98,7 @@ set_time_periods(2020, %terminal_year%);
 vC2vHhIncome.l[t]$(t.val >= t1.val) = vC2vHhIncome.l[t] + 0.01;
 
 # Increase in CO2-tax of 10%
-# tCO2_Emarg.l[em,es,e,i,t]$(t.val >= t1.val) = 1.1 * tCO2_Emarg.l[em,es,e,i,t]; 
+# tCO2_Emarg.l[em,es,e,i,t]$(t.val >= t1.val) = 2 * tCO2_Emarg.l[em,es,e,i,t]; 
 
 $FIX all_variables;
 $UNFIX main_endogenous;

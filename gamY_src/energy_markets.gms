@@ -1,213 +1,125 @@
 # ------------------------------------------------------------------------------
 # Variable, dummy and group creation
 # ------------------------------------------------------------------------------
-	
-	#DEMAND PRICES
-		$SetGroup SG_energy_markets_prices_dummies
-			d1pEpj_base[es,e,d,t] ""
-			d1tqEpj[es,e,d,t] ""
-		;	
-
-		$SetGroup SG_energy_markets_prices_flat_dummies 
-			SG_energy_markets_prices_dummies 
-		;
-
-		#Adding to main-group
-		$SetGroup+ SG_flat_after_last_data_year
-			SG_energy_markets_prices_flat_dummies
-		;
-
-
-		$Group G_energy_markets_prices 
-			pEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 								"Base price of energy for demand sector d, measured in bio. kroner per PJ (or equivalently 1000 DKR per GJ)"
-			pEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Price of energy, including taxes and margins, for demand sector d, defined if either a base price or a quantity-tax exists, measured in bio. kroner per PJ (or equivalently 1000 DKR per GJ)"
-		;
-
-		$Group G_energy_markets_prices_other
-			tpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Aggregate marginal tax-rate on priced energy, measured as a mark-up over base price"
-			tqE[es,e,d,t]$(d1tqEpj[es,e,d,t]) 												 "Aggregate marginal tax-rate on non-priced energy, measured as bio. kroner per PJ (or equivalently 1000 DKR per GJ)" 
-
-			fpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Sector average margin between average supplier price, and sector base price"
-		;
-
-		$Group+ G_flat_after_last_data_year
-			G_energy_markets_prices
-			G_energy_markets_prices_other
-		;
-
-		$Group G_energy_markets_prices_data 
-			pEpj_base[es,e,d,t]
-		;
-
-	#MARKET-CLEARING
-		$SetGroup SG_energy_markets_clearing_dummies 
-			d1pY_CET[out,i,t] ""
-			d1pM_CET[out,i,t] ""
-			d1qY_CET[out,i,t] ""
-			d1qM_CET[out,i,t] ""
-
-			d1pE_avg[e,t] ""
-			d1OneSX[out,t] ""
-			d1OneSX_y[out,t] ""
-			d1OneSX_m[out,t] ""
-			d1qTL[es,e,t] ""
-
-			d1pREa[es,e_a,i,t] "" #Skal flyttes til industries_CES_energydemand.gms, når vi får stages
-		;
-
-		$SetGroup SG_energy_markets_clearing_flat_dummies 
-			SG_energy_markets_clearing_dummies
-		;
-
-		#Adding to main group
-		$SetGroup+ SG_flat_after_last_data_year
-			SG_energy_markets_clearing_flat_dummies
-		;
-
-		$Group G_energy_markets_clearing_prices 
-	        pE_avg[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]))    "Average supply price of ergy"
-	        pM_CET[out,i,t]$(d1pM_CET[out,i,t])  "M"
-
-		;
-
-		$Group G_energy_markets_clearing_quantities 
-	        qY_CET[out,i,t]$(d1pY_CET[out,i,t])  "Domestic production of various products and services - the set 'out' contains all out puts of the economy, for energy the output is measured in PJ and non-energy in bio. DKK base 2019"
-	        qM_CET[out,i,t]$(d1pM_CET[out,i,t])  "Import of various products and services - the set 'out' contains all out puts of the economy, for energy the output is measured in PJ and non-energy in bio. DKK base 2019"
-	        qEtot[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]))     "Total demand/supply of ergy in the models ergy-market"
-
-					qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 									 "Industries demand for energy activity (e_a). When abatement is turned off, the energy-activity is measured in PJ, and corresponds 1:1 to qEpj"		#Skal flyttes til industries_CES_energydemand.gms, når vi får stages
-					qEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or tl[d]) "Sector demand for energy on end purpose (es), measured in PJ"
-					
-					j_abatement_qREa[es,e,i,t]$(d1pEpj_base[es,e,i,t])       "J-term to be activated by abatement-module. When abatement is on qREa =/= qEpj, but is guided by abatement module, endogenizing this variable"
-		;
-
-		 $Group G_energy_markets_clearing_values 
-		 		vDistributionProfits[e,t] 																"With different margins between average supply price, and sector base price, there is scope for what we call distribution profits. They can be negative. Measured in bio. DKK"
-		 ;
-
-		$Group G_energy_markets_clearing_other
-	        sY_Dist[e,i,t]$(d1pY_CET[e,i,t]) 												"For the purpose of clearing energy markets, a fictive agent, the energy-distributor, gathers a bundle of domestically and imported energy, before selling it to the end-sector. This is the energy-distibutors preference parameter for domestic energy"
-	        sM_Dist[e,i,t]$(d1pM_CET[e,i,t]) 												"For the purpose of clearing energy markets, a fictive agent, the energy-distributor, gathers a bundle of domestically and imported energy, before selling it to the end-sector. This is the energy-distibutors preference parameter for imported energy"
-	        eDist[out] 																							"The energy distributors elasticity of demand between different energy suppliers"    
-
-	        pY_CET[out,i,t]$(d1pY_CET[out,i,t]) 										"Move to production at later point" 
-	    ;
+	$IF %stage% == "variables":
+		#DEMAND PRICES
+			$SetGroup+ SG_flat_after_last_data_year
+				d1pEpj_base[es,e,d,t] ""
+				d1tqEpj[es,e,d,t] ""
+			;
+			
+			$Group+ all_variables
+				pEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 								"Base price of energy for demand sector d, measured in bio. kroner per PJ (or equivalently 1000 DKR per GJ)"
+				pEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Price of energy, including taxes and margins, for demand sector d, defined if either a base price or a quantity-tax exists, measured in bio. kroner per PJ (or equivalently 1000 DKR per GJ)"
+				tpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Aggregate marginal tax-rate on priced energy, measured as a mark-up over base price"
+				tqE[es,e,d,t]$(d1tqEpj[es,e,d,t]) 												 "Aggregate marginal tax-rate on non-priced energy, measured as bio. kroner per PJ (or equivalently 1000 DKR per GJ)" 
+				fpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Sector average margin between average supplier price, and sector base price"
+			;
 
 
-		$Group+ G_flat_after_last_data_year
-			G_energy_markets_clearing_prices
-			G_energy_markets_clearing_quantities
-			G_energy_markets_clearing_other
-		;
+			$Group G_energy_markets_prices_data 
+				pEpj_base[es,e,d,t]
+			;
 
-		$Group G_energy_markets_clearing_data 
-			qY_CET 
-			qM_CET
-			pY_CET 
-			pM_CET 
-			pE_avg 
-			qEtot
-			qEpj
-		;
+		#MARKET-CLEARING
+			$SetGroup+ SG_flat_after_last_data_year 
+				d1pY_CET[out,i,t] ""
+				d1pM_CET[out,i,t] ""
+				d1qY_CET[out,i,t] ""
+				d1qM_CET[out,i,t] ""
 
-    #RETAIL AND WHOLESALE MARGINS ON eRGY 
-		$SetGroup SG_energy_margins_dummies 
-				d1pEAV[es,e,d,t] ""
-				d1pDAV[es,e,d,t] ""
-				d1pCAV[es,e,d,t] ""
-		;
+				d1pE_avg[e,t] ""
+				d1OneSX[out,t] ""
+				d1OneSX_y[out,t] ""
+				d1OneSX_m[out,t] ""
+				d1qTL[es,e,t] ""
 
-		$SetGroup SG_energy_markets_margins_flat_dummies 
-			SG_energy_margins_dummies
-		;
+				d1pREa[es,e_a,i,t] "" #Skal flyttes til industries_CES_energydemand.gms, når vi får stages
+			;
 
-		$SetGroup+ SG_flat_after_last_data_year
-			SG_energy_markets_margins_flat_dummies
-		;
-
-		$Group G_energy_markets_margins_prices 
-			pEAV[es,e,d,t]$(d1pEAV[es,e,d,t]) "Wholesale margin on energy-goods, measured in bio. DKK per PJ (or equivalently 1000 DKK per GJ)"
-			pDAV[es,e,d,t]$(d1pDAV[es,e,d,t]) "Retail margin on energy-goods, measured in bio. DKK per PJ (or equivalently 1000 DKK per GJ)"
-			pCAV[es,e,d,t]$(d1pCAV[es,e,d,t]) "Car dealerships margin on energy-goods, measured in bio. DKK per PJ (or equivalently 1000 DKK per GJ)"
-		;
-
-		$Group G_energy_markets_margins_values 
-			vEAV[es,e,d,t]$(d1pEAV[es,e,d,t]) "Value of wholesale margin on energy-goods, measured in bio. DKK"
-			vDAV[es,e,d,t]$(d1pDAV[es,e,d,t]) "Value of retail margin on energy-goods, measured in bio. DKK"
-			vCAV[es,e,d,t]$(d1pCAV[es,e,d,t]) "Value of car dealerships margin on energy-goods, measured in bio. DKK"
-
-			vOtherDistributionProfits_EAV[t] "Total value of wholesale margin on energy-goods, measured in bio. DKK"
-			vOtherDistributionProfits_DAV[t] "Total value of retail on energy-goods, measured in bio. DKK"
-			vOtherDistributionProfits_CAV[t] "Total value of car dealerships on energy-goods, measured in bio. DKK"
-		;
-
-		$Group G_energy_markets_margins_other
-			fpEAV[es,e,d,t]$(d1pEAV[es,e,d,t]) "Sector specific margin between average wholesale price and the sector specific margin"
-			fpDAV[es,e,d,t]$(d1pDAV[es,e,d,t]) "Sector specific margin between average retail price and the sector specific margin"
-			fpCAV[es,e,d,t]$(d1pCAV[es,e,d,t]) "Sector specific margin between average car dealership price and the sector specific margin"
-		;
+			$Group+ all_variables
+						pE_avg[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]))    "Average supply price of ergy"
+						pM_CET[out,i,t]$(d1pM_CET[out,i,t])  "M"
+						qY_CET[out,i,t]$(d1pY_CET[out,i,t])  "Domestic production of various products and services - the set 'out' contains all out puts of the economy, for energy the output is measured in PJ and non-energy in bio. DKK base 2019"
+						qM_CET[out,i,t]$(d1pM_CET[out,i,t])  "Import of various products and services - the set 'out' contains all out puts of the economy, for energy the output is measured in PJ and non-energy in bio. DKK base 2019"
+						qEtot[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]))     "Total demand/supply of ergy in the models ergy-market"
+						qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 									 "Industries demand for energy activity (e_a). When abatement is turned off, the energy-activity is measured in PJ, and corresponds 1:1 to qEpj"		#Skal flyttes til industries_CES_energydemand.gms, når vi får stages
+						qEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or tl[d]) "Sector demand for energy on end purpose (es), measured in PJ"				
+						j_abatement_qREa[es,e,i,t]$(d1pEpj_base[es,e,i,t])       "J-term to be activated by abatement-module. When abatement is on qREa =/= qEpj, but is guided by abatement module, endogenizing this variable"
+						vDistributionProfits[e,t] 																"With different margins between average supply price, and sector base price, there is scope for what we call distribution profits. They can be negative. Measured in bio. DKK"
+						sY_Dist[e,i,t]$(d1pY_CET[e,i,t]) 												"For the purpose of clearing energy markets, a fictive agent, the energy-distributor, gathers a bundle of domestically and imported energy, before selling it to the end-sector. This is the energy-distibutors preference parameter for domestic energy"
+						sM_Dist[e,i,t]$(d1pM_CET[e,i,t]) 												"For the purpose of clearing energy markets, a fictive agent, the energy-distributor, gathers a bundle of domestically and imported energy, before selling it to the end-sector. This is the energy-distibutors preference parameter for imported energy"
+						eDist[out] 																							"The energy distributors elasticity of demand between different energy suppliers"    
+						pY_CET[out,i,t]$(d1pY_CET[out,i,t]) 										"Move to production at later point" 
+			;
 
 
-		$Group+ G_flat_after_last_data_year
-			G_energy_markets_margins_prices
-			G_energy_markets_margins_values
-			G_energy_markets_margins_other
-		;
+			$Group G_energy_markets_clearing_data 
+				qY_CET 
+				qM_CET
+				pY_CET 
+				pM_CET 
+				pE_avg 
+				qEtot
+				qEpj
+			;
 
-		$Group G_energy_markets_margins_data 
-			vEAV 
-			vDAV 
-			vCAV
-		;
+			#RETAIL AND WHOLESALE MARGINS ON eRGY 
+			$SetGroup+ SG_flat_after_last_data_year 
+					d1pEAV[es,e,d,t] ""
+					d1pDAV[es,e,d,t] ""
+					d1pCAV[es,e,d,t] ""
+			;
 
-	#AGGREGATE DATA-GROUP 
+			$Group+ all_variables
+				pEAV[es,e,d,t]$(d1pEAV[es,e,d,t]) "Wholesale margin on energy-goods, measured in bio. DKK per PJ (or equivalently 1000 DKK per GJ)"
+				pDAV[es,e,d,t]$(d1pDAV[es,e,d,t]) "Retail margin on energy-goods, measured in bio. DKK per PJ (or equivalently 1000 DKK per GJ)"
+				pCAV[es,e,d,t]$(d1pCAV[es,e,d,t]) "Car dealerships margin on energy-goods, measured in bio. DKK per PJ (or equivalently 1000 DKK per GJ)"
 
-    	$Group G_energy_markets_data
-    		G_energy_markets_prices_data
-    		G_energy_markets_clearing_data 
-    		G_energy_markets_margins_data 
-    	;
+				vEAV[es,e,d,t]$(d1pEAV[es,e,d,t]) "Value of wholesale margin on energy-goods, measured in bio. DKK"
+				vDAV[es,e,d,t]$(d1pDAV[es,e,d,t]) "Value of retail margin on energy-goods, measured in bio. DKK"
+				vCAV[es,e,d,t]$(d1pCAV[es,e,d,t]) "Value of car dealerships margin on energy-goods, measured in bio. DKK"
 
-# ------------------------------------------------------------------------------
-# Add to main groups (£ AKB: overvej at føje til hovedgrupper undervejs)
-# ------------------------------------------------------------------------------
+				vOtherDistributionProfits_EAV[t] "Total value of wholesale margin on energy-goods, measured in bio. DKK"
+				vOtherDistributionProfits_DAV[t] "Total value of retail on energy-goods, measured in bio. DKK"
+				vOtherDistributionProfits_CAV[t] "Total value of car dealerships on energy-goods, measured in bio. DKK"
 
-	$Group+ price_variables
-		G_energy_markets_prices
-		G_energy_markets_clearing_prices
-		G_energy_markets_margins_prices
-	;
+				fpEAV[es,e,d,t]$(d1pEAV[es,e,d,t]) "Sector specific margin between average wholesale price and the sector specific margin"
+				fpDAV[es,e,d,t]$(d1pDAV[es,e,d,t]) "Sector specific margin between average retail price and the sector specific margin"
+				fpCAV[es,e,d,t]$(d1pCAV[es,e,d,t]) "Sector specific margin between average car dealership price and the sector specific margin"
+			;
 
-	$Group+ quantity_variables
-		G_energy_markets_clearing_quantities
-	;
+			$Group G_energy_markets_margins_data 
+				vEAV 
+				vDAV 
+				vCAV
+			;
 
-	$Group+ value_variables
-		G_energy_markets_clearing_values
-		G_energy_markets_margins_values
-	;
-	$Group+ other_variables
-		G_energy_markets_prices_other
-		G_energy_markets_clearing_other
-		G_energy_markets_margins_other
-	;
+		#AGGREGATE DATA-GROUP 
 
-
-# ------------------------------------------------------------------------------
-# Equations
-# ------------------------------------------------------------------------------
+				$Group G_energy_markets_data
+					G_energy_markets_prices_data
+					G_energy_markets_clearing_data 
+					G_energy_markets_margins_data 
+				;
+	$ENDIF 
 
 	# ------------------------------------------------------------------------------
-	# Demand prices
+	# Equations
 	# ------------------------------------------------------------------------------
 
-	$BLOCK energy_demand_prices energy_demand_prices_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
+	$IF %stage% == "equations":
+		# ------------------------------------------------------------------------------
+		# Demand prices
+		# ------------------------------------------------------------------------------
 
-		.. pEpj_base[es,e,d,t] =E= (1+fpE[es,e,d,t]) * pE_avg[e,t];
+		$BLOCK energy_demand_prices energy_demand_prices_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
 
-		.. pEpj[es,e,d,t] =E= (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t];
+			.. pEpj_base[es,e,d,t] =E= (1+fpE[es,e,d,t]) * pE_avg[e,t];
 
-	$ENDBLOCK
+			.. pEpj[es,e,d,t] =E= (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t];
+
+		$ENDBLOCK
 
 	# ------------------------------------------------------------------------------
 	# Market clearing
@@ -262,9 +174,55 @@
 
     $ENDBLOCK 
 
+		set thesei[i]
+			/01011
+			 01012 
+			 02000
+			#  0600a
+			#  16000
+			 19000
+			 35002 
+			 35011
+			 38393
+			 45000 
+			 46000 
+			 47000
+			 /;
+
+
+		set thesei_m[i]/
+			02000
+			# 0600a
+			# 16000
+			19000
+			# 35002
+			# 35011
+			# 38393
+			# 49509
+			# 45000
+			# 46000
+			# 47000
+			/;
 
 		$BLOCK energy_markets_clearing_link energy_markets_clearing_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-			.. qEpj[es,e,i,t] =E= qREa[es,e,i,t] + j_abatement_qREa[es,e,i,t];
+			#Link til industries_CES_energydemand		
+			qEpj[es,e,i,t]$(d1pEpj_base[es,e,i,t])..
+			 qEpj[es,e,i,t] =E= qREa[es,e,i,t] + j_abatement_qREa[es,e,i,t];
+		
+			#Link til IO
+			# rYM[thesei,energy,t].. 
+			#    vY_i_d[thesei,energy,t] =E= sum(e, pY_CET[e,thesei,t]*qY_CET[e,thesei,t]) + pY_CET['WholeAndRetailSaleMarginE',thesei,t] + qY_CET['WholeAndRetailSaleMarginE',thesei,t]; 
+
+			# rYM_energy[thesei,t]..	
+			# 	sum(re, vY_i_d[thesei,re,t] - vtY_i_d[thesei,re,t]) =E= sum(e, pY_CET[e,thesei,t]*qY_CET[e,thesei,t]) + pY_CET['WholeAndRetailSaleMarginE',thesei,t] + qY_CET['WholeAndRetailSaleMarginE',thesei,t]; 
+		
+			# ..rYM[thesei,re,t] =E= rYM_energy[thesei,t];
+
+			# rM_energy[thesei_m,t]..
+			# 	sum(re, vM_i_d[thesei_m,re,t] - vtM_i_d[thesei_m,re,t]) =E= sum(e, pM_CET[e,thesei_m,t]*qM_CET[e,thesei_m,t]) + pM_CET['WholeAndRetailSaleMarginE',thesei_m,t] + qM_CET['WholeAndRetailSaleMarginE',thesei_m,t];
+			# .. rM[thesei_m,re,t] =E= rM_energy[thesei_m,t];
+
+
 		$ENDBLOCK  
 
 
@@ -301,113 +259,148 @@
                                               ;
       $ENDBLOCK
 
-# Add equation and endogenous variables to main model
-model main / energy_demand_prices  
-						 energy_markets_clearing 
-						 energy_margins
-						 energy_markets_clearing_link/;
+		# Add equation and endogenous variables to main model
+		model main / energy_demand_prices  
+								energy_markets_clearing 
+								energy_margins
+								energy_markets_clearing_link
+								/;
 
-$Group+ main_endogenous 
-		energy_demand_prices_endogenous 
-		energy_markets_clearing_endogenous 
-		energy_margins_endogenous
-		energy_markets_clearing_link_endogenous
-		;
+		$Group+ main_endogenous 
+				energy_demand_prices_endogenous 
+				energy_markets_clearing_endogenous 
+				energy_margins_endogenous
+				energy_markets_clearing_link_endogenous
+				;
+	$ENDIF 
 
 # ------------------------------------------------------------------------------
 # Data 
 # ------------------------------------------------------------------------------
 
-	@load(G_energy_markets_data, "../data/data.gdx")
+	$IF %stage% == "exogenous_values":
+	  	@inf_growth_adjust()
+			@load(G_energy_markets_data, "../data/data.gdx")
+			@remove_inf_growth_adjustment()
 
-	$Group+ data_covered_variables
-	  G_energy_markets_data
-	;
+			set out2i(out,i)/
+			"Crude oil"	. 0600a
+			"Semi-refined oil"	. 19000
+			"Gasoline for transport" .	19000
+			"Jet petroleum" . 19000
+			"Oil products"	. 19000
+			"Bunkering of Danish operated vessels on foreign territory" .	49509
+			"Diesel for transport"	. 19000
+			"Natural gas (Extraction)"	. 0600a
+			"Coal and coke" .	0600a
+			Waste	. "71000"
+			"Firewood and woodchips" .	02000
+			"Wood pellets" .	16000
+			Bioethanol .	19000
+			Electricity	. 35011
+			"District heat"	 . 35011
+			"Bunkering of Danish operated planes on foreign territory" . 19000
+			"Bunkering of Danish operated trucks on foreign territory" . 19000
+			/;
 
-	# ------------------------------------------------------------------------------
-# Exogenous variables
-# ------------------------------------------------------------------------------
+		 pM_CET.l[e,i,t]$(out2i(e,i)) =  pM_CET.l[e,'19000',t]; pM_CET.l[e,'19000',t]$(not out2i(e,'19000')) = 0;
+ 		 qM_CET.l[e,i,t]$(out2i(e,i)) =  qM_CET.l[e,'19000',t]; qM_CET.l[e,'19000',t]$(not out2i(e,'19000')) = 0;
 
-	eDist.l[e] = 5;
-
-# ------------------------------------------------------------------------------
-# Dummies
-# ------------------------------------------------------------------------------
-	
-	#Energy demand prices
-	d1pEpj_base[es,e,d,t]  = yes$(pEpj_base.l[es,e,d,t]);
-
-	#Market clearing
-	d1OneSX[e,t] = yes;
-	d1OneSX[e,t] = no$(straw[e] or el[e] or distheat[e]);
-
-	d1OneSX_y[e,t] = yes$(d1OneSX[e,t] and sum(i, d1pY_CET[e,i,t]));
-	d1OneSX_m[e,t] = yes$(d1OneSX[e,t] and sum(i, d1pM_CET[e,i,t]));
-
-	d1pE_avg[e,t] = yes$(pE_avg.l[e,t]);
-
-	d1pY_CET[out,i,t] = yes$(pY_CET.l[out,i,t]);
-	d1qY_CET[out,i,t] = yes$(qY_CET.l[out,i,t]);
-
-	d1pM_CET[out,i,t] = yes$(pM_CET.l[out,i,t]);
-	d1qM_CET[out,i,t] = yes$(qM_CET.l[out,i,t]);
+			$Group+ data_covered_variables
+				G_energy_markets_data$(t.val <= %calibration_year%)
+			;
 
 
-	#Margins 
-	d1pEAV[es,e,d,t]    = yes$(vEAV.l[es,e,d,t]);
-	d1pDAV[es,e,d,t]    = yes$(vDAV.l[es,e,d,t]);
-	d1pCAV[es,e,d,t]    = yes$(vCAV.l[es,e,d,t]);
+		# ------------------------------------------------------------------------------
+		# Exogenous variables
+		# ------------------------------------------------------------------------------
 
+		eDist.l[e] = 5;
+
+		# ------------------------------------------------------------------------------
+		# Dummies
+		# ------------------------------------------------------------------------------
+			
+		#Energy demand prices
+		d1pEpj_base[es,e,d,t]  = yes$(pEpj_base.l[es,e,d,t]);
+
+		#Market clearing
+		d1OneSX[e,t] = yes;
+		d1OneSX[e,t] = no$(straw[e] or el[e] or distheat[e]);
+
+		d1OneSX_y[e,t] = yes$(d1OneSX[e,t] and sum(i, d1pY_CET[e,i,t]));
+		d1OneSX_m[e,t] = yes$(d1OneSX[e,t] and sum(i, d1pM_CET[e,i,t]));
+
+		d1pE_avg[e,t] = yes$(pE_avg.l[e,t]);
+
+		d1pY_CET[out,i,t] = yes$(pY_CET.l[out,i,t]);
+		d1qY_CET[out,i,t] = yes$(qY_CET.l[out,i,t]);
+
+		d1pM_CET[out,i,t] = yes$(pM_CET.l[out,i,t]);
+		d1qM_CET[out,i,t] = yes$(qM_CET.l[out,i,t]);
+
+
+		#Margins 
+		d1pEAV[es,e,d,t]    = yes$(vEAV.l[es,e,d,t]);
+		d1pDAV[es,e,d,t]    = yes$(vDAV.l[es,e,d,t]);
+		d1pCAV[es,e,d,t]    = yes$(vCAV.l[es,e,d,t]);
+
+	$ENDIF
 # ------------------------------------------------------------------------------
 # Calibration
 # ------------------------------------------------------------------------------
 
-$BLOCK energy_markets_clearing_calibration energy_markets_clearing_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+$IF %stage% == "calibration":
+	$BLOCK energy_markets_clearing_calibration energy_markets_clearing_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
-		qY_CET&_SeveralNonExoSuppliers_calib[e,i,t]$(t.val > t1.val and not d1OneSX[e,t])..
-		     qY_CET[e,i,t] * (sum(i_a$d1pY_CET[e,i_a,t], sY_Dist[e,i_a,t] * pY_CET[e,i_a,t] ** (-eDist[e])) + sum(i_a$d1pM_CET[e,i_a,t], sM_Dist[e,i_a,t] * pM_CET[e,i_a,t]**(-eDist[e]))) 
-          				=E= sY_Dist[e,i,t] * pY_CET[e,i,t] **(-eDist[e]) * qEtot[e,t];
+			qY_CET&_SeveralNonExoSuppliers_calib[e,i,t]$(t.val > t1.val and not d1OneSX[e,t])..
+					qY_CET[e,i,t] * (sum(i_a$d1pY_CET[e,i_a,t], sY_Dist[e,i_a,t] * pY_CET[e,i_a,t] ** (-eDist[e])) + sum(i_a$d1pM_CET[e,i_a,t], sM_Dist[e,i_a,t] * pM_CET[e,i_a,t]**(-eDist[e]))) 
+										=E= sY_Dist[e,i,t] * pY_CET[e,i,t] **(-eDist[e]) * qEtot[e,t];
 
-		qM_CET&_SeveralNonExoSuppliers_calib[e,i,t]$(t.val > t1.val and not d1OneSX[e,t])..
-		     qM_CET[e,i,t] * (sum(i_a$d1pY_CET[e,i_a,t], sY_Dist[e,i_a,t] * pY_CET[e,i_a,t] ** (-eDist[e])) + sum(i_a$d1pM_CET[e,i_a,t], sM_Dist[e,i_a,t] * pM_CET[e,i_a,t]**(-eDist[e]))) 
-          				=E= sM_Dist[e,i,t] * pM_CET[e,i,t] **(-eDist[e]) * qEtot[e,t];
-
-
-		sY_Dist[e,i,t]$(t1[t] and not d1OneSX[e,t]).. sY_Dist[e,i,t] =E= qY_CET[e,i,t]/qEtot[e,t] * pY_CET[e,i,t]**eDist[e];
-
-		sM_Dist[e,i,t]$(t1[t] and not d1OneSX[e,t]).. sM_Dist[e,i,t] =E= qM_CET[e,i,t]/qEtot[e,t] * pM_CET[e,i,t]**eDist[e];
-
-$ENDBLOCK
+			qM_CET&_SeveralNonExoSuppliers_calib[e,i,t]$(t.val > t1.val and not d1OneSX[e,t])..
+					qM_CET[e,i,t] * (sum(i_a$d1pY_CET[e,i_a,t], sY_Dist[e,i_a,t] * pY_CET[e,i_a,t] ** (-eDist[e])) + sum(i_a$d1pM_CET[e,i_a,t], sM_Dist[e,i_a,t] * pM_CET[e,i_a,t]**(-eDist[e]))) 
+										=E= sM_Dist[e,i,t] * pM_CET[e,i,t] **(-eDist[e]) * qEtot[e,t];
 
 
-# Add equations and calibration equations to calibration model
-model calibration /
-  energy_demand_prices
+			sY_Dist[e,i,t]$(t1[t] and not d1OneSX[e,t]).. sY_Dist[e,i,t] =E= qY_CET[e,i,t]/qEtot[e,t] * pY_CET[e,i,t]**eDist[e];
 
-  energy_markets_clearing
-  -E_qY_CET_SeveralNonExoSuppliers
-  -E_qM_CET_SeveralNonExoSuppliers
-  energy_markets_clearing_calibration
+			sM_Dist[e,i,t]$(t1[t] and not d1OneSX[e,t]).. sM_Dist[e,i,t] =E= qM_CET[e,i,t]/qEtot[e,t] * pM_CET[e,i,t]**eDist[e];
 
-  energy_margins
-	energy_markets_clearing_link
-/;
-# Add endogenous variables to calibration model
-$Group calibration_endogenous
-  energy_demand_prices_endogenous
-	fpE[es,e,d,t1],  -pEpj_base[es,e,d,t1]
+	$ENDBLOCK
 
-  energy_markets_clearing_endogenous
-  energy_markets_clearing_calibration_endogenous
-  sY_Dist$(t1[t] and d1pY_CET[e,i,t] and not d1OneSX[e,t]),  -qY_CET$(t1[t] and d1pY_CET[out,i,t] and not d1OneSX[out,t] and e[out]) 
-  sM_Dist$(t1[t] and d1pM_CET[e,i,t] and not d1OneSX[e,t]),  -qM_CET$(t1[t] and d1pM_CET[out,i,t] and not d1OneSX[out,t] and e[out]) 
 
-  energy_margins_endogenous
-	fpEAV[es,e,d,t1],    -vEAV[es,e,d,t1]	
-	fpDAV[es,e,d,t1],    -vDAV[es,e,d,t1]
-	fpCAV[es,e,d,t1],    -vCAV[es,e,d,t1]
+	# Add equations and calibration equations to calibration model
+	model calibration /
+		energy_demand_prices
 
-	energy_markets_clearing_link_endogenous
+		energy_markets_clearing
+		-E_qY_CET_SeveralNonExoSuppliers
+		-E_qM_CET_SeveralNonExoSuppliers
+		energy_markets_clearing_calibration
 
-  calibration_endogenous
-;
+		energy_margins
+		energy_markets_clearing_link
+	/;
+	# Add endogenous variables to calibration model
+	$Group calibration_endogenous
+		energy_demand_prices_endogenous 
+		fpE[es,e,d,t1],  -pEpj_base[es,e,d,t1]
+
+		energy_markets_clearing_endogenous
+		energy_markets_clearing_calibration_endogenous
+		sY_Dist$(t1[t] and d1pY_CET[e,i,t] and not d1OneSX[e,t]),  -qY_CET$(t1[t] and d1pY_CET[out,i,t] and not d1OneSX[out,t] and e[out]) 
+		sM_Dist$(t1[t] and d1pM_CET[e,i,t] and not d1OneSX[e,t]),  -qM_CET$(t1[t] and d1pM_CET[out,i,t] and not d1OneSX[out,t] and e[out]) 
+
+		energy_margins_endogenous
+		fpEAV[es,e,d,t1],    -vEAV[es,e,d,t1]	
+		fpDAV[es,e,d,t1],    -vDAV[es,e,d,t1]
+		fpCAV[es,e,d,t1],    -vCAV[es,e,d,t1]
+
+		energy_markets_clearing_link_endogenous
+		# vY_i_d[thesei,energy,t1]
+		# vY_i_d[thesei,re,t1]
+		# vM_i_d[thesei_m,re,t1]
+
+		calibration_endogenous
+	;
+$ENDIF

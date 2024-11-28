@@ -9,7 +9,7 @@ parameters
   vIO_a[a_rows_,d,t]
   vIOxE_y[i,d,t]
   vIOxE_m[i,d,t]
-  vIOxE_a[i,d,t]
+  vIOxE_a[a_rows_,d,t]
 ;
 $gdxIn %data_path%
 $load vIO_y, vIO_m, vIO_a, vIOxE_y, vIOxE_m, vIOxE_a
@@ -92,7 +92,7 @@ parameters auxiliary_data_parameters
   qEmmRxE[em,i,t]
   qEmmtot[em,em_accounts,t]
 
-  #Nye på d 
+  #Nye pï¿½ d 
   pEpj_base[es,e,d,t]
   qEpj[es,e,d,t]
   tqE[es,e,d,t]
@@ -196,10 +196,22 @@ vY_i_d[i,d,t] = vIO_y[i,d,t];
 vM_i_d[i,d,t] = vIO_m[i,d,t];
 vY_i_d[i,rx,t] = vIOxE_y[i,rx,t];
 vM_i_d[i,rx,t] = vIOxE_m[i,rx,t];
-vY_i_d[i,re,t] = vIO_y[i,re,t] - vIOxE_y[i,re,t];
-vM_i_d[i,re,t] = vIO_m[i,re,t] - vIOxE_m[i,re,t];
+# vY_i_d[i,'energy',t] = sum(rx, vIO_y[i,rx,t] - vIOxE_y[i,rx,t]);
+# vM_i_d[i,'energy',t]
+vY_i_d[i,re,t] = sum(rx2re(rx,re) , vIO_y[i,rx,t] - vIOxE_y[i,rx,t]);
+vM_i_d[i,re,t] = sum(rx2re(rx,re) , vIO_m[i,rx,t] - vIOxE_m[i,rx,t]);
+
+
+# vY_i_d[i,re,t] = vIO_y[i,re,t] - vIOxE_y[i,re,t];
+# vM_i_d[i,re,t] = vIO_m[i,re,t] - vIOxE_m[i,re,t];
+
 vD[d,t] = sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
-vtYM_d[d,t] = vIO_a["TaxSub",d,t] + vIO_a["Moms",d,t];
+
+vtYM_d[d,t]       = vIOxE_a["TaxSub",d,t] + vIOxE_a["Moms",d,t];
+vtYM_d[d,t]$(sameas[d,'cHouEne'] or sameas[d,'cCarEne']) = vIO_a['TaxSub',d,t] + vIO_a['Moms',d,t] -  vIOxE_a["TaxSub",d,t] - vIOxE_a["Moms",d,t];
+# vtYM_d['energy',t] = sum(d$(not (sameas[d,'cHouEne'] or sameas[d,'cCarEne'])), vIO_a['TaxSub',d,t] + vIO_a['Moms',d,t] -  vIOxE_a["TaxSub",d,t] - vIOxE_a["Moms",d,t]);
+vtYM_d[re,t] = sum(rx$(rx2re(rx,re)), vIO_a['TaxSub',rx,t] + vIO_a['Moms',rx,t] -  vIOxE_a["TaxSub",rx,t] - vIOxE_a["Moms",rx,t]);
+
 vtY_i_d[i,d,t] = vY_i_d[i,d,t] / vD[d,t] * vtYM_d[d,t];
 vtM_i_d[i,d,t] = vM_i_d[i,d,t] / vD[d,t] * vtYM_d[d,t];
 
@@ -240,6 +252,8 @@ qInvt_i[i,t] = qI_s.l['invt',i,t];
   qEmmtot[em,em_accounts,t] = qEmmTot_load[t,em,em_accounts];
 
   qEmmBorderTrade[em,t]     = qEmmBorderTrade_load[t,em];
+
+
 #Margins 
 
 
@@ -260,13 +274,12 @@ qInvt_i[i,t] = qI_s.l['invt',i,t];
   tCO2_Emarg[em,es,e,i,t]    = tCO2_REmarg[em,es,e,i,t];
   tEmarg_duty['EAFG_tax',es,e,i,t]      = tEAFG_REmarg[es,e,i,t]/1000; #Dividing by 1000 to convert from kroner per GJ to bio. kroner per Pj.
 
-
 execute_unloaddi "data",
   # Labor-market
   vWages_i, nL, vW
   
   # Input-output
-  d, rx, re, k, c, g, x, i, m,
+  d, rx, re, k, c, g, x, i, m, rx2re
   vY_i_d, vM_i_d, vtY_i_d, vtM_i_d,
   qD
 
@@ -286,4 +299,6 @@ execute_unloaddi "data",
   pEpj_base, qEpj
   vtE_duty, vtE_vat, tCO2_Emarg, tEmarg_duty
   Energybalance, NonEnergyEmissions
+
+  vIOxE_y, vIOxE_m, vIOxE_a, vIO_y, vIO_m, vIO_a
 ;
