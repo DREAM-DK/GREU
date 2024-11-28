@@ -39,9 +39,9 @@
 
 			$Group+ all_variables
 						pE_avg[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]))    "Average supply price of ergy"
-						pM_CET[out,i,t]$(d1pM_CET[out,i,t])  "M"
-						qY_CET[out,i,t]$(d1pY_CET[out,i,t])  "Domestic production of various products and services - the set 'out' contains all out puts of the economy, for energy the output is measured in PJ and non-energy in bio. DKK base 2019"
-						qM_CET[out,i,t]$(d1pM_CET[out,i,t])  "Import of various products and services - the set 'out' contains all out puts of the economy, for energy the output is measured in PJ and non-energy in bio. DKK base 2019"
+						pM_CET[out,i,t]$(d1pM_CET[out,i,t])                          "M"
+						qY_CET[out,i,t]$(d1pY_CET[out,i,t])                          "Domestic production of various products and services - the set 'out' contains all out puts of the economy, for energy the output is measured in PJ and non-energy in bio. DKK base 2019"
+						qM_CET[out,i,t]$(d1pM_CET[out,i,t])                          "Import of various products and services - the set 'out' contains all out puts of the economy, for energy the output is measured in PJ and non-energy in bio. DKK base 2019"
 						qEtot[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]))     "Total demand/supply of ergy in the models ergy-market"
 						qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 									 "Industries demand for energy activity (e_a). When abatement is turned off, the energy-activity is measured in PJ, and corresponds 1:1 to qEpj"		#Skal flyttes til industries_CES_energydemand.gms, når vi får stages
 						qEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or tl[d]) "Sector demand for energy on end purpose (es), measured in PJ"				
@@ -174,55 +174,11 @@
 
     $ENDBLOCK 
 
-		set thesei[i]
-			/01011
-			 01012 
-			 02000
-			#  0600a
-			#  16000
-			 19000
-			 35002 
-			 35011
-			 38393
-			 45000 
-			 46000 
-			 47000
-			 /;
-
-
-		set thesei_m[i]/
-			02000
-			# 0600a
-			# 16000
-			19000
-			# 35002
-			# 35011
-			# 38393
-			# 49509
-			# 45000
-			# 46000
-			# 47000
-			/;
-
 		$BLOCK energy_markets_clearing_link energy_markets_clearing_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 			#Link til industries_CES_energydemand		
 			qEpj[es,e,i,t]$(d1pEpj_base[es,e,i,t])..
 			 qEpj[es,e,i,t] =E= qREa[es,e,i,t] + j_abatement_qREa[es,e,i,t];
 		
-			#Link til IO
-			# rYM[thesei,energy,t].. 
-			#    vY_i_d[thesei,energy,t] =E= sum(e, pY_CET[e,thesei,t]*qY_CET[e,thesei,t]) + pY_CET['WholeAndRetailSaleMarginE',thesei,t] + qY_CET['WholeAndRetailSaleMarginE',thesei,t]; 
-
-			# rYM_energy[thesei,t]..	
-			# 	sum(re, vY_i_d[thesei,re,t] - vtY_i_d[thesei,re,t]) =E= sum(e, pY_CET[e,thesei,t]*qY_CET[e,thesei,t]) + pY_CET['WholeAndRetailSaleMarginE',thesei,t] + qY_CET['WholeAndRetailSaleMarginE',thesei,t]; 
-		
-			# ..rYM[thesei,re,t] =E= rYM_energy[thesei,t];
-
-			# rM_energy[thesei_m,t]..
-			# 	sum(re, vM_i_d[thesei_m,re,t] - vtM_i_d[thesei_m,re,t]) =E= sum(e, pM_CET[e,thesei_m,t]*qM_CET[e,thesei_m,t]) + pM_CET['WholeAndRetailSaleMarginE',thesei_m,t] + qM_CET['WholeAndRetailSaleMarginE',thesei_m,t];
-			# .. rM[thesei_m,re,t] =E= rM_energy[thesei_m,t];
-
-
 		$ENDBLOCK  
 
 
@@ -282,29 +238,6 @@
 	  	@inf_growth_adjust()
 			@load(G_energy_markets_data, "../data/data.gdx")
 			@remove_inf_growth_adjustment()
-
-			set out2i(out,i)/
-			"Crude oil"	. 0600a
-			"Semi-refined oil"	. 19000
-			"Gasoline for transport" .	19000
-			"Jet petroleum" . 19000
-			"Oil products"	. 19000
-			"Bunkering of Danish operated vessels on foreign territory" .	49509
-			"Diesel for transport"	. 19000
-			"Natural gas (Extraction)"	. 0600a
-			"Coal and coke" .	0600a
-			Waste	. "71000"
-			"Firewood and woodchips" .	02000
-			"Wood pellets" .	16000
-			Bioethanol .	19000
-			Electricity	. 35011
-			"District heat"	 . 35011
-			"Bunkering of Danish operated planes on foreign territory" . 19000
-			"Bunkering of Danish operated trucks on foreign territory" . 19000
-			/;
-
-		 pM_CET.l[e,i,t]$(out2i(e,i)) =  pM_CET.l[e,'19000',t]; pM_CET.l[e,'19000',t]$(not out2i(e,'19000')) = 0;
- 		 qM_CET.l[e,i,t]$(out2i(e,i)) =  qM_CET.l[e,'19000',t]; qM_CET.l[e,'19000',t]$(not out2i(e,'19000')) = 0;
 
 			$Group+ data_covered_variables
 				G_energy_markets_data$(t.val <= %calibration_year%)
@@ -397,9 +330,6 @@ $IF %stage% == "calibration":
 		fpCAV[es,e,d,t1],    -vCAV[es,e,d,t1]
 
 		energy_markets_clearing_link_endogenous
-		# vY_i_d[thesei,energy,t1]
-		# vY_i_d[thesei,re,t1]
-		# vM_i_d[thesei_m,re,t1]
 
 		calibration_endogenous
 	;
