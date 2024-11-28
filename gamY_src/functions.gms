@@ -1,5 +1,5 @@
 # ======================================================================================================================
-# Functions
+# Functions and macros
 # ======================================================================================================================
 # In this file we define functions and macros to be used elsewhere in the model
 # Macros are a vanilla GAMS feature
@@ -59,3 +59,39 @@ $FUNCTION assert_no_difference({group}, {threshold}, {suffix1}, {suffix2}, {msg}
   $onlisting
 $ENDFUNCTION
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Set operations
+# ----------------------------------------------------------------------------------------------------------------------
+$macro first(x) ord(x)=1
+$macro last(x) ord(x)=card(x)
+
+$FUNCTION define_set_complement({name_set_c},{set},{set_c},{isitalist}):   
+  #Set compliment is defined on mother-set
+  set {name_set_c}({set});
+
+   $onMultiR    
+      PARAMETER parm_error/0/;
+      $onEmbeddedCode Python:
+
+      #If set {set_c} is just a list of set-elements then we define the set-compliment with this code
+      if {isitalist}=='fromlist':
+        #Python is case-sensitive and this can cause problems. For this reason a check is run to make sure that {set_c} is contained in {set}
+        import sys 
+        if set({set_c}).issubset(set(gams.get("{set}")))==False:
+          gams.set("parm_error",[1])
+        else:
+          gams.set("parm_error",[0])
+
+        gams.set("{name_set_c}", list(set(gams.get("{set}")) - set({set_c})))
+      
+      #If set {set_c} is already a model set we use this to extract the compliment
+      if {isitalist}!='fromlist':
+        gams.set("{name_set_c}", list(set(gams.get("{set}")) - set(gams.get("{set_c}"))))
+        gams.set("parm_error",[0]) #Set to indicicate no error       
+
+      $offEmbeddedCode {name_set_c} parm_error
+    $OffMulti
+
+    #Hvis fejl
+    ABORT$(parm_error=1) parm_error, "Set-compliment not in set. Make sure that set elements are written as defined with upper/lower-case letters. This error is due to Python case-sensitivity"
+$ENDFUNCTION

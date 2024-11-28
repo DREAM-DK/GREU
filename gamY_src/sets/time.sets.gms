@@ -6,6 +6,7 @@ singleton set t1[t] "First main_endogenous year.";
 singleton set t2[t] "Second main_endogenous year.";
 singleton set tEnd[t] "Final year modeled (terminal year).";
 singleton set tBase[t] "Base year where prices are set to 1." / %base_year% /;
+singleton set tDataEnd[t] "Last data year" /%calibration_year%/; 
 
 $MACRO set_time_periods(start, end) \
   t0[t]   = yes$(t.val=&start-1);\

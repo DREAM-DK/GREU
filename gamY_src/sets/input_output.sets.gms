@@ -1,16 +1,31 @@
-set i "Production industries."; alias(i,i_a);
-set m[i] "Industries with imports.";
+Set d "Demand components.";
+Set re[d<] "Energy types";
+Set rx[d<] "Intermediate input types other than energy.";
+Set k[d<] "Capital types.";
+Set c[d<] "Private consumption types.";
+Set g[d<] "Government consumption types.";
+Set x[d<] "Export types.";
+Set invt[d<] "Inventories" / invt /;
+Set tl[d<] "Transmission losses" / tl /;
 
-set d "Demand components.";
-set e[d<] "Energy types";
-set r[d<] "Intermediate input types.";
-set k[d<] "Capital types.";
-set c[d<] "Private consumption types.";
-set g[d<] "Government consumption types.";
-set x[d<] "Export types.";
+# Set i "Production industries."; alias(i,i_a);
+Set i[d<] "Production industries."; alias(i,i_a);  # i should not be subset of d - use re or rx instead
+Set m[i] "Industries with imports.";
 
 $gdxIn ../data/data.gdx
 $load i, m
-$load r=i, e, k, c, g, x
+$load rx=i, re, k, c, g, x
 $gdxIn
 ;
+
+Set i_public[i] "Public industries." / off /;
+Set i_private[i] "Private industries.";
+i_private[i] = not i_public[i];
+
+Set i_refineries[i] / 19000 /;
+Set i_gasdistribution[i] / 35002 /;
+Set i_cardealers[i] / 45000 /;
+Set i_wholesale[i] / 46000 /;
+Set i_retail[i] / 47000 /;
+Set i_service_for_industries[i] / 71000 /;
+Set i_international_aviation[i] / 51009 /;

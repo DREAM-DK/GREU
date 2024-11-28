@@ -3,7 +3,7 @@ set foo /1*10/;
 # ------------------------------------------------------------------------------
 # Variable definitions
 # ------------------------------------------------------------------------------
-$GROUP+ price_variables
+$Group+ price_variables
   pM[t] "Aggregate imports deflator."
 
   pC[t] "Aggregate private consumption deflator."
@@ -13,7 +13,7 @@ $GROUP+ price_variables
 
   pGDP[t] "GDP deflator."
 ;
-$GROUP+ quantity_variables
+$Group+ quantity_variables
   qM[t] "Real aggregate imports."
 
   qC[t] "Real aggregate private consumption."
@@ -47,12 +47,12 @@ $ENDBLOCK
 
 # Add equation and endogenous variables to main model
 model main / test_module_equations /;
-$GROUP+ main_endogenous test_module_endogenous;
+$Group+ main_endogenous test_module_endogenous;
 
 # ------------------------------------------------------------------------------
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
-$GROUP test_module_data_variables
+$Group test_module_data_variables
   pC, qC
   pG, qG
   pI, qI
@@ -63,7 +63,7 @@ $GROUP test_module_data_variables
   pGDP, qGDP
 ;
 @load(test_module_data_variables, "../data/MAKRO_data.gdx");
-$GROUP+ data_covered_variables test_module_data_variables;
+$Group+ data_covered_variables test_module_data_variables;
 
 # ------------------------------------------------------------------------------
 # Calibration
@@ -77,7 +77,7 @@ model calibration /
   # test_module_calibration_equations
 /;
 # Add endogenous variables to calibration model
-$GROUP calibration_endogenous
+$Group calibration_endogenous
   test_module_calibration_endogenous
   test_module_endogenous
   -pGDP[tBase], pGDP[t0]
