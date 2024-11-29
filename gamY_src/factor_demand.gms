@@ -5,6 +5,7 @@ $IF %stage% == "variables":
 
 $SetGroup+ SG_flat_after_last_data_year
   d1K_k_i[k,i,t] "Dummy. Does industry i have capital of type k?"
+  d1E_i[i,t] "Dummy. Does industry i use energy inputs?"
 ;
 
 $Group+ all_variables
@@ -18,15 +19,17 @@ $Group+ all_variables
   vInvt_i[i,t] "Net inventory investments by industry."
 
   pK_k_i[k,i,t]$(d1K_k_i[k,i,t]) "User cost of capital by capital type and industry."
+  rFirms[i,t]$(d1Y_i[i,t]) "Firms' discount rate, nominal"
 
   qK2qY_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Capital to output ratio by capital type and industry."
   qL2qY_i[i,t] "Labor to output ratio by industry."
   qR2qY_i[i,t] "Intermediate input to output ratio by industry."
   qInvt2qY_i[i,t] "Inventory investment to output ratio by industry."
   vCashProfit_i[i,t] "Cash profit by industry."
-  qE2qY_i[i,t] "Demand for intermediate energy inputs to output ratio by industry."
-  qE_i[i,t] "Real energy inputs by industry."
-  vE_i[i,t] "Energy inputs by industry."
+  qE2qY_i[i,t]$(d1E_i[i,t]) "Demand for intermediate energy inputs to output ratio by industry."
+  pE_i[i,t]$(d1E_i[i,t]) "Price index of energy inputs, by industry."
+  qE_i[i,t]$(d1E_i[i,t]) "Real energy inputs by industry."
+  vE_i[i,t]$(d1E_i[i,t]) "Energy inputs by industry."
 ;
 
 $ENDIF # variables
@@ -55,9 +58,10 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   .. qD[i,t] =E= qR2qY_i[i,t] * qY_i[i,t];
 
   # Link demand for energy intermediate inputs to input-output model
+  .. pE_i[i,t] =E= sum(i2re[i,re], pD[re,t]);
   .. qE_i[i,t] =E= qE2qY_i[i,t] * qY_i[i,t];
-  .. qD[re,t] =E= sum(i$i2re[i,re], qE_i[i,t]);
-  .. vE_i[i,t] =E= sum(re$i2re[i,re], vD[re,t]);
+  .. qD[re,t] =E= sum(i2re[i,re], qE_i[i,t]);
+  .. vE_i[i,t] =E= sum(i2re[i,re], vD[re,t]);
 
   # Link demand for investments to input-output model
   .. qD[k,t] =E= sum(i, qI_k_i[k,i,t]);
@@ -66,9 +70,10 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   # Capital accumulation (firms demand capital directly, investments are residual from capital accumulation)
   .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq;
 
-    $(not tEnd[t]).. pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rFirms[i,t+1]) * pD[k,t+1]*fp;
+    # We temporarily discount by an extra constant to avoid negative usercosts
+    $(not tEnd[t]).. pK_k_i[k,i,t] =E= pD[k,t] - 0.5 * (1-rKDepr_k_i[k,i,t]) / (1+rFirms[i,t+1]) * pD[k,t+1]*fp;
     pK_k_i&_tEnd[k,i,t]$(tEnd[t])..
-      pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rFirms[i,t]) * pD[k,t]*fp;
+      pK_k_i[k,i,t] =E= pD[k,t] - 0.5 * (1-rKDepr_k_i[k,i,t]) / (1+rFirms[i,t]) * pD[k,t]*fp;
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -93,8 +98,9 @@ $Group factor_demand_data_variables
 $Group+ data_covered_variables factor_demand_data_variables$(t.val <= %calibration_year%);
 
 d1K_k_i[k,i,t] = abs(qK_k_i.l[k,i,t]) > 1e-9;
+d1E_i[i,t] = abs(sum(i2re[i,re], qD.l[re,t])) > 1e-9;
 
-rKDepr_k_i.l[k,i,t] = 0.05;
+rFirms.l[i,t] = 0.07;
 
 $ENDIF # exogenous_values
 
