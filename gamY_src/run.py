@@ -1,7 +1,6 @@
 import sys
 import shutil
 import os
-sys.path.insert(0, r"P:\mkb\dream-tools") # Til udvikling af dream-tools
 import dreamtools as dt
 dt.gamY.default_initial_level = 0
 dt.gamY.automatic_dummy_suffix = "_exists_dummy"
