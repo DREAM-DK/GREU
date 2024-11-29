@@ -6,7 +6,6 @@ set factors_of_production /
   machine_energy
   transport_energy
   heating_energy
-
 /;
 
 
@@ -26,20 +25,25 @@ set pf "Factor inputs and their nests in production function" /
   set.production_nests
 /;
 
-set machine_energy[pf]/machine_energy/;
-set transport_energy[pf]/transport_energy/;
-set heating_energy[pf]/heating_energy/;
+set machine_energy[pf] /machine_energy/;
+set transport_energy[pf] /transport_energy/;
+set heating_energy[pf] /heating_energy/;
 
-set pf_bottom[pf] / set.factors_of_production /;
-set pfNest[pf] / set.production_nests /;
-set pf_top[pf]/ TopPfunction/;
+set labor[pf] /labor/;
 
-set pf_bottom_e[pf]/  machine_energy
-                        transport_energy
-                        heating_energy
-                      /;
+set RxE[pf] /RxE/;
 
-set pf_bottom_capital[pf]/set.k/;
+set pf_bottom[pf] /set.factors_of_production/;
+set pfNest[pf] /set.production_nests/;
+set pf_top[pf] /TopPfunction/;
+
+set pf_bottom_e[pf]/
+  machine_energy
+  transport_energy
+  heating_energy
+/;
+
+set pf_bottom_capital[pf] /set.k/;
 
 set pf_bottom_note[pf];
 pf_bottom_note[pf] = not pf_bottom_e[pf];

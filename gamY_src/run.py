@@ -22,7 +22,22 @@ dt.gamY.run("base_model.gms")
 ## Save calibration.gdx as previous_calibration.gdx
 # shutil.copy("calibration.gdx", "previous_calibration.gdx")
 
-dt.REFERENCE_DATABASE = calibration = dt.Gdx("calibration.gdx")
-db = dt.Gdx("shock.gdx")
+# Plotting
+dt.YAXIS_TITLE_FROM_OPERATOR = {
+  "pq": "Pct. changes relative to baseline",
+	"m": "Difference from baseline",
+}
+dt.TIME_AXIS_TITLE = ""
+
+dt.REFERENCE_DATABASE = b = dt.Gdx("calibration.gdx") # b for baseline
+s = dt.Gdx("shock.gdx") # s for shock
 dt.time(2019, 2030)
-dt.plot([db.vGDP, db.vC, db.vI, db.vG, db.vX, db.vM], "m")
+dt.plot([b.vNetFinAssets/b.vGDP], layout={"title": "Net Financial Assets to GDP"})
+dt.plot([s.qGDP, s.qC, s.qI, s.qG, s.qX, s.qM], "m", function=lambda x: x/b.vGDP, names=["GDP", "C", "I", "G", "X", "M"], layout={"yaxis_title": "Change relative to baseline GDP"})
+dt.plot(s, "m", lambda db: db.vNetFinAssets/db.vGDP, layout={"title": "Net Financial Assets to GDP"})
+
+# db = dt.Gdx("calibration.gdx")
+
+## Running the partial abatement model
+dt.gamY.run("abatement_model_partial.gms")
+

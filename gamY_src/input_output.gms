@@ -16,10 +16,17 @@ $SetGroup+ SG_flat_after_last_data_year
   d1Y_d[d,t] "Dummy. Does the IO cell exist? (any domestic deliveries to demand d)"
   d1M_d[d,t] "Dummy. Does the IO cell exist? (any imports to demand d)"
   d1YM_d[d,t] "Dummy. Does the IO cell exist?"
+  d1Y_i[i,t] "Dummy. Does the IO cell exist? (any domestic production from industry i)"
+  d1M_i[i,t] "Dummy. Does the IO cell exist? (any imports from industry i)"
 ;
 
 $Group+ all_variables
+  pGDP[t] "GDP deflator."
+  qGDP[t] "Real Gross Domestic product."
   vGDP[t] "Gross Domestic product."
+ 
+  pGVA[t] "GVA deflator."
+  qGVA[t] "Real Gross value added."
   vGVA[t] "Gross value added."
 
   vR[t] "Non-energy intermediate inputs."
@@ -29,17 +36,37 @@ $Group+ all_variables
   vG[t] "Public consumption."
   vX[t] "Exports."
 
+  pR[t] "Deflator for non-energy intermediate inputs."
+  pE[t] "Deflator for energy intermediate inputs."
+  pI[t] "Deflator for investments."
+  pC[t] "Deflator for private consumption."
+  pG[t] "Deflator for public consumption."
+  pX[t] "Deflator for exports."
+  
+  qR[t] "Real non-energy intermediate inputs."
+  qE[t] "Real energy intermediate inputs."
+  qI[t] "Real investments."
+  qC[t] "Real private consumption."
+  qG[t] "Real public consumption."
+  qX[t] "Real exports."
+
   pY_i[i,t] "Price of domestic output by industry."
   qY_i[i,t] "Real output by industry."
   vY_i[i,t] "Output by industry."
+
+  pY[t] "Deflator for total output."
+  qY[t] "Real total output."
   vY[t] "Total output."
 
   pM_i[i,t] "Price of imports by industry."
   qM_i[i,t]$(m[i]) "Real imports by industry."
   vM_i[i,t]$(m[i]) "Imports by industry."
+
+  pM[t] "Deflator for total imports."
+  qM[t] "Real imports."
   vM[t] "Total imports."
 
-  pD[d,t]$(d1YM_d[d,t]) "Price of demand component."
+  pD[d,t]$(d1YM_d[d,t]) "Deflator of demand component."
   qD[d,t]$(d1YM_d[d,t]) "Real demand by demand component."
   vD[d,t]$(d1YM_d[d,t]) "Demand by demand component."
 
@@ -79,7 +106,18 @@ $IF %stage% == "equations":
 
 $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
   .. vGDP[t] =E= vC[t] + vI[t] + vG[t] + vX[t] - vM[t];
+  .. pGDP[t] * qGDP[t] =E= vGDP[t];
+  .. qGDP[t] * pGDP[t-1] =E= pC[t-1] * qC[t]
+                           + pI[t-1] * qI[t]
+                           + pG[t-1] * qG[t]
+                           + pX[t-1] * qX[t]
+                           - pM[t-1] * qM[t]; # /fp cancels out
+
   .. vGVA[t] =E= vY[t] - vR[t] - vE[t];
+  .. pGVA[t] * qGVA[t] =E= vGVA[t];
+  .. qGVA[t] * pGVA[t-1] =E= pY[t-1] * qY[t]
+                           - pR[t-1] * qR[t]
+                           - pE[t-1] * qE[t]; # /fp cancels out
 
   # Demand aggregates
   .. vR[t] =E= sum(rx, vD[rx,t]);
@@ -89,9 +127,25 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. vG[t] =E= sum(g, vD[g,t]);
   .. vX[t] =E= sum(x, vD[x,t]);
 
+  .. pR[t] * qR[t] =E= vR[t];
+  .. pE[t] * qE[t] =E= vE[t];
+  .. pI[t] * qI[t] =E= vI[t];
+  .. pC[t] * qC[t] =E= vC[t];
+  .. pG[t] * qG[t] =E= vG[t];
+  .. pX[t] * qX[t] =E= vX[t];
+
+  .. qR[t] * pR[t-1] =E= sum(rx, pD[rx,t-1] * qD[rx,t]);
+  .. qE[t] * pE[t-1] =E= sum(re, pD[re,t-1] * qD[re,t]);
+  .. qI[t] * pI[t-1] =E= sum(k, pD[k,t-1] * qD[k,t]) + pD['invt',t-1] * qD['invt',t];
+  .. qC[t] * pC[t-1] =E= sum(c, pD[c,t-1] * qD[c,t]);
+  .. qG[t] * pG[t-1] =E= sum(g, pD[g,t-1] * qD[g,t]);
+  .. qX[t] * pX[t-1] =E= sum(x, pD[x,t-1] * qD[x,t]);
+
   # Equilibrium condition: supply + net duties = demand in each industry.
   .. vY_i[i,t] + vtY_i[i,t] =E= sum(d, vY_i_d[i,d,t]);
   .. vY[t] =E= sum(i, vY_i[i,t]);
+  .. pY[t] * qY[t] =E= vY[t];
+  .. qY[t] * pY[t-1] =E= sum(i, pY_i[i,t-1] * qY_i[i,t]);
 
   .. qY_i[i,t] =E= sum(d, qY_i_d[i,d,t]);
   .. qM_i[i,t] =E= sum(d, qM_i_d[i,d,t]);
@@ -99,6 +153,8 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   # Aggregate imports from each import industry
   .. vM_i[i,t] + vtM_i[i,t] =E= sum(d, vM_i_d[i,d,t]);
   .. vM[t] =E= sum(i, vM_i[i,t]);
+  .. pM[t] * qM[t] =E= vM[t];
+  .. qM[t] * pM[t-1] =E= sum(i, pM_i[i,t-1] * qM_i[i,t]);
 
   # Net duties on domestic production and imports
   .. vtY_i_d[i,d,t] =E= tY_i_d[i,d,t] * (vY_i_d[i,d,t] - vtY_i_d[i,d,t]);
@@ -153,6 +209,8 @@ d1M_i_d[i,d,t] = abs(vM_i_d.l[i,d,t]) > 1e-9;
 d1YM_i_d[i,d,t] = d1Y_i_d[i,d,t] or d1M_i_d[i,d,t];
 d1Y_d[d,t] = sum(i, d1Y_i_d[i,d,t]);
 d1M_d[d,t] = sum(i, d1M_i_d[i,d,t]);
+d1Y_i[i,t] = sum(d, d1Y_i_d[i,d,t]);
+d1M_i[i,t] = sum(d, d1M_i_d[i,d,t]);
 d1YM_d[d,t] = d1Y_d[d,t] or d1M_d[d,t];
 
 rM.l[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t]) = 1;
@@ -161,6 +219,20 @@ rM.l[i,d,t]$(d1Y_i_d[i,d,t] and not d1M_i_d[i,d,t]) = 0;
 pY_i.l[i,t] = fpt[t];
 pM_i.l[i,t] = fpt[t];
 pD.l[d,t] = fpt[t];
+
+# Lagged values used in chain price indices - should be added to data unless we switch to fixed price indices
+pR.l[t] = fpt[t];
+pE.l[t] = fpt[t];
+pI.l[t] = fpt[t];
+pC.l[t] = fpt[t];
+pG.l[t] = fpt[t];
+pX.l[t] = fpt[t];
+
+pM.l[t] = fpt[t];
+pY.l[t] = fpt[t];
+
+pGDP.l[t] = fpt[t];
+pGVA.l[t] = fpt[t];
 
 $ENDIF # exogenous_values
 

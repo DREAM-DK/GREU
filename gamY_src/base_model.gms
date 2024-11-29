@@ -22,12 +22,12 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT financial_accounts.gms
   # $IMPORT test_module.gms
   $IMPORT labor_market.gms
-  $IMPORT energy_markets.gms; 
-  $IMPORT industries_CES_energydemand.gms; 
+  # $IMPORT energy_markets.gms; 
+  # $IMPORT industries_CES_energydemand.gms; 
   $IMPORT production.gms; 
-  $IMPORT production_CET.gms;
-  $IMPORT emissions.gms; 
-  $IMPORT energy_and_emissions_taxes.gms; 
+  # $IMPORT production_CET.gms;
+  # $IMPORT emissions.gms; 
+  # $IMPORT energy_and_emissions_taxes.gms; 
   $IMPORT input_output.gms
   $IMPORT households.gms
   $IMPORT government.gms
