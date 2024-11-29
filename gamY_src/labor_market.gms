@@ -50,16 +50,18 @@ $BLOCK labor_market_equations labor_market_endogenous $(t1.val <= t.val and t.va
   .. rWageInflation[t] =E= vW[t] / (vW[t-1]/fv) - 1;
 
   # Phillips curve
-  nL[t]$(not tEnd[t])..
-    rWageInflation[t] =E= rWageInflation[t-1]
-                        + uPhillipsCurveEmpl[t] * (nL[t] / snL[t] - 1)
-                        + uPhillipsCurveExpWage[t] * (rWageInflation[t+1] - rWageInflation[t-1])
-                        + jnL[t];
-  nL&_tEnd[t]$(tEnd[t])..
-    # nL[t] =E= snL[t] + jnL[t];
-    rWageInflation[t] =E= rWageInflation[t-1]
-                        + uPhillipsCurveEmpl[t] * (nL[t] / snL[t] - 1)
-                        + jnL[t];
+  # nL[t]$(not tEnd[t])..
+  #   rWageInflation[t] =E= rWageInflation[t-1]
+  #                       + uPhillipsCurveEmpl[t] * (nL[t] / snL[t] - 1)
+  #                       + uPhillipsCurveExpWage[t] * (rWageInflation[t+1] - rWageInflation[t-1])
+  #                       + jnL[t];
+  # nL&_tEnd[t]$(tEnd[t])..
+  #   # nL[t] =E= snL[t] + jnL[t];
+  #   rWageInflation[t] =E= rWageInflation[t-1]
+  #                       + uPhillipsCurveEmpl[t] * (nL[t] / snL[t] - 1)
+  #                       + jnL[t];
+
+  .. nL[t] =E= snL[t] + jnL[t];
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model

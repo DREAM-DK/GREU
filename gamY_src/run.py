@@ -36,3 +36,8 @@ dt.plot([b.vNetFinAssets/b.vGDP], layout={"title": "Net Financial Assets to GDP"
 dt.plot([s.qGDP, s.qC, s.qI, s.qG, s.qX, s.qM], "m", function=lambda x: x/b.vGDP, names=["GDP", "C", "I", "G", "X", "M"], layout={"yaxis_title": "Change relative to baseline GDP"})
 dt.plot(s, "m", lambda db: db.vNetFinAssets/db.vGDP, layout={"title": "Net Financial Assets to GDP"})
 
+# db = dt.Gdx("calibration.gdx")
+
+## Running the partial abatement model
+dt.gamY.run("abatement_model_partial.gms")
+

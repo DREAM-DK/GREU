@@ -80,11 +80,11 @@ Singleton Set tl[d<] "Transmission losses" / tl /;
 set i[d<] "Production industries."; alias(i,i_a);
 set m[i] "Industries with imports.";
 
-$gdxIn %data_path%
+$gdxIn %data_path%/EU_GR_data.gdx
 $load a_rows_
 $gdxIn
 
-$gdxIn %data_path%
+$gdxIn %data_path%/EU_GR_data.gdx
 $load rx=s, k, c, g
 $load i=s
 $load em_load = emm_eq

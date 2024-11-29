@@ -1,7 +1,10 @@
-$set data_path P:/akg/Til_EU_projekt/EU_GR_data.gdx
+$set data_path P:/akg/Til_EU_projekt
 
 #Industries, demand components, capital types and energybalance
 $import data.sets.gms
+
+
+set l "Technologies";
 
 parameters
   vIO_y[i,d,t]
@@ -11,10 +14,11 @@ parameters
   vIOxE_m[i,d,t]
   vIOxE_a[a_rows_,d,t]
 ;
-$gdxIn %data_path%
+$gdxIn %data_path%/EU_GR_data.gdx
 $load vIO_y, vIO_m, vIO_a, vIOxE_y, vIOxE_m, vIOxE_a
 $gdxIn
 m[i] = yes$sum(d, vIO_m[i,d,t1]);
+
 
 variables
   nEmployed[t]
@@ -162,11 +166,20 @@ parameters GREU_data
 
   vtNetproductionRest[i,t]
   vtCAP_prodsubsidy[i,t]
+
+  # Abatement
+  theta_load[l,es,i,e,t] "Potential, technology."
+  uTE_load[l,es,i,e,t] "Energy use, technology."
+  uTK_load[l,es,i,e,t] "Capital use, technology."
+
+  theta[l,es,i,t] "Potential, technology."
+  uTE[l,es,e,i,t] "Energy use, technology."
+  uTK[l,es,i,t] "Capital use, technology."
 ;
 
 
 
-$gdxIn %data_path%
+$gdxIn %data_path%/EU_GR_data.gdx
 $load nEmployed
 $load es=purpose, out=out, e=energy19, pXEpj_base=pXE_base.l, pLEpj_base=pLE_base.l, pCEpj_base=pCE_base.l, pREpj_base=pRE_base.l, pE_avg=pEtot.l
 $load tpLE=tLE.l, tpCE=tCE.l, tpXE=tXE_.l
@@ -185,6 +198,10 @@ $load vtCO2_ETS = vtCO2_ETS.l, qCO2_ETS_freeallowances=qEmmProdE_dedETS.l
 $load vtNetproductionRest=vtNetproductionRest.l
 $load vtCAP_prodsubsidy=vtCAP_top.l
 $gdxIn 
+
+$gdxIn %data_path%/EU_tech_data_disagg.gdx
+$load l=l theta_load=theta.l, uTE_load=uTE.l, uTK_load=uTK.l
+$gdxIn
 
 # Labor-market
 vWages_i[i,t] = vIO_a["SalEmpl",i,t];
@@ -272,6 +289,12 @@ qInvt_i[i,t] = qI_s.l['invt',i,t];
   tCO2_Emarg[em,es,e,i,t]    = tCO2_REmarg[em,es,e,i,t];
   tEmarg_duty['EAFG_tax',es,e,i,t]      = tEAFG_REmarg[es,e,i,t]/1000; #Dividing by 1000 to convert from kroner per GJ to bio. kroner per Pj.
 
+  # Abatement
+  theta[l,es,i,t] = sum(e, theta_load[l,es,i,e,t]);
+  uTE[l,es,e,i,t] = uTE_load[l,es,i,e,t];
+  uTK[l,es,i,t] = sum(e, uTK_load[l,es,i,e,t]);
+
+
 execute_unloaddi "data",
   # Labor-market
   vWages_i, nL, vW
@@ -297,6 +320,8 @@ execute_unloaddi "data",
   pEpj_base, qEpj
   vtE_duty, vtE_vat, tCO2_Emarg, tEmarg_duty
   Energybalance, NonEnergyEmissions
+
+  theta, uTE, uTK
 
   vIOxE_y, vIOxE_m, vIOxE_a, vIO_y, vIO_m, vIO_a
 ;
