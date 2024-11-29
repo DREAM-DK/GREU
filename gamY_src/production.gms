@@ -73,8 +73,8 @@ $IF %stage% == "equations":
 
   $BLOCK production_usercost production_usercost_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
     pProd[pf,i,t]$(not tEnd[t] and pf_bottom_capital[pf]).. 
-      # pProd[pf,i,t] =E= (1+rFirms[i,t+1]) - (1-delta[pf,i,t])*fv + jpProd[pf,i,t];
-      pProd[pf,i,t] =E= 1  - (1-delta[pf,i,t])/(1+rFirms[i,t+1])*fv + jpProd[pf,i,t]; #Primo-dateret user-cost kommer til at se sådan her ud
+    
+      pProd[pf,i,t] =E= 1  - (1-delta[pf,i,t])/(1+rFirms[i,t+1])*fp + jpProd[pf,i,t]; #Primo-dateret user-cost kommer til at se sådan her ud
 
     pProd&_tEnd[pf,i,t]$(tEnd[t] and pf_bottom_capital[pf] and t1.val <> tEnd.val).. 
       pProd[pf,i,t] =E= pProd[pf,i,t-1];   
@@ -133,6 +133,8 @@ $IF %stage% == "exogenous_values":
   # ------------------------------------------------------------------------------
   # Exogenous variables 
   # ------------------------------------------------------------------------------
+
+    eProd.l[pFnest,i] = 0;
 
     eProd.l[pFnest,i]$(not pf_top[pFnest]) = 0.1;
     eCET.l[i] = 5;

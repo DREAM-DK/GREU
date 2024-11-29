@@ -24,6 +24,9 @@ sets natgas[out]     /"Natural gas incl. biongas"/
      EnergyDistmargin[out]/"WholeAndRetailSaleMarginE"/
      ;
 
+set bunkering[e]/'Bunkering of Danish operated vessels on foreign territory','Bunkering of Danish operated planes on foreign territory','Bunkering of Danish operated trucks on foreign territory'/;
+
+
 sets transport[es]/Transport/
      heating[es]/Heating/
      process_normal[es]/Process_normal/

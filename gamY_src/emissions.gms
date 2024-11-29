@@ -30,6 +30,7 @@ $IF %stage% == "variables":
         d1EmmTot[em,em_accounts,t] ""
         d1EmmBorderTrade[em,t] ""
         d1EmmInternationlAviation[em,t] ""
+        d1EmmBunkering[em,t] ""
     ;
 
     $SetGroup Doweevenneedthis
@@ -46,6 +47,7 @@ $IF %stage% == "variables":
 
         qEmmBorderTrade[em,t]$(d1EmmBorderTrade[em,t])    "Exogenous emissions from border trade. Measured in kilotonnes CO2e"
         qEmmInternationalAviation[em,t]$(d1EmmInternationlAviation[em,t]) "Emissions from international aviation. Measured in kilotonnes CO2e"
+        qEmmBunkering[em,t]$(d1EmmBunkering[em,t]) "Emissions from Danish economics activity abroad"
 
         uEmmE[em,d,t]$(d1EmmE[em,d,t]) "Emission coefficient on energy"
         uEmmxE[em,d,t]$(d1EmmxE[em,d,t]) "Emission coefficient on non-energy"
@@ -122,10 +124,11 @@ $IF %stage% == "equations":
 
       #Total emissions
       ..  qEmmTot[em,em_accounts,t] =E= sum(d, qEmmE[em,d,t]) 
-                                    + sum(d, qEmmxE[em,d,t]) 
-                                    + qEmmLULUCF[t]
-                                    + qEmmBorderTrade[em,t]$(gna[em_accounts])
-                                    - qEmmInternationalAviation[em,t]$(unfccc[em_accounts])
+                                    +   sum(d, qEmmxE[em,d,t]) 
+                                    +   qEmmLULUCF[t]
+                                    +   qEmmBorderTrade[em,t]$(gna[em_accounts])
+                                    -   qEmmInternationalAviation[em,t]$(unfccc[em_accounts])
+                                    -   qEmmBunkering[em,t]$(unfccc[em_accounts])
       ;
 
   $ENDBLOCK 
@@ -137,6 +140,8 @@ $IF %stage% == "equations":
       uEmmE[em,d,t]$(not CO2e[em]).. qEmmE[em,d,t] =E= sum((e,es), qEmmE_BU[em,es,e,d,t]);
 
       .. qEmmInternationalAviation[em,t] =E= sum(i_international_aviation,qEmmE_BU[em,'transport','jet petroleum',i_international_aviation,t]);
+
+      .. qEmmBunkering[em,t] =E= sum((bunkering,i,es), qEmmE_BU[em,es,bunkering,i,t]);
 
   $ENDBLOCK 
 
@@ -187,13 +192,13 @@ $IF %stage% == "exogenous_values":
   d1EmmE[em,d,t]             = yes$(sum((es,e), d1EmmE_BU[em,es,e,d,t]));
   d1EmmxE[em,d,t]            = yes$(qEmmxE.l[em,d,t]);
   d1EmmLULUCF5[land5,t]      = yes$(qEmmLULUCF5.l[land5,t]);
-  d1EmmLULUCF[t]             = yes$(qEmmLULUCF.l[t]);
-  d1EmmTot[em,em_accounts,t] = yes$(qEmmTot.l[em,em_accounts,t]);
+  d1EmmLULUCF[t]             = yes$(sum(land5,qEmmLULUCF.l[t]));
+  d1EmmTot[em,em_accounts,t] = yes;
   d1GWP[em]                  = yes$(GWP.l[em]);
   d1Sbionatgas[t]            = yes$(sBioNatGas.l[t]);
   d1EmmBorderTrade[em,t]     = yes$(qEmmBorderTrade.l[em,t]);
   d1EmmInternationlAviation[em,t] = yes$(sum(i_international_aviation, qEmmE_BU.l[em,'transport','jet petroleum',i_international_aviation,t])) ;
-
+  d1EmmBunkering[em,t]            = yes$(sum((bunkering,i,es), qEmmE_BU.l[em,es,bunkering,i,t]));
 $ENDIF
 # ------------------------------------------------------------------------------
 # Calibration

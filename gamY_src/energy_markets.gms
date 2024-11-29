@@ -178,6 +178,7 @@
 			#Link til industries_CES_energydemand		
 			qEpj[es,e,i,t]$(d1pEpj_base[es,e,i,t])..
 			 qEpj[es,e,i,t] =E= qREa[es,e,i,t] + j_abatement_qREa[es,e,i,t];
+			# .. j_abatement_qREa[es,e,i,t] =E= 0;
 		
 		$ENDBLOCK  
 
@@ -217,9 +218,9 @@
 
 		# Add equation and endogenous variables to main model
 		model main / energy_demand_prices  
-								energy_markets_clearing 
-								energy_margins
-								energy_markets_clearing_link
+					 energy_markets_clearing 
+					 energy_margins
+					 energy_markets_clearing_link
 								/;
 
 		$Group+ main_endogenous 

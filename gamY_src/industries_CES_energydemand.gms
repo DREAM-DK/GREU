@@ -14,6 +14,7 @@ $IF %stage% == "variables":
 	
 	$Group+ all_variables 
 		pREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t])   	"Price of energy-activity (e_a), split on services (es) measured in DKK per peta Joule (when abatement is turned off)"
+		jpREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 	"J-term, that is non-zero when abatement-technologies are turned on"
 		pREes[es,i,t]$(d1pEes[es,i,t]) 						"Price of nest of energy-activities, aggregated to energy-services, CES-price index."
 		pREmachine[i,t]$(d1pREmachine[i,t]) 			"Price of machine energy, CES-price index."
 		pProd[pf,i,t]$(d1Prod[pf,i,t]) 						"Production price of production function pf in sector i at time t" #Should be moved to production.gms when stages are implemented
@@ -75,13 +76,16 @@ $IF %stage% == "equations":
 
 	$BLOCK industries_energy_demand_link industries_energy_demand_link_endogenous $(t.val>=t1.val and t.val<=tEnd.val)
 	    qREes&_heating[es,i,t]$(d1pEes[es,i,t] and heating[es])..
-	      qREes['heating',i,t] =E= qProd['heating_energy',i,t] + jqREes[es,i,t];
+	      qREes['heating',i,t] =E= qProd['heating_energy',i,t] + jqREes[es,i,t]; #The j-term should be zero in final model
 	  
 	    qREes&_transport[es,i,t]$(d1pEes[es,i,t] and transport[es])..
-	      qREes['transport',i,t] =E= qProd['transport_energy',i,t] + jqREes[es,i,t];
+	      qREes['transport',i,t] =E= qProd['transport_energy',i,t] + jqREes[es,i,t]; #The j-term should be zero in final model
 
 			qREmachine[i,t]$(d1pREmachine[i,t])..
-				qREmachine[i,t] =E= qProd['machine_energy',i,t] + jqREmachine[i,t];
+				qREmachine[i,t] =E= qProd['machine_energy',i,t] + jqREmachine[i,t]; #The j-term should be zero in final model
+
+		pREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]).. 
+			pREa[es,e_a,i,t] =E= pEpj[es,e_a,i,t] + jpREa[es,e_a,i,t]; 
 
 	$ENDBLOCK
 
@@ -121,19 +125,20 @@ $IF %stage% == "exogenous_values":
 
 	qREa_BiogasForConvertingData.l[t]       = qEpj.l['process_special','Biogas','35002',t];
 	qREa_ElectricityForDatacentersData.l[t] = qEpj.l['process_special','Electricity','71000',t];
+
 # ------------------------------------------------------------------------------
 # Set dummies 
 # ------------------------------------------------------------------------------
-
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and crudeoil[e_a] and i_refineries[i]) = yes; #Refinery feedstock of crude oil
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and natgas_ext[e_a] and i_gasdistribution[i]) = yes; #Input of fossile natural gas in gas distribution sector
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and biogas[e_a] and i_gasdistribution[i]) = yes; #Input of biogas for converting to natural gas in gas distribution sector
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and el[e_a] and i_service_for_industries[i]) = yes; #Electricity for data centers (only applies when calibrated to Climate Outlook)
+	
+	d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj_base[es,e_a,i,t] and process_special[es] and crudeoil[e_a] and i_refineries[i]) = yes; #Refinery feedstock of crude oil
+	d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj_base[es,e_a,i,t] and process_special[es] and natgas_ext[e_a] and i_gasdistribution[i]) = yes; #Input of fossile natural gas in gas distribution sector
+	d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj_base[es,e_a,i,t] and process_special[es] and biogas[e_a] and i_gasdistribution[i]) = yes; #Input of biogas for converting to natural gas in gas distribution sector
+	d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj_base[es,e_a,i,t] and process_special[es] and el[e_a] and i_service_for_industries[i]) = yes; #Electricity for data centers (only applies when calibrated to Climate Outlook)
 
 	d1pREa_inNest[es,e_a,i,t]    = yes$(pEpj_base.l[es,e_a,i,t] and not d1pREa_NotinNest[es,e_a,i,t]);
 	d1pREa[es,e_a,i,t]           = yes$(d1pREa_inNest[es,e_a,i,t] or d1pREa_NotinNest[es,e_a,i,t]);
 
-	d1pEes[es,i,t] 			 				 = yes$(sum(e_a, d1pREa_inNest[es,e_a,i,t]));	
+	d1pEes[es,i,t] 			 	 = yes$(sum(e_a, d1pREa_inNest[es,e_a,i,t]));	
 	d1pREmachine[i,t]            = yes$(sum(es$(not (heating[es] or transport[es])), d1pEes[es,i,t]));
 	d1Prod[pf,i,t]               = yes$(pProd.l[pf,i,t]);
 
@@ -163,6 +168,6 @@ $IF %stage% == "calibration":
 		jqREmachine[i,t1]
 		jqREes[es,i,t1] #When linked, quantities are back in exogenously
 
-			calibration_endogenous
+		calibration_endogenous
 	;
 $ENDIF
