@@ -147,8 +147,8 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. pY[t] * qY[t] =E= vY[t];
   .. qY[t] * pY[t-1] =E= sum(i, pY_i[i,t-1] * qY_i[i,t]);
 
-  .. qY_i[i,t] =E= sum(d, qY_i_d[i,d,t]);
-  .. qM_i[i,t] =E= sum(d, qM_i_d[i,d,t]);
+  .. qY_i[i,t] =E= sum(d, qY_i_d[i,d,t] / (1+tY_i_d[i,d,tBase]));
+  .. qM_i[i,t] =E= sum(d, qM_i_d[i,d,t] / (1+tM_i_d[i,d,tBase]));
 
   # Aggregate imports from each import industry
   .. vM_i[i,t] + vtM_i[i,t] =E= sum(d, vM_i_d[i,d,t]);
