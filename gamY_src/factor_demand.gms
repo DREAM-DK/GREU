@@ -96,7 +96,7 @@ $Group+ data_covered_variables factor_demand_data_variables$(t.val <= %calibrati
 d1K_k_i[k,i,t] = abs(qK_k_i.l[k,i,t]) > 1e-9;
 d1E_i[i,t] = abs(sum(i2re[i,re], qD.l[re,t])) > 1e-9;
 
-rHurdleRate_i.l[i,t] = 0.5;
+rHurdleRate_i.l[i,t] = 0.2;
 
 $ENDIF # exogenous_values
 
@@ -127,7 +127,7 @@ $Group calibration_endogenous
   calibration_endogenous
 ;
 
-$Group G_flat_after_last_data_year
+$Group+ G_flat_after_last_data_year
   qK2qY_k_i[k,i,t]
   qL2qY_i[i,t]
   qR2qY_i[i,t]

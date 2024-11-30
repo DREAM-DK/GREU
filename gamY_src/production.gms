@@ -144,33 +144,39 @@ $ENDIF # exogenous_values
 # ------------------------------------------------------------------------------
 $IF %stage% == "calibration":
 
+$BLOCK production_calibration_equations production_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+  # jpK_k_i[k,i,t]$(t1[t] and not tEnd[t]).. qK_k_i[k,i,t] =E= qK_k_i[k,i,t+1];
+$ENDBLOCK
+
 # Add equations and calibration equations to calibration model
 model calibration /
   production_equations
   production_bottom_link_equations
+  # production_calibration_equations
 /;
 
-  # Add endogenous variables to calibration model
-  $Group calibration_endogenous
-    production_endogenous
-    production_bottom_link_endogenous
+# Add endogenous variables to calibration model
+$Group calibration_endogenous
+  production_endogenous
+  production_bottom_link_endogenous
+  production_calibration_endogenous
 
-    -qR2qY_i[i,t1], uProd[RxE,i,t1]
-    -qK2qY_k_i[k,i,t1], uProd[pf_bottom,i,t1]
-    -qProd[pf_bottom_e,i,t1], uProd[pf_bottom_e,i,t1]
-    -qE2qY_i[i,t1], qProd[heating_energy,i,t1]$(d1Prod[heating_energy,i,t1]), qProd[machine_energy,i,t1]$(not d1Prod['heating_energy',i,t1])
+  -qR2qY_i[i,t1], uProd[RxE,i,t1]
+  -qK2qY_k_i[k,i,t1], uProd[pf_bottom,i,t1]
+  -qProd[pf_bottom_e,i,t1], uProd[pf_bottom_e,i,t1]
+  -qE2qY_i[i,t1], qProd[heating_energy,i,t1]$(d1Prod[heating_energy,i,t1]), qProd[machine_energy,i,t1]$(not d1Prod['heating_energy',i,t1])
 
-    -qL2qY_i[i,t1], uProd[labor,i,t1]
-    -pProd[pfNest,i,t1]$(not pf_top[pfNest]), uProd[pfNest,i,t1]$(not pf_top[pfNest])
+  -qL2qY_i[i,t1], uProd[labor,i,t1]
+  -pProd[pfNest,i,t1]$(not pf_top[pfNest]), uProd[pfNest,i,t1]$(not pf_top[pfNest])
 
-    qPFtop2qY[i], -pProd[pf_top,i,tBase]
+  qPFtop2qY[i], -pProd[pf_top,i,tBase]
 
-    calibration_endogenous
-  ;
+  calibration_endogenous
+;
 
-  $Group G_flat_after_last_data_year
-    uProd[pf,i,t]
-  ;
+$Group+ G_flat_after_last_data_year
+  uProd[pf,i,t]
+;
 
 $ENDIF # calibration
 
