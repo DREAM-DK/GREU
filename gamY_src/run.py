@@ -2,6 +2,8 @@ import sys
 import shutil
 import os
 import dreamtools as dt
+import socket
+
 dt.gamY.default_initial_level = 0
 dt.gamY.automatic_dummy_suffix = "_exists_dummy"
 dt.gamY.variable_equation_prefix = "E_"
@@ -10,7 +12,10 @@ dt.gamY.automatic_dummy_suffix = "_exists_dummy"
 ## Set local paths
 root = dt.find_root()
 sys.path.insert(0, root)
-import paths
+
+# Import paths if not running on computerome
+if socket.gethostname()!="dpdream-001.computerome.local":
+  import paths
 
 ## Set working directory
 os.chdir(fr"{root}/gamY_src")
