@@ -13,7 +13,7 @@ sys.path.insert(0, root)
 import paths
 
 ## Set working directory
-os.chdir(fr"{root}/gamY_src")
+os.chdir(fr"{root}/model")
 
 # dt.gamY.run("../data/data_from_GR.gms")
 
