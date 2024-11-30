@@ -70,7 +70,7 @@ $IF %stage% == "equations":
     qR2qY_i[i,t].. qD[i,t] =E= qProd['RxE',i,t];
 
     .. pProd[pf_bottom_capital,i,t] =E= sum(sameas[pf_bottom_capital,k], pK_k_i[k,i,t] / pK_k_i[k,i,tBase]); # We set the price to 1 in the base year, and adjust the quantity inversely
-    qK2qY_k_i[k,i,t].. qK_k_i[k,i,t] =E= sum(sameas[pf_bottom_capital,k], qProd[pf_bottom_capital,i,t]) * pK_k_i[k,i,tBase];
+    qK2qY_k_i[k,i,t].. sum(sameas[pf_bottom_capital,k], qProd[pf_bottom_capital,i,t]) =E= qK_k_i[k,i,t] * pK_k_i[k,i,tBase];
 
     .. pProd[pf_bottom_e,i,t] =E= pE_i[i,t]; 
     qE2qY_i[i,t].. qE_i[i,t] =E= sum(pf_bottom_e, qProd[pf_bottom_e,i,t]);
@@ -116,7 +116,7 @@ $IF %stage% == "exogenous_values":
   # ------------------------------------------------------------------------------
   # Exogenous variables 
   # ------------------------------------------------------------------------------
-  eProd.l[pFnest,i]$(not pf_top[pFnest]) = 0.1;
+  eProd.l[pfNest,i] = 0.7;
 
   # ------------------------------------------------------------------------------
   # Initial values  
@@ -161,7 +161,6 @@ model calibration /
     -qE2qY_i[i,t1], qProd[heating_energy,i,t1]$(d1Prod[heating_energy,i,t1]), qProd[machine_energy,i,t1]$(not d1Prod['heating_energy',i,t1])
 
     -qL2qY_i[i,t1], uProd[labor,i,t1]
-    # -qProd[pf_bottom,i,t1], uProd[pf_bottom,i,t1]
     -pProd[pfNest,i,t1]$(not pf_top[pfNest]), uProd[pfNest,i,t1]$(not pf_top[pfNest])
 
     qPFtop2qY[i], -pProd[pf_top,i,tBase]
@@ -174,3 +173,19 @@ model calibration /
   ;
 
 $ENDIF # calibration
+
+# ------------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------------
+$IF %stage% == "tests":
+  # $onDotL
+  # parameter test_production_function[pf,i,t];
+  # test_production_function[pfNest,i,t]$(qProd[pfNest,i,t] <> 0)
+  #   = sum(pf_mapping[pfNest,pf,i],
+  #       uProd[pf,i,t]**(1/eProd[pfNest,i]) * qProd[pf,i,t]**(1-1/eProd[pfNest,i])
+  #     )**(1/(1-1/eProd[pfNest,i]))
+  #   - qProd[pfNest,i,t];
+  # test_production_function[pfNest,i,t]$(abs(test_production_function[pfNest,i,t]) < 1e-6) = 0;
+  # ABORT$(sum([pfNest,i,t], abs(test_production_function[pfNest,i,t]))) "qProd does not match production function.", test_production_function;
+  # $offDotL
+$ENDIF # tests
