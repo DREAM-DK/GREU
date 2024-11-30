@@ -25,6 +25,7 @@ $FUNCTION import_from_modules(stage_key):
   # $IMPORT energy_markets.gms; 
   # $IMPORT industries_CES_energydemand.gms; 
   $IMPORT production.gms; 
+  $IMPORT pricing.gms; 
   # $IMPORT production_CET.gms;
   # $IMPORT emissions.gms; 
   # $IMPORT energy_and_emissions_taxes.gms; 

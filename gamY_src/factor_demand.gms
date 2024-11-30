@@ -25,7 +25,6 @@ $Group+ all_variables
   qL2qY_i[i,t] "Labor to output ratio by industry."
   qR2qY_i[i,t] "Intermediate input to output ratio by industry."
   qInvt2qY_i[i,t] "Inventory investment to output ratio by industry."
-  vCashProfit_i[i,t] "Cash profit by industry."
   qE2qY_i[i,t]$(d1E_i[i,t]) "Demand for intermediate energy inputs to output ratio by industry."
   pE_i[i,t]$(d1E_i[i,t]) "Price index of energy inputs, by industry."
   qE_i[i,t]$(d1E_i[i,t]) "Real energy inputs by industry."
@@ -40,10 +39,6 @@ $ENDIF # variables
 $IF %stage% == "equations":
 
 $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-  # Temporary price equation
-  .. vCashProfit_i[i,t] =E= vY_i[i,t] - vWages_i[i,t] - sum(k, pD[k,t] * qI_k_i[k,i,t]) - vD[i,t] - pY_i[i,t] * qInvt_i[i,t];
-  pY_i[i,t]$(t1.val > %calibration_year%).. vCashProfit_i[i,t] / vY_i[i,t] =E= vCashProfit_i[i,t-1] / vY_i[i,t-1];
-
   # Labor and capital ratios
   .. qK_k_i[k,i,t] =E= qK2qY_k_i[k,i,t] * qY_i[i,t];
   .. qL_i[i,t] =E= qL2qY_i[i,t] * qY_i[i,t];
