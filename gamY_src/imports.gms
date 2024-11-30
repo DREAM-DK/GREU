@@ -59,12 +59,13 @@ model calibration /
 $Group calibration_endogenous
   imports_endogenous
   imports_calibration_endogenous
-  -rM[i,d,t], rM0[i,d,t]
+  -rM[i,d,t1], rM0[i,d,t1]
 
   calibration_endogenous
 ;
 
 $GROUP+ G_flat_after_last_data_year
+  rM0[i,d,t]
 ;
 
 $ENDIF # calibration
