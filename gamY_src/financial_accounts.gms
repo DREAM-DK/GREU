@@ -101,8 +101,10 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
-model main / financial_equations /;
-$Group+ main_endogenous financial_endogenous;
+# model main / financial_equations /;
+$Group+ main_endogenous 
+  # financial_endogenous
+  ;
 
 $ENDIF # equations
 
@@ -145,29 +147,29 @@ $BLOCK financial_calibration_equations financial_calibration_endogenous $(t1.val
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
-model calibration /
-  financial_equations
-  # financial_calibration_equations
-/;
+# model calibration /
+#   financial_equations
+#   # financial_calibration_equations
+# /;
 # Add endogenous variables to calibration model
-$Group calibration_endogenous
-  financial_endogenous
-  financial_calibration_endogenous
-  -vNetInterests[sector,t1]$(not RoW[sector]), jrInterests_s[sector,t1]
-  -vNetRevaluations[sector,t1], rRevaluations_s[sector,t1]
+# $Group calibration_endogenous
+#   financial_endogenous
+#   financial_calibration_endogenous
+#   -vNetInterests[sector,t1]$(not RoW[sector]), jrInterests_s[sector,t1]
+#   -vNetRevaluations[sector,t1], rRevaluations_s[sector,t1]
 
-  calibration_endogenous
-;
+#   calibration_endogenous
+# ;
 
 $ENDIF # calibration
 
 # ------------------------------------------------------------------------------
 # Tests
 # ------------------------------------------------------------------------------
-$IF %stage% == "tests":
-  parameter test_sector_balance[t];
-  $FOR {var} in ["vNetInterests", "vNetDividends", "vNetRevaluations", "vNetDebtInstruments", "vNetEquity", "vNetFinAssets"]:
-    test_sector_balance[t] = abs(sum(sector, {var}.l[sector,t]));
-    ABORT$(smax(t, test_sector_balance[t]) > 1e-6) "{var} do not sum to zero.", test_sector_balance;
-  $ENDFOR
-$ENDIF # tests
+# $IF %stage% == "tests":
+#   parameter test_sector_balance[t];
+#   $FOR {var} in ["vNetInterests", "vNetDividends", "vNetRevaluations", "vNetDebtInstruments", "vNetEquity", "vNetFinAssets"]:
+#     test_sector_balance[t] = abs(sum(sector, {var}.l[sector,t]));
+#     ABORT$(smax(t, test_sector_balance[t]) > 1e-6) "{var} do not sum to zero.", test_sector_balance;
+#   $ENDFOR
+# $ENDIF # tests

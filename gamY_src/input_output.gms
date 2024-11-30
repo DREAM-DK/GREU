@@ -129,8 +129,8 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
-model main / input_output_equations /;
-$Group+ main_endogenous input_output_endogenous;
+# model main / input_output_equations /;
+# $Group+ main_endogenous input_output_endogenous;
 
 $ENDIF # equations
 
@@ -173,20 +173,20 @@ $BLOCK input_output_calibration_equations input_output_calibration_endogenous $(
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
-model calibration /
-  input_output_equations
-  # input_output_calibration_equations
-/;
-# Add endogenous variables to calibration model
-$Group+ calibration_endogenous
-  input_output_endogenous
-  input_output_calibration_endogenous
-  -vtY_i_d[i,d,t1], tY_i_d[i,d,t1]
-  -vtM_i_d[i,d,t1], tM_i_d[i,d,t1]
-  -vY_i_d[i,d,t1], -vM_i_d[i,d,t1], rYM[i,d,t1], rM[i,d,t]$(t1[t] and d1M_i_d[i,d,t] and d1Y_i_d[i,d,t]) 
+# model calibration /
+#   input_output_equations
+#   # input_output_calibration_equations
+# /;
+# # Add endogenous variables to calibration model
+# $Group+ calibration_endogenous
+#   input_output_endogenous
+#   input_output_calibration_endogenous
+#   -vtY_i_d[i,d,t1], tY_i_d[i,d,t1]
+#   -vtM_i_d[i,d,t1], tM_i_d[i,d,t1]
+#   -vY_i_d[i,d,t1], -vM_i_d[i,d,t1], rYM[i,d,t1], rM[i,d,t]$(t1[t] and d1M_i_d[i,d,t] and d1Y_i_d[i,d,t]) 
 
-  calibration_endogenous
-;
+#   calibration_endogenous
+# ;
 
 $Group G_flat_after_last_data_year
   rYM, rM

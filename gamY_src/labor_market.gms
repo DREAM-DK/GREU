@@ -63,8 +63,8 @@ $BLOCK labor_market_equations labor_market_endogenous $(t1.val <= t.val and t.va
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
-model main / labor_market_equations /;
-$Group+ main_endogenous labor_market_endogenous;
+# model main / labor_market_equations /;
+# $Group+ main_endogenous labor_market_endogenous;
 
 $ENDIF # equations
 
@@ -98,20 +98,20 @@ $BLOCK labor_market_calibration_equations labor_market_calibration_endogenous $(
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
-model calibration /
-  labor_market_equations
-  labor_market_calibration_equations
-/;
-# Add endogenous variables to calibration model
-$Group calibration_endogenous
-  labor_market_calibration_endogenous
-  labor_market_endogenous
-  -vWages_i[i,t1], qL_i[i,t1]
-  -pW[t1], qProductivity[t1]
-  -nL[t1], snL[t1]
+# model calibration /
+#   labor_market_equations
+#   labor_market_calibration_equations
+# /;
+# # Add endogenous variables to calibration model
+# $Group calibration_endogenous
+#   labor_market_calibration_endogenous
+#   labor_market_endogenous
+#   -vWages_i[i,t1], qL_i[i,t1]
+#   -pW[t1], qProductivity[t1]
+#   -nL[t1], snL[t1]
 
-  calibration_endogenous
-;
+#   calibration_endogenous
+# ;
 
 $Group+ G_flat_after_last_data_year
   qProductivity[t]

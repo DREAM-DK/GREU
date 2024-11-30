@@ -27,6 +27,7 @@ $IF %stage% == "variables":
         d1EmmLULUCF[t] ""
         d1EmmE[em,d,t] ""
         d1EmmxE[em,d,t] ""
+        d1Emm[em,d,t] ""
         d1EmmTot[em,em_accounts,t] ""
         d1EmmBorderTrade[em,t] ""
         d1EmmInternationlAviation[em,t] ""
@@ -38,8 +39,9 @@ $IF %stage% == "variables":
     ;
     
     $Group+ all_variables
-        qEmmE[em,d,t]$(d1EmmE[em,d,t]) "Aggregate energy-related emissions. Measured in kilotonnes CO2e"
-        qEmmxE[em,d,t]$(d1EmmxE[em,d,t]) "Aggregate non-energy related emissions. Measured in kilotonnes CO2e"
+        qEmmE[em,d,t]$(d1EmmE[em,d,t]) "Aggregate energy-related emissions. Measured in kilotonnes"
+        qEmmxE[em,d,t]$(d1EmmxE[em,d,t]) "Aggregate non-energy related emissions. Measured in kilotonnes"
+        qEmm[em,d,t]$(d1Emm[em,d,t]) "Aggregate, sector-wide emissions. Measured in kilotonnes"
 
         qEmmTot[em,em_accounts,t]$(d1EmmTot[em,em_accounts,t]) "Total emissions in the economy. Measured in kilotonnes CO2e"
         qEmmLULUCF5[land5,t]$(d1EmmLULUCF5[land5,t]) "Emissions from land-use, land-use change and forestry. Measured in kilotonnes CO2e"
@@ -116,6 +118,9 @@ $IF %stage% == "equations":
       qEmmxE&_CO2e[em,d,t]$(CO2e[em])..
         qEmmxE['CO2e',d,t] =E= sum(em_a$(not CO2e[em_a]), GWP[em_a] * qEmmxE[em_a,d,t]);
 
+      #Total sector-wide emissions 
+      .. qEmm[em,d,t] =E= qEmmE[em,d,t] + qEmmxE[em,d,t];
+
 
       # LULUCF (is measured in CO2e from the get-go, and we didn't need LULUCF5, if this is only a matter of hitting total emissions in official inventories)
       ..  qEmmLULUCF5[land5,t] =E= uEmmLULUCF5[land5,t];
@@ -123,12 +128,12 @@ $IF %stage% == "equations":
       ..  qEmmLULUCF[t] =E= sum(land5, qEmmLULUCF5[land5,t]);
 
       #Total emissions
-      ..  qEmmTot[em,em_accounts,t] =E= sum(d, qEmmE[em,d,t]) 
-                                    +   sum(d, qEmmxE[em,d,t]) 
-                                    +   qEmmLULUCF[t]
-                                    +   qEmmBorderTrade[em,t]$(gna[em_accounts])
-                                    -   qEmmInternationalAviation[em,t]$(unfccc[em_accounts])
-                                    -   qEmmBunkering[em,t]$(unfccc[em_accounts])
+      ..  qEmmTot[em,em_accounts,t] =E= sum(d,qEmm[em,d,t]) 
+                                   +   qEmmLULUCF[t]
+                                   +   qEmmBorderTrade[em,t]$(gna[em_accounts])
+                                   -   qEmmInternationalAviation[em,t]$(unfccc[em_accounts])
+                                   -   qEmmBunkering[em,t]$(unfccc[em_accounts])
+                                        
       ;
 
   $ENDBLOCK 
@@ -191,6 +196,7 @@ $IF %stage% == "exogenous_values":
   d1EmmE_BU[em,es,e,d,t]     = yes$(qEmmE_BU.l[em,es,e,d,t] and d1pEpj_base[es,e,d,t]);
   d1EmmE[em,d,t]             = yes$(sum((es,e), d1EmmE_BU[em,es,e,d,t]));
   d1EmmxE[em,d,t]            = yes$(qEmmxE.l[em,d,t]);
+  d1Emm[em,d,t]              = yes$(d1EmmE[em,d,t] or d1EmmxE[em,d,t]);
   d1EmmLULUCF5[land5,t]      = yes$(qEmmLULUCF5.l[land5,t]);
   d1EmmLULUCF[t]             = yes$(sum(land5,qEmmLULUCF.l[t]));
   d1EmmTot[em,em_accounts,t] = yes;

@@ -31,7 +31,7 @@ $IF %stage% == "variables":
     markup_calib[i,t]$(d1Y_i[i,t]) "Markup on production, used in calibration"
     rFirms[i,t]$(d1Y_i[i,t]) "Firms' discount rate, nominal"
     delta[pf,i,t]$(d1Prod[pf,i,t] and pf_bottom_capital[pf]) "Depreciation rate of capital"
-    jpProd[pf,i,t]$(d1Prod[pf,i,t]) "j-T"
+    jpProd[pf,i]$(sum(tDataEnd,d1Prod[pf,i,tDataEnd])) "j-T"
   ;
 
 $ENDIF # variables
@@ -74,7 +74,7 @@ $IF %stage% == "equations":
   $BLOCK production_usercost production_usercost_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
     pProd[pf,i,t]$(not tEnd[t] and pf_bottom_capital[pf]).. 
     
-      pProd[pf,i,t] =E= 1  - (1-delta[pf,i,t])/(1+rFirms[i,t+1])*fp + jpProd[pf,i,t]; #Primo-dateret user-cost kommer til at se sådan her ud
+      pProd[pf,i,t] =E= 1  - (1-delta[pf,i,t])/(1+rFirms[i,t+1])*fp + jpProd[pf,i]; #Primo-dateret user-cost kommer til at se sådan her ud
 
     pProd&_tEnd[pf,i,t]$(tEnd[t] and pf_bottom_capital[pf] and t1.val <> tEnd.val).. 
       pProd[pf,i,t] =E= pProd[pf,i,t-1];   
@@ -134,9 +134,8 @@ $IF %stage% == "exogenous_values":
   # Exogenous variables 
   # ------------------------------------------------------------------------------
 
-    eProd.l[pFnest,i] = 0;
-
     eProd.l[pFnest,i]$(not pf_top[pFnest]) = 0.1;
+
     eCET.l[i] = 5;
 
     delta.l[pf,i,t]$(d1Prod[pf,i,t] and pf_bottom_capital[pf]) = 0.05;
@@ -190,7 +189,7 @@ model calibration /
     -pProd[pfNest,i,t1]$(not pf_top[pfNest]), uProd[pfNest,i,t1]$(not pf_top[pfNest])
 
     production_usercost_endogenous
-    -pProd[pf_bottom_capital,i,t1], jpProd[pf_bottom_capital,i,t1]  
+    -pProd[pf_bottom_capital,i,t1], jpProd[pf_bottom_capital,i]  
 
     calibration_endogenous
   ;

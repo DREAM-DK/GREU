@@ -35,8 +35,8 @@ $BLOCK households_equations households_endogenous $(t1.val <= t.val and t.val <=
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
-model main / households_equations /;
-$Group+ main_endogenous households_endogenous;
+# model main / households_equations /;
+# $Group+ main_endogenous households_endogenous;
 
 $ENDIF # equations
 
@@ -62,18 +62,18 @@ $BLOCK households_calibration_equations households_calibration_endogenous $(t1.v
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
-model calibration /
-  households_equations
-  # households_calibration_equations
-/;
-# Add endogenous variables to calibration model
-$Group calibration_endogenous
-  households_endogenous
-  households_calibration_endogenous
-  -qD[c,t1], rC_c[c,t1], vC2vHhIncome[t1]
+# model calibration /
+#   households_equations
+#   # households_calibration_equations
+# /;
+# # Add endogenous variables to calibration model
+# $Group calibration_endogenous
+#   households_endogenous
+#   households_calibration_endogenous
+#   -qD[c,t1], rC_c[c,t1], vC2vHhIncome[t1]
 
-  calibration_endogenous
-;
+#   calibration_endogenous
+# ;
 
 $Group G_flat_after_last_data_year
   vC2vHhIncome[t]

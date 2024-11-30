@@ -23,8 +23,8 @@ $BLOCK exports_market_equations exports_market_endogenous $(t1.val <= t.val and 
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
-model main / exports_market_equations /;
-$Group+ main_endogenous exports_market_endogenous;
+# model main / exports_market_equations /;
+# $Group+ main_endogenous exports_market_endogenous;
 
 $ENDIF # equations
 
@@ -52,10 +52,10 @@ $BLOCK exports_market_calibration_equations exports_market_calibration_endogenou
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
-model calibration /
-  exports_market_equations
-  # exports_market_calibration_equations
-/;
+# model calibration /
+#   exports_market_equations
+#   # exports_market_calibration_equations
+# /;
 # Add endogenous variables to calibration model
 $Group calibration_endogenous
   exports_market_calibration_endogenous

@@ -66,8 +66,8 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
-model main / factor_demand_equations /;
-$Group+ main_endogenous factor_demand_endogenous;
+# model main / factor_demand_equations /;
+# $Group+ main_endogenous factor_demand_endogenous;
 
 $ENDIF # equations
 
@@ -99,23 +99,23 @@ $BLOCK factor_demand_calibration_equations factor_demand_calibration_endogenous 
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
-model calibration /
-  factor_demand_equations
-  # factor_demand_calibration_equations
-/;
-# Add endogenous variables to calibration model
-$Group calibration_endogenous
-  factor_demand_endogenous
-  factor_demand_calibration_endogenous
-  -qK_k_i[k,i,t1], qK2qY_k_i[k,i,t1]
-  -qL_i[i,t1], qL2qY_i[i,t1]
-  -qD[i,t1], qR2qY_i[i,t1]
-  -qI_k_i[k,i,t1], rKDepr_k_i[k,i,t1]
-  -qInvt_i[i,t1], qInvt2qY_i[i,t1]
-  -qD[re,t1], qE2qY_i[i,t1]
+# model calibration /
+#   factor_demand_equations
+#   # factor_demand_calibration_equations
+# /;
+# # Add endogenous variables to calibration model
+# $Group calibration_endogenous
+#   factor_demand_endogenous
+#   factor_demand_calibration_endogenous
+#   -qK_k_i[k,i,t1], qK2qY_k_i[k,i,t1]
+#   -qL_i[i,t1], qL2qY_i[i,t1]
+#   -qD[i,t1], qR2qY_i[i,t1]
+#   -qI_k_i[k,i,t1], rKDepr_k_i[k,i,t1]
+#   -qInvt_i[i,t1], qInvt2qY_i[i,t1]
+#   -qD[re,t1], qE2qY_i[i,t1]
 
-  calibration_endogenous
-;
+#   calibration_endogenous
+# ;
 
 $Group G_flat_after_last_data_year
   qK2qY_k_i[k,i,t]

@@ -29,8 +29,8 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
-model main / government_equations /;
-$Group+ main_endogenous government_endogenous;
+# model main / government_equations /;
+# $Group+ main_endogenous government_endogenous;
 
 $ENDIF # equations
 
@@ -57,19 +57,19 @@ $BLOCK government_calibration_equations government_calibration_endogenous $(t1.v
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
-model calibration /
-  government_equations
-  # government_calibration_equations
-/;
-# Add endogenous variables to calibration model
-$Group calibration_endogenous
-  government_endogenous
-  government_calibration_endogenous
-  -qD[g,t1], rG_g[g,t1], vG2vGDP[t1]
-  # -vHhTaxes[t1], vHhTaxes2vGDP[t1]
+# model calibration /
+#   government_equations
+#   # government_calibration_equations
+# /;
+# # Add endogenous variables to calibration model
+# $Group calibration_endogenous
+#   government_endogenous
+#   government_calibration_endogenous
+#   -qD[g,t1], rG_g[g,t1], vG2vGDP[t1]
+#   # -vHhTaxes[t1], vHhTaxes2vGDP[t1]
 
-  calibration_endogenous
-;
+#   calibration_endogenous
+# ;
 
 $Group G_flat_after_last_data_year
   vG2vGDP[t]
