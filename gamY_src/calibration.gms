@@ -10,8 +10,7 @@ set_time_periods(%calibration_year%, %calibration_year%);
 
 # Set starting values for main_endogenous variables if no other value is given
 $LOOP calibration_endogenous:
-  {name}.l{sets}$({conditions} and {name}.l{sets} = 0) = 0.5;
-$ENDLOOP
+  {name}.l{sets}$({conditions} and {name}.l{sets} = 0) = 0.99;$ENDLOOP
 
 $FIX all_variables; $UNFIX calibration_endogenous;
 
@@ -30,6 +29,17 @@ $LOOP SG_flat_after_last_data_year: #Extending model dummies
 $ENDLOOP 
 
 @update_exist_dummies()
+
+# Create a block with equations for extending variables with "flat forecast" after last data year
+# This is useful where parameters need to be dynamically calibrated due to forward-looking expectations 
+$Group+ G_flat_after_last_data_year - calibration_endogenous;
+$BLOCK flat_after_last_data_year_equations flat_after_last_data_year_endogenous $(t1.val < t.val and t.val <= tEnd.val)
+	$LOOP G_flat_after_last_data_year:
+		{name}&_flat{sets}$({conditions}).. {name}{sets} =E= {name}{sets}{$}[<t>t1];
+	$ENDLOOP
+$ENDBLOCK
+model calibration / flat_after_last_data_year_equations /;
+$Group+ calibration_endogenous flat_after_last_data_year_endogenous;
 
 # For testing partial models only, we extend all data covered variables with "flat forecast" after last data year
 $Group+ G_flat_after_last_data_year all_variables_except_constants;
@@ -51,6 +61,5 @@ $ENDLOOP
 
 $FIX all_variables; $UNFIX calibration_endogenous;
 execute_unloaddi "calibration_pre.gdx";
-solve calibration using CNS;
 solve calibration using CNS;
 execute_unloaddi "calibration.gdx";
