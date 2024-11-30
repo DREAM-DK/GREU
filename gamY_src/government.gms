@@ -22,8 +22,8 @@ $IF %stage% == "equations":
 
 $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
   # Government consumption expenditure to GDP ratio
-  qD&_Gtotal[g,t]$(first(g)).. vG[t] =E= vG2vGDP[t] * vGDP[t];
-  qD[g,t]$(not first(g)).. vD[g,t] =E= rG_g[g,t] * vG[t];
+  rG_g[g,t]$(first(g)).. vG[t] =E= vG2vGDP[t] * vGDP[t];
+  qD[g,t].. vD[g,t] =E= rG_g[g,t] * vG[t];
 
   .. vHhTaxes[t] =E= vHhTaxes2vGDP[t] * vGDP[t];
 $ENDBLOCK
