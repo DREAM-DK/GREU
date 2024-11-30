@@ -19,7 +19,8 @@ $Group+ all_variables
   vInvt_i[i,t] "Net inventory investments by industry."
 
   pK_k_i[k,i,t]$(d1K_k_i[k,i,t]) "User cost of capital by capital type and industry."
-  rFirms[i,t]$(d1Y_i[i,t]) "Firms' discount rate, nominal"
+  rHurdleRate_i[i,t]$(d1Y_i[i,t]) "Corporations' hurdle rate of investments by industry."
+  jpK_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Additive residual in user cost of capital."
 
   qK2qY_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Capital to output ratio by capital type and industry."
   qL2qY_i[i,t] "Labor to output ratio by industry."
@@ -65,10 +66,10 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   # Capital accumulation (firms demand capital directly, investments are residual from capital accumulation)
   .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq;
 
-    # We temporarily discount by an extra constant to avoid negative usercosts
-    $(not tEnd[t]).. pK_k_i[k,i,t] =E= pD[k,t] - 0.5 * (1-rKDepr_k_i[k,i,t]) / (1+rFirms[i,t+1]) * pD[k,t+1]*fp;
+    $(not tEnd[t])..
+      pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t+1]) * pD[k,t+1]*fp + jpK_k_i[k,i,t];
     pK_k_i&_tEnd[k,i,t]$(tEnd[t])..
-      pK_k_i[k,i,t] =E= pD[k,t] - 0.5 * (1-rKDepr_k_i[k,i,t]) / (1+rFirms[i,t]) * pD[k,t]*fp;
+      pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t]) * pD[k,t]*fp + jpK_k_i[k,i,t];
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -95,7 +96,7 @@ $Group+ data_covered_variables factor_demand_data_variables$(t.val <= %calibrati
 d1K_k_i[k,i,t] = abs(qK_k_i.l[k,i,t]) > 1e-9;
 d1E_i[i,t] = abs(sum(i2re[i,re], qD.l[re,t])) > 1e-9;
 
-rFirms.l[i,t] = 0.07;
+rHurdleRate_i.l[i,t] = 0.5;
 
 $ENDIF # exogenous_values
 
