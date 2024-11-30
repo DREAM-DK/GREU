@@ -6,7 +6,7 @@ dt.gamY.automatic_dummy_suffix = "_exists_dummy"
 dt.gamY.variable_equation_prefix = "E_"
 
 ## Set local paths
-root = dt.find_root()
+root = dt.find_root("LICENSE")
 sys.path.insert(0, root)
 # os.environ["GAMS"] = "C:/GAMS/46/gams.exe"
 
@@ -28,6 +28,7 @@ dt.YAXIS_TITLE_FROM_OPERATOR = {
 }
 dt.TIME_AXIS_TITLE = ""
 
+
 dt.REFERENCE_DATABASE = b = dt.Gdx("calibration.gdx") # b for baseline
 s = dt.Gdx("shock.gdx") # s for shock
 dt.time(2019, 2030)
@@ -36,5 +37,5 @@ dt.plot([s.qGDP, s.qC, s.qI, s.qG, s.qX, s.qM], "m", function=lambda x: x/b.vGDP
 dt.plot(s, "m", lambda db: db.vNetFinAssets/db.vGDP, layout={"title": "Net Financial Assets to GDP"})
 
 ## Running the partial abatement model
-dt.gamY.run("abatement_model_partial.gms")
+# dt.gamY.run("abatement_model_partial.gms")
 
