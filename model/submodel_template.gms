@@ -61,4 +61,13 @@ $Group calibration_endogenous
   calibration_endogenous
 ;
 
+$GROUP+ G_flat_after_last_data_year
+;
+
 $ENDIF # calibration
+
+# ------------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------------
+$IF %stage% == "tests":
+$ENDIF # tests

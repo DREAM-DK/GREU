@@ -26,6 +26,7 @@ $FUNCTION import_from_modules(stage_key):
   # $IMPORT industries_CES_energydemand.gms; 
   $IMPORT production.gms; 
   $IMPORT pricing.gms; 
+  $IMPORT imports.gms
   # $IMPORT production_CET.gms;
   # $IMPORT emissions.gms; 
   # $IMPORT energy_and_emissions_taxes.gms; 
@@ -96,7 +97,7 @@ Solve main using CNS;
 set_time_periods(2020, %terminal_year%);
 
 # MPC shock
-vC2vHhIncome.l[t]$(t.val >= t1.val) = vC2vHhIncome.l[t] + 0.01;
+rMPC.l[t]$(t.val >= t1.val) = rMPC.l[t] + 0.01;
 
 # Increase in CO2-tax of 10%
 # tCO2_Emarg.l[em,es,e,i,t]$(t.val >= t1.val) = 2 * tCO2_Emarg.l[em,es,e,i,t]; 

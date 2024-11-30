@@ -8,7 +8,8 @@ $Group+ all_variables
 
   vC[t] "Household and non-profit (NPISH) consumption expenditure."
 
-  vC2vHhIncome[t] "Consumption to income ratio."
+  rMPC[t] "Marginal propensity to consume out of income."
+  rMPCW[t] "Marginal propensity to consume out of wealth."
   rC_c[c,t] "Share of total consumption expenditure by purpose."
 
   vNetInterests[sector,t] "Interests by sector."
@@ -23,10 +24,10 @@ $ENDIF # variables
 $IF %stage% == "equations":
 
 $BLOCK households_equations households_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-  qD&_Ctotal[c,t]$(first(c)).. vC[t] =E= vC2vHhIncome[t] * vHhIncome[t];
+  rC_c[c,t]$(first(c)).. vC[t] =E= rMPC[t] * vHhIncome[t] + rMPCW[t] * vNetFinAssets['Hh',t-1]/fv;
 
   # Link to input-output model - households choose private consumption by purpose
-  qD[c,t]$(not first(c)).. vD[c,t] =E= rC_c[c,t] * vC[t];
+  qD[c,t].. vD[c,t] =E= rC_c[c,t] * vC[t];
 
   .. vHhIncome[t] =E= vWages[t]
                     + vHhTransfers[t]
@@ -44,6 +45,8 @@ $ENDIF # equations
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
 $IF %stage% == "exogenous_values":
+
+rMPC.l[t] = 0.5;
 
 $Group households_data_variables
   qD[c,t]
@@ -70,13 +73,13 @@ model calibration /
 $Group calibration_endogenous
   households_endogenous
   households_calibration_endogenous
-  -qD[c,t1], rC_c[c,t1], vC2vHhIncome[t1]
+  -qD[c,t1], rC_c[c,t1], rMPCW[t1]
 
   calibration_endogenous
 ;
 
-$Group G_flat_after_last_data_year
-  vC2vHhIncome[t]
+$Group+ G_flat_after_last_data_year
+  rMPCW[t]
   rC_c[c,t]
 ;
 
