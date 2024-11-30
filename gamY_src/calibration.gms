@@ -2,6 +2,7 @@
 # Calibration
 # ==============================================================================
 @add_exist_dummies_to_model(calibration) # Limit the main model to only include elements that are not dummied out
+$Group+ calibration_endogenous - nonexisting; # Remove any non-existing elements from the calibration_endogenous group
 
 # ------------------------------------------------------------------------------
 # Static calibration
