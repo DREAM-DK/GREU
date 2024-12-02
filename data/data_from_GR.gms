@@ -1,7 +1,10 @@
 $set data_path P:/akg/Til_EU_projekt/EU_GR_data.gdx
+$set abatement_data_path P:/akg/Til_EU_projekt/EU_tech_data_disagg.gdx
 
 #Industries, demand components, capital types and energybalance
 $import data.sets.gms
+
+set l "Technologies";
 
 parameters
   vIO_y[i,d,t]
@@ -107,6 +110,11 @@ parameters auxiliary_data_parameters
   tEmarg_duty[etaxes,es,e,d,t]
 
   qEmmBorderTrade_load[t,em]
+
+  # Abatement
+  theta_load[l,es,i,e,t] "Potential, technology."
+  uTE_load[l,es,i,e,t] "Energy use, technology."
+  uTK_load[l,es,i,e,t] "Capital use, technology."
 ;
 
 parameters GREU_data
@@ -162,6 +170,11 @@ parameters GREU_data
 
   vtNetproductionRest[i,t]
   vtCAP_prodsubsidy[i,t]
+
+  # Abatement
+  theta[l,es,i,t] "Potential, technology."
+  uTE[l,es,e,i,t] "Energy use, technology."
+  uTK[l,es,i,t] "Capital use, technology."
 ;
 
 
@@ -185,6 +198,10 @@ $load vtCO2_ETS = vtCO2_ETS.l, qCO2_ETS_freeallowances=qEmmProdE_dedETS.l
 $load vtNetproductionRest=vtNetproductionRest.l
 $load vtCAP_prodsubsidy=vtCAP_top.l
 $gdxIn 
+
+$gdxIn %abatement_data_path%
+$load l=l theta_load=theta.l, uTE_load=uTE.l, uTK_load=uTK.l
+$gdxIn
 
 # Labor-market
 vWages_i[i,t] = vIO_a["SalEmpl",i,t];
@@ -272,6 +289,11 @@ qInvt_i[i,t] = qI_s.l['invt',i,t];
   tCO2_Emarg[em,es,e,i,t]    = tCO2_REmarg[em,es,e,i,t];
   tEmarg_duty['EAFG_tax',es,e,i,t]      = tEAFG_REmarg[es,e,i,t]/1000; #Dividing by 1000 to convert from kroner per GJ to bio. kroner per Pj.
 
+  # Abatement
+  theta[l,es,i,t] = sum(e, theta_load[l,es,i,e,t]);
+  uTE[l,es,e,i,t] = uTE_load[l,es,i,e,t];
+  uTK[l,es,i,t] = sum(e, uTK_load[l,es,i,e,t]);
+
 execute_unloaddi "data",
   # Labor-market
   vWages_i, nL, vW
@@ -297,6 +319,8 @@ execute_unloaddi "data",
   pEpj_base, qEpj
   vtE_duty, vtE_vat, tCO2_Emarg, tEmarg_duty
   Energybalance, NonEnergyEmissions
+
+  theta, uTE, uTK
 
   vIOxE_y, vIOxE_m, vIOxE_a, vIO_y, vIO_m, vIO_a
 ;
