@@ -10,7 +10,7 @@ dt.gamY.automatic_dummy_suffix = "_exists_dummy"
 ## Set local paths
 root = dt.find_root()
 sys.path.insert(0, root)
-import paths
+# import paths
 
 ## Set working directory
 os.chdir(fr"{root}/gamY_src")
