@@ -85,46 +85,14 @@ execute_unloaddi "calibration.gdx";
 
 eP.l[l,es,i,t] = 0.05;
 $IMPORT calibration.gms
-
-$exit
-
-# Model only runs on the year 2019
-set_time_periods(%calibration_year%, %calibration_year%);
-
-$FIX all_variables;
-$UNFIX main_endogenous;
-execute_unloaddi "Pre_Abatement_partial.gdx";
-Solve main using CNS;
-
-# Model runs in all years
-set_time_periods(%calibration_year%, %terminal_year%);
-$FIX all_variables;
-$UNFIX main_endogenous;
-execute_unloaddi "Pre_Abatement_partial.gdx";
-Solve main using CNS;
 $IMPORT report_abatement.gms
 
 execute_unloaddi "Abatement_partial.gdx";
 
 
-
 # ------------------------------------------------------------------------------
 # Calibration of electrification in the baseline
 # ------------------------------------------------------------------------------
-
-uTK.l['t_Electricity_calib','heating','10030','2020'] = 2.2;
-uTK.l['t_Electricity_calib','heating','10030','2021'] = 2;
-uTK.l['t_Electricity_calib','heating','10030','2022'] = 1.5;
-uTK.l['t_Electricity_calib','heating','10030','2023'] = 1;
-uTK.l['t_Electricity_calib','heating','10030','2024'] = 1;
-uTK.l['t_Electricity_calib','heating','10030',t]$(t.val>2024) = 1;
-
-
-uTK.l['t_Electricity_calib_2','heating','10030','2020'] = 2.8;
-uTK.l['t_Electricity_calib_2','heating','10030','2021'] = 2.5;
-uTK.l['t_Electricity_calib_2','heating','10030','2022'] = 2.2;
-uTK.l['t_Electricity_calib_2','heating','10030','2023'] = 2;
-uTK.l['t_Electricity_calib_2','heating','10030',t]$(t.val>2023) = 2;
 
 $FIX all_variables;
 $UNFIX main_endogenous;
@@ -136,40 +104,9 @@ execute_unload 'Abatement_partial_elec.gdx';
 # Increasing carbon tax
 # ------------------------------------------------------------------------------
 
-#Shock
-tCO2_Emarg.l[em,es,e,i,t] = 5 * tCO2_Emarg.l[em,es,e,i,t]; #Increase in CO2-tax of 10%
 $FIX all_variables;
 $UNFIX main_endogenous;
 Solve main using CNS;
 $IMPORT report_abatement.gms
 execute_unload 'Abatement_partial_carbon_tax.gdx';
 
-# # ------------------------------------------------------------------------------
-# # Tests
-# # ------------------------------------------------------------------------------
-# # $import sanitychecks.gms
-# @import_from_modules("tests")
-# # Data check  -  Abort if any data covered variables have been changed by the calibration
-# @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.")
-
-# # Zero shock  -  Abort if a zero shock changes any variables significantly
-# @set(all_variables, _saved, .l)
-# $FIX all_variables; $UNFIX main_endogenous;
-# Solve main using CNS;
-# @assert_no_difference(all_variables, 1e-6, .l, _saved, "Zero shock changed variables significantly.");
-
-# # ------------------------------------------------------------------------------
-# # Shock model
-# # ------------------------------------------------------------------------------
-# set_time_periods(2020, %terminal_year%);
-
-# # MPC shock
-# vC2vHhIncome.l[t]$(t.val >= t1.val) = vC2vHhIncome.l[t] + 0.01;
-
-# # Increase in CO2-tax of 10%
-# # tCO2_Emarg.l[em,es,e,i,t]$(t.val >= t1.val) = 2 * tCO2_Emarg.l[em,es,e,i,t]; 
-
-# $FIX all_variables;
-# $UNFIX main_endogenous;
-# Solve main using CNS;
-# execute_unload 'shock.gdx';

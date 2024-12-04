@@ -50,6 +50,6 @@ $LOOP calibration_endogenous:
 $ENDLOOP
 
 $FIX all_variables; $UNFIX calibration_endogenous;
-execute_unloaddi "calibration_pre.gdx";
+# execute_unloaddi "calibration_pre.gdx";
 solve calibration using CNS;
-execute_unloaddi "calibration.gdx";
+# execute_unloaddi "calibration.gdx";
