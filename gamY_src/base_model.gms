@@ -94,19 +94,35 @@ execute_unloaddi "Abatement_partial.gdx";
 # Calibration of electrification in the baseline
 # ------------------------------------------------------------------------------
 
-$FIX all_variables;
-$UNFIX main_endogenous;
-Solve main using CNS;
-$IMPORT report_abatement.gms
-execute_unload 'Abatement_partial_elec.gdx';
+# uTK.l['t_Electricity_calib','heating','10030','2020'] = 2.2;
+# uTK.l['t_Electricity_calib','heating','10030','2021'] = 2;
+# uTK.l['t_Electricity_calib','heating','10030','2022'] = 1.5;
+# uTK.l['t_Electricity_calib','heating','10030','2023'] = 1.2;
+# uTK.l['t_Electricity_calib','heating','10030','2024'] = 1.2;
+# uTK.l['t_Electricity_calib','heating','10030',t]$(t.val>2024) = 1.2;
+
+# uTK.l['t_Electricity_calib_2','heating','10030','2020'] = 2.8;
+# uTK.l['t_Electricity_calib_2','heating','10030','2021'] = 2.5;
+# uTK.l['t_Electricity_calib_2','heating','10030','2022'] = 2.2;
+# uTK.l['t_Electricity_calib_2','heating','10030','2023'] = 2;
+# uTK.l['t_Electricity_calib_2','heating','10030',t]$(t.val>2023) = 2;
+
+# $FIX all_variables;
+# $UNFIX main_endogenous;
+# Solve main using CNS;
+# $IMPORT report_abatement.gms
+# execute_unload 'Abatement_partial_elec.gdx';
 
 # ------------------------------------------------------------------------------
 # Increasing carbon tax
 # ------------------------------------------------------------------------------
 
-$FIX all_variables;
-$UNFIX main_endogenous;
-Solve main using CNS;
-$IMPORT report_abatement.gms
-execute_unload 'Abatement_partial_carbon_tax.gdx';
+# Carbon tax
+# tCO2_Emarg.l[em,es,e,i,t] = 5 * tCO2_Emarg.l[em,es,e,i,t]; #Increase in CO2-tax of 10%
+
+# $FIX all_variables;
+# $UNFIX main_endogenous;
+# Solve main using CNS;
+# $IMPORT report_abatement.gms
+# execute_unload 'Abatement_partial_carbon_tax.gdx';
 

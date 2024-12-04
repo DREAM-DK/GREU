@@ -24,18 +24,14 @@ dt.gamY.run("base_model.gms")
 
 dt.REFERENCE_DATABASE = b = dt.Gdx("calibration.gdx")
 ab = dt.Gdx("Abatement_partial.gdx")
+
 dt.time(2019, 2030)
 dt.plot(ab.qE_tech.loc[['heating'],:,[10030],:], "m")
-dt.DataFrame(ab.qAdoption.loc[:,['heating'],[10030],:]).round(2)
-dt.DataFrame(ab.qAdoption.loc[['t_Electricity_calib','t_Electricity_calib_2'],['heating'],[10030],:]).round(5)
 
 
-# Increased electrification in baseline
-dt.REFERENCE_DATABASE = b = dt.Gdx("Abatement_partial.gdx")
+## Electrification
 e = dt.Gdx("Abatement_partial_elec.gdx")
-dt.time(2019, 2030)
-dt.plot(e.qE_tech.loc[['heating'],:,[10030],:], "pq")
-dt.DataFrame(e.qE_tech.loc[['heating'],:,[10030],:], "pq").round(2)
-dt.DataFrame(e.qAdoption.loc[['t_Diesel for transport_100','t_Electricity_calib','t_Electricity_calib_2'],['heating'],[10030],:]).round(2)
 
 
+## Carbon tax
+c = dt.Gdx("Abatement_partial_carbon_tax.gdx")
