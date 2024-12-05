@@ -37,6 +37,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT factor_demand.gms
   # $IMPORT aggregates.gms
   # $IMPORT imports.gms
+  $IMPORT perpetual_youth.gms
 $ENDFUNCTION
 
 # ------------------------------------------------------------------------------
@@ -96,13 +97,11 @@ Solve main using CNS;
 # ------------------------------------------------------------------------------
 set_time_periods(2020, %terminal_year%);
 
-# MPC shock
-rMPC.l[t]$(t.val >= t1.val) = rMPC.l[t] + 0.01;
+tY_i_d.l[i,re,t]$(t.val >= t1.val) = 0.01 + tY_i_d.l[i,re,t];
 
-# Increase in CO2-tax of 10%
-# tCO2_Emarg.l[em,es,e,i,t]$(t.val >= t1.val) = 2 * tCO2_Emarg.l[em,es,e,i,t]; 
 
 $FIX all_variables;
+# $UNFIX main_endogenous, vHhTaxes2vGDP[t], -vNetFinAssets[Gov,t];
 $UNFIX main_endogenous;
 Solve main using CNS;
 execute_unload 'shock.gdx';

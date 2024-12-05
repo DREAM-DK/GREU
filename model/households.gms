@@ -46,7 +46,7 @@ $ENDIF # equations
 # ------------------------------------------------------------------------------
 $IF %stage% == "exogenous_values":
 
-rMPC.l[t] = 0.5;
+rMPC.l[t] = 0.4;
 
 $Group households_data_variables
   qD[c,t]
