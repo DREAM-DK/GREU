@@ -129,7 +129,7 @@ vNetEquity.l[sector,t] = vNetFinAssets.l[sector,t] - vNetDebtInstruments.l[secto
 
 # And set interests to 4% for all sectors, and revaluations to zero
 rInterests.l[t] = 0.04;
-vNetInterests.l[sector,t] = rInterests.l[t] * vNetDebtInstruments.l[sector,t-1]/fv;
+vNetInterests.l[sector,t] = rInterests.l[t] * vNetDebtInstruments.l[sector,t-1];
 
 # @load(financial_data_variables, "../data/data.gdx")
 $Group+ data_covered_variables financial_data_variables;

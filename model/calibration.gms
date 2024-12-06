@@ -58,6 +58,7 @@ $ENDLOOP
 # Set starting values for endogenous variables value in t1
 $LOOP calibration_endogenous: 
 	{name}.l{sets}$({conditions} and {name}.l{sets} = 0) = {name}.l{sets}{$}[<t>t1];
+	{name}.l{sets}$({conditions} and {name}.l{sets} = 0) = 0.99;
 $ENDLOOP
 
 $FIX all_variables; $UNFIX calibration_endogenous;
