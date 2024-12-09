@@ -1,4 +1,12 @@
-# Green REFORM EU
+# Green REFORM Finland
+
+This is the Finnish branch of the Green REFORM EU model, originally created by the Danish DREAM Insitute. For the upstream repository, check out https://github.com/DREAM-DK/GREU.
+
+This is a joint model repository by Natural Resources Institute Finland (Luonnonvarakeskus - LUKE), Finnish Environment Institute (Suomen Ympäristökeskus - SYKE), VTT Technical Research Centre of Finland Ltd and Finnish Ministry of Finance (Valtionvarainministeriö). The technical administration is (currently) done by Natural Resources Institure Finland (LUKE) in collaboration with other organizations. 
+
+The codes are open source and free for download and use by others. For more information, see LICENSE. If you want to become a collaborator, please contact the administration (currently: lauri.saaskilahti@luke.fi).
+
+The upstream repository's (DREAM-DK/GREU) README-file:
 
 ## Model source code
 The source code defining all the model equations can be found in the [model subdirectory](gamY_src/).
