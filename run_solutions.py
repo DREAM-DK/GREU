@@ -20,10 +20,10 @@ dt.gamY.run("base_model.gms")
 
 # Looking at the calibration 
 static_calib = dt.Gdx("static_calibration.gdx")
-# [insert your own code here]
+static_calib.sY
 
 dyn_calib = dt.Gdx("calibration.gdx")
-# [insert your own code here]
+dyn_calib.sY
 
 ## Save calibration.gdx as previous_calibration.gdx
 # shutil.copy("calibration.gdx", "previous_calibration.gdx")
@@ -41,7 +41,7 @@ dt.REFERENCE_DATABASE = base = dt.Gdx("calibration.gdx")
 shoc = dt.Gdx("shock.gdx")
 
 #Look at percentage change in pY 
-# [insert your own code here]
+dt.DataFrame(shoc.pY, "pq")
 
 #Look at percentage change in demand for qY 
-# [insert your own code here]
+dt.DataFrame(shoc.qY, "pq")

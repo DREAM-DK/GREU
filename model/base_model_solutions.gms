@@ -96,4 +96,8 @@ Solve main using CNS;
 # ------------------------------------------------------------------------------
 
 #Double the price of x 
-#[insert your own code below]
+pX.l[t] = pX.l[t] * 2;
+
+$FIX all_variables; $UNFIX main_endogenous;
+Solve main using CNS;
+execute_unload 'shock.gdx';

@@ -18,17 +18,17 @@ $Group+ all_variables
 
   mu_x[t] "CES-share for x"
   mu_z[t] "CES-share for z"
+  sY[t] "CES-share for output"
 
   Elas "Elasticity of substitution between x and z"
-
-  #[insert your own code here]
+  ED "Elasticity of demand for output"
 ;
 
 #We add parameters that, efter static calibration, should be assigned same value for all years
 $Group+ G_flat_after_last_data_year 
   mu_x 
   mu_z
-  #[insert your own code here]
+  sY
 ;
 
 $ENDIF # variables
@@ -47,7 +47,7 @@ $BLOCK template_equations template_endogenous $(t1.val <= t.val and t.val <= tEn
 
   .. pY[t] * qY[t] =E= pX[t]*qX[t] + pZ[t] * qZ[t];
 
-  #[insert your own code here]
+  .. qY[t] =E= sY[t] * pY[t]**(-ED);
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -77,7 +77,8 @@ pZ.l[t] = 1;
 qZ.l[t] = 0.75;
 Elas.l = 0.5;
 
-# [insert your own code here]
+ED.l = 2.5;
+
 
 $ENDIF # exogenous_values
 
@@ -100,8 +101,7 @@ $Group calibration_endogenous
   template_calibration_endogenous
   -qX[t1], mu_x[t1]
   -qZ[t1], mu_z[t1]
-  # [insert your own code here]
-
+  -qY[t1], sY[t1]
 
   calibration_endogenous
 ;
