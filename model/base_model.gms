@@ -34,7 +34,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT government.gms
   $IMPORT exports.gms
   $IMPORT factor_demand.gms
-  $IMPORT perpetual_youth.gms
+  $IMPORT ramsey_household.gms
 $ENDFUNCTION
 
 # ------------------------------------------------------------------------------
