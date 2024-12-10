@@ -14,6 +14,8 @@ $Group+ all_variables
 
   vNetInterests[sector,t] "Interests by sector."
   vNetRevaluations[sector,t] "Revaluations by sector."
+
+  mrHhReturn[t] "Expected marginal after-tax return on household wealth."
 ;
 
 $ENDIF # variables
@@ -33,6 +35,11 @@ $BLOCK households_equations households_endogenous $(t1.val <= t.val and t.val <=
                     + vHhTransfers[t]
                     - vHhTaxes[t]
                     + vNetInterests['Hh',t] + vNetRevaluations['Hh',t];
+
+  # Marginal return is calculated ex-ante
+  # and not in the first period, where information shocks can cause realized returns to differ from expectations
+  $(not t1[t])..
+    mrHhReturn[t] =E= (vNetDividends["Hh",t] + vNetInterests["Hh",t]) / (vNetFinAssets["Hh",t-1]/fv);
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -46,7 +53,7 @@ $ENDIF # equations
 # ------------------------------------------------------------------------------
 $IF %stage% == "exogenous_values":
 
-rMPC.l[t] = 0.5;
+rMPC.l[t] = 0.4;
 
 $Group households_data_variables
   qD[c,t]
