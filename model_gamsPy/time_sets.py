@@ -1,5 +1,4 @@
-from main import container
-Set = container.addSet
+from GlobalContainer import Set
 
 t = Set("t", "Year", records=range(first_data_year, terminal_year + 1))
 
