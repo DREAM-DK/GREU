@@ -1,13 +1,30 @@
-from Groups import Group, merge_conditions, fix_all
-
+from groups import Group, merge_conditions, fix_all
+from gamspy._algebra.condition import Condition
+from gamspy._algebra.expression import Expression
 
 class Block:
   """A collection of equations and associated endogenous variables."""
 
-  def __init__(self, container):
+  def __init__(self, container, condition=1):
     self.container = container
     self.equations = []
     self.endogenous = Group(container)
+    self.condition = condition
+
+  def __setitem__(self, key, expression):
+    if key is ...:
+      endogenous = None
+      condition = 1
+    elif isinstance(key, Condition):
+      endogenous = key.conditioning_on
+      condition = key.condition
+    elif isinstance(key, Expression):
+      endogenous = None
+      condition = key
+    else:
+      endogenous = key
+      condition = 1
+    self.Equation(expression, endogenous=endogenous, condition=condition)
 
   def Equation(self, expression, endogenous=None, domain=None, condition=1, **kwargs):
     """
@@ -18,12 +35,17 @@ class Block:
       endogenous = expression.left
     if domain is None:
       domain = endogenous.domain
-    domain_dummy = self.container.domain_dummy[endogenous.name]
+
     eq = self.container.addEquation(domain=domain, **kwargs)
-    eq[domain].where[domain_dummy[domain] & condition] = expression
+
+    if domain:
+      domain_dummy = self.container.domain_dummy[endogenous.name]
+      eq[domain].where[domain_dummy[domain] & self.condition & condition] = expression
+    else:
+      eq[...].where[self.condition & condition] = expression
 
     self.equations.append(eq)
-    self.endogenous.add_variable(endogenous, condition)
+    self.endogenous.add_variable(endogenous, self.condition & condition)
 
     return eq
 
@@ -46,6 +68,11 @@ class Block:
     b.equations = self.equations + other.equations
     b.endogenous = self.endogenous + other.endogenous
     return b
+  
+  def __radd__(self, other):
+    if other == 0:
+      return self
+    return self.__add__(other)
 
   def copy(self):
     """Return a copy of the block."""
@@ -61,6 +88,8 @@ def evaluate_domain_condition(container, var_name):
   Return variable[sub_domain] (to limit the domain of the variable in a model).
   """
   sub_domain = container.domain_dummy[var_name]
+  if sub_domain is None:
+    return None
   domain_condition = container.domain_conditions[var_name]
   sub_domain[...] = domain_condition
   variable = container[var_name]
@@ -71,4 +100,5 @@ def limit_variable_domains(container):
   Return a list of limited variables, to limit the domain of variables in a model
   based on the domain_condition attribute of the variables.
   """
-  return [evaluate_domain_condition(container, var_name) for var_name in container.domain_conditions]
+  return [var_lim for var_name in container.domain_conditions
+          if (var_lim := evaluate_domain_condition(container, var_name)) is not None]

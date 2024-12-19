@@ -1,32 +1,39 @@
-%load_ext autoreload
-%autoreload 2
+import sys
+from global_container import container
 
-import gamspy as gp
-from gamspy import Sum as Σ
-from GlobalContainer import Set, Parameter, Variable, Block, Group
+sub_models = []
 
-t = Set(name="t", description="Year")
-s = Set(name="s", description="Sector")
-t1 = Set(name="t1", domain=t, is_singleton=True, description="First main_endogenous year")
-s.setRecords(["Corp", "Gov", "Hh", "RoW"])
-Hh = Set(name="Hh", domain=s, description="Households", records=["Hh"])
+import submodel_template
+sub_models.append(submodel_template)
+import households
+sub_models.append(households)
 
-foo = Variable(name="foo", domain=[s,t], description="foo", condition=~s.sameAs("Gov"))
-bar = Variable(name="bar", domain=[s,t], description="bar")
-endogenous=foo[s,t]
-test_block = Block()
+# Define submodel blocks
+for m in sub_models:
+  m.define_equations()
+  m.define_calibration()
 
-test_block.Equation(expression=foo[Hh,t] == bar[Hh,t], condition=~t1[t])
-test_block.Equation(expression=foo[s,t] == 2, condition=~Hh[s])
+# Merge sub-models blocks
+main = sum(m.block for m in sub_models)
+calibration = sum(m.calibration for m in sub_models)
 
-calibration_block = test_block.copy()
-# calibration_block.endogenous = test_block.endogenous - foo + bar
+# Merge sub-model data groups, used to test that calibration does not change data
+data_variables = sum(m.data_variables for m in sub_models)
+# Save data levels prior to calibration
+data_levels = data_variables.get_level_records()
 
-t.setRecords([1, 2, 3, 4])
-t1.setRecords([2])
+calibration.solve()
 
-bar.l[s,t] = 5
-test_block.solve(options=gp.Options(listing_file="gp.lst", hold_fixed_variables=True))
+assert all(
+  x.equals(y) for x, y in zip(data_levels, data_variables.get_level_records())
+),"Calibration changed variables covered by data."
 
-from print_and_plot import plot
-plot(foo)
+calibrated_levels = main.endogenous.get_level_records()
+
+main.solve()
+
+assert all(
+  x.equals(y) for x, y in zip(calibrated_levels, main.endogenous.get_level_records())
+),"Zero-shock changed endogenous variables."
+
+[x.records for x in container.getVariables()]

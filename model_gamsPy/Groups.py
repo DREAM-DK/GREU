@@ -60,14 +60,14 @@ class Group:
     else:
       self.content[var.name] = merge_conditions(self.content[var.name], condition)
 
-  def subtract_variable(self, var, condition=None):
+  def subtract_variable(self, var, condition=1):
     """Remove a variable from the group for a limited domain."""
+    condition = condition_from_subdomain(var, condition)
     if var.name not in self.content:
       pass
     elif condition is None:
       del self.content[var.name]
     else:
-      condition = condition_from_subdomain(var, condition)
       self.content[var.name] = self.content[var.name] & ~condition
 
   def copy(self):
@@ -93,20 +93,34 @@ class Group:
     return g
 
   def __add__(self, other):
+    """Allow adding variables and groups to a group using <group> + <var> syntax."""
     if isinstance(other, Group):
       return self.add_group(other)
-    elif isinstance(other, Condition):
-      return self.add_variable(other.conditioning_on, other.condition)
+
+    g = self.copy()
+    if isinstance(other, Condition):
+      g.add_variable(other.conditioning_on, other.condition)
     else:
-      self.add_variable(other)
+      g.add_variable(other)
+    return g
 
   def __sub__(self, other):
+    """Allow removing variables and groups from a group using <group> - <var> syntax."""
     if isinstance(other, Group):
       return self.subtract_group(other)
-    elif isinstance(other, Condition):
-      return self.subtract_variable(other.conditioning_on, other.condition)
+    
+    g = self.copy()
+    if isinstance(other, Condition):
+      g.subtract_variable(other.conditioning_on, other.condition)
     else:
-      self.subtract_variable(other)
+      g.subtract_variable(other)
+    return g
+  
+  def __radd__(self, other):
+    """Summing groups is equivalent to adding them together."""
+    if other == 0:
+      return self
+    return self.__add__(other)
 
   def fix(self):
     """Fix variables in the group to their levels."""
@@ -123,7 +137,28 @@ class Group:
       var.lo.where[domain_condition & condition] = lower
       var.up.where[domain_condition & condition] = upper
 
+  def levels_to_pameters(self):
+    """
+    Create a parameter for each variable in the group,
+    with values set to the levels of the variables.
+    Returns a list of parameters.
+    """
+    return [level_to_parameter(self.container[var_name], constraint)
+            for var_name, constraint in self.content.items()]
+  
+  def get_level_records(self):
+    """Return a list of records of the levels of the variables in the group"""
+    return [x.records for x in self.levels_to_pameters()]
+
+def level_to_parameter(var, constraint):
+  """Create a parameter with values set to the levels of a variable (for unconstrained elements)."""
+  p = var.container.addParameter(domain=var.domain)
+  p[...].where[constraint] = var.l
+  return p
+
 def fix_all(container):
+  """Fix all variables in the container to their levels, for elements where the domain condition is true."""
   for var_name, domain_condition in container.domain_conditions.items():
     var = container[var_name]
     var.fx[...].where[domain_condition] = var.l[...]
+

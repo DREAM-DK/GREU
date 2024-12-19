@@ -1,4 +1,5 @@
-from GlobalContainer import Set
+from global_container import Set
+from settings import first_data_year, calibration_year, terminal_year
 
 t = Set("t", "Year", records=range(first_data_year, terminal_year + 1))
 
