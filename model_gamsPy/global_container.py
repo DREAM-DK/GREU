@@ -1,47 +1,45 @@
 import gamspy as gp
-import blocks
-import groups
+import blocks, groups
 
 container = gp.Container()
-
 container.domain_conditions = {}
 container.domain_dummy = {}
-
-container.tags = {}
-
 container.submodels = []
 
 Set = container.addSet
 Parameter = container.addParameter
 Alias = container.addAlias
 
-def Tag(name):
-  """Create a new tag that can be added to variables."""
-  if name not in container.tags:
-    container.tags[name] = set()
-  return container.tags[name]
+class Tag:
+  """
+  A set of gamsPy symbols.
+  Used to add tags to specific variables or equations.
+  Unlike groups, tags do not have domain conditions.
+  """
+  def __init__(self):
+    self.content = set()
+  
+  def add(self, var_name):
+    self.content.add(var_name)
 
-def add_tag_to_variable(tag, var_name):
-  """Add a tag to a variable."""
-  container.tags[tag].add(var_name)
+  def remove(self, var_name):
+    self.content.remove(var_name)
 
-def remove_tag_from_variable(tag, var_name):
-  """Remove a tag from a variable."""
-  container.tags[tag].remove(var_name)
+  def __iter__(self):
+    return iter(container[var_name] for var_name in self.content)
 
-def get_tagged_variables(tag):
-  """Return a list of variables with a given tag."""
-  return [container[name] for name in container.tags[tag]]
-
-def Variable(*args, condition=1, **kwargs):
+def Variable(*args, condition=1, tags=None, **kwargs):
   """Return a gamsPy variable with additional domain_conditition and sub_domain attributes.""" 
-  tags = {tag: kwargs.pop(tag) for tag in container.tags if tag in kwargs}
   var = container.addVariable(*args, **kwargs)
   container.domain_conditions[var.name] = condition
-  container.domain_dummy[var.name] = Set(domain=var.domain) if var.domain else None
-  for tag, value in tags.items():
-    if value:
-      add_tag_to_variable(tag, var.name)
+  container.domain_dummy[var.name] = Set(
+    name=f"domain_dummy_{var.name}",
+    description=f"Domain dummy for {var.name}",
+    domain=var.domain
+  ) if var.domain else None
+  if tags:
+    for tag in tags:
+      tag.add(var.name)
   return var
 
 def Block(**kwargs):

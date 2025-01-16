@@ -1,44 +1,10 @@
 import gamspy as gp
 import numpy as np
 from gamspy import Domain
-
 from gamspy._algebra.condition import Condition
-
 from math import inf
 
-
-def condition_from_subdomain(var, condition):
-  """
-  Return a logical condition based on a variable and a condition,
-  taking into account that the domain may have been subsetted.
-  E.g. if foo is defined over ab
-    condition_from_subdomain(foo[a], 1)
-    ->
-    Sum(a.where[a.sameAs(ab)], 1)
-  """
-  parent = var.container[var.name]
-  if var.domain == parent.domain:
-    return condition
-
-  sub_domain_pairs = [(s, s_parent)
-                      for s, s_parent in zip(var.domain, parent.domain)
-                      if s != s_parent]
-  d = Domain(sub_domain_pairs) if len(sub_domain_pairs) > 1 else sub_domain_pairs[0][0]
-  ident = np.bitwise_and.reduce([s.sameAs(s_parent) for s, s_parent in sub_domain_pairs])
-  return gp.Sum(d.where[ident], condition)
-
-
-def merge_conditions(*conditions):
-  """
-  Merge multiple logical conditions into a single condition (with and operator),
-  simplifying away conditions that are always true.
-  """
-  conditions = [c for c in conditions if not (isinstance(c, int) and c)]
-  if len(conditions) == 0:
-    return 1
-  else:
-    return np.bitwise_or.reduce(conditions)
-
+One = gp.Number(1)
 
 class Group:
   """
@@ -53,14 +19,14 @@ class Group:
     self.container = container
     self.content = content if content is not None else {}
 
-  def add_variable(self, var, condition=1):
+  def add_variable(self, var, condition=One):
     condition = condition_from_subdomain(var, condition)
     if var.name not in self.content:
       self.content[var.name] = condition
     else:
       self.content[var.name] = merge_conditions(self.content[var.name], condition)
 
-  def subtract_variable(self, var, condition=1):
+  def subtract_variable(self, var, condition=One):
     """Remove a variable from the group for a limited domain."""
     condition = condition_from_subdomain(var, condition)
     if var.name not in self.content:
@@ -149,6 +115,40 @@ class Group:
   def get_level_records(self):
     """Return a list of records of the levels of the variables in the group"""
     return [x.records for x in self.levels_to_pameters()]
+
+
+def condition_from_subdomain(var, condition):
+  """
+  Return a logical condition based on a variable and a condition,
+  taking into account that the domain may have been subsetted.
+  E.g. if foo is defined over ab
+    condition_from_subdomain(foo[a], 1)
+    ->
+    Sum(a.where[a.sameAs(ab)], 1)
+  """
+  parent = var.container[var.name]
+  if var.domain == parent.domain:
+    return condition
+
+  sub_domain_pairs = [(s, s_parent)
+                      for s, s_parent in zip(var.domain, parent.domain)
+                      if s != s_parent]
+  d = Domain(sub_domain_pairs) if len(sub_domain_pairs) > 1 else sub_domain_pairs[0][0]
+  ident = np.bitwise_and.reduce([s.sameAs(s_parent) for s, s_parent in sub_domain_pairs])
+  return gp.Sum(d.where[ident], condition)
+
+
+def merge_conditions(*conditions):
+  """
+  Merge multiple logical conditions into a single condition (with and operator),
+  simplifying away conditions that are always true.
+  """
+  conditions = [c for c in conditions if not (isinstance(c, int) and c)]
+  if len(conditions) == 0:
+    return gp.Number(1)
+  else:
+    return np.bitwise_or.reduce(conditions)
+
 
 def level_to_parameter(var, constraint):
   """Create a parameter with values set to the levels of a variable (for unconstrained elements)."""

@@ -1,11 +1,14 @@
-from groups import Group, merge_conditions, fix_all
+from groups import Group, fix_all
 from gamspy._algebra.condition import Condition
 from gamspy._algebra.expression import Expression
+from gamspy import Number
+
+One = Number(1)
 
 class Block:
   """A collection of equations and associated endogenous variables."""
 
-  def __init__(self, container, condition=1):
+  def __init__(self, container, condition=One):
     self.container = container
     self.equations = []
     self.endogenous = Group(container)
@@ -14,7 +17,7 @@ class Block:
   def __setitem__(self, key, expression):
     if key is ...:
       endogenous = None
-      condition = 1
+      condition = One
     elif isinstance(key, Condition):
       endogenous = key.conditioning_on
       condition = key.condition
@@ -23,10 +26,10 @@ class Block:
       condition = key
     else:
       endogenous = key
-      condition = 1
+      condition = One
     self.Equation(expression, endogenous=endogenous, condition=condition)
 
-  def Equation(self, expression, endogenous=None, domain=None, condition=1, **kwargs):
+  def Equation(self, expression, endogenous=None, domain=None, condition=One, **kwargs):
     """
     Add an equation to the block, with an associated endogenous variable.
     endogenous variable and domain will be inferred from first left-hand side variable if not provided.
