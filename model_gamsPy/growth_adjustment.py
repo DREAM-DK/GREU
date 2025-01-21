@@ -23,10 +23,12 @@ fqt[t] = fq ** (t.val - tBase.val)
 fvt[t] = fv ** (t.val - tBase.val)
 
 def growth_adjust():
+  """Adjust variables for growth in quantities."""
   for var in growth_adj:
     var.l = var.l / fpt[t]
 
 def inflation_adjust():
+  """Adjust variables for inflation."""
   for var in inflation_adj:
     var.l = var.l / fqt[t]
 

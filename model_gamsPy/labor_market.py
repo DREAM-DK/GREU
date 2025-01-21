@@ -43,7 +43,7 @@ jnL = Variable(name="jnL", domain=[t],
 # ------------------------------------------------------------------------------
 # Equations
 # ------------------------------------------------------------------------------
-block = Block(condition=t.val >= t1.val)
+main_block = Block(condition=t.val >= t1.val)
 
 def define_equations():
   pass
@@ -59,11 +59,11 @@ data_variables = (
 # Calibration
 # ------------------------------------------------------------------------------
 def define_calibration():
-  global calibration
-  calibration = block.copy()
+  global calibration_block
+  calibration_block = main_block.copy()
 
-  calibration.endogenous = (
-    calibration.endogenous
+  calibration_block.endogenous = (
+    calibration_block.endogenous
   )
 
 # ------------------------------------------------------------------------------

@@ -23,7 +23,7 @@ class Block:
   @endogenous.setter
   def endogenous(self, new_group):
     assert new_group.n_elements() == self.n_elements(),\
-      "Endogenous group must have the same number of elements as the block."
+      "Endogenous group must have the same number of elements as the main_block."
     self._endogenous = new_group
 
   def __setitem__(self, key, expression):
@@ -43,7 +43,7 @@ class Block:
 
   def Equation(self, expression, endogenous=None, domain=None, condition=One, **kwargs):
     """
-    Add an equation to the block, with an associated endogenous variable.
+    Add an equation to the main_block, with an associated endogenous variable.
     endogenous variable and domain will be inferred from first left-hand side variable if not provided.
     """
     if endogenous is None:
@@ -64,7 +64,7 @@ class Block:
     return eq
   
   def n_elements(self):
-    """Calculate the number of elements in a block."""
+    """Calculate the number of elements in a main_block."""
     return sum(
       self._calculate_eq_elements(eq)
       for eq in self.equations
@@ -96,7 +96,7 @@ class Block:
     return self.Model().solve(solver=solver, **kwargs)
 
   def __add__(self, other):
-    """Combine two blocks into a single block."""
+    """Combine two blocks into a single main_block."""
     b = Block(self.container)
     b.equations = self.equations + other.equations
     b.endogenous = self.endogenous + other.endogenous
@@ -108,7 +108,7 @@ class Block:
     return self.__add__(other)
 
   def copy(self):
-    """Return a copy of the block."""
+    """Return a copy of the main_block."""
     b = Block(self.container)
     b.equations = self.equations.copy()
     b.endogenous = self.endogenous.copy()

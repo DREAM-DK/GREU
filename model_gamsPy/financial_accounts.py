@@ -52,17 +52,17 @@ vI_public = Variable(name="vI_public", domain=t, tags=[inflation_adj, growth_adj
 # Equations
 # ------------------------------------------------------------------------------
 def define_equations():
-  global block
-  block = Block(condition=t.val >= t1.val)
+  global main_block
+  main_block = Block(condition=t.val >= t1.val)
 
   from factor_demand import vI_k_i, vInvt_i, vE_i
   from labor_market import vWages, vWages_i
   from input_output import vC, vG, vtY, vtM, vM, vX, vY_i, vD
 
-  block[...] = vI_private[t] == Σ(i.where[i_private[i]], Σ(k, vI_k_i[k,i,t]) + vInvt_i[i,t])
-  block[...] = vI_public[t] == Σ(i.where[i_public[i]], Σ(k, vI_k_i[k,i,t]) + vInvt_i[i,t])
+  main_block[...] = vI_private[t] == Σ(i.where[i_private[i]], Σ(k, vI_k_i[k,i,t]) + vInvt_i[i,t])
+  main_block[...] = vI_public[t] == Σ(i.where[i_public[i]], Σ(k, vI_k_i[k,i,t]) + vInvt_i[i,t])
 
-  block[...] = (
+  main_block[...] = (
     vNetFinAssets[Hh,t] == vNetFinAssets[Hh,t-1]/fv
                          + vNetInterests[Hh,t] + vNetDividends[Hh,t] + vNetRevaluations[Hh,t]
                          + vWages[t]
@@ -71,14 +71,14 @@ def define_equations():
                          - vHhTaxes[t]
   )
 
-  block[...] = (
+  main_block[...] = (
     vNetFinAssets[Corp,t] == vNetFinAssets[Corp,t-1]/fv
                             + vNetInterests[Corp,t] + vNetDividends[Corp,t] + vNetRevaluations[Corp,t]
                             + Σ(i.where[i_private[i]], vEBITDA_i[i,t]) - vI_private[t]
                             - vCorpTaxes[t]
   )
 
-  block[...] = (
+  main_block[...] = (
     vNetFinAssets[Gov,t] == vNetFinAssets[Gov,t-1]/fv
                             + vNetInterests[Gov,t] + vNetDividends[Gov,t] + vNetRevaluations[Gov,t]
                             - vG[t]
@@ -88,28 +88,29 @@ def define_equations():
                             + vHhTaxes[t] + vCorpTaxes[t]
   )
 
-  block[...] = (
+  main_block[...] = (
     vNetFinAssets[RoW,t] == vNetFinAssets[RoW,t-1]/fv
                           + vNetInterests[RoW,t] + vNetDividends[RoW,t] + vNetRevaluations[RoW,t]
                           + vM[t]
                           - vX[t]
   )
 
-  block[...] = vEBITDA_i[i,t] == vY_i[i,t] - vWages_i[i,t] - vD[i,t] - vE_i[i,t] # Net duties should be subtracted here
+  main_block[...] = vEBITDA_i[i,t] == vY_i[i,t] - vWages_i[i,t] - vD[i,t] - vE_i[i,t] # Net duties should be subtracted here
 
   # For now, we assume that households own all domestic equity going forward
-  block[...] = vNetEquity[Gov,t] == 0
-  block[...] = vNetEquity[RoW,t] == 0
-  block[...] = vNetEquity[Hh,t] == -vNetEquity['Corp',t]
+  main_block[...] = vNetEquity[Gov,t] == 0
+  main_block[...] = vNetEquity[RoW,t] == 0
+  main_block[...] = vNetEquity[Hh,t] == -vNetEquity['Corp',t]
+
   # And we set corporate debt to zero
-  block[vNetEquity[Corp,t]] = vNetDebtInstruments[Corp,t] == 0
+  main_block[vNetEquity[Corp,t]] = vNetDebtInstruments[Corp,t] == 0
 
   # Debt instruments are residual given net financial assets and equity
-  block[...] = vNetDebtInstruments[sector,t] == vNetFinAssets[sector,t] - vNetEquity[sector,t]
+  main_block[...] = vNetDebtInstruments[sector,t] == vNetFinAssets[sector,t] - vNetEquity[sector,t]
 
   # For now we assume that corporations pay out any excess cash as dividends (issue stocks)
   # And we do not calculate value of the firm for endogenous revaluations
-  block[rDividends[t]] = (
+  main_block[rDividends[t]] = (
     -vNetDividends['Corp',t] == Σ(i.where[i_private[i]], vEBITDA_i[i,t]) - vI_private[t]
                               + vNetInterests['Corp',t] # is negative
                               - vCorpTaxes[t]
@@ -117,15 +118,15 @@ def define_equations():
   )
 
   # For now assume no non-domestic equities
-  block[...] = vNetDividends[sector,t] == rDividends[t] * vNetEquity[sector,t-1]/fv
+  main_block[...] = vNetDividends[sector,t] == rDividends[t] * vNetEquity[sector,t-1]/fv
 
-  block[...] = vNetInterests[sector,t] == rInterests_s[sector,t] * vNetDebtInstruments[sector,t-1]/fv
-  block[...] = vNetRevaluations[sector,t] == rRevaluations_s[sector,t] * vNetFinAssets[sector,t-1]/fv
+  main_block[...] = vNetInterests[sector,t] == rInterests_s[sector,t] * vNetDebtInstruments[sector,t-1]/fv
+  main_block[...] = vNetRevaluations[sector,t] == rRevaluations_s[sector,t] * vNetFinAssets[sector,t-1]/fv
 
-  block[...] = rInterests_s[sector,t] == rInterests[t] + jrInterests_s[sector,t]
+  main_block[...] = rInterests_s[sector,t] == rInterests[t] + jrInterests_s[sector,t]
 
   # Interests of sectors sum to zero. Rest of World is residual.
-  block[jrInterests_s[RoW,t]] = Σ(sector, vNetInterests[sector,t]) == 0
+  main_block[jrInterests_s[RoW,t]] = Σ(sector, vNetInterests[sector,t]) == 0
 
 # ------------------------------------------------------------------------------
 # Data and exogenous parameters
@@ -160,11 +161,11 @@ vNetInterests.l[sector,t] = rInterests.l[t] * vNetDebtInstruments.l[sector,t-1]
 # Calibration
 # ------------------------------------------------------------------------------
 def define_calibration():
-  global calibration
-  calibration = block.copy()
+  global calibration_block
+  calibration_block = main_block.copy()
 
-  calibration.endogenous = (
-    calibration.endogenous
+  calibration_block.endogenous = (
+    main_block.endogenous
     - vNetFinAssets[sector,t1].where[~RoW[sector]] + jrInterests_s[sector,t1].where[~RoW[sector]]
     - vNetRevaluations[sector,t1] + rRevaluations_s[sector,t1]
   )

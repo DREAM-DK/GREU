@@ -33,23 +33,23 @@ mrHhReturn = Variable(name="mrHhReturn", domain=[t],
 # Equations
 # ------------------------------------------------------------------------------
 def define_equations():
-  global block
-  block = Block(condition=t.val >= t1.val)
+  global main_block
+  main_block = Block(condition=t.val >= t1.val)
 
   from submodel_template import template_test_parameter
   from financial_accounts import vNetFinAssets, vNetDividends, vHhTransfers, vHhTaxes, vNetInterests, vNetRevaluations
   from labor_market import vWages
   from input_output import vD, qD
 
-  block[...] = households_test_variable[t] == template_test_parameter[t]
+  main_block[...] = households_test_variable[t] == template_test_parameter[t]
 
-  block[rC_c[c,t].where[c.ord == 1]]\
+  main_block[rC_c[c,t].where[c.ord == 1]]\
     = vC[t] == rMPC[t] * vHhIncome[t] + rMPCW[t] * vNetFinAssets['Hh',t-1]/fv
 
   # Link to input-output model - households choose private consumption by purpose
-  block[qD[c,t]] = vD[c,t] == rC_c[c,t] * vC[t]
+  main_block[qD[c,t]] = vD[c,t] == rC_c[c,t] * vC[t]
 
-  block[...] = (
+  main_block[...] = (
     vHhIncome[t] == vWages[t]
                   + vHhTransfers[t]
                   - vHhTaxes[t]
@@ -58,8 +58,8 @@ def define_equations():
 
   # Marginal return is calculated ex-ante
   # and not in the first period, where information shocks can cause realized returns to differ from expectations
-  block[...].where[~t1[t]] = (
-      mrHhReturn[t] == (vNetDividends[Hh,t] + vNetInterests[Hh,t]) / (vNetFinAssets[Hh,t-1]/fv)
+  main_block[...].where[~t1[t]] = (
+    mrHhReturn[t] == (vNetDividends[Hh,t] + vNetInterests[Hh,t]) / (vNetFinAssets[Hh,t-1]/fv)
   )
 
 # ------------------------------------------------------------------------------
@@ -79,11 +79,11 @@ rMPC.l[t] = 0.4
 # Calibration
 # ------------------------------------------------------------------------------
 def define_calibration():
-  global calibration
-  calibration = block.copy()
+  global calibration_block
+  calibration_block = main_block.copy()
 
-  calibration.endogenous = (
-    calibration.endogenous
+  calibration_block.endogenous = (
+    calibration_block.endogenous
     - qD[c,t1] + rC_c[c,t1] + rMPCW[t1]
   )
 

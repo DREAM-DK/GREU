@@ -5,24 +5,21 @@ from sets.time import t, t1
 # ------------------------------------------------------------------------------
 # Variable and dummy definitions
 # ------------------------------------------------------------------------------
-template_test_variable = Variable(
-  name="template_test_variable",
-  domain=t,
+template_test_variable = Variable(name="template_test_variable", domain=t,
   description="Test variable from submodel template."
 )
-template_test_parameter = Variable(
-  name="template_test_parameter",
-  domain=t,
+template_test_parameter = Variable(name="template_test_parameter", domain=t,
   description="Test parameter from submodel template."
 )
+
 # ------------------------------------------------------------------------------
 # Equations
 # ------------------------------------------------------------------------------
 def define_equations():
-  global block
-  block = Block(condition=t.val >= t1.val)
+  global main_block
+  main_block = Block(condition=t.val >= t1.val)
 
-  block[...] = template_test_variable[t] == template_test_parameter[t]
+  main_block[...] = template_test_variable[t] == template_test_parameter[t]
 
 # ------------------------------------------------------------------------------
 # Data and exogenous parameters
@@ -38,13 +35,13 @@ data_variables = (
 # Calibration
 # ------------------------------------------------------------------------------
 def define_calibration():
-  global calibration
-  calibration = block.copy()
+  global calibration_block
+  calibration_block = main_block.copy()
 
-  # template.calibration[...] = template_test_parameter[t] == 1
+  # template.calibration_block[...] = template_test_parameter[t] == 1
 
-  calibration.endogenous = (
-    calibration.endogenous
+  calibration_block.endogenous = (
+    calibration_block.endogenous
     - template_test_variable[t1] + template_test_parameter[t1]
   )
 

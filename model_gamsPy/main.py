@@ -12,6 +12,7 @@ from growth_adjustment import growth_adjust, inflation_adjust
 # --------------------------------------------------------------------------------------------------
 # Import submodels
 # --------------------------------------------------------------------------------------------------
+submodels = []
 import submodel_template
 import financial_accounts
 # import households
@@ -19,24 +20,24 @@ import financial_accounts
 # import input_output
 
 # Find all submodels from imported modules (by checking that they have a define_equations function)
-submodels = [module for name, module in sys.modules.items() if hasattr(module, "define_equations")]
-  
+submodels = [module for _, module in sys.modules.items() if hasattr(module, "define_equations")]
+
 # --------------------------------------------------------------------------------------------------
 # Define main model and calibration model
 # --------------------------------------------------------------------------------------------------
-for m in submodels:
-  m.define_equations()
-  m.define_calibration()
+for submodel in submodels:
+  submodel.define_equations()
+  submodel.define_calibration()
 
 # Merge sub-models blocks
-main = sum(m.block for m in submodels)
-calibration = sum(m.calibration for m in submodels)
+main_block = sum(submodel.main_block for submodel in submodels)
+calibration_block = sum(submodel.calibration_block for submodel in submodels)
 
 # --------------------------------------------------------------------------------------------------
 # Data and exogenous parameters
 # --------------------------------------------------------------------------------------------------
 # Merge sub-model data groups, used to test that calibration does not change data
-data_variables = sum(m.data_variables for m in submodels)
+data_variables = sum(submodel.data_variables for submodel in submodels)
 
 # Adjust for growth and inflation
 growth_adjust()
@@ -48,19 +49,19 @@ data_levels = data_variables.get_level_records()
 # --------------------------------------------------------------------------------------------------
 # Calibration
 # --------------------------------------------------------------------------------------------------
-calibration.solve()
+calibration_block.solve()
 
 assert not (changes := differences(data_levels, data_variables.get_level_records())), \
   f"Calibration changed variables covered by data:\n{'\n\n'.join(changes)}"
 
-calibrated_levels = main.endogenous.get_level_records()
+calibrated_levels = main_block.endogenous.get_level_records()
 
 # --------------------------------------------------------------------------------------------------
 # Zero shock 
 # --------------------------------------------------------------------------------------------------
-main.solve()
-assert not (changes := differences(calibrated_levels, main.endogenous.get_level_records())), \
+main_block.solve()
+assert not (changes := differences(calibrated_levels, main_block.endogenous.get_level_records())), \
   f"Zero-shock changed endogenous variables:\n{'\n\n'.join(changes)}"
 
-for m in submodels:
-  m.tests()
+for submodel in submodels:
+  submodel.tests()
