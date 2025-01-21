@@ -12,7 +12,7 @@ x = Set(name="x", domain=d, description="Export types.", domain_forwarding=True)
 invt = Set(name="invt", domain=d, description="Inventories", domain_forwarding=True, records=["invt"])
 tl = Set(name="tl", domain=d, description="Transmission losses", domain_forwarding=True, records=["tl"])
 
-i = Set(name="i", description="Production industries.", domain_forwarding=True)
+i = Set(name="i", domain=d, description="Production industries.", domain_forwarding=True)
 m = Set(name="m", domain=i, description="Industries with imports.")
 
 data_gdx = gp.Container()
@@ -32,11 +32,12 @@ i2rx = Set(name="i2rx", domain=[i, rx])
 i2rx[i,rx] = i.sameAs(rx)
 i2re[i,re].where[gp.Sum(rx, rx2re[rx,re])] = True
 
-# # set energy[d]/energy/;
+i_public = Set(name="i_public", domain=i, description="Public industries.")
+i_private = Set(name="i_private", domain=i, description="Private industries.")
+i_public["off"] = True
+i_private[i].where[~i_public[i]] = True
 
-# Set i_public[i] "Public industries." / off /;
-# Set i_private[i] "Private industries.";
-# i_private[i] = not i_public[i];
+# # set energy[d]/energy/;
 
 # Set i_refineries[i] / 19000 /;
 # Set i_gasdistribution[i] / 35002 /;

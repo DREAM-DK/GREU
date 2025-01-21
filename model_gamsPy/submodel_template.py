@@ -1,6 +1,6 @@
-from global_container import Variable, Block, Group, container
-from sets.time import t, t1, t2
-from sets.sectors import sector, Hh, Corp
+from global_container import Variable, Block, Group, Set
+from growth_adjustment import inflation_adj, growth_adj, fp, fq, fv
+from sets.time import t, t1
 
 # ------------------------------------------------------------------------------
 # Variable and dummy definitions
@@ -18,9 +18,10 @@ template_test_parameter = Variable(
 # ------------------------------------------------------------------------------
 # Equations
 # ------------------------------------------------------------------------------
-block = Block(condition=t.val >= t1.val)
-
 def define_equations():
+  global block
+  block = Block(condition=t.val >= t1.val)
+
   block[...] = template_test_variable[t] == template_test_parameter[t]
 
 # ------------------------------------------------------------------------------
@@ -50,3 +51,5 @@ def define_calibration():
 # ------------------------------------------------------------------------------
 # Tests
 # ------------------------------------------------------------------------------
+def tests():
+  pass
