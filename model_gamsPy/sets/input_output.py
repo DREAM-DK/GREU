@@ -1,5 +1,5 @@
 import gamspy as gp
-from global_container import Set, container
+from global_container import Set
 
 d = Set(name="d", description="Demand components.")
 
@@ -14,19 +14,25 @@ tl = Set(name="tl", domain=d, description="Transmission losses", domain_forwardi
 
 i = Set(name="i", domain=d, description="Production industries.", domain_forwarding=True)
 m = Set(name="m", domain=i, description="Industries with imports.")
+y = Set(name="y", domain=i, description="Industries with domestic production.")
+
+rx2re = Set(name="rx2re", domain=[rx,re])
 
 data_gdx = gp.Container()
 data_gdx.read("../data/data.gdx")
 
-container.loadRecordsFromGdx(data_gdx, [
-  "d",
-  "re", "rx",
-  "k", "c", "g", "x",
-  "i", "m",
-  "rx2re"
-])
+for s in [
+  re, rx, k, c, g, x, i
+]:
+  s.setRecords(data_gdx[s.name].records)
 
-rx2re = container["rx2re"]
+# Work around for bugs in gamspy
+try:
+  rx2re.setRecords(data_gdx["rx2re"].records)
+except gp.exceptions.GamspyException:
+  pass
+d.setRecords(d.records)
+
 i2re = Set(name="i2re", domain=[i, re])
 i2rx = Set(name="i2rx", domain=[i, rx])
 i2rx[i,rx] = i.sameAs(rx)
@@ -46,4 +52,3 @@ i_private[i].where[~i_public[i]] = True
 # Set i_retail[i] / 47000 /;
 # Set i_service_for_industries[i] / 71000 /;
 # Set i_international_aviation[i] / 51009 /;
-

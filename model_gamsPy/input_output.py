@@ -185,9 +185,11 @@ def define_equations():
 # ------------------------------------------------------------------------------
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
-data_variables = (
-  Group()
-)
+def set_exogenous_values():
+  global data_variables
+  data_variables = (
+    Group()
+  )
 
 # ------------------------------------------------------------------------------
 # Calibration

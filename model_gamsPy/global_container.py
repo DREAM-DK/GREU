@@ -4,10 +4,14 @@ import blocks, groups
 container = gp.Container()
 container.domain_conditions = {}
 container.domain_dummies = {}
+container.debug = False
 
 Set = container.addSet
 Parameter = container.addParameter
 Alias = container.addAlias
+
+def toggle_debug():
+  container.debug = not container.debug
 
 def Variable(*args, condition=1, tags=None, **kwargs):
   """Return a gamsPy variable with additional domain_conditition and sub_domain attributes.""" 

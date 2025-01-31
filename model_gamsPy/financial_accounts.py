@@ -131,31 +131,33 @@ def define_equations():
 # ------------------------------------------------------------------------------
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
-data_variables = (
-  Group()
-  # + vNetFinAssets[sector,t1]
-  # + vNetDebtInstruments[sector,t1]
-  # + vNetEquity[sector,t1]
-  # + vNetInterests[sector,t1]
-  # + rInterests[t1]
-)
+def set_exogenous_values():
+  global data_variables
+  data_variables = (
+    Group()
+    # + vNetFinAssets[sector,t1]
+    # + vNetDebtInstruments[sector,t1]
+    # + vNetEquity[sector,t1]
+    # + vNetInterests[sector,t1]
+    # + rInterests[t1]
+  )
 
-# We use rough values for financial accounts based on MAKRO for now
-vNetDebtInstruments.l['Hh',t] = 670
-vNetDebtInstruments.l['Corp',t] = 200
-vNetDebtInstruments.l['Gov',t] = -440
-vNetDebtInstruments.l['RoW',t] = -Σ(sector, vNetDebtInstruments.l[sector,t])
+  # We use rough values for financial accounts based on MAKRO for now
+  vNetDebtInstruments.l['Hh',t] = 670
+  vNetDebtInstruments.l['Corp',t] = 200
+  vNetDebtInstruments.l['Gov',t] = -440
+  vNetDebtInstruments.l['RoW',t] = -Σ(sector, vNetDebtInstruments.l[sector,t])
 
-vNetFinAssets.l['Hh',t] = 6690
-vNetFinAssets.l['Corp',t] = -5570
-vNetFinAssets.l['Gov',t] = 270
-vNetFinAssets.l['RoW',t] = - Σ(sector, vNetFinAssets.l[sector,t])
+  vNetFinAssets.l['Hh',t] = 6690
+  vNetFinAssets.l['Corp',t] = -5570
+  vNetFinAssets.l['Gov',t] = 270
+  vNetFinAssets.l['RoW',t] = - Σ(sector, vNetFinAssets.l[sector,t])
 
-vNetEquity.l[sector,t] = vNetFinAssets.l[sector,t] - vNetDebtInstruments.l[sector,t]
+  vNetEquity.l[sector,t] = vNetFinAssets.l[sector,t] - vNetDebtInstruments.l[sector,t]
 
-# And set interests to 4% for all sectors, and revaluations to zero
-rInterests.l[t] = 0.04
-vNetInterests.l[sector,t] = rInterests.l[t] * vNetDebtInstruments.l[sector,t-1]
+  # And set interests to 4% for all sectors, and revaluations to zero
+  rInterests.l[t] = 0.04
+  vNetInterests.l[sector,t] = rInterests.l[t] * vNetDebtInstruments.l[sector,t-1]
 
 # ------------------------------------------------------------------------------
 # Calibration

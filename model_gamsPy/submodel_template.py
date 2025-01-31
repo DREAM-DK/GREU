@@ -24,12 +24,14 @@ def define_equations():
 # ------------------------------------------------------------------------------
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
-template_test_variable.l[t] = 1
+def set_exogenous_values():
+  global data_variables
+  data_variables = (
+    Group()
+    + template_test_variable[t1]
+  )
 
-data_variables = (
-  Group()
-  + template_test_variable[t1]
-)
+  template_test_variable.l[t] = 1
 
 # ------------------------------------------------------------------------------
 # Calibration

@@ -34,51 +34,55 @@ mrHhReturn = Variable(name="mrHhReturn", domain=[t],
 # ------------------------------------------------------------------------------
 def define_equations():
   global main_block
-  main_block = Block(condition=t.val >= t1.val)
+  E = main_block = Block(condition=t.val >= t1.val)
 
   from submodel_template import template_test_parameter
   from financial_accounts import vNetFinAssets, vNetDividends, vHhTransfers, vHhTaxes, vNetInterests, vNetRevaluations
   from labor_market import vWages
   from input_output import vD, qD
 
-  main_block[...] = households_test_variable[t] == template_test_parameter[t]
-
-  main_block[rC_c[c,t].where[c.ord == 1]]\
+  E[rC_c[c,t].where[c.ord == 1]]\
     = vC[t] == rMPC[t] * vHhIncome[t] + rMPCW[t] * vNetFinAssets['Hh',t-1]/fv
 
   # Link to input-output model - households choose private consumption by purpose
-  main_block[qD[c,t]] = vD[c,t] == rC_c[c,t] * vC[t]
+  E[qD[c,t]] = vD[c,t] == rC_c[c,t] * vC[t]
 
-  main_block[...] = (
+  E[...] = (
     vHhIncome[t] == vWages[t]
                   + vHhTransfers[t]
                   - vHhTaxes[t]
-                  + vNetInterests[Hh,t] + vNetRevaluations[Hh,t]
+                  + vNetInterests['Hh',t] + vNetRevaluations['Hh',t]
   )
 
   # Marginal return is calculated ex-ante
   # and not in the first period, where information shocks can cause realized returns to differ from expectations
-  main_block[...].where[~t1[t]] = (
-    mrHhReturn[t] == (vNetDividends[Hh,t] + vNetInterests[Hh,t]) / (vNetFinAssets[Hh,t-1]/fv)
+  E[~t1[t]] = (
+    mrHhReturn[t] == (vNetDividends['Hh',t] + vNetInterests['Hh',t]) / (vNetFinAssets['Hh',t-1]/fv)
   )
 
 # ------------------------------------------------------------------------------
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
-data_variables = (
-  Group()
-  # + qD[c,t]
-)
+def set_exogenous_values():
+  from input_output import qD
 
-rMPC.l[t] = 0.4
+  global data_variables
+  data_variables = (
+    Group()
+    + qD[c,t]
+  )
 
-# *** Review: Handling of data loading from GDX file
-# @load(data_variables, "../data/data.gdx")
+  rMPC.l[t] = 0.4
+
+  # *** Review: Handling of data loading from GDX file
+  # @load(data_variables, "../data/data.gdx")
 
 # ------------------------------------------------------------------------------
 # Calibration
 # ------------------------------------------------------------------------------
 def define_calibration():
+  from input_output import qD
+
   global calibration_block
   calibration_block = main_block.copy()
 
@@ -88,6 +92,7 @@ def define_calibration():
   )
 
   # Variables that are flat after last data year
+  global flat_after_last_data_year
   flat_after_last_data_year = (
     Group()
     + rMPCW[t]

@@ -2,8 +2,8 @@ import gamspy as gp
 from groups import Group, fix_all
 from gamspy._algebra.condition import Condition
 from gamspy._algebra.expression import Expression
-
-One = gp.Number(1)
+from gamspy._symbols.implicits.implicit_set import ImplicitSet
+from conditions import One, and_merge_conditions
 
 class Block:
   """A collection of equations and associated endogenous variables."""
@@ -22,28 +22,35 @@ class Block:
   
   @endogenous.setter
   def endogenous(self, new_group):
-    assert new_group.n_elements() == self.n_elements(),\
-      "Endogenous group must have the same number of elements as the main_block."
+    if self.container.debug:
+      assert new_group.n_elements() == self.n_elements(),\
+        "Endogenous group must have the same number of elements as the block."
     self._endogenous = new_group
 
   def __setitem__(self, key, expression):
     if key is ...:
-      endogenous = None
-      condition = One
+      self.Equation(expression)
     elif isinstance(key, Condition):
-      endogenous = key.conditioning_on
-      condition = key.condition
-    elif isinstance(key, Expression):
-      endogenous = None
-      condition = key
+      self.Equation(expression, endogenous=key.conditioning_on, condition=key.condition)
+    elif isinstance(key, (Expression, ImplicitSet)):
+      self.Equation(expression, condition=key)
     else:
-      endogenous = key
-      condition = One
-    self.Equation(expression, endogenous=endogenous, condition=condition)
+      self.Equation(expression, endogenous=key)
 
-  def Equation(self, expression, endogenous=None, domain=None, condition=One, **kwargs):
+  def generate_equation_name(self, endogenous, domain):
+    parent_domain = endogenous.parent.domain
+    changed_domains = [d.name for d, pd in zip(domain, parent_domain) if d != pd]
+    domain_string = "_".join(changed_domains)
+    for i in range(1, 100):
+      name = f"E_{endogenous.name}_{domain_string}_{i}"
+      if name not in self.container.listEquations():
+        return name
+    else:
+      raise ValueError(f"Could not generate unique equation name for {endogenous.name}.")
+
+  def Equation(self, expression, endogenous=None, domain=None, condition=One):
     """
-    Add an equation to the main_block, with an associated endogenous variable.
+    Add an equation to the block, with an associated endogenous variable.
     endogenous variable and domain will be inferred from first left-hand side variable if not provided.
     """
     if endogenous is None:
@@ -51,20 +58,23 @@ class Block:
     if domain is None:
       domain = endogenous.domain
 
-    eq = self.container.addEquation(domain=domain, **kwargs)
+    eq = self.container.addEquation(
+      name=self.generate_equation_name(endogenous, domain),
+      domain=domain,
+    )
 
     domain_dummy = evaluate_domain_dummy(self.container, endogenous.name)
 
-    eq[domain].where[domain_dummy[domain] & self.condition & condition] = expression
+    eq[domain].where[and_merge_conditions(domain_dummy[domain], self.condition, condition)] = expression
 
     self.equations.append(eq)
     self.domain_dummies.append(domain_dummy)
-    self.endogenous += endogenous.where[self.condition & condition]
+    self.endogenous += endogenous.where[and_merge_conditions(self.condition, condition)]
 
     return eq
   
   def n_elements(self):
-    """Calculate the number of elements in a main_block."""
+    """Calculate the number of elements in a block."""
     return sum(
       self._calculate_eq_elements(eq)
       for eq in self.equations
@@ -96,7 +106,7 @@ class Block:
     return self.Model().solve(solver=solver, **kwargs)
 
   def __add__(self, other):
-    """Combine two blocks into a single main_block."""
+    """Combine two blocks into a single block."""
     b = Block(self.container)
     b.equations = self.equations + other.equations
     b.endogenous = self.endogenous + other.endogenous
@@ -108,7 +118,7 @@ class Block:
     return self.__add__(other)
 
   def copy(self):
-    """Return a copy of the main_block."""
+    """Return a copy of the block."""
     b = Block(self.container)
     b.equations = self.equations.copy()
     b.endogenous = self.endogenous.copy()
