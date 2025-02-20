@@ -13,6 +13,6 @@ qE_diff_sum[es,d,t] = sum(e, qE_diff[es,e,d,t]);
 
 qE_pct[es,e,d,t]$(d1pEpj_base[es,e,d,t] and d1qE_tech[es,e,d,t]) = (qE_tech.l[es,e,d,t]/qEpj.l[es,e,d,t] - 1)*100;
 
-qAdoption[l,es,d,t]$(d1sTPotential[l,es,d,t]) = errorf(InputErrorf_sTSupply.l[l,es,d,t]);
+qAdoption[l,es,d,t]$(d1sTPotential[l,es,d,t]) = sTSupply.l[l,es,d,t] / sTPotential.l[l,es,d,t] ;
 
 # execute_unloaddi "report.gdx";

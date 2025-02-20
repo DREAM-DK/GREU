@@ -34,8 +34,8 @@ $Group+ all_variables
   svP[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Average technology price"
   InputLog_Tutil[l,es,d,t]$(d1sTPotential[l,es,d,t]) ""
   eP[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Smoothing parameter for technology adoption"
-  InputErrorf_sTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) ""
-  InputErrorf_cTutil[l,es,d,t]$(d1sTPotential[l,es,d,t]) ""
+  #InputErrorf_sTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) ""
+  #InputErrorf_cTutil[l,es,d,t]$(d1sTPotential[l,es,d,t]) ""
   cTutil[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Nonlinear technology costs"
 ;
 
@@ -59,21 +59,28 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
   # InputErrorf_sTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t])..	
   #   InputErrorf_sTSupply[l,es,d,t]*eP[l,es,d,t] =E= log(InputLog_Tutil[l,es,d,t]) + 0.5*eP[l,es,d,t]**2;
 
-  .. InputErrorf_sTSupply[l,es,d,t]*eP[l,es,d,t] =E= log((InputLog_Tutil[l,es,d,t]*InputLog_Tutil[l,es,d,t])**0.5)
-                                                  + 0.5*eP[l,es,d,t]**2;
+  #.. InputErrorf_sTSupply[l,es,d,t]*eP[l,es,d,t] =E= log((InputLog_Tutil[l,es,d,t]*InputLog_Tutil[l,es,d,t])**0.5)
+  #                                                + 0.5*eP[l,es,d,t]**2;
 
   # Supply of tecnology l in ratio of energy demand qES
-  	.. sTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(InputErrorf_sTSupply[l,es,d,t]);
+  	.. sTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
+                                                            log((InputLog_Tutil[l,es,d,t]*InputLog_Tutil[l,es,d,t])**0.5)
+                                                            + 0.5*eP[l,es,d,t]**2
+                                                            );
   
   #
   # InputErrorf_cTutil[l,es,d,t]$(d1sTPotential[l,es,d,t]).. 
   #   InputErrorf_cTutil[l,es,d,t]*eP[l,es,d,t] =E= log(InputLog_Tutil[l,es,d,t]) - 0.5*eP[l,es,d,t]**2;
 
-  .. InputErrorf_cTutil[l,es,d,t]*eP[l,es,d,t] =E= log((InputLog_Tutil[l,es,d,t]*InputLog_Tutil[l,es,d,t])**0.5)
-                                                - 0.5*eP[l,es,d,t]**2;
+ # .. InputErrorf_cTutil[l,es,d,t]*eP[l,es,d,t] =E= log((InputLog_Tutil[l,es,d,t]*InputLog_Tutil[l,es,d,t])**0.5)
+#                                                - 0.5*eP[l,es,d,t]**2;
 
 	# Nonlinear costs
-	.. cTutil[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(InputErrorf_cTutil[l,es,d,t]);
+	.. cTutil[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
+                                                            log((InputLog_Tutil[l,es,d,t]*InputLog_Tutil[l,es,d,t])**0.5)
+                                                            - 0.5*eP[l,es,d,t]**2
+                                                            
+                                                        );
 
 	# Price index for energy purposes
 	.. pES[es,d,t] =E= sum(l, cTutil[l,es,d,t]*pT[l,es,d,t]);
@@ -191,8 +198,8 @@ $Group+ G_flat_after_last_data_year
   svP[es,d,t]
   InputLog_Tutil[l,es,d,t]
   eP[l,es,d,t]
-  InputErrorf_sTSupply[l,es,d,t]
-  InputErrorf_cTutil[l,es,d,t]
+  #InputErrorf_sTSupply[l,es,d,t]
+  #InputErrorf_cTutil[l,es,d,t]
   cTutil[l,es,d,t]
 ;
 
