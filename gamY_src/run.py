@@ -12,6 +12,9 @@ root = dt.find_root()
 sys.path.insert(0, root)
 # import paths
 
+# Manually add GAMS to path
+# os.environ["GAMS"] = "C:/GAMS/46/gams.exe"
+
 ## Set working directory
 os.chdir(fr"{root}/gamY_src")
 
@@ -35,3 +38,5 @@ e = dt.Gdx("Abatement_partial_elec.gdx")
 
 ## Carbon tax
 c = dt.Gdx("Abatement_partial_carbon_tax.gdx")
+
+

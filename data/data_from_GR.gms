@@ -112,7 +112,7 @@ parameters auxiliary_data_parameters
   qEmmBorderTrade_load[t,em]
 
   # Abatement
-  theta_load[l,es,i,e,t] "Potential, technology."
+  sSupply_load[l,es,i,e,t] "Potential, technology."
   uTE_load[l,es,i,e,t] "Energy use, technology."
   uTK_load[l,es,i,e,t] "Capital use, technology."
 ;
@@ -172,7 +172,7 @@ parameters GREU_data
   vtCAP_prodsubsidy[i,t]
 
   # Abatement
-  theta[l,es,i,t] "Potential, technology."
+  sSupply[l,es,i,t] "Potential, technology."
   uTE[l,es,e,i,t] "Energy use, technology."
   uTK[l,es,i,t] "Capital use, technology."
 ;
@@ -200,7 +200,7 @@ $load vtCAP_prodsubsidy=vtCAP_top.l
 $gdxIn 
 
 $gdxIn %abatement_data_path%
-$load l=l theta_load=theta.l, uTE_load=uTE.l, uTK_load=uTK.l
+$load l=l sSupply_load=sSupply.l, uTE_load=uTE.l, uTK_load=uTK.l
 $gdxIn
 
 # Labor-market
@@ -290,7 +290,7 @@ qInvt_i[i,t] = qI_s.l['invt',i,t];
   tEmarg_duty['EAFG_tax',es,e,i,t]      = tEAFG_REmarg[es,e,i,t]/1000; #Dividing by 1000 to convert from kroner per GJ to bio. kroner per Pj.
 
   # Abatement
-  theta[l,es,i,t] = sum(e, theta_load[l,es,i,e,t]);
+  sSupply[l,es,i,t] = sum(e, sSupply_load[l,es,i,e,t]);
   uTE[l,es,e,i,t] = uTE_load[l,es,i,e,t];
   uTK[l,es,i,t] = sum(e, uTK_load[l,es,i,e,t]);
 
@@ -320,7 +320,7 @@ execute_unloaddi "data",
   vtE_duty, vtE_vat, tCO2_Emarg, tEmarg_duty
   Energybalance, NonEnergyEmissions
 
-  theta, uTE, uTK
+  sSupply, uTE, uTK
 
   vIOxE_y, vIOxE_m, vIOxE_a, vIO_y, vIO_m, vIO_a
 ;
