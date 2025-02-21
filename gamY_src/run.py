@@ -13,7 +13,7 @@ sys.path.insert(0, root)
 # import paths
 
 # Manually add GAMS to path
-# os.environ["GAMS"] = "C:/GAMS/46/gams.exe"
+os.environ["GAMS"] = "C:/GAMS/46/gams.exe"
 
 ## Set working directory
 os.chdir(fr"{root}/gamY_src")
@@ -21,6 +21,7 @@ os.chdir(fr"{root}/gamY_src")
 # dt.gamY.run("../data/data_from_GR.gms")
 
 dt.gamY.run("base_model.gms")
+
 
 ## Save calibration.gdx as previous_calibration.gdx
 # shutil.copy("calibration.gdx", "previous_calibration.gdx")

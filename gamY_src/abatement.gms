@@ -12,13 +12,14 @@ $SetGroup+ SG_flat_after_last_data_year
 
 $Group+ all_variables
   qES[es,d,t]$(sum(e, d1pEpj_base[es,e,d,t]) or $(sum(e, d1tqEpj[es,e,d,t]))) "Energy service, quantity."
-  pES[es,d,t]$(sum(l, d1sTPotential[l,es,d,t]))                                     "Energy service, price."
-  vES[es,d,t]$(sum(l, d1sTPotential[l,es,d,t]))                                     "Energy service, value."
+  pES[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Energy service, price."
+  vES[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Value of energy service" 
+                              
   
   pEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Energy price."
   qE_tech[es,e,d,t]$(d1qE_tech[es,e,d,t]) "Energy input, technology."
 
-  pT[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Price index, technology."
+  pT[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Price per PJ of energy service for technology l at full potential, ie. when sTSupply=sTPotential"
   pT_bar[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Average technology price."
 
   pK_abatement[d,t]$(d1pK_abatement[d,t]) "User cost on capital. Should probably distinguish between investment types."
@@ -32,11 +33,12 @@ $Group+ all_variables
   uTE[l,es,e,d,t]$(d1uTE[l,es,e,d,t]) "Energy use, technology."
   uTK[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Capital use, technology."
   svP[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Average technology price"
-  InputLog_Tutil[l,es,d,t]$(d1sTPotential[l,es,d,t]) ""
+  # InputLog_Tutil[l,es,d,t]$(d1sTPotential[l,es,d,t]) ""
   eP[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Smoothing parameter for technology adoption"
   #InputErrorf_sTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) ""
   #InputErrorf_cTutil[l,es,d,t]$(d1sTPotential[l,es,d,t]) ""
   cTutil[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Nonlinear technology costs"
+  vTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Value (or costs) of energy service supplied by technology l "
 ;
 
 $ENDIF # variables
@@ -53,7 +55,8 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 										+ uTK[l,es,d,t]*pK_abatement[d,t];
 
   # Scaled technology price
-	.. InputLog_Tutil[l,es,d,t] =E= svP[es,d,t]/(pT[l,es,d,t]/pT_bar[es,d,t]);
+	#.. InputLog_Tutil[l,es,d,t] =E= svP[es,d,t]/(pT[l,es,d,t]/pT_bar[es,d,t]);
+  #.. InputLog_Tutil[l,es,d,t] =E= svP[es,d,t]/pT[l,es,d,t];
 
   # 
   # InputErrorf_sTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t])..	
@@ -64,7 +67,7 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 
   # Supply of tecnology l in ratio of energy demand qES
   	.. sTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
-                                                            log((InputLog_Tutil[l,es,d,t]*InputLog_Tutil[l,es,d,t])**0.5)
+                                                            log( ( (svP[es,d,t]/pT[l,es,d,t])**2 )**0.5)
                                                             + 0.5*eP[l,es,d,t]**2
                                                             );
   
@@ -77,10 +80,17 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 
 	# Nonlinear costs
 	.. cTutil[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
-                                                            log((InputLog_Tutil[l,es,d,t]*InputLog_Tutil[l,es,d,t])**0.5)
-                                                            - 0.5*eP[l,es,d,t]**2
-                                                            
+                                                            log( ( (svP[es,d,t]/pT[l,es,d,t])**2 )**0.5)
+                                                            - 0.5*eP[l,es,d,t]**2   
                                                         );
+
+# Value (or costs) of energy service supplied by technology l
+.. vTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
+                                                            log( ( (svP[es,d,t]/pT[l,es,d,t])**2 )**0.5)
+                                                            - 0.5*eP[l,es,d,t]**2   
+                                                        )
+                          *qES[es,d,t]*pT[l,es,d,t];
+
 
 	# Price index for energy purposes
 	.. pES[es,d,t] =E= sum(l, cTutil[l,es,d,t]*pT[l,es,d,t]);
@@ -96,7 +106,7 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 ### AGGREGATES ###
 
   # Value of energy service
-  .. vES[es,d,t] =E= qES[es,d,t]*pES[es,d,t];
+  .. vES[es,d,t] =E= sum(l,vTSupply[l,es,d,t]);
 
   # Production costs (total costs of energy?)
   .. qT[l,es,d,t]	=E= cTutil[l,es,d,t]*qES[es,d,t];
@@ -190,13 +200,14 @@ $Group+ G_flat_after_last_data_year
   qK_tech[d,t]
 
   sTSupply[l,es,d,t]
+  vTSupply[l,es,d,t]
   qT[l,es,d,t]
 
   sTPotential[l,es,d,t]
   uTE[l,es,e,d,t]
   uTK[l,es,d,t]
   svP[es,d,t]
-  InputLog_Tutil[l,es,d,t]
+  # InputLog_Tutil[l,es,d,t]
   eP[l,es,d,t]
   #InputErrorf_sTSupply[l,es,d,t]
   #InputErrorf_cTutil[l,es,d,t]
