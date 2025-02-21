@@ -67,8 +67,10 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 
   # Supply of tecnology l in ratio of energy demand qES
   	.. sTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
+                                                            (
                                                             log( ( (svP[es,d,t]/pT[l,es,d,t])**2 )**0.5)
                                                             + 0.5*eP[l,es,d,t]**2
+                                                            )/eP[l,es,d,t]
                                                             );
   
   #
@@ -80,14 +82,18 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 
 	# Nonlinear costs
 	.. cTutil[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
+                                                            (
                                                             log( ( (svP[es,d,t]/pT[l,es,d,t])**2 )**0.5)
                                                             - 0.5*eP[l,es,d,t]**2   
+                                                            )/eP[l,es,d,t]
                                                         );
 
 # Value (or costs) of energy service supplied by technology l
 .. vTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
+                                                            (
                                                             log( ( (svP[es,d,t]/pT[l,es,d,t])**2 )**0.5)
                                                             - 0.5*eP[l,es,d,t]**2   
+                                                            )/eP[l,es,d,t]
                                                         )
                           *qES[es,d,t]*pT[l,es,d,t];
 
