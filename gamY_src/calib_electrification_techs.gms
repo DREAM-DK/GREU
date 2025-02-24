@@ -46,10 +46,10 @@ execute_unloaddi "calib_elec_techs.gdx";
 
 d1uTE[l,es,e,d,t] = yes$(uTE.l[l,es,e,d,t] and included_industries[d] and included_service[es]);
 d1pK_abatement[d,t] = yes$(sum((l,es), d1sTPotential[l,es,d,t]));
-d1qE_tech[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
+d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 
 pK_abatement.l[d,t]$(sum((l,es), d1sTPotential[l,es,d,t])) = 0.1;
 qES.l[es,d,t] = sum(e, qEpj.l[es,e,d,t]);
 
-svP.l[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) = 1;
+pESmarg.l[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) = 1;
 eP.l[l,es,d,t]$(d1sTPotential[l,es,d,t]) = 0.5;

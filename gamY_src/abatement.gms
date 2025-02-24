@@ -7,7 +7,7 @@ $SetGroup+ SG_flat_after_last_data_year
   d1sTPotential[l,es,d,t] "Dummy determining the existence of technology potentials"
   d1pK_abatement[d,t] "Dummy determining the existence of user costs for technologies"
   d1uTE[l,es,e,d,t] "Dummy determining the existence of energy input in technology"
-  d1qE_tech[es,e,d,t] "Dummy determining the existence of energy use (sum across technologies)"
+  d1qES_e[es,e,d,t] "Dummy determining the existence of energy use (sum across technologies)"
 ;
 
 $Group+ all_variables
@@ -16,27 +16,26 @@ $Group+ all_variables
   vES[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Value of energy service" 
                               
   
-  pEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Energy price."
-  qE_tech[es,e,d,t]$(d1qE_tech[es,e,d,t]) "Energy input, technology."
-
-  pT[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Price per PJ of energy service for technology l at full potential, ie. when sTSupply=sTPotential"
-  pT_bar[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Average technology price."
+  pEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Price of energy in energy services"
+  qES_e[es,e,d,t]$(d1qES_e[es,e,d,t]) "Quantity of energy in energy services"
 
   pK_abatement[d,t]$(d1pK_abatement[d,t]) "User cost on capital. Should probably distinguish between investment types."
-  qK_tech[d,t]$(d1pK_abatement[d,t]) "Use of machine capital for technologies."
+  qK_tech[d,t]$(d1pK_abatement[d,t]) "Quantity of machinery capital in energy services"
 
-  sTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Ratio of Energy Service (qES) supplied by technology l"
-  qT[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Production costs (total costs of energy?)."
-
-  sTPotential[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Potential ratio of energy service (qES) supplied by technology l"
-  theta[l,es,d,t]$(d1sTPotential[l,es,d,t]) "jsk same sTPotential. only used adhoc for loading data"
-  uTE[l,es,e,d,t]$(d1uTE[l,es,e,d,t]) "Energy use, technology."
-  uTK[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Capital use, technology."
-  svP[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Average technology price"
-
-  eP[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Smoothing parameter for technology adoption"
-
+  pT[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Average price of technology l at full potential, ie. when sTSupply=sTPotential"
+  sTPotential[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Potential supply by technology l in ratio of energy service (share of qES)"
+  sTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Supply by technology l in ratio of energy service (share of qES)"
   vTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Value (or costs) of energy service supplied by technology l "
+
+  theta[l,es,d,t]$(d1sTPotential[l,es,d,t]) "jsk same sTPotential. only used adhoc for loading data"
+  uTE[l,es,e,d,t]$(d1uTE[l,es,e,d,t]) "Input of energy in technology l per PJ output at full potential"
+  uTK[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Input of machinery capital in technology l per PJ output output at full potential"
+
+  pESmarg[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Marginal price of energy services based on the supply by technologies l"
+
+  eP[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Parameter governing efficiency of costs of technology l (smoothing parameter)"
+
+
 ;
 
 $ENDIF # variables
@@ -55,7 +54,7 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
   # Supply of tecnology l in ratio of energy demand qES
   	.. sTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
                                                             (
-                                                            log( ( (svP[es,d,t]/pT[l,es,d,t])**2 )**0.5)
+                                                            log( ( (pESmarg[es,d,t]/pT[l,es,d,t])**2 )**0.5)
                                                             + 0.5*eP[l,es,d,t]**2
                                                             )/eP[l,es,d,t]
                                                             );
@@ -65,7 +64,7 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 # Value (or costs) of energy service supplied by technology l
 .. vTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
                                                             (
-                                                            log( ( (svP[es,d,t]/pT[l,es,d,t])**2 )**0.5)
+                                                            log( ( (pESmarg[es,d,t]/pT[l,es,d,t])**2 )**0.5)
                                                             - 0.5*eP[l,es,d,t]**2   
                                                             )/eP[l,es,d,t]
                                                         )
@@ -73,12 +72,7 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 
 
 	# Shadow value identifying marginal technology for energy purpose
-	svP[es,d,t].. 1 =E= sum(l, sTSupply[l,es,d,t]);
-
-  # Average technology price
-  .. pT_bar[es,d,t] =E= (sum(l, sTPotential[l,es,d,t]*pT[l,es,d,t])
-                                                                 / sum(l, sTPotential[l,es,d,t]))
-                                                                 * (1/sum(l, d1sTPotential[l,es,d,t]));
+	pESmarg[es,d,t].. 1 =E= sum(l, sTSupply[l,es,d,t]);
 
 ### AGGREGATES ###
 
@@ -89,14 +83,11 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 	.. pES[es,d,t] =E= vES[es,d,t] / qES[es,d,t] ;
 
 
-# Production costs (total costs of energy?)
-  .. qT[l,es,d,t]	=E= vTSupply[l,es,d,t] ;
-
     # Use of energy goods
-  .. qE_tech[es,e,d,t] =E= sum(l, uTE[l,es,e,d,t]*qT[l,es,d,t]);
+  .. qES_e[es,e,d,t] =E= sum(l, uTE[l,es,e,d,t]*vTSupply[l,es,d,t]);
 
   # Use of machine capital for technologies
-  .. qK_tech[d,t] =E= sum((l,es), uTK[l,es,d,t]*qT[l,es,d,t]);
+  .. qK_tech[d,t] =E= sum((l,es), uTK[l,es,d,t]*vTSupply[l,es,d,t]);
 
 $ENDBLOCK
 
@@ -136,13 +127,13 @@ set included_service[es] /
 d1sTPotential[l,es,d,t] = yes$(sTPotential.l[l,es,d,t] and included_industries[d] and included_service[es]);
 d1uTE[l,es,e,d,t] = yes$(uTE.l[l,es,e,d,t] and included_industries[d] and included_service[es]);
 d1pK_abatement[d,t] = yes$(sum((l,es), d1sTPotential[l,es,d,t]));
-d1qE_tech[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
+d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 
 # Initial values
 pK_abatement.l[d,t]$(sum((l,es), d1sTPotential[l,es,d,t])) = 0.1;
 qES.l[es,d,t] = sum(e, qEpj.l[es,e,d,t]);
 
-svP.l[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) = 1;
+pESmarg.l[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) = 1;
 eP.l[l,es,d,t]$(d1sTPotential[l,es,d,t]) = 0.5;
 
 # Electrification technologies that are not present in data
@@ -172,22 +163,20 @@ $Group+ G_flat_after_last_data_year
   vES[es,d,t]
   
   pEpj[es,e,d,t]
-  qE_tech[es,e,d,t]
+  qES_e[es,e,d,t]
 
   pT[l,es,d,t]
-  pT_bar[es,d,t]
 
   pK_abatement[d,t]
   qK_tech[d,t]
 
   sTSupply[l,es,d,t]
   vTSupply[l,es,d,t]
-  qT[l,es,d,t]
-
+  
   sTPotential[l,es,d,t]
   uTE[l,es,e,d,t]
   uTK[l,es,d,t]
-  svP[es,d,t]
+  pESmarg[es,d,t]
 
   eP[l,es,d,t]
  ;
