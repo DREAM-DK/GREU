@@ -33,11 +33,9 @@ $Group+ all_variables
   uTE[l,es,e,d,t]$(d1uTE[l,es,e,d,t]) "Energy use, technology."
   uTK[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Capital use, technology."
   svP[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Average technology price"
-  # InputLog_Tutil[l,es,d,t]$(d1sTPotential[l,es,d,t]) ""
+
   eP[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Smoothing parameter for technology adoption"
-  #InputErrorf_sTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) ""
-  #InputErrorf_cTutil[l,es,d,t]$(d1sTPotential[l,es,d,t]) ""
-  cTutil[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Nonlinear technology costs"
+
   vTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Value (or costs) of energy service supplied by technology l "
 ;
 
@@ -54,17 +52,6 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 	.. pT[l,es,d,t]	=E= sum(e, uTE[l,es,e,d,t]*pEpj[es,e,d,t])
 										+ uTK[l,es,d,t]*pK_abatement[d,t];
 
-  # Scaled technology price
-	#.. InputLog_Tutil[l,es,d,t] =E= svP[es,d,t]/(pT[l,es,d,t]/pT_bar[es,d,t]);
-  #.. InputLog_Tutil[l,es,d,t] =E= svP[es,d,t]/pT[l,es,d,t];
-
-  # 
-  # InputErrorf_sTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t])..	
-  #   InputErrorf_sTSupply[l,es,d,t]*eP[l,es,d,t] =E= log(InputLog_Tutil[l,es,d,t]) + 0.5*eP[l,es,d,t]**2;
-
-  #.. InputErrorf_sTSupply[l,es,d,t]*eP[l,es,d,t] =E= log((InputLog_Tutil[l,es,d,t]*InputLog_Tutil[l,es,d,t])**0.5)
-  #                                                + 0.5*eP[l,es,d,t]**2;
-
   # Supply of tecnology l in ratio of energy demand qES
   	.. sTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
                                                             (
@@ -73,21 +60,8 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
                                                             )/eP[l,es,d,t]
                                                             );
   
-  #
-  # InputErrorf_cTutil[l,es,d,t]$(d1sTPotential[l,es,d,t]).. 
-  #   InputErrorf_cTutil[l,es,d,t]*eP[l,es,d,t] =E= log(InputLog_Tutil[l,es,d,t]) - 0.5*eP[l,es,d,t]**2;
 
- # .. InputErrorf_cTutil[l,es,d,t]*eP[l,es,d,t] =E= log((InputLog_Tutil[l,es,d,t]*InputLog_Tutil[l,es,d,t])**0.5)
-#                                                - 0.5*eP[l,es,d,t]**2;
-
-	# Nonlinear costs
-	.. cTutil[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
-                                                            (
-                                                            log( ( (svP[es,d,t]/pT[l,es,d,t])**2 )**0.5)
-                                                            - 0.5*eP[l,es,d,t]**2   
-                                                            )/eP[l,es,d,t]
-                                                        );
-
+	
 # Value (or costs) of energy service supplied by technology l
 .. vTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
                                                             (
@@ -97,9 +71,6 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
                                                         )
                           *qES[es,d,t]*pT[l,es,d,t];
 
-
-	# Price index for energy purposes
-	.. pES[es,d,t] =E= sum(l, cTutil[l,es,d,t]*pT[l,es,d,t]);
 
 	# Shadow value identifying marginal technology for energy purpose
 	svP[es,d,t].. 1 =E= sum(l, sTSupply[l,es,d,t]);
@@ -114,10 +85,14 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
   # Value of energy service
   .. vES[es,d,t] =E= sum(l,vTSupply[l,es,d,t]);
 
-  # Production costs (total costs of energy?)
-  .. qT[l,es,d,t]	=E= cTutil[l,es,d,t]*qES[es,d,t];
+	# Price index for energy purposes
+	.. pES[es,d,t] =E= vES[es,d,t] / qES[es,d,t] ;
 
-  # Use of energy goods
+
+# Production costs (total costs of energy?)
+  .. qT[l,es,d,t]	=E= vTSupply[l,es,d,t] ;
+
+    # Use of energy goods
   .. qE_tech[es,e,d,t] =E= sum(l, uTE[l,es,e,d,t]*qT[l,es,d,t]);
 
   # Use of machine capital for technologies
@@ -213,11 +188,8 @@ $Group+ G_flat_after_last_data_year
   uTE[l,es,e,d,t]
   uTK[l,es,d,t]
   svP[es,d,t]
-  # InputLog_Tutil[l,es,d,t]
+
   eP[l,es,d,t]
-  #InputErrorf_sTSupply[l,es,d,t]
-  #InputErrorf_cTutil[l,es,d,t]
-  cTutil[l,es,d,t]
-;
+ ;
 
 $ENDIF # calibration
