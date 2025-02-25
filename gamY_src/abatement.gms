@@ -67,7 +67,11 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
                                                             );
   
 
-	
+	# Shadow value identifying marginal technology for energy purpose
+	pESmarg[es,d,t].. 1 =E= sum(l, sTSupply[l,es,d,t]);
+
+# Supplementary output
+
 # Value (or costs) of energy service supplied by technology l
 .. vTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
                                                             (
@@ -77,13 +81,7 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
                                                         )
                           *qES[es,d,t]*pT[l,es,d,t];
 
-
-	# Shadow value identifying marginal technology for energy purpose
-	pESmarg[es,d,t].. 1 =E= sum(l, sTSupply[l,es,d,t]);
-
-# Supplementary output
-
-# Average price of energy service supplied by technology l. Dead end variable. Can be moved to reporting if issues with division by zero occurs.
+# Average price of energy service supplied by technology l. 
   .. pTSupply[l,es,d,t] =E= vTSupply[l,es,d,t] / ( sTSupply[l,es,d,t] * qES[es,d,t] ) ;
 
   # Value of energy service
