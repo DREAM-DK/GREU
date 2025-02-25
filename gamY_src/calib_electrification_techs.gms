@@ -42,14 +42,3 @@ uTK.l['t_Electricity_calib','heating','10030',t] = 2.5;
 uTK.l['t_Electricity_calib_2','heating','10030',t] = 3;
 
 execute_unloaddi "calib_elec_techs.gdx";
-
-
-d1uTE[l,es,e,d,t] = yes$(uTE.l[l,es,e,d,t] and included_industries[d] and included_service[es]);
-d1pK_abatement[d,t] = yes$(sum((l,es), d1sTPotential[l,es,d,t]));
-d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
-
-pK_abatement.l[d,t]$(sum((l,es), d1sTPotential[l,es,d,t])) = 0.1;
-qES.l[es,d,t] = sum(e, qEpj.l[es,e,d,t]);
-
-pESmarg.l[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) = 1;
-eP.l[l,es,d,t]$(d1sTPotential[l,es,d,t]) = 0.5;

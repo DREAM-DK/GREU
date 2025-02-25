@@ -11,31 +11,33 @@ $SetGroup+ SG_flat_after_last_data_year
 ;
 
 $Group+ all_variables
-  qES[es,d,t]$(sum(e, d1pEpj_base[es,e,d,t]) or $(sum(e, d1tqEpj[es,e,d,t]))) "Energy service, quantity."
-  pES[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Energy service, price."
-  vES[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Value of energy service" 
-                              
-  
-  pEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Price of energy in energy services"
-  qES_e[es,e,d,t]$(d1qES_e[es,e,d,t]) "Quantity of energy in energy services"
-
+  # Exogenous variables
   pK_abatement[d,t]$(d1pK_abatement[d,t]) "User cost on capital. Should probably distinguish between investment types."
-  qK_tech[d,t]$(d1pK_abatement[d,t]) "Quantity of machinery capital in energy services"
-
-  pT[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Average price of technology l at full potential, ie. when sTSupply=sTPotential"
+  pEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Price of energy in energy services" 
+  qES[es,d,t]$(sum(e, d1pEpj_base[es,e,d,t]) or $(sum(e, d1tqEpj[es,e,d,t]))) "Energy service, quantity."
+  
   sTPotential[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Potential supply by technology l in ratio of energy service (share of qES)"
-  sTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Supply by technology l in ratio of energy service (share of qES)"
-  vTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Value (or costs) of energy service supplied by technology l "
-
   theta[l,es,d,t]$(d1sTPotential[l,es,d,t]) "jsk same sTPotential. only used adhoc for loading data"
+  eP[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Parameter governing efficiency of costs of technology l (smoothing parameter)"
+  
   uTE[l,es,e,d,t]$(d1uTE[l,es,e,d,t]) "Input of energy in technology l per PJ output at full potential"
   uTK[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Input of machinery capital in technology l per PJ output output at full potential"
+    
+  # Endogenous variables
+  pT[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Average price of technology l at full potential, ie. when sTSupply=sTPotential"
 
+  sTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Supply by technology l in ratio of energy service (share of qES)"
+  vTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Value (or costs) of energy service supplied by technology l "
   pESmarg[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Marginal price of energy services based on the supply by technologies l"
+  
+  # Supplementary output
+  pTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Average price of energy service supplied by technology l."
 
-  eP[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Parameter governing efficiency of costs of technology l (smoothing parameter)"
-
-
+  vES[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Value of energy service" 
+  pES[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Energy service, price."
+   
+  qES_e[es,e,d,t]$(d1qES_e[es,e,d,t]) "Quantity of energy in energy services"
+  qES_k[d,t]$(d1pK_abatement[d,t]) "Quantity of machinery capital in energy services"
 ;
 
 $ENDIF # variables
@@ -47,7 +49,8 @@ $IF %stage% == "equations":
 
 $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
 # and included_industries[d] and included_service[es])
-  # Price index, technology
+
+  # Average price of technology l at full potential, ie. when sTSupply=sTPotential
 	.. pT[l,es,d,t]	=E= sum(e, uTE[l,es,e,d,t]*pEpj[es,e,d,t])
 										+ uTK[l,es,d,t]*pK_abatement[d,t];
 
@@ -74,7 +77,10 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 	# Shadow value identifying marginal technology for energy purpose
 	pESmarg[es,d,t].. 1 =E= sum(l, sTSupply[l,es,d,t]);
 
-### AGGREGATES ###
+# Supplementary output
+
+# Average price of energy service supplied by technology l. Dead end variable. Can be moved to reporting if issues with division by zero occurs.
+  .. pTSupply[l,es,d,t] =E= vTSupply[l,es,d,t] / ( sTSupply[l,es,d,t] * qES[es,d,t] ) ;
 
   # Value of energy service
   .. vES[es,d,t] =E= sum(l,vTSupply[l,es,d,t]);
@@ -82,12 +88,11 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 	# Price index for energy purposes
 	.. pES[es,d,t] =E= vES[es,d,t] / qES[es,d,t] ;
 
-
-    # Use of energy goods
-  .. qES_e[es,e,d,t] =E= sum(l, uTE[l,es,e,d,t]*vTSupply[l,es,d,t]);
-
-  # Use of machine capital for technologies
-  .. qK_tech[d,t] =E= sum((l,es), uTK[l,es,d,t]*vTSupply[l,es,d,t]);
+    # Use of energy goods - Adjusted for price of supply being lower than at full potential
+  .. qES_e[es,e,d,t] =E= sum(l$(d1sTPotential[l,es,d,t]), uTE[l,es,e,d,t]*vTSupply[l,es,d,t]/pT[l,es,d,t] ) ;
+  
+   # Use of machinery capital for technologies - Adjusted for price of supply being lower than at full potential
+  .. qES_k[d,t] =E= sum((l,es)$(d1sTPotential[l,es,d,t]), uTK[l,es,d,t]*vTSupply[l,es,d,t]/pT[l,es,d,t] ) ;
 
 $ENDBLOCK
 
@@ -123,8 +128,12 @@ set included_service[es] /
   'heating'
   /;
 
-# Dummies
+# Set dummy determining the existence of technology potentials
 d1sTPotential[l,es,d,t] = yes$(sTPotential.l[l,es,d,t] and included_industries[d] and included_service[es]);
+
+#Load additional electrification technologies that are not present in data (backstop technologies)
+$import calib_electrification_techs.gms
+
 d1uTE[l,es,e,d,t] = yes$(uTE.l[l,es,e,d,t] and included_industries[d] and included_service[es]);
 d1pK_abatement[d,t] = yes$(sum((l,es), d1sTPotential[l,es,d,t]));
 d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
@@ -136,8 +145,8 @@ qES.l[es,d,t] = sum(e, qEpj.l[es,e,d,t]);
 pESmarg.l[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) = 1;
 eP.l[l,es,d,t]$(d1sTPotential[l,es,d,t]) = 0.5;
 
-# Electrification technologies that are not present in data
-$import calib_electrification_techs.gms
+
+
 
 $ENDIF # exogenous_values
 
@@ -168,11 +177,12 @@ $Group+ G_flat_after_last_data_year
   pT[l,es,d,t]
 
   pK_abatement[d,t]
-  qK_tech[d,t]
+  qES_k[d,t]
 
   sTSupply[l,es,d,t]
   vTSupply[l,es,d,t]
-  
+  pTSupply[l,es,d,t]
+
   sTPotential[l,es,d,t]
   uTE[l,es,e,d,t]
   uTK[l,es,d,t]
