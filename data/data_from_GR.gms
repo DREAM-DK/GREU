@@ -96,7 +96,7 @@ parameters auxiliary_data_parameters
   qEmmtot[em,em_accounts,t]
 
   #Nye p� d 
-  pEpj_base[es,e,d,t]
+  pT_e_base[es,e,d,t]
   qEpj[es,e,d,t]
   tqE[es,e,d,t]
   tpE[es,e,d,t]
@@ -253,7 +253,7 @@ qInvt_i[i,t] = qI_s.l['invt',i,t];
 #Energy and emissions.
   $import create_energybalance.gms #Here GreenREFORM variables are combine to create the full energybalance as we would preferably receive it from the Statistical Office.
 
-  pEpj_base[es,e,d,t]$(sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t])) = sum(demand_transaction, Energybalance['BASE',demand_transaction,d,es,e,t])/sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
+  pT_e_base[es,e,d,t]$(sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t])) = sum(demand_transaction, Energybalance['BASE',demand_transaction,d,es,e,t])/sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
   qEpj[es,e,d,t] = sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
 
   vEAV[es,e,d,t] = sum(demand_transaction, Energybalance['EAV',demand_transaction,d,es,e,t]);
@@ -316,7 +316,7 @@ execute_unloaddi "data",
   vtCO2_ETS, qCO2_ETS_freeallowances
   vtNetproductionRest,
   vtCAP_prodsubsidy
-  pEpj_base, qEpj
+  pT_e_base, qEpj
   vtE_duty, vtE_vat, tCO2_Emarg, tEmarg_duty
   Energybalance, NonEnergyEmissions
 
