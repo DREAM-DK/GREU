@@ -19,21 +19,21 @@ set_time_periods(%first_data_year%, %terminal_year%);
 # ------------------------------------------------------------------------------
 $FUNCTION import_from_modules(stage_key):
   $SETGLOBAL stage stage_key;
-  $IMPORT submodel_template.gms
-  $IMPORT financial_accounts.gms
+  # $IMPORT submodel_template.gms
+  # $IMPORT financial_accounts.gms
   # $IMPORT test_module.gms
-  $IMPORT labor_market.gms
-  $IMPORT energy_markets.gms; 
-  $IMPORT industries_CES_energydemand.gms; 
-  $IMPORT production.gms; 
-  $IMPORT production_CET.gms;
-  $IMPORT emissions.gms; 
-  $IMPORT energy_and_emissions_taxes.gms; 
-  $IMPORT input_output.gms
-  $IMPORT households.gms
-  $IMPORT government.gms
-  $IMPORT exports.gms
-  $IMPORT factor_demand.gms
+  # $IMPORT labor_market.gms
+  # $IMPORT energy_markets.gms; 
+  # $IMPORT industries_CES_energydemand.gms; 
+  # $IMPORT production.gms; 
+  # $IMPORT production_CET.gms;
+  # $IMPORT emissions.gms; 
+  # $IMPORT energy_and_emissions_taxes.gms; 
+  # $IMPORT input_output.gms
+  # $IMPORT households.gms
+  # $IMPORT government.gms
+  # $IMPORT exports.gms
+  # $IMPORT factor_demand.gms
   # $IMPORT aggregates.gms
   # $IMPORT imports.gms
   $IMPORT abatement.gms
