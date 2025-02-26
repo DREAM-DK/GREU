@@ -95,3 +95,16 @@ $FUNCTION define_set_complement({name_set_c},{set},{set_c},{isitalist}):
     #Hvis fejl
     ABORT$(parm_error=1) parm_error, "Set-compliment not in set. Make sure that set elements are written as defined with upper/lower-case letters. This error is due to Python case-sensitivity"
 $ENDFUNCTION
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Probalitily distributions
+# ----------------------------------------------------------------------------------------------------------------------
+
+# #Cumulative distribution of a normal distribution
+$FUNCTION cdfNorm({x},{mu},{std}): errorf(({x}-{mu})/({std})) $ENDFUNCTION
+
+# #Cumulative distribution of a log-normal distribution with expected value mu and standard deviation std 
+$FUNCTION cdfLogNorm({x},{mu},{std}): errorf((log( ( ({x}/{mu})**2 )**0.5) + 0.5*{std}**2 )/{std}) $ENDFUNCTION                                                            
+
+#Integral of cumulative distribution of a log-normal distribution with expected value mu and standard deviation std 
+$FUNCTION Int_cdfLogNorm({x},{mu},{std}): errorf((log( ( ({x}/{mu})**2 )**0.5) - 0.5*{std}**2 )/{std}) $ENDFUNCTION                                                            

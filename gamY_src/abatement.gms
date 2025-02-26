@@ -27,11 +27,12 @@ $Group+ all_variables
   pT[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Average price of technology l at full potential, ie. when sTSupply=sTPotential"
 
   sTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Supply by technology l in ratio of energy service (share of qES)"
-  vTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Value (or costs) of energy service supplied by technology l "
   pESmarg[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Marginal price of energy services based on the supply by technologies"
   
   # Supplementary output
+  vTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Value (or costs) of energy service supplied by technology l "
   pTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Average price of energy service supplied by technology l."
+
 
   vES[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Value of energy service" 
   pES[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Energy service, price."
@@ -59,12 +60,7 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 										+ uTK[l,es,d,t]*pT_k[d,t];
 
   # Supply of tecnology l in ratio of energy demand qES
-  	.. sTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
-                                                            (
-                                                            log( ( (pESmarg[es,d,t]/pT[l,es,d,t])**2 )**0.5)
-                                                            + 0.5*eP[l,es,d,t]**2
-                                                            )/eP[l,es,d,t]
-                                                            );
+  .. sTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*@cdfLogNorm(pESmarg[es,d,t],pT[l,es,d,t],eP[l,es,d,t]);
   
 
 	# Shadow value identifying marginal technology for energy purpose
@@ -73,13 +69,7 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 # Supplementary output
 
 # Value (or costs) of energy service supplied by technology l
-.. vTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*errorf(
-                                                            (
-                                                            log( ( (pESmarg[es,d,t]/pT[l,es,d,t])**2 )**0.5)
-                                                            - 0.5*eP[l,es,d,t]**2   
-                                                            )/eP[l,es,d,t]
-                                                        )
-                          *qES[es,d,t]*pT[l,es,d,t];
+  .. vTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*@Int_cdfLogNorm(pESmarg[es,d,t],pT[l,es,d,t],eP[l,es,d,t])*qES[es,d,t]*pT[l,es,d,t];
 
 # Average price of energy service supplied by technology l. 
   .. pTSupply[l,es,d,t] =E= vTSupply[l,es,d,t] / ( sTSupply[l,es,d,t] * qES[es,d,t] ) ;
