@@ -12,10 +12,14 @@ tech_l[l]$(sameas[l,'t_Electricity_calib'] or sameas[l,'t_Electricity_calib_2'])
 
 set tech_d[d] /
   '10030'
+  # set.d
   /;
+
+tech_d[d]$(not i[d]) = no;
 
 set tech_es[es] /
   'heating'
+  # set.es
   /;
 
 # Energy service is set to 1
@@ -53,3 +57,13 @@ sTPotential.l[tech_l,tech_es,tech_d,t] = qES.l[tech_es,tech_d,t]/sum(tech_ll$(uT
 
 # User cost on capital
 pT_k.l[d,t]$(sum((l,es), sTPotential.l[l,es,d,t])) = 0.1;
+
+# =============================================================
+# No technology data
+# =============================================================
+
+# qES.l[tech_es,tech_d,t]     = 0;
+# pT_e.l[tech_es,e,tech_d,t]  = 0;
+# uTE.l[tech_l,es,e,d,t]      = 0;
+# uTK.l[tech_l,es,d,t]        = 0;
+# sTPotential.l[tech_l,es,d,t] = 0;

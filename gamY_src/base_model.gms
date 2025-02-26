@@ -21,7 +21,7 @@ $FUNCTION import_from_modules(stage_key):
   $SETGLOBAL stage stage_key;
   # $IMPORT submodel_template.gms
   # $IMPORT financial_accounts.gms
-  # $IMPORT test_module.gms
+  # # $IMPORT test_module.gms
   # $IMPORT labor_market.gms
   # $IMPORT energy_markets.gms; 
   # $IMPORT industries_CES_energydemand.gms; 
@@ -34,8 +34,8 @@ $FUNCTION import_from_modules(stage_key):
   # $IMPORT government.gms
   # $IMPORT exports.gms
   # $IMPORT factor_demand.gms
-  # $IMPORT aggregates.gms
-  # $IMPORT imports.gms
+  # # $IMPORT aggregates.gms
+  # # $IMPORT imports.gms
   $IMPORT abatement.gms
 $ENDFUNCTION
 
@@ -83,11 +83,11 @@ execute_unloaddi "calibration.gdx";
 # Calibrate model with lower variance on technology costs
 # ------------------------------------------------------------------------------
 
-eP.l[l,es,i,t] = 0.05;
-$IMPORT calibration.gms
-$IMPORT report_abatement.gms
+# eP.l[l,es,i,t] = 0.05;
+# $IMPORT calibration.gms
+# $IMPORT report_abatement.gms
 
-execute_unloaddi "Abatement_partial.gdx";
+# execute_unloaddi "Abatement_partial.gdx";
 
 
 # ------------------------------------------------------------------------------

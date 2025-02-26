@@ -125,22 +125,12 @@ sTPotential.l[l,es,d,t] =  theta.l[l,es,d,t] ;
 # Creating dummy data
 $import calib_dummy_techs.gms
 
-## Limiting the model to only one industry and one energy service
-set included_industries[d] /
-  '10030'
-  /;
-
-set included_service[es] /
-  'heating'
-  /;
-
-
 #Load additional electrification technologies that are not present in data (backstop technologies)
 $import calib_electrification_techs.gms
 
 # Set dummy determining the existence of technology potentials
-d1sTPotential[l,es,d,t] = yes$(sTPotential.l[l,es,d,t] and included_industries[d] and included_service[es]);
-d1uTE[l,es,e,d,t] = yes$(uTE.l[l,es,e,d,t] and included_industries[d] and included_service[es]);
+d1sTPotential[l,es,d,t] = yes$(sTPotential.l[l,es,d,t]);
+d1uTE[l,es,e,d,t] = yes$(uTE.l[l,es,e,d,t]);
 d1pT_k[d,t] = yes$(sum((l,es), d1sTPotential[l,es,d,t]));
 d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 d1pT_e[es,e,d,t] = yes$(pT_e.l[es,e,d,t]);
@@ -153,7 +143,7 @@ pT_k.l[d,t]$(sum((l,es), d1sTPotential[l,es,d,t])) = 0.1;
 # qES.l[es,d,t] = sum(e, qEpj.l[es,e,d,t]);
 
 pESmarg.l[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) = 1;
-eP.l[l,es,d,t]$(d1sTPotential[l,es,d,t]) = 0.5;
+eP.l[l,es,d,t]$(d1sTPotential[l,es,d,t]) = 0.05;
 
 
 
