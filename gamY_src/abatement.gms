@@ -5,16 +5,18 @@ $IF %stage% == "variables":
 
 $SetGroup+ SG_flat_after_last_data_year
   d1sTPotential[l,es,d,t] "Dummy determining the existence of technology potentials"
+  d1pT_e[es,e,d,t] "Dummy determining the existence of input price of energy in technologies for energy services"
   d1pT_k[d,t] "Dummy determining the existence of user costs for technologies"
   d1uTE[l,es,e,d,t] "Dummy determining the existence of energy input in technology"
   d1qES_e[es,e,d,t] "Dummy determining the existence of energy use (sum across technologies)"
+  d1qES[es,d,t] "Dummy determining the existence of energy service, quantity"
 ;
 
 $Group+ all_variables
   # Exogenous variables
   pT_k[d,t]$(d1pT_k[d,t]) "User cost of capital in technologies for energy services"
-  pT_e[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Input price of energy in technologies for energy services" 
-  qES[es,d,t]$(sum(e, d1pEpj_base[es,e,d,t]) or $(sum(e, d1tqEpj[es,e,d,t]))) "Energy service, quantity."
+  pT_e[es,e,d,t]$(d1pT_e[es,e,d,t]) "Input price of energy in technologies for energy services" 
+  qES[es,d,t]$(d1qES[es,d,t]) "Energy service, quantity."
   
   sTPotential[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Potential supply by technology l in ratio of energy service (share of qES)"
   theta[l,es,d,t]$(d1sTPotential[l,es,d,t]) "jsk same sTPotential. only used adhoc for loading data"
@@ -51,7 +53,7 @@ $IF %stage% == "equations":
 $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
 
   # Exogenous variables
-..  pT_e[es,e,d,t] =E=  pEpj[es,e,d,t] ; 
+# ..  pT_e[es,e,d,t] =E=  pEpj[es,e,d,t] ; 
 
   # Endogenous variables
 
@@ -62,7 +64,6 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
   # Supply of tecnology l in ratio of energy demand qES
   .. sTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*@cdfLogNorm(pESmarg[es,d,t],pT[l,es,d,t],eP[l,es,d,t]);
   
-
 	# Shadow value identifying marginal technology for energy purpose
 	pESmarg[es,d,t].. 1 =E= sum(l, sTSupply[l,es,d,t]);
 
@@ -71,7 +72,7 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 # Value (or costs) of energy service supplied by technology l
   .. vTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*@Int_cdfLogNorm(pESmarg[es,d,t],pT[l,es,d,t],eP[l,es,d,t])*qES[es,d,t]*pT[l,es,d,t];
 
-# Average price of energy service supplied by technology l. 
+  # Average price of energy service supplied by technology l. Dead end variable. Can be moved to reporting if issues with division by zero occurs.
   .. pTSupply[l,es,d,t] =E= vTSupply[l,es,d,t] / ( sTSupply[l,es,d,t] * qES[es,d,t] ) ;
 
   # Value of energy service
@@ -111,6 +112,9 @@ $GROUP+ data_covered_variables abatement_data_variables;
 #jsk
 sTPotential.l[l,es,d,t] =  theta.l[l,es,d,t] ;
 
+# Creating dummy data
+$import calib_dummy_techs.gms
+
 ## Limiting the model to only one industry and one energy service
 set included_industries[d] /
   '10030'
@@ -120,19 +124,23 @@ set included_service[es] /
   'heating'
   /;
 
-# Set dummy determining the existence of technology potentials
-d1sTPotential[l,es,d,t] = yes$(sTPotential.l[l,es,d,t] and included_industries[d] and included_service[es]);
 
 #Load additional electrification technologies that are not present in data (backstop technologies)
 $import calib_electrification_techs.gms
 
+# Set dummy determining the existence of technology potentials
+d1sTPotential[l,es,d,t] = yes$(sTPotential.l[l,es,d,t] and included_industries[d] and included_service[es]);
 d1uTE[l,es,e,d,t] = yes$(uTE.l[l,es,e,d,t] and included_industries[d] and included_service[es]);
 d1pT_k[d,t] = yes$(sum((l,es), d1sTPotential[l,es,d,t]));
 d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
+d1pT_e[es,e,d,t] = yes$(pT_e.l[es,e,d,t]);
+# d1pT_e[es,e,d,t] = yes$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]);
+d1qES[es,d,t] = yes$(qES.l[es,d,t]);
+# d1qES[es,d,t] = yes$(sum(e, d1pEpj_base[es,e,d,t]) or $(sum(e, d1tqEpj[es,e,d,t])));
 
 # Initial values
 pT_k.l[d,t]$(sum((l,es), d1sTPotential[l,es,d,t])) = 0.1;
-qES.l[es,d,t] = sum(e, qEpj.l[es,e,d,t]);
+# qES.l[es,d,t] = sum(e, qEpj.l[es,e,d,t]);
 
 pESmarg.l[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) = 1;
 eP.l[l,es,d,t]$(d1sTPotential[l,es,d,t]) = 0.5;
