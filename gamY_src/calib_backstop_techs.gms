@@ -26,8 +26,8 @@ $ENDIF
 # Stress test: Increasing price difference between baseline technologies and backstop technologies (Static calibration solves easily but dynamic calibration does not solve)
 # Dynamic calibration error message: ** A derivative in the initial point is very large or NaN (Not a Number).
 $IF %stress_increase_price_backstop_tech% = 1:
-  pT.l['t_Electricity_calib',es,d,t]$(sum(l, sTPotential.l[l,es,d,t])) = 3 * d1Expensive_tech[es,d,t];
-  pT.l['t_Electricity_calib_2',es,d,t]$(sum(l, sTPotential.l[l,es,d,t])) = 3.1 * d1Expensive_tech[es,d,t];
+  pT.l['t_Electricity_calib',es,d,t]$(sum(l, sTPotential.l[l,es,d,t])) = 8 * d1Expensive_tech[es,d,t];
+  pT.l['t_Electricity_calib_2',es,d,t]$(sum(l, sTPotential.l[l,es,d,t])) = 8.1 * d1Expensive_tech[es,d,t];
 $ENDIF
 
 # Energy efficiency of back-stop technologies are set to 1

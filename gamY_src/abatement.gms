@@ -33,7 +33,7 @@ $Group+ all_variables
   
   # Supplementary output
   vTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Value (or costs) of energy service supplied by technology l "
-  pTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Average price of energy service supplied by technology l."
+  # pTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Average price of energy service supplied by technology l."
 
 
   vES[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Value of energy service" 
@@ -73,7 +73,7 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
   .. vTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*@Int_cdfLogNorm(pESmarg[es,d,t],pT[l,es,d,t],eP[l,es,d,t])*qES[es,d,t]*pT[l,es,d,t];
 
   # Average price of energy service supplied by technology l. Dead end variable. Can be moved to reporting if issues with division by zero occurs.
-  .. pTSupply[l,es,d,t] =E= vTSupply[l,es,d,t] / ( sTSupply[l,es,d,t] * qES[es,d,t] ) ;
+  # .. pTSupply[l,es,d,t] =E= vTSupply[l,es,d,t] / ( sTSupply[l,es,d,t] * qES[es,d,t] ) ;
 
   # Value of energy service
   .. vES[es,d,t] =E= sum(l,vTSupply[l,es,d,t]);
@@ -118,6 +118,7 @@ sTPotential.l[l,es,d,t] =  theta.l[l,es,d,t] ;
 
 $SETGLOBAL stress_restrict_techs 0
 $SETGLOBAL stress_price_base_tech 0
+$SETGLOBAL stress_reduced_potential_base_tech 0
 $SETGLOBAL stress_increase_price_backstop_tech 0
 $SETGLOBAL stress_decrease_price_backstop_tech 0
 $SETGLOBAL stress_no_backstop_tech 0
@@ -182,7 +183,7 @@ $Group+ G_flat_after_last_data_year
 
   sTSupply[l,es,d,t]
   vTSupply[l,es,d,t]
-  pTSupply[l,es,d,t]
+  # pTSupply[l,es,d,t]
 
   sTPotential[l,es,d,t]
   uTE[l,es,e,d,t]

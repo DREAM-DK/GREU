@@ -72,6 +72,11 @@ LOOP((tech_l)$(sum(e, map_e_2_l[e,tech_l])),
 sTPotential.l[l,es,d,t] = 0;
 sTPotential.l[tech_l,tech_es,tech_d,t] = qES.l[tech_es,tech_d,t]/sum(tech_ll$(uTK.l[tech_ll,tech_es,tech_d,t]), 1);
 
+# Stress test: Reducing potentials for base technologies
+$IF %stress_reduced_potential_base_tech% = 1:
+  sTPotential.l[tech_l,tech_es,tech_d,t] = 0.95*qES.l[tech_es,tech_d,t]/sum(tech_ll$(uTK.l[tech_ll,tech_es,tech_d,t]), 1);
+$ENDIF
+
 # User cost on capital
 pT_k.l[d,t]$(sum((l,es), sTPotential.l[l,es,d,t])) = 0.1;
 
