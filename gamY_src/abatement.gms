@@ -112,11 +112,21 @@ $GROUP+ data_covered_variables abatement_data_variables;
 #jsk
 sTPotential.l[l,es,d,t] =  theta.l[l,es,d,t] ;
 
-# Creating dummy data
-$import calib_dummy_techs.gms
+# ------------------------------------------------------------------------------
+# Parameters for stress testing the model
+# ------------------------------------------------------------------------------
 
-#Load additional electrification technologies that are not present in data (backstop technologies)
-$import calib_electrification_techs.gms
+$SETGLOBAL stress_restrict_techs 0
+$SETGLOBAL stress_price_base_tech 0
+$SETGLOBAL stress_increase_price_backstop_tech 0
+$SETGLOBAL stress_decrease_price_backstop_tech 0
+$SETGLOBAL stress_no_backstop_tech 0
+$SETGLOBAL stress_increase_eP 0
+
+# ------------------------------------------------------------------------------
+# Creating dummy data
+# ------------------------------------------------------------------------------
+$import calib_dummy_techs.gms
 
 # Set dummy determining the existence of technology potentials
 d1sTPotential[l,es,d,t] = yes$(sTPotential.l[l,es,d,t]);
@@ -135,8 +145,9 @@ pT_k.l[d,t]$(sum((l,es), d1sTPotential[l,es,d,t])) = 0.1;
 pESmarg.l[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) = 1;
 eP.l[l,es,d,t]$(d1sTPotential[l,es,d,t]) = 0.05;
 
-
-
+$IF1 %stress_increase_eP% = 1:
+  eP.l[l,es,d,t]$(d1sTPotential[l,es,d,t]) = 0.5;
+$ENDIF1
 
 $ENDIF # exogenous_values
 
