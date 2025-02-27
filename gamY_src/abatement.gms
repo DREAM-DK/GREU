@@ -33,8 +33,6 @@ $Group+ all_variables
   
   # Supplementary output
   vTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Value (or costs) of energy service supplied by technology l "
-  # pTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Average price of energy service supplied by technology l."
-
 
   vES[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Value of energy service" 
   pES[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Energy service, price."
@@ -71,9 +69,6 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 
 # Value (or costs) of energy service supplied by technology l
   .. vTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*@Int_cdfLogNorm(pESmarg[es,d,t],pT[l,es,d,t],eP[l,es,d,t])*qES[es,d,t]*pT[l,es,d,t];
-
-  # Average price of energy service supplied by technology l. Dead end variable. Can be moved to reporting if issues with division by zero occurs.
-  # .. pTSupply[l,es,d,t] =E= vTSupply[l,es,d,t] / ( sTSupply[l,es,d,t] * qES[es,d,t] ) ;
 
   # Value of energy service
   .. vES[es,d,t] =E= sum(l,vTSupply[l,es,d,t]);
@@ -116,13 +111,23 @@ sTPotential.l[l,es,d,t] =  theta.l[l,es,d,t] ;
 # Parameters for stress testing the model
 # ------------------------------------------------------------------------------
 
+# Take aways from the stress tests:
+# 1. If combining stress_restrict_techs and stress_price_base_tech, the model will not solve.
+# 2. If combining stress_reduced_potential_base_tech and stress_increase_price_backstop_tech, the model will not solve.
+# 3. If stress_price_base_tech is = 1000, then the model will not solve.
+
 $SETGLOBAL stress_restrict_techs 0
-$SETGLOBAL stress_price_base_tech 0
+$SETGLOBAL stress_price_base_tech 0 # stress_price_base_tech2 must be equal to 0, if stress_price_base_tech is equal to 1
+$SETGLOBAL stress_price_base_tech2 0 # stress_price_base_tech must be equal to 0, if stress_price_base_tech2 is equal to 1
 $SETGLOBAL stress_reduced_potential_base_tech 0
 $SETGLOBAL stress_increase_price_backstop_tech 0
 $SETGLOBAL stress_decrease_price_backstop_tech 0
 $SETGLOBAL stress_no_backstop_tech 0
 $SETGLOBAL stress_increase_eP 0
+
+# Stress test: Stort samlet potentiale og meget dyre teknologier i enden af udbudskurven
+# Stress test: Lille forskel mellem marginale og næstbilligste, men så en stor forskel ift. den næst-næst billigste
+# Stress test: Lavere priser
 
 # ------------------------------------------------------------------------------
 # Creating dummy data
@@ -140,7 +145,7 @@ d1qES[es,d,t] = yes$(qES.l[es,d,t]);
 # d1qES[es,d,t] = yes$(sum(e, d1pEpj_base[es,e,d,t]) or $(sum(e, d1tqEpj[es,e,d,t])));
 
 # Initial values
-pT_k.l[d,t]$(sum((l,es), d1sTPotential[l,es,d,t])) = 0.1;
+# pT_k.l[d,t]$(sum((l,es), d1sTPotential[l,es,d,t])) = 0.1;
 # qES.l[es,d,t] = sum(e, qEpj.l[es,e,d,t]);
 
 pESmarg.l[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) = 1;

@@ -10,7 +10,7 @@ parameter
 sTPotential_sum[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) = sum(l, sTPotential.l[l,es,d,t]);
 sTAdoption[l,es,d,t]$(d1sTPotential[l,es,d,t])            = sTSupply.l[l,es,d,t] / sTPotential.l[l,es,d,t] ;
 pTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t] and (sTSupply.l[l,es,d,t]*qES.l[es,d,t]))              
-                                                          = vTSupply.l[l,es,d,t] / ( sTSupply.l[l,es,d,t] * qES.l[es,d,t] ) ;
+                                                          = vTSupply.l[l,es,d,t] / (sTSupply.l[l,es,d,t] * qES.l[es,d,t]) ;
 # qE_diff[es,e,d,t]$(d1qES_e[es,e,d,t]) = qES_e.l[es,e,d,t] - qEpj.l[es,e,d,t];
 # qE_diff_sum[es,d,t] = sum(e, qE_diff[es,e,d,t]);
 

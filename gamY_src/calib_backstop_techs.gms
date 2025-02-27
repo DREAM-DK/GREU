@@ -52,4 +52,4 @@ $IF %stress_no_backstop_tech% = 1:
   sTPotential.l['t_Electricity_calib_2',es,d,t]$(t.val>2018 and sum(l, sTPotential.l[l,es,d,t])) = 0;
 $ENDIF
 
-execute_unloaddi "calib_elec_techs.gdx";
+
