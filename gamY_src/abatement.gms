@@ -115,8 +115,9 @@ sTPotential.l[l,es,d,t] =  theta.l[l,es,d,t] ;
 # 1. If combining stress_restrict_techs and stress_price_base_tech, the model will not solve.
 # 2. If combining stress_reduced_potential_base_tech and stress_increase_price_backstop_tech, the model will not solve.
 # 3. If stress_price_base_tech is = 1000, then the model will not solve.
+# 4. If stress_price_base_tech2 = 1, then the model will not solve
 
-$SETGLOBAL stress_restrict_techs 0
+$SETGLOBAL stress_restrict_techs 1
 $SETGLOBAL stress_price_base_tech 0 # stress_price_base_tech2 must be equal to 0, if stress_price_base_tech is equal to 1
 $SETGLOBAL stress_price_base_tech2 0 # stress_price_base_tech must be equal to 0, if stress_price_base_tech2 is equal to 1
 $SETGLOBAL stress_reduced_potential_base_tech 0
@@ -149,7 +150,7 @@ d1qES[es,d,t] = yes$(qES.l[es,d,t]);
 # qES.l[es,d,t] = sum(e, qEpj.l[es,e,d,t]);
 
 pESmarg.l[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) = 1;
-eP.l[l,es,d,t]$(d1sTPotential[l,es,d,t]) = 0.05;
+eP.l[l,es,d,t]$(d1sTPotential[l,es,d,t]) = 0.01;
 
 $IF1 %stress_increase_eP% = 1:
   eP.l[l,es,d,t]$(d1sTPotential[l,es,d,t]) = 0.5;
