@@ -147,6 +147,7 @@ pESmarg_trace[es,d,t,trace]$(sum(l, sTPotential.l[l,es,d,t])) = ord(trace)/1000 
 
 # Smoothed supply curve for technology l
 sTSupply_trace[l,es,d,t,trace]$(sTPotential.l[l,es,d,t]) = sTPotential.l[l,es,d,t]*@cdfLogNorm(pESmarg_trace[es,d,t,trace],pT.l[l,es,d,t],eP.l[l,es,d,t]);
+
 # Smoothed supply curve for technology for all technologies
 sTSupply_trace_suml[es,d,t,trace] = sum(l$(sTPotential.l[l,es,d,t]), sTSupply_trace[l,es,d,t,trace]);
 

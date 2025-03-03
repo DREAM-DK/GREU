@@ -26,7 +26,7 @@ $Group+ all_variables
   uTK[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Input of machinery capital in technology l per PJ output output at full potential"
     
   # Endogenous variables
-  pT[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Average price of technology l at full potential, ie. when sTSupply=sTPotential"
+  pTPotential[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Average price of technology l at full potential, ie. when sTSupply=sTPotential"
 
   sTSupply[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Supply by technology l in ratio of energy service (share of qES)"
   pESmarg[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Marginal price of energy services based on the supply by technologies"
@@ -56,11 +56,11 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
   # Endogenous variables
 
   # Average price of technology l at full potential, ie. when sTSupply=sTPotential
-	.. pT[l,es,d,t]	=E= sum(e, uTE[l,es,e,d,t]*pT_e[es,e,d,t])
+	.. pTPotential[l,es,d,t]	=E= sum(e, uTE[l,es,e,d,t]*pT_e[es,e,d,t])
 										+ uTK[l,es,d,t]*pT_k[d,t];
 
   # Supply of tecnology l in ratio of energy demand qES
-  .. sTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*@cdfLogNorm(pESmarg[es,d,t],pT[l,es,d,t],eP[l,es,d,t]);
+  .. sTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*@cdfLogNorm(pESmarg[es,d,t],pTPotential[l,es,d,t],eP[l,es,d,t]);
   
 	# Shadow value identifying marginal technology for energy purpose
 	pESmarg[es,d,t].. 1 =E= sum(l, sTSupply[l,es,d,t]);
@@ -68,7 +68,7 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 # Supplementary output
 
 # Value (or costs) of energy service supplied by technology l
-  .. vTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*@Int_cdfLogNorm(pESmarg[es,d,t],pT[l,es,d,t],eP[l,es,d,t])*qES[es,d,t]*pT[l,es,d,t];
+  .. vTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*@Int_cdfLogNorm(pESmarg[es,d,t],pTPotential[l,es,d,t],eP[l,es,d,t])*qES[es,d,t]*pTPotential[l,es,d,t];
 
   # Value of energy service
   .. vES[es,d,t] =E= sum(l,vTSupply[l,es,d,t]);
@@ -77,10 +77,10 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 	.. pES[es,d,t] =E= vES[es,d,t] / qES[es,d,t] ;
 
     # Use of energy goods - Adjusted for price of supply being lower than at full potential
-  .. qES_e[es,e,d,t] =E= sum(l$(d1sTPotential[l,es,d,t]), uTE[l,es,e,d,t]*vTSupply[l,es,d,t]/pT[l,es,d,t] ) ;
+  .. qES_e[es,e,d,t] =E= sum(l$(d1sTPotential[l,es,d,t]), uTE[l,es,e,d,t]*vTSupply[l,es,d,t]/pTPotential[l,es,d,t] ) ;
   
    # Use of machinery capital for technologies - Adjusted for price of supply being lower than at full potential
-  .. qES_k[d,t] =E= sum((l,es)$(d1sTPotential[l,es,d,t]), uTK[l,es,d,t]*vTSupply[l,es,d,t]/pT[l,es,d,t] ) ;
+  .. qES_k[d,t] =E= sum((l,es)$(d1sTPotential[l,es,d,t]), uTK[l,es,d,t]*vTSupply[l,es,d,t]/pTPotential[l,es,d,t] ) ;
 
 $ENDBLOCK
 
@@ -182,7 +182,7 @@ $Group+ G_flat_after_last_data_year
   pT_e[es,e,d,t]
   qES_e[es,e,d,t]
 
-  pT[l,es,d,t]
+  pTPotential[l,es,d,t]
 
   pT_k[d,t]
   qES_k[d,t]
