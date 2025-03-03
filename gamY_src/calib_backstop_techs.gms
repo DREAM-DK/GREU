@@ -14,8 +14,8 @@ pTPotential.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = sum(e$(uTE.l[l,es,e,d,t]), u
 d1Expensive_tech[es,d,t] = smax(ll, pTPotential.l[ll,es,d,t]);
 
 # The back-stop technologies cost 30 pct. and 40 pct. more than the most expensive technology
-pT.l['t_Electricity_calib',es,d,t]$(sum(l, sTPotential.l[l,es,d,t])) = 1.1 * d1Expensive_tech[es,d,t];
-pT.l['t_Electricity_calib_2',es,d,t]$(sum(l, sTPotential.l[l,es,d,t])) = 1.2 * d1Expensive_tech[es,d,t];
+pTPotential.l['t_Electricity_calib',es,d,t]$(sum(l, sTPotential.l[l,es,d,t])) = 1.15 * d1Expensive_tech[es,d,t];
+pTPotential.l['t_Electricity_calib_2',es,d,t]$(sum(l, sTPotential.l[l,es,d,t])) = 1.3 * d1Expensive_tech[es,d,t];
 
 # Stress test: Decreasing price difference between baseline technologies and backstop technologies (Solves easily)
 $IF %stress_decrease_price_backstop_tech% = 1:

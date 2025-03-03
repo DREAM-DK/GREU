@@ -118,7 +118,7 @@ $import calib_backstop_techs.gms
 # Calculating smooth supply curves for each energy service
 # =============================================================
 
-pT.l[l,es,d,t] = pT.l[l,es,d,t];
+pTPotential.l[l,es,d,t] = pTPotential.l[l,es,d,t];
 
 # Defining efficiency of costs of technology l (smoothing parameter)"
 eP.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = 0.01;
@@ -140,13 +140,13 @@ parameter
 ;
 
 # Re-determining the most expensive technology
-d1Expensive_tech_smooth[es,d,t] = smax(ll, pT.l[ll,es,d,t] * (1 + 4 * eP.l[ll,es,d,t]));
+d1Expensive_tech_smooth[es,d,t] = smax(ll, pTPotential.l[ll,es,d,t] * (1 + 4 * eP.l[ll,es,d,t]));
 
 # Defining marginal costs for each trace (goes from zero up to 4 standard deviations times the price of the most expensive technology)
 pESmarg_trace[es,d,t,trace]$(sum(l, sTPotential.l[l,es,d,t])) = ord(trace)/1000 * d1Expensive_tech_smooth[es,d,t];
 
 # Smoothed supply curve for technology l
-sTSupply_trace[l,es,d,t,trace]$(sTPotential.l[l,es,d,t]) = sTPotential.l[l,es,d,t]*@cdfLogNorm(pESmarg_trace[es,d,t,trace],pT.l[l,es,d,t],eP.l[l,es,d,t]);
+sTSupply_trace[l,es,d,t,trace]$(sTPotential.l[l,es,d,t]) = sTPotential.l[l,es,d,t]*@cdfLogNorm(pESmarg_trace[es,d,t,trace],pTPotential.l[l,es,d,t],eP.l[l,es,d,t]);
 
 # Smoothed supply curve for technology for all technologies
 sTSupply_trace_suml[es,d,t,trace] = sum(l$(sTPotential.l[l,es,d,t]), sTSupply_trace[l,es,d,t,trace]);
