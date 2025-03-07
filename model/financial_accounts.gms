@@ -57,11 +57,7 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
 
   .. vNetFinAssets[Gov,t] =E= vNetFinAssets[Gov,t-1]/fv
                             + vNetInterests[Gov,t] + vNetDividends[Gov,t] + vNetRevaluations[Gov,t]
-                            - vG[t]
-                            - vHhTransfers[t]
-                            + sum(i$i_public[i], vEBITDA_i[i,t]) - vI_public[t]
-                            + vtY[t] + vtM[t] # Net duties, paid through R, E, I, C, G, and X
-                            + vHhTaxes[t] + vCorpTaxes[t];
+                            + vGovPrimaryBalance[t];
 
   .. vNetFinAssets[RoW,t] =E= vNetFinAssets[RoW,t-1]/fv
                             + vNetInterests[RoW,t] + vNetDividends[RoW,t] + vNetRevaluations[RoW,t]

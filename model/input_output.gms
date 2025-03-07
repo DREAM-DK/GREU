@@ -123,7 +123,7 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. vR[t] =E= sum(rx, vD[rx,t]);
   .. vE[t] =E= sum(re, vD[re,t]);
   .. vI[t] =E= sum(k, vD[k,t]) + vD['invt',t];
-  .. vC[t] =E= sum(c, vD[c,t]);
+  .. vC[t] =E= sum(c, vD[c,t]) + vC_WalrasLaw[t];
   .. vG[t] =E= sum(g, vD[g,t]);
   .. vX[t] =E= sum(x, vD[x,t]);
 
@@ -198,6 +198,7 @@ $IF %stage% == "exogenous_values":
 $Group input_output_data_variables
   vY_i_d, vtY_i_d
   vM_i_d, vtM_i_d
+  # qD
 ;
 # $Group+ data_covered_variables input_output_data_variables$(t.val <= %calibration_year%),-vY_i_d[i,'energy',t];
 $Group+ data_covered_variables input_output_data_variables$(t.val <= %calibration_year%);
