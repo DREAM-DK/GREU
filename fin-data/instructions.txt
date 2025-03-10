@@ -1,0 +1,2 @@
+All data ONLY IN CSV FILES!!! No exceptions!!! This means no .xls, .xlsx or others rubbish  
+Always clearly indicate in the commit messages what has been changed!
