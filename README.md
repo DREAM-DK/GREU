@@ -56,3 +56,8 @@ pip install gams dream-tools numpy pandas scipy statsmodels
 We recommend using the python installation that comes with your GAMS installation.
 For reporting, and other purposes, we make use of several python packages in addition to the ones listed above.
 To install pip and all the packages that we use, simply run the code in [install.py](gamY_src/install.py).
+
+
+## Data handling
+
+All data ONLY IN CSV FILES!!! No exceptions!!! This means no .xls, .xlsx or others rubbish
