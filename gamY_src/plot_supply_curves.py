@@ -1,4 +1,8 @@
+# Define which years the supply curves should be plottet for
+year_list = [2019,2020]
+
 # Import packages
+import dreamtools as dt
 import pandas as pd
 pd.options.plotting.backend = 'matplotlib'
 import matplotlib.pyplot as plt
@@ -6,7 +10,6 @@ from matplotlib.backends.backend_pdf import PdfPages
 # Color settings (related to plt)
 prop_cycle = plt.rcParams["axes.prop_cycle"]
 colors = prop_cycle.by_key()["color"]
-
 
 ## Read data in gdx-file
 e = dt.Gdx("supply_curves_data.gdx")
@@ -138,7 +141,7 @@ def plot_supply_curve(ss,p,yr=2019,pct=100):
 
 # Calling function for plotting discrete and smooth supply curve
 with PdfPages('Supply_curves.pdf') as pdf:
-    for yr in [2019]:
+    for yr in year_list:
         for ss in df_discrete_input.index.get_level_values('s').unique().tolist():
             for p in sorted(df_discrete_input[df_discrete_input.index.get_level_values('s')==ss].index.get_level_values('purpose').unique().tolist()):
                 plot_supply_curve(ss,p,yr=yr)
