@@ -1,9 +1,10 @@
 $set data_path P:/akg/Til_EU_projekt/EU_GR_data.gdx
-$set abatement_data_path P:/akg/Til_EU_projekt/EU_tech_data_disagg.gdx
+$set abatement_data_path Abatement_data/Abatement_dummy_data.gdx
 
 #Industries, demand components, capital types and energybalance
 $import data.sets.gms
 
+# Technology set for abatement
 set l "Technologies";
 
 parameters
@@ -96,7 +97,7 @@ parameters auxiliary_data_parameters
   qEmmtot[em,em_accounts,t]
 
   #Nye p� d 
-  pT_e_base[es,e,d,t]
+  # pT_e_base[es,e,d,t]
   qEpj[es,e,d,t]
   tqE[es,e,d,t]
   tpE[es,e,d,t]
@@ -112,9 +113,13 @@ parameters auxiliary_data_parameters
   qEmmBorderTrade_load[t,em]
 
   # Abatement
-  sSupply_load[l,es,i,e,t] "Potential, technology."
-  uTE_load[l,es,i,e,t] "Energy use, technology."
-  uTK_load[l,es,i,e,t] "Capital use, technology."
+  sTPotential_load[l,es,i,t] "Potential, technology."
+  uTE_load[l,es,e,i,t] "Energy use, technology."
+  uTK_load[l,es,i,t] "Capital use, technology."
+  pT_e_base_load[es,e,i,t] "Base price of energy input (billion EUR per PJ)"
+  pT_e_tax_load[es,e,i,t] "Tax on energy input (billion EUR per PJ)"
+  pT_k_load[i,t] "User cost of capital"
+  qES_load[es,i,t] "Energy service, quantity"
 ;
 
 parameters GREU_data
@@ -172,9 +177,13 @@ parameters GREU_data
   vtCAP_prodsubsidy[i,t]
 
   # Abatement
-  sSupply[l,es,i,t] "Potential, technology."
+  sTPotential[l,es,i,t] "Potential, technology."
   uTE[l,es,e,i,t] "Energy use, technology."
   uTK[l,es,i,t] "Capital use, technology."
+  pT_e_base[es,e,i,t] "Base price of energy input (billion EUR per PJ)"
+  pT_e_tax[es,e,i,t] "Tax on energy input (billion EUR per PJ)"
+  pT_k[i,t] "User cost of capital"
+  qES[es,i,t] "Energy service, quantity"
 ;
 
 
@@ -200,7 +209,7 @@ $load vtCAP_prodsubsidy=vtCAP_top.l
 $gdxIn 
 
 $gdxIn %abatement_data_path%
-$load l=l sSupply_load=sSupply.l, uTE_load=uTE.l, uTK_load=uTK.l
+$load l=l sTPotential_load=sTPotential.l, uTE_load=uTE.l, uTK_load=uTK.l, pT_e_base_load=pT_e_base.l, pT_e_tax_load=pT_e_tax.l, pT_k_load=pT_k.l, qES_load=qES.l
 $gdxIn
 
 # Labor-market
@@ -253,7 +262,7 @@ qInvt_i[i,t] = qI_s.l['invt',i,t];
 #Energy and emissions.
   $import create_energybalance.gms #Here GreenREFORM variables are combine to create the full energybalance as we would preferably receive it from the Statistical Office.
 
-  pT_e_base[es,e,d,t]$(sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t])) = sum(demand_transaction, Energybalance['BASE',demand_transaction,d,es,e,t])/sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
+  # pT_e_base[es,e,d,t]$(sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t])) = sum(demand_transaction, Energybalance['BASE',demand_transaction,d,es,e,t])/sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
   qEpj[es,e,d,t] = sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
 
   vEAV[es,e,d,t] = sum(demand_transaction, Energybalance['EAV',demand_transaction,d,es,e,t]);
@@ -290,9 +299,13 @@ qInvt_i[i,t] = qI_s.l['invt',i,t];
   tEmarg_duty['EAFG_tax',es,e,i,t]      = tEAFG_REmarg[es,e,i,t]/1000; #Dividing by 1000 to convert from kroner per GJ to bio. kroner per Pj.
 
   # Abatement
-  sSupply[l,es,i,t] = sum(e, sSupply_load[l,es,i,e,t]);
-  uTE[l,es,e,i,t] = uTE_load[l,es,i,e,t];
-  uTK[l,es,i,t] = sum(e, uTK_load[l,es,i,e,t]);
+  sTPotential[l,es,i,t] = sTPotential_load[l,es,i,t];
+  uTE[l,es,e,i,t] = uTE_load[l,es,e,i,t];
+  uTK[l,es,i,t] = uTK_load[l,es,i,t];
+  pT_e_base[es,e,i,t] = pT_e_base_load[es,e,i,t];
+  pT_e_tax[es,e,i,t] = pT_e_tax_load[es,e,i,t];
+  pT_k[i,t] = pT_k_load[i,t];
+  qES[es,i,t] = qES_load[es,i,t];
 
 execute_unloaddi "data",
   # Labor-market
@@ -316,11 +329,12 @@ execute_unloaddi "data",
   vtCO2_ETS, qCO2_ETS_freeallowances
   vtNetproductionRest,
   vtCAP_prodsubsidy
-  pT_e_base, qEpj
+  # pT_e_base 
+  qEpj
   vtE_duty, vtE_vat, tCO2_Emarg, tEmarg_duty
   Energybalance, NonEnergyEmissions
 
-  sSupply, uTE, uTK
+  sTPotential, uTE, uTK, pT_e_base, pT_e_tax, pT_k, qES
 
   vIOxE_y, vIOxE_m, vIOxE_a, vIO_y, vIO_m, vIO_a
 ;

@@ -51,11 +51,13 @@ $ENDIF # variables
 $IF %stage% == "equations":
 
 $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
+  
+## Input for the model
 
   # Price on energy input including taxes
   .. pT_e[es,e,d,t] =E=  pT_e_base[es,e,d,t] + pT_e_tax[es,e,d,t]; 
 
-  # Endogenous variables
+## Core of the model
 
   # Average price of technology l at full potential, ie. when sTSupply=sTPotential
 	.. pTPotential[l,es,d,t]	=E= sum(e, uTE[l,es,e,d,t]*pT_e[es,e,d,t])
@@ -67,7 +69,7 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 	# Shadow value identifying marginal technology for energy purpose
 	pESmarg[es,d,t].. 1 =E= sum(l, sTSupply[l,es,d,t]);
 
-# Supplementary output
+## Supplementary output
 
   # Value (or costs) of energy service supplied by technology l
   .. vTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*@Int_cdfLogNorm(pESmarg[es,d,t],pTPotential[l,es,d,t],eP[l,es,d,t])*qES[es,d,t]*pTPotential[l,es,d,t];
@@ -166,7 +168,6 @@ $Group+ G_flat_after_last_data_year
 
   sTSupply[l,es,d,t]
   vTSupply[l,es,d,t]
-  # pTSupply[l,es,d,t]
 
   sTPotential[l,es,d,t]
   uTE[l,es,e,d,t]
