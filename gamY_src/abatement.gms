@@ -15,6 +15,8 @@ $SetGroup+ SG_flat_after_last_data_year
 $Group+ all_variables
   # Exogenous variables
   pT_k[d,t]$(d1pT_k[d,t]) "User cost of capital in technologies for energy services"
+  pT_e_base[es,e,d,t]$(d1pT_e[es,e,d,t]) "Base price of energy input, excl. taxes, billion EUR per PJ"
+  pT_e_tax[es,e,d,t]$(d1pT_e[es,e,d,t]) "Tax on energy input, billion EUR per PJ"
   pT_e[es,e,d,t]$(d1pT_e[es,e,d,t]) "Input price of energy in technologies for energy services" 
   qES[es,d,t]$(d1qES[es,d,t]) "Energy service, quantity."
   
@@ -50,8 +52,8 @@ $IF %stage% == "equations":
 
 $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
 
-  # Exogenous variables
-# ..  pT_e[es,e,d,t] =E=  pEpj[es,e,d,t] ; 
+  # Price on energy input including taxes
+  .. pT_e[es,e,d,t] =E=  pT_e_base[es,e,d,t] + pT_e_tax[es,e,d,t]; 
 
   # Endogenous variables
 
@@ -67,7 +69,7 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 
 # Supplementary output
 
-# Value (or costs) of energy service supplied by technology l
+  # Value (or costs) of energy service supplied by technology l
   .. vTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*@Int_cdfLogNorm(pESmarg[es,d,t],pTPotential[l,es,d,t],eP[l,es,d,t])*qES[es,d,t]*pTPotential[l,es,d,t];
 
   # Value of energy service
@@ -76,10 +78,10 @@ $BLOCK abatement_equations abatement_endogenous $(t1.val <= t.val and t.val <= t
 	# Price index for energy purposes
 	.. pES[es,d,t] =E= vES[es,d,t] / qES[es,d,t] ;
 
-    # Use of energy goods - Adjusted for price of supply being lower than at full potential
+  # Use of energy goods - Adjusted for price of supply being lower than at full potential
   .. qES_e[es,e,d,t] =E= sum(l$(d1sTPotential[l,es,d,t]), uTE[l,es,e,d,t]*vTSupply[l,es,d,t]/pTPotential[l,es,d,t] ) ;
   
-   # Use of machinery capital for technologies - Adjusted for price of supply being lower than at full potential
+  # Use of machinery capital for technologies - Adjusted for price of supply being lower than at full potential
   .. qES_k[d,t] =E= sum((l,es)$(d1sTPotential[l,es,d,t]), uTK[l,es,d,t]*vTSupply[l,es,d,t]/pTPotential[l,es,d,t] ) ;
 
 $ENDBLOCK
@@ -96,44 +98,27 @@ $ENDIF # equations
 $IF %stage% == "exogenous_values":
 
 $GROUP abatement_data_variables
-#jsk  sTPotential[l,es,d,t]
-  theta[l,es,d,t]
+  sTPotential[l,es,d,t]
   uTE[l,es,e,d,t]
   uTK[l,es,d,t]
+  pT_e_base[es,e,d,t]
+  pT_e_tax[es,e,d,t]
+  pT_k[d,t]
+  qES[es,d,t]
 ;
 @load(abatement_data_variables, "../data/data.gdx")
 $GROUP+ data_covered_variables abatement_data_variables;
 
-#jsk
-sTPotential.l[l,es,d,t] =  theta.l[l,es,d,t] ;
-
 # ------------------------------------------------------------------------------
-# Parameters for stress testing the model
+# Dummies and initial values
 # ------------------------------------------------------------------------------
 
-# Take aways from the stress tests:
-# 1. If combining stress_restrict_techs and stress_price_base_tech, the model will not solve.
-# 2. If combining stress_reduced_potential_base_tech and stress_increase_price_backstop_tech, the model will not solve.
-# 3. If stress_price_base_tech is = 1000, then the model will not solve.
-# 4. If stress_price_base_tech2 = 1, then the model will not solve
+pT_e.l[es,e,d,t] =  pT_e_base.l[es,e,d,t] + pT_e_tax.l[es,e,d,t];
+pTPotential.l[l,es,d,t]	= sum(e, uTE.l[l,es,e,d,t]*pT_e.l[es,e,d,t])
+										    + uTK.l[l,es,d,t]*pT_k.l[d,t];
 
-$SETGLOBAL stress_restrict_techs 1
-$SETGLOBAL stress_price_base_tech 0 # stress_price_base_tech2 must be equal to 0, if stress_price_base_tech is equal to 1
-$SETGLOBAL stress_price_base_tech2 0 # stress_price_base_tech must be equal to 0, if stress_price_base_tech2 is equal to 1
-$SETGLOBAL stress_reduced_potential_base_tech 0
-$SETGLOBAL stress_increase_price_backstop_tech 0
-$SETGLOBAL stress_decrease_price_backstop_tech 0
-$SETGLOBAL stress_no_backstop_tech 0
-$SETGLOBAL stress_increase_eP 0
-
-# Stress test: Stort samlet potentiale og meget dyre teknologier i enden af udbudskurven
-# Stress test: Lille forskel mellem marginale og næstbilligste, men så en stor forskel ift. den næst-næst billigste
-# Stress test: Lavere priser
-
-# ------------------------------------------------------------------------------
-# Creating dummy data
-# ------------------------------------------------------------------------------
-$import calib_dummy_techs.gms
+# Defining efficiency of costs of technology l (smoothing parameter)"
+eP.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = 0.01;
 
 # Set dummy determining the existence of technology potentials
 d1sTPotential[l,es,d,t] = yes$(sTPotential.l[l,es,d,t]);
@@ -141,20 +126,12 @@ d1uTE[l,es,e,d,t] = yes$(uTE.l[l,es,e,d,t]);
 d1pT_k[d,t] = yes$(sum((l,es), d1sTPotential[l,es,d,t]));
 d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 d1pT_e[es,e,d,t] = yes$(pT_e.l[es,e,d,t]);
-# d1pT_e[es,e,d,t] = yes$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]);
 d1qES[es,d,t] = yes$(qES.l[es,d,t]);
-# d1qES[es,d,t] = yes$(sum(e, d1pEpj_base[es,e,d,t]) or $(sum(e, d1tqEpj[es,e,d,t])));
 
-# Initial values
-# pT_k.l[d,t]$(sum((l,es), d1sTPotential[l,es,d,t])) = 0.1;
-# qES.l[es,d,t] = sum(e, qEpj.l[es,e,d,t]);
-
-pESmarg.l[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) = 1;
-eP.l[l,es,d,t]$(d1sTPotential[l,es,d,t]) = 0.01;
-
-$IF1 %stress_increase_eP% = 1:
-  eP.l[l,es,d,t]$(d1sTPotential[l,es,d,t]) = 0.5;
-$ENDIF1
+# ------------------------------------------------------------------------------
+# Depicting discrete and smooth supply curves
+# ------------------------------------------------------------------------------
+$import Supply_curves_abatement.gms
 
 $ENDIF # exogenous_values
 

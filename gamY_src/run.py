@@ -40,4 +40,4 @@ e = dt.Gdx("Abatement_partial_elec.gdx")
 ## Carbon tax
 c = dt.Gdx("Abatement_partial_carbon_tax.gdx")
 
-
+import Supply_curves

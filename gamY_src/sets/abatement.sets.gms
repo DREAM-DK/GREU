@@ -9,8 +9,6 @@ $gdxIn
 
 set l /
   set.l_load
-  t_Electricity_calib "t_Electricity_calib"
-  t_Electricity_calib_2 "t_Electricity_calib_2"
   /;
 
 
