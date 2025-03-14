@@ -97,7 +97,7 @@ parameters auxiliary_data_parameters
   qEmmtot[em,em_accounts,t]
 
   #Nye p� d 
-  # pT_e_base[es,e,d,t]
+  # pTE_base[es,e,d,t]
   qEpj[es,e,d,t]
   tqE[es,e,d,t]
   tpE[es,e,d,t]
@@ -116,9 +116,9 @@ parameters auxiliary_data_parameters
   sTPotential_load[l,es,i,t] "Potential, technology."
   uTE_load[l,es,e,i,t] "Energy use, technology."
   uTK_load[l,es,i,t] "Capital use, technology."
-  pT_e_base_load[es,e,i,t] "Base price of energy input (billion EUR per PJ)"
-  pT_e_tax_load[es,e,i,t] "Tax on energy input (billion EUR per PJ)"
-  pT_k_load[i,t] "User cost of capital"
+  pTE_base_load[es,e,i,t] "Base price of energy input (billion EUR per PJ)"
+  pTE_tax_load[es,e,i,t] "Tax on energy input (billion EUR per PJ)"
+  pTK_load[i,t] "User cost of capital"
   qES_load[es,i,t] "Energy service, quantity"
 ;
 
@@ -180,9 +180,9 @@ parameters GREU_data
   sTPotential[l,es,i,t] "Potential, technology."
   uTE[l,es,e,i,t] "Energy use, technology."
   uTK[l,es,i,t] "Capital use, technology."
-  pT_e_base[es,e,i,t] "Base price of energy input (billion EUR per PJ)"
-  pT_e_tax[es,e,i,t] "Tax on energy input (billion EUR per PJ)"
-  pT_k[i,t] "User cost of capital"
+  pTE_base[es,e,i,t] "Base price of energy input (billion EUR per PJ)"
+  pTE_tax[es,e,i,t] "Tax on energy input (billion EUR per PJ)"
+  pTK[i,t] "User cost of capital"
   qES[es,i,t] "Energy service, quantity"
 ;
 
@@ -209,7 +209,7 @@ $load vtCAP_prodsubsidy=vtCAP_top.l
 $gdxIn 
 
 $gdxIn %abatement_data_path%
-$load l=l sTPotential_load=sTPotential.l, uTE_load=uTE.l, uTK_load=uTK.l, pT_e_base_load=pT_e_base.l, pT_e_tax_load=pT_e_tax.l, pT_k_load=pT_k.l, qES_load=qES.l
+$load l=l sTPotential_load=sTPotential.l, uTE_load=uTE.l, uTK_load=uTK.l, pTE_base_load=pTE_base.l, pTE_tax_load=pTE_tax.l, pTK_load=pTK.l, qES_load=qES.l
 $gdxIn
 
 # Labor-market
@@ -262,7 +262,7 @@ qInvt_i[i,t] = qI_s.l['invt',i,t];
 #Energy and emissions.
   $import create_energybalance.gms #Here GreenREFORM variables are combine to create the full energybalance as we would preferably receive it from the Statistical Office.
 
-  # pT_e_base[es,e,d,t]$(sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t])) = sum(demand_transaction, Energybalance['BASE',demand_transaction,d,es,e,t])/sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
+  # pTE_base[es,e,d,t]$(sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t])) = sum(demand_transaction, Energybalance['BASE',demand_transaction,d,es,e,t])/sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
   qEpj[es,e,d,t] = sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
 
   vEAV[es,e,d,t] = sum(demand_transaction, Energybalance['EAV',demand_transaction,d,es,e,t]);
@@ -302,9 +302,9 @@ qInvt_i[i,t] = qI_s.l['invt',i,t];
   sTPotential[l,es,i,t] = sTPotential_load[l,es,i,t];
   uTE[l,es,e,i,t] = uTE_load[l,es,e,i,t];
   uTK[l,es,i,t] = uTK_load[l,es,i,t];
-  pT_e_base[es,e,i,t] = pT_e_base_load[es,e,i,t];
-  pT_e_tax[es,e,i,t] = pT_e_tax_load[es,e,i,t];
-  pT_k[i,t] = pT_k_load[i,t];
+  pTE_base[es,e,i,t] = pTE_base_load[es,e,i,t];
+  pTE_tax[es,e,i,t] = pTE_tax_load[es,e,i,t];
+  pTK[i,t] = pTK_load[i,t];
   qES[es,i,t] = qES_load[es,i,t];
 
 execute_unloaddi "data",
@@ -329,12 +329,12 @@ execute_unloaddi "data",
   vtCO2_ETS, qCO2_ETS_freeallowances
   vtNetproductionRest,
   vtCAP_prodsubsidy
-  # pT_e_base 
+  # pTE_base 
   qEpj
   vtE_duty, vtE_vat, tCO2_Emarg, tEmarg_duty
   Energybalance, NonEnergyEmissions
 
-  sTPotential, uTE, uTK, pT_e_base, pT_e_tax, pT_k, qES
+  sTPotential, uTE, uTK, pTE_base, pTE_tax, pTK, qES
 
   vIOxE_y, vIOxE_m, vIOxE_a, vIO_y, vIO_m, vIO_a
 ;

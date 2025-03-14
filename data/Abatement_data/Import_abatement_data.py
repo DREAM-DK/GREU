@@ -33,9 +33,9 @@ rename_col_list = {'TechID':"l",
                    'Potential (Share of energy demand)':"sTPotential",
                    'Energy intensity (PJ in per PJ out)':"uTE",
                    'Capital intensity (billion EUR per PJ out)':"uTK",
-                   'Energy price (billion EUR per PJ in)':"pT_e_base",
-                   'Energy tax (billion EUR per PJ in)':"pT_e_tax",
-                   'Capital cost index':"pT_k",
+                   'Energy price (billion EUR per PJ in)':"pTE_base",
+                   'Energy tax (billion EUR per PJ in)':"pTE_tax",
+                   'Capital cost index':"pTK",
                    'Energy service (PJ out)':"qES",
                    }
 
@@ -114,9 +114,9 @@ df_energy_service = df_energy_service.set_index(['es','i','t'])
 sTPotential_series = pd.Series(df_sTPotential["sTPotential"], index=df_sTPotential.index)
 uTE_series = pd.Series(df_uTE["uTE"], index=df_uTE.index)
 uTK_series = pd.Series(df_uTK["uTK"], index=df_uTK.index)
-pT_e_base_series = pd.Series(df_energy_price["pT_e_base"], index=df_energy_price.index)
-pT_e_tax_series = pd.Series(df_energy_tax["pT_e_tax"], index=df_energy_tax.index)
-pT_k_series = pd.Series(df_capital_cost_index["pT_k"], index=df_capital_cost_index.index)
+pTE_base_series = pd.Series(df_energy_price["pTE_base"], index=df_energy_price.index)
+pTE_tax_series = pd.Series(df_energy_tax["pTE_tax"], index=df_energy_tax.index)
+pTK_series = pd.Series(df_capital_cost_index["pTK"], index=df_capital_cost_index.index)
 qES_series = pd.Series(df_energy_service["qES"], index=df_energy_service.index)
 
 # Create empty GAMS database
@@ -128,9 +128,9 @@ Par, Var, Set = db.create_parameter, db.create_variable, db.create_set
 db.add_variable_from_series(sTPotential_series, explanatory_text = 'Potential supply by technology l in ratio of energy service (share of qES)', add_missing_domains=True)
 db.add_variable_from_series(uTE_series, explanatory_text = 'Input of energy in technology l per PJ output at full potential', add_missing_domains=True)
 db.add_variable_from_series(uTK_series, explanatory_text = 'Input of machinery capital in technology l per PJ output output at full potential', add_missing_domains=True)
-db.add_variable_from_series(pT_e_base_series, explanatory_text = 'Base price of energy input', add_missing_domains=True)
-db.add_variable_from_series(pT_e_tax_series, explanatory_text = 'Tax on energy input', add_missing_domains=True)
-db.add_variable_from_series(pT_k_series, explanatory_text = 'User cost of capital in technologies for energy services', add_missing_domains=True)
+db.add_variable_from_series(pTE_base_series, explanatory_text = 'Base price of energy input', add_missing_domains=True)
+db.add_variable_from_series(pTE_tax_series, explanatory_text = 'Tax on energy input', add_missing_domains=True)
+db.add_variable_from_series(pTK_series, explanatory_text = 'User cost of capital in technologies for energy services', add_missing_domains=True)
 db.add_variable_from_series(qES_series, explanatory_text = 'Energy service, quantity.', add_missing_domains=True)
 
 # Export gdx-file with abatement data
