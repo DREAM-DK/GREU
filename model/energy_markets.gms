@@ -143,8 +143,8 @@
 
 
 		#Supply by one side
-		qY_CET&_OneSupplierOrExoSuppliers[e,i,t]$(d1OneSX_y[e,t]).. qY_CET[e,i,t] =E= qEtot[e,t] - sum(i_a, qM_CET[e,i_a,t]);
-		qM_CET&_OneSupplierOrExoSuppliers[e,i,t]$(d1OneSX_m[e,t]).. qM_CET[e,i,t] =E= qEtot[e,t] - sum(i_a, qY_CET[e,i_a,t]);
+		qY_CET&_OneSupplierOrExoSuppliers[e,i,t]$(d1OneSX_y[e,i,t]).. qY_CET[e,i,t] =E= qEtot[e,t] - sum(i_a, qM_CET[e,i_a,t]);
+		qM_CET&_OneSupplierOrExoSuppliers[e,i,t]$(d1OneSX_m[e,i,t]).. qM_CET[e,i,t] =E= qEtot[e,t] - sum(i_a, qY_CET[e,i_a,t]);
 
 
 		.. qEtot[e,t] =E= sum((es,d)$(d1pEpj_base[es,e,d,t] or tl[d]), qEpj[es,e,d,t]);
@@ -260,10 +260,11 @@
 
 		#Market clearing
 		d1OneSX[e,t] = yes;
-		d1OneSX[e,t] = no$(straw[e] or el[e] or distheat[e]);
+		d1OneSX[e,t] = no$(straw[e] or el[e] or distheat[e]); #For straw, electricity and district heat, supply and demand is linked by the equations qY_CET&_SeveralNonExoSuppliers and qM_CET&_SeveralNonExoSuppliers
 
-		d1OneSX_y[e,t] = yes$(d1OneSX[e,t] and sum(i, d1pY_CET[e,i,t]));
-		d1OneSX_m[e,t] = yes$(d1OneSX[e,t] and sum(i, d1pM_CET[e,i,t]));
+		#d1OneSX is one for all cases, except straw electricity and district heat before the two lines below. The lines ensure that there is also energy in the data.
+		d1OneSX_y[e,i,t] = yes$(d1OneSX[e,t] and sum(i_a, d1pY_CET[e,i_a,t])); 
+		d1OneSX_m[e,i,t] = yes$(d1OneSX[e,t] and sum(i_a, d1pM_CET[e,i_a,t]));
 
 		d1pE_avg[e,t] = yes$(pE_avg.l[e,t]);
 
