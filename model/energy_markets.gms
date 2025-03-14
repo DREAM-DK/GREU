@@ -30,8 +30,8 @@
 
 				d1pE_avg[e,t] ""
 				d1OneSX[out,t] ""
-				d1OneSX_y[out,t] ""
-				d1OneSX_m[out,t] ""
+				d1OneSX_y[out,i,t] ""
+				d1OneSX_m[out,i,t] ""
 				d1qTL[es,e,t] ""
 
 				d1pREa[es,e_a,i,t] "" #Skal flyttes til industries_CES_energydemand.gms, når vi får stages
