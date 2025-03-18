@@ -13,6 +13,10 @@ set_time_periods(%calibration_year%, %calibration_year%);
 $LOOP calibration_endogenous:
   {name}.l{sets}$({conditions} and {name}.l{sets} = 0) = 0.99;$ENDLOOP
 
+$LOOP all_variables:
+  {name}.l{sets}$({conditions} and {name}.l{sets} = 0) = 0.99;
+$ENDLOOP
+
 $FIX all_variables; $UNFIX calibration_endogenous;
 
 execute_unload 'static_calibration_pre.gdx';

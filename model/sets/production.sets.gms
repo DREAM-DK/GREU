@@ -1,13 +1,8 @@
 
-set factors_of_production /
-  "labor"
-  RxE #Non-ergy input
-  set.k, # Types of capital
-  machine_energy
-  transport_energy
-  heating_energy
-/;
-
+set factors_of_production;
+$gdxin ../data/data.gdx
+$load factors_of_production
+$gdxin
 
 set production_nests /
   KE "machine capial and ergy for machine"

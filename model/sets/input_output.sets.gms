@@ -6,8 +6,8 @@ Set k[d<] "Capital types.";
 Set c[d<] "Private consumption types.";
 Set g[d<] "Government consumption types.";
 Set x[d<] "Export types.";
-Set invt[d<] "Inventories" / invt /;
-Set tl[d<] "Transmission losses" / tl /;
+Set invt[d<] "Inventories"; #/ invt /;
+Set tl[d<] "Transmission losses"; #/ tl /;
 
 # Set i "Production industries."; alias(i,i_a);
 Set i[d<] "Production industries."; alias(i,i_a);  # i should not be subset of d - use re or rx instead
@@ -19,7 +19,7 @@ Set i2rx(i,rx);
 
 $gdxIn ../data/data.gdx
 $load i, m
-$load rx=i, k, c, g, x
+$load rx=i, k, c, g, x,tl,invt
 $load re, rx2re
 $gdxIn
 ;

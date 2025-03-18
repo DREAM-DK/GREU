@@ -38,22 +38,27 @@ $IF %stage% == "equations":
   $BLOCK production_equations production_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
     # Output is determined in the input-output system, to meet the demand at the prevailing price levels.
     # Given the level of production, we determine the most cost-effective way to produce it in this module.
-    .. qProd[pf_top,i,t] =E= qPFtop2qY[i] * qY_i[i,t];
+
+    qProd[pf_top,i,t]$(i_control[i])..
+     qProd[pf_top,i,t] =E= qPFtop2qY[i] * qY_i[i,t];
 
     # Marginal cost. These are marginal cost of production from CES-production (pProd['TopPfunction']), net of any adjustment costs, and other costs not covered in the production function
-    .. pY0_i[i,t] * qY_i[i,t] =E= pProd['TopPfunction',i,t] * qProd['TopPfunction',i,t]
+    pY0_i[i,t]$(i_control[i])..
+     pY0_i[i,t] * qY_i[i,t] =E= pProd['TopPfunction',i,t] * qProd['TopPfunction',i,t];
                                 + vProdOtherProductionCosts[i,t];
 
-    .. pProd2pNest[pf,pfNest,i,t] =E= pProd[pf,i,t] / pProd[pfNest,i,t];
+    pProd2pNest[pf,pfNest,i,t]$(i_control[i])..
+     pProd2pNest[pf,pfNest,i,t] =E= pProd[pf,i,t] / pProd[pfNest,i,t];
 
     #CES-nests in production function
-    qProd[pf,i,t]$(not pf_top[pf])..
+    qProd[pf,i,t]$(not pf_top[pf] and i_control[i])..
       qProd[pf,i,t] =E= uProd[pf,i,t]
                       * sum(pf_mapping[pfNest,pf,i],
                           pProd2pNest[pf,pfNest,i,t]**(-eProd[pfNest,i]) * qProd[pfNest,i,t]
                       );
 
-    .. pProd[pfNest,i,t] * qProd[pfNest,i,t] =E= sum(pf_mapping[pfNest,pf,i], pProd[pf,i,t] * qProd[pf,i,t]);
+    pProd[pfNest,i,t]$(i_control[i])..
+     pProd[pfNest,i,t] * qProd[pfNest,i,t] =E= sum(pf_mapping[pfNest,pf,i], pProd[pf,i,t] * qProd[pf,i,t]);
 
     # # Other production costs, not in nesting tree 
     # .. vProdOtherProductionCosts[i,t] =E= vtNetproductionRest[i,t]      #Net production subsidies and taxes not internalized in user-cost of capital and not included in other items listed below
@@ -66,20 +71,23 @@ $IF %stage% == "equations":
   $ENDBLOCK
 
   $BLOCK production_bottom_link_equations production_bottom_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-    .. pProd[RxE,i,t] =E= pD[i,t];
-    qR2qY_i[i,t].. qD[i,t] =E= qProd['RxE',i,t];
+    pProd[RxE,i,t]$(i_control[i])..
+      pProd[RxE,i,t] =E= pD[i,t];
+    qR2qY_i[i,t]$(i_control[i]).. qD[i,t] =E= qProd['RxE',i,t];
 
-    .. pProd[pf_bottom_capital,i,t] =E= sum(sameas[pf_bottom_capital,k], pK_k_i[k,i,t] / pK_k_i[k,i,tBase]); # We set the price to 1 in the base year, and adjust the quantity inversely
-    qK2qY_k_i[k,i,t].. sum(sameas[pf_bottom_capital,k], qProd[pf_bottom_capital,i,t]) =E= qK_k_i[k,i,t] * pK_k_i[k,i,tBase];
+    pProd[pf_bottom_capital,i,t]$(i_control[i])..
+      pProd[pf_bottom_capital,i,t] =E= sum(sameas[pf_bottom_capital,k], pK_k_i[k,i,t] / pK_k_i[k,i,tBase]); # We set the price to 1 in the base year, and adjust the quantity inversely
+    qK2qY_k_i[k,i,t]$(i_control[i]).. sum(sameas[pf_bottom_capital,k], qProd[pf_bottom_capital,i,t]) =E= qK_k_i[k,i,t] * pK_k_i[k,i,tBase];
 
-    .. pProd[pf_bottom_e,i,t] =E= pE_i[i,t]; 
-    qE2qY_i[i,t].. qE_i[i,t] =E= sum(pf_bottom_e, qProd[pf_bottom_e,i,t]);
+    pProd[pf_bottom_e,i,t]$(i_control[i])..
+      pProd[pf_bottom_e,i,t] =E= pE_i[i,t]; 
+    qE2qY_i[i,t]$(i_control[i]).. qE_i[i,t] =E= sum(pf_bottom_e, qProd[pf_bottom_e,i,t]);
     # .. pProd[machine_energy,i,t] =E= pREmachine[i,t]; 
     # .. pProd[heating_energy,i,t] =E= pREes['heating',i,t];
     # .. pProd[transport_energy,i,t] =E= pREes['transport',i,t];
-
-    .. pProd[labor,i,t] =E= pL_i[i,t];
-    qL2qY_i[i,t].. qL_i[i,t] =E= qProd['labor',i,t];
+    pProd[labor,i,t]$(i_control[i])..
+     pProd[labor,i,t] =E= pL_i[i,t];
+    qL2qY_i[i,t]$(i_control[i]).. qL_i[i,t] =E= qProd['labor',i,t];
   $ENDBLOCK
 
   # Add equation and endogenous variables to main model
