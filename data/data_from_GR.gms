@@ -180,7 +180,7 @@ vtM_i_d[i,d,t]$vD[d,t] = vM_i_d[i,d,t] / vD[d,t] * vtYM_d[d,t];
 qD[d,t] = vD[d,t];
 
 # Factor demand
-qK_k_i[k,i,t] = qK[k,i,t]; qK_k_i[k,i,t] = qK_k_i[k,i,'2020']; 
+qK_k_i[k,i,t] = qK[k,i,t]; 
 #qI_k_i[k,i,t] =qI_s.l[k,i,t]; #We read this variable directly
 qR_i[i,t] =sum(i_a,vY_i_d[i_a,i,t] + vM_i_d[i_a,i,t]) + vtYM_d[i,t]; #qRxE.l[i,t]; #sum(i_a,vY_i_d[i_a,i,t] + vM_i_d[i_a,i,t]) + vtYM_d[i,t]; #right?
 qL_i[i,t] = qL[i,t];
