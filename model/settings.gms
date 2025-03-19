@@ -11,10 +11,10 @@ OPTION
 ;
 
 $SETLOCAL first_data_year 2015;
-$SETLOCAL calibration_year 2019;
+$SETLOCAL calibration_year 2020;
 $SETLOCAL terminal_year 2030;
 
-$SETLOCAL base_year 2019;
+$SETLOCAL base_year 2020;
 
 parameter gp "Steady state rate of inflation." /0.02/;
 parameter gq "Steady state labor saving technical progress." /0.01/;

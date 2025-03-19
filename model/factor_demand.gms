@@ -41,34 +41,34 @@ $IF %stage% == "equations":
 
 $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
   # Labor and capital ratios
-  qK_k_i[k,i,t]$(i_control[i]).. qK_k_i[k,i,t] =E= qK2qY_k_i[k,i,t] * qY_i[i,t];
-  qL_i[i,t]$(i_control[i]).. qL_i[i,t] =E= qL2qY_i[i,t] * qY_i[i,t];
+  .. qK_k_i[k,i,t] =E= qK2qY_k_i[k,i,t] * qY_i[i,t];
+  .. qL_i[i,t] =E= qL2qY_i[i,t] * qY_i[i,t];
 
   # Inventory investments
-  qInvt_i[i,t]$(i_control[i]).. qInvt_i[i,t] =E= qInvt2qY_i[i,t] * qY_i[i,t];
+  .. qInvt_i[i,t] =E= qInvt2qY_i[i,t] * qY_i[i,t];
   .. qD[invt,t] =E= sum(i, qInvt_i[i,t]);
-  vInvt_i[i,t]$(i_control[i]).. vInvt_i[i,t] =E= pD['invt',t] * qInvt_i[i,t];
+  .. vInvt_i[i,t] =E= pD['invt',t] * qInvt_i[i,t];
 
   # Link demand for non-energy intermediate inputs to input-output model
   # We use a one-to-one mapping between types of intermediate inputs and industries
-  qD[i,t]$(i_control[i]).. qD[i,t] =E= qR2qY_i[i,t] * qY_i[i,t];
+  .. qD[i,t] =E= qR2qY_i[i,t] * qY_i[i,t];
 
   # Link demand for energy intermediate inputs to input-output model
-  pE_i[i,t]$(i_control[i]).. pE_i[i,t] =E= sum(i2re[i,re], pD[re,t]);
-  qE_i[i,t]$(i_control[i]).. qE_i[i,t] =E= qE2qY_i[i,t] * qY_i[i,t];
-  qD[re,t]$(re_control[re]).. qD[re,t] =E= sum(i2re[i,re], qE_i[i,t]);
-  vE_i[i,t]$(i_control[i]).. vE_i[i,t] =E= sum(i2re[i,re], vD[re,t]);
+  .. pE_i[i,t] =E= sum(i2re[i,re], pD[re,t]);
+  .. qE_i[i,t] =E= qE2qY_i[i,t] * qY_i[i,t];
+  .. qD[re,t] =E= sum(i2re[i,re], qE_i[i,t]);
+  .. vE_i[i,t] =E= sum(i2re[i,re], vD[re,t]);
 
   # Link demand for investments to input-output model
-  qD[k,t].. qD[k,t] =E= sum(i, qI_k_i[k,i,t]);
-  vI_k_i[k,i,t]$(i_control[i]).. vI_k_i[k,i,t] =E= pD[k,t] * qI_k_i[k,i,t];
+  .. qD[k,t] =E= sum(i, qI_k_i[k,i,t]);
+  .. vI_k_i[k,i,t] =E= pD[k,t] * qI_k_i[k,i,t];
 
   # Capital accumulation (firms demand capital directly, investments are residual from capital accumulation)
-  qI_k_i[k,i,t]$(i_control[i]).. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq;
+  .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq;
 
-    $(not tEnd[t] and i_control[i])..
+    $(not tEnd[t])..
       pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t+1]) * pD[k,t+1]*fp + jpK_k_i[k,i,t];
-    pK_k_i&_tEnd[k,i,t]$(tEnd[t] and i_control[i])..
+    pK_k_i&_tEnd[k,i,t]$(tEnd[t])..
       pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t]) * pD[k,t]*fp + jpK_k_i[k,i,t];
 $ENDBLOCK
 

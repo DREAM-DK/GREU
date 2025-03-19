@@ -11,9 +11,6 @@ set_time_periods(%calibration_year%, %calibration_year%);
 
 # Set starting values for main_endogenous variables if no other value is given
 $LOOP calibration_endogenous:
-  {name}.l{sets}$({conditions} and {name}.l{sets} = 0) = 0.99;$ENDLOOP
-
-$LOOP all_variables:
   {name}.l{sets}$({conditions} and {name}.l{sets} = 0) = 0.99;
 $ENDLOOP
 

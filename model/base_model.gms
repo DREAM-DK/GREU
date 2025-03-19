@@ -12,8 +12,7 @@ $IMPORT sets/emissions.sets.gms
 $IMPORT sets/energy_taxes_and_emissions.sets.gms
 
 set_time_periods(%first_data_year%, %terminal_year%);
-set i_control[i]/49025/;
-set re_control[re]/49025_re/;
+
 # ------------------------------------------------------------------------------
 # Select modules
 # ------------------------------------------------------------------------------
@@ -24,7 +23,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT labor_market.gms
   # $IMPORT energy_markets.gms; 
   # $IMPORT industries_CES_energydemand.gms; 
-  $IMPORT production.gms; 
+  $IMPORT production_master.gms; 
   $IMPORT pricing.gms; 
   $IMPORT imports.gms
   # $IMPORT production_CET.gms;
@@ -65,29 +64,6 @@ main.optfile=1;
 # ------------------------------------------------------------------------------
 @import_from_modules("exogenous_values")
 @inf_growth_adjust()
-
-
-$FUNCTION import_from_modules(stage_key):
-  $SETGLOBAL stage stage_key;
-  #$IMPORT submodel_template.gms
-  #$IMPORT financial_accounts.gms
-  #$IMPORT labor_market.gms
-  #   $IMPORT energy_markets.gms; 
-  #   $IMPORT industries_CES_energydemand.gms; 
-  $IMPORT production.gms; 
-  #$IMPORT pricing.gms; 
-  #$IMPORT imports.gms
-  #    $IMPORT production_CET.gms;
-  #    $IMPORT emissions.gms; 
-  #    $IMPORT energy_and_emissions_taxes.gms; 
-  #$IMPORT input_output.gms
-  #$IMPORT households.gms
-  #$IMPORT government.gms
-  #$IMPORT exports.gms
-  $IMPORT factor_demand.gms
-  #$IMPORT ramsey_household.gms
-$ENDFUNCTION
-
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
 @update_exist_dummies()
 

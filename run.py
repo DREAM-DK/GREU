@@ -14,7 +14,7 @@ sys.path.insert(0, root)
 os.chdir(fr"{root}/model")
 
 ## Create data.gdx based on GreenREFORM-DK data 
-# dt.gamY.run("../data/data_from_GR.gms")
+dt.gamY.run("../data/data_from_GR.gms")
 
 dt.gamY.run("base_model.gms")
 
