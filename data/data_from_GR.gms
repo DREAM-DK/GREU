@@ -22,7 +22,6 @@ Set x(d); #export
 Set g(d); #public final consumption
 Set rx(d); #currently equal to i
 Set re(d); #energy intermediate input
-Set rx2re(rx,re); #map
 Set invt(d); #inventories
 Set tl(d); #transmission losses
 Set out; #output types
@@ -47,7 +46,7 @@ parameters
 
 ;
 $gdxin dataa_ny.gdx
-$load d,i,c,x,g,rx,re,rx2re,invt,tl,out,e,t,t1,land5,em_accounts,i_,k_
+$load d,i,c,x,g,rx,re,invt,tl,out,e,t,t1,land5,em_accounts,i_,k_
 $load factors_of_production, k, ebalitems, em,etaxes,a_rows_,transaction,demand_transaction,es
 $load vIO_y=vIO_y.l, vIO_m=vIO_m.l, vIOxE_y=vIOxE_y.l, vIOxE_m=vIOxE_m.l, vIO_a=vIO_a.l,vIOxE_a=vIOxE_a.l
 $load nEmployed=nEmployed.l, qL=qL.l, qK=qK.l, qI_k_i=qI_k_i.l
@@ -94,6 +93,7 @@ parameters GREU_data
   qR_i[i,t] "Intermediate input by industry."
   qI_k_i[k,i,t] "Real investments by capital type and industry."
   qInvt_i[i,t] "Inventory investments by industry."
+  qE_re_i[re,i,t] "Energy demand from industry i, split on energy-types re"
 
   #Energy and emissions.
   Energybalance[ebalitems,transaction,d,es,e,t] "Main data input with regards to energy and energy-related emissions"
@@ -163,8 +163,8 @@ vM_i_d[i,rx,t] = vIOxE_m[i,rx,t];
 #vY_i_d[i,'energy',t] = sum(rx, vIO_y[i,rx,t] - vIOxE_y[i,rx,t]);
 #vM_i_d[i,'energy',t]
 
-vY_i_d[i,re,t] = sum(rx2re(rx,re) , vIO_y[i,rx,t] - vIOxE_y[i,rx,t]);
-vM_i_d[i,re,t] = sum(rx2re(rx,re) , vIO_m[i,rx,t] - vIOxE_m[i,rx,t]);
+vY_i_d[i,re,t] =  vIO_y[i,re,t] - vIOxE_y[i,re,t];
+vM_i_d[i,re,t] =  vIO_m[i,re,t] - vIOxE_m[i,re,t];
 
 vD[d,t] = sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
 
@@ -172,19 +172,13 @@ vtYM_d[d,t]       = vIOxE_a["TaxSub",d,t] + vIOxE_a["Moms",d,t];
 vtYM_d[d,t]$(sameas[d,'cHouEne'] or sameas[d,'cCarEne']) = vIO_a['TaxSub',d,t] + vIO_a['Moms',d,t] -  vIOxE_a["TaxSub",d,t] - vIOxE_a["Moms",d,t];
 #Tried to add energy record manually to d, below still does not work
 #vtYM_d['energy',t] = sum(d$(not (sameas[d,'cHouEne'] or sameas[d,'cCarEne'])), vIO_a['TaxSub',d,t] + vIO_a['Moms',d,t] -  vIOxE_a["TaxSub",d,t] - vIOxE_a["Moms",d,t]);
-vtYM_d[re,t] = sum(rx$(rx2re(rx,re)), vIO_a['TaxSub',rx,t] + vIO_a['Moms',rx,t] -  vIOxE_a["TaxSub",rx,t] - vIOxE_a["Moms",rx,t]);
+vtYM_d[re,t] =  vIO_a['TaxSub',re,t] + vIO_a['Moms',re,t] -  vIOxE_a["TaxSub",re,t] - vIOxE_a["Moms",re,t]);
 
 vtY_i_d[i,d,t]$vD[d,t] = vY_i_d[i,d,t] / vD[d,t] * vtYM_d[d,t]; 
 vtM_i_d[i,d,t]$vD[d,t] = vM_i_d[i,d,t] / vD[d,t] * vtYM_d[d,t]; 
 
 qD[d,t] = vD[d,t];
 
-# Factor demand
-qK_k_i[k,i,t] = qK[k,i,t]; 
-#qI_k_i[k,i,t] =qI_s.l[k,i,t]; #We read this variable directly
-qR_i[i,t] =sum(i_a,vY_i_d[i_a,i,t] + vM_i_d[i_a,i,t]) + vtYM_d[i,t]; #qRxE.l[i,t]; #sum(i_a,vY_i_d[i_a,i,t] + vM_i_d[i_a,i,t]) + vtYM_d[i,t]; #right?
-qL_i[i,t] = qL[i,t];
-qInvt_i[i,t] = 0.98;#qI_s.l['invt',i,t];
 
 #Energy and emissions.
   #$import create_energybalance.gms #Here GreenREFORM variables are combine to create the full energybalance as we would preferably receive it from the Statistical Office.
@@ -217,6 +211,21 @@ qInvt_i[i,t] = 0.98;#qI_s.l['invt',i,t];
 #Margins 
 
 
+# Factor demand
+  qK_k_i[k,i,t] = qK[k,i,t]; 
+  #qI_k_i[k,i,t] =qI_s.l[k,i,t]; #We read this variable directly
+  qR_i[i,t] =sum(i_a,vY_i_d[i_a,i,t] + vM_i_d[i_a,i,t]) + vtYM_d[i,t]; #qRxE.l[i,t]; #sum(i_a,vY_i_d[i_a,i,t] + vM_i_d[i_a,i,t]) + vtYM_d[i,t]; #right?
+  qL_i[i,t] = qL[i,t];
+  qE_re_i['machine_energy',i,t]   = qProd['machine_energy',i,t];
+  qE_re_i['transport_energy',i,t] = qProd['transport_energy',i,t];
+  qE_re_i['heating_energy',i,t]   = qProd['heating_energy',i,t];
+  qInvt_i[i,t] = 0.98;#qI_s.l['invt',i,t];
+
+  #Retter:
+  qD[re,t] = sum(i, qE_re_i[re,i,t]);
+
+
+
 #Taxes 
   tCO2_Emarg[em,es,e,d,t] = 0.1;
   tEmarg_duty[es,e,d,t] = 0.1;
@@ -235,12 +244,12 @@ execute_unloaddi "data",
   vWages_i, nL, vW
   
   # Input-output
-  d, rx, re, k, c, g, x, i, m, rx2re,factors_of_production,demand_transaction
+  d, rx, re, k, c, g, x, i, m ,factors_of_production,demand_transaction
   vY_i_d, vM_i_d, vtY_i_d, vtM_i_d,
   qD
 
   # Factor demand
-  qK_k_i, qI_k_i, qR_i, qInvt_i
+  qK_k_i, qI_k_i, qR_i, qInvt_i, qE_re_i
 
   es, out, e, invt,tl
   pE_avg, 

@@ -1,6 +1,6 @@
 Set d "Demand components.";
 # Set re[d<] "Energy types" /energy/;
-Set re[d<] "Intermediate energy-input";
+# Set re[d<] "Intermediate energy-input";
 Set rx[d<] "Intermediate input types other than energy.";
 Set k[d<] "Capital types.";
 Set c[d<] "Private consumption types.";
@@ -13,19 +13,16 @@ Set tl[d<] "Transmission losses"; #/ tl /;
 Set i[d<] "Production industries."; alias(i,i_a);  # i should not be subset of d - use re or rx instead
 Set m[i] "Industries with imports.";
 
-Set rx2re(rx,re);
-Set i2re(i,re);
 Set i2rx(i,rx);
 
 $gdxIn ../data/data.gdx
+$load d
 $load i, m
-$load rx=i, k, c, g, x,tl,invt
-$load re, rx2re
+$load rx=i, re, k, c, g, x,tl,invt
 $gdxIn
 ;
 
 i2rx(i,rx) = yes$(sameas[i,rx]);
-i2re(i,re) = yes$(sum(rx$rx2re(rx,re), i2rx(i,rx)));
 
 # set energy[d]/energy/;
 

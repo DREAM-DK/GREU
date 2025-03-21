@@ -60,3 +60,9 @@ set pf_mapping[pfNest,pf,i] /
   TopPfunction . (KETELBE , RxE) . set.i_standard
 
 /;
+
+set pf_bottom_e2re[pf_bottom_e,re]/
+    machine_energy  .  machine_energy
+    transport_energy .   transport_energy
+    heating_energy .   heating_energy
+/;

@@ -49,7 +49,6 @@ $SetGroup SG_flat_after_last_data_year ; # Dummies that are extended with "flat 
 @import_from_modules("variables")
 $IMPORT variable_groups.gms
 $IMPORT growth_adjustments.gms
-
 # ------------------------------------------------------------------------------
 # Define equations
 # ------------------------------------------------------------------------------

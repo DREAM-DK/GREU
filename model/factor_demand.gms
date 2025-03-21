@@ -5,7 +5,7 @@ $IF %stage% == "variables":
 
 $SetGroup+ SG_flat_after_last_data_year
   d1K_k_i[k,i,t] "Dummy. Does industry i have capital of type k?"
-  d1E_i[i,t] "Dummy. Does industry i use energy inputs?"
+  d1E_re_i[re,i,t] "Dummy. Does industry i use energy inputs?"
 ;
 
 $Group+ all_variables
@@ -26,10 +26,10 @@ $Group+ all_variables
   qL2qY_i[i,t] "Labor to output ratio by industry."
   qR2qY_i[i,t] "Intermediate input to output ratio by industry."
   qInvt2qY_i[i,t] "Inventory investment to output ratio by industry."
-  qE2qY_i[i,t]$(d1E_i[i,t]) "Demand for intermediate energy inputs to output ratio by industry."
-  pE_i[i,t]$(d1E_i[i,t]) "Price index of energy inputs, by industry."
-  qE_i[i,t]$(d1E_i[i,t]) "Real energy inputs by industry."
-  vE_i[i,t]$(d1E_i[i,t]) "Energy inputs by industry."
+  qE2qY_re_i[re,i,t]$(d1E_re_i[re,i,t]) "Demand for intermediate energy inputs to output ratio by industry."
+  pE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "Price index of energy inputs, by industry."
+  qE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "Real energy inputs by industry."
+  vE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "Energy inputs by industry."
 ;
 
 $ENDIF # variables
@@ -54,10 +54,10 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   .. qD[i,t] =E= qR2qY_i[i,t] * qY_i[i,t];
 
   # Link demand for energy intermediate inputs to input-output model
-  .. pE_i[i,t] =E= sum(i2re[i,re], pD[re,t]);
-  .. qE_i[i,t] =E= qE2qY_i[i,t] * qY_i[i,t];
-  .. qD[re,t] =E= sum(i2re[i,re], qE_i[i,t]);
-  .. vE_i[i,t] =E= sum(i2re[i,re], vD[re,t]);
+  .. pE_re_i[re,i,t] =E=  pD[re,t];
+  .. qE_re_i[re,i,t] =E= qE2qY_re_i[re,i,t] * qY_i[i,t];
+  .. qD[re,t] =E= sum(i, qE_re_i[re,i,t]);
+  .. vE_re_i[re,i,t] =E= pE_re_i[re,i,t] * qE_re_i[re,i,t] ;
 
   # Link demand for investments to input-output model
   .. qD[k,t] =E= sum(i, qI_k_i[k,i,t]);
@@ -94,7 +94,7 @@ $Group factor_demand_data_variables
 $Group+ data_covered_variables factor_demand_data_variables$(t.val <= %calibration_year%);
 
 d1K_k_i[k,i,t] = abs(qK_k_i.l[k,i,t]) > 1e-9;
-d1E_i[i,t] = abs(sum(i2re[i,re], qD.l[re,t])) > 1e-9;
+d1E_re_i[re,i,t] = abs(qE_re_i.l[re,i,t]) > 1e-9;
 
 rHurdleRate_i.l[i,t] = 0.2;
 
