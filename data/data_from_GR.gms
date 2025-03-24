@@ -1,18 +1,18 @@
 $set data_path P:/akg/Til_EU_projekt
 
 set l "Technologies";
-Set t ;#time periods
+Set t "time periods";
 Set t1(t); #year 2020 
 Set es; #energy service
 Set k_; #capital types including tot, excluding inventories
 Set k; #capital types
-Set factors_of_production; 
+Set factors_of_production; #production inputs
 Set ebalitems; #identifiers for energy components (tax, joules, prices, etc.)
 Set em(ebalitems); #emission type
 Set etaxes(ebalitems); #energy taxes
 Set a_rows_; #"other" row from IO
-Set transaction; 
-Set demand_transaction(transaction);
+Set transaction; #transaction types
+Set demand_transaction(transaction); #subset of transaction
 Set d; #demand components
 Set i_; #sectors incl. tot
 Set i(d); #sectors w.o. tot
@@ -30,6 +30,8 @@ Set e(out); #energy outputs
 Set m(i);
 Set land5; #land area types
 Set em_accounts; #set of accounts for emissions
+Set sector; #sectors
+Set as_li_net; #assets/liability/net
 parameters
   vIO_y[i,d,t]
   vIO_m[i,d,t]
@@ -44,15 +46,20 @@ parameters
   qCO2_ETS_freeallowances[i,t]
   qEmmLULUCF[t]
   qEmmBorderTrade[em,t]
+  vNetDebtInstruments[sector,as_li_net,t]
+  vNetEquity[sector,as_li_net,t]
+  vNetDividends[sector,as_li_net,t]
+  vNetRevaluations[sector,as_li_net,t]
+  vNetInterests[sector,as_li_net,t]
 
 ;
 $gdxin dataa_ny.gdx
 $load d,i,c,x,g,rx,re,rx2re,invt,tl,out,e,t,t1,land5,em_accounts,i_,k_
-$load factors_of_production, k, ebalitems, em,etaxes,a_rows_,transaction,demand_transaction,es
+$load factors_of_production, k, ebalitems, em,etaxes,a_rows_,transaction,demand_transaction,es,sector,as_li_net
 $load vIO_y=vIO_y.l, vIO_m=vIO_m.l, vIOxE_y=vIOxE_y.l, vIOxE_m=vIOxE_m.l, vIO_a=vIO_a.l,vIOxE_a=vIOxE_a.l
 $load nEmployed=nEmployed.l, qL=qL.l, qK=qK.l, qI_k_i=qI_k_i.l
 $load qEmmLULUCF=qEmmLULUCF.l,qEmmBorderTrade=qEmmBorderTrade.l,qCO2_ETS_freeallowances=qCO2_ETS_freeallowances.l
-
+$load vNetDebtInstruments=vNetDebtInstruments.l,vNetDividends=vNetDividends.l,vNetEquity=vNetEquity.l,vNetInterests=vNetInterests.l,vNetRevaluations=vNetRevaluations.l
 $gdxIn %data_path%/EU_GR_data.gdx
 #$load vIO_a, vIOxE_a
 $gdxIn
@@ -60,13 +67,8 @@ m[i] = yes$sum((d,t1), vIO_m[i,d,t1]);
 
 
 variables
-  #nEmployed[t]
-
-  #qK[k,i,t]
-  #qI_s[*,i,t]
   pK[k,i,t]
   pL[i,t]
-  #qL[i,t]
   qRxE[i,t]
   pRxE[i,t]
 
@@ -151,7 +153,7 @@ $gdxIn
 
 # Labor-market
 vWages_i[i,t] = vIO_a["SalEmpl",i,t];
-nL[t] = nEmployed[t]; #nEmployed[t].l
+nL[t] = nEmployed[t]; 
 vW[t]$(nL[t]) = sum(i, vWages_i[i,t]) / nL[t];
 
 # Input-output
@@ -159,9 +161,6 @@ vY_i_d[i,d,t] = vIO_y[i,d,t];
 vM_i_d[i,d,t] = vIO_m[i,d,t];
 vY_i_d[i,rx,t] = vIOxE_y[i,rx,t];
 vM_i_d[i,rx,t] = vIOxE_m[i,rx,t];
-#below does not work
-#vY_i_d[i,'energy',t] = sum(rx, vIO_y[i,rx,t] - vIOxE_y[i,rx,t]);
-#vM_i_d[i,'energy',t]
 
 vY_i_d[i,re,t] = sum(rx2re(rx,re) , vIO_y[i,rx,t] - vIOxE_y[i,rx,t]);
 vM_i_d[i,re,t] = sum(rx2re(rx,re) , vIO_m[i,rx,t] - vIOxE_m[i,rx,t]);
@@ -170,8 +169,6 @@ vD[d,t] = sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
 
 vtYM_d[d,t]       = vIOxE_a["TaxSub",d,t] + vIOxE_a["Moms",d,t];
 vtYM_d[d,t]$(sameas[d,'cHouEne'] or sameas[d,'cCarEne']) = vIO_a['TaxSub',d,t] + vIO_a['Moms',d,t] -  vIOxE_a["TaxSub",d,t] - vIOxE_a["Moms",d,t];
-#Tried to add energy record manually to d, below still does not work
-#vtYM_d['energy',t] = sum(d$(not (sameas[d,'cHouEne'] or sameas[d,'cCarEne'])), vIO_a['TaxSub',d,t] + vIO_a['Moms',d,t] -  vIOxE_a["TaxSub",d,t] - vIOxE_a["Moms",d,t]);
 vtYM_d[re,t] = sum(rx$(rx2re(rx,re)), vIO_a['TaxSub',rx,t] + vIO_a['Moms',rx,t] -  vIOxE_a["TaxSub",rx,t] - vIOxE_a["Moms",rx,t]);
 
 vtY_i_d[i,d,t]$vD[d,t] = vY_i_d[i,d,t] / vD[d,t] * vtYM_d[d,t]; 
@@ -180,14 +177,12 @@ vtM_i_d[i,d,t]$vD[d,t] = vM_i_d[i,d,t] / vD[d,t] * vtYM_d[d,t];
 qD[d,t] = vD[d,t];
 
 # Factor demand
-qK_k_i[k,i,t] = qK[k,i,t]; 
-#qI_k_i[k,i,t] =qI_s.l[k,i,t]; #We read this variable directly
-qR_i[i,t] =sum(i_a,vY_i_d[i_a,i,t] + vM_i_d[i_a,i,t]) + vtYM_d[i,t]; #qRxE.l[i,t]; #sum(i_a,vY_i_d[i_a,i,t] + vM_i_d[i_a,i,t]) + vtYM_d[i,t]; #right?
+qK_k_i[k,i,t] = qK[k,i,t]; qK_k_i[k,i,t] = qK_k_i[k,i,'2020']; 
+qR_i[i,t] =sum(i_a,vY_i_d[i_a,i,t] + vM_i_d[i_a,i,t]) + vtYM_d[i,t];
 qL_i[i,t] = qL[i,t];
-qInvt_i[i,t] = 0.98;#qI_s.l['invt',i,t];
+qInvt_i[i,t] = 0.98;
 
 #Energy and emissions.
-  #$import create_energybalance.gms #Here GreenREFORM variables are combine to create the full energybalance as we would preferably receive it from the Statistical Office.
     $gdxin dataa_ny.gdx
     $load Energybalance=Energybalance.l
     $load NonEnergyEmissions=NonEnergyemissions.l
@@ -196,7 +191,6 @@ qInvt_i[i,t] = 0.98;#qI_s.l['invt',i,t];
   qEpj[es,e,d,t] = sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
 
   vEAV[es,e,d,t] = sum(demand_transaction, Energybalance['EAV',demand_transaction,d,es,e,t]);
-  # vCAV[es,e,d,t] = sum(demand_transaction, Energybalance['CAV',demand_transaction,d,es,e,t]);
   vDAV[es,e,d,t] = sum(demand_transaction, Energybalance['DAV',demand_transaction,d,es,e,t]);
 
 #Emissions
@@ -259,4 +253,7 @@ execute_unloaddi "data",
   pEpj_base,qEpj
 
   vIOxE_y, vIOxE_m, vIOxE_a, vIO_y, vIO_m, vIO_a,vtYM_d
-;
+
+  sector,as_li_net
+  vNetDebtInstruments,vNetEquity,vNetRevaluations,vNetInterests,vNetDividends
+;;
