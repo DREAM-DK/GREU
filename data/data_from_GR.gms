@@ -36,6 +36,10 @@ parameters
   vIOxE_y[i,d,t]
   vIOxE_m[i,d,t]
   vIOxE_a[a_rows_,d,t]
+  vIOE_y[i,d,t]
+  vIOE_m[i,d,t]
+  vIOE_a[a_rows_,d,t]
+
   nEmployed[t]
   qL[i,t]
   qK[k,i,t]
@@ -43,6 +47,10 @@ parameters
   qCO2_ETS_freeallowances[i,t]
   qEmmLULUCF[t]
   qEmmBorderTrade[em,t]
+  Energybalance[ebalitems,transaction,d,es,e,t] "Main data input with regards to energy and energy-related emissions"
+  NonEnergyEmissions[ebalitems,transaction,d,t] "Main data input with regards to non-energy related emissions"
+  ImportShareEnergy[e,t] "Import share"
+  FinalPurposeSharesSectors[re,t] ""
 
 ;
 $gdxin dataa_ny.gdx
@@ -51,6 +59,21 @@ $load factors_of_production, k, ebalitems, em,etaxes,a_rows_,transaction,demand_
 $load vIO_y=vIO_y.l, vIO_m=vIO_m.l, vIOxE_y=vIOxE_y.l, vIOxE_m=vIOxE_m.l, vIO_a=vIO_a.l,vIOxE_a=vIOxE_a.l
 $load nEmployed=nEmployed.l, qL=qL.l, qK=qK.l, qI_k_i=qI_k_i.l
 $load qEmmLULUCF=qEmmLULUCF.l,qEmmBorderTrade=qEmmBorderTrade.l,qCO2_ETS_freeallowances=qCO2_ETS_freeallowances.l
+$load Energybalance=Energybalance.l
+$load NonEnergyEmissions=NonEnergyemissions.l
+
+#Should be moved to data treatment
+ImportShareEnergy[e,t]$(sum((d,es), Energybalance['BASE','Imports',d,es,e,t] + Energybalance['BASE','production',d,es,e,t] + Energybalance['BASE','other_supply',d,es,e,t])) 
+                        = sum((d,es), Energybalance['BASE','Imports',d,es,e,t])/
+                          sum((d,es), Energybalance['BASE','Imports',d,es,e,t] + Energybalance['BASE','production',d,es,e,t] + Energybalance['BASE','other_supply',d,es,e,t]);
+
+
+# FinalPurposeSharesSectors['transport_energy',t] = Energybalance['input_in_production',]
+
+vIOE_y[i,d,t]         = vIO_y[i,d,t] - vIOxE_y[i,d,t];
+vIOE_m[i,d,t]         = vIO_m[i,d,t] - vIOxE_m[i,d,t];
+vIOE_a[a_rows_,d,t]   = vIO_a[a_rows_,d,t] - vIOxE_a[a_rows_,d,t];
+
 
 $gdxIn %data_path%/EU_GR_data.gdx
 #$load vIO_a, vIOxE_a
@@ -96,8 +119,6 @@ parameters GREU_data
   qE_re_i[re,i,t] "Energy demand from industry i, split on energy-types re"
 
   #Energy and emissions.
-  Energybalance[ebalitems,transaction,d,es,e,t] "Main data input with regards to energy and energy-related emissions"
-  NonEnergyEmissions[ebalitems,transaction,d,t] "Main data input with regards to non-energy related emissions"
   qEmmBorderTrade[em,t] ""
   pEpj_base[es,e,d,t] ""
   vtE_duty[etaxes,es,e,d,t] ""
@@ -159,20 +180,17 @@ vY_i_d[i,d,t] = vIO_y[i,d,t];
 vM_i_d[i,d,t] = vIO_m[i,d,t];
 vY_i_d[i,rx,t] = vIOxE_y[i,rx,t];
 vM_i_d[i,rx,t] = vIOxE_m[i,rx,t];
-#below does not work
-#vY_i_d[i,'energy',t] = sum(rx, vIO_y[i,rx,t] - vIOxE_y[i,rx,t]);
-#vM_i_d[i,'energy',t]
 
-vY_i_d[i,re,t] =  vIO_y[i,re,t] - vIOxE_y[i,re,t];
-vM_i_d[i,re,t] =  vIO_m[i,re,t] - vIOxE_m[i,re,t];
+# vY_i_d[i,'transport_energy',t] = sum((1-Importshare[e,t])
+
+
+
 
 vD[d,t] = sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
 
 vtYM_d[d,t]       = vIOxE_a["TaxSub",d,t] + vIOxE_a["Moms",d,t];
 vtYM_d[d,t]$(sameas[d,'cHouEne'] or sameas[d,'cCarEne']) = vIO_a['TaxSub',d,t] + vIO_a['Moms',d,t] -  vIOxE_a["TaxSub",d,t] - vIOxE_a["Moms",d,t];
-#Tried to add energy record manually to d, below still does not work
-#vtYM_d['energy',t] = sum(d$(not (sameas[d,'cHouEne'] or sameas[d,'cCarEne'])), vIO_a['TaxSub',d,t] + vIO_a['Moms',d,t] -  vIOxE_a["TaxSub",d,t] - vIOxE_a["Moms",d,t]);
-vtYM_d[re,t] =  vIO_a['TaxSub',re,t] + vIO_a['Moms',re,t] -  vIOxE_a["TaxSub",re,t] - vIOxE_a["Moms",re,t]);
+
 
 vtY_i_d[i,d,t]$vD[d,t] = vY_i_d[i,d,t] / vD[d,t] * vtYM_d[d,t]; 
 vtM_i_d[i,d,t]$vD[d,t] = vM_i_d[i,d,t] / vD[d,t] * vtYM_d[d,t]; 
@@ -182,9 +200,6 @@ qD[d,t] = vD[d,t];
 
 #Energy and emissions.
   #$import create_energybalance.gms #Here GreenREFORM variables are combine to create the full energybalance as we would preferably receive it from the Statistical Office.
-    $gdxin dataa_ny.gdx
-    $load Energybalance=Energybalance.l
-    $load NonEnergyEmissions=NonEnergyemissions.l
 
   pEpj_base[es,e,d,t]$(sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t])) = sum(demand_transaction, Energybalance['BASE',demand_transaction,d,es,e,t])/sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
   qEpj[es,e,d,t] = sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
@@ -241,6 +256,8 @@ qD[d,t] = vD[d,t];
 
 execute_unloaddi "data",
   # Labor-market
+  vIOE_y, vIOE_m, vIOE_a
+  ImportShareEnergy
   vWages_i, nL, vW
   
   # Input-output
