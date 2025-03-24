@@ -74,6 +74,34 @@ vIOE_y[i,d,t]         = vIO_y[i,d,t] - vIOxE_y[i,d,t];
 vIOE_m[i,d,t]         = vIO_m[i,d,t] - vIOxE_m[i,d,t];
 vIOE_a[a_rows_,d,t]   = vIO_a[a_rows_,d,t] - vIOxE_a[a_rows_,d,t];
 
+vIOE_y[i,'xENE',t] = vIOE_y[i,'xOth',t]; vIOE_y[i,'xOth',t] = 0; 
+vIOE_m[i,'xENE',t] = vIOE_m[i,'xOth',t]; vIOE_m[i,'xOth',t] = 0;
+vIOE_a[a_rows_,'xENE',t] =vIOE_a[a_rows_,'xOth',t]; vIOE_a[a_rows_,'xOth',t] = 0;
+
+vIOE_y[i,'invt_ene',t] = vIOE_y[i,'invt',t]; vIOE_y[i,'invt',t] = 0; 
+vIOE_m[i,'invt_ene',t] = vIOE_m[i,'invt',t]; vIOE_m[i,'invt',t] = 0;
+vIOE_a[a_rows_,'invt_ene',t] =vIOE_a[a_rows_,'invt',t]; vIOE_a[a_rows_,'invt',t] = 0;
+
+vIO_y[i,'xENE',t] = vIOE_y[i,'xENE',t]; 
+vIO_m[i,'xENE',t] = vIOE_m[i,'xENE',t]; 
+vIO_a[a_rows_,'xENE',t] = vIO_a[a_rows_,'xENE',t];
+
+vIO_y[i,'xOth',t] = vIO_y[i,'xOth',t] - vIOE_y[i,'xENE',t]; 
+vIO_m[i,'xOth',t] = vIO_m[i,'xOth',t] - vIOE_m[i,'xENE',t]; 
+vIO_a[a_rows_,'xOth',t] = vIO_a[a_rows_,'xOth',t] - vIO_a[a_rows_,'xENE',t];
+
+vIO_y[i,'invt_ene',t] = vIOE_y[i,'invt_ene',t]; 
+vIO_m[i,'invt_ene',t] = vIOE_m[i,'invt_ene',t]; 
+vIO_a[a_rows_,'invt_ene',t] = vIO_a[a_rows_,'invt_ene',t];
+
+vIO_y[i,'invt',t] = vIO_y[i,'invt',t] - vIOE_y[i,'invt_ene',t]; 
+vIO_m[i,'invt',t] = vIO_m[i,'invt',t] - vIOE_m[i,'invt_ene',t]; 
+vIO_a[a_rows_,'invt',t] = vIO_a[a_rows_,'invt',t] - vIO_a[a_rows_,'invt_ene',t];
+
+# vIO_y[i,'machine_energy',t]$(not (sameas[i,'45000'] or sameas[i,'46000'] or sameas[i,'47000'])) 
+#     = sum((e,i_a), Energybalance['BASE','input_in_production',i_a,'in_ETS',e,t] 
+#                   +Energybalance['BASE','input_in_production',i_a,'process_normal',e,t]
+#                   +Energybalance['BASE','input_in_production',i_a,'process_special',e,t]); 
 
 $gdxIn %data_path%/EU_GR_data.gdx
 #$load vIO_a, vIOxE_a
