@@ -99,10 +99,10 @@ vIO_m[i,'invt',t] = vIO_m[i,'invt',t] - vIOE_m[i,'invt_ene',t];
 vIO_a[a_rows_,'invt',t] = vIO_a[a_rows_,'invt',t] - vIO_a[a_rows_,'invt_ene',t];
 
 #Aligning energybalance with Energy-IO with respect to car dealerships margins on energy
-Energybalance['CAV',transaction,d,es,e,t]$sum(d_a, vIOE_y['45000',d_a,t] + vIOE_y['47000',d_a,t]) 
-  = Energybalance['DAV',transaction,d,es,e,t] * sum(d_a, vIOE_y['45000',d_a,t])/sum(d_a, vIOE_y['45000',d_a,t] + vIOE_y['47000',d_a,t]);
+# Energybalance['CAV',transaction,d,es,e,t]$sum(d_a, vIOE_y['45000',d_a,t] + vIOE_y['47000',d_a,t]) 
+#   = Energybalance['DAV',transaction,d,es,e,t] * sum(d_a, vIOE_y['45000',d_a,t])/sum(d_a, vIOE_y['45000',d_a,t] + vIOE_y['47000',d_a,t]);
 
-Energybalance['DAV',transaction,d,es,e,t] = Energybalance['DAV',transaction,d,es,e,t] - Energybalance['CAV',transaction,d,es,e,t];
+# Energybalance['DAV',transaction,d,es,e,t] = Energybalance['DAV',transaction,d,es,e,t] - Energybalance['CAV',transaction,d,es,e,t];
 
 #Should be moved to data treatment
 ImportShareEnergy[e,t]$(sum((d,es), Energybalance['BASE','Imports',d,es,e,t] + Energybalance['BASE','production',d,es,e,t] + Energybalance['BASE','other_supply',d,es,e,t])) 

@@ -71,6 +71,8 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   .. qD[re,t] =E= sum(i, qE_re_i[re,i,t]);
   .. vE_re_i[re,i,t] =E= pE_re_i[re,i,t] * qE_re_i[re,i,t] ;
 
+  .. vE_i[i,t] =E= sum(re, vE_re_i[re,i,t]);
+
   # Link demand for investments to input-output model
   .. qD[k,t] =E= sum(i, qI_k_i[k,i,t]);
   .. vI_k_i[k,i,t] =E= pD[k,t] * qI_k_i[k,i,t];
