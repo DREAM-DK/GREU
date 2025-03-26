@@ -72,11 +72,8 @@ $IF %stage% == "equations":
     .. pProd[pf_bottom_capital,i,t] =E= sum(sameas[pf_bottom_capital,k], pK_k_i[k,i,t] / pK_k_i[k,i,tBase]); # We set the price to 1 in the base year, and adjust the quantity inversely
     qK2qY_k_i[k,i,t].. sum(sameas[pf_bottom_capital,k], qProd[pf_bottom_capital,i,t]) =E= qK_k_i[k,i,t] * pK_k_i[k,i,tBase];
 
-    .. pProd[pf_bottom_e,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], pD[re,t]; 
+    .. pProd[pf_bottom_e,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], pE_re_i[re,i,t]); 
     qE2qY_re_i[re,i,t].. qE_re_i[re,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], qProd[pf_bottom_e,i,t]);
-    # .. pProd[machine_energy,i,t] =E= pREmachine[i,t]; 
-    # .. pProd[heating_energy,i,t] =E= pREes['heating',i,t];
-    # .. pProd[transport_energy,i,t] =E= pREes['transport',i,t];
 
     .. pProd[labor,i,t] =E= pL_i[i,t];
     qL2qY_i[i,t].. qL_i[i,t] =E= qProd['labor',i,t];
@@ -116,11 +113,13 @@ $IF %stage% == "exogenous_values":
   # ------------------------------------------------------------------------------
   # Exogenous variables 
   # ------------------------------------------------------------------------------
+
   eProd.l[pfNest,i] = 0.7;
 
   # ------------------------------------------------------------------------------
   # Initial values  
   # ------------------------------------------------------------------------------
+
   pProd.l[pfNest,i,tDataEnd] = 1;
 
   qProd.l[pfNest,i,t] =  sum(pf_bottom$(pf_mapping[pfNest,pf_bottom,i]), pProd.l[pf_bottom,i,t]*qProd.l[pf_bottom,i,t]);
@@ -161,15 +160,24 @@ $Group calibration_endogenous
   production_bottom_link_endogenous
   production_calibration_endogenous
 
-  -qR2qY_i[i,t1], uProd[RxE,i,t1]
-  -qK2qY_k_i[k,i,t1], uProd[pf_bottom,i,t1]
-  -qProd[pf_bottom_e,i,t1], uProd[pf_bottom_e,i,t1]
-  -qE2qY_i[i,t1], qProd[heating_energy,i,t1]$(d1Prod[heating_energy,i,t1]), qProd[machine_energy,i,t1]$(not d1Prod['heating_energy',i,t1])
+  #Endo/exo in the partial model
+  uProd[pf_bottom,i,t1], -qProd[pf_bottom,i,t1]
+  uProd[pfNest,i,t1]$(not pf_top[pfNest]), -pProd[pfNest,i,t1]$(not pf_top[pfNest])
+  qPFtop2qY[i], -pProd[pf_top,i,tBase] #Normalize price at 1
 
-  -qL2qY_i[i,t1], uProd[labor,i,t1]
-  -pProd[pfNest,i,t1]$(not pf_top[pfNest]), uProd[pfNest,i,t1]$(not pf_top[pfNest])
+  #Items are swapped back, the module is calibrated alongside factor_demand
+  qProd[RxE,i,t1]
+  qProd[pf_bottom_capital,i,t1]
+  qProd[pf_bottom_e,i,t1]
+  qProd[labor,i,t1]
 
-  qPFtop2qY[i], -pProd[pf_top,i,tBase]
+  # -qR2qY_i[i,t1], uProd[RxE,i,t1]
+  # -qK2qY_k_i[k,i,t1], uProd[pf_bottom,i,t1]
+  # -qProd[pf_bottom_e,i,t1], uProd[pf_bottom_e,i,t1]
+
+  # -qL2qY_i[i,t1], uProd[labor,i,t1]
+  # -pProd[pfNest,i,t1]$(not pf_top[pfNest]), uProd[pfNest,i,t1]$(not pf_top[pfNest])
+
 
   calibration_endogenous
 ;

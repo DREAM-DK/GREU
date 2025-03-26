@@ -1,12 +1,13 @@
 Set d "Demand components.";
 # Set re[d<] "Energy types" /energy/;
-# Set re[d<] "Intermediate energy-input";
+Set re[d<] "Intermediate energy-input";
 Set rx[d<] "Intermediate input types other than energy.";
 Set k[d<] "Capital types.";
 Set c[d<] "Private consumption types.";
 Set g[d<] "Government consumption types.";
 Set x[d<] "Export types.";
 Set invt[d<] "Inventories"; #/ invt /;
+Set invt_ene[d<] "Energy inventories"
 Set tl[d<] "Transmission losses"; #/ tl /;
 
 # Set i "Production industries."; alias(i,i_a);
@@ -18,7 +19,7 @@ Set i2rx(i,rx);
 $gdxIn ../data/data.gdx
 $load d
 $load i, m
-$load rx=i, re, k, c, g, x,tl,invt
+$load rx=i, re, k, c, g, x,tl,invt, invt_ene
 $gdxIn
 ;
 

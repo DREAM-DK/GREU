@@ -121,7 +121,7 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
 
   # Demand aggregates
   .. vR[t] =E= sum(rx, vD[rx,t]);
-  .. vE[t] =E= sum(re, vD[re,t]);
+  .. vE[t] =E= sum(re, vD[re,t]); #Only firms aggregate of energy-input, households energy is in vC and exports in vX.
   .. vI[t] =E= sum(k, vD[k,t]) + vD['invt',t];
   .. vC[t] =E= sum(c, vD[c,t]);
   .. vG[t] =E= sum(g, vD[g,t]);
@@ -136,7 +136,7 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
 
   .. qR[t] * pR[t-1] =E= sum(rx, pD[rx,t-1] * qD[rx,t]);
   .. qE[t] * pE[t-1] =E= sum(re, pD[re,t-1] * qD[re,t]);
-  .. qI[t] * pI[t-1] =E= sum(k, pD[k,t-1] * qD[k,t]) + pD['invt',t-1] * qD['invt',t];
+  .. qI[t] * pI[t-1] =E= sum(k, pD[k,t-1] * qD[k,t]) + pD['invt',t-1] * qD['invt',t] + pD['invt_ene',t-1]*qD['invt_ene',t];
   .. qC[t] * pC[t-1] =E= sum(c, pD[c,t-1] * qD[c,t]);
   .. qG[t] * pG[t-1] =E= sum(g, pD[g,t-1] * qD[g,t]);
   .. qX[t] * pX[t-1] =E= sum(x, pD[x,t-1] * qD[x,t]);
@@ -218,7 +218,7 @@ rM.l[i,d,t]$(d1Y_i_d[i,d,t] and not d1M_i_d[i,d,t]) = 0;
 
 pY_i.l[i,t] = fpt[t];
 pM_i.l[i,t] = fpt[t];
-pD.l[d,t] = fpt[t];
+pD.l[d,t]   = fpt[t];
 
 # Lagged values used in chain price indices - should be added to data unless we switch to fixed price indices
 pR.l[t] = fpt[t];

@@ -83,6 +83,8 @@ $GROUP+ data_covered_variables labor_market_data_variables$(t.val <= %calibratio
 
 @load(labor_market_data_variables, "../data/data.gdx")
 pW.l[t] = fpt[t];
+pL_i.l[i,t] = fpt[t];
+qL_i.l[i,t] = vWages_i.l[i,t];
 rWageInflation.l[t] = fv-1;
 
 $ENDIF # exogenous_values
