@@ -358,8 +358,25 @@ qD[d,t] = vD[d,t];
 
 
 #Taxes 
-  tCO2_Emarg[em,es,e,d,t] = 0.1;
-  tEmarg_duty[etaxes,es,e,d,t] = 0.1;
+  tCO2_Emarg['CO2ubio',es,e,d,t]$(sum(demand_transaction$Energybalance['CO2ubio',demand_transaction,d,es,e,t], Energybalance['CO2ubio',demand_transaction,d,es,e,t]))
+                                 = sum(demand_transaction$Energybalance['CO2ubio',demand_transaction,d,es,e,t], Energybalance['co2_tax',demand_transaction,d,es,e,t])/
+                                   sum(demand_transaction$Energybalance['CO2ubio',demand_transaction,d,es,e,t], Energybalance['CO2ubio',demand_transaction,d,es,e,t]);
+
+  tCO2_Emarg['CO2ubio',es,e,d,t]$tCO2_Emarg['CO2ubio',es,e,d,t] = tCO2_Emarg['CO2ubio',es,e,d,t] + 0.01;  
+
+  tCO2_Emarg['CO2bio',es,e,d,t]$(sameas[e,'natural gas incl. biongas'] and sum(demand_transaction$Energybalance['CO2bio',demand_transaction,d,es,e,t], Energybalance['CO2bio',demand_transaction,d,es,e,t])) 
+                                 = sum(demand_transaction$Energybalance['CO2bio',demand_transaction,d,es,e,t], Energybalance['co2_tax',demand_transaction,d,es,e,t])/
+                                   sum(demand_transaction$Energybalance['CO2bio',demand_transaction,d,es,e,t], Energybalance['CO2bio',demand_transaction,d,es,e,t]);
+
+  tCO2_Emarg['CO2bio',es,e,d,t]$tCO2_Emarg['CO2bio',es,e,d,t] = tCO2_Emarg['CO2bio',es,e,d,t] + 0.01;  
+
+
+
+  tEmarg_duty[etaxes,es,e,d,t]$(not sameas[etaxes,'CO2_tax'] and sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]))
+                                = sum(demand_transaction, Energybalance[etaxes,demand_transaction,d,es,e,t])
+                                 /sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
+
+  tEmarg_duty[etaxes,es,e,d,t]$tEmarg_duty[etaxes,es,e,d,t] = tEmarg_duty[etaxes,es,e,d,t] + 0.01;
 
   vtE_duty[etaxes,es,e,d,t] = sum(demand_transaction, Energybalance[etaxes,demand_transaction,d,es,e,t]);
   vtE_vat[es,e,d,t]          = sum(demand_transaction, Energybalance['VAT',demand_transaction,d,es,e,t]);

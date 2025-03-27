@@ -68,7 +68,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT imports.gms
   # $IMPORT production_CET.gms;
   $IMPORT emissions.gms; 
-  # $IMPORT energy_and_emissions_taxes.gms; 
+  $IMPORT energy_and_emissions_taxes.gms; 
   $IMPORT input_output.gms
   $IMPORT households.gms
   $IMPORT government.gms
@@ -129,7 +129,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT imports.gms
   # $IMPORT production_CET.gms;
   $IMPORT emissions.gms; 
-  # $IMPORT energy_and_emissions_taxes.gms; 
+  $IMPORT energy_and_emissions_taxes.gms; 
   $IMPORT input_output.gms
   $IMPORT households.gms
   $IMPORT government.gms
