@@ -15,7 +15,7 @@ $load out, e, es
 $gdxIn
 #  execute_loaddc '..\data\data.gdx' out e es;
 sets natgas[out]     /"Natural gas incl. biongas"/
-     #natgas_ext[out] /"Natural gas (Extraction)"/
+     natgas_ext[out] /"Natural gas (Extraction)"/
      el[out]/"Electricity"/
      distheat[out]/"District heat"/
      straw[out]/"Straw for energy purposes"/

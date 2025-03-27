@@ -232,10 +232,13 @@ parameters GREU_data
   qEmmE_BU[em,es,e,d,t] ""
   qEmmxE[em,d,t] ""
   tCO2_Emarg[em,es,e,d,t]   
-  tEmarg_duty[es,e,d,t]      
+  tEmarg_duty[etaxes,es,e,d,t]      
   qEtot[e,t] ""
   pE_avg[e,t] ""
-
+  qY_CET[out,i,t] ""
+  qM_CET[out,i,t] ""
+  pY_CET[out,i,t] ""
+  pM_CET[out,i,t] ""
 
   qProd[factors_of_production,i,t]
   pProd[factors_of_production,i,t]
@@ -283,6 +286,12 @@ vM_i_d[i,d,t] = vIO_m[i,d,t];
 vY_i_d[i,rx,t] = vIOxE_y[i,rx,t];
 vM_i_d[i,rx,t] = vIOxE_m[i,rx,t];
 
+qY_CET['out_other',i,t] = sum(d,vIOxE_y[i,d,t]);
+qM_CET['out_other',i,t] = sum(d,vIOxE_m[i,d,t]);
+pY_CET['out_other',i,t]$qY_CET['out_other',i,t] = 1;
+pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
+
+
 #Demand-components, total
 vD[d,t] = sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
 
@@ -304,12 +313,23 @@ qD[d,t] = vD[d,t];
   qEpj[es,e,d,t] = sum(demand_transaction, Energybalance['PJ',demand_transaction,d,es,e,t]);
 
   vEAV[es,e,d,t] = sum(demand_transaction, Energybalance['EAV',demand_transaction,d,es,e,t]);
-  # vCAV[es,e,d,t] = sum(demand_transaction, Energybalance['CAV',demand_transaction,d,es,e,t]);
+  vCAV[es,e,d,t] = sum(demand_transaction, Energybalance['CAV',demand_transaction,d,es,e,t]);
   vDAV[es,e,d,t] = sum(demand_transaction, Energybalance['DAV',demand_transaction,d,es,e,t]);
+
+  qY_CET[e,i,t] = sum(es, Energybalance['BASE','production',i,es,e,t]);
+  qM_CET[e,i,t] = sum(es, Energybalance['BASE','imports',i,es,e,t]);
+  qY_CET[e,'45000',t] = sum((demand_transaction,d,es), Energybalance['CAV',demand_transaction,d,es,e,t]);
+  qY_CET[e,'46000',t] = sum((demand_transaction,d,es), Energybalance['EAV',demand_transaction,d,es,e,t]);
+  qY_CET[e,'47000',t] = sum((demand_transaction,d,es), Energybalance['DAV',demand_transaction,d,es,e,t]);
+  pY_CET[e,i,t]$qY_CET[e,i,t] = 1;
+  pM_CET[e,i,t]$qM_CET[e,i,t] = 1;
 
 #Emissions
   qEmmE_BU[em,es,e,d,t]     = sum(demand_transaction,Energybalance[em,demand_transaction,d,es,e,t]);
   qEmmxE[em,d,t]            = sum(demand_transaction,NonEnergyEmissions[em,demand_transaction,d,t]);
+  sBioNatGas[t]$((sum((demand_transaction,es,d), Energybalance['CO2bio',demand_transaction,d,es,'Natural gas incl. biongas',t]) + sum((demand_transaction,es,d), Energybalance['CO2ubio',demand_transaction,d,es,'Natural gas incl. biongas',t])))
+               = sum((demand_transaction,es,d), Energybalance['CO2bio',demand_transaction,d,es,'Natural gas incl. biongas',t])/
+                (sum((demand_transaction,es,d), Energybalance['CO2bio',demand_transaction,d,es,'Natural gas incl. biongas',t]) + sum((demand_transaction,es,d), Energybalance['CO2ubio',demand_transaction,d,es,'Natural gas incl. biongas',t]));
 
   #Production
   qProd['RxE',i,t]                 = sum(i_a,vY_i_d[i_a,i,t] + vM_i_d[i_a,i,t]) + vtYM_d[i,t]; # This should be good, we opted against using rows because vIO's are defined on demand_components incl. non sectors qRxE.l[i,t];
@@ -336,15 +356,10 @@ qD[d,t] = vD[d,t];
   qInvt_i[i,t] = vY_i_d[i,'invt',t] + vM_i_d[i,'invt',t] + vtYM_d['invt',t];
   qInvt_ene_i[i,t] = vY_i_d[i,'invt_ene',t] + vM_i_d[i,'invt_ene',t] + vtYM_d['invt_ene',t];
 
-  #Retter:
-  # qD[re,t] = sum(i, qE_re_i[re,i,t]);
-  # vD[re,'2019'] = qD[re,'2020']
-
-
 
 #Taxes 
   tCO2_Emarg[em,es,e,d,t] = 0.1;
-  tEmarg_duty[es,e,d,t] = 0.1;
+  tEmarg_duty[etaxes,es,e,d,t] = 0.1;
 
   vtE_duty[etaxes,es,e,d,t] = sum(demand_transaction, Energybalance[etaxes,demand_transaction,d,es,e,t]);
   vtE_vat[es,e,d,t]          = sum(demand_transaction, Energybalance['VAT',demand_transaction,d,es,e,t]);

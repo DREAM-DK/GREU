@@ -1,4 +1,4 @@
-Set etaxes
+Set etaxes;
 $gdxIn ../data/data.gdx
 $load etaxes
 $gdxin 
@@ -24,7 +24,7 @@ $gdxin
 #      HFOs_tax
 #      PSO_tax
 #  /
-
+sets 
   CO2_tax[etaxes]/CO2_tax/
   EAFG_tax[etaxes]/EAFG_tax/
   ;

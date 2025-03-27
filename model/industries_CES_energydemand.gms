@@ -4,7 +4,7 @@
 
 $IF %stage% == "variables":
 	$SetGroup+ SG_flat_after_last_data_year
-		# d1pREa[es,e_a,i,t] #£Skal flyttes hertil, når vi får stages. Pt i energy_markets
+		d1pREa[es,e_a,i,t] ""
 		d1pREa_inNest[es,e_a,i,t] ""
 		d1pREa_NotinNest[es,e_a,i,t] ""
 		d1pEes[es,i,t] ""
@@ -17,7 +17,7 @@ $IF %stage% == "variables":
 		pREes[es,i,t]$(d1pEes[es,i,t]) 						"Price of nest of energy-activities, aggregated to energy-services, CES-price index."
 		pREmachine[i,t]$(d1pREmachine[i,t]) 			"Price of machine energy, CES-price index."
 		pProd[pf,i,t]$(d1Prod[pf,i,t]) 						"Production price of production function pf in sector i at time t" #Should be moved to production.gms when stages are implemented
-		# qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) "" £Skal flyttes hertil, når vi får stages. Pt i energy_markets
+		qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 									 "Industries demand for energy activity (e_a). When abatement is turned off, the energy-activity is measured in PJ, and corresponds 1:1 to qEpj"		#Skal flyttes til industries_CES_energydemand.gms, når vi får stages
 		qREes[es,i,t]$(d1pEes[es,i,t]) 						"CES-Quantity of energy-services, measured in bio 2019-DKK"
 		qREmachine[i,t]$(d1pREmachine[i,t]) 			"CES-Quantity of machine energy, measured in bio 2019-DKK"
 		qProd[pf,i,t]$(d1Prod[pf,i,t]) 						"CES-quantity of production function pf in sector i at time t" #Should be moved to production.gms when stages are implemented
@@ -71,6 +71,8 @@ $IF %stage% == "equations":
 		
 			vEnergycostsnotinnesting[i,t].. vEnergycostsnotinnesting[i,t] =E= sum((es,e_a)$(d1pREa_NotinNest[es,e_a,i,t]), pREa[es,e_a,i,t] * qREa[es,e_a,i,t]);
 
+
+
 	$ENDBLOCK		
 
 	$BLOCK industries_energy_demand_link industries_energy_demand_link_endogenous $(t.val>=t1.val and t.val<=tEnd.val)
@@ -87,7 +89,8 @@ $IF %stage% == "equations":
 
 	# Add equation and endogenous variables to main model
 	model main / industries_energy_demand
-								industries_energy_demand_link/;
+								industries_energy_demand_link
+								/;
 	$Group+ main_endogenous 
 			industries_energy_demand_endogenous
 			industries_energy_demand_link_endogenous

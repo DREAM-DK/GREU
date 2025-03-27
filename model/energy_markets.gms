@@ -34,7 +34,6 @@
 				d1OneSX_m[out,t] ""
 				d1qTL[es,e,t] ""
 
-				d1pREa[es,e_a,i,t] "" #Skal flyttes til industries_CES_energydemand.gms, når vi får stages
 			;
 
 			$Group+ all_variables
@@ -43,7 +42,6 @@
 						qY_CET[out,i,t]$(d1pY_CET[out,i,t])                          "Domestic production of various products and services - the set 'out' contains all out puts of the economy, for energy the output is measured in PJ and non-energy in bio. DKK base 2019"
 						qM_CET[out,i,t]$(d1pM_CET[out,i,t])                          "Import of various products and services - the set 'out' contains all out puts of the economy, for energy the output is measured in PJ and non-energy in bio. DKK base 2019"
 						qEtot[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]))     "Total demand/supply of ergy in the models ergy-market"
-						qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 									 "Industries demand for energy activity (e_a). When abatement is turned off, the energy-activity is measured in PJ, and corresponds 1:1 to qEpj"		#Skal flyttes til industries_CES_energydemand.gms, når vi får stages
 						qEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or tl[d]) "Sector demand for energy on end purpose (es), measured in PJ"				
 						j_abatement_qREa[es,e,i,t]$(d1pEpj_base[es,e,i,t])       "J-term to be activated by abatement-module. When abatement is on qREa =/= qEpj, but is guided by abatement module, endogenizing this variable"
 						vDistributionProfits[e,t] 																"With different margins between average supply price, and sector base price, there is scope for what we call distribution profits. They can be negative. Measured in bio. DKK"
