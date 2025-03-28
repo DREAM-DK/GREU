@@ -4,12 +4,6 @@ $IMPORT functions.gms;
 $IMPORT settings.gms
 
 $IMPORT sets/time.sets.gms
-$IMPORT sets/sectors.sets.gms
-$IMPORT sets/input_output.sets.gms
-$IMPORT sets/output.sets.gms
-$IMPORT sets/production.sets.gms
-$IMPORT sets/emissions.sets.gms
-$IMPORT sets/energy_taxes_and_emissions.sets.gms
 $IMPORT sets/abatement.sets.gms
 
 set_time_periods(%first_data_year%, %terminal_year%);

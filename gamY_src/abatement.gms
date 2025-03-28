@@ -108,7 +108,7 @@ $GROUP abatement_data_variables
   pTK[d,t]
   qES[es,d,t]
 ;
-@load(abatement_data_variables, "../data/data.gdx")
+@load(abatement_data_variables, "../data/abatement_data/Abatement_dummy_data.gdx")
 $GROUP+ data_covered_variables abatement_data_variables;
 
 # ------------------------------------------------------------------------------

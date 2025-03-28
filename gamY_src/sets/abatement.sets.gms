@@ -1,16 +1,17 @@
 
 set l "Technology name.";
-set l_load "Technology name.";
+set es "Energy service";
+set e "Energy input";
+set i "Industry";
+set d "Demand component";
 
-$gdxIn ../data/data.gdx
-$load l_load = l
+$gdxIn ../data/Abatement_data/Abatement_dummy_data.gdx
+$load l, es, e, i 
 $gdxIn
 
-
-set l /
-  set.l_load
+set d /
+  set.i
   /;
-
 
 alias(l,ll);
 
