@@ -15,6 +15,7 @@ curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 %pip% install dataframe_image pyhtml2pdf PyPDF2
 %pip% install kaleido==0.1.0.post1
 %pip% install gamspy
+%pip% install matplotlib
 
 :: Installing svglib (needed for xhtml2pdf) fails as the installer looks for .pyd files in the wrong directory
 :: Workaround: create a symlink to the correct directory
