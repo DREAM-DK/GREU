@@ -13,12 +13,12 @@ sys.path.insert(0, root)
 # import paths
 
 # Manually add GAMS to path
-os.environ["GAMS"] = "C:/GAMS/46/gams.exe"
+os.environ["GAMS"] = "C:/GAMS/49/gams.exe"
 
 ## Set working directory
 os.chdir(fr"{root}/gamY_src")
 
-dt.gamY.run("../data/data_from_GR.gms")
+# dt.gamY.run("../data/data_from_GR.gms")
 
 dt.gamY.run("base_model.gms")
 
