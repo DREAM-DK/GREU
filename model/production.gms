@@ -10,6 +10,7 @@ $IF %stage% == "variables":
   $Group+ all_variables
     pProd[pf,i,t]$(d1Prod[pf,i,t]) "Production price index, both nests and factors"
     pY0_i[i,t]$(d1Y_i[i,t]) "Cost price index, net of installation costs and other costs not in CES-nesting tree"
+    qY0_i[i,t]$(d1Y_i[i,t]) "Cost price index, net of installation costs and other costs not in CES-nesting tree"
 
     qProd[pf,i,t]$(d1Prod[pf,i,t]) "Production quantity, both nests and factors"
 
@@ -38,11 +39,19 @@ $IF %stage% == "equations":
   $BLOCK production_equations production_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
     # Output is determined in the input-output system, to meet the demand at the prevailing price levels.
     # Given the level of production, we determine the most cost-effective way to produce it in this module.
-    .. qProd[pf_top,i,t] =E= qPFtop2qY[i] * qY_i[i,t];
+    # .. qY0_i[i,t] =E= qPFtop2qY[i,t] * qY_i[i,t];
+
+    # .. qProd[pf_top,i,t] =E= qY0_i[i,t];
+
+    ..qProd[pf_top,i,t] =E= qPFtop2qY[i] * qY_i[i,t];
 
     # Marginal cost. These are marginal cost of production from CES-production (pProd['TopPfunction']), net of any adjustment costs, and other costs not covered in the production function
+    # .. pY0_i[i,t] * qY0_i[i,t] =E= pProd['TopPfunction',i,t] * qY0_i[i,t]
+    #                             + vProdOtherProductionCosts[i,t];
+
     .. pY0_i[i,t] * qY_i[i,t] =E= pProd['TopPfunction',i,t] * qProd['TopPfunction',i,t]
                                 + vProdOtherProductionCosts[i,t];
+
 
     .. pProd2pNest[pf,pfNest,i,t] =E= pProd[pf,i,t] / pProd[pfNest,i,t];
 

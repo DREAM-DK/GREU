@@ -178,7 +178,7 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   # rYM is the real industry-composition for each demand - rYM is exogenous here, but can be endogenized in submodels
   # rM is the real import-share for each demand - rM is exogenous here, but can be endogenized in submodels
   .. qY_i_d[i,d,t] =E= (1-rM[i,d,t]) * rYM[i,d,t] * qD[d,t];
-  .. qM_i_d[i,d,t] =E= rM[i,d,t] * rYM[i,d,t] * qD[d,t];
+  .. qM_i_d[i,d,t] =E= rM[i,d,t]     * rYM[i,d,t] * qD[d,t];
 
   .. vY_i_d[i,d,t] =E= pY_i_d[i,d,t] * qY_i_d[i,d,t];
   .. vM_i_d[i,d,t] =E= pM_i_d[i,d,t] * qM_i_d[i,d,t];
