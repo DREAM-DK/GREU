@@ -51,16 +51,6 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   .. qK_k_i[k,i,t] =E= qK2qY_k_i[k,i,t] * qY_i[i,t];
   .. qL_i[i,t] =E= qL2qY_i[i,t] * qY_i[i,t];
 
-  # Inventory investments
-  .. qInvt_i[i,t] =E= qInvt2qY_i[i,t] * qY_i[i,t];
-  .. qD[invt,t] =E= sum(i, qInvt_i[i,t]);
-  .. vInvt_i[i,t] =E= pD['invt',t] * qInvt_i[i,t];
-
-  # Energy inventory investments
-  .. qInvt_ene_i[i,t] =E= qInvt_ene2qY_i[i,t] * qY_i[i,t];
-  .. qD[Invt_ene,t] =E= sum(i, qInvt_ene_i[i,t]);
-  .. vInvt_ene_i[i,t] =E= pD['Invt_ene',t] * qInvt_ene_i[i,t];
-
   # Link demand for non-energy intermediate inputs to input-output model
   # We use a one-to-one mapping between types of intermediate inputs and industries
   .. qD[i,t] =E= qR2qY_i[i,t] * qY_i[i,t];
@@ -73,12 +63,23 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
 
   .. vE_i[i,t] =E= sum(re, vE_re_i[re,i,t]);
 
+  # Inventory investments
+  .. qInvt_i[i,t] =E= qInvt2qY_i[i,t] * qY_i[i,t];
+  .. qD[invt,t] =E= sum(i, qInvt_i[i,t]);
+  .. vInvt_i[i,t] =E= pD['invt',t] * qInvt_i[i,t];
+
+  # Energy inventory investments
+  .. qInvt_ene_i[i,t] =E= qInvt_ene2qY_i[i,t] * qY_i[i,t];
+  .. qD[Invt_ene,t] =E= sum(i, qInvt_ene_i[i,t]);
+  .. vInvt_ene_i[i,t] =E= pD['Invt_ene',t] * qInvt_ene_i[i,t];
+
+  # Capital accumulation (firms demand capital directly, investments are residual from capital accumulation)
+  .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq;
+
   # Link demand for investments to input-output model
   .. qD[k,t] =E= sum(i, qI_k_i[k,i,t]);
   .. vI_k_i[k,i,t] =E= pD[k,t] * qI_k_i[k,i,t];
 
-  # Capital accumulation (firms demand capital directly, investments are residual from capital accumulation)
-  .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq;
 
     $(not tEnd[t])..
       pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t+1]) * pD[k,t+1]*fp + jpK_k_i[k,i,t];

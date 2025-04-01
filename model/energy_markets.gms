@@ -185,19 +185,22 @@
 	# Retail and wholesale margins on ergy
 	# ------------------------------------------------------------------------------
 
-      # $BLOCK energy_margins energy_margins_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
+      $BLOCK energy_margins energy_margins_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
 
-			# 	.. pEAV[es,e,d,t] =E=  (1+fpEAV[es,e,d,t]) * pY_CET['WholeAndRetailSaleMarginE','46000',t];
+				.. pEAV[es,e,d,t] =E=  (1+fpEAV[es,e,d,t]) * pY_CET['46000',t];
 
-			# 	.. pDAV[es,e,d,t] =E= (1+fpDAV[es,e,d,t]) * pY_CET['WholeAndRetailSaleMarginE','47000',t];
+				.. pDAV[es,e,d,t] =E= (1+fpDAV[es,e,d,t]) * pY_CET['47000',t];
 
-			# 	.. pCAV[es,e,d,t] =E= (1+fpCAV[es,e,d,t]) * pY_CET['WholeAndRetailSaleMarginE','45000',t];
+				.. pCAV[es,e,d,t] =E= (1+fpCAV[es,e,d,t]) * pY_CET['45000',t];
 
-			# 	.. vEAV[es,e,d,t] =E=  pEAV[es,e,d,t] * qEpj[es,e,d,t];
+				.. vEAV[es,e,d,t] =E=  pEAV[es,e,d,t] * qEpj[es,e,d,t];
 
-			# 	.. vDAV[es,e,d,t] =E= pDAV[es,e,d,t]  * qEpj[es,e,d,t];
+				.. vDAV[es,e,d,t] =E= pDAV[es,e,d,t]  * qEpj[es,e,d,t];
 
-			# 	.. vCAV[es,e,d,t] =E= pCAV[es,e,d,t]  * qEpj[es,e,d,t];
+				.. vCAV[es,e,d,t] =E= pCAV[es,e,d,t]  * qEpj[es,e,d,t];
+
+				qD_EAV[d,t].. 
+			  .. pY_CET['46000',t] * qD_EAV[d,t] =E= sum((es,e), vEAV[es,e,d,t]);
 
 			# 	..  vOtherDistributionProfits_EAV[t] =E= sum((es,e,d), vEAV[es,e,d,t])
       #                                         - pY_CET['WholeAndRetailSaleMarginE','46000',t]*qY_CET['WholeAndRetailSaleMarginE','46000',t]
