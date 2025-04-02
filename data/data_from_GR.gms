@@ -51,6 +51,29 @@ parameters
   vNetDividends[sector,as_li_net,t]
   vNetRevaluations[sector,as_li_net,t]
   vNetInterests[sector,as_li_net,t]
+  #Public finance stuff, subject to internal revision
+  vGov2Foreign[t]
+  vGovReceiveF[t]
+  vGovRent[t]
+  vGovInv[t]
+  vGovSub[t]
+  vGov2Firms[t]
+  vGovReceiveFirms[t]
+  vGovExp[t]
+  vtSource[t]
+  vtVat[t]
+  vtMedia[t]
+  vtCarWeight[t]
+  vtIndirect[t]
+  vtDirect[t]
+  vGovRevRest[t]
+  vG[t]
+  vTrans[t]
+  vCont[t]
+  vtCorp[t]
+  vtPAL[t]
+  vtAM[t]
+  vtPersIncRest[t]
 
 ;
 $gdxin dataa_ny.gdx
@@ -60,6 +83,8 @@ $load vIO_y=vIO_y.l, vIO_m=vIO_m.l, vIOxE_y=vIOxE_y.l, vIOxE_m=vIOxE_m.l, vIO_a=
 $load nEmployed=nEmployed.l, qL=qL.l, qK=qK.l, qI_k_i=qI_k_i.l
 $load qEmmLULUCF=qEmmLULUCF.l,qEmmBorderTrade=qEmmBorderTrade.l,qCO2_ETS_freeallowances=qCO2_ETS_freeallowances.l
 $load vNetDebtInstruments=vNetDebtInstruments.l,vNetDividends=vNetDividends.l,vNetEquity=vNetEquity.l,vNetInterests=vNetInterests.l,vNetRevaluations=vNetRevaluations.l
+$load vGovExp=vGovExp.l,vtSource=vtSource.l,vtVAT=vtVAT.l,vtMedia=vtMedia.l,vtCarWeight=vtCarWeight.l,vtIndirect=vtIndirect.l,vtDirect=vtDirect.l,vGovRevRest=vGovRevRest.l
+$load vG=vG.l,vTrans=vTrans.l,vCont=vCont.l,vtCorp=vtCorp.l,vtPAL=vtPAL.l,vtAM=vtAM.l,vtPersIncRest=vtPersIncRest.l 
 $gdxIn %data_path%/EU_GR_data.gdx
 #$load vIO_a, vIOxE_a
 $gdxIn
@@ -256,4 +281,8 @@ execute_unloaddi "data",
 
   sector,as_li_net
   vNetDebtInstruments,vNetEquity,vNetRevaluations,vNetInterests,vNetDividends
-;;
+
+  vGov2Foreign, vGovReceiveF, vGovRent, vGovInv,vGovSub,vGov2Firms,vGovReceiveFirms,vGovExp
+  vtSource,vtVat,vtMedia,vtCarWeight,vtIndirect,vtDirect,vGovRevRest,
+  vG,vTrans,vCont,vtCorp,vtPAL,vtAM,vtPersIncRest
+;
