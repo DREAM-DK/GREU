@@ -154,24 +154,24 @@ $GROUP calibration_endogenous
 ;
 
 $Group+ G_flat_after_last_data_year
-  qES[es,d,t]
+  # qES[es,d,t]
   pES[es,d,t]
   vES[es,d,t]
   
-  pTE[es,e,d,t]
+  # pTE[es,e,d,t]
   qES_e[es,e,d,t]
 
   pTPotential[l,es,d,t]
 
-  pTK[d,t]
+  # pTK[d,t]
   qES_k[d,t]
 
   sTSupply[l,es,d,t]
   vTSupply[l,es,d,t]
 
-  sTPotential[l,es,d,t]
-  uTE[l,es,e,d,t]
-  uTK[l,es,d,t]
+  # sTPotential[l,es,d,t]
+  # uTE[l,es,e,d,t]
+  # uTK[l,es,d,t]
   pESmarg[es,d,t]
 
   eP[l,es,d,t]

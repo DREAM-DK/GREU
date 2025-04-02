@@ -28,6 +28,8 @@ os.chdir(fr"{root}/gamY_src")
 
 dt.gamY.run("base_model.gms")
 
+# Plot smooth and discrete supply curves
+import plot_supply_curves
 
 ## Save calibration.gdx as previous_calibration.gdx
 # shutil.copy("calibration.gdx", "previous_calibration.gdx")
@@ -47,4 +49,4 @@ e = dt.Gdx("Abatement_partial_elec.gdx")
 c = dt.Gdx("Abatement_partial_carbon_tax.gdx")
 
 
-import plot_supply_curves
+
