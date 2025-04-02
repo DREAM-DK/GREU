@@ -182,6 +182,26 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
 
   .. vY_i_d[i,d,t] =E= pY_i_d[i,d,t] * qY_i_d[i,d,t];
   .. vM_i_d[i,d,t] =E= pM_i_d[i,d,t] * qM_i_d[i,d,t];
+
+
+  #Share of total demand to re  
+
+
+  # share_re_total_d[re,t] = sum((es,e,i)$es2re(es,re), vEpj_base[es,e,i,t])/sum((es,r,i), vEpj_base[es,e,i,t]);
+
+  #   vE_pj__mapped[re,e,t]         = sum((es,i)$es2re(es,re), vEpj[es,e,i,t]);
+  #   vE_pj__mapped[c,e,t]          = sum((es), vEpj[es,e,c,t]);
+  #   vE_pj__mapped['xEne',e,t]     = sum((es), vEpj[es,e,'xOth',t]);
+  #   vE_pj__mapped['invt_ene',e,t] = sum((es), vEpj[es,e,'invt',t]);
+
+
+  #   vY_i_d_BU[i,re,t] =E= sum(e, vE_pj_base_mapped[re,e,t] * vY_CET[e,i,t]/(vY_CET[e,i,t]+vM_CET[e,i,t]));
+  #   vM_i_d_BU[i,re,t] =E= sum(e, vE_pj_base_mapped[re,e,t] * vY_CET[e,i,t]/(vY_CET[e,i,t]+vM_CET[e,i,t]));
+
+
+  #Identities 
+      # vY_i_d[i,re,t] =E= sY_re[re,t] * vEpj_base[es,e,i_,t]
+  # .. 
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model

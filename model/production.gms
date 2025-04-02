@@ -26,7 +26,7 @@ $IF %stage% == "variables":
 
     pProd2pNest[pf,pfNest,i,t]$(d1Prod[pf,i,t] and d1Prod[pfNest,i,t]) "Price ratio between production factor and its nest."
 
-    qPFtop2qY[i] "Ratio between qProd[pf_top] and qY_i in basis year where prices are set to 1."
+    qPFtop2qY[i,t] "Ratio between qProd[pf_top] and qY_i in basis year where prices are set to 1."
   ;
 
 $ENDIF # variables
@@ -39,17 +39,13 @@ $IF %stage% == "equations":
   $BLOCK production_equations production_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
     # Output is determined in the input-output system, to meet the demand at the prevailing price levels.
     # Given the level of production, we determine the most cost-effective way to produce it in this module.
-    # .. qY0_i[i,t] =E= qPFtop2qY[i,t] * qY_i[i,t];
+    .. qY0_i[i,t] =E= qPFtop2qY[i,t] * qY_i[i,t];
 
-    # .. qProd[pf_top,i,t] =E= qY0_i[i,t];
 
-    ..qProd[pf_top,i,t] =E= qPFtop2qY[i] * qY_i[i,t];
+    ..qProd[pf_top,i,t] =E= qY0_i[i,t]; #This is just a 1:1 further, further down the line qProd will have installation costs substracted 
 
     # Marginal cost. These are marginal cost of production from CES-production (pProd['TopPfunction']), net of any adjustment costs, and other costs not covered in the production function
-    # .. pY0_i[i,t] * qY0_i[i,t] =E= pProd['TopPfunction',i,t] * qY0_i[i,t]
-    #                             + vProdOtherProductionCosts[i,t];
-
-    .. pY0_i[i,t] * qY_i[i,t] =E= pProd['TopPfunction',i,t] * qProd['TopPfunction',i,t]
+    .. pY0_i[i,t] * qY0_i[i,t] =E= pProd['TopPfunction',i,t] * qProd['TopPfunction',i,t]
                                 + vProdOtherProductionCosts[i,t];
 
 
@@ -130,6 +126,7 @@ $IF %stage% == "exogenous_values":
   # ------------------------------------------------------------------------------
 
   pProd.l[pfNest,i,tDataEnd] = 1;
+  pY0_i.l[i,tDataEnd] = 1;
 
   qProd.l[pfNest,i,t] =  sum(pf_bottom$(pf_mapping[pfNest,pf_bottom,i]), pProd.l[pf_bottom,i,t]*qProd.l[pf_bottom,i,t]);
   qProd.l[pfNest,i,t] =  sum(pf$(pf_mapping[pfNest,pf,i]), pProd.l[pf,i,t]*qProd.l[pf,i,t]);
@@ -154,6 +151,8 @@ $IF %stage% == "calibration":
 
 $BLOCK production_calibration_equations production_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
   # jpK_k_i[k,i,t]$(t1[t] and not tEnd[t]).. qK_k_i[k,i,t] =E= qK_k_i[k,i,t+1];
+
+
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
@@ -172,7 +171,8 @@ $Group calibration_endogenous
   #Endo/exo in the partial model
   uProd[pf_bottom,i,t1], -qProd[pf_bottom,i,t1]
   uProd[pfNest,i,t1]$(not pf_top[pfNest]), -pProd[pfNest,i,t1]$(not pf_top[pfNest])
-  qPFtop2qY[i], -pProd[pf_top,i,tBase] #Normalize price at 1
+  qPFtop2qY[i,tBase], -pProd[pf_top,i,tBase] #Normalize price at 1
+  
 
   #Items are swapped back, the module is calibrated alongside factor_demand
   qProd[RxE,i,t1]

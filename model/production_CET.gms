@@ -23,15 +23,21 @@ $IF %stage% == "equations":
     .. pY_CET[out,i,t] =E= pY0_CET[out,i,t] * (1 + rMarkup_out_i[out,i,t]);
 
     pY0_CET[out,i,t].. 
-      qY_CET[out,i,t] =E= uY_CET[out,i,t] * (pY0_CET[out,i,t]/pY0_i[i,t])**eCET[i] * qY_i[i,t];  
+      qY_CET[out,i,t] =E= uY_CET[out,i,t] * (pY0_CET[out,i,t]/pY0_i[i,t])**eCET[i] * qY0_i[i,t];  
 
-    qY_i&_inproductiongms[i,t]..
-      pY0_i[i,t] * qY_i[i,t] =E= sum(out, pY0_CET[out,i,t] * qY_CET[out,i,t]); 
+  $ENDBLOCK
+
+  $BLOCK production_CET_links production_CET_links_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+    #Link to production function - this equation determines demand for qY0_i by disconnecting qY0_i from qY_i from input-output model
+    qPFtop2qY[i,t]..
+      pY0_i[i,t] * qY0_i[i,t] =E= sum(out, pY0_CET[out,i,t] * qY_CET[out,i,t]); 
   $ENDBLOCK
 
   # Add equation and endogenous variables to main model
-  model main /production_CET/;
-  $Group+ main_endogenous production_CET_endogenous;
+  model main /production_CET
+              production_CET_links
+              /;
+  $Group+ main_endogenous production_CET_endogenous production_CET_links_endogenous;
 
 $ENDIF # equations
 
@@ -64,16 +70,18 @@ $IF %stage% == "calibration":
   # Add equations and calibration equations to calibration model
   model calibration /
     production_CET
+    production_CET_links
     production_CET_calibration
   /;
 
   # Add endogenous variables to calibration model
   $Group calibration_endogenous
     production_CET_endogenous
+    production_CET_links_endogenous
     production_CET_calibration_endogenous
 
     -pY_CET[out,i,t1], uY_CET[out,i,t1]
-    -qY_i[i,t1], rMarkup_calib[i,t1]
+    -pY0_i[i,t1], rMarkup_calib[i,t1]
     
     calibration_endogenous
   ;

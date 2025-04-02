@@ -23,6 +23,20 @@ $load rx=i, re, k, c, g, x,tl,invt, invt_ene
 $gdxIn
 ;
 
+
+set d_ene[d]/
+  cHouEne
+  cCarEne 
+  xEne 
+  invt_ene
+  transport_energy
+  heating_energy
+  machine_energy
+  /; 
+
+set d_non_ene[d];
+d_non_ene[d] = not d_ene[d];
+
 i2rx(i,rx) = yes$(sameas[i,rx]);
 
 # set energy[d]/energy/;

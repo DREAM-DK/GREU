@@ -13,8 +13,11 @@ set prd/heating,transport,Otherergy/;
 $gdxIn ../data/data.gdx
 $load out, e, es
 $gdxIn
+
 #  execute_loaddc '..\data\data.gdx' out e es;
-sets natgas[out]     /"Natural gas incl. biongas"/
+
+sets out_other[out]/out_other/
+     natgas[out]/"Natural gas incl. biongas"/
      natgas_ext[out] /"Natural gas (Extraction)"/
      el[out]/"Electricity"/
      distheat[out]/"District heat"/
@@ -30,4 +33,12 @@ sets transport[es]/Transport/
      process_special[es]/Process_special/
      in_ETS[es]/In_ETS/
      ;
+
+
+set es2re(es,re)
+     /
+       heating . heating_energy
+       transport . transport_energy
+       (process_normal,process_special,in_ETS) . machine_energy 
+       /;
      

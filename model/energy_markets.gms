@@ -185,22 +185,22 @@
 	# Retail and wholesale margins on ergy
 	# ------------------------------------------------------------------------------
 
-      $BLOCK energy_margins energy_margins_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
+      # $BLOCK energy_margins energy_margins_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
 
-				.. pEAV[es,e,d,t] =E=  (1+fpEAV[es,e,d,t]) * pY_CET['46000',t];
+			# 	.. pEAV[es,e,d,t] =E=  (1+fpEAV[es,e,d,t]) * pY_CET['46000',t];
 
-				.. pDAV[es,e,d,t] =E= (1+fpDAV[es,e,d,t]) * pY_CET['47000',t];
+			# 	.. pDAV[es,e,d,t] =E= (1+fpDAV[es,e,d,t]) * pY_CET['47000',t];
 
-				.. pCAV[es,e,d,t] =E= (1+fpCAV[es,e,d,t]) * pY_CET['45000',t];
+			# 	.. pCAV[es,e,d,t] =E= (1+fpCAV[es,e,d,t]) * pY_CET['45000',t];
 
-				.. vEAV[es,e,d,t] =E=  pEAV[es,e,d,t] * qEpj[es,e,d,t];
+			# 	.. vEAV[es,e,d,t] =E=  pEAV[es,e,d,t] * qEpj[es,e,d,t];
 
-				.. vDAV[es,e,d,t] =E= pDAV[es,e,d,t]  * qEpj[es,e,d,t];
+			# 	.. vDAV[es,e,d,t] =E= pDAV[es,e,d,t]  * qEpj[es,e,d,t];
 
-				.. vCAV[es,e,d,t] =E= pCAV[es,e,d,t]  * qEpj[es,e,d,t];
+			# 	.. vCAV[es,e,d,t] =E= pCAV[es,e,d,t]  * qEpj[es,e,d,t];
 
-				qD_EAV[d,t].. 
-			  .. pY_CET['46000',t] * qD_EAV[d,t] =E= sum((es,e), vEAV[es,e,d,t]);
+			# 	qD_EAV[d,t].. 
+			#   .. pY_CET['46000',t] * qD_EAV[d,t] =E= sum((es,e), vEAV[es,e,d,t]);
 
 			# 	..  vOtherDistributionProfits_EAV[t] =E= sum((es,e,d), vEAV[es,e,d,t])
       #                                         - pY_CET['WholeAndRetailSaleMarginE','46000',t]*qY_CET['WholeAndRetailSaleMarginE','46000',t]
@@ -217,11 +217,55 @@
       #                                         ;
       # $ENDBLOCK
 
+		$BLOCK non_energy_markets_clearing non_energy_markets_clearing_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+				
+				 ..qY_i_d_out_other[i,d_non_ene,t] =E= (1-rM_non_ene[i,d_non_ene,t]) * rYM_non_ene[i,d_non_ene,t] * qD[d_non_ene,t];
+
+				 ..qM_i_d_out_other[i,d_non_ene,t] =E= rM_non_ene[i,d_non_ene,t] * rYM_non_ene[i,d_non_ene,t] * qD[d_non_ene,t];	
+
+				 ..qY_CET[out_other,i,t] =E= sum(d_non_ened_non_ene, qY_i_d_out_other[i,d_non_ene,t]);
+
+				 ..qM_CET[out_other,i,t] =E= sum(d_non_ened_non_ene, qM_i_d_out_other[i,d_non_ene,t]);
+
+				 .. pY_i_d_out_other[i,d_non_ene,t] =E= (1+tY_i_d_out_other[i,d_non_ene,t]) * pY_CET[out_other,i,t];
+
+				 .. pM_i_d_out_other[i,d_non_ene,t] =E= (1+tM_i_d_out_other[i,d_non_ene,t]) * pM_CET[out_other,i,t];	
+
+				 .. vtY_i_d_out_other[i,d_non_ene,t] =E= tY_i_d_out_other[i,d_non_ene,t] * pY_CET[out_other,i,t] * qY_i_d_out_other[i,d_non_ene,t];
+
+				 .. vtM_i_d_out_other[i,d_non_ene,t] =E= tM_i_d_out_other[i,d_non_ene,t] * pM_CET[out_other,i,t] * qM_i_d_out_other[i,d_non_ene,t];
+
+
+				#Links, taxes 	
+					tY_i_d[i,d_non_ene,t]..
+						vtY_i_d[i,d_non_ene,t] =E= vtY_i_d_out_other[i,d_non_ene,t];
+
+					tM_i_d[i,d_non_ene,t]..
+						vtM_i_d[i,d_non_ene,t] =E= vtM_i_d_out_other[i,d_non_ene,t];
+
+				#Links prices 
+					# jfpY_i_d[i,d_non_ene,t]..
+					# 	vY_i_d[i,d_non_ene,t] =E= pY_i_d_out_other[i,d_non_ene,t] * qY_i_d_out_other[i,d_non_ene,t];
+
+					# jfpM_i_d[i,d_non_ene,t]..
+					# 	vM_i_d[i,d_non_ene,t] =E= pM_i_d_out_other[i,d_non_ene,t] * qM_i_d_out_other[i,d_non_ene,t];
+
+
+				#  ..  =E= pY_i_d[i,d,t] * qY_i_d[i,d,t];
+
+
+				# jfpY_i_d[i,d_non_ene,t]..
+				# 	p
+		$ENDBLOCK 
+
+
+
 		# Add equation and endogenous variables to main model
 		model main / energy_demand_prices  
 								energy_markets_clearing 
 								# energy_margins
 								energy_markets_clearing_link
+								non_energy_markets_clearing
 								/;
 
 		$Group+ main_endogenous 
@@ -229,6 +273,7 @@
 				energy_markets_clearing_endogenous 
 				# energy_margins_endogenous
 				energy_markets_clearing_link_endogenous
+				non_energy_markets_clearing_endogenous
 				;
 	$ENDIF 
 
@@ -315,6 +360,7 @@ $IF %stage% == "calibration":
 
 		# energy_margins
 		energy_markets_clearing_link
+		non_energy_markets_clearing
 	/;
 	# Add endogenous variables to calibration model
 	$Group calibration_endogenous
@@ -332,7 +378,8 @@ $IF %stage% == "calibration":
 		# fpCAV[es,e,d,t1],    -vCAV[es,e,d,t1]
 
 		energy_markets_clearing_link_endogenous
-
+		non_energy_markets_clearing_endogenous
+		
 		calibration_endogenous
 	;
 $ENDIF
