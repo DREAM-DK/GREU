@@ -42,7 +42,7 @@ main.optfile=1;
 # Import data and set parameters
 # ------------------------------------------------------------------------------
 @import_from_modules("exogenous_values")
-@inf_growth_adjust()
+# @inf_growth_adjust()
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
 @update_exist_dummies()
 
