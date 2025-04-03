@@ -224,8 +224,8 @@ $Group+ data_covered_variables input_output_data_variables$(t.val <= %calibratio
 
 @load(input_output_data_variables, "../data/data.gdx")
 
-d1Y_i_d[i,d,t] = abs(vY_i_d.l[i,d,t]) > 1e-9;
-d1M_i_d[i,d,t] = abs(vM_i_d.l[i,d,t]) > 1e-9;
+d1Y_i_d[i,d,t] = abs(vY_i_d.l[i,d,t]) > 1e-6;
+d1M_i_d[i,d,t] = abs(vM_i_d.l[i,d,t]) > 1e-6;
 d1YM_i_d[i,d,t] = d1Y_i_d[i,d,t] or d1M_i_d[i,d,t];
 d1Y_d[d,t] = sum(i, d1Y_i_d[i,d,t]);
 d1M_d[d,t] = sum(i, d1M_i_d[i,d,t]);

@@ -17,6 +17,8 @@ Set d; #demand components
 Alias(d,d_a);
 Set i_; #sectors incl. tot
 Set i(d); #sectors w.o. tot
+Set d_non_ene(d);
+Set d_ene(d);
 Alias(i,i_a);
 Set c(d); #private consumption
 Set x(d); #export
@@ -31,6 +33,8 @@ Set e(out); #energy outputs
 Set m(i);
 Set land5; #land area types
 Set em_accounts; #set of accounts for emissions
+
+
 parameters
   vIO_y[i,d,t]
   vIO_m[i,d,t]
@@ -57,10 +61,9 @@ parameters
   vIOE_y_computed[i,d,t] ""
   vIOE_m_computed[i,d,t] ""
   vIOE_a_computed[a_rows_,d,t] ""
-
 ;
 $gdxin dataa_ny.gdx
-$load d,i,c,x,g,rx,re,invt,invt_ene,tl,out,e,t,t1,land5,em_accounts,i_,k_
+$load d, d_non_ene, d_ene, i,c,x,g,rx,re,invt,invt_ene,tl,out,e,t,t1,land5,em_accounts,i_,k_
 $load factors_of_production, k, ebalitems, em,etaxes,a_rows_,transaction,demand_transaction,es
 $load vIO_y=vIO_y.l, vIO_m=vIO_m.l, vIOxE_y=vIOxE_y.l, vIOxE_m=vIOxE_m.l, vIO_a=vIO_a.l,vIOxE_a=vIOxE_a.l
 $load nEmployed=nEmployed.l, qL=qL.l, qK=qK.l, qI_k_i=qI_k_i.l
@@ -220,6 +223,15 @@ parameters GREU_data
   qInvt_ene_i[i,t] "Inventory investments by industry."
   qE_re_i[re,i,t] "Energy demand from industry i, split on energy-types re"
 
+
+  #Non-energy materials
+
+  vY_i_d_non_ene[i,d_non_ene,t] ""
+	vM_i_d_non_ene[i,d_non_ene,t] ""
+	vtY_i_d_non_ene[i,d_non_ene,t] ""
+	vtM_i_d_non_ene[i,d_non_ene,t] ""
+  vtYM_i_d_non_ene[d_non_ene,t] ""
+
   #Energy and emissions.
   qEmmBorderTrade[em,t] ""
   pEpj_base[es,e,d,t] ""
@@ -290,6 +302,17 @@ qY_CET['out_other',i,t] = sum(d,vIOxE_y[i,d,t]);
 qM_CET['out_other',i,t] = sum(d,vIOxE_m[i,d,t]);
 pY_CET['out_other',i,t]$qY_CET['out_other',i,t] = 1;
 pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
+
+vY_i_d_non_ene[i,d_non_ene,t] = vY_i_d[i,d_non_ene,t];
+vM_i_d_non_ene[i,d_non_ene,t] = vM_i_d[i,d_non_ene,t];
+vtYM_i_d_non_ene[d_non_ene,t] = vIOxE_a['TaxSub',d_non_ene,t] + vIOxE_a['Moms',d_non_ene,t]; 
+
+#Assume same tax-rates per IO-cell 
+vtY_i_d_non_ene[i,d_non_ene,t]$(sum(i_a, vY_i_d_non_ene[i_a,d_non_ene,t] + vM_i_d_non_ene[i_a,d_non_ene,t])) 
+  = vtYM_i_d_non_ene[d_non_ene,t] * vY_i_d_non_ene[i,d_non_ene,t]/sum(i_a, vY_i_d_non_ene[i_a,d_non_ene,t] + vM_i_d_non_ene[i_a,d_non_ene,t]);
+
+vtM_i_d_non_ene[i,d_non_ene,t]$(sum(i_a, vY_i_d_non_ene[i_a,d_non_ene,t] + vM_i_d_non_ene[i_a,d_non_ene,t])) 
+  = vtYM_i_d_non_ene[d_non_ene,t] * vM_i_d_non_ene[i,d_non_ene,t]/sum(i_a, vY_i_d_non_ene[i_a,d_non_ene,t] + vM_i_d_non_ene[i_a,d_non_ene,t]);
 
 
 #Demand-components, total

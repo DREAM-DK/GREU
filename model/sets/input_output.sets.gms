@@ -1,4 +1,7 @@
 Set d "Demand components.";
+Set d_non_ene[d<];
+Alias(d_non_ene,d_non_ene_a);
+Set d_ene[d<];
 # Set re[d<] "Energy types" /energy/;
 Set re[d<] "Intermediate energy-input";
 Set rx[d<] "Intermediate input types other than energy.";
@@ -17,25 +20,11 @@ Set m[i] "Industries with imports.";
 Set i2rx(i,rx);
 
 $gdxIn ../data/data.gdx
-$load d
+$load d, d_non_ene, d
 $load i, m
 $load rx=i, re, k, c, g, x,tl,invt, invt_ene
 $gdxIn
 ;
-
-
-set d_ene[d]/
-  cHouEne
-  cCarEne 
-  xEne 
-  invt_ene
-  transport_energy
-  heating_energy
-  machine_energy
-  /; 
-
-set d_non_ene[d];
-d_non_ene[d] = not d_ene[d];
 
 i2rx(i,rx) = yes$(sameas[i,rx]);
 
@@ -52,3 +41,4 @@ Set i_wholesale[i] / 46000 /;
 Set i_retail[i] / 47000 /;
 Set i_service_for_industries[i] / 71000 /;
 Set i_international_aviation[i] / 51009 /;
+SEt i_control[i]/set.i/;

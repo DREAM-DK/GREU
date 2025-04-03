@@ -77,6 +77,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT ramsey_household.gms
 $ENDFUNCTION
 
+
 model main;
 model calibration;
 @import_from_modules("equations")
@@ -137,6 +138,8 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT factor_demand.gms
   $IMPORT ramsey_household.gms
 $ENDFUNCTION
+
+
 
 $Group calibration_endogenous ;
 @import_from_modules("calibration")
