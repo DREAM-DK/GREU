@@ -27,6 +27,8 @@ $IF %stage% == "variables":
     pProd2pNest[pf,pfNest,i,t]$(d1Prod[pf,i,t] and d1Prod[pfNest,i,t]) "Price ratio between production factor and its nest."
 
     qPFtop2qY[i,t] "Ratio between qProd[pf_top] and qY_i in basis year where prices are set to 1."
+
+    jqE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "J-term to be endogenized when energy module is turned on. Necessary, because bottom-up energy is partly in the top and partly in CES-nests"
   ;
 
 $ENDIF # variables
@@ -61,13 +63,14 @@ $IF %stage% == "equations":
     .. pProd[pfNest,i,t] * qProd[pfNest,i,t] =E= sum(pf_mapping[pfNest,pf,i], pProd[pf,i,t] * qProd[pf,i,t]);
 
     # # Other production costs, not in nesting tree 
-    # .. vProdOtherProductionCosts[i,t] =E= vtNetproductionRest[i,t]      #Net production subsidies and taxes not internalized in user-cost of capital and not included in other items listed below
-    #                                     - vtBotded[i,t]                 #"Bottom deductions on energy-use"
+    .. vProdOtherProductionCosts[i,t] =E= 
+                                          # vtNetproductionRest[i,t]      #Net production subsidies and taxes not internalized in user-cost of capital and not included in other items listed below
+                                        -vtBotded[i,t];                 #"Bottom deductions on energy-use"
     #                                     - vDiffMarginAvgE[i,t]          #"Difference between marginal and average energy-costs"
     #                                     + vtEmmRxE[i,t]                 #Taxes on non-energy related emissions
     #                                     - vtCAP_prodsubsidy[i,t]        #Agricultural subsidies from EU CAP subsidizing production directly.
-    #                                     + vEnergycostsnotinnesting[i,t] #Energy costs not in nesting tree
-    #                                     ;
+                                        + vEnergycostsnotinnesting[i,t] #Energy costs not in nesting tree
+                                        ;
   $ENDBLOCK
 
   $BLOCK production_bottom_link_equations production_bottom_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
@@ -78,7 +81,7 @@ $IF %stage% == "equations":
     qK2qY_k_i[k,i,t].. sum(sameas[pf_bottom_capital,k], qProd[pf_bottom_capital,i,t]) =E= qK_k_i[k,i,t] * pK_k_i[k,i,tBase];
 
     .. pProd[pf_bottom_e,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], pE_re_i[re,i,t]); 
-    qE2qY_re_i[re,i,t].. qE_re_i[re,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], qProd[pf_bottom_e,i,t]);
+    qE2qY_re_i[re,i,t].. qE_re_i[re,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], qProd[pf_bottom_e,i,t]) + jqE_re_i[re,i,t]; 
 
     .. pProd[labor,i,t] =E= pL_i[i,t];
     qL2qY_i[i,t].. qL_i[i,t] =E= qProd['labor',i,t];

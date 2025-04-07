@@ -27,6 +27,8 @@ $IF %stage% == "variables":
 		eREa[es,i] 																	"Elasticity of substitution between energy-activities for a given energy-service"
 		uREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 			"CES-share for energy-activity in industry i"
 	
+		vREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 			"Value of energy-activity (e_a) in industry i, measured in bio 2019-DKK"
+
 		uREes[es,i,t] 															"CES-share between energy-service and energy-activity"				
 		eREes[i] 																		"Elasticity of substitution between energy-services for industri i"
 
@@ -71,7 +73,7 @@ $IF %stage% == "equations":
 		
 			vEnergycostsnotinnesting[i,t].. vEnergycostsnotinnesting[i,t] =E= sum((es,e_a)$(d1pREa_NotinNest[es,e_a,i,t]), pREa[es,e_a,i,t] * qREa[es,e_a,i,t]);
 
-
+			.. vREa[es,e_a,i,t] =E= pREa[es,e_a,i,t] * qREa[es,e_a,i,t]; #Value of energy-activity (e_a) in industry i, measured in bio 2019-DKK
 
 	$ENDBLOCK		
 
@@ -84,6 +86,19 @@ $IF %stage% == "equations":
 
 			qREmachine[i,t]$(d1pREmachine[i,t])..
 				qREmachine[i,t] =E= qProd['machine_energy',i,t] + jqREmachine[i,t];
+
+
+			#Linking prices, pR
+			jpE_re_i&_machine_energy[re,i,t]$(sameas[re,'machine_energy'])..
+				pE_re_i[re,i,t] =E= pREmachine[i,t];
+
+			jpE_re_i&_transport_energy[re,i,t]$(sameas[re,'transport_energy'])..
+				pE_re_i[re,i,t] =E= pREes['transport',i,t];
+
+			jpE_re_i&_heating_energy[re,i,t]$(sameas[re,'heating_energy'])..
+				pE_re_i[re,i,t] =E= pREes['heating',i,t];
+
+
 
 	$ENDBLOCK
 
