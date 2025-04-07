@@ -34,6 +34,11 @@ $IF %stage% == "variables":
     qEpj_duty_deductible[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "Marginal duty-rates on firms energy input. Measured in bio. kr. per PJ energy input"
     qCO2_ETS_freeallowances[i,t]$(d1tCO2_ETS[i,t]) "This one needs to have added non-energy related emissions"
 
+		tpE_marg[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Aggregate marginal tax-rate on priced energy, measured as a mark-up over base price"
+		tpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Aggregate marginal tax-rate on priced energy, measured as a mark-up over base price"
+		tqE[es,e,d,t]$(d1tqEpj[es,e,d,t]) 												 "Aggregate marginal tax-rate on non-priced energy, measured as bio. kroner per PJ (or equivalently 1000 DKR per GJ)" 
+
+
     vtE_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "Tax revenue from duties on energy"
     vtE_duty_tot[d,t]$(d1tE_duty_tot[d,t]) "Total tax revenue from duties on energy"
     vtE_vat[es,e,d,t]$(d1tE_vat[es,e,d,t]) "Tax revenue from VAT on energy"
@@ -65,32 +70,40 @@ $ENDIF
 $IF %stage% == "equations":
 
   $BLOCK energy_and_emissions_taxes energy_and_emissions_taxes_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+     #Total duties, net of bottom deductions
      ..   vtE_duty[etaxes,es,e,d,t] =E= tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] - qEpj_duty_deductible[etaxes,es,e,d,t]) +  jvtE_duty[etaxes,es,e,d,t];
 
+    #Total VAT paid on energy
      ..   vtE_vat[es,e,d,t] =E= tE_vat[es,e,d,t] * (pEpj_base[es,e,d,t]*qEpj[es,e,d,t]
                                                   + sum(etaxes, tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] - qEpj_duty_deductible[etaxes,es,e,d,t]))
                                                   + pEAV[es,e,d,t]*qEpj[es,e,d,t]
                                                   + pDAV[es,e,d,t]*qEpj[es,e,d,t]
                                                   + pCAV[es,e,d,t]*qEpj[es,e,d,t]);
 
+      #Total taxes on energy, including ETS
       ..   vtE[es,e,d,t] =E= vtE_vat[es,e,d,t] 
                             + sum(etaxes, vtE_duty[etaxes,es,e,d,t])
                             + sum(em, tCO2_ETS_pj[em,es,e,d,t]*qEpj[es,e,d,t])
                             + sum(em, tCO2_ETS2_pj[em,es,e,d,t]*qEpj[es,e,d,t])
                             ;                   
+      #Marginal taxes on energy
+      ..   vtEmarg[es,e,d,t] =E= (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t] * qEpj[es,e,d,t];
 
-      ..   vtEmarg[es,e,d,t] =E= (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t] * qEpj[es,e,d,t];
-
-      tpE[es,e,d,t]..
-        (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t] 
+      #Marginal tax-rate on en energy
+      tpE_marg[es,e,d,t]..
+        (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t] 
           =E= (1+tE_vat[es,e,d,t]) * (pEpj_base[es,e,d,t]
-                                      + sum(etaxes, tEmarg_duty[etaxes,es,e,d,t])
+                                      + sum(etaxes, tEmarg_duty[etaxes,es,e,d,t]) #Marginal domestic CO2-tax is contained in tEmarg_duty
                                       + pEAV[es,e,d,t]
                                       + pDAV[es,e,d,t]
                                       + pCAV[es,e,d,t])
-                                      + sum(em, tCO2_Emarg_pj[em,es,e,d,t])
                                       + sum(em, tCO2_ETS_pj[em,es,e,d,t])
+                                      + sum(em, tCO2_ETS2_pj[em,es,e,d,t])
                                       ;        
+      #Average tax-rate on energy
+      tpE[es,e,d,t]..
+         (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t] * qEpj[es,e,d,t]
+          =E= vtE[es,e,d,t];
 
         #CO2-taxes based on emissions (currently only industries) 
           #Domestic CO2-tax                                                                                                                                                                                     #AKB: Depending on how EOP-abatement i modelled this should be adjusted for EOP
@@ -138,10 +151,10 @@ $IF %stage% == "equations":
 
   $BLOCK energy_and_emissions_taxes_links energy_and_emissions_taxes_links_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
-    #Bottom deductions 
+    #Bottom deductions (we meausure with positive sign and deduct them in production.gms)
       vtBotded[i,t]$(d1Y_i[i,t])..
         vtBotded[i,t] =E= sum((es,e), vtEmarg[es,e,i,t] - vtE[es,e,i,t])
-                        - tCO2_ETS[t]/10**6 * qCO2_ETS_freeallowances[i,t]; 
+                        + tCO2_ETS[t]/10**6 * qCO2_ETS_freeallowances[i,t]; 
 
     #Non-energy related taxes
       vtEmmRxE[i,t]$(d1Y_i[i,t])..

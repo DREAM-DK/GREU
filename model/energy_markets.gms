@@ -10,10 +10,10 @@
 			
 			$Group+ all_variables
 				pEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 								"Base price of energy for demand sector d, measured in bio. kroner per PJ (or equivalently 1000 DKR per GJ)"
-				pEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Price of energy, including taxes and margins, for demand sector d, defined if either a base price or a quantity-tax exists, measured in bio. kroner per PJ (or equivalently 1000 DKR per GJ)"
-				tpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Aggregate marginal tax-rate on priced energy, measured as a mark-up over base price"
-				tqE[es,e,d,t]$(d1tqEpj[es,e,d,t]) 												 "Aggregate marginal tax-rate on non-priced energy, measured as bio. kroner per PJ (or equivalently 1000 DKR per GJ)" 
+				pEpj_marg[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Price of energy, including taxes and margins, for demand sector d, defined if either a base price or a quantity-tax exists, measured in bio. kroner per PJ (or equivalently 1000 DKR per GJ)"
 				fpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Sector average margin between average supplier price, and sector base price"
+			
+				vEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Value of energy for demand sector d, measured in bio. kroner"
 			;
 
 
@@ -81,8 +81,6 @@
 				qM_CET
 				pY_CET 
 				pM_CET 
-				pE_avg 
-				qEtot
 				qEpj
 
 			  vY_i_d_non_ene
@@ -159,9 +157,17 @@
 
 			.. pEpj_base[es,e,d,t] =E= (1+fpE[es,e,d,t]) * pE_avg[e,t];
 
-			.. pEpj[es,e,d,t] =E= (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t];
+			.. pEpj_marg[es,e,d,t] =E= (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t];
 
+			.. vEpj[es,e,d,t] =E= pEpj_base[es,e,d,t] * qEpj[es,e,d,t] + vtE[es,e,d,t];
+
+			#Where is the obvious place for this
+			jqE_re_i[re,i,t].. 
+				vE_re_i[re,i,t] =E= sum((es,e)$es2re(es,re), vEpj[es,e,i,t]);
+			
 		$ENDBLOCK
+
+	
 
 	# ------------------------------------------------------------------------------
 	# Market clearing
@@ -195,24 +201,6 @@
 																															- sum(i,   pY_CET[e,i,t] * qY_CET[e,i,t])
 																															- sum(i,   pM_CET[e,i,t] * qM_CET[e,i,t]);
 
-	#Clearing demand for ergy margins
-	# qY_CET&WholeAndRetailSaleMarginE_Wholesale46000[out,i,t]$(energyDistmargin[out] and i_wholesale[i]).. 
-	# 	qY_CET['WholeAndRetailSaleMarginE','46000',t]	
-	# 				=E=  
-	# 				sum((es,e,d)$(d1pEAV[es,e,d,t]), qEpj[es,e,d,t])	
-	# 				;
-
-	# qY_CET&WholeAndRetailSaleMarginE_Cardealerships45000[out,i,t]$(energyDistmargin[out] and i_cardealers[i]).. 
-	# 	qY_CET['WholeAndRetailSaleMarginE','45000',t]	
-	# 				=E=  
-	# 				sum((es,e,d)$(d1pCAV[es,e,d,t]), qEpj[es,e,d,t])			
-	# 				;
-
-	# qY_CET&WholeAndRetailSaleMarginE_Retail[out,i,t]$(energyDistmargin[out] and i_retail[i]).. 
-	# 	qY_CET['WholeAndRetailSaleMarginE','47000',t]	
-	# 				=E=  
-	# 				sum((es,e,d)$(d1pDAV[es,e,d,t]), qEpj[es,e,d,t])				
-	# 				;
 
 
     $ENDBLOCK 
@@ -278,7 +266,7 @@
 		$BLOCK non_energy_markets_clearing non_energy_markets_clearing_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
 				#Links to CET
-				 ..qY_CET[out_other,i,t] =E= sum(d_non_ene, qY_i_d_non_ene[i,d_non_ene,t]) + qD_EAV[t]$(i_wholesale[i]) + qD_CAV[t]$(i_cardealers[i]) + qD_DAV[t]$(i_retail[i]);
+				 ..qY_CET[out_other,i,t] =E= sum(d_non_ene, qY_i_d_non_ene[i,d_non_ene,t])+ qD_EAV[t]$(i_wholesale[i]) + qD_CAV[t]$(i_cardealers[i]) + qD_DAV[t]$(i_retail[i]);
 
 				 ..qM_CET[out_other,i,t] =E= sum(d_non_ene, qM_i_d_non_ene[i,d_non_ene,t]);
 
@@ -369,8 +357,8 @@
 				
 		pY_i_d_non_ene.l[i,d_non_ene,t]$(vY_i_d_non_ene.l[i,d_non_ene,t]> 1e-6) = 1;
 		pM_i_d_non_ene.l[i,d_non_ene,t]$(vM_i_d_non_ene.l[i,d_non_ene,t]> 1e-6) = 1;
-		qY_i_d_non_ene.l[i,d_non_ene,t]$(vY_i_d_non_ene.l[i,d_non_ene,t]> 1e-6) = vY_i_d_non_ene.l[i,d_non_ene,t];
-		qM_i_d_non_ene.l[i,d_non_ene,t]$(vM_i_d_non_ene.l[i,d_non_ene,t]> 1e-6) = vM_i_d_non_ene.l[i,d_non_ene,t];
+		qY_i_d_non_ene.l[i,d_non_ene,t]$(vY_i_d_non_ene.l[i,d_non_ene,t]> 1e-6) = vY_i_d_non_ene.l[i,d_non_ene,t] - vtY_i_d_non_ene.l[i,d_non_ene,t];
+		qM_i_d_non_ene.l[i,d_non_ene,t]$(vM_i_d_non_ene.l[i,d_non_ene,t]> 1e-6) = vM_i_d_non_ene.l[i,d_non_ene,t] - vtM_i_d_non_ene.l[i,d_non_ene,t];
 		
 		vY_i_d_non_ene.l[i,d_non_ene,t]$(vY_i_d_non_ene.l[i,d_non_ene,t] <1e-6) = 0;
 		vM_i_d_non_ene.l[i,d_non_ene,t]$(vM_i_d_non_ene.l[i,d_non_ene,t] <1e-6) = 0;
@@ -465,8 +453,8 @@ $IF %stage% == "calibration":
 		-vtY_i_d_non_ene[i,d_non_ene,t1], tY_i_d_non_ene[i,d_non_ene,t1]
 		-vtM_i_d_non_ene[i,d_non_ene,t1], tM_i_d_non_ene[i,d_non_ene,t1]
 		
-		-vY_i_d_non_ene[i,d_non_ene,t1], rYM_non_ene[i,d_non_ene,t1]
-		-vM_i_d_non_ene[i,d_non_ene,t1], rM_non_ene[i,d_non_ene,t1]$(d1Y_i_d_non_ene[i,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
+		-qY_i_d_non_ene[i,d_non_ene,t1], rYM_non_ene[i,d_non_ene,t1]
+		-qM_i_d_non_ene[i,d_non_ene,t1], rM_non_ene[i,d_non_ene,t1]$(d1Y_i_d_non_ene[i,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
 
 		calibration_endogenous
 	;

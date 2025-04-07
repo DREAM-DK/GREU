@@ -16,7 +16,7 @@ $IF %stage% == "variables":
 
   #AKB: It would be nice to have an "add from group, but excluding dummies feature"
   $Group G_emissions_BU_data 
-    qEmmE_BU
+    qEmmE_BU$(not CO2e[em])
     sBioNatGas
   ;
 
