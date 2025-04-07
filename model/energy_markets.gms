@@ -81,8 +81,6 @@
 				qM_CET
 				pY_CET 
 				pM_CET 
-				pE_avg 
-				qEtot
 				qEpj
 
 			  vY_i_d_non_ene
