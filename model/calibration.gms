@@ -19,6 +19,7 @@ $FIX all_variables; $UNFIX calibration_endogenous;
 execute_unload 'static_calibration_pre.gdx';
 solve calibration using CNS;
 execute_unload 'static_calibration.gdx';
+@assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
 
 # ------------------------------------------------------------------------------
 # Dynamic calibration
