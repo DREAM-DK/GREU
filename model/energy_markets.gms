@@ -14,6 +14,7 @@
 				fpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Sector average margin between average supplier price, and sector base price"
 			
 				vEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Value of energy for demand sector d, measured in bio. kroner"
+				jvE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "Text yo	"
 			;
 
 
@@ -163,7 +164,7 @@
 
 			#Where is the obvious place for this
 			jqE_re_i[re,i,t].. 
-				vE_re_i[re,i,t] =E= sum((es,e)$es2re(es,re), vEpj[es,e,i,t]);
+				vE_re_i[re,i,t] =E= sum((es,e)$es2re(es,re), vEpj[es,e,i,t]) + jvE_re_i[re,i,t];
 			
 		$ENDBLOCK
 
@@ -417,6 +418,9 @@ $IF %stage% == "calibration":
 
 			sM_Dist[e,i,t]$(t1[t] and not d1OneSX[e,t]).. sM_Dist[e,i,t] =E= qM_CET[e,i,t]/qEtot[e,t] * pM_CET[e,i,t]**eDist[e];
 
+			jvE_re_i[re,i,t]$(t.val> t1.val and d1E_re_i[re,i,t]).. 
+				jvE_re_i[re,i,t] =E= 0;
+
 	$ENDBLOCK
 
 
@@ -437,6 +441,7 @@ $IF %stage% == "calibration":
 	$Group calibration_endogenous
 		energy_demand_prices_endogenous 
 		fpE[es,e,d,t1],  -pEpj_base[es,e,d,t1]
+		-jqE_re_i[re,i,t1],  jvE_re_i[re,i,t1]
 
 		energy_markets_clearing_endogenous
 		energy_markets_clearing_calibration_endogenous
