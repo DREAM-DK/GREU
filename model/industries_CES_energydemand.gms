@@ -98,7 +98,8 @@ $IF %stage% == "equations":
 			jpE_re_i&_heating_energy[re,i,t]$(sameas[re,'heating_energy'])..
 				pE_re_i[re,i,t] =E= pREes['heating',i,t];
 
-
+			#Should be linked in abatement-module when turned on
+			.. pREa[es,e,i,t] =E= pEpj_marg[es,e,i,t]
 
 	$ENDBLOCK
 

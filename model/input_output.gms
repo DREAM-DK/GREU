@@ -136,10 +136,10 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
 
   .. qR[t] * pR[t-1] =E= sum(rx, pD[rx,t-1] * qD[rx,t]);
   .. qE[t] * pE[t-1] =E= sum(re, pD[re,t-1] * qD[re,t]);
-  .. qI[t] * pI[t-1] =E= sum(k, pD[k,t-1] * qD[k,t]) + pD['invt',t-1] * qD['invt',t] + pD['invt_ene',t-1]*qD['invt_ene',t];
-  .. qC[t] * pC[t-1] =E= sum(c, pD[c,t-1] * qD[c,t]);
-  .. qG[t] * pG[t-1] =E= sum(g, pD[g,t-1] * qD[g,t]);
-  .. qX[t] * pX[t-1] =E= sum(x, pD[x,t-1] * qD[x,t]);
+  .. qI[t] * pI[t-1] =E= sum(k,  pD[k,t-1]  * qD[k,t]) + pD['invt',t-1] * qD['invt',t] + pD['invt_ene',t-1]*qD['invt_ene',t];
+  .. qC[t] * pC[t-1] =E= sum(c,  pD[c,t-1]  * qD[c,t]);
+  .. qG[t] * pG[t-1] =E= sum(g,  pD[g,t-1]  * qD[g,t]);
+  .. qX[t] * pX[t-1] =E= sum(x,  pD[x,t-1]  * qD[x,t]);
 
   # Equilibrium condition: supply + net duties = demand in each industry.
   .. vY_i[i,t] + vtY_i[i,t] =E= sum(d, vY_i_d[i,d,t]);
@@ -184,6 +184,12 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. vM_i_d[i,d,t] =E= pM_i_d[i,d,t] * qM_i_d[i,d,t];
 
 
+  # rYM[i,d_non_ene,t]$(t.val>tBase.val)..
+  #   qY_i_d[i,d_non_ene,t]*pY_i[i,tBase] =E= pY_CET['out_other',i,tBase]*qY_CET['out_other',i,t]);
+
+  # rM[i,d_non_ene,t]$(t.val>tBase.val)..
+  # ..qM_i_d[i,d_non_ene,t]*pM_i[i,tBase] =E= pM_CET['out_other',i,tBase]*qM_CET['out_other',i,t]);
+  
   #Share of total demand to re  
 
 

@@ -29,8 +29,9 @@ $IF %stage% == "variables":
     qPFtop2qY[i,t] "Ratio between qProd[pf_top] and qY_i in basis year where prices are set to 1."
 
     jqE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "J-term to be endogenized when energy module is turned on. Necessary, because bottom-up energy is partly in the top and partly in CES-nests"
+    jpProd[pf,i,t]$(d1Prod[pf,i,t]) "J-term to be endogenized when energy module is turned on"
   ;
-
+ 
 $ENDIF # variables
 
 # ------------------------------------------------------------------------------
@@ -74,7 +75,7 @@ $IF %stage% == "equations":
   $ENDBLOCK
 
   $BLOCK production_bottom_link_equations production_bottom_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-    .. pProd[RxE,i,t] =E= pD[i,t];
+    .. pProd[RxE,i,t] =E= pD[i,t] + jpProd[Rxe,i,t];
     qR2qY_i[i,t].. qD[i,t] =E= qProd['RxE',i,t];
 
     .. pProd[pf_bottom_capital,i,t] =E= sum(sameas[pf_bottom_capital,k], pK_k_i[k,i,t] / pK_k_i[k,i,tBase]); # We set the price to 1 in the base year, and adjust the quantity inversely

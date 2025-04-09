@@ -18,6 +18,8 @@ Set i[d<] "Production industries."; alias(i,i_a);  # i should not be subset of d
 Set m[i] "Industries with imports.";
 
 Set i2rx(i,rx);
+Set d_non_ene2i(d_non_ene,i);
+Set d_non_ene2k(d_non_ene,k);
 
 $gdxIn ../data/data.gdx
 $load d, d_non_ene, d
@@ -27,6 +29,8 @@ $gdxIn
 ;
 
 i2rx(i,rx) = yes$(sameas[i,rx]);
+d_non_ene2i(d_non_ene,i) = yes$(sameas[d_non_ene,i]);
+d_non_ene2k(d_non_ene,k) = yes$(sameas[d_non_ene,k]);
 
 # set energy[d]/energy/;
 

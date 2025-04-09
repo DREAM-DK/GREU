@@ -43,9 +43,9 @@ $IF %stage% == "variables":
     vtE_duty_tot[d,t]$(d1tE_duty_tot[d,t]) "Total tax revenue from duties on energy"
     vtE_vat[es,e,d,t]$(d1tE_vat[es,e,d,t]) "Tax revenue from VAT on energy"
     vtE_vat_tot[d,t]$(d1tE_vat_tot[d,t]) "Total VAT revenue from VAT on energy"
-    vtE[es,e,d,t]$(sum(etaxes,d1tE_duty[etaxes,es,e,d,t]) or d1tE_vat[es,e,d,t]) "Total tax revenue from energy"
-    vtEmarg[es,e,d,t]$(sum(etaxes,d1tE_duty[etaxes,es,e,d,t]) or d1tE_vat[es,e,d,t]) "Total marginal tax revenue from energy, used to compute total bottom deductions"
-
+    vtE[es,e,d,t]$(sum(etaxes,d1tE_duty[etaxes,es,e,d,t]) or d1tE_vat[es,e,d,t] or sum(em, d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t]))     "Total tax revenue from energy"
+    vtEmarg[es,e,d,t]$(sum(etaxes,d1tE_duty[etaxes,es,e,d,t]) or d1tE_vat[es,e,d,t] or sum(em, d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) "Total marginal tax revenue from energy, used to compute total bottom deductions"
+    vtE_NAS[es,e,d,t]$(sum(etaxes,d1tE_duty[etaxes,es,e,d,t]) or d1tE_vat[es,e,d,t]) "Total tax revenue excluding ETS, the National Accounts demarkation"
     vtCO2_ETS[d,t]$(d1tCO2_ETS[d,t]) "Tax revenue from ETS1"
     vtCO2_ETS2[d,t]$(d1tCO2_ETS2[d,t]) "Tax revenue from ETS2"
     vtCO2_ETS_xE[d,t]$(d1tCO2_ETS[d,t] and d1EmmxE['CO2ubio',d,t]) "Tax revenue from ETS1, non-energy related emissions"
@@ -80,13 +80,18 @@ $IF %stage% == "equations":
                                                   + pDAV[es,e,d,t]*qEpj[es,e,d,t]
                                                   + pCAV[es,e,d,t]*qEpj[es,e,d,t]);
 
-      #Total taxes on energy, including ETS
-      ..   vtE[es,e,d,t] =E= vtE_vat[es,e,d,t] 
+      #Total taxes on energy, excluding ETS, i.e. how it is computed in Danish National Accounts
+      ..   vtE_NAS[es,e,d,t] =E= vtE_vat[es,e,d,t] 
                             + sum(etaxes, vtE_duty[etaxes,es,e,d,t])
+                            ;
+                            
+      #Total taxes on energy, including ETS
+      ..   vtE[es,e,d,t] =E= vtE_NAS[es,e,d,t]
                             + sum(em, tCO2_ETS_pj[em,es,e,d,t]*qEpj[es,e,d,t])
                             + sum(em, tCO2_ETS2_pj[em,es,e,d,t]*qEpj[es,e,d,t])
-                            ;                   
-      #Marginal taxes on energy
+                            ; 
+
+      #Total taxes, if marginal rates applied to all energy-use                      
       ..   vtEmarg[es,e,d,t] =E= (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t] * qEpj[es,e,d,t];
 
       #Marginal tax-rate on en energy

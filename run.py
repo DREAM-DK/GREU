@@ -8,13 +8,13 @@ dt.gamY.variable_equation_prefix = "E_"
 ## Set local paths
 root = dt.find_root("LICENSE")
 sys.path.insert(0, root)
-os.environ["GAMS"] = "C:/GAMS/46/gams.exe"
+os.environ["GAMS"] = "C:/GAMS/49/gams.exe"
 
 ## Set working directory
 os.chdir(fr"{root}/model")
 
 ## Create data.gdx based on GreenREFORM-DK data 
-# dt.gamY.run("../data/data_from_GR.gms")
+dt.gamY.run("../data/data_from_GR.gms")
 
 dt.gamY.run("base_model.gms")
 

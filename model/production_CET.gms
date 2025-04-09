@@ -9,6 +9,7 @@ $IF %stage% == "variables":
     uY_CET[out,i,t]$(d1pY_CET[out,i,t]) "Share of production in CET-split"
     eCET[i] "Elasticity of substitution in CET-split"
     rMarkup_calib[i,t]$(d1Y_i[i,t]) "Markup on production, used in calibration"
+    jvY_i[i,t]$(d1Y_i[i,t]) ""
   ;
 
 $ENDIF # variables
@@ -31,6 +32,11 @@ $IF %stage% == "equations":
     #Link to production function - this equation determines demand for qY0_i by disconnecting qY0_i from qY_i from input-output model
     qPFtop2qY[i,t]..
       pY0_i[i,t] * qY0_i[i,t] =E= sum(out, pY0_CET[out,i,t] * qY_CET[out,i,t]); 
+    
+    #Link to pricing
+    rMarkup_i[i,t]..
+         vY_i[i,t] =E= sum(out, pY_CET[out,i,t]*qY_CET[out,i,t]) + jvY_i[i,t]; 
+
   $ENDBLOCK
 
   # Add equation and endogenous variables to main model
@@ -82,6 +88,7 @@ $IF %stage% == "calibration":
 
     -pY_CET[out,i,t1], uY_CET[out,i,t1]
     -pY0_i[i,t1], rMarkup_calib[i,t1]
+    jvY_i[i,t1]
     
     calibration_endogenous
   ;

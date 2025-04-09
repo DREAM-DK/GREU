@@ -70,6 +70,10 @@
 
 						rM_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t] or d1M_i_d_non_ene[i,d_non_ene,t]) ""
 						rYM_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t] or d1M_i_d_non_ene[i,d_non_ene,t]) ""
+
+						vD_non_ene[d_non_ene,t]$(sum(i, d1Y_i_d_non_ene[i,d_non_ene,t]) or sum(i, d1M_i_d_non_ene[i,d_non_ene,t])) ""
+						pD_non_ene[d_non_ene,t]$(sum(i, d1Y_i_d_non_ene[i,d_non_ene,t]) or sum(i, d1M_i_d_non_ene[i,d_non_ene,t])) ""
+						qD_non_ene[d_non_ene,t]$(sum(i, d1Y_i_d_non_ene[i,d_non_ene,t]) or sum(i, d1M_i_d_non_ene[i,d_non_ene,t])) ""
 				;
 
 
@@ -88,6 +92,7 @@
 				vM_i_d_non_ene
 				vtY_i_d_non_ene
 				vtM_i_d_non_ene
+				qD_non_ene
 	
 			;
 
@@ -160,7 +165,11 @@
 
 			.. pEpj_marg[es,e,d,t] =E= (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t];
 
-			.. vEpj[es,e,d,t] =E= pEpj_base[es,e,d,t] * qEpj[es,e,d,t] + vtE[es,e,d,t];
+			#
+			.. vEpj[es,e,d,t] =E= pEpj_base[es,e,d,t] * qEpj[es,e,d,t] 
+													+ vtE_NAS[es,e,d,t] #Total taxes, excluding ETS 
+													+ vDAV[es,e,d,t] + vEAV[es,e,d,t] + vCAV[es,e,d,t] #Wholesale and retail margins
+													;
 
 			#Where is the obvious place for this
 			jqE_re_i[re,i,t].. 
@@ -272,9 +281,9 @@
 				 ..qM_CET[out_other,i,t] =E= sum(d_non_ene, qM_i_d_non_ene[i,d_non_ene,t]);
 
 				#Demand split on 
-				 ..qY_i_d_non_ene[i_control,d_non_ene,t] =E= (1-rM_non_ene[i_control,d_non_ene,t]) * rYM_non_ene[i_control,d_non_ene,t] * qD[d_non_ene,t];
+				 ..qY_i_d_non_ene[i_control,d_non_ene,t] =E= (1-rM_non_ene[i_control,d_non_ene,t]) * rYM_non_ene[i_control,d_non_ene,t] * qD_non_ene[d_non_ene,t];
 
-				 ..qM_i_d_non_ene[i_control,d_non_ene,t] =E= rM_non_ene[i_control,d_non_ene,t]     * rYM_non_ene[i_control,d_non_ene,t] * qD[d_non_ene,t];	
+				 ..qM_i_d_non_ene[i_control,d_non_ene,t] =E= rM_non_ene[i_control,d_non_ene,t]     * rYM_non_ene[i_control,d_non_ene,t] * qD_non_ene[d_non_ene,t];	
 
 
 				 .. pY_i_d_non_ene[i_control,d_non_ene,t] =E= (1+tY_i_d_non_ene[i_control,d_non_ene,t]) * pY_CET['out_other',i_control,t];
@@ -289,7 +298,19 @@
 
 				 .. vtM_i_d_non_ene[i_control,d_non_ene,t] =E= tM_i_d_non_ene[i_control,d_non_ene,t] * pM_CET['out_other',i_control,t] * qM_i_d_non_ene[i_control,d_non_ene,t];
 
+				 .. vD_non_ene[d_non_ene,t] =E= sum(i_control, vY_i_d_non_ene[i_control,d_non_ene,t]+ vM_i_d_non_ene[i_control,d_non_ene,t]);
 
+				 .. pD_non_ene[d_non_ene,t]*qD[d_non_ene,t] =E= vD_non_ene[d_non_ene,t];
+
+				 #Link to factor demand
+					jpProd[Rxe,i,t]..
+						pProd[RxE,i,t] =E= sum(d_non_ene$d_non_ene2i(d_non_ene,i), pD_non_ene[d_non_ene,t]);
+
+					qD_non_ene&_RxE[d_non_ene,t]$sum(i,d_non_ene2i(d_non_ene,i))..
+			    	 qD_non_ene[d_non_ene,t] =E= sum(i$d_non_ene2i(d_non_ene,i), qProd['RxE',i,t]);
+
+					qD_non_ene&_k[d_non_ene,t]$sum(k,d_non_ene2k(d_non_ene,k))..
+							qD_non_ene[d_non_ene,t] =E= sum((k,i)$d_non_ene2k(d_non_ene,k), qI_k_i[k,i,t]);
 				#Links, taxes 	
 					# tY_i_d[i,d_non_ene,t]..
 					# 	vtY_i_d[i,d_non_ene,t] =E= vtY_i_d_non_ene[i,d_non_ene,t];
@@ -363,7 +384,6 @@
 		
 		vY_i_d_non_ene.l[i,d_non_ene,t]$(vY_i_d_non_ene.l[i,d_non_ene,t] <1e-6) = 0;
 		vM_i_d_non_ene.l[i,d_non_ene,t]$(vM_i_d_non_ene.l[i,d_non_ene,t] <1e-6) = 0;
-
 
 		rYM_non_ene.l[i,d_non_ene,t]$(vY_i_d_non_ene.l[i,d_non_ene,t] or vM_i_d_non_ene.l[i,d_non_ene,t]) = (vY_i_d_non_ene.l[i,d_non_ene,t] + vM_i_d_non_ene.l[i,d_non_ene,t])/sum(d_non_ene_a, vY_i_d_non_ene.l[i,d_non_ene_a,t] + vM_i_d_non_ene.l[i,d_non_ene_a,t]);
 		rM_non_ene.l[i,d_non_ene,t]$(vM_i_d_non_ene.l[i,d_non_ene,t] and not vY_i_d_non_ene.l[i,d_non_ene,t]) = vM_i_d_non_ene.l[i,d_non_ene,t]/(vM_i_d_non_ene.l[i,d_non_ene,t] + vY_i_d_non_ene.l[i,d_non_ene,t]);
@@ -463,4 +483,8 @@ $IF %stage% == "calibration":
 
 		calibration_endogenous
 	;
+$ENDIF
+
+$IF %stage%=='tests':
+	ABORT$(abs(sum((re,i,t1), jvE_re_i.l[re,i,t1]))>1e-2) 'Bottom up energy use does not add up to top down energy-use';
 $ENDIF
