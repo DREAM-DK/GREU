@@ -70,7 +70,6 @@ $load nEmployed=nEmployed.l, qL=qL.l, qK=qK.l, qI_k_i=qI_k_i.l
 $load qEmmLULUCF=qEmmLULUCF.l,qEmmBorderTrade=qEmmBorderTrade.l,qCO2_ETS_freeallowances=qCO2_ETS_freeallowances.l
 $load Energybalance=Energybalance.l
 $load NonEnergyEmissions=NonEnergyemissions.l
-display vIOxE_y;
 
 set demand_transaction_temp[transaction] /'input_in_production','household_consumption','inventory','export','transmission_losses'/;
 set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','cav','nox_tax','so2_tax','vat','base'/;
@@ -91,6 +90,27 @@ vIOE_a[a_rows_,'xENE',t] =vIOE_a[a_rows_,'xOth',t]; vIOE_a[a_rows_,'xOth',t] = 0
 vIOE_y[i,'invt_ene',t] = vIOE_y[i,'invt',t]; vIOE_y[i,'invt',t] = 0; 
 vIOE_m[i,'invt_ene',t] = vIOE_m[i,'invt',t]; vIOE_m[i,'invt',t] = 0;
 vIOE_a[a_rows_,'invt_ene',t] =vIOE_a[a_rows_,'invt',t]; vIOE_a[a_rows_,'invt',t] = 0;
+
+#Tests of energy-IO and energybalance
+Parameter testvY[i,t], testvM[i,t];
+$FUNCTION test_data_1({vIOE_y}):
+testvY[i,t] =  sum((es,e), Energybalance['base','production',i,es,e,t]) 
+             + sum((d,es,e,transaction), Energybalance['CAV',transaction,d,es,e,t])$(sameas[i,'45000'])
+             + sum((d,es,e,transaction), Energybalance['EAV',transaction,d,es,e,t])$(sameas[i,'46000'])
+             + sum((d,es,e,transaction), Energybalance['DAV',transaction,d,es,e,t])$(sameas[i,'47000'])
+             - sum(d, {vIOE_y}[i,d,t]);
+
+testvY[i,t] =  sum((es,e), Energybalance['base','production',i,es,e,t]) 
+             + sum((d,es,e,transaction), Energybalance['CAV',transaction,d,es,e,t])$(sameas[i,'45000'])
+             + sum((d,es,e,transaction), Energybalance['EAV',transaction,d,es,e,t])$(sameas[i,'46000'])
+             + sum((d,es,e,transaction), Energybalance['DAV',transaction,d,es,e,t])$(sameas[i,'47000'])
+             - sum(d, {vIOE_y}[i,d,t]);
+
+display testvY;
+ABORT$(abs(sum((i,t1), testvY[i,t1]))>1e-2) 'Test of energy-IO and energybalance failed!';
+$ENDFUNCTION 
+@test_data_1(vIOE_y);
+
 
 #Inserting energy-inputs into IO
 vIO_y[i,'xENE',t]         = vIOE_y[i,'xENE',t]; 
@@ -124,48 +144,57 @@ set es_transport[es]/'transport'/;
 set es_machine[es]/'process_normal','process_special','in_ETS'/;
 set es_heating[es]/'heating'/;
 
+PARAMETER Ebal_re_i[re,i,t];
+
 #BASE
 $FOR {item} in ['BASE','DAV','EAV','CAV']:
   
   $IF '{item}'=='BASE':
-  Share_re['transport_energy',e,t]$(sum((es,d), Energybalance['{item}','input_in_production',d,es,e,t])) 
-                      = sum((es_transport,d), Energybalance['{item}','input_in_production',d,es_transport,e,t])
-                                  /sum((es,d), Energybalance['{item}','input_in_production',d,es,e,t]);
+  # Share_re['transport_energy',e,t]$(sum((es,i), Energybalance['{item}','input_in_production',i,es,e,t])) 
+  #                     = sum((es_transport,i), Energybalance['{item}','input_in_production',i,es_transport,e,t])
+  #                                 /sum((es,i), Energybalance['{item}','input_in_production',i,es,e,t]);
 
-  Share_re['machine_energy',e,t]$(sum((es,d), Energybalance['{item}','input_in_production',d,es,e,t])) 
-                      = sum((es_machine,d), Energybalance['{item}','input_in_production',d,es_machine,e,t])
-                                  /sum((es,d), Energybalance['{item}','input_in_production',d,es,e,t]);
+  # Share_re['machine_energy',e,t]$(sum((es,i), Energybalance['{item}','input_in_production',i,es,e,t])) 
+  #                     = sum((es_machine,i), Energybalance['{item}','input_in_production',i,es_machine,e,t])
+  #                                 /sum((es,i), Energybalance['{item}','input_in_production',i,es,e,t]);
 
-  Share_re['heating_energy',e,t]$(sum((es,d), Energybalance['{item}','input_in_production',d,es,e,t])) 
-                      = sum((es_heating,d), Energybalance['{item}','input_in_production',d,es_heating,e,t])
-                                  /sum((es,d), Energybalance['{item}','input_in_production',d,es,e,t]);
+  # Share_re['heating_energy',e,t]$(sum((es,i), Energybalance['{item}','input_in_production',i,es,e,t])) 
+  #                     = sum((es_heating,i), Energybalance['{item}','input_in_production',i,es_heating,e,t])
+  #                                 /sum((es,i), Energybalance['{item}','input_in_production',i,es,e,t]);
+
+  Ebal_re_i['machine_energy',i,t] = sum((es_machine,e), Energybalance['{item}','input_in_production',i,es_machine,e,t]);
+  Ebal_re_i['transport_energy',i,t] = sum((es_transport,e), Energybalance['{item}','input_in_production',i,es_transport,e,t]);
+  Ebal_re_i['heating_energy',i,t] = sum((es_heating,e), Energybalance['{item}','input_in_production',i,es_heating,e,t]);
+
 
   vIOE_y_computed[i,re,t] = sum((e,es), Energybalance['{item}','production',i,es,e,t] * Share_re[re,e,t]);
   vIOE_y_computed[i,re,t] = sum((e,es), Energybalance['{item}','production',i,es,e,t] * Share_re[re,e,t]);
   vIOE_y_computed[i,re,t] = sum((e,es), Energybalance['{item}','production',i,es,e,t] * Share_re[re,e,t]);
 
-  vIOE_m_computed[i,re,t] = sum((e,es), Energybalance['{item}','production',i,es,e,t] * Share_re[re,e,t]);
-  vIOE_m_computed[i,re,t] = sum((e,es), Energybalance['{item}','production',i,es,e,t] * Share_re[re,e,t]);
-  vIOE_m_computed[i,re,t] = sum((e,es), Energybalance['{item}','production',i,es,e,t] * Share_re[re,e,t]);
+  vIOE_y_computed[i,d,t]$(not re[d] and not rx[d] and (sameas[i,'45000'] or sameas[i,'46000'] or sameas[i,'47000'])) = vIOE_y[i,d,t];  
+
+  vIOE_m_computed[i,re,t] = sum((e,es), Energybalance['{item}','imports',i,es,e,t] * Share_re[re,e,t]);
+  vIOE_m_computed[i,re,t] = sum((e,es), Energybalance['{item}','imports',i,es,e,t] * Share_re[re,e,t]);
+  vIOE_m_computed[i,re,t] = sum((e,es), Energybalance['{item}','imports',i,es,e,t] * Share_re[re,e,t]);
   $ENDIF 
 
   $IF '{item}'!='BASE':
-    $IF1 '{item}'=='DAV':
+    $IF1 '{item}'=='EAV':
       vIOE_y_computed['46000','transport_energy',t] = sum((e,i,es_transport,transaction), Energybalance['{item}',transaction,i,es_transport,e,t]);
-      vIOE_y_computed['46000','machine_energy',t]   = sum((e,i,es_machine,transaction), Energybalance['{item}',transaction,i,es_machine,e,t]);
-      vIOE_y_computed['46000','heating_energy',t]   = sum((e,i,es_heating,transaction), Energybalance['{item}',transaction,i,es_heating,e,t]);
+      vIOE_y_computed['46000','machine_energy',t]   = sum((e,i,es_machine,transaction),   Energybalance['{item}'  ,transaction,i,es_machine,e,t]);
+      vIOE_y_computed['46000','heating_energy',t]   = sum((e,i,es_heating,transaction),   Energybalance['{item}'  ,transaction,i,es_heating,e,t]);
     $ENDIF1
 
-    $IF1 '{item}'=='EAV':
+    $IF1 '{item}'=='DAV':
       vIOE_y_computed['47000','transport_energy',t] = sum((e,i,es_transport,transaction), Energybalance['{item}',transaction,i,es_transport,e,t]);
-      vIOE_y_computed['47000','machine_energy',t]   = sum((e,i,es_machine,transaction), Energybalance['{item}',transaction,i,es_machine,e,t]);
-      vIOE_y_computed['47000','heating_energy',t]   = sum((e,i,es_heating,transaction), Energybalance['{item}',transaction,i,es_heating,e,t]);
+      vIOE_y_computed['47000','machine_energy',t]   = sum((e,i,es_machine,transaction),   Energybalance['{item}',transaction,i,es_machine,e,t]);
+      vIOE_y_computed['47000','heating_energy',t]   = sum((e,i,es_heating,transaction),   Energybalance['{item}',transaction,i,es_heating,e,t]);
     $ENDIF1
 
     $IF1 '{item}'=='CAV':
       vIOE_y_computed['45000','transport_energy',t] = sum((e,i,es_transport,transaction), Energybalance['{item}',transaction,i,es_transport,e,t]);
-      vIOE_y_computed['45000','machine_energy',t]   = sum((e,i,es_machine,transaction), Energybalance['{item}',transaction,i,es_machine,e,t]);
-      vIOE_y_computed['45000','heating_energy',t]   = sum((e,i,es_heating,transaction), Energybalance['{item}',transaction,i,es_heating,e,t]);
+      vIOE_y_computed['45000','machine_energy',t]   = sum((e,i,es_machine,transaction),   Energybalance['{item}',transaction,i,es_machine,e,t]);
+      vIOE_y_computed['45000','heating_energy',t]   = sum((e,i,es_heating,transaction),   Energybalance['{item}',transaction,i,es_heating,e,t]);
     $ENDIF1
   $ENDIF
 $ENDFOR
@@ -207,6 +236,8 @@ vIO_a[a_rows_,re,'2019'] = vIOE_a_computed[a_rows_,re,'2020'];
 vIO_y[i,rx,t]       = vIO_y[i,rx,t]       - vIOE_y[i,rx,t];
 vIO_m[i,rx,t]       = vIO_m[i,rx,t]       - vIOE_m[i,rx,t];
 vIO_a[a_rows_,rx,t] = vIO_a[a_rows_,rx,t] - vIOE_a[a_rows_,rx,t];
+
+@test_data_1(vIOE_y_computed);
 
 m[i] = yes$sum((d,t1), vIO_m[i,d,t1]);
 

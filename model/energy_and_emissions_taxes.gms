@@ -20,19 +20,19 @@ $IF %stage% == "variables":
   ;
 
   $Group+ all_variables
-    tCO2_ETS[t]                                               "ETS1 carbon price, measured in kroner per ton CO2"
-    tCO2_ETS2[t]                                              "ETS2 carbon price, measured in kroner per ton CO2"
+    tCO2_ETS[t]                                                        "ETS1 carbon price, measured in kroner per ton CO2"
+    tCO2_ETS2[t]                                                       "ETS2 carbon price, measured in kroner per ton CO2"
 
-    tE_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t])     "Marginal duty-rates on energy input. Measured in bio. kr. per PJ energy input"
-    tEmarg_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "Marginal duty-rates on energy input. Measured in bio. kr. per PJ energy input"
-    tE_vat[es,e,d,t]$(d1tE_vat[es,e,d,t])                     "Marginal VAT-rates per PJ energy input"
-    tCO2_Emarg[em,es,e,d,t]$(d1tCO2_E[em,es,e,d,t])           "Marginal CO2 tax per PJ energy input, measured in kroner per ton CO2"
-    tCO2_Emarg_pj[em,es,e,d,t]$(d1tCO2_E[em,es,e,d,t])        "Marginal CO2 tax per PJ energy input, measured in bio. kroner per PJ energy input"
-    tCO2_xEmarg[d,t]$(d1tCO2_xE[d,t])                         "Marginal CO2 tax per PJ energy input, measured in kroner per ton CO2"
-    tCO2_ETS_pj[em,es,e,d,t]$(d1tCO2_ETS_E[em,es,e,d,t])      "ETS1 carbon price per PJ energy input, measured in kroner per ton CO2"
-    tCO2_ETS2_pj[em,es,e,d,t]$(d1tCO2_ETS2_E[em,es,e,d,t])    "ETS2 carbon price per PJ energy input, measured in kroner per ton CO2"
+    tE_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t])              "Marginal duty-rates on energy input. Measured in bio. kr. per PJ energy input"
+    tEmarg_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t])          "Marginal duty-rates on energy input. Measured in bio. kr. per PJ energy input"
+    tE_vat[es,e,d,t]$(d1tE_vat[es,e,d,t])                              "Marginal VAT-rates per PJ energy input"
+    tCO2_Emarg[em,es,e,d,t]$(d1tCO2_E[em,es,e,d,t])                    "Marginal CO2 tax per PJ energy input, measured in kroner per ton CO2"
+    tCO2_Emarg_pj[em,es,e,d,t]$(d1tCO2_E[em,es,e,d,t])                 "Marginal CO2 tax per PJ energy input, measured in bio. kroner per PJ energy input"
+    tCO2_xEmarg[d,t]$(d1tCO2_xE[d,t])                                  "Marginal CO2 tax per PJ energy input, measured in kroner per ton CO2"
+    tCO2_ETS_pj[em,es,e,d,t]$(d1tCO2_ETS_E[em,es,e,d,t])               "ETS1 carbon price per PJ energy input, measured in kroner per ton CO2"
+    tCO2_ETS2_pj[em,es,e,d,t]$(d1tCO2_ETS2_E[em,es,e,d,t])             "ETS2 carbon price per PJ energy input, measured in kroner per ton CO2"
     qEpj_duty_deductible[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "Marginal duty-rates on firms energy input. Measured in bio. kr. per PJ energy input"
-    qCO2_ETS_freeallowances[i,t]$(d1tCO2_ETS[i,t]) "This one needs to have added non-energy related emissions"
+    qCO2_ETS_freeallowances[i,t]$(d1tCO2_ETS[i,t])                     "This one needs to have added non-energy related emissions"
 
 		tpE_marg[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Aggregate marginal tax-rate on priced energy, measured as a mark-up over base price"
 		tpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Aggregate marginal tax-rate on priced energy, measured as a mark-up over base price"
