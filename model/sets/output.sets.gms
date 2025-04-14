@@ -35,10 +35,18 @@ sets transport[es]/Transport/
      ;
 
 
+# set es2re(es,re)
+#      /
+#        heating . heating_energy
+#        transport . transport_energy
+#        (process_normal,process_special,in_ETS) . machine_energy 
+#        /;
+
+#£Temp until IO-split       
 set es2re(es,re)
      /
        heating . heating_energy
-       transport . transport_energy
-       (process_normal,process_special,in_ETS) . machine_energy 
+       transport . heating_energy
+       (process_normal,process_special,in_ETS) . heating_energy 
        /;
      

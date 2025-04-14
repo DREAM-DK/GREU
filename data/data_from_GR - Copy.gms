@@ -80,20 +80,113 @@ set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','
 Energybalance['pj','input_in_production','35011','process_special','electricity',t] = Energybalance['base','input_in_production','35011','process_special','electricity',t]/0.1;
 Energybalance['pj','production','35011','unspecified','electricity',t] = Energybalance['pj','production','35011','unspecified','electricity',t] + Energybalance['pj','input_in_production','35011','process_special','electricity',t];
 
+#Karakteristiske brancher
+
+# set e2i(e,i)/
+#   'other oil products' . 19000
+#   electricity . (35011,38393) 
+#   'district heat' . (35011,38393)
+#   # 'Waste'
+
+# Energybalance[ebalitems,'imports',d,es,e,t]
+
+
 
 #Energy-IO
 vIOE_y[i,d,t]         = vIO_y[i,d,t] - vIOxE_y[i,d,t];
 vIOE_m[i,d,t]         = vIO_m[i,d,t] - vIOxE_m[i,d,t];
 vIOE_a[a_rows_,d,t]   = vIO_a[a_rows_,d,t] - vIOxE_a[a_rows_,d,t];
 
-vIOE_y[i,'xENE',t]      = vIOE_y[i,'xOth',t];       vIOE_y[i,'xOth',t] = 0; 
-vIOE_m[i,'xENE',t]      = vIOE_m[i,'xOth',t];       vIOE_m[i,'xOth',t] = 0;
+vIOE_y[i,'xENE',t] = vIOE_y[i,'xOth',t]; vIOE_y[i,'xOth',t] = 0; 
+vIOE_m[i,'xENE',t] = vIOE_m[i,'xOth',t]; vIOE_m[i,'xOth',t] = 0;
 vIOE_a[a_rows_,'xENE',t] =vIOE_a[a_rows_,'xOth',t]; vIOE_a[a_rows_,'xOth',t] = 0;
 
-vIOE_y[i,'invt_ene',t]      = vIOE_y[i,'invt',t];       vIOE_y[i,'invt',t] = 0; 
-vIOE_m[i,'invt_ene',t]      = vIOE_m[i,'invt',t];       vIOE_m[i,'invt',t] = 0;
+vIOE_y[i,'invt_ene',t] = vIOE_y[i,'invt',t]; vIOE_y[i,'invt',t] = 0; 
+vIOE_m[i,'invt_ene',t] = vIOE_m[i,'invt',t]; vIOE_m[i,'invt',t] = 0;
 vIOE_a[a_rows_,'invt_ene',t] =vIOE_a[a_rows_,'invt',t]; vIOE_a[a_rows_,'invt',t] = 0;
+execute_unload 'EIO.gdx';
 
+set i_margins[i]/45000,46000,47000/;
+
+set es2re(es,re)
+     /
+       heating . heating_energy
+       transport . transport_energy
+       (process_normal,process_special,in_ETS) . machine_energy 
+       /;
+
+$GROUP G_energyIO_vars 
+  vIOE_y_var[i,d,t] ""
+  vIOE_m_var[i,d,t] ""
+
+  vIOE_y_e_var[i,d,e,t] ""
+  vIOE_m_e_var[i,d,e,t] ""
+
+  obj ""
+  jObj[re,t] ""
+;
+
+
+set tBase[t]/2020/;
+
+Equations 
+  E_supply_y[i,t] 
+  E_supply_m[i,t]
+  E_re_notmargins[re,t]
+  E_obj
+  E_jObj[re,t] 
+;
+  E_supply_y[i,t]$(sum(i_a,vIOE_y[i,i_a,t]) and tBase[t] and not i_margins[i])..
+    sum(re, vIOE_y_var[i,re,t]) =E= sum(i_a, vIOE_y[i,i_a,t]);
+
+  E_supply_m[i,t]$(sum(i_a,vIOE_m[i,i_a,t]) and tBase[t])..
+    sum(re, vIOE_m_var[i,re,t]) =E= sum(i_a, vIOE_m[i,i_a,t]);
+
+  E_re_notmargins[re,t]$(tBase[t])..
+    sum(i$(not i_margins[i]), vIOE_y_var[i,re,t]$sum(i_a,vIOE_y[i,i_a,t]) + vIOE_m_var[i,re,t]$sum(i_a,vIOE_m[i,i_a,t])) 
+      =E= sum((es,i,e)$es2re(es,re), Energybalance['base','input_in_production',i,es,e,t]) + jObj[re,t];
+
+  E_jObj[re,t]$(tBase[t])..
+  sum((i,i_a)$(not i_margins[i]), vIOE_y[i,i_a,t] + vIOE_m[i,i_a,t]) 
+      =E= sum((es,i,e)$es2re(es,re), Energybalance['base','input_in_production',i,es,e,t]) + jObj[re,t];
+
+  # E_obj.. obj=E=0;
+  E_obj.. obj=E=sum((re,t)$(tBase[t]), sqr(sqr(jObj[re,t])));
+
+
+MODEL M_calib_jObj/
+  E_jObj
+  E_obj
+  /
+;
+# SOLVE M_calib_jObj using LP minimizing obj;
+# execute_unload 'test.gdx';
+# $exit
+
+MODEL M_energyIO/
+  E_supply_y
+  E_supply_m
+  E_re_notmargins
+  E_obj
+  /
+;
+
+OPTION LP=CONOPT4;
+
+$FIX vIOE_m_var[i,re,t]$(not sum(i_a, vIOE_m[i,i_a,t]));
+$FIX vIOE_y_var[i,re,t]$(not sum(i_a, vIOE_y[i,i_a,t]));
+
+vIOE_y_var.lo[i,re,t]$(sum(i_a, vIOE_y[i,i_a,t])) = 0;
+vIOE_m_var.lo[i,re,t]$(sum(i_a, vIOE_m[i,i_a,t])) = 0;
+
+
+SOLVE M_energyIO using NLP minimizing obj;
+SOLVE M_energyIO using NLP minimizing obj;
+
+execute_unload 'test.gdx';
+
+    # sum(i$(not i_margins[i]), vIOE_y_var[i,re,t] + vIOE_m_var[i,re,t]) =E= sum((es,i,e)$es2re(es,re), Energybalance['base','input_in_production',i,es,e,t]);
+$exit
 
 #Tests of energy-IO and energybalance
 Parameter testvY[i,t], testvM[i,t];
@@ -119,37 +212,132 @@ $ENDFUNCTION
 #Inserting energy-inputs into IO
 vIO_y[i,'xENE',t]         = vIOE_y[i,'xENE',t]; 
 vIO_m[i,'xENE',t]         = vIOE_m[i,'xENE',t]; 
-vIO_a[a_rows_,'xENE',t]   = vIOE_a[a_rows_,'xENE',t];
+vIO_a[a_rows_,'xENE',t]   = vIO_a[a_rows_,'xENE',t];
 
 vIO_y[i,'xOth',t]         = vIO_y[i,'xOth',t]       - vIOE_y[i,'xENE',t]; 
 vIO_m[i,'xOth',t]         = vIO_m[i,'xOth',t]       - vIOE_m[i,'xENE',t]; 
-vIO_a[a_rows_,'xOth',t]   = vIO_a[a_rows_,'xOth',t] - vIOE_a[a_rows_,'xENE',t];
+vIO_a[a_rows_,'xOth',t]   = vIO_a[a_rows_,'xOth',t] - vIO_a[a_rows_,'xENE',t];
 
 vIO_y[i,'invt_ene',t]       = vIOE_y[i,'invt_ene',t]; 
 vIO_m[i,'invt_ene',t]       = vIOE_m[i,'invt_ene',t]; 
-vIO_a[a_rows_,'invt_ene',t] = vIOE_a[a_rows_,'invt_ene',t];
+vIO_a[a_rows_,'invt_ene',t] = vIO_a[a_rows_,'invt_ene',t];
 
 vIO_y[i,'invt',t]       = vIO_y[i,'invt',t]       - vIOE_y[i,'invt_ene',t]; 
 vIO_m[i,'invt',t]       = vIO_m[i,'invt',t]       - vIOE_m[i,'invt_ene',t]; 
-vIO_a[a_rows_,'invt',t] = vIO_a[a_rows_,'invt',t] - vIOE_a[a_rows_,'invt_ene',t];
+vIO_a[a_rows_,'invt',t] = vIO_a[a_rows_,'invt',t] - vIO_a[a_rows_,'invt_ene',t];
 
+#Aligning energybalance with Energy-IO with respect to car dealerships margins on energy
+# Energybalance['CAV',transaction,d,es,e,t]$sum(d_a, vIOE_y['45000',d_a,t] + vIOE_y['47000',d_a,t]) 
+#   = Energybalance['DAV',transaction,d,es,e,t] * sum(d_a, vIOE_y['45000',d_a,t])/sum(d_a, vIOE_y['45000',d_a,t] + vIOE_y['47000',d_a,t]);
+
+# Energybalance['DAV',transaction,d,es,e,t] = Energybalance['DAV',transaction,d,es,e,t] - Energybalance['CAV',transaction,d,es,e,t];
+
+#Should be moved to data treatment
+
+ImportShare_e[e,t]$(sum((d,es), Energybalance['BASE','Imports',d,es,e,t] + Energybalance['BASE','production',d,es,e,t] + Energybalance['BASE','other_supply',d,es,e,t])) 
+                        = sum((d,es), Energybalance['BASE','Imports',d,es,e,t])/
+                          sum((d,es), Energybalance['BASE','Imports',d,es,e,t] + Energybalance['BASE','production',d,es,e,t] + Energybalance['BASE','other_supply',d,es,e,t]);
+
+DomesticShare[e,i,t]$sum(i_a, Energybalance['BASE','production',i_a,'unspecified',e,t])
+  =Energybalance['BASE','production',i,'unspecified',e,t]/sum(i_a, Energybalance['BASE','production',i_a,'unspecified',e,t]);
+
+set es_transport[es]/'transport'/;
+set es_machine[es]/'process_normal','process_special','in_ETS'/;
+set es_heating[es]/'heating'/;
+
+PARAMETER Ebal_re_e[re,e,t];
+
+#BASE
+$FOR {item} in ['BASE','DAV','EAV','CAV']:
+  
+  $IF '{item}'=='BASE':
+  # Share_re['transport_energy',e,t]$(sum((es,i), Energybalance['{item}','input_in_production',i,es,e,t])) 
+  #                     = sum((es_transport,i), Energybalance['{item}','input_in_production',i,es_transport,e,t])
+  #                                 /sum((es,i), Energybalance['{item}','input_in_production',i,es,e,t]);
+
+  # Share_re['machine_energy',e,t]$(sum((es,i), Energybalance['{item}','input_in_production',i,es,e,t])) 
+  #                     = sum((es_machine,i), Energybalance['{item}','input_in_production',i,es_machine,e,t])
+  #                                 /sum((es,i), Energybalance['{item}','input_in_production',i,es,e,t]);
+
+  # Share_re['heating_energy',e,t]$(sum((es,i), Energybalance['{item}','input_in_production',i,es,e,t])) 
+  #                     = sum((es_heating,i), Energybalance['{item}','input_in_production',i,es_heating,e,t])
+  #                                 /sum((es,i), Energybalance['{item}','input_in_production',i,es,e,t]);
+
+  Ebal_re_e['machine_energy',e,t]   = sum((es_machine,i), Energybalance['{item}','input_in_production',i,es_machine,e,t]);
+  Ebal_re_e['transport_energy',e,t] = sum((es_transport,i), Energybalance['{item}','input_in_production',i,es_transport,e,t]);
+  Ebal_re_e['heating_energy',e,t]   = sum((es_heating,i), Energybalance['{item}','input_in_production',i,es_heating,e,t]);
+
+
+  vIOE_y_computed[i,re,t] = sum(e, Ebal_re_e[re,e,t]*DomesticShare[e,i,t]*(1-ImportShare_e[e,t]));
+  vIOE_y_computed[i,re,t] = sum(e, Ebal_re_e[re,e,t]*DomesticShare[e,i,t]*(1-ImportShare_e[e,t]));
+  vIOE_y_computed[i,re,t] = sum(e, Ebal_re_e[re,e,t]*DomesticShare[e,i,t]*(1-ImportShare_e[e,t]));
+
+  # vIOE_y_computed[i,d,t]$(not re[d] and not rx[d] and (sameas[i,'45000'] or sameas[i,'46000'] or sameas[i,'47000'])) = vIOE_y[i,d,t];  
+
+  vIOE_m_computed['19000',re,t] = sum(e, Ebal_re_e[re,e,t]*ImportShare_e[e,t]);
+
+  $ENDIF 
+
+  $IF '{item}'!='BASE':
+    $IF1 '{item}'=='EAV':
+      vIOE_y_computed['46000','transport_energy',t] = sum((e,i,es_transport,transaction), Energybalance['{item}',transaction,i,es_transport,e,t]);
+      vIOE_y_computed['46000','machine_energy',t]   = sum((e,i,es_machine,transaction),   Energybalance['{item}'  ,transaction,i,es_machine,e,t]);
+      vIOE_y_computed['46000','heating_energy',t]   = sum((e,i,es_heating,transaction),   Energybalance['{item}'  ,transaction,i,es_heating,e,t]);
+    $ENDIF1
+
+    $IF1 '{item}'=='DAV':
+      vIOE_y_computed['47000','transport_energy',t] = sum((e,i,es_transport,transaction), Energybalance['{item}',transaction,i,es_transport,e,t]);
+      vIOE_y_computed['47000','machine_energy',t]   = sum((e,i,es_machine,transaction),   Energybalance['{item}',transaction,i,es_machine,e,t]);
+      vIOE_y_computed['47000','heating_energy',t]   = sum((e,i,es_heating,transaction),   Energybalance['{item}',transaction,i,es_heating,e,t]);
+    $ENDIF1
+
+    $IF1 '{item}'=='CAV':
+      vIOE_y_computed['45000','transport_energy',t] = sum((e,i,es_transport,transaction), Energybalance['{item}',transaction,i,es_transport,e,t]);
+      vIOE_y_computed['45000','machine_energy',t]   = sum((e,i,es_machine,transaction),   Energybalance['{item}',transaction,i,es_machine,e,t]);
+      vIOE_y_computed['45000','heating_energy',t]   = sum((e,i,es_heating,transaction),   Energybalance['{item}',transaction,i,es_heating,e,t]);
+    $ENDIF1
+  $ENDIF
+$ENDFOR
+
+  vIOE_a_computed['TaxSub','transport_energy',t] = sum((es_transport,i,e), EnergyBalance['ener_tax','input_in_production',i,es_transport,e,t] 
+                                                                      +  EnergyBalance['co2_tax','input_in_production',i,es_transport,e,t]
+                                                                      +  EnergyBalance['nox_tax','input_in_production',i,es_transport,e,t]
+                                                                      +  EnergyBalance['pso_tax','input_in_production',i,es_transport,e,t]
+                                                                      +  EnergyBalance['so2_tax','input_in_production',i,es_transport,e,t]);
+
+  vIOE_a_computed['TaxSub','heating_energy',t] = sum((es_heating,i,e), EnergyBalance['ener_tax','input_in_production',i,es_heating,e,t] 
+                                                                      +  EnergyBalance['co2_tax','input_in_production',i,es_heating,e,t]
+                                                                      +  EnergyBalance['nox_tax','input_in_production',i,es_heating,e,t]
+                                                                      +  EnergyBalance['pso_tax','input_in_production',i,es_heating,e,t]
+                                                                      +  EnergyBalance['so2_tax','input_in_production',i,es_heating,e,t]);
+
+  vIOE_a_computed['TaxSub','machine_energy',t] = sum((es_machine,i,e), EnergyBalance['ener_tax','input_in_production',i,es_machine,e,t] 
+                                                                      +  EnergyBalance['co2_tax','input_in_production',i,es_machine,e,t]
+                                                                      +  EnergyBalance['nox_tax','input_in_production',i,es_machine,e,t]
+                                                                      +  EnergyBalance['pso_tax','input_in_production',i,es_machine,e,t]
+                                                                      +  EnergyBalance['so2_tax','input_in_production',i,es_machine,e,t]);
+
+
+
+  vIOE_a_computed['Moms','transport_energy',t] = sum((es_transport,i,e), EnergyBalance['vat','input_in_production',i,es_transport,e,t]);
+  vIOE_a_computed['Moms','heating_energy',t]   = sum((es_heating,i,e), EnergyBalance['vat','input_in_production',i,es_heating,e,t]);
+  vIOE_a_computed['Moms','machine_energy',t]   = sum((es_machine,i,e), EnergyBalance['vat','input_in_production',i,es_machine,e,t]);
 
 #We can now add energy-IO to our IO-matrix
-#£Temp
-vIO_y[i,'heating_energy',t] = sum(i_a,vIOE_y[i,i_a,t]);
-vIO_m[i,'heating_energy',t] = sum(i_a,vIOE_m[i,i_a,t]);
-vIO_a[a_rows_,'heating_energy',t]  = sum(i_a,vIOE_a[a_rows_,i_a,t]);
+vIO_y[i,re,t]            = vIOE_y_computed[i,re,t];
+vIO_m[i,re,t]            = vIOE_m_computed[i,re,t];
+vIO_a[a_rows_,re,t]      = vIOE_a_computed[a_rows_,re,t];
 
-vIO_y[i,re,'2019']       = vIO_y[i,re,'2020'];
-vIO_m[i,re,'2019']       = vIO_m[i,re,'2020'];
-vIO_a[a_rows_,re,'2019'] = vIO_a[a_rows_,re,'2020'];
+vIO_y[i,re,'2019']       = vIOE_y_computed[i,re,'2020'];
+vIO_m[i,re,'2019']       = vIOE_m_computed[i,re,'2020'];
+vIO_a[a_rows_,re,'2019'] = vIOE_a_computed[a_rows_,re,'2020'];
 
 #We subtract the industry by industry energy, as this has been moved to the three energy categories for industries
 vIO_y[i,rx,t]       = vIO_y[i,rx,t]       - vIOE_y[i,rx,t];
 vIO_m[i,rx,t]       = vIO_m[i,rx,t]       - vIOE_m[i,rx,t];
 vIO_a[a_rows_,rx,t] = vIO_a[a_rows_,rx,t] - vIOE_a[a_rows_,rx,t];
 execute_unload 'test.gdx';
-@test_data_1(vIOE_y);
+@test_data_1(vIOE_y_computed);
 
 m[i] = yes$sum((d,t1), vIO_m[i,d,t1]);
 
@@ -342,13 +530,9 @@ qD_non_ene[d_non_ene,t] = qD[d_non_ene,t];
   #qI_k_i[k,i,t] =qI_s.l[k,i,t]; #We read this variable directly
   qR_i[i,t] =sum(i_a,vY_i_d[i_a,i,t] + vM_i_d[i_a,i,t]); #qRxE.l[i,t]; #sum(i_a,vY_i_d[i_a,i,t] + vM_i_d[i_a,i,t]) + vtYM_d[i,t]; #right?
   qL_i[i,t] = qL[i,t];
-
-  #£Temp
-  # qE_re_i['machine_energy',i,t]   = qProd['machine_energy',i,t];      #qE_re_i['machine_energy',i,'2019']   = qProd['machine_energy',i,'2020'];
-  # qE_re_i['transport_energy',i,t] = qProd['transport_energy',i,t];    #qE_re_i['transport_energy',i,'2019'] = qProd['transport_energy',i,'2020'];
-  # qE_re_i['heating_energy',i,t]   = qProd['heating_energy',i,t];      #qE_re_i['heating_energy',i,'2019']   = qProd['heating_energy',i,'2020'];
-
-  qE_re_i['heating_energy',i,t] = qProd['machine_energy',i,t] + qProd['transport_energy',i,t] + qProd['heating_energy',i,t];
+  qE_re_i['machine_energy',i,t]   = qProd['machine_energy',i,t];      #qE_re_i['machine_energy',i,'2019']   = qProd['machine_energy',i,'2020'];
+  qE_re_i['transport_energy',i,t] = qProd['transport_energy',i,t];    #qE_re_i['transport_energy',i,'2019'] = qProd['transport_energy',i,'2020'];
+  qE_re_i['heating_energy',i,t]   = qProd['heating_energy',i,t];      #qE_re_i['heating_energy',i,'2019']   = qProd['heating_energy',i,'2020'];
   qInvt_i[i,t] = vY_i_d[i,'invt',t] + vM_i_d[i,'invt',t]; # + vtYM_d['invt',t]; AKB: In input_output.gms vY_i_d and vM_i_d are defined including taxes
   qInvt_ene_i[i,t] = vY_i_d[i,'invt_ene',t] + vM_i_d[i,'invt_ene',t];  #+ vtYM_d['invt_ene',t]; AKB: In input_output.gms vY_i_d and vM_i_d are defined including taxes
 

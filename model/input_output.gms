@@ -287,7 +287,9 @@ $Group+ calibration_endogenous
 ;
 
 $Group+ G_flat_after_last_data_year
-  rYM, rM
+  # rYM, rM
+  # rYM$(not d_non_ene[d]), rM$(not d_non_ene[d])
+  # rYM$(sameas[d,'invt']), rM$(sameas[d,'invt'])
 ;
 
 $ENDIF # calibration

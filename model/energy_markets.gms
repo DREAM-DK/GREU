@@ -35,8 +35,8 @@
 				d1OneSX_m[out,t] ""
 				d1qTL[es,e,t] ""
 
-			  d1Y_i_d_non_ene[i,d_non_ene,t] ""
-			  d1M_i_d_non_ene[i,d_non_ene,t] ""
+			  d1Y_i_d_non_ene[i,d,t] ""
+			  d1M_i_d_non_ene[i,d,t] ""
 
 			;
 
@@ -61,12 +61,15 @@
 						pY_i_d_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t]) ""
 						tY_i_d_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t]) ""
 						vtY_i_d_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t]) ""
+						jqY_i_d_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t]) ""
 
 						vM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
 						qM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
 						pM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
 						tM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
 						vtM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
+						jqM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
+
 
 						rM_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t] or d1M_i_d_non_ene[i,d_non_ene,t]) ""
 						rYM_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t] or d1M_i_d_non_ene[i,d_non_ene,t]) ""
@@ -276,7 +279,7 @@
 		$BLOCK non_energy_markets_clearing non_energy_markets_clearing_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
 				#Links to CET
-				 ..qY_CET[out_other,i,t] =E= sum(d_non_ene, qY_i_d_non_ene[i,d_non_ene,t])+ qD_EAV[t]$(i_wholesale[i]) + qD_CAV[t]$(i_cardealers[i]) + qD_DAV[t]$(i_retail[i]);
+				 ..qY_CET[out_other,i,t] =E= sum(d_non_ene, qY_i_d_non_ene[i,d_non_ene,t]) + qD_EAV[t]$(i_wholesale[i]) + qD_CAV[t]$(i_cardealers[i]) + qD_DAV[t]$(i_retail[i]);
 
 				 ..qM_CET[out_other,i,t] =E= sum(d_non_ene, qM_i_d_non_ene[i,d_non_ene,t]);
 
@@ -311,6 +314,17 @@
 
 					qD_non_ene&_k[d_non_ene,t]$sum(k,d_non_ene2k(d_non_ene,k))..
 							qD_non_ene[d_non_ene,t] =E= sum((k,i)$d_non_ene2k(d_non_ene,k), qI_k_i[k,i,t]);
+
+					rYM&_only_Y_i[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1Y_i_d_non_ene[i_control,d_non_ene,t] and not d1M_i_d_non_ene[i_control,d_non_ene,t])..
+						qY_i_d_non_ene[i_control,d_non_ene,t] =E= qY_i_d[i_control,d_non_ene,t]/ (1+tY_i_d[i_control,d_non_ene,tBase]) + jqY_i_d_non_ene[i_control,d_non_ene,t]; 
+
+					# rYM&_only_M_i[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1M_i_d_non_ene[i_control,d_non_ene,t] and not d1Y_i_d_non_ene[i_control,d_non_ene,t])..
+					# 	qM_i_d_non_ene[i_control,d_non_ene,t] =E= qM_i_d[i_control,d_non_ene,t]/ (1+tM_i_d[i_control,d_non_ene,tBase]) + jqM_i_d_non_ene[i_control,d_non_ene,t]; 
+
+
+					# rM&_both_M_and_Y[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1M_i_d_non_ene[i_control,d_non_ene,t] and d1Y_i_d_non_ene[i_control,d_non_ene,t])..
+					# 	qM_i_d_non_ene[i_control,d_non_ene,t] =E= qM_i_d[i_control,d_non_ene,t]/ (1+tM_i_d[i_control,d_non_ene,tBase]) + jqM_i_d_non_ene[i_control,d_non_ene,t]; 
+
 				#Links, taxes 	
 					# tY_i_d[i,d_non_ene,t]..
 					# 	vtY_i_d[i,d_non_ene,t] =E= vtY_i_d_non_ene[i,d_non_ene,t];
@@ -438,11 +452,20 @@ $IF %stage% == "calibration":
 
 			sM_Dist[e,i,t]$(t1[t] and not d1OneSX[e,t]).. sM_Dist[e,i,t] =E= qM_CET[e,i,t]/qEtot[e,t] * pM_CET[e,i,t]**eDist[e];
 
-			jvE_re_i[re,i,t]$(t.val> t1.val and d1E_re_i[re,i,t]).. 
-				jvE_re_i[re,i,t] =E= 0;
 
 	$ENDBLOCK
 
+	$BLOCK non_energy_markets_clearing_calibration non_energy_markets_clearing_calibration_endogenous $(t1.val <= t.val and t.val <=tEnd.val)
+			jvE_re_i[re,i,t]$(t.val> t1.val and d1E_re_i[re,i,t]).. 
+				jvE_re_i[re,i,t] =E= 0;
+
+			# jqY_i_d_non_ene[i_control,d_non_ene,t]$(t.val > t1.val and d1Y_i_d_non_ene[i_control,d_non_ene,t] and not sameas[d_non_ene,'invt'])..
+			# 	jqY_i_d_non_ene[i_control,d_non_ene,t] =E= 0;
+
+			# jqM_i_d_non_ene[i_control,d_non_ene,t]$(t.val > t1.val and d1M_i_d_non_ene[i_control,d_non_ene,t] and not sameas[d_non_ene,'invt'])..
+			# 	jqM_i_d_non_ene[i_control,d_non_ene,t] =E= 0;
+
+	$ENDBLOCK 
 
 	# Add equations and calibration equations to calibration model
 	model calibration /
@@ -456,11 +479,13 @@ $IF %stage% == "calibration":
 		energy_margins
 		energy_markets_clearing_link
 		non_energy_markets_clearing
+		non_energy_markets_clearing_calibration
 	/;
 	# Add endogenous variables to calibration model
 	$Group calibration_endogenous
 		energy_demand_prices_endogenous 
 		fpE[es,e,d,t1],  -pEpj_base[es,e,d,t1]
+		non_energy_markets_clearing_calibration_endogenous
 		-jqE_re_i[re,i,t1],  jvE_re_i[re,i,t1]
 
 		energy_markets_clearing_endogenous
@@ -474,12 +499,17 @@ $IF %stage% == "calibration":
 		fpCAV[es,e,d,t1],    -vCAV[es,e,d,t1]
 
 		energy_markets_clearing_link_endogenous
+
 		non_energy_markets_clearing_endogenous
 		-vtY_i_d_non_ene[i,d_non_ene,t1], tY_i_d_non_ene[i,d_non_ene,t1]
 		-vtM_i_d_non_ene[i,d_non_ene,t1], tM_i_d_non_ene[i,d_non_ene,t1]
 		
 		-qY_i_d_non_ene[i,d_non_ene,t1], rYM_non_ene[i,d_non_ene,t1]
 		-qM_i_d_non_ene[i,d_non_ene,t1], rM_non_ene[i,d_non_ene,t1]$(d1Y_i_d_non_ene[i,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
+
+		jqY_i_d_non_ene[i_control,d_non_ene,t1]
+		# jqM_i_d_non_ene[i_control,d_non_ene,t1]
+
 
 		calibration_endogenous
 	;

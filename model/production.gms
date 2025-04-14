@@ -82,7 +82,8 @@ $IF %stage% == "equations":
     qK2qY_k_i[k,i,t].. sum(sameas[pf_bottom_capital,k], qProd[pf_bottom_capital,i,t]) =E= qK_k_i[k,i,t] * pK_k_i[k,i,tBase];
 
     .. pProd[pf_bottom_e,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], pE_re_i[re,i,t]); 
-    qE2qY_re_i[re,i,t].. qE_re_i[re,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], qProd[pf_bottom_e,i,t]) + jqE_re_i[re,i,t]; 
+    qE2qY_re_i[re,i,t].. 
+      qE_re_i[re,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], qProd[pf_bottom_e,i,t]) + jqE_re_i[re,i,t]; 
 
     .. pProd[labor,i,t] =E= pL_i[i,t];
     qL2qY_i[i,t].. qL_i[i,t] =E= qProd['labor',i,t];
@@ -156,7 +157,6 @@ $IF %stage% == "calibration":
 $BLOCK production_calibration_equations production_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
   # jpK_k_i[k,i,t]$(t1[t] and not tEnd[t]).. qK_k_i[k,i,t] =E= qK_k_i[k,i,t+1];
 
-
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
@@ -181,7 +181,8 @@ $Group calibration_endogenous
   #Items are swapped back, the module is calibrated alongside factor_demand
   qProd[RxE,i,t1]
   qProd[pf_bottom_capital,i,t1]
-  qProd[pf_bottom_e,i,t1]
+  # qProd[pf_bottom_e,i,t1]
+  jqE_re_i[re,i,t1] #£Temp, erstatter opvenstående 
   qProd[labor,i,t1]
 
   # -qR2qY_i[i,t1], uProd[RxE,i,t1]
