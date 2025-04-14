@@ -318,12 +318,13 @@
 					rYM&_only_Y_i[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1Y_i_d_non_ene[i_control,d_non_ene,t] and not d1M_i_d_non_ene[i_control,d_non_ene,t])..
 						qY_i_d_non_ene[i_control,d_non_ene,t] =E= qY_i_d[i_control,d_non_ene,t]/ (1+tY_i_d[i_control,d_non_ene,tBase]) + jqY_i_d_non_ene[i_control,d_non_ene,t]; 
 
-					# rYM&_only_M_i[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1M_i_d_non_ene[i_control,d_non_ene,t] and not d1Y_i_d_non_ene[i_control,d_non_ene,t])..
-					# 	qM_i_d_non_ene[i_control,d_non_ene,t] =E= qM_i_d[i_control,d_non_ene,t]/ (1+tM_i_d[i_control,d_non_ene,tBase]) + jqM_i_d_non_ene[i_control,d_non_ene,t]; 
+					#
+					rYM&_only_M_i[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1M_i_d_non_ene[i_control,d_non_ene,t] and not d1Y_i_d_non_ene[i_control,d_non_ene,t])..
+						qM_i_d_non_ene[i_control,d_non_ene,t] =E= qM_i_d[i_control,d_non_ene,t]/ (1+tM_i_d[i_control,d_non_ene,tBase]) + jqM_i_d_non_ene[i_control,d_non_ene,t]; 
 
-
-					# rM&_both_M_and_Y[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1M_i_d_non_ene[i_control,d_non_ene,t] and d1Y_i_d_non_ene[i_control,d_non_ene,t])..
-					# 	qM_i_d_non_ene[i_control,d_non_ene,t] =E= qM_i_d[i_control,d_non_ene,t]/ (1+tM_i_d[i_control,d_non_ene,tBase]) + jqM_i_d_non_ene[i_control,d_non_ene,t]; 
+					#NOTE THAT THIS IS RM0, BECAUSE OF THE "IMPORTS.GMS"-MODULE THAT TAKES OVER RM IN INPUT_OUTPUT
+					rM0&_both_M_and_Y[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1M_i_d_non_ene[i_control,d_non_ene,t] and d1Y_i_d_non_ene[i_control,d_non_ene,t])..
+						qM_i_d_non_ene[i_control,d_non_ene,t] =E= qM_i_d[i_control,d_non_ene,t]/ (1+tM_i_d[i_control,d_non_ene,tBase]) + jqM_i_d_non_ene[i_control,d_non_ene,t]; 
 
 				#Links, taxes 	
 					# tY_i_d[i,d_non_ene,t]..
@@ -507,8 +508,9 @@ $IF %stage% == "calibration":
 		-qY_i_d_non_ene[i,d_non_ene,t1], rYM_non_ene[i,d_non_ene,t1]
 		-qM_i_d_non_ene[i,d_non_ene,t1], rM_non_ene[i,d_non_ene,t1]$(d1Y_i_d_non_ene[i,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
 
-		jqY_i_d_non_ene[i_control,d_non_ene,t1]
-		# jqM_i_d_non_ene[i_control,d_non_ene,t1]
+		jqY_i_d_non_ene[i_control,d_non_ene,t1]$(d1Y_i_d_non_ene[i_control,d_non_ene,t1] and not d1M_i_d_non_ene[i,d_non_ene,t1])
+		jqM_i_d_non_ene[i_control,d_non_ene,t1]$(not d1Y_i_d_non_ene[i_control,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
+		jqM_i_d_non_ene[i_control,d_non_ene,t1]$(d1Y_i_d_non_ene[i_control,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
 
 
 		calibration_endogenous
