@@ -94,7 +94,6 @@ vIOE_y[i,'invt_ene',t]      = vIOE_y[i,'invt',t];       vIOE_y[i,'invt',t] = 0;
 vIOE_m[i,'invt_ene',t]      = vIOE_m[i,'invt',t];       vIOE_m[i,'invt',t] = 0;
 vIOE_a[a_rows_,'invt_ene',t] =vIOE_a[a_rows_,'invt',t]; vIOE_a[a_rows_,'invt',t] = 0;
 
-
 #Tests of energy-IO and energybalance
 Parameter testvY[i,t], testvM[i,t];
 $FUNCTION test_data_1({vIOE_y}):
@@ -133,6 +132,12 @@ vIO_y[i,'invt',t]       = vIO_y[i,'invt',t]       - vIOE_y[i,'invt_ene',t];
 vIO_m[i,'invt',t]       = vIO_m[i,'invt',t]       - vIOE_m[i,'invt_ene',t]; 
 vIO_a[a_rows_,'invt',t] = vIO_a[a_rows_,'invt',t] - vIOE_a[a_rows_,'invt_ene',t];
 
+#Move all IOE_m to 19000 as it is in energybalance 
+vIO_m['19000',d,t] = vIO_m['19000',d,t] + sum(i$(not sameas[i,'19000']), vIOE_m[i,d,t]);
+vIO_m[i,d,t]$(not sameas[i,'19000']) = vIO_m[i,d,t] - vIOE_m[i,d,t];
+
+vIOE_m['19000',d,t] = vIOE_m['19000',d,t] + sum(i$(not sameas[i,'19000']), vIOE_m[i,d,t]);
+vIOE_m[i,d,t]$(not sameas[i,'19000']) = 0;
 
 #We can now add energy-IO to our IO-matrix
 #£Temp
