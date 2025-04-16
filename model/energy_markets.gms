@@ -14,6 +14,7 @@
 				fpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Sector average margin between average supplier price, and sector base price"
 			
 				vEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Value of energy for demand sector d, measured in bio. kroner"
+				vEpj_NAS[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Value of energy for demand sector d, excluding margins, measured in bio. kroner"
 				jvE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "Text yo	"
 			;
 
@@ -65,6 +66,7 @@
 						tY_i_d_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t]) ""
 						vtY_i_d_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t]) ""
 						jqY_i_d_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t]) ""
+						jqY_i_d[i,re,t]$(d1Y_i_d[i,re,t]) ""
 
 						vM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
 						qM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
@@ -72,6 +74,7 @@
 						tM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
 						vtM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
 						jqM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
+						jqM_i_d[i,re,t]$(d1M_i_d[i,re,t]) ""
 
 
 						rM_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t] or d1M_i_d_non_ene[i,d_non_ene,t]) ""
@@ -175,10 +178,11 @@
 			.. pEpj_marg[es,e,d,t] =E= (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t];
 
 			#
-			.. vEpj[es,e,d,t] =E= pEpj_base[es,e,d,t] * qEpj[es,e,d,t] 
+			.. vEpj_NAS[es,e,d,t] =E= pEpj_base[es,e,d,t] * qEpj[es,e,d,t] 
 													+ vtE_NAS[es,e,d,t] #Total taxes, excluding ETS 
-													+ vDAV[es,e,d,t] + vEAV[es,e,d,t] + vCAV[es,e,d,t] #Wholesale and retail margins
+													# + vDAV[es,e,d,t] + vEAV[es,e,d,t] + vCAV[es,e,d,t] #Wholesale and retail margins
 													;
+			.. vEpj[es,e,d,t] =E= vEpj_NAS[es,e,d,t] + vDAV[es,e,d,t] + vEAV[es,e,d,t] + vCAV[es,e,d,t];
 
 			#Where is the obvious place for this
 			jqE_re_i[re,i,t].. 
@@ -337,7 +341,7 @@
 						rYM&_only_M_i[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1M_i_d_non_ene[i_control,d_non_ene,t] and not d1Y_i_d_non_ene[i_control,d_non_ene,t])..
 							qM_i_d_non_ene[i_control,d_non_ene,t] =E= qM_i_d[i_control,d_non_ene,t]/ (1+tM_i_d[i_control,d_non_ene,tBase]) + jqM_i_d_non_ene[i_control,d_non_ene,t]; 
 
-						#NOTE THAT THIS IS RM0, BECAUSE OF THE "IMPORTS.GMS"-MODULE THAT TAKES OVER RM IN INPUT_OUTPUT
+						#NOTE THAT THIS IS RM0 (not RM), BECAUSE OF THE "IMPORTS.GMS"-MODULE THAT TAKES OVER RM IN INPUT_OUTPUT
 						rM0&_both_M_and_Y[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1M_i_d_non_ene[i_control,d_non_ene,t] and d1Y_i_d_non_ene[i_control,d_non_ene,t])..
 							qM_i_d_non_ene[i_control,d_non_ene,t] =E= qM_i_d[i_control,d_non_ene,t]/ (1+tM_i_d[i_control,d_non_ene,tBase]) + jqM_i_d_non_ene[i_control,d_non_ene,t]; 
 
@@ -348,12 +352,44 @@
 					jfpM_i_d[i,d_non_ene,t]$(not sameas[d_non_ene,'invt'])..
 						pM_i_d[i,d_non_ene,t]*qM_i_d[i,d_non_ene,t]  =E= pM_i_d_non_ene[i,d_non_ene,t] * qM_i_d_non_ene[i,d_non_ene,t] + vM_i_d_calib[i,d_non_ene,t]; 
 
-					jfpY_i_d[i,re,t]..
-						pY_i_d[i,re,t]*qY_i_d[i,re,t]  
-							=E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_y[e,i,t] * (vtE_NAS[es,e,i_a,t] * pEpj_base[es,e,i_a,t]*qEpj[es,e,i_a,t])) + vY_i_d_calib[i,re,t]; 
 
-					sYM$(d1Y_i_d[i,re,t])..
-						qY_i_d[i,re,t]*pY_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_y[e,i,t] * pEpj[es,e,i_a,tBase] qEpj[es,e,i_a,t]);
+					#Prices of energy
+					jfpY_i_d&_not_energymargins[i,re,t]$(d1Y_i_d[i,re,t] and not i_energymargins[i])..
+						pY_i_d[i,re,t]*qY_i_d[i,re,t]  
+							=E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_y[e,i,t] * vEpj_NAS[es,e,i_a,t]) + vY_i_d_calib[i,re,t]; 
+
+					jfpY_i_d&__energymargins[i,re,t]$(d1Y_i_d[i,re,t] and i_energymargins[i])..
+						pY_i_d[i,re,t]*qY_i_d[i,re,t]  
+							=E= sum((e,es,i_a)$es2re(es,re), pDAV[es,e,i_a,t] * qEpj[es,e,i_a,t]$(i_retail[i]) 
+																						 + pCAV[es,e,i_a,t] * qEpj[es,e,i_a,t]$(i_cardealers[i]) 
+																						 + pEAV[es,e,i_a,t] * qEpj[es,e,i_a,t]$(i_wholesale[i])) + vY_i_d_calib[i,re,t]; 
+
+																							#No need to add an equation for margins, as they are all contained in domestic price .
+					jfpM_i_d[i,re,t]$(d1M_i_d[i,re,t])..
+						pM_i_d[i,re,t]*qM_i_d[i,re,t]  
+							=E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * vEpj_NAS[es,e,i_a,t]) + vM_i_d_calib[i,re,t]; 
+
+
+					#Quantities
+					rYM[i,re,t]$(d1Y_i_d[i,re,t] and not i_energymargins[i])..
+						qY_i_d[i,re,t]*pY_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_y[e,i,t] * pEpj_base[es,e,i_a,tBase] * qEpj[es,e,i_a,t]) + jqY_i_d[i,re,t];
+
+
+					rYM&_energymargins[i,re,t]$(d1Y_i_d[i,re,t] and i_energymargins[i])..
+						qY_i_d[i,re,t]*pY_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re), pDAV[es,e,i_a,tBase] * qEpj[es,e,i_a,t]$(i_retail[i]) 
+																																						 + pCAV[es,e,i_a,tBase] * qEpj[es,e,i_a,t]$(i_cardealers[i]) 
+																																						 + pEAV[es,e,i_a,tBase] * qEpj[es,e,i_a,t]$(i_wholesale[i])) + jqY_i_d[i,re,t];
+
+					#NOTE THAT THIS IS RM0 (not RM), BECAUSE OF THE "IMPORTS.GMS"-MODULE THAT TAKES OVER RM IN INPUT_OUTPUT
+					rM0&_energy_imports[i,re,t]$(d1M_i_d[i,re,t] and d1Y_i_d[i,re,t])..
+						qM_i_d[i,re,t]*pM_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * pEpj_base[es,e,i_a,tBase] * qEpj[es,e,i_a,t]) + jqM_i_d[i,re,t];
+
+					rYM&_energy_imports[i,re,t]$(d1M_i_d[i,re,t] and not d1Y_i_d[i,re,t])..
+						qM_i_d[i,re,t]*pM_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * pEpj_base[es,e,i_a,tBase] * qEpj[es,e,i_a,t]) + jqM_i_d[i,re,t];
+
+
+					# rM[i,re,t]$(d1Y_i_d[i,re,t])..
+					# 	qY_i_d[i,re,t]*pY_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * pEpj_base[es,e,i_a,tBase] * qEpj[es,e,i_a,t]) + jqM_i_d[i,re,t];
 
 		$ENDBLOCK 
 
@@ -475,6 +511,13 @@ $IF %stage% == "calibration":
 			# jqM_i_d_non_ene[i_control,d_non_ene,t]$(t.val > t1.val and d1M_i_d_non_ene[i_control,d_non_ene,t] and not sameas[d_non_ene,'invt'])..
 			# 	jqM_i_d_non_ene[i_control,d_non_ene,t] =E= 0;
 
+
+			# jqY_i_d[i,re,t]$(t.val > t1.val and d1Y_i_d[i,re,t])..
+			# 	jqY_i_d[i,re,t] =E= 0;
+
+			# jqM_i_d[i,re,t]$(t.val > t1.val and d1M_i_d[i,re,t])..
+			# 	jqM_i_d[i,re,t] =E= 0;
+
 	$ENDBLOCK 
 
 	# Add equations and calibration equations to calibration model
@@ -527,6 +570,9 @@ $IF %stage% == "calibration":
 
 		#Energy io-prices 
 		vY_i_d_calib[i,re,t1], -jfpY_i_d[i,re,t1]
+		vM_i_d_calib[i,re,t1], -jfpM_i_d[i,re,t1]
+		jqY_i_d[i,re,t1]
+		jqM_i_d[i,re,t1]
 
 		calibration_endogenous
 	;

@@ -43,6 +43,8 @@ Set i_gasdistribution[i] / 35002 /;
 Set i_cardealers[i] / 45000 /;
 Set i_wholesale[i] / 46000 /;
 Set i_retail[i] / 47000 /;
+Set i_energymargins[i]/45000,46000,47000/;
+
 Set i_service_for_industries[i] / 71000 /;
 Set i_international_aviation[i] / 51009 /;
 SEt i_control[i]/set.i/;

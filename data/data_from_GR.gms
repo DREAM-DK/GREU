@@ -153,6 +153,14 @@ vIO_a[a_rows_,re,'2019'] = vIO_a[a_rows_,re,'2020'];
 vIO_y[i,rx,t]       = vIO_y[i,rx,t]       - vIOE_y[i,rx,t];
 vIO_m[i,rx,t]       = vIO_m[i,rx,t]       - vIOE_m[i,rx,t];
 vIO_a[a_rows_,rx,t] = vIO_a[a_rows_,rx,t] - vIOE_a[a_rows_,rx,t];
+
+vIOE_y[i,'heating_energy',t] = sum(rx, vIOE_y[i,rx,t]);
+vIOE_m[i,'heating_energy',t] = sum(rx, vIOE_m[i,rx,t]);
+vIOE_a[a_rows_,'heating_energy',t] = sum(rx, vIOE_a[a_rows_,'heating_energy',t]); 
+
+vIOE_y[i,rx,t] = 0;
+vIOE_m[i,rx,t] = 0;
+vIOE_a[a_rows_,rx,t] = 0;
 execute_unload 'test.gdx';
 @test_data_1(vIOE_y);
 
@@ -314,9 +322,6 @@ qD_non_ene[d_non_ene,t] = qD[d_non_ene,t];
 
   qY_CET[e,i,t] = sum(es, Energybalance['BASE','production',i,es,e,t]);
   qM_CET[e,i,t] = sum(es, Energybalance['BASE','imports',i,es,e,t]);
-  qY_CET[e,'45000',t] = sum((demand_transaction_temp,d,es), Energybalance['CAV',demand_transaction_temp,d,es,e,t]);
-  qY_CET[e,'46000',t] = sum((demand_transaction_temp,d,es), Energybalance['EAV',demand_transaction_temp,d,es,e,t]);
-  qY_CET[e,'47000',t] = sum((demand_transaction_temp,d,es), Energybalance['DAV',demand_transaction_temp,d,es,e,t]);
   pY_CET[e,i,t]$qY_CET[e,i,t] = 1;
   pM_CET[e,i,t]$qM_CET[e,i,t] = 1;
 
