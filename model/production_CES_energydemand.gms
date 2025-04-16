@@ -128,6 +128,7 @@ $IF %stage% == "exogenous_values":
 	
 	qREa.l[es,e_a,i,t]                = qEpj.l[es,e_a,i,t];
 	pREa.l[es,e_a,i,t]                = pEpj_base.l[es,e_a,i,t];
+	pEpj_marg.l[es,e,i,t]             = pREa.l[es,e,i,t];
 	qREes.l[es,i,t]$(tDataEnd[t])     = sum(e_a, qREa.l[es,e_a,i,t]);
 	pREes.l[es,i,t]$(tDataEnd[t])     = 1;
 	pREmachine.l[i,t]$(tDataEnd[t])   = 1;
@@ -182,8 +183,9 @@ $IF %stage% == "calibration":
 			calibration_endogenous
 	;
 
-	$Group+ G_flat_after_last_data_year
-  	uREa, uREes
-	;
+	# $Group+ G_flat_after_last_data_year
+  	# uREa
+		# uREes
+	# ;
 
 $ENDIF
