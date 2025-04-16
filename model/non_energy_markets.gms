@@ -133,41 +133,6 @@ $IF %stage% == "variables":
 					jfpM_i_d[i,d_non_ene,t]$(not sameas[d_non_ene,'invt'])..
 						pM_i_d[i,d_non_ene,t]*qM_i_d[i,d_non_ene,t]  =E= pM_i_d_non_ene[i,d_non_ene,t] * qM_i_d_non_ene[i,d_non_ene,t] + vM_i_d_calib[i,d_non_ene,t]; 
 
-
-					#Prices of energy
-					jfpY_i_d&_not_energymargins[i,re,t]$(d1Y_i_d[i,re,t] and not i_energymargins[i])..
-						pY_i_d[i,re,t]*qY_i_d[i,re,t]  
-							=E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_y[e,i,t] * vEpj_NAS[es,e,i_a,t]) + vY_i_d_calib[i,re,t]; 
-
-					jfpY_i_d&__energymargins[i,re,t]$(d1Y_i_d[i,re,t] and i_energymargins[i])..
-						pY_i_d[i,re,t]*qY_i_d[i,re,t]  
-							=E= sum((e,es,i_a)$es2re(es,re), pDAV[es,e,i_a,t] * qEpj[es,e,i_a,t]$(i_retail[i]) 
-																						 + pCAV[es,e,i_a,t] * qEpj[es,e,i_a,t]$(i_cardealers[i]) 
-																						 + pEAV[es,e,i_a,t] * qEpj[es,e,i_a,t]$(i_wholesale[i])) + vY_i_d_calib[i,re,t]; 
-
-																							#No need to add an equation for margins, as they are all contained in domestic price .
-					jfpM_i_d[i,re,t]$(d1M_i_d[i,re,t])..
-						pM_i_d[i,re,t]*qM_i_d[i,re,t]  
-							=E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * vEpj_NAS[es,e,i_a,t]) + vM_i_d_calib[i,re,t]; 
-
-
-					#Quantities
-					rYM[i,re,t]$(d1Y_i_d[i,re,t] and not i_energymargins[i])..
-						qY_i_d[i,re,t]*pY_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_y[e,i,t] * pEpj_base[es,e,i_a,tBase] * qEpj[es,e,i_a,t]) + jqY_i_d[i,re,t];
-
-
-					rYM&_energymargins[i,re,t]$(d1Y_i_d[i,re,t] and i_energymargins[i])..
-						qY_i_d[i,re,t]*pY_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re), pDAV[es,e,i_a,tBase] * qEpj[es,e,i_a,t]$(i_retail[i]) 
-																																						 + pCAV[es,e,i_a,tBase] * qEpj[es,e,i_a,t]$(i_cardealers[i]) 
-																																						 + pEAV[es,e,i_a,tBase] * qEpj[es,e,i_a,t]$(i_wholesale[i])) + jqY_i_d[i,re,t];
-
-					#NOTE THAT THIS IS RM0 (not RM), BECAUSE OF THE "IMPORTS.GMS"-MODULE THAT TAKES OVER RM IN INPUT_OUTPUT
-					rM0&_energy_imports[i,re,t]$(d1M_i_d[i,re,t] and d1Y_i_d[i,re,t])..
-						qM_i_d[i,re,t]*pM_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * pEpj_base[es,e,i_a,tBase] * qEpj[es,e,i_a,t]) + jqM_i_d[i,re,t];
-
-					rYM&_energy_imports[i,re,t]$(d1M_i_d[i,re,t] and not d1Y_i_d[i,re,t])..
-						qM_i_d[i,re,t]*pM_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * pEpj_base[es,e,i_a,tBase] * qEpj[es,e,i_a,t]) + jqM_i_d[i,re,t];
-
 		$ENDBLOCK
 
     model  main/
@@ -258,15 +223,16 @@ $IF %stage% == "calibration":
   $Group calibration_endogenous
   	
     non_energy_markets_clearing_endogenous
-    non_energy_markets_IO_endogenous
-		non_energy_markets_links_endogenous
 
+    non_energy_markets_IO_endogenous
 		-vtY_i_d_non_ene[i,d_non_ene,t1], tY_i_d_non_ene[i,d_non_ene,t1]
 		-vtM_i_d_non_ene[i,d_non_ene,t1], tM_i_d_non_ene[i,d_non_ene,t1]
 		
 		-qY_i_d_non_ene[i,d_non_ene,t1], rYM_non_ene[i,d_non_ene,t1]
 		-qM_i_d_non_ene[i,d_non_ene,t1], rM_non_ene[i,d_non_ene,t1]$(d1Y_i_d_non_ene[i,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
 
+
+		non_energy_markets_links_endogenous
 		jqY_i_d_non_ene[i_control,d_non_ene,t1]$(d1Y_i_d_non_ene[i_control,d_non_ene,t1] and not d1M_i_d_non_ene[i,d_non_ene,t1])
 		jqM_i_d_non_ene[i_control,d_non_ene,t1]$(not d1Y_i_d_non_ene[i_control,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
 		jqM_i_d_non_ene[i_control,d_non_ene,t1]$(d1Y_i_d_non_ene[i_control,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
@@ -275,11 +241,7 @@ $IF %stage% == "calibration":
 		vY_i_d_calib[i,d_non_ene,t1], -jfpY_i_d[i,d_non_ene,t1]
 		vM_i_d_calib[i,d_non_ene,t1], -jfpM_i_d[i,d_non_ene,t1]
 
-		#Energy io-prices 
-		vY_i_d_calib[i,re,t1], -jfpY_i_d[i,re,t1]
-		vM_i_d_calib[i,re,t1], -jfpM_i_d[i,re,t1]
-		jqY_i_d[i,re,t1]
-		jqM_i_d[i,re,t1]
+
 
     calibration_endogenous
   ;

@@ -97,7 +97,7 @@ $IF %stage% == "equations":
 				pProd[pf_bottom_e,i,t] =E= pREes['heating',i,t];
 
 			#Should be linked in abatement-module when turned on
-			.. pREa[es,e,i,t] =E= pEpj_marg[es,e,i,t]
+			.. pREa[es,e,i,t] =E= pEpj_marg[es,e,i,t];
 
 	$ENDBLOCK
 
@@ -181,4 +181,9 @@ $IF %stage% == "calibration":
 
 			calibration_endogenous
 	;
+
+	$Group+ G_flat_after_last_data_year
+  	uREa, uREes
+	;
+
 $ENDIF

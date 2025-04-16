@@ -179,13 +179,6 @@
 																															- sum(i,   pM_CET[e,i,t] * qM_CET[e,i,t]);
 
 
-
-	
-			..sSupply_e_i_y[e,i,t] =E= qY_CET[e,i,t]/sum(i_a, qY_CET[e,i_a,t] + qM_CET[e,i_a,t]);
-
-		 
-			..sSupply_e_i_m[e,i,t] =E= qM_CET[e,i,t]/sum(i_a, qY_CET[e,i_a,t] + qM_CET[e,i_a,t]);
-
     $ENDBLOCK 
 
 		$BLOCK energy_markets_clearing_link energy_markets_clearing_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
@@ -246,11 +239,55 @@
                                               ;
       $ENDBLOCK
 
+			$BLOCK energy_markets_IO_link energy_markets_IO_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
+
+				..sSupply_e_i_y[e,i,t] =E= qY_CET[e,i,t]/sum(i_a, qY_CET[e,i_a,t] + qM_CET[e,i_a,t]);
+
+
+				..sSupply_e_i_m[e,i,t] =E= qM_CET[e,i,t]/sum(i_a, qY_CET[e,i_a,t] + qM_CET[e,i_a,t]);
+
+
+					#Prices of energy
+					jfpY_i_d&_not_energymargins[i,re,t]$(d1Y_i_d[i,re,t] and not i_energymargins[i])..
+						pY_i_d[i,re,t]*qY_i_d[i,re,t]  
+							=E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_y[e,i,t] * vEpj_NAS[es,e,i_a,t]) + vY_i_d_calib[i,re,t]; 
+
+					jfpY_i_d&__energymargins[i,re,t]$(d1Y_i_d[i,re,t] and i_energymargins[i])..
+						pY_i_d[i,re,t]*qY_i_d[i,re,t]  
+							=E= sum((e,es,i_a)$es2re(es,re), pDAV[es,e,i_a,t] * qEpj[es,e,i_a,t]$(i_retail[i]) 
+																						 + pCAV[es,e,i_a,t] * qEpj[es,e,i_a,t]$(i_cardealers[i]) 
+																						 + pEAV[es,e,i_a,t] * qEpj[es,e,i_a,t]$(i_wholesale[i])) + vY_i_d_calib[i,re,t]; 
+
+																							#No need to add an equation for margins, as they are all contained in domestic price .
+					jfpM_i_d[i,re,t]$(d1M_i_d[i,re,t])..
+						pM_i_d[i,re,t]*qM_i_d[i,re,t]  
+							=E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * vEpj_NAS[es,e,i_a,t]) + vM_i_d_calib[i,re,t]; 
+
+
+					#Quantities
+					rYM[i,re,t]$(d1Y_i_d[i,re,t] and not i_energymargins[i])..
+						qY_i_d[i,re,t]*pY_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_y[e,i,t] * pEpj_base[es,e,i_a,tBase] * qEpj[es,e,i_a,t]) + jqY_i_d[i,re,t];
+
+
+					rYM&_energymargins[i,re,t]$(d1Y_i_d[i,re,t] and i_energymargins[i])..
+						qY_i_d[i,re,t]*pY_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re), pDAV[es,e,i_a,tBase] * qEpj[es,e,i_a,t]$(i_retail[i]) 
+																																						 + pCAV[es,e,i_a,tBase] * qEpj[es,e,i_a,t]$(i_cardealers[i]) 
+																																						 + pEAV[es,e,i_a,tBase] * qEpj[es,e,i_a,t]$(i_wholesale[i])) + jqY_i_d[i,re,t];
+
+					#NOTE THAT THIS IS RM0 (not RM), BECAUSE OF THE "IMPORTS.GMS"-MODULE THAT TAKES OVER RM IN INPUT_OUTPUT
+					rM0&_energy_imports[i,re,t]$(d1M_i_d[i,re,t] and d1Y_i_d[i,re,t])..
+						qM_i_d[i,re,t]*pM_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * pEpj_base[es,e,i_a,tBase] * qEpj[es,e,i_a,t]) + jqM_i_d[i,re,t];
+
+					rYM&_energy_imports[i,re,t]$(d1M_i_d[i,re,t] and not d1Y_i_d[i,re,t])..
+						qM_i_d[i,re,t]*pM_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * pEpj_base[es,e,i_a,tBase] * qEpj[es,e,i_a,t]) + jqM_i_d[i,re,t];
+		$ENDBLOCK 
+
 		# Add equation and endogenous variables to main model
 		model main / energy_demand_prices  
 								energy_markets_clearing 
 								energy_margins
 								energy_markets_clearing_link
+								energy_markets_IO_link
 								/;
 
 		$Group+ main_endogenous 
@@ -258,6 +295,7 @@
 				energy_markets_clearing_endogenous 
 				energy_margins_endogenous
 				energy_markets_clearing_link_endogenous
+				energy_markets_IO_link_endogenous
 				;
 	$ENDIF 
 
@@ -347,17 +385,18 @@ $IF %stage% == "calibration":
 
 		energy_margins
 		energy_markets_clearing_link
+		energy_markets_IO_link
 
 	/;
-	
+
 	# Add endogenous variables to calibration model
 	$Group calibration_endogenous
 		energy_demand_prices_endogenous 
 		fpE[es,e,d,t1],  -pEpj_base[es,e,d,t1]
-		non_energy_markets_clearing_calibration_endogenous
 		-jqE_re_i[re,i,t1],  jvE_re_i[re,i,t1]
 
 		energy_markets_clearing_endogenous
+		
 		energy_markets_clearing_calibration_endogenous
 		sY_Dist$(t1[t] and d1pY_CET[e,i,t] and not d1OneSX[e,t]),  -qY_CET$(t1[t] and d1pY_CET[out,i,t] and not d1OneSX[out,t] and e[out]) 
 		sM_Dist$(t1[t] and d1pM_CET[e,i,t] and not d1OneSX[e,t]),  -qM_CET$(t1[t] and d1pM_CET[out,i,t] and not d1OneSX[out,t] and e[out]) 
@@ -368,6 +407,12 @@ $IF %stage% == "calibration":
 		fpCAV[es,e,d,t1],    -vCAV[es,e,d,t1]
 
 		energy_markets_clearing_link_endogenous
+
+		energy_markets_IO_link_endogenous
+		vY_i_d_calib[i,re,t1], -jfpY_i_d[i,re,t1]
+		vM_i_d_calib[i,re,t1], -jfpM_i_d[i,re,t1]
+		jqY_i_d[i,re,t1]
+		jqM_i_d[i,re,t1]
 
 		calibration_endogenous
 	;

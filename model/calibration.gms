@@ -18,10 +18,10 @@ $FIX all_variables; $UNFIX calibration_endogenous;
 
 execute_unload 'static_calibration_pre.gdx';
 solve calibration using CNS;
-# PARAMETER qY_i_d_test[i,d,t], qM_i_d_test[i,d,t];
-# qY_i_d_test[i,d_non_ene,tBase] = qY_i_d.l[i,d_non_ene,tBase]/(1+tY_i_d.l[i,d_non_ene,tBase]) - qY_i_d_non_ene.l[i,d_non_ene,tBase];
-# qM_i_d_test[i,d_non_ene,tBase] = qM_i_d.l[i,d_non_ene,tBase]/(1+tM_i_d.l[i,d_non_ene,tBase]) - qM_i_d_non_ene.l[i,d_non_ene,tBase];
-# ABORT$(abs((sum((i,d_non_ene,t)$(tBase[t] and not sameas[d_non_ene,'invt']), qY_i_d_test[i,d_non_ene,t] + qM_i_d_test[i,d_non_ene,t]))>1e-6)) 'IO doesnt match';
+PARAMETER qY_i_d_test[i,d,t], qM_i_d_test[i,d,t];
+qY_i_d_test[i,d_non_ene,tBase] = qY_i_d.l[i,d_non_ene,tBase]/(1+tY_i_d.l[i,d_non_ene,tBase]) - qY_i_d_non_ene.l[i,d_non_ene,tBase];
+qM_i_d_test[i,d_non_ene,tBase] = qM_i_d.l[i,d_non_ene,tBase]/(1+tM_i_d.l[i,d_non_ene,tBase]) - qM_i_d_non_ene.l[i,d_non_ene,tBase];
+ABORT$(abs((sum((i,d_non_ene,t)$(tBase[t] and not sameas[d_non_ene,'invt']), qY_i_d_test[i,d_non_ene,t] + qM_i_d_test[i,d_non_ene,t]))>1e-6)) 'IO doesnt match';
 
 # PARAMETER testvRE[re,t];
 # testvRE[re,t] = sum(i, vY_i_d.l[i,re,t] + vM_i_d.l[i,re,t]) - sum((e,es,i_a)$es2re(es,re), vEpj.l[es,e,i_a,t]);

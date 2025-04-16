@@ -130,6 +130,8 @@ $ENDIF # exogenous_values
 $IF %stage% == "calibration":
 
 $BLOCK factor_demand_calibration_equations factor_demand_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+  # jpK_k_i[k,i,t]$(t.val>t1.val and t.val <tEnd.val)..
+  #   pK_k_i[k,i,t] =E= pK_k_i[k,i,t1];
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
