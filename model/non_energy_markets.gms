@@ -1,45 +1,289 @@
 # ------------------------------------------------------------------------------
 # Variable, dummy and group creation
 # ------------------------------------------------------------------------------
+
 $IF %stage% == "variables":
 
-  $SetGroup+ SG_flat_after_last_data_year
-    d1Prod[pf,i,t] "Dummy for production function"
-  ;	
+			$SetGroup+ SG_flat_after_last_data_year 
+			  d1Y_i_d_non_ene[i,d,t] ""
+			  d1M_i_d_non_ene[i,d,t] ""
+			;
 
-  $Group+ all_variables
-    pProd[pf,i,t]$(d1Prod[pf,i,t]) "Production price index, both nests and factors"
-    pY0_i[i,t]$(d1Y_i[i,t]) "Cost price index, net of installation costs and other costs not in CES-nesting tree"
-    qY0_i[i,t]$(d1Y_i[i,t]) "Cost price index, net of installation costs and other costs not in CES-nesting tree"
 
-    qProd[pf,i,t]$(d1Prod[pf,i,t]) "Production quantity, both nests and factors"
+			$Group+ all_variables
+        vY_i_d_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t]) ""
+        qY_i_d_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t]) ""
+        pY_i_d_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t]) ""
+        tY_i_d_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t]) ""
+        vtY_i_d_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t]) ""
+        jqY_i_d_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t]) ""
+        jqY_i_d[i,re,t]$(d1Y_i_d[i,re,t]) ""
 
-    vtBotded[i,t]$(d1Y_i[i,t]) "Value of bottom-up deductions, bio kroner"
-    vProdOtherProductionCosts[i,t]$(d1Y_i[i,t]) "Other production costs not in CES-nesting tree, bio. kroner"
-    vtNetproductionRest[i,t]$(d1Y_i[i,t]) "Net production subsidies and taxes not internalized in user-cost of capital and not included in other items listed below, bio. kroner"
-    vDiffMarginAvgE[i,t]$(d1Y_i[i,t]) "Difference between marginal and average energy-costs, bio. kroner"
-    vtEmmRxE[i,t]$(d1Y_i[i,t]) "Taxes on non-energy related emissions, bio. kroner"
-    vtCAP_prodsubsidy[i,t]$(d1Y_i[i,t]) "Agricultural subsidies from EU CAP subsidizing production directly, bio. kroner"
+        vM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
+        qM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
+        pM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
+        tM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
+        vtM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
+        jqM_i_d_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t]) ""
+        jqM_i_d[i,re,t]$(d1M_i_d[i,re,t]) ""
 
-    uProd[pf,i,t]$(d1Prod[pf,i,t]) "CES-Share of production for nest or factor (pf)"
-    eProd[pFnest,i] "Elasticity of substitution between production nests"
 
-    pProd2pNest[pf,pfNest,i,t]$(d1Prod[pf,i,t] and d1Prod[pfNest,i,t]) "Price ratio between production factor and its nest."
+        rM_non_ene[i,d_non_ene,t]$(d1M_i_d_non_ene[i,d_non_ene,t] or d1M_i_d_non_ene[i,d_non_ene,t]) ""
+        rYM_non_ene[i,d_non_ene,t]$(d1Y_i_d_non_ene[i,d_non_ene,t] or d1M_i_d_non_ene[i,d_non_ene,t]) ""
 
-    qPFtop2qY[i,t] "Ratio between qProd[pf_top] and qY_i in basis year where prices are set to 1."
+        vD_non_ene[d_non_ene,t]$(sum(i, d1Y_i_d_non_ene[i,d_non_ene,t]) or sum(i, d1M_i_d_non_ene[i,d_non_ene,t])) ""
+        pD_non_ene[d_non_ene,t]$(sum(i, d1Y_i_d_non_ene[i,d_non_ene,t]) or sum(i, d1M_i_d_non_ene[i,d_non_ene,t])) ""
+        qD_non_ene[d_non_ene,t]$(sum(i, d1Y_i_d_non_ene[i,d_non_ene,t]) or sum(i, d1M_i_d_non_ene[i,d_non_ene,t])) ""
+
+        vY_i_d_calib[i,d,t]$(d1Y_i_d[i,d,t]) ""
+        vM_i_d_calib[i,d,t]$(d1M_i_d[i,d,t]) ""
+
+        sSupply_e_i_m[e,i,t]$(d1pM_CET[e,i,t]) ""
+        sSupply_e_i_y[e,i,t]$(d1pY_CET[e,i,t]) ""
+				;
+
+
+			$Group+ G_flat_after_last_data_year
+				tY_i_d_non_ene
+        tM_i_d_non_ene
+			;
+
+			$Group G_non_energy_markets_data
+			  vY_i_d_non_ene
+				vM_i_d_non_ene
+				vtY_i_d_non_ene
+				vtM_i_d_non_ene
+				qD_non_ene
+				;
+
+	$ENDIF 
+  
+  # ------------------------------------------------------------------------------
+	# Equations
+	# ------------------------------------------------------------------------------
+
+	$IF %stage% == "equations":
+
+    
+    $BLOCK non_energy_markets_clearing non_energy_markets_clearing_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+
+				#Links to CET
+				 ..qY_CET[out_other,i,t] =E= sum(d_non_ene, qY_i_d_non_ene[i,d_non_ene,t]) + qD_EAV[t]$(i_wholesale[i]) + qD_CAV[t]$(i_cardealers[i]) + qD_DAV[t]$(i_retail[i]);
+
+				 ..qM_CET[out_other,i,t] =E= sum(d_non_ene, qM_i_d_non_ene[i,d_non_ene,t]);
+
+    $ENDBLOCK 
+
+    $BLOCK non_energy_markets_IO non_energy_markets_IO_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+
+				#Demand split on 
+				 ..qY_i_d_non_ene[i_control,d_non_ene,t] =E= (1-rM_non_ene[i_control,d_non_ene,t]) * rYM_non_ene[i_control,d_non_ene,t] * qD_non_ene[d_non_ene,t];
+
+				 ..qM_i_d_non_ene[i_control,d_non_ene,t] =E= rM_non_ene[i_control,d_non_ene,t]     * rYM_non_ene[i_control,d_non_ene,t] * qD_non_ene[d_non_ene,t];	
+
+
+				 .. pY_i_d_non_ene[i_control,d_non_ene,t] =E= (1+tY_i_d_non_ene[i_control,d_non_ene,t]) * pY_CET['out_other',i_control,t];
+
+				 .. pM_i_d_non_ene[i_control,d_non_ene,t] =E= (1+tM_i_d_non_ene[i_control,d_non_ene,t]) * pM_CET['out_other',i_control,t];	
+
+				 .. vY_i_d_non_ene[i_control,d_non_ene,t] =E= pY_i_d_non_ene[i_control,d_non_ene,t] * qY_i_d_non_ene[i_control,d_non_ene,t];
+
+				 .. vM_i_d_non_ene[i_control,d_non_ene,t] =E= pM_i_d_non_ene[i_control,d_non_ene,t] * qM_i_d_non_ene[i_control,d_non_ene,t];	
+
+				 .. vtY_i_d_non_ene[i_control,d_non_ene,t] =E= tY_i_d_non_ene[i_control,d_non_ene,t] * pY_CET['out_other',i_control,t] * qY_i_d_non_ene[i_control,d_non_ene,t];
+
+				 .. vtM_i_d_non_ene[i_control,d_non_ene,t] =E= tM_i_d_non_ene[i_control,d_non_ene,t] * pM_CET['out_other',i_control,t] * qM_i_d_non_ene[i_control,d_non_ene,t];
+
+				 .. vD_non_ene[d_non_ene,t] =E= sum(i_control, vY_i_d_non_ene[i_control,d_non_ene,t]+ vM_i_d_non_ene[i_control,d_non_ene,t]);
+
+				 .. pD_non_ene[d_non_ene,t]*qD[d_non_ene,t] =E= vD_non_ene[d_non_ene,t];
+
+		$ENDBLOCK 
+
+		$BLOCK non_energy_markets_links non_energy_markets_links_endogenous $(t1.val <= t.val and t.val <=tEnd.val)
+			
+				 #Link to factor demand
+					jpProd[Rxe,i,t]..
+						pProd[RxE,i,t] =E= sum(d_non_ene$d_non_ene2i(d_non_ene,i), pD_non_ene[d_non_ene,t]);
+
+					qD_non_ene&_RxE[d_non_ene,t]$sum(i,d_non_ene2i(d_non_ene,i))..
+			    	 qD_non_ene[d_non_ene,t] =E= sum(i$d_non_ene2i(d_non_ene,i), qProd['RxE',i,t]);
+
+					qD_non_ene&_k[d_non_ene,t]$sum(k,d_non_ene2k(d_non_ene,k))..
+							qD_non_ene[d_non_ene,t] =E= sum((k,i)$d_non_ene2k(d_non_ene,k), qI_k_i[k,i,t]);
+
+					#Links to input-output
+
+						#Non-energy quantities
+						rYM&_only_Y_i[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1Y_i_d_non_ene[i_control,d_non_ene,t] and not d1M_i_d_non_ene[i_control,d_non_ene,t])..
+							qY_i_d_non_ene[i_control,d_non_ene,t] =E= qY_i_d[i_control,d_non_ene,t]/ (1+tY_i_d[i_control,d_non_ene,tBase]) + jqY_i_d_non_ene[i_control,d_non_ene,t]; 
+
+						#
+						rYM&_only_M_i[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1M_i_d_non_ene[i_control,d_non_ene,t] and not d1Y_i_d_non_ene[i_control,d_non_ene,t])..
+							qM_i_d_non_ene[i_control,d_non_ene,t] =E= qM_i_d[i_control,d_non_ene,t]/ (1+tM_i_d[i_control,d_non_ene,tBase]) + jqM_i_d_non_ene[i_control,d_non_ene,t]; 
+
+						#NOTE THAT THIS IS RM0 (not RM), BECAUSE OF THE "IMPORTS.GMS"-MODULE THAT TAKES OVER RM IN INPUT_OUTPUT
+						rM0&_both_M_and_Y[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1M_i_d_non_ene[i_control,d_non_ene,t] and d1Y_i_d_non_ene[i_control,d_non_ene,t])..
+							qM_i_d_non_ene[i_control,d_non_ene,t] =E= qM_i_d[i_control,d_non_ene,t]/ (1+tM_i_d[i_control,d_non_ene,tBase]) + jqM_i_d_non_ene[i_control,d_non_ene,t]; 
+
+					#Prices/total value of non-energy
+					jfpY_i_d[i,d_non_ene,t]$(not sameas[d_non_ene,'invt'])..
+						pY_i_d[i,d_non_ene,t]*qY_i_d[i,d_non_ene,t]  =E= pY_i_d_non_ene[i,d_non_ene,t] * qY_i_d_non_ene[i,d_non_ene,t] + vY_i_d_calib[i,d_non_ene,t]; 
+
+					jfpM_i_d[i,d_non_ene,t]$(not sameas[d_non_ene,'invt'])..
+						pM_i_d[i,d_non_ene,t]*qM_i_d[i,d_non_ene,t]  =E= pM_i_d_non_ene[i,d_non_ene,t] * qM_i_d_non_ene[i,d_non_ene,t] + vM_i_d_calib[i,d_non_ene,t]; 
+
+
+					#Prices of energy
+					jfpY_i_d&_not_energymargins[i,re,t]$(d1Y_i_d[i,re,t] and not i_energymargins[i])..
+						pY_i_d[i,re,t]*qY_i_d[i,re,t]  
+							=E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_y[e,i,t] * vEpj_NAS[es,e,i_a,t]) + vY_i_d_calib[i,re,t]; 
+
+					jfpY_i_d&__energymargins[i,re,t]$(d1Y_i_d[i,re,t] and i_energymargins[i])..
+						pY_i_d[i,re,t]*qY_i_d[i,re,t]  
+							=E= sum((e,es,i_a)$es2re(es,re), pDAV[es,e,i_a,t] * qEpj[es,e,i_a,t]$(i_retail[i]) 
+																						 + pCAV[es,e,i_a,t] * qEpj[es,e,i_a,t]$(i_cardealers[i]) 
+																						 + pEAV[es,e,i_a,t] * qEpj[es,e,i_a,t]$(i_wholesale[i])) + vY_i_d_calib[i,re,t]; 
+
+																							#No need to add an equation for margins, as they are all contained in domestic price .
+					jfpM_i_d[i,re,t]$(d1M_i_d[i,re,t])..
+						pM_i_d[i,re,t]*qM_i_d[i,re,t]  
+							=E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * vEpj_NAS[es,e,i_a,t]) + vM_i_d_calib[i,re,t]; 
+
+
+					#Quantities
+					rYM[i,re,t]$(d1Y_i_d[i,re,t] and not i_energymargins[i])..
+						qY_i_d[i,re,t]*pY_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_y[e,i,t] * pEpj_base[es,e,i_a,tBase] * qEpj[es,e,i_a,t]) + jqY_i_d[i,re,t];
+
+
+					rYM&_energymargins[i,re,t]$(d1Y_i_d[i,re,t] and i_energymargins[i])..
+						qY_i_d[i,re,t]*pY_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re), pDAV[es,e,i_a,tBase] * qEpj[es,e,i_a,t]$(i_retail[i]) 
+																																						 + pCAV[es,e,i_a,tBase] * qEpj[es,e,i_a,t]$(i_cardealers[i]) 
+																																						 + pEAV[es,e,i_a,tBase] * qEpj[es,e,i_a,t]$(i_wholesale[i])) + jqY_i_d[i,re,t];
+
+					#NOTE THAT THIS IS RM0 (not RM), BECAUSE OF THE "IMPORTS.GMS"-MODULE THAT TAKES OVER RM IN INPUT_OUTPUT
+					rM0&_energy_imports[i,re,t]$(d1M_i_d[i,re,t] and d1Y_i_d[i,re,t])..
+						qM_i_d[i,re,t]*pM_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * pEpj_base[es,e,i_a,tBase] * qEpj[es,e,i_a,t]) + jqM_i_d[i,re,t];
+
+					rYM&_energy_imports[i,re,t]$(d1M_i_d[i,re,t] and not d1Y_i_d[i,re,t])..
+						qM_i_d[i,re,t]*pM_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * pEpj_base[es,e,i_a,tBase] * qEpj[es,e,i_a,t]) + jqM_i_d[i,re,t];
+
+		$ENDBLOCK
+
+    model  main/
+           non_energy_markets_clearing
+           non_energy_markets_IO 
+           non_energy_markets_links
+           /
+
+    $Group+ main_endogenous 
+      non_energy_markets_clearing_endogenous
+      non_energy_markets_IO_endogenous
+      non_energy_markets_links_endogenous
+    ;
+
+
+$ENDIF
+
+
+# ------------------------------------------------------------------------------
+# Data 
+# ------------------------------------------------------------------------------
+
+	$IF %stage% == "exogenous_values":
+
+	  	@inf_growth_adjust()
+			@load(G_non_energy_markets_data, "../data/data.gdx")
+			@remove_inf_growth_adjustment()
+
+			$Group+ data_covered_variables
+				G_non_energy_markets_data$(t.val <= %calibration_year%)
+			;
+
+
+
+		# ------------------------------------------------------------------------------
+		# Dummies
+		# ------------------------------------------------------------------------------
+
+				
+		pY_i_d_non_ene.l[i,d_non_ene,t]$(vY_i_d_non_ene.l[i,d_non_ene,t]> 1e-6) = 1;
+		pM_i_d_non_ene.l[i,d_non_ene,t]$(vM_i_d_non_ene.l[i,d_non_ene,t]> 1e-6) = 1;
+		qY_i_d_non_ene.l[i,d_non_ene,t]$(vY_i_d_non_ene.l[i,d_non_ene,t]> 1e-6) = vY_i_d_non_ene.l[i,d_non_ene,t] - vtY_i_d_non_ene.l[i,d_non_ene,t];
+		qM_i_d_non_ene.l[i,d_non_ene,t]$(vM_i_d_non_ene.l[i,d_non_ene,t]> 1e-6) = vM_i_d_non_ene.l[i,d_non_ene,t] - vtM_i_d_non_ene.l[i,d_non_ene,t];
+		
+		vY_i_d_non_ene.l[i,d_non_ene,t]$(vY_i_d_non_ene.l[i,d_non_ene,t] <1e-6) = 0;
+		vM_i_d_non_ene.l[i,d_non_ene,t]$(vM_i_d_non_ene.l[i,d_non_ene,t] <1e-6) = 0;
+
+		rYM_non_ene.l[i,d_non_ene,t]$(vY_i_d_non_ene.l[i,d_non_ene,t] or vM_i_d_non_ene.l[i,d_non_ene,t]) = (vY_i_d_non_ene.l[i,d_non_ene,t] + vM_i_d_non_ene.l[i,d_non_ene,t])/sum(d_non_ene_a, vY_i_d_non_ene.l[i,d_non_ene_a,t] + vM_i_d_non_ene.l[i,d_non_ene_a,t]);
+		rM_non_ene.l[i,d_non_ene,t]$(vM_i_d_non_ene.l[i,d_non_ene,t] and not vY_i_d_non_ene.l[i,d_non_ene,t]) = vM_i_d_non_ene.l[i,d_non_ene,t]/(vM_i_d_non_ene.l[i,d_non_ene,t] + vY_i_d_non_ene.l[i,d_non_ene,t]);
+
+
+		d1Y_i_d_non_ene[i,d_non_ene,t] = yes$(abs(vY_i_d_non_ene.l[i,d_non_ene,t])>1e-6);
+		d1M_i_d_non_ene[i,d_non_ene,t] = yes$(abs(vM_i_d_non_ene.l[i,d_non_ene,t])>1e-6);
+
+    	$BLOCK non_energy_markets_clearing_calibration non_energy_markets_clearing_calibration_endogenous $(t1.val <= t.val and t.val <=tEnd.val)
+			jvE_re_i[re,i,t]$(t.val> t1.val and d1E_re_i[re,i,t]).. 
+				jvE_re_i[re,i,t] =E= 0;
+
+			# jqY_i_d_non_ene[i_control,d_non_ene,t]$(t.val > t1.val and d1Y_i_d_non_ene[i_control,d_non_ene,t] and not sameas[d_non_ene,'invt'])..
+			# 	jqY_i_d_non_ene[i_control,d_non_ene,t] =E= 0;
+
+			# jqM_i_d_non_ene[i_control,d_non_ene,t]$(t.val > t1.val and d1M_i_d_non_ene[i_control,d_non_ene,t] and not sameas[d_non_ene,'invt'])..
+			# 	jqM_i_d_non_ene[i_control,d_non_ene,t] =E= 0;
+
+
+			# jqY_i_d[i,re,t]$(t.val > t1.val and d1Y_i_d[i,re,t])..
+			# 	jqY_i_d[i,re,t] =E= 0;
+
+			# jqM_i_d[i,re,t]$(t.val > t1.val and d1M_i_d[i,re,t])..
+			# 	jqM_i_d[i,re,t] =E= 0;
+
+	$ENDBLOCK 
+$ENDIF
+
+# ------------------------------------------------------------------------------
+# Calibration
+# ------------------------------------------------------------------------------
+
+$IF %stage% == "calibration":
+
+
+	model calibration /
+           non_energy_markets_clearing
+           non_energy_markets_IO 
+           non_energy_markets_links
+          /;
+
+  $Group calibration_endogenous
+  	
+    non_energy_markets_clearing_endogenous
+    non_energy_markets_IO_endogenous
+		non_energy_markets_links_endogenous
+
+		-vtY_i_d_non_ene[i,d_non_ene,t1], tY_i_d_non_ene[i,d_non_ene,t1]
+		-vtM_i_d_non_ene[i,d_non_ene,t1], tM_i_d_non_ene[i,d_non_ene,t1]
+		
+		-qY_i_d_non_ene[i,d_non_ene,t1], rYM_non_ene[i,d_non_ene,t1]
+		-qM_i_d_non_ene[i,d_non_ene,t1], rM_non_ene[i,d_non_ene,t1]$(d1Y_i_d_non_ene[i,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
+
+		jqY_i_d_non_ene[i_control,d_non_ene,t1]$(d1Y_i_d_non_ene[i_control,d_non_ene,t1] and not d1M_i_d_non_ene[i,d_non_ene,t1])
+		jqM_i_d_non_ene[i_control,d_non_ene,t1]$(not d1Y_i_d_non_ene[i_control,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
+		jqM_i_d_non_ene[i_control,d_non_ene,t1]$(d1Y_i_d_non_ene[i_control,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
+
+		#Non_energy io-prices
+		vY_i_d_calib[i,d_non_ene,t1], -jfpY_i_d[i,d_non_ene,t1]
+		vM_i_d_calib[i,d_non_ene,t1], -jfpM_i_d[i,d_non_ene,t1]
+
+		#Energy io-prices 
+		vY_i_d_calib[i,re,t1], -jfpY_i_d[i,re,t1]
+		vM_i_d_calib[i,re,t1], -jfpM_i_d[i,re,t1]
+		jqY_i_d[i,re,t1]
+		jqM_i_d[i,re,t1]
+
+    calibration_endogenous
   ;
 
-$ENDIF # variables
-
-# ------------------------------------------------------------------------------
-# Equations
-# ------------------------------------------------------------------------------
+$ENDIF
 
 
- qY_CET['out_other',i,t] =E= sum(d_xre, qY_i_d[i,d_xre,t]) #Non-energy
-                          +  sum(d_xre, qY_i_enemargins[i,])
-
-#Energy-markets in energy_markets
-
-
-qY_i_enemargins[i,]
