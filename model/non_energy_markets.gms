@@ -187,7 +187,16 @@ $ENDIF
 		d1Y_i_d_non_ene[i,d_non_ene,t] = yes$(abs(vY_i_d_non_ene.l[i,d_non_ene,t])>1e-6);
 		d1M_i_d_non_ene[i,d_non_ene,t] = yes$(abs(vM_i_d_non_ene.l[i,d_non_ene,t])>1e-6);
 
-    	$BLOCK non_energy_markets_clearing_calibration non_energy_markets_clearing_calibration_endogenous $(t1.val <= t.val and t.val <=tEnd.val)
+
+$ENDIF
+
+# ------------------------------------------------------------------------------
+# Calibration
+# ------------------------------------------------------------------------------
+
+$IF %stage% == "calibration":
+
+    $BLOCK non_energy_markets_clearing_calibration non_energy_markets_clearing_calibration_endogenous $(t1.val <= t.val and t.val <=tEnd.val)
 			jvE_re_i[re,i,t]$(t.val> t1.val and d1E_re_i[re,i,t]).. 
 				jvE_re_i[re,i,t] =E= 0;
 
@@ -205,24 +214,18 @@ $ENDIF
 			# 	jqM_i_d[i,re,t] =E= 0;
 
 	$ENDBLOCK 
-$ENDIF
-
-# ------------------------------------------------------------------------------
-# Calibration
-# ------------------------------------------------------------------------------
-
-$IF %stage% == "calibration":
-
 
 	model calibration /
            non_energy_markets_clearing
            non_energy_markets_IO 
+          #  non_energy_markets_clearing_calibration
           #  non_energy_markets_links
           /;
 
   $Group calibration_endogenous
   	
     non_energy_markets_clearing_endogenous
+    # non_energy_markets_clearing_calibration_endogenous
 
     non_energy_markets_IO_endogenous
 		-vtY_i_d_non_ene[i,d_non_ene,t1], tY_i_d_non_ene[i,d_non_ene,t1]
