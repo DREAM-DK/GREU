@@ -287,7 +287,7 @@
 								energy_markets_clearing 
 								energy_margins
 								energy_markets_clearing_link
-								energy_markets_IO_link
+								# energy_markets_IO_link
 								/;
 
 		$Group+ main_endogenous 
@@ -295,7 +295,7 @@
 				energy_markets_clearing_endogenous 
 				energy_margins_endogenous
 				energy_markets_clearing_link_endogenous
-				energy_markets_IO_link_endogenous
+				# energy_markets_IO_link_endogenous
 				;
 	$ENDIF 
 
@@ -385,7 +385,7 @@ $IF %stage% == "calibration":
 
 		energy_margins
 		energy_markets_clearing_link
-		energy_markets_IO_link
+		# energy_markets_IO_link
 
 	/;
 
@@ -396,7 +396,7 @@ $IF %stage% == "calibration":
 		-jqE_re_i[re,i,t1],  jvE_re_i[re,i,t1]
 
 		energy_markets_clearing_endogenous
-		
+
 		energy_markets_clearing_calibration_endogenous
 		sY_Dist$(t1[t] and d1pY_CET[e,i,t] and not d1OneSX[e,t]),  -qY_CET$(t1[t] and d1pY_CET[out,i,t] and not d1OneSX[out,t] and e[out]) 
 		sM_Dist$(t1[t] and d1pM_CET[e,i,t] and not d1OneSX[e,t]),  -qM_CET$(t1[t] and d1pM_CET[out,i,t] and not d1OneSX[out,t] and e[out]) 
@@ -408,11 +408,11 @@ $IF %stage% == "calibration":
 
 		energy_markets_clearing_link_endogenous
 
-		energy_markets_IO_link_endogenous
-		vY_i_d_calib[i,re,t1], -jfpY_i_d[i,re,t1]
-		vM_i_d_calib[i,re,t1], -jfpM_i_d[i,re,t1]
-		jqY_i_d[i,re,t1]
-		jqM_i_d[i,re,t1]
+		# energy_markets_IO_link_endogenous
+		# vY_i_d_calib[i,re,t1], -jfpY_i_d[i,re,t1]
+		# vM_i_d_calib[i,re,t1], -jfpM_i_d[i,re,t1]
+		# jqY_i_d[i,re,t1]
+		# jqM_i_d[i,re,t1]
 
 		calibration_endogenous
 	;

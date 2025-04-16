@@ -29,7 +29,7 @@ $IF %stage% == "variables":
 	
 		vREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 			"Value of energy-activity (e_a) in industry i, measured in bio 2019-DKK"
 
-		uREes[es,i,t] 															"CES-share between energy-service and energy-activity"				
+		uREes[es,i,t]$(d1pEes[es,i,t] and not (heating[es] or transport[es])) "CES-share between energy-service and energy-activity"				
 		eREes[i] 																		"Elasticity of substitution between energy-services for industri i"
 
 
@@ -183,9 +183,9 @@ $IF %stage% == "calibration":
 			calibration_endogenous
 	;
 
-	# $Group+ G_flat_after_last_data_year
-  	# uREa
-		# uREes
-	# ;
+	$Group+ G_flat_after_last_data_year
+  	uREa$(d1pREa_inNest[es,e_a,i,t] or d1pREa_NotinNest[es,e_a,i,t])
+		uREes
+	;
 
 $ENDIF

@@ -20,7 +20,7 @@ $BLOCK imports_equations imports_endogenous $(t1.val <= t.val and t.val <= tEnd.
   .. pY2pM_i_d[i,d,t] =E= pY_i_d[i,d,t] / pM_i_d[i,d,t];
 
   rM[i,d,t]$(d1Y_i_d[i,d,t] and d1M_i_d[i,d,t])..
-    qM_i_d[i,d,t] * (1-rM0[i,d,t]) =E= qY_i_d[i,d,t] * rM0[i,d,t] * pY2pM_i_d[i,d,t]**eM_i_d[i,d];
+    qM_i_d[i,d,t] * (1-rM0[i,d,t]) =E= qY_i_d[i,d,t] * rM0[i,d,t] * pY2pM_i_d[i,d,t]; #**eM_i_d[i,d];
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model

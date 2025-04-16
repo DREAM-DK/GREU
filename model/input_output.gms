@@ -215,8 +215,16 @@ d1Y_i[i,t] = sum(d, d1Y_i_d[i,d,t]);
 d1M_i[i,t] = sum(d, d1M_i_d[i,d,t]);
 d1YM_d[d,t] = d1Y_d[d,t] or d1M_d[d,t];
 
+#Initial values
 rM.l[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t]) = 1;
 rM.l[i,d,t]$(d1Y_i_d[i,d,t] and not d1M_i_d[i,d,t]) = 0;
+
+pY_i_d.l[i,d,t]$(d1Y_i_d[i,d,t]) = 1;
+pM_i_d.l[i,d,t]$(d1M_i_d[i,d,t]) = 1;
+vGDP.l[t] = 2321;
+qY_i_d.l[i,d,t]$(vY_i_d.l[i,d,t]> 1e-6) = vY_i_d.l[i,d,t] - vtY_i_d.l[i,d,t];
+qM_i_d.l[i,d,t]$(vM_i_d.l[i,d,t]> 1e-6) = vM_i_d.l[i,d,t] - vtM_i_d.l[i,d,t];
+	
 
 pY_i.l[i,t] = fpt[t];
 pM_i.l[i,t] = fpt[t];

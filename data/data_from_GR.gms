@@ -324,8 +324,9 @@ qD_non_ene[d_non_ene,t] = qD[d_non_ene,t];
 
   qY_CET[e,i,t] = sum(es, Energybalance['BASE','production',i,es,e,t]);
   qM_CET[e,i,t] = sum(es, Energybalance['BASE','imports',i,es,e,t]);
-  pY_CET[e,i,t]$qY_CET[e,i,t] = 1;
-  pM_CET[e,i,t]$qM_CET[e,i,t] = 1;
+
+  pY_CET[e,i,t]$(sum(es,Energybalance['PJ','production',i,es,e,t])) = sum(es,Energybalance['BASE','production',i,es,e,t])/sum(es,Energybalance['PJ','production',i,es,e,t]);
+  pM_CET[e,i,t]$(sum(es,Energybalance['PJ','imports',i,es,e,t])) = sum(es,Energybalance['BASE','imports',i,es,e,t])/sum(es,Energybalance['PJ','imports',i,es,e,t]);
 
 #Emissions
   qEmmE_BU[em,es,e,d,t]     = sum(demand_transaction_temp,Energybalance[em,demand_transaction_temp,d,es,e,t]);

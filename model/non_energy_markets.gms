@@ -138,13 +138,13 @@ $IF %stage% == "variables":
     model  main/
            non_energy_markets_clearing
            non_energy_markets_IO 
-           non_energy_markets_links
+          #  non_energy_markets_links
            /
 
     $Group+ main_endogenous 
       non_energy_markets_clearing_endogenous
       non_energy_markets_IO_endogenous
-      non_energy_markets_links_endogenous
+      # non_energy_markets_links_endogenous
     ;
 
 
@@ -217,7 +217,7 @@ $IF %stage% == "calibration":
 	model calibration /
            non_energy_markets_clearing
            non_energy_markets_IO 
-           non_energy_markets_links
+          #  non_energy_markets_links
           /;
 
   $Group calibration_endogenous
@@ -232,14 +232,14 @@ $IF %stage% == "calibration":
 		-qM_i_d_non_ene[i,d_non_ene,t1], rM_non_ene[i,d_non_ene,t1]$(d1Y_i_d_non_ene[i,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
 
 
-		non_energy_markets_links_endogenous
-		jqY_i_d_non_ene[i_control,d_non_ene,t1]$(d1Y_i_d_non_ene[i_control,d_non_ene,t1] and not d1M_i_d_non_ene[i,d_non_ene,t1])
-		jqM_i_d_non_ene[i_control,d_non_ene,t1]$(not d1Y_i_d_non_ene[i_control,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
-		jqM_i_d_non_ene[i_control,d_non_ene,t1]$(d1Y_i_d_non_ene[i_control,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
+		# non_energy_markets_links_endogenous
+		# jqY_i_d_non_ene[i_control,d_non_ene,t1]$(d1Y_i_d_non_ene[i_control,d_non_ene,t1] and not d1M_i_d_non_ene[i,d_non_ene,t1])
+		# jqM_i_d_non_ene[i_control,d_non_ene,t1]$(not d1Y_i_d_non_ene[i_control,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
+		# jqM_i_d_non_ene[i_control,d_non_ene,t1]$(d1Y_i_d_non_ene[i_control,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
 
-		#Non_energy io-prices
-		vY_i_d_calib[i,d_non_ene,t1], -jfpY_i_d[i,d_non_ene,t1]
-		vM_i_d_calib[i,d_non_ene,t1], -jfpM_i_d[i,d_non_ene,t1]
+		# #Non_energy io-prices
+		# vY_i_d_calib[i,d_non_ene,t1], -jfpY_i_d[i,d_non_ene,t1]
+		# vM_i_d_calib[i,d_non_ene,t1], -jfpM_i_d[i,d_non_ene,t1]
 
 
 

@@ -8,7 +8,7 @@ $IF %stage% == "variables":
     rMarkup_out_i[out,i,t]$(d1pY_CET[out,i,t]) "Markup on production"
     uY_CET[out,i,t]$(d1pY_CET[out,i,t]) "Share of production in CET-split"
     eCET[i] "Elasticity of substitution in CET-split"
-    rMarkup_calib[i,t]$(d1Y_i[i,t]) "Markup on production, used in calibration"
+    rMarkup_out_i_calib[i,t]$(d1Y_i[i,t]) "Markup on production, used in calibration"
     jvY_i[i,t]$(d1Y_i[i,t]) ""
   ;
 
@@ -36,7 +36,7 @@ $IF %stage% == "equations":
     #Link to pricing
     rMarkup_i[i,t]..
          vY_i[i,t] =E= sum(out, pY_CET[out,i,t]*qY_CET[out,i,t]) + jvY_i[i,t]; 
-
+        # pY_i[i,t] =E= pY_i[i,t1];
   $ENDBLOCK
 
   # Add equation and endogenous variables to main model
@@ -70,8 +70,8 @@ $ENDIF # exogenous_values
 # ------------------------------------------------------------------------------
 $IF %stage% == "calibration":
   $BLOCK production_CET_calibration production_CET_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-    rMarkup_out_i[out,i,t]$(t1[t])
-    .. rMarkup_out_i[out,i,t] =E= rMarkup_calib[i,t];   
+    rMarkup_out_i[out,i,t]
+    .. rMarkup_out_i[out,i,t] =E= rMarkup_out_i_calib[i,t1];   
 
     jvY_i[i,t]$(t.val>t1.val)..
       jvY_i[i,t] =E= 0;
@@ -91,10 +91,14 @@ $IF %stage% == "calibration":
     production_CET_calibration_endogenous
 
     -pY_CET[out,i,t1], uY_CET[out,i,t1]
-    -pY0_i[i,t1], rMarkup_calib[i,t1]
+    -pY0_i[i,t1], rMarkup_out_i_calib[i,t1]
     jvY_i[i,t1]
     
     calibration_endogenous
+  ;
+
+  $GROUP+ G_flat_after_last_data_year
+    uY_CET
   ;
 
 $ENDIF # calibration
