@@ -321,6 +321,10 @@
 
 				 .. pD_non_ene[d_non_ene,t]*qD[d_non_ene,t] =E= vD_non_ene[d_non_ene,t];
 
+		$ENDBLOCK 
+
+		$BLOCK non_energy_markets_links non_energy_markets_links_endogenous $(t1.val <= t.val and t.val <=tEnd.val)
+			
 				 #Link to factor demand
 					jpProd[Rxe,i,t]..
 						pProd[RxE,i,t] =E= sum(d_non_ene$d_non_ene2i(d_non_ene,i), pD_non_ene[d_non_ene,t]);
@@ -387,13 +391,7 @@
 					rYM&_energy_imports[i,re,t]$(d1M_i_d[i,re,t] and not d1Y_i_d[i,re,t])..
 						qM_i_d[i,re,t]*pM_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * pEpj_base[es,e,i_a,tBase] * qEpj[es,e,i_a,t]) + jqM_i_d[i,re,t];
 
-
-					# rM[i,re,t]$(d1Y_i_d[i,re,t])..
-					# 	qY_i_d[i,re,t]*pY_i_d[i,re,tBase] =E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * pEpj_base[es,e,i_a,tBase] * qEpj[es,e,i_a,t]) + jqM_i_d[i,re,t];
-
-		$ENDBLOCK 
-
-
+		$ENDBLOCK
 
 		# Add equation and endogenous variables to main model
 		model main / energy_demand_prices  
@@ -401,6 +399,7 @@
 								energy_margins
 								energy_markets_clearing_link
 								non_energy_markets_clearing
+								non_energy_markets_links
 								/;
 
 		$Group+ main_endogenous 
@@ -409,6 +408,7 @@
 				energy_margins_endogenous
 				energy_markets_clearing_link_endogenous
 				non_energy_markets_clearing_endogenous
+				non_energy_markets_links_endogenous
 				;
 	$ENDIF 
 
@@ -533,6 +533,7 @@ $IF %stage% == "calibration":
 		energy_markets_clearing_link
 		non_energy_markets_clearing
 		non_energy_markets_clearing_calibration
+		non_energy_markets_links
 	/;
 	# Add endogenous variables to calibration model
 	$Group calibration_endogenous
@@ -554,6 +555,7 @@ $IF %stage% == "calibration":
 		energy_markets_clearing_link_endogenous
 
 		non_energy_markets_clearing_endogenous
+		non_energy_markets_links_endogenous
 		-vtY_i_d_non_ene[i,d_non_ene,t1], tY_i_d_non_ene[i,d_non_ene,t1]
 		-vtM_i_d_non_ene[i,d_non_ene,t1], tM_i_d_non_ene[i,d_non_ene,t1]
 		

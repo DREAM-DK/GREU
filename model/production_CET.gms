@@ -69,8 +69,12 @@ $ENDIF # exogenous_values
 # Calibration
 # ------------------------------------------------------------------------------
 $IF %stage% == "calibration":
-  $BLOCK production_CET_calibration production_CET_calibration_endogenous $(t1[t])
+  $BLOCK production_CET_calibration production_CET_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+    rMarkup_out_i[out,i,t]$(t1[t])
     .. rMarkup_out_i[out,i,t] =E= rMarkup_calib[i,t];   
+
+    jvY_i[i,t]$(t.val>t1.val)..
+      jvY_i[i,t] =E= 0;
   $ENDBLOCK
 
   # Add equations and calibration equations to calibration model

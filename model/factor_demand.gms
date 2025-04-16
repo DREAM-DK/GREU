@@ -37,9 +37,6 @@ $Group+ all_variables
   qE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "Real energy inputs by industry."
   vE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "Energy inputs by industry and final purpose."
   vE_i[i,t]$(d1E_i[i,t]) "Energy inputs by industry"
-
-  jqD[d,t]$(sum(i, d1YM_i_d[i,d,t])) "J-term to be endogenized when bottom-up energy modelling is activated"
-  jpE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "J-term to be endogenized when bottom-up energy modelling is activated"
 ;
 
 $ENDIF # variables
@@ -59,9 +56,9 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   .. qD[i,t] =E= qR2qY_i[i,t] * qY_i[i,t];
 
   # Link demand for energy intermediate inputs to input-output model
-  .. pE_re_i[re,i,t] =E=  pD[re,t] + jpE_re_i[re,i,t];
+  .. pE_re_i[re,i,t] =E=  pD[re,t];
   .. qE_re_i[re,i,t] =E= qE2qY_re_i[re,i,t] * qY_i[i,t];
-  .. qD[re,t] =E= sum(i, qE_re_i[re,i,t]) + jqD[re,t];
+  .. qD[re,t] =E= sum(i, qE_re_i[re,i,t]);
   .. vE_re_i[re,i,t] =E= pE_re_i[re,i,t] * qE_re_i[re,i,t] ;
 
   .. vE_i[i,t] =E= sum(re, vE_re_i[re,i,t]);

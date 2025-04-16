@@ -23,7 +23,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT financial_accounts.gms
   $IMPORT labor_market.gms
   $IMPORT energy_markets.gms; #Energy-markets need to be before industries_CES_energydemand in terms of getting levels loaded for qREa
-  $IMPORT industries_CES_energydemand.gms; 
+  $IMPORT production_CES_energydemand.gms; 
   $IMPORT production.gms; 
   $IMPORT pricing.gms; 
   $IMPORT imports.gms
@@ -62,7 +62,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT financial_accounts.gms
   $IMPORT labor_market.gms
   $IMPORT energy_markets.gms; 
-  $IMPORT industries_CES_energydemand.gms; 
+  $IMPORT production_CES_energydemand.gms; 
   $IMPORT production.gms; 
   $IMPORT pricing.gms; 
   $IMPORT imports.gms
@@ -94,7 +94,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT financial_accounts.gms
   $IMPORT labor_market.gms
   $IMPORT energy_markets.gms; 
-  $IMPORT industries_CES_energydemand.gms; 
+  $IMPORT production_CES_energydemand.gms; 
   $IMPORT production.gms; 
   $IMPORT pricing.gms; 
   $IMPORT imports.gms
@@ -124,7 +124,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT financial_accounts.gms
   $IMPORT labor_market.gms
   $IMPORT energy_markets.gms; 
-  $IMPORT industries_CES_energydemand.gms; 
+  $IMPORT production_CES_energydemand.gms; 
   $IMPORT production.gms; 
   $IMPORT pricing.gms; 
   $IMPORT imports.gms

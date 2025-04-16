@@ -77,6 +77,8 @@ set demand_transaction_temp[transaction] /'input_in_production','household_consu
 set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','cav','nox_tax','so2_tax','vat','base'/;
 
 #Rettelser 
+
+Energybalance[ebalitems,transaction,d,es,e,t]$(Energybalance['BASE',transaction,d,es,e,t] and Energybalance['BASE',transaction,d,es,e,t]<1e-6) = no; 
 Energybalance['pj','input_in_production','35011','process_special','electricity',t] = Energybalance['base','input_in_production','35011','process_special','electricity',t]/0.1;
 Energybalance['pj','production','35011','unspecified','electricity',t] = Energybalance['pj','production','35011','unspecified','electricity',t] + Energybalance['pj','input_in_production','35011','process_special','electricity',t];
 

@@ -32,7 +32,7 @@ $ENDIF # equations
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
 $IF %stage% == "exogenous_values":
-eX.l[x] = 5;
+eX.l[x] = 0.5;
 pRoW_x.l[x,t] = 1;
 
 $Group exports_market_data_variables

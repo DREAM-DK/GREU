@@ -32,8 +32,7 @@ $IF %stage% == "variables":
 		uREes[es,i,t] 															"CES-share between energy-service and energy-activity"				
 		eREes[i] 																		"Elasticity of substitution between energy-services for industri i"
 
-		jqREes[es,i,t]$(d1pEes[es,i,t]) 						"Calibration term to avoid problem between static and dynamic calibration"
-		jqREmachine[i,t]$(d1pREmachine[i,t]) 				"Calibration term to avoid problem between static and dynamic calibration"
+
 	;
 $ENDIF
 
@@ -79,24 +78,23 @@ $IF %stage% == "equations":
 
 	$BLOCK industries_energy_demand_link industries_energy_demand_link_endogenous $(t.val>=t1.val and t.val<=tEnd.val)
 	    qREes&_heating[es,i,t]$(d1pEes[es,i,t] and heating[es])..
-	      qREes['heating',i,t] =E= qProd['heating_energy',i,t] + jqREes[es,i,t];
+	      qREes['heating',i,t] =E= qProd['heating_energy',i,t];
 	  
 	    qREes&_transport[es,i,t]$(d1pEes[es,i,t] and transport[es])..
-	      qREes['transport',i,t] =E= qProd['transport_energy',i,t] + jqREes[es,i,t];
+	      qREes['transport',i,t] =E= qProd['transport_energy',i,t];
 
 			qREmachine[i,t]$(d1pREmachine[i,t])..
-				qREmachine[i,t] =E= qProd['machine_energy',i,t] + jqREmachine[i,t];
+				qREmachine[i,t] =E= qProd['machine_energy',i,t];
 
+		
+			jpProd&_machine_energy[pf_bottom_e,i,t]$(sameas[pf_bottom_e,'machine_energy'])..
+				pProd[pf_bottom_e,i,t] =E= pREmachine[i,t];
 
-			#Linking prices, pR
-			jpE_re_i&_machine_energy[re,i,t]$(sameas[re,'machine_energy'])..
-				pE_re_i[re,i,t] =E= pREmachine[i,t];
+			jpProd&_transport_energy[pf_bottom_e,i,t]$(sameas[pf_bottom_e,'transport_energy'])..
+				pProd[pf_bottom_e,i,t] =E= pREes['transport',i,t];
 
-			jpE_re_i&_transport_energy[re,i,t]$(sameas[re,'transport_energy'])..
-				pE_re_i[re,i,t] =E= pREes['transport',i,t];
-
-			jpE_re_i&_heating_energy[re,i,t]$(sameas[re,'heating_energy'])..
-				pE_re_i[re,i,t] =E= pREes['heating',i,t];
+			jpProd&_heating_energy[pf_bottom_e,i,t]$(sameas[pf_bottom_e,'heating_energy'])..
+				pProd[pf_bottom_e,i,t] =E= pREes['heating',i,t];
 
 			#Should be linked in abatement-module when turned on
 			.. pREa[es,e,i,t] =E= pEpj_marg[es,e,i,t]
@@ -179,8 +177,7 @@ $IF %stage% == "calibration":
 		-pREmachine[i,t1], qREmachine[i,t1]
 
 		industries_energy_demand_link_endogenous
-		jqREmachine[i,t1]
-		jqREes[es,i,t1] #When linked, quantities are back in exogenously
+		qProd[pf_bottom_e,i,t1]
 
 			calibration_endogenous
 	;
