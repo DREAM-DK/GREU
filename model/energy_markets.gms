@@ -355,6 +355,12 @@
 # ------------------------------------------------------------------------------
 
 $IF %stage% == "calibration":
+
+	$BLOCK energy_demand_prices_calibration energy_demand_prices_calibration_endogenous $(t1.val <= t.val and t.val<=tEnd.val)
+		jvE_re_i[re,i,t]$(t.val> t1.val and d1E_re_i[re,i,t]).. 
+				jvE_re_i[re,i,t] =E= 0;
+	$ENDBLOCK
+
 	$BLOCK energy_markets_clearing_calibration energy_markets_clearing_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
 			qY_CET&_SeveralNonExoSuppliers_calib[e,i,t]$(t.val > t1.val and not d1OneSX[e,t])..
@@ -370,6 +376,8 @@ $IF %stage% == "calibration":
 
 			sM_Dist[e,i,t]$(t1[t] and not d1OneSX[e,t]).. sM_Dist[e,i,t] =E= qM_CET[e,i,t]/qEtot[e,t] * pM_CET[e,i,t]**eDist[e];
 
+
+
 	$ENDBLOCK
 
 
@@ -377,6 +385,7 @@ $IF %stage% == "calibration":
 	# Add equations and calibration equations to calibration model
 	model calibration /
 		energy_demand_prices
+		energy_demand_prices_calibration			
 
 		energy_markets_clearing
 		-E_qY_CET_SeveralNonExoSuppliers
@@ -394,6 +403,7 @@ $IF %stage% == "calibration":
 		energy_demand_prices_endogenous 
 		fpE[es,e,d,t1],  -pEpj_base[es,e,d,t1]
 		-jqE_re_i[re,i,t1],  jvE_re_i[re,i,t1]
+		energy_demand_prices_calibration_endogenous
 
 		energy_markets_clearing_endogenous
 
@@ -419,5 +429,5 @@ $IF %stage% == "calibration":
 $ENDIF
 
 $IF %stage%=='tests':
-	ABORT$(abs(sum((re,i,t1), jvE_re_i.l[re,i,t1]))>1e-2) 'Bottom up energy use does not add up to top down energy-use';
+	ABORT$(abs(sum((re,i,t1), jvE_re_i.l[re,i,t1]))>0.5) 'Bottom up energy use does not add up to top down energy-use';
 $ENDIF

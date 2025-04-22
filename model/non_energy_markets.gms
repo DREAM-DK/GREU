@@ -115,36 +115,36 @@ $IF %stage% == "variables":
 					#Links to input-output
 
 						#Non-energy quantities
-						rYM&_only_Y_i[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1Y_i_d_non_ene[i_control,d_non_ene,t] and not d1M_i_d_non_ene[i_control,d_non_ene,t])..
-							qY_i_d_non_ene[i_control,d_non_ene,t] =E= qY_i_d[i_control,d_non_ene,t]/ (1+tY_i_d[i_control,d_non_ene,tBase]) + jqY_i_d_non_ene[i_control,d_non_ene,t]; 
+					# 	rYM&_only_Y_i[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1Y_i_d_non_ene[i_control,d_non_ene,t] and not d1M_i_d_non_ene[i_control,d_non_ene,t])..
+					# 		qY_i_d_non_ene[i_control,d_non_ene,t] =E= qY_i_d[i_control,d_non_ene,t]/ (1+tY_i_d[i_control,d_non_ene,tBase]) + jqY_i_d_non_ene[i_control,d_non_ene,t]; 
 
-						#
-						rYM&_only_M_i[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1M_i_d_non_ene[i_control,d_non_ene,t] and not d1Y_i_d_non_ene[i_control,d_non_ene,t])..
-							qM_i_d_non_ene[i_control,d_non_ene,t] =E= qM_i_d[i_control,d_non_ene,t]/ (1+tM_i_d[i_control,d_non_ene,tBase]) + jqM_i_d_non_ene[i_control,d_non_ene,t]; 
+					# 	#
+					# 	rYM&_only_M_i[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1M_i_d_non_ene[i_control,d_non_ene,t] and not d1Y_i_d_non_ene[i_control,d_non_ene,t])..
+					# 		qM_i_d_non_ene[i_control,d_non_ene,t] =E= qM_i_d[i_control,d_non_ene,t]/ (1+tM_i_d[i_control,d_non_ene,tBase]) + jqM_i_d_non_ene[i_control,d_non_ene,t]; 
 
-						#NOTE THAT THIS IS RM0 (not RM), BECAUSE OF THE "IMPORTS.GMS"-MODULE THAT TAKES OVER RM IN INPUT_OUTPUT
-						rM0&_both_M_and_Y[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1M_i_d_non_ene[i_control,d_non_ene,t] and d1Y_i_d_non_ene[i_control,d_non_ene,t])..
-							qM_i_d_non_ene[i_control,d_non_ene,t] =E= qM_i_d[i_control,d_non_ene,t]/ (1+tM_i_d[i_control,d_non_ene,tBase]) + jqM_i_d_non_ene[i_control,d_non_ene,t]; 
+					# 	#NOTE THAT THIS IS RM0 (not RM), BECAUSE OF THE "IMPORTS.GMS"-MODULE THAT TAKES OVER RM IN INPUT_OUTPUT
+					# 	rM0&_both_M_and_Y[i_control,d_non_ene,t]$(not sameas[d_non_ene,'invt'] and d1M_i_d_non_ene[i_control,d_non_ene,t] and d1Y_i_d_non_ene[i_control,d_non_ene,t])..
+					# 		qM_i_d_non_ene[i_control,d_non_ene,t] =E= qM_i_d[i_control,d_non_ene,t]/ (1+tM_i_d[i_control,d_non_ene,tBase]) + jqM_i_d_non_ene[i_control,d_non_ene,t]; 
 
-					#Prices/total value of non-energy
-					jfpY_i_d[i,d_non_ene,t]$(not sameas[d_non_ene,'invt'])..
-						pY_i_d[i,d_non_ene,t]*qY_i_d[i,d_non_ene,t]  =E= pY_i_d_non_ene[i,d_non_ene,t] * qY_i_d_non_ene[i,d_non_ene,t] + vY_i_d_calib[i,d_non_ene,t]; 
+					# #Prices/total value of non-energy
+					# jfpY_i_d[i,d_non_ene,t]$(not sameas[d_non_ene,'invt'])..
+					# 	pY_i_d[i,d_non_ene,t]*qY_i_d[i,d_non_ene,t]  =E= pY_i_d_non_ene[i,d_non_ene,t] * qY_i_d_non_ene[i,d_non_ene,t] + vY_i_d_calib[i,d_non_ene,t]; 
 
-					jfpM_i_d[i,d_non_ene,t]$(not sameas[d_non_ene,'invt'])..
-						pM_i_d[i,d_non_ene,t]*qM_i_d[i,d_non_ene,t]  =E= pM_i_d_non_ene[i,d_non_ene,t] * qM_i_d_non_ene[i,d_non_ene,t] + vM_i_d_calib[i,d_non_ene,t]; 
+					# jfpM_i_d[i,d_non_ene,t]$(not sameas[d_non_ene,'invt'])..
+					# 	pM_i_d[i,d_non_ene,t]*qM_i_d[i,d_non_ene,t]  =E= pM_i_d_non_ene[i,d_non_ene,t] * qM_i_d_non_ene[i,d_non_ene,t] + vM_i_d_calib[i,d_non_ene,t]; 
 
 		$ENDBLOCK
 
     model  main/
            non_energy_markets_clearing
            non_energy_markets_IO 
-          #  non_energy_markets_links
+           non_energy_markets_links
            /
 
     $Group+ main_endogenous 
       non_energy_markets_clearing_endogenous
       non_energy_markets_IO_endogenous
-      # non_energy_markets_links_endogenous
+      non_energy_markets_links_endogenous
     ;
 
 
@@ -197,8 +197,6 @@ $ENDIF
 $IF %stage% == "calibration":
 
     $BLOCK non_energy_markets_clearing_calibration non_energy_markets_clearing_calibration_endogenous $(t1.val <= t.val and t.val <=tEnd.val)
-			jvE_re_i[re,i,t]$(t.val> t1.val and d1E_re_i[re,i,t]).. 
-				jvE_re_i[re,i,t] =E= 0;
 
 			# jqY_i_d_non_ene[i_control,d_non_ene,t]$(t.val > t1.val and d1Y_i_d_non_ene[i_control,d_non_ene,t] and not sameas[d_non_ene,'invt'])..
 			# 	jqY_i_d_non_ene[i_control,d_non_ene,t] =E= 0;
@@ -219,7 +217,7 @@ $IF %stage% == "calibration":
            non_energy_markets_clearing
            non_energy_markets_IO 
           #  non_energy_markets_clearing_calibration
-          #  non_energy_markets_links
+           non_energy_markets_links
           /;
 
   $Group calibration_endogenous
@@ -235,7 +233,7 @@ $IF %stage% == "calibration":
 		-qM_i_d_non_ene[i,d_non_ene,t1], rM_non_ene[i,d_non_ene,t1]$(d1Y_i_d_non_ene[i,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
 
 
-		# non_energy_markets_links_endogenous
+		non_energy_markets_links_endogenous
 		# jqY_i_d_non_ene[i_control,d_non_ene,t1]$(d1Y_i_d_non_ene[i_control,d_non_ene,t1] and not d1M_i_d_non_ene[i,d_non_ene,t1])
 		# jqM_i_d_non_ene[i_control,d_non_ene,t1]$(not d1Y_i_d_non_ene[i_control,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
 		# jqM_i_d_non_ene[i_control,d_non_ene,t1]$(d1Y_i_d_non_ene[i_control,d_non_ene,t1] and d1M_i_d_non_ene[i,d_non_ene,t1])
