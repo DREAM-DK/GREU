@@ -22,15 +22,15 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT submodel_template.gms
   $IMPORT financial_accounts.gms
   $IMPORT labor_market.gms
-  $IMPORT energy_markets.gms; #Energy-markets need to be before industries_CES_energydemand in terms of getting levels loaded for qREa
-  $IMPORT non_energy_markets.gms;
-  $IMPORT production_CES_energydemand.gms; 
-  $IMPORT production.gms; 
-  $IMPORT pricing.gms; 
+  $IMPORT energy_markets.gms #Energy-markets need to be before industries_CES_energydemand in terms of getting levels loaded for qREa
+  $IMPORT non_energy_markets.gms
+  $IMPORT production_CES_energydemand.gms 
+  $IMPORT production.gms 
+  $IMPORT pricing.gms 
   $IMPORT imports.gms
-  $IMPORT production_CET.gms;
-  $IMPORT emissions.gms; 
-  $IMPORT energy_and_emissions_taxes.gms; 
+  $IMPORT production_CET.gms
+  $IMPORT emissions.gms 
+  $IMPORT energy_and_emissions_taxes.gms 
   $IMPORT input_output.gms
   $IMPORT households.gms
   $IMPORT government.gms
@@ -62,15 +62,15 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT submodel_template.gms
   $IMPORT financial_accounts.gms
   $IMPORT labor_market.gms
-  $IMPORT energy_markets.gms; #Energy-markets need to be before production_CES_energydemand in terms of getting levels loaded for qREa
-  $IMPORT non_energy_markets.gms;
-  $IMPORT production_CES_energydemand.gms; 
-  $IMPORT production.gms; 
-  $IMPORT pricing.gms; 
+  $IMPORT energy_markets.gms #Energy-markets need to be before production_CES_energydemand in terms of getting levels loaded for qREa
+  $IMPORT non_energy_markets.gms
+  $IMPORT production_CES_energydemand.gms
+  $IMPORT production.gms
+  $IMPORT pricing.gms
   $IMPORT imports.gms
   $IMPORT production_CET.gms;
-  $IMPORT emissions.gms; 
-  $IMPORT energy_and_emissions_taxes.gms; 
+  $IMPORT emissions.gms
+  $IMPORT energy_and_emissions_taxes.gms
   $IMPORT input_output.gms
   $IMPORT households.gms
   $IMPORT government.gms
@@ -95,15 +95,15 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT submodel_template.gms
   $IMPORT financial_accounts.gms
   $IMPORT labor_market.gms
-  $IMPORT energy_markets.gms;
-  $IMPORT non_energy_markets.gms; 
-  $IMPORT production_CES_energydemand.gms; 
-  $IMPORT production.gms; 
-  $IMPORT pricing.gms; 
+  $IMPORT energy_markets.gms
+  $IMPORT non_energy_markets.gms 
+  $IMPORT production_CES_energydemand.gms 
+  $IMPORT production.gms 
+  $IMPORT pricing.gms 
   $IMPORT imports.gms
-  $IMPORT production_CET.gms;
-  $IMPORT emissions.gms; 
-  $IMPORT energy_and_emissions_taxes.gms; 
+  $IMPORT production_CET.gms
+  $IMPORT emissions.gms 
+  $IMPORT energy_and_emissions_taxes.gms 
   $IMPORT input_output.gms
   $IMPORT households.gms
   $IMPORT government.gms
@@ -127,15 +127,15 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT submodel_template.gms
   $IMPORT financial_accounts.gms
   $IMPORT labor_market.gms
-  $IMPORT energy_markets.gms; #Energy-markets need to be before industries_CES_energydemand in terms of getting levels loaded for qREa
-  $IMPORT non_energy_markets.gms;
-  $IMPORT production_CES_energydemand.gms; 
-  $IMPORT production.gms; 
-  $IMPORT pricing.gms; 
+  $IMPORT energy_markets.gms #Energy-markets need to be before industries_CES_energydemand in terms of getting levels loaded for qREa
+  $IMPORT non_energy_markets.gms
+  $IMPORT production_CES_energydemand.gms 
+  $IMPORT production.gms 
+  $IMPORT pricing.gms 
   $IMPORT imports.gms
   $IMPORT production_CET.gms;
-  $IMPORT emissions.gms; 
-  $IMPORT energy_and_emissions_taxes.gms; 
+  $IMPORT emissions.gms 
+  $IMPORT energy_and_emissions_taxes.gms 
   $IMPORT input_output.gms
   $IMPORT households.gms
   $IMPORT government.gms

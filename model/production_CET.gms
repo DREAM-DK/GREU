@@ -61,6 +61,7 @@ $IF %stage% == "exogenous_values":
   # Exogenous variables 
   # ------------------------------------------------------------------------------
   eCET.l[i] = 5;
+  pY0_CET.l[out,i,t] = pY_CET.l[out,i,t]; #Initial value to help solver
 
 $ENDIF # exogenous_values
 

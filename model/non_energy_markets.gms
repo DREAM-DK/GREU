@@ -172,13 +172,13 @@ $ENDIF
 		# ------------------------------------------------------------------------------
 
 				
-		pY_i_d_non_ene.l[i,d_non_ene,t]$(vY_i_d_non_ene.l[i,d_non_ene,t]> 1e-6) = 1;
-		pM_i_d_non_ene.l[i,d_non_ene,t]$(vM_i_d_non_ene.l[i,d_non_ene,t]> 1e-6) = 1;
-		qY_i_d_non_ene.l[i,d_non_ene,t]$(vY_i_d_non_ene.l[i,d_non_ene,t]> 1e-6) = vY_i_d_non_ene.l[i,d_non_ene,t] - vtY_i_d_non_ene.l[i,d_non_ene,t];
-		qM_i_d_non_ene.l[i,d_non_ene,t]$(vM_i_d_non_ene.l[i,d_non_ene,t]> 1e-6) = vM_i_d_non_ene.l[i,d_non_ene,t] - vtM_i_d_non_ene.l[i,d_non_ene,t];
+		pY_i_d_non_ene.l[i,d_non_ene,t]$(abs(vY_i_d_non_ene.l[i,d_non_ene,t])> 1e-6) = 1;
+		pM_i_d_non_ene.l[i,d_non_ene,t]$(abs(vM_i_d_non_ene.l[i,d_non_ene,t])> 1e-6) = 1;
+		qY_i_d_non_ene.l[i,d_non_ene,t]$(abs(vY_i_d_non_ene.l[i,d_non_ene,t])> 1e-6) = vY_i_d_non_ene.l[i,d_non_ene,t] - vtY_i_d_non_ene.l[i,d_non_ene,t];
+		qM_i_d_non_ene.l[i,d_non_ene,t]$(abs(vM_i_d_non_ene.l[i,d_non_ene,t])> 1e-6) = vM_i_d_non_ene.l[i,d_non_ene,t] - vtM_i_d_non_ene.l[i,d_non_ene,t];
 		
-		vY_i_d_non_ene.l[i,d_non_ene,t]$(vY_i_d_non_ene.l[i,d_non_ene,t] <1e-6) = 0;
-		vM_i_d_non_ene.l[i,d_non_ene,t]$(vM_i_d_non_ene.l[i,d_non_ene,t] <1e-6) = 0;
+		vY_i_d_non_ene.l[i,d_non_ene,t]$(abs(vY_i_d_non_ene.l[i,d_non_ene,t]) <1e-6) = 0;
+		vM_i_d_non_ene.l[i,d_non_ene,t]$(abs(vM_i_d_non_ene.l[i,d_non_ene,t]) <1e-6) = 0;
 
 		rYM_non_ene.l[i,d_non_ene,t]$(vY_i_d_non_ene.l[i,d_non_ene,t] or vM_i_d_non_ene.l[i,d_non_ene,t]) = (vY_i_d_non_ene.l[i,d_non_ene,t] + vM_i_d_non_ene.l[i,d_non_ene,t])/sum(d_non_ene_a, vY_i_d_non_ene.l[i,d_non_ene_a,t] + vM_i_d_non_ene.l[i,d_non_ene_a,t]);
 		rM_non_ene.l[i,d_non_ene,t]$(vM_i_d_non_ene.l[i,d_non_ene,t] and not vY_i_d_non_ene.l[i,d_non_ene,t]) = vM_i_d_non_ene.l[i,d_non_ene,t]/(vM_i_d_non_ene.l[i,d_non_ene,t] + vY_i_d_non_ene.l[i,d_non_ene,t]);
