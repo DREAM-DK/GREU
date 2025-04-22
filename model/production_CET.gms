@@ -43,7 +43,10 @@ $IF %stage% == "equations":
   model main /production_CET
               production_CET_links
               /;
-  $Group+ main_endogenous production_CET_endogenous production_CET_links_endogenous;
+  $Group+ main_endogenous 
+          production_CET_endogenous 
+          production_CET_links_endogenous
+          ;
 
 $ENDIF # equations
 
@@ -88,13 +91,14 @@ $IF %stage% == "calibration":
   # Add endogenous variables to calibration model
   $Group calibration_endogenous
     production_CET_endogenous
-    production_CET_links_endogenous
-    production_CET_calibration_endogenous
-
     -pY_CET[out,i,t1], uY_CET[out,i,t1]
     -pY0_i[i,t1], rMarkup_out_i_calib[i,t1]
+
+    production_CET_links_endogenous
     jvY_i[i,t1]
-    
+
+    production_CET_calibration_endogenous
+
     calibration_endogenous
   ;
 

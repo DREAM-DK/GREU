@@ -205,6 +205,7 @@ $Group calibration_endogenous
 
 $Group+ G_flat_after_last_data_year
   uProd
+  qPFtop2qY
 ;
 
 $ENDIF # calibration
