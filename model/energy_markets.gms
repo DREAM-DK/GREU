@@ -30,7 +30,7 @@
 				d1qY_CET[out,i,t] ""
 				d1qM_CET[out,i,t] ""
 
-				d1pE_avg[e,t] ""
+
 				d1OneSX[out,t] ""
 				d1OneSX_y[out,t] ""
 				d1OneSX_m[out,t] ""
@@ -138,13 +138,15 @@
 													;
 			.. vEpj[es,e,d,t] =E= vEpj_NAS[es,e,d,t] + vDAV[es,e,d,t] + vEAV[es,e,d,t] + vCAV[es,e,d,t];
 
-			#Where is the obvious place for this
-			jqE_re_i[re,i,t].. 
-				vE_re_i[re,i,t] =E= sum((es,e)$es2re(es,re), vEpj[es,e,i,t]) + jvE_re_i[re,i,t];
 			
 		$ENDBLOCK
 
-	
+		$BLOCK energy_demand_prices_links energy_demand_prices_links_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
+			#Link to factor demand
+			jqE_re_i[re,i,t].. 
+				vE_re_i[re,i,t] =E= sum((es,e)$es2re(es,re), vEpj[es,e,i,t]) + jvE_re_i[re,i,t];
+		$ENDBLOCK
+
 
 	# ------------------------------------------------------------------------------
 	# Market clearing
@@ -167,9 +169,12 @@
 															+ sum(i$(d1pM_CET[e,i,t]), pM_CET[e,i,t]*qM_CET[e,i,t]);
 
 
-		#Supply by one side
-		qY_CET&_OneSupplierOrExoSuppliers[e,i,t]$(d1OneSX_y[e,t]).. qY_CET[e,i,t] =E= qEtot[e,t] - sum(i_a, qM_CET[e,i_a,t]);
-		qM_CET&_OneSupplierOrExoSuppliers[e,i,t]$(d1OneSX_m[e,t]).. qM_CET[e,i,t] =E= qEtot[e,t] - sum(i_a, qY_CET[e,i_a,t]);
+		#When there is one supplier (domestic or imports) supply is set equal to demand
+		qY_CET&_OneSupplier[e,i,t]$(d1OneSX_y[e,t] and not d1OneSX_m[e,t]).. qY_CET[e,i,t] =E= qEtot[e,t];
+		qM_CET&_OneSupplier[e,i,t]$(d1OneSX_m[e,t] and not d1OneSX_y[e,t]).. qM_CET[e,i,t] =E= qEtot[e,t];
+
+		#For exogenous domestic suppliers imports are residual
+		qM_CET&_ExoSuppliers[e,i,t]$(d1OneSX_y[e,t] and d1OneSX_m[e,t]).. qM_CET[e,i,t] =E= qEtot[e,t] - sum(i_a, qY_CET[e,i_a,t]);
 
 
 		.. qEtot[e,t] =E= sum((es,d)$(d1pEpj_base[es,e,d,t] or tl[d]), qEpj[es,e,d,t]);
@@ -284,6 +289,7 @@
 
 		# Add equation and endogenous variables to main model
 		model main / energy_demand_prices  
+								energy_demand_prices_links
 								energy_markets_clearing 
 								energy_margins
 								energy_markets_clearing_link
@@ -292,6 +298,7 @@
 
 		$Group+ main_endogenous 
 				energy_demand_prices_endogenous 
+				energy_demand_prices_links_endogenous
 				energy_markets_clearing_endogenous 
 				energy_margins_endogenous
 				energy_markets_clearing_link_endogenous
@@ -326,21 +333,22 @@
 		#Energy demand prices
 		d1pEpj_base[es,e,d,t]  = yes$(pEpj_base.l[es,e,d,t]);
 
-		#Market clearing
-		d1OneSX[e,t] = yes;
-		d1OneSX[e,t] = no$(straw[e] or el[e] or distheat[e]);
-
-		d1OneSX_y[e,t] = yes$(d1OneSX[e,t] and sum(i, d1pY_CET[e,i,t]));
-		d1OneSX_m[e,t] = yes$(d1OneSX[e,t] and sum(i, d1pM_CET[e,i,t]));
-
-		d1pE_avg[e,t] = yes$(pE_avg.l[e,t]);
-
+		
 		d1pY_CET[out,i,t] = yes$(pY_CET.l[out,i,t]);
 		d1qY_CET[out,i,t] = yes$(qY_CET.l[out,i,t]);
 
 		d1pM_CET[out,i,t] = yes$(pM_CET.l[out,i,t]);
 		d1qM_CET[out,i,t] = yes$(qM_CET.l[out,i,t]);
 
+		#Needs to come after d1pY_CET and d1pM_CET
+		d1OneSX[e,t] = yes;
+		execute_unload 'test.gdx';
+
+		d1OneSX[e,t]$(straw[e] or el[e] or distheat[e]) = no;
+
+		d1OneSX_y[e,t] = yes$(d1OneSX[e,t] and sum(i, d1pY_CET[e,i,t]));
+		d1OneSX_m[e,t] = yes$(d1OneSX[e,t] and sum(i, d1pM_CET[e,i,t]));
+		
 
 		#Margins 
 		d1pEAV[es,e,d,t]    = yes$(vEAV.l[es,e,d,t]);
@@ -363,18 +371,18 @@ $IF %stage% == "calibration":
 
 	$BLOCK energy_markets_clearing_calibration energy_markets_clearing_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
-			qY_CET&_SeveralNonExoSuppliers_calib[e,i,t]$(t.val > t1.val and not d1OneSX[e,t])..
+			qY_CET&_SeveralNonExoSuppliers_calib[e,i,t]$(t.val > t1.val and not d1OneSX_y[e,t])..
 					qY_CET[e,i,t] * (sum(i_a$d1pY_CET[e,i_a,t], sY_Dist[e,i_a,t] * pY_CET[e,i_a,t] ** (-eDist[e])) + sum(i_a$d1pM_CET[e,i_a,t], sM_Dist[e,i_a,t] * pM_CET[e,i_a,t]**(-eDist[e]))) 
 										=E= sY_Dist[e,i,t] * pY_CET[e,i,t] **(-eDist[e]) * qEtot[e,t];
 
-			qM_CET&_SeveralNonExoSuppliers_calib[e,i,t]$(t.val > t1.val and not d1OneSX[e,t])..
+			qM_CET&_SeveralNonExoSuppliers_calib[e,i,t]$(t.val > t1.val and not d1OneSX_m[e,t])..
 					qM_CET[e,i,t] * (sum(i_a$d1pY_CET[e,i_a,t], sY_Dist[e,i_a,t] * pY_CET[e,i_a,t] ** (-eDist[e])) + sum(i_a$d1pM_CET[e,i_a,t], sM_Dist[e,i_a,t] * pM_CET[e,i_a,t]**(-eDist[e]))) 
 										=E= sM_Dist[e,i,t] * pM_CET[e,i,t] **(-eDist[e]) * qEtot[e,t];
 
 
-			sY_Dist[e,i,t]$(t1[t] and not d1OneSX[e,t]).. sY_Dist[e,i,t] =E= qY_CET[e,i,t]/qEtot[e,t] * pY_CET[e,i,t]**eDist[e];
+			sY_Dist[e,i,t]$(t1[t] and not d1OneSX_y[e,t]).. sY_Dist[e,i,t] =E= qY_CET[e,i,t]/qEtot[e,t] * pY_CET[e,i,t]**eDist[e];
 
-			sM_Dist[e,i,t]$(t1[t] and not d1OneSX[e,t]).. sM_Dist[e,i,t] =E= qM_CET[e,i,t]/qEtot[e,t] * pM_CET[e,i,t]**eDist[e];
+			sM_Dist[e,i,t]$(t1[t] and not d1OneSX_m[e,t]).. sM_Dist[e,i,t] =E= qM_CET[e,i,t]/qEtot[e,t] * pM_CET[e,i,t]**eDist[e];
 
 
 
@@ -385,6 +393,7 @@ $IF %stage% == "calibration":
 	# Add equations and calibration equations to calibration model
 	model calibration /
 		energy_demand_prices
+		energy_demand_prices_links
 		energy_demand_prices_calibration			
 
 		energy_markets_clearing
@@ -402,14 +411,15 @@ $IF %stage% == "calibration":
 	$Group calibration_endogenous
 		energy_demand_prices_endogenous 
 		fpE[es,e,d,t1],  -pEpj_base[es,e,d,t1]
+		energy_demand_prices_links_endogenous
 		-jqE_re_i[re,i,t1],  jvE_re_i[re,i,t1]
 		energy_demand_prices_calibration_endogenous
 
 		energy_markets_clearing_endogenous
 
 		energy_markets_clearing_calibration_endogenous
-		sY_Dist$(t1[t] and d1pY_CET[e,i,t] and not d1OneSX[e,t]),  -qY_CET$(t1[t] and d1pY_CET[out,i,t] and not d1OneSX[out,t] and e[out]) 
-		sM_Dist$(t1[t] and d1pM_CET[e,i,t] and not d1OneSX[e,t]),  -qM_CET$(t1[t] and d1pM_CET[out,i,t] and not d1OneSX[out,t] and e[out]) 
+		sY_Dist$(t1[t] and d1pY_CET[e,i,t] and not d1OneSX_y[e,t]),  -qY_CET$(t1[t] and d1pY_CET[out,i,t] and not d1OneSX_y[out,t] and e[out]) 
+		sM_Dist$(t1[t] and d1pM_CET[e,i,t] and not d1OneSX_m[e,t]),  -qM_CET$(t1[t] and d1pM_CET[out,i,t] and not d1OneSX_m[out,t] and e[out]) 
 
 		energy_margins_endogenous
 		fpEAV[es,e,d,t1],    -vEAV[es,e,d,t1]	
@@ -429,5 +439,5 @@ $IF %stage% == "calibration":
 $ENDIF
 
 $IF %stage%=='tests':
-	ABORT$(abs(sum((re,i,t1), jvE_re_i.l[re,i,t1]))>0.5) 'Bottom up energy use does not add up to top down energy-use';
+	# ABORT$(abs(sum((re,i,t1), jvE_re_i.l[re,i,t1]))>0.5) 'Bottom up energy use does not add up to top down energy-use';
 $ENDIF

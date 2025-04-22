@@ -321,16 +321,22 @@ qD_non_ene[d_non_ene,t] = qD[d_non_ene,t];
 
   pEpj_base[es,e,d,t]$(sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t])) = sum(demand_transaction_temp, Energybalance['BASE',demand_transaction_temp,d,es,e,t])/sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
   qEpj[es,e,d,t] = sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
-
+ 
   vEAV[es,e,d,t] = sum(demand_transaction_temp, Energybalance['EAV',demand_transaction_temp,d,es,e,t]);
   vCAV[es,e,d,t] = sum(demand_transaction_temp, Energybalance['CAV',demand_transaction_temp,d,es,e,t]);
   vDAV[es,e,d,t] = sum(demand_transaction_temp, Energybalance['DAV',demand_transaction_temp,d,es,e,t]);
 
   qY_CET[e,i,t] = sum(es, Energybalance['PJ','production',i,es,e,t]);
+
+  #Corrections for non-priced energy in data
+  qY_CET['Electricity','35011',t]               = qY_CET['Electricity','35011',t] -0.000001;
+  qY_CET['Straw for energy purposes','01011',t] = qY_CET['Straw for energy purposes','01011',t] -4.564215;
+  qY_CET['Straw for energy purposes','01012',t] = qY_CET['Straw for energy purposes','01012',t] -0.173631;
+
   qM_CET[e,i,t] = sum(es, Energybalance['PJ','imports',i,es,e,t]);
 
-  pY_CET[e,i,t]$(sum(es,Energybalance['PJ','production',i,es,e,t])) = sum(es,Energybalance['BASE','production',i,es,e,t])/sum(es,Energybalance['PJ','production',i,es,e,t]);
-  pM_CET[e,i,t]$(sum(es,Energybalance['PJ','imports',i,es,e,t])) = sum(es,Energybalance['BASE','imports',i,es,e,t])/sum(es,Energybalance['PJ','imports',i,es,e,t]);
+  pY_CET[e,i,t]$(qY_CET[e,i,t]) = sum(es,Energybalance['BASE','production',i,es,e,t])/qY_CET[e,i,t];
+  pM_CET[e,i,t]$(qM_CET[e,i,t]) = sum(es,Energybalance['BASE','imports',i,es,e,t])/qM_CET[e,i,t];
 
 #Emissions
   qEmmE_BU[em,es,e,d,t]     = sum(demand_transaction_temp,Energybalance[em,demand_transaction_temp,d,es,e,t]);

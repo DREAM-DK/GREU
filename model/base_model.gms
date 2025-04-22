@@ -62,15 +62,15 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT submodel_template.gms
   $IMPORT financial_accounts.gms
   $IMPORT labor_market.gms
-  $IMPORT energy_markets.gms #Energy-markets need to be before production_CES_energydemand in terms of getting levels loaded for qREa
+  $IMPORT energy_markets.gms #Energy-markets need to be before industries_CES_energydemand in terms of getting levels loaded for qREa
   $IMPORT non_energy_markets.gms
-  $IMPORT production_CES_energydemand.gms
-  $IMPORT production.gms
-  $IMPORT pricing.gms
+  $IMPORT production_CES_energydemand.gms 
+  $IMPORT production.gms 
+  $IMPORT pricing.gms 
   $IMPORT imports.gms
-  $IMPORT production_CET.gms;
-  $IMPORT emissions.gms
-  $IMPORT energy_and_emissions_taxes.gms
+  # $IMPORT production_CET.gms;
+  $IMPORT emissions.gms 
+  $IMPORT energy_and_emissions_taxes.gms 
   $IMPORT input_output.gms
   $IMPORT households.gms
   $IMPORT government.gms
@@ -133,7 +133,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT production.gms 
   $IMPORT pricing.gms 
   $IMPORT imports.gms
-  $IMPORT production_CET.gms;
+  # $IMPORT production_CET.gms;
   $IMPORT emissions.gms 
   $IMPORT energy_and_emissions_taxes.gms 
   $IMPORT input_output.gms
@@ -162,6 +162,7 @@ $IMPORT calibration.gms
 # Zero shock  -  Abort if a zero shock changes any variables significantly
 @set(all_variables, _saved, .l)
 $FIX all_variables; $UNFIX main_endogenous;
+execute_unload 'main_pre.gdx';
 Solve main using CNS;
 @assert_no_difference(all_variables, 1e-6, .l, _saved, "Zero shock changed variables significantly.");
 
