@@ -49,4 +49,3 @@ set es2re(es,re)
        transport . heating_energy
        (process_normal,process_special,in_ETS) . heating_energy 
        /;
-     

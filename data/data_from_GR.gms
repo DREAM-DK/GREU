@@ -88,6 +88,11 @@ Energybalance['pj','production','35011','unspecified','electricity',t] = Energyb
 vIOxE_y['35002',d,t] = 0; vIOxE_y['19000',d,t] = 0; vIOxE_y['38393',d,t] = 0; #This hack £
 vIOxE_m['35002',d,t] = 0; vIOxE_m['19000',d,t] = 0; vIOxE_m['38393',d,t] = 0; 
 
+#Move all 
+vIO_y['13150',d_ene,t] = 0; vIOxE_y['13150',d_ene,t] = 0; vIOE_y['13150',d,t] = 0;
+vIOxE_y['13150',d,t] = vIO_y['13150',d,t];
+
+
 vIOE_y[i,d,t]         = vIO_y[i,d,t] - vIOxE_y[i,d,t];
 vIOE_m[i,d,t]         = vIO_m[i,d,t] - vIOxE_m[i,d,t];
 vIOE_a[a_rows_,d,t]   = vIO_a[a_rows_,d,t] - vIOxE_a[a_rows_,d,t];
@@ -99,6 +104,7 @@ vIOE_a[a_rows_,'xENE',t] =vIOE_a[a_rows_,'xOth',t]; vIOE_a[a_rows_,'xOth',t] = 0
 vIOE_y[i,'invt_ene',t]      = vIOE_y[i,'invt',t];       vIOE_y[i,'invt',t] = 0; 
 vIOE_m[i,'invt_ene',t]      = vIOE_m[i,'invt',t];       vIOE_m[i,'invt',t] = 0;
 vIOE_a[a_rows_,'invt_ene',t] =vIOE_a[a_rows_,'invt',t]; vIOE_a[a_rows_,'invt',t] = 0;
+execute_unload 'test.gdx';
 
 #Tests of energy-IO and energybalance
 Parameter testvY[i,t], testvM[i,t];
@@ -145,6 +151,7 @@ vIO_m[i,d,t]$(not sameas[i,'19000']) = vIO_m[i,d,t] - vIOE_m[i,d,t];
 vIOE_m['19000',d,t] = vIOE_m['19000',d,t] + sum(i$(not sameas[i,'19000']), vIOE_m[i,d,t]);
 vIOE_m[i,d,t]$(not sameas[i,'19000']) = 0;
 
+
 #We can now add energy-IO to our IO-matrix
 #£Temp
 vIO_y[i,'heating_energy',t] = sum(i_a,vIOE_y[i,i_a,t]);
@@ -167,7 +174,6 @@ vIOE_a[a_rows_,'heating_energy',t] = sum(rx, vIOE_a[a_rows_,'heating_energy',t])
 vIOE_y[i,rx,t] = 0;
 vIOE_m[i,rx,t] = 0;
 vIOE_a[a_rows_,rx,t] = 0;
-execute_unload 'test.gdx';
 @test_data_1(vIOE_y);
 
 m[i] = yes$sum((d,t1), vIO_m[i,d,t1]);
@@ -337,8 +343,6 @@ qD_non_ene[d_non_ene,t] = qD[d_non_ene,t];
      + sum((demand_transaction_temp,es), Energybalance['PJ',demand_transaction_temp,'tl',es,e,t]);
 
   diff_demand_supply[e,t] = total_demand[e,t] - total_supply[e,t];
-  display diff_demand_supply;
-  execute_unload 'test.gdx';
 
 
   #Corrections for non-priced energy in data

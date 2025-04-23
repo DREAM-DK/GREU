@@ -17,7 +17,7 @@ $IF %stage% == "variables":
         tY_i_d_non_ene[i,d,t]$(d1Y_i_d_non_ene[i,d,t]) ""
         vtY_i_d_non_ene[i,d,t]$(d1Y_i_d_non_ene[i,d,t]) ""
         jqY_i_d_non_ene[i,d,t]$(d1Y_i_d_non_ene[i,d,t]) ""
-        jqY_i_d[i,re,t]$(d1Y_i_d[i,re,t]) ""
+        jqY_i_d[i,d,t]$(d1Y_i_d[i,d,t]) ""
 
         vM_i_d_non_ene[i,d,t]$(d1M_i_d_non_ene[i,d,t]) ""
         qM_i_d_non_ene[i,d,t]$(d1M_i_d_non_ene[i,d,t]) ""
@@ -25,7 +25,7 @@ $IF %stage% == "variables":
         tM_i_d_non_ene[i,d,t]$(d1M_i_d_non_ene[i,d,t]) ""
         vtM_i_d_non_ene[i,d,t]$(d1M_i_d_non_ene[i,d,t]) ""
         jqM_i_d_non_ene[i,d,t]$(d1M_i_d_non_ene[i,d,t]) ""
-        jqM_i_d[i,re,t]$(d1M_i_d[i,re,t]) ""
+        jqM_i_d[i,d,t]$(d1M_i_d[i,d,t]) ""
 
 
         rM_non_ene[i,d,t]$(d1M_i_d_non_ene[i,d,t] or d1M_i_d_non_ene[i,d,t]) ""

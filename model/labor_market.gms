@@ -23,6 +23,7 @@ $Group+ all_variables
   uPhillipsCurveEmpl[t] "Sensitivity of wages to deviations from structural employment."
   uPhillipsCurveExpWage[t] "Sensitivity of wages to expected future wages."
   jnL[t] "Deviations from Phillips curve. Can be used to override the Phillips curve model."
+
 ;
 
 $ENDIF # variables

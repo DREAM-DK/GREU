@@ -2,6 +2,7 @@ Set d "Demand components.";
 Set d_non_ene[d<];
 Alias(d_non_ene,d_non_ene_a);
 Set d_ene[d<];
+Alias(d_ene,d_ene_a);
 # Set re[d<] "Energy types" /energy/;
 Set re[d<] "Intermediate energy-input";
 Set rx[d<] "Intermediate input types other than energy.";
@@ -22,11 +23,12 @@ Set d_non_ene2i(d,i);
 Set d_non_ene2k(d,k);
 
 $gdxIn ../data/data.gdx
-$load d, d_non_ene, d
+$load d, d_non_ene, d_ene
 $load i, m
 $load rx=i, re, k, c, g, x,tl,invt, invt_ene
 $gdxIn
 ;
+
 
 i2rx(i,rx) = yes$(sameas[i,rx]);
 d_non_ene2i(d_non_ene,i) = yes$(sameas[d_non_ene,i]);
