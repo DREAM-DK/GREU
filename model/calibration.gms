@@ -18,9 +18,13 @@ $FIX all_variables; $UNFIX calibration_endogenous;
 
 execute_unload 'static_calibration_pre.gdx';
 solve calibration using CNS;
-PARAMETER qY_i_d_test[i,d,t], qM_i_d_test[i,d,t];
+PARAMETER qY_i_d_test[i,d,t], qM_i_d_test[i,d,t], pD_test[d,t];
+$FUNCTION compute_tests():
 qY_i_d_test[i,d_non_ene,tBase] = qY_i_d.l[i,d_non_ene,tBase]/(1+tY_i_d.l[i,d_non_ene,tBase]) - qY_i_d_non_ene.l[i,d_non_ene,tBase];
 qM_i_d_test[i,d_non_ene,tBase] = qM_i_d.l[i,d_non_ene,tBase]/(1+tM_i_d.l[i,d_non_ene,tBase]) - qM_i_d_non_ene.l[i,d_non_ene,tBase];
+pD_test[d_non_ene,t] = pD.l[d_non_ene,t] - pD_non_ene.l[d_non_ene,t];
+$ENDFUNCTION 
+@compute_tests();
 execute_unload 'static_calibration.gdx';
 # ABORT$(abs((sum((i,d_non_ene,t)$(tBase[t] and not (sameas[i,'35002'] and sameas[d_non_ene,'im'])), qY_i_d_test[i,d_non_ene,t] + qM_i_d_test[i,d_non_ene,t]))>1-4)) 'IO doesnt match';
 
@@ -75,4 +79,5 @@ $ENDLOOP
 $FIX all_variables; $UNFIX calibration_endogenous;
 execute_unloaddi "calibration_pre.gdx";
 solve calibration using CNS;
+@compute_tests();
 execute_unloaddi "calibration.gdx";

@@ -328,10 +328,26 @@ qD_non_ene[d_non_ene,t] = qD[d_non_ene,t];
 
   qY_CET[e,i,t] = sum(es, Energybalance['PJ','production',i,es,e,t]);
 
+  parameter total_supply[e,t], total_demand[e,t], diff_demand_supply[e,t];
+  total_supply[e,t]$(sum((es,i), Energybalance['BASE','production',i,es,e,t]) or sum((es,i), Energybalance['BASE','imports',i,es,e,t])) 
+    = sum((es,i), Energybalance['PJ','production',i,es,e,t]) + sum((es,i), Energybalance['PJ','imports',i,es,e,t]);
+
+  total_demand[e,t]  
+    = sum((demand_transaction_temp,d,es)$Energybalance['BASE',demand_transaction_temp,d,es,e,t], Energybalance['PJ',demand_transaction_temp,d,es,e,t])
+     + sum((demand_transaction_temp,es), Energybalance['PJ',demand_transaction_temp,'tl',es,e,t]);
+
+  diff_demand_supply[e,t] = total_demand[e,t] - total_supply[e,t];
+  display diff_demand_supply;
+  execute_unload 'test.gdx';
+
+
   #Corrections for non-priced energy in data
-  qY_CET['Electricity','35011',t]               = qY_CET['Electricity','35011',t] -0.000001;
-  qY_CET['Straw for energy purposes','01011',t] = qY_CET['Straw for energy purposes','01011',t] -4.564215;
-  qY_CET['Straw for energy purposes','01012',t] = qY_CET['Straw for energy purposes','01012',t] -0.173631;
+  # qY_CET['Electricity','35011',t]               = qY_CET['Electricity','35011',t] -0.000001;
+  # qY_CET['Straw for energy purposes','01011',t] = qY_CET['Straw for energy purposes','01011',t] -4.564215;
+  # qY_CET['Straw for energy purposes','01012',t] = qY_CET['Straw for energy purposes','01012',t] -0.173631;
+
+  qY_CET['Electricity','35011',t] = qY_CET['Electricity','35011',t] + diff_demand_supply['electricity',t];
+  qY_CET['Straw for energy purposes','01011',t] = qY_CET['Straw for energy purposes','01011',t] + diff_demand_supply['Straw for energy purposes',t];
 
   qM_CET[e,i,t] = sum(es, Energybalance['PJ','imports',i,es,e,t]);
 
