@@ -49,3 +49,11 @@ set es2re(es,re)
        transport . heating_energy
        (process_normal,process_special,in_ETS) . heating_energy 
        /;
+
+set es_d2d(es,d_a,d)/
+     (heating,appliances) . cHouEne . cHouEne
+     transport . cCarEne . cCarEne
+     set.es . set.i . heating_energy
+     set.es . xEne . xEne 
+     set.es . invt_ene . invt_ene
+     /;

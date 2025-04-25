@@ -76,14 +76,15 @@ $load NonEnergyEmissions=NonEnergyemissions.l
 set demand_transaction_temp[transaction] /'input_in_production','household_consumption','inventory','export','transmission_losses'/;
 set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','cav','nox_tax','so2_tax','vat','base'/;
 
-#Rettelser 
+#Rettelser og data-hacks
+
+Energybalance[ebalitems,'export','xEne',es,e,t]       = Energybalance[ebalitems,'export','xOth',es,e,t];   Energybalance[ebalitems,'export','xOth',es,e,t]   = 0;
+Energybalance[ebalitems,'inventory','invt_ene',es,e,t] = Energybalance[ebalitems,'inventory','invt',es,e,t]; Energybalance[ebalitems,'inventory','invt',es,e,t] = 0;
+
 
 Energybalance[ebalitems,transaction,d,es,e,t]$(Energybalance['BASE',transaction,d,es,e,t] and Energybalance['BASE',transaction,d,es,e,t]<1e-6) = no; 
 Energybalance['pj','input_in_production','35011','process_special','electricity',t] = Energybalance['base','input_in_production','35011','process_special','electricity',t]/0.1;
 Energybalance['pj','production','35011','unspecified','electricity',t] = Energybalance['pj','production','35011','unspecified','electricity',t] + Energybalance['pj','input_in_production','35011','process_special','electricity',t];
-
-
-#Energy-IO
 
 vIOxE_y['35002',d,t] = 0; vIOxE_y['19000',d,t] = 0; vIOxE_y['38393',d,t] = 0; #This hack £
 vIOxE_m['35002',d,t] = 0; vIOxE_m['19000',d,t] = 0; vIOxE_m['38393',d,t] = 0; 
@@ -92,7 +93,11 @@ vIOxE_m['35002',d,t] = 0; vIOxE_m['19000',d,t] = 0; vIOxE_m['38393',d,t] = 0;
 vIO_y['13150',d_ene,t] = 0; vIOxE_y['13150',d_ene,t] = 0; vIOE_y['13150',d,t] = 0;
 vIOxE_y['13150',d,t] = vIO_y['13150',d,t];
 
+vIO_y['20000',d_ene,t] = 0; vIOxE_y['20000',d_ene,t] = 0; vIOE_y['20000',d,t] = 0;
+vIOxE_y['20000',d,t]   = vIO_y['20000',d,t];
 
+
+#Energy-IO
 vIOE_y[i,d,t]         = vIO_y[i,d,t] - vIOxE_y[i,d,t];
 vIOE_m[i,d,t]         = vIO_m[i,d,t] - vIOxE_m[i,d,t];
 vIOE_a[a_rows_,d,t]   = vIO_a[a_rows_,d,t] - vIOxE_a[a_rows_,d,t];
@@ -104,7 +109,10 @@ vIOE_a[a_rows_,'xENE',t] =vIOE_a[a_rows_,'xOth',t]; vIOE_a[a_rows_,'xOth',t] = 0
 vIOE_y[i,'invt_ene',t]      = vIOE_y[i,'invt',t];       vIOE_y[i,'invt',t] = 0; 
 vIOE_m[i,'invt_ene',t]      = vIOE_m[i,'invt',t];       vIOE_m[i,'invt',t] = 0;
 vIOE_a[a_rows_,'invt_ene',t] =vIOE_a[a_rows_,'invt',t]; vIOE_a[a_rows_,'invt',t] = 0;
-execute_unload 'test.gdx';
+
+vIOE_y['35002','invt_ene',t] = 0; #No energy-inventories in energybalances from 35002....
+vIOE_y['02000','invt_ene',t] = 0; #No energy-inventories in energybalances from 02000....
+
 
 #Tests of energy-IO and energybalance
 Parameter testvY[i,t], testvM[i,t];

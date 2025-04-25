@@ -1,4 +1,5 @@
 Set d "Demand components.";
+Alias(d,d_a);
 Set d_non_ene[d<];
 Alias(d_non_ene,d_non_ene_a);
 Set d_ene[d<];

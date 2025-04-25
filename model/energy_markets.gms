@@ -114,7 +114,7 @@
 				sCorr[d,e,i,t]$(d1Y_i_d[i,d,t] and d_ene[d] and d1pY_CET[e,i,t]) ""
 				adj_sCorr[e,i,t]$(d1pY_CET[e,i,t]) ""
 				j_adj_sCorr[e,i] "" 
-				sCorr_calib[d_ene,i]  ""
+				sCorr_calib[d,i]  ""
 			;
 
 		#AGGREGATE DATA-GROUP 
@@ -278,29 +278,29 @@
 					# 		=E= sum((e,es,i_a)$es2re(es,re),  sSupply_e_i_m[e,i,t] * vEpj_NAS[es,e,i_a,t]) + vM_i_d_calib[i,re,t]; 
 
 
-					sCorr[d_ene,e,i,t]$(t.val>tDataEnd.val)..
-						sCorr[d_ene,e,i,t] =E= sCorr[d_ene,e,i,tDataEnd] * adj_sCorr[e,i,t];
+					# sCorr[d_ene,e,i,t]$(t.val>tDataEnd.val)..
+					# 	sCorr[d_ene,e,i,t] =E= sCorr[d_ene,e,i,tDataEnd] * adj_sCorr[e,i,t];
 
 
-					adj_sCorr[e,i,t]..					
-						sum(d, sCorr[d,e,i,t] * sum(es, pEpj_base[es,e,d,t]*qEpj[es,e,d,t])) =E= pY_CET[e,i,t] * qY_CET[e,i,t] + j_adj_sCorr[e,i]$(tDataEnd[t]);
+					# adj_sCorr[e,i,t]..					
+					# 	sum(d, sum((es,d_a)$es_d2d(es,d_a,d), sCorr[d,e,i,t] * pEpj_base[es,e,d_a,t]*qEpj[es,e,d_a,t])) =E= pY_CET[e,i,t] * qY_CET[e,i,t] + j_adj_sCorr[e,i]$(tDataEnd[t]);
 
 
 					rYM[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
-						qY_i_d[i,d,t]*pY_i_d[i,d,tBase] =E= sum((e,es),  sCorr[d,e,i,t] * pEpj_base[es,e,d,tBase] * qEpj[es,e,d,t]) + jqY_i_d[i,d,t];
+						qY_i_d[i,d,t]*pY_i_d[i,d,tBase]/(1+tY_i_d[i,d,t]) =E=  sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t])  + jqY_i_d[i,d,t];
 
 
 					rYM&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
-						qY_i_d[i,d,t]*pY_i_d[i,d,tBase] =E= sum((e,es) , pDAV[es,e,d,tBase] * qEpj[es,e,d,t]$(i_retail[i]) 
-																																						 + pCAV[es,e,d,tBase] * qEpj[es,e,d,t]$(i_cardealers[i]) 
-																																						 + pEAV[es,e,d,tBase] * qEpj[es,e,d,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
+						qY_i_d[i,d,t]*pY_i_d[i,d,tBase]/(1+tY_i_d[i,d,t])  =E= sum((e,es,d_a)$es_d2d(es,d_a,d) , pDAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_retail[i]) 
+																																					   	  + pCAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
+																																					   	  + pEAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
 
 					#NOTE THAT THIS IS RM0 (not RM), BECAUSE OF THE "IMPORTS.GMS"-MODULE THAT TAKES OVER RM IN INPUT_OUTPUT
 					rM0&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and d1Y_i_d[i,d,t] and d_ene[d])..
-						qM_i_d[i,d,t]*pM_i_d[i,d,tBase] =E= sum((e,es),  (1-sCorr[d,e,i,t]) * pEpj_base[es,e,d,tBase] * qEpj[es,e,d,t]) + jqM_i_d[i,d,t];
+						qM_i_d[i,d,t]*pM_i_d[i,d,tBase]/(1+tM_i_d[i,d,t])  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),  (1-sCorr[d,e,i,t]) * pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 
 					rYM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t] and d_ene[d])..
-						qM_i_d[i,d,t]*pM_i_d[i,d,tBase] =E= sum((e,es),  (1-sCorr[d,e,i,t]) * pEpj_base[es,e,d,tBase] * qEpj[es,e,d,t]) + jqM_i_d[i,d,t];
+						qM_i_d[i,d,t]*pM_i_d[i,d,tBase]/(1+tM_i_d[i,d,t])  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),  (1-sCorr[d,e,i,t]) * pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 
 
 					#Quantities
@@ -452,8 +452,8 @@ $IF %stage% == "calibration":
 		jqM_i_d[i,d_ene,t]$(t.val>t1.val)..
 			jqM_i_d[i,d_ene,t] =E= 0;
 
-		sCorr&_calib[d_ene,e,i,t]$(t.val=t1.val and not (sameas[i,'35002'] or sameas[i,'20000']))..
-		  sCorr[d_ene,e,i,t] =E= sSupply_e_i_y[e,i,t] + sCorr_calib[d_ene,i];
+		sCorr&_calib[d_ene,e,i,t]$(t.val=t1.val)..
+		  sCorr[d_ene,e,i,t] =E= sSupply_e_i_y[e,i,t]; # * sCorr_calib[d_ene,i];
 
 
 		# jqY_i_d[i,re,t]$(d1Y_i_d[i,re,t] and not i_energymargins[i] and t.val>t1.val)..
@@ -526,8 +526,8 @@ $IF %stage% == "calibration":
 		# jqM_i_d[i,d_ene,t]
 		jqM_i_d[i,d_ene,t1]
 		jqY_i_d[i,d_ene,t1]$(i_energymargins[i])
-		sCorr_calib
-		jqY_i_d[i,d_ene,t1]$(not i_energymargins[i] and (sameas[i,'35002'] or sameas[i,'20000']))
+		sCorr_calib$(not i_energymargins[i] and sum(t1,d1Y_i_d[i,d,t1]) and d_ene[d]) # and not invt_ene[d])
+		jqY_i_d[i,d_ene,t1]$(not i_energymargins[i]) # and invt_ene[d])
 		-adj_sCorr[e,i,t1], j_adj_sCorr
 		energy_markets_IO_link_calibration_endogenous
 

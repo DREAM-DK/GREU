@@ -1,3 +1,5 @@
+
+
 # ==============================================================================
 # Calibration
 # ==============================================================================
@@ -18,7 +20,17 @@ $FIX all_variables; $UNFIX calibration_endogenous;
 
 execute_unload 'static_calibration_pre.gdx';
 solve calibration using CNS;
-PARAMETER qY_i_d_test[i,d,t], qM_i_d_test[i,d,t], pD_test[d,t];
+PARAMETER qY_i_d_test[i,d,t], qM_i_d_test[i,d,t], pD_test[d,t], vD_energy[d,t], vD_IO[d,t], vS_energy_y[i,t], vS_IO_y[i,t], vS_energy_m[i,t], vS_IO_m[i,t];
+
+vD_energy[d,t] = sum((es,e,d_a)$es_d2d(es,d_a,d), pEpj_base.l[es,e,d_a,tBase] * qEpj.l[es,e,d_a,t]);
+vD_IO[d,t]$(d_ene[d] and t1[t]) = sum(i$(not i_energymargins[i]), qY_i_d.l[i,d,t]*pY_i_d.l[i,d,tBase]/(1+tY_i_d.l[i,d,t])) 
+																+ sum(i$(not i_energymargins[i]), qM_i_d.l[i,d,t]*pM_i_d.l[i,d,tBase]/(1+tM_i_d.l[i,d,t]));
+
+vS_energy_y[i,t]$(t1[t]) = sum(e,pY_CET.l[e,i,t]*qY_CET.l[e,i,t]);
+vS_energy_m[i,t]$(t1[t]) = sum(e,pM_CET.l[e,i,t]*qM_CET.l[e,i,t]);
+vS_IO_y[i,t]$(t1[t] and not i_energymargins[i]) = sum(d$d_ene[d], qY_i_d.l[i,d,t]*pY_i_d.l[i,d,tBase]/(1+tY_i_d.l[i,d,t])); 
+vS_IO_m[i,t]$(t1[t] and not i_energymargins[i]) = sum(d$d_ene[d], qM_i_d.l[i,d,t]*pM_i_d.l[i,d,tBase]/(1+tM_i_d.l[i,d,t])); 
+
 $FUNCTION compute_tests():
 qY_i_d_test[i,d_non_ene,tBase] = qY_i_d.l[i,d_non_ene,tBase]/(1+tY_i_d.l[i,d_non_ene,tBase]) - qY_i_d_non_ene.l[i,d_non_ene,tBase];
 qM_i_d_test[i,d_non_ene,tBase] = qM_i_d.l[i,d_non_ene,tBase]/(1+tM_i_d.l[i,d_non_ene,tBase]) - qM_i_d_non_ene.l[i,d_non_ene,tBase];
