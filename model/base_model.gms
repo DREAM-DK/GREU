@@ -67,14 +67,14 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT production_CES_energydemand.gms 
   $IMPORT production.gms 
   $IMPORT pricing.gms 
-  $IMPORT imports.gms
+  # $IMPORT imports.gms
   $IMPORT production_CET.gms;
   $IMPORT emissions.gms 
   $IMPORT energy_and_emissions_taxes.gms 
   $IMPORT input_output.gms
   $IMPORT households.gms
   $IMPORT government.gms
-  $IMPORT exports.gms
+  # $IMPORT exports.gms
   $IMPORT factor_demand.gms
   # $IMPORT ramsey_household.gms
 $ENDFUNCTION
@@ -112,7 +112,10 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT ramsey_household.gms
 $ENDFUNCTION
 
+
+
 @import_from_modules("exogenous_values")
+d1scorr[d,e,i,t] = yes$(d1Y_i_d[i,d,t] and d_ene[d] and d1pY_CET[e,i,t] and sum((es,d_a)$es_d2d(es,d_a,d), d1pEpj_base[es,e,d_a,t]));
 @inf_growth_adjust()
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
 @update_exist_dummies()
@@ -132,14 +135,14 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT production_CES_energydemand.gms 
   $IMPORT production.gms 
   $IMPORT pricing.gms 
-  $IMPORT imports.gms
+  # $IMPORT imports.gms
   $IMPORT production_CET.gms;
   $IMPORT emissions.gms 
   $IMPORT energy_and_emissions_taxes.gms 
   $IMPORT input_output.gms
   $IMPORT households.gms
   $IMPORT government.gms
-  $IMPORT exports.gms
+  # $IMPORT exports.gms
   $IMPORT factor_demand.gms
   # $IMPORT ramsey_household.gms
 $ENDFUNCTION
@@ -165,7 +168,7 @@ $FIX all_variables; $UNFIX main_endogenous;
 execute_unload 'main_pre.gdx';
 Solve main using CNS;
 @assert_no_difference(all_variables, 1e-6, .l, _saved, "Zero shock changed variables significantly.");
-
+@assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
 # ------------------------------------------------------------------------------
 # Shock model
 # ------------------------------------------------------------------------------

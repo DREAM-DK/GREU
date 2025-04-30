@@ -35,8 +35,6 @@ $IF %stage% == "variables":
         pD_non_ene[d,t]$(sum(i, d1Y_i_d_non_ene[i,d,t]) or sum(i, d1M_i_d_non_ene[i,d,t])) ""
         qD_non_ene[d,t]$(sum(i, d1Y_i_d_non_ene[i,d,t]) or sum(i, d1M_i_d_non_ene[i,d,t])) ""
 
-        vY_i_d_calib[i,d,t]$(d1Y_i_d[i,d,t]) ""
-        vM_i_d_calib[i,d,t]$(d1M_i_d[i,d,t]) ""
 
         sSupply_e_i_m[e,i,t]$(d1pM_CET[e,i,t]) ""
         sSupply_e_i_y[e,i,t]$(d1pY_CET[e,i,t]) ""

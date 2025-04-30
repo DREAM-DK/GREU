@@ -52,6 +52,15 @@ $IF %stage% == "variables":
     vtCO2_xE[d,t]$(d1tCO2_xE[d,t] and d1EmmxE['CO2ubio',d,t])      "Tax revenue from national carbon tax, non-energy related emissions"
 
     jvtE_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "J-term to capture instances ,where data contains a revenue, but the marginal rate is zero."
+
+    #Links 
+    vtY_i_d_calib[i,d,t]$(d1Y_i_d[i,d,t]) ""
+    vtM_i_d_calib[i,d,t]$(d1M_i_d[i,d,t]) ""
+
+    adj_jvtY_i_d[t] ""
+    adj_jvtM_i_d[t] ""
+
+
   ;
 
   $Group G_energy_taxes_data  
@@ -169,6 +178,17 @@ $IF %stage% == "equations":
     ..    vtE_duty_tot[d,t] =E= sum((etaxes,es,e), vtE_duty[etaxes,es,e,d,t]);
 
     ..    vtE_vat_tot[d,t] =E= sum((es,e), vtE_vat[es,e,d,t]);
+
+    #Taxes 
+    tY_i_d&_not_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
+						vtY_i_d[i,d,t]
+							=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * vte_NAS[es,e,d_a,t]) + vtY_i_d_calib[i,d,t]; 
+
+    tM_i_d&_not_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
+						vtM_i_d[i,d,t]
+							=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  (1-sum(i_a,sCorr[d,e,i_a,t])) * vte_NAS[es,e,d_a,t]) + vtM_i_d_calib[i,d,t]; 
+
+
   $ENDBLOCK
 
   model main / 
@@ -231,11 +251,47 @@ $ENDIF
 # ------------------------------------------------------------------------------
 
 $IF %stage% == "calibration":
+  $BLOCK energy_and_emissions_taxes_calibration energy_and_emissions_taxes_calibration_endogenous $(t1.val <= t.val and t.val <=tEnd.val)
+    vtY_i_d_calib[i,d,t]$(t.val > t1.val and d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
+      vtY_i_d_calib[i,d,t] =E= 0;
+
+    vtM_i_d_calib[i,d,t]$(t.val > t1.val and d1M_i_d[i,d,t] and d_ene[d])..
+      vtM_i_d_calib[i,d,t] =E= 0;
+
+
+    # jvtY_i_d[i,d,t]$(t.val > t1.val and d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
+    #   jvtY_i_d[i,d,t] =E= 0;
+
+
+    # jvtY_i_d&_t1[i,d,t]$(t.val = t1.val and d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
+    #   jvtY_i_d[i,d,t] =E= adj_jvtY_i_d[t];
+
+    # Ensuring that industry taxes still add up to IO-values for domestic energy production 
+    # adj_jvtY_i_d[t]$(t.val = t1.val)..
+    #   sum((i,d)$(d_ene[d] and not i_energymargins[i]), vtY_i_d[i,d,t]) =E= sum((i,d)$(d_ene[d] and not i_energymargins[i]), vtY_i_d__load__[i,d,t]);
+
+
+    # jvtM_i_d&_t1[i,d,t]$(t.val = t1.val and d1M_i_d[i,d,t] and d_ene[d])..
+    #   jvtM_i_d[i,d,t] =E= adj_jvtM_i_d[t];
+
+    # Ensuring that industry taxes still add up to IO-values for imported energy 
+    # adj_jvtM_i_d[t]$(t.val = t1.val)..
+    #   sum((i,d)$(d_ene[d] and not i_energymargins[i]), vtM_i_d[i,d,t]) =E= sum((i,d)$(d_ene[d] and not i_energymargins[i]), vtM_i_d__load__[i,d,t]);
+
+
+    # jvtM_i_d[i,d,t]$(t.val > t1.val and d1M_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
+    #   jvtM_i_d[i,d,t] =E= 0;
+
+
+
+
+  $ENDBLOCK 
 
   # Add equations and calibration equations to calibration model
   model calibration /
     energy_and_emissions_taxes
     energy_and_emissions_taxes_links
+    energy_and_emissions_taxes_calibration
   /;
 
   # Add endogenous variables to calibration model
@@ -250,6 +306,14 @@ $IF %stage% == "calibration":
 
     energy_and_emissions_taxes_links_endogenous
 
+    energy_and_emissions_taxes_calibration_endogenous
+    # vtY_i_d_calib[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d] and t1[t])
+    # vtM_i_d_calib[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d] and t1[t])
+    # jvtY_i_d[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])
+    # jvtM_i_d[i,d,t]$(d1M_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])
+    vtY_i_d[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d] and t1[t])
+    vtM_i_d[i,d,t]$(d1M_i_d[i,d,t] and not i_energymargins[i] and d_ene[d] and t1[t])
+    
     calibration_endogenous
   ;
 $ENDIF

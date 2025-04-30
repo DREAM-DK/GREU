@@ -35,6 +35,7 @@ Set land5; #land area types
 Set em_accounts; #set of accounts for emissions
 
 
+
 parameters
   vIO_y[i,d,t]
   vIO_m[i,d,t]
@@ -75,14 +76,14 @@ $load NonEnergyEmissions=NonEnergyemissions.l
 
 set demand_transaction_temp[transaction] /'input_in_production','household_consumption','inventory','export','transmission_losses'/;
 set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','cav','nox_tax','so2_tax','vat','base'/;
-
+set i_energymargins[i]/45000,46000,47000/;
 #Rettelser og data-hacks
 
 Energybalance[ebalitems,'export','xEne',es,e,t]       = Energybalance[ebalitems,'export','xOth',es,e,t];   Energybalance[ebalitems,'export','xOth',es,e,t]   = 0;
 Energybalance[ebalitems,'inventory','invt_ene',es,e,t] = Energybalance[ebalitems,'inventory','invt',es,e,t]; Energybalance[ebalitems,'inventory','invt',es,e,t] = 0;
 
-
-Energybalance[ebalitems,transaction,d,es,e,t]$(Energybalance['BASE',transaction,d,es,e,t] and Energybalance['BASE',transaction,d,es,e,t]<1e-6) = no; 
+execute_unload 'test.gdx';
+Energybalance[ebalitems,transaction,d,es,e,t]$(Energybalance['BASE',transaction,d,es,e,t] and abs(Energybalance['BASE',transaction,d,es,e,t])<1e-6) = no; 
 Energybalance['pj','input_in_production','35011','process_special','electricity',t] = Energybalance['base','input_in_production','35011','process_special','electricity',t]/0.1;
 Energybalance['pj','production','35011','unspecified','electricity',t] = Energybalance['pj','production','35011','unspecified','electricity',t] + Energybalance['pj','input_in_production','35011','process_special','electricity',t];
 
@@ -314,8 +315,13 @@ vD_base[d,t] = sum(i, vY_i_d_base[i,d,t] + vM_i_d_base[i,d,t]);
 vtYM_d[d,t]       = vIO_a["TaxSub",d,t] + vIO_a["Moms",d,t];
 
 #Assume same tax-rates per IO-cell
-vtY_i_d[i,d,t]$vD_base[d,t] = vY_i_d_base[i,d,t] / vD_base[d,t] * vtYM_d[d,t]; 
-vtM_i_d[i,d,t]$vD_base[d,t] = vM_i_d_base[i,d,t] / vD_base[d,t] * vtYM_d[d,t]; 
+vtY_i_d[i,d,t]$(vD_base[d,t] and not d_ene[d]) = vY_i_d_base[i,d,t] / vD_base[d,t] * vtYM_d[d,t]; 
+vtM_i_d[i,d,t]$(vD_base[d,t] and not d_ene[d]) = vM_i_d_base[i,d,t] / vD_base[d,t] * vtYM_d[d,t]; 
+
+#For energy we assume it's all on 19000 (when bottom-up module is turned on tax-rates are endogenized)
+vtY_i_d['19000',d_ene,t] = vtYM_d[d_ene,t]; 
+vtM_i_d['19000',d_ene,t] = vtYM_d[d_ene,t]; 
+
 
 #Compute IO incl. taxes, based on above distribution
 #AKB: In input_output.gms vY_i_d and vM_i_d are defined including taxes
@@ -335,7 +341,7 @@ qD_non_ene[d_non_ene,t] = qD[d_non_ene,t];
 
   pEpj_base[es,e,d,t]$(sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t])) = sum(demand_transaction_temp, Energybalance['BASE',demand_transaction_temp,d,es,e,t])/sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
   qEpj[es,e,d,t] = sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
- 
+
   vEAV[es,e,d,t] = sum(demand_transaction_temp, Energybalance['EAV',demand_transaction_temp,d,es,e,t]);
   vCAV[es,e,d,t] = sum(demand_transaction_temp, Energybalance['CAV',demand_transaction_temp,d,es,e,t]);
   vDAV[es,e,d,t] = sum(demand_transaction_temp, Energybalance['DAV',demand_transaction_temp,d,es,e,t]);
