@@ -20,13 +20,13 @@ $FIX all_variables; $UNFIX calibration_endogenous;
 
 execute_unload 'static_calibration_pre.gdx';
 solve calibration using CNS;
-execute_unload 'static_calibration.gdx';
 
 PARAMETER qY_i_d_test[i,d,t], qM_i_d_test[i,d,t], pD_test[d,t], vD_energy[d,t], vD_IO[d,t], vS_energy_y[i,t], vS_IO_y[i,t], vS_energy_m[i,t], vS_IO_m[i,t], vD_energy_test[d,t],
- vS_energy_y_test[i,t], vS_energy_m_test[i,t];
+ vS_energy_y_test[i,t], vS_energy_m_test[i,t], 
+ vD_energy_taxes_and_vat_IO[d,t], vD_energy_taxes_and_vat_energy[d,t], vD_energy_taxes_and_vat_test[d,t];
 
 
-$FUNCTION compute_tests():
+$FUNCTION compute_tests({turnontests}):
 	vD_IO[d,t]$(d_ene[d] and t.val>=t1.val and t.val<=tEnd.val) = sum(i$(not i_energymargins[i]), qY_i_d_test_var.l[i,d,t])+ sum(i$(not i_energymargins[i]), qM_i_d_test_var.l[i,d,t]); 
 
 	vS_IO_y[i,t]$(t1[t] and not i_energymargins[i]) = sum(d$d_ene[d], qY_i_d_test_var.l[i,d,t]); 
@@ -52,6 +52,31 @@ $FUNCTION compute_tests():
 
 	pD_test[d_non_ene,t] = pD.l[d_non_ene,t] - pD_non_ene.l[d_non_ene,t];
 
+	vD_energy_taxes_and_vat_IO[d,t]$(d_ene[d]) = sum(i, vtY_i_d__load__[i,d,t] + vtM_i_d__load__[i,d,t]);
+	vD_energy_taxes_and_vat_energy[d,t]$(d_ene[d]) = sum(i,sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr.l[d,e,i,t] * vte_NAS.l[es,e,d_a,t]))
+																									+sum((e,es,d_a)$es_d2d(es,d_a,d),  (1-sum(i_a,sCorr.l[d,e,i_a,t])) * vte_NAS.l[es,e,d_a,t]); 
+
+	vD_energy_taxes_and_vat_test[d,t] = vD_energy_taxes_and_vat_energy[d,t] - vD_energy_taxes_and_vat_IO[d,t];
+
+	$IF '{turnontests}'=='1':
+		LOOP((d,t)$(t1[t]),
+			ABORT$(abs(vD_energy_test[d,t])>0.5) 'Difference in value of energy demand between IO and bottom-up energy-data, tolerance set at half a billion DKK';
+		);
+		LOOP((i,t)$(t1[t]),
+			ABORT$(abs(vS_energy_y_test[i,t])>0.25) 'Difference in value of domestic energy supply between IO and bottom-up energy-data, tolerance set at 250 a million DKK';
+		);
+
+		LOOP((i,t)$(t1[t]),
+			ABORT$(abs(vS_energy_m_test[i,t])>0.4) 'Difference in value of imports of energy between IO and bottom-up energy-data, tolerance set at 400 million DKK';
+		);
+
+		LOOP((d,t)$(t1[t]),
+			ABORT$(abs(vD_energy_taxes_and_vat_test[d,t])>0.1) 'Difference in value of imports of energy between IO and bottom-up energy-data, tolerance set at 100 million DKK';
+		);
+
+
+	$ENDIF
+
 	# LOOP((i,d,t)$(t1[t] and jqM_i_d.l[i,d,t] and d_ene[d] and not invt_ene[d]),
 	# 	ABORT$(abs(jqM_i_d.l[i,d,t])/abs(qM_i_d.l[i,d,t]/(1-tM_i_d.l[i,d,tBase]))>0.01) 'Difference in value of energy imports vary too much between IO and bottom-up energy-data, tolerance set at 1 pct.';
 	# );
@@ -62,7 +87,9 @@ $FUNCTION compute_tests():
 
 $ENDFUNCTION 
 
-@compute_tests();
+@compute_tests(1);
+execute_unload 'static_calibration.gdx';
+
 
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
 # $exit

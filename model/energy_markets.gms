@@ -282,20 +282,20 @@
 				..sSupply_e_i_m[e,i,t] =E= qM_CET[e,i,t]/sum(i_a, qY_CET[e,i_a,t] + qM_CET[e,i_a,t]);
 
 					#Prices of energy
-					jfpY_i_d_test_var&_not_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
-						pY_i[i,t] * (1+jfpY_i_d_test_var[i,d,t]) * qY_i_d[i,d,t]/(1+tY_i_d[i,d,tBase])
-							=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * vEpj_base[es,e,d_a,t]) + vY_i_d_calib[i,d,t]; 
+					# jfpY_i_d_test_var&_not_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
+					# 	pY_i[i,t] * (1+jfpY_i_d_test_var[i,d,t]) * qY_i_d[i,d,t]/(1+tY_i_d[i,d,tBase])
+					# 		=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * vEpj_base[es,e,d_a,t]) + vY_i_d_calib[i,d,t]; 
 
-					jfpY_i_d_test_var&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
-						pY_i[i,t]* (1+jfpY_i_d_test_var[i,d,t]) * qY_i_d[i,d,t]/(1+tY_i_d[i,d,tBase])  
-							=E= sum((e,es,d_a)$es_d2d(es,d_a,d), pDAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_retail[i]) 
-																						     + pCAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
-																						     + pEAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + vY_i_d_calib[i,d,t]; 
+					# jfpY_i_d_test_var&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
+					# 	pY_i[i,t]* (1+jfpY_i_d_test_var[i,d,t]) * qY_i_d[i,d,t]/(1+tY_i_d[i,d,tBase])  
+					# 		=E= sum((e,es,d_a)$es_d2d(es,d_a,d), pDAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_retail[i]) 
+					# 																	     + pCAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
+					# 																	     + pEAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + vY_i_d_calib[i,d,t]; 
 
 																							#No need to add an equation for margins, as they are all contained in domestic price .
-					jfpM_i_d_test_var[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d])..
-						pM_i[i,t] * (1+jfpM_i_d_test_var[i,d,t]) * qM_i_d[i,d,t]/(1+tM_i_d[i,d,tBase])
-							=E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a,sCorr[d,e,i_a,t])) * vEpj_base[es,e,d_a,t]) + vM_i_d_calib[i,d,t]; 
+					# jfpM_i_d_test_var[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d])..
+					# 	pM_i[i,t] * (1+jfpM_i_d_test_var[i,d,t]) * qM_i_d[i,d,t]/(1+tM_i_d[i,d,tBase])
+					# 		=E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a,sCorr[d,e,i_a,t])) * vEpj_base[es,e,d_a,t]) + vM_i_d_calib[i,d,t]; 
 
 					vY_i_d_base_test_var[i,d,t]$(d1Y_i_d[i,d,t] and d_ene[d])..
 						vY_i_d_base_test_var[i,d,t] =E= pY_i[i,t] * (1+jfpY_i_d_test_var[i,d,t]) * qY_i_d[i,d,t]/(1+tY_i_d[i,d,tBase]); 
@@ -315,7 +315,7 @@
 					# 																	     + pCAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
 					# 																	     + pEAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + vY_i_d_calib[i,d,t]; 
 
-																							#No need to add an equation for margins, as they are all contained in domestic price .
+																							# No need to add an equation for margins, as they are all contained in domestic price .
 					# jfpM_i_d[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d])..
 					# 	pM_i[i,t] * (1+jfpM_i_d[i,d,t]) * qM_i_d[i,d,t]/(1+tM_i_d[i,d,tBase])
 					# 		=E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a,sCorr[d,e,i_a,t])) * vEpj_base[es,e,d_a,t]) + vM_i_d_calib[i,d,t]; 
@@ -361,10 +361,10 @@
 					# 	# qY_i_d_test_var[i,d,t] =E=  sum((e,es,d_a)$es_d2d(es,d_a,d), pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t])  + jqY_i_d[i,d,t];
 
 
-					qY_i_d_test_var&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
-						qY_i_d_test_var[i,d,t]*pY_i_d[i,d,tBase]/(1+tY_i_d[i,d,tBase])  =E= sum((e,es,d_a)$es_d2d(es,d_a,d) , pDAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_retail[i]) 
-																																					   	  + pCAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
-																																					   	  + pEAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
+					# qY_i_d_test_var&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
+					# 	qY_i_d_test_var[i,d,t]*pY_i_d[i,d,tBase]/(1+tY_i_d[i,d,tBase])  =E= sum((e,es,d_a)$es_d2d(es,d_a,d) , pDAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_retail[i]) 
+					# 																																   	  + pCAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
+					# 																																   	  + pEAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
 			
 			
 
@@ -500,8 +500,8 @@ $IF %stage% == "calibration":
 		# qY_i_d_test_var&_t1[i,d,t]$(t1[t] and d_ene[d] and not i_energymargins[i])..
 		# 	qY_i_d_test_var[i,d,t] =E= qY_i_d[i,d,t];
 
-		qY_i_d_test_var&_t1_energymargins[i,d,t]$(t1[t] and d_ene[d] and i_energymargins[i])..
-			qY_i_d_test_var[i,d,t] =E= qY_i_d[i,d,t];
+		# qY_i_d_test_var&_t1_energymargins[i,d,t]$(t1[t] and d_ene[d] and i_energymargins[i])..
+		# 	qY_i_d_test_var[i,d,t] =E= qY_i_d[i,d,t];
 
 		# qM_i_d_test_var&_t1[i,d,t]$(t1[t] and d_ene[d])..
 		# 	qM_i_d_test_var[i,d,t] =E= qM_i_d[i,d,t];
@@ -560,15 +560,15 @@ $IF %stage% == "calibration":
 		energy_markets_IO_link_endogenous
 
 		#IO-prices
-		vY_i_d_calib[i,d_ene,t1]$(not i_energymargins[i]), -jfpY_i_d_test_var[i,d_ene,t1]$(not i_energymargins[i]) 
-		vY_i_d_calib[i,d_ene,t1]$(i_energymargins[i]), -jfpY_i_d_test_var[i,d_ene,t1]$(i_energymargins[i]) 
+		# vY_i_d_calib[i,d_ene,t1]$(not i_energymargins[i]), -jfpY_i_d_test_var[i,d_ene,t1]$(not i_energymargins[i]) 
+		# vY_i_d_calib[i,d_ene,t1]$(i_energymargins[i]), -jfpY_i_d_test_var[i,d_ene,t1]$(i_energymargins[i]) 
 
-		vM_i_d_calib[i,d_ene,t1], -jfpM_i_d_test_var[i,d_ene,t1]
+		# vM_i_d_calib[i,d_ene,t1], -jfpM_i_d_test_var[i,d_ene,t1]
 
-		# vY_i_d_calib[i,d_ene,t1]$(not i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(not i_energymargins[i]) 
-		# vY_i_d_calib[i,d_ene,t1]$(i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(i_energymargins[i]) 
+		vY_i_d_calib[i,d_ene,t1]$(not i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(not i_energymargins[i]) 
+		vY_i_d_calib[i,d_ene,t1]$(i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(i_energymargins[i]) 
 
-		# vM_i_d_calib[i,d_ene,t1], -jfpM_i_d[i,d_ene,t1]
+		vM_i_d_calib[i,d_ene,t1], -jfpM_i_d[i,d_ene,t1]
 
 		
 		#IO_quantities

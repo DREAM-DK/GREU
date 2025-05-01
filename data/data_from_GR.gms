@@ -315,12 +315,12 @@ vD_base[d,t] = sum(i, vY_i_d_base[i,d,t] + vM_i_d_base[i,d,t]);
 vtYM_d[d,t]       = vIO_a["TaxSub",d,t] + vIO_a["Moms",d,t];
 
 #Assume same tax-rates per IO-cell
-vtY_i_d[i,d,t]$(vD_base[d,t] and not d_ene[d]) = vY_i_d_base[i,d,t] / vD_base[d,t] * vtYM_d[d,t]; 
-vtM_i_d[i,d,t]$(vD_base[d,t] and not d_ene[d]) = vM_i_d_base[i,d,t] / vD_base[d,t] * vtYM_d[d,t]; 
+vtY_i_d[i,d,t]$(vD_base[d,t]) = vY_i_d_base[i,d,t] / vD_base[d,t] * vtYM_d[d,t]; 
+vtM_i_d[i,d,t]$(vD_base[d,t]) = vM_i_d_base[i,d,t] / vD_base[d,t] * vtYM_d[d,t]; 
 
 #For energy we assume it's all on 19000 (when bottom-up module is turned on tax-rates are endogenized)
-vtY_i_d['19000',d_ene,t] = vtYM_d[d_ene,t]; 
-vtM_i_d['19000',d_ene,t] = vtYM_d[d_ene,t]; 
+# vtY_i_d['19000',d_ene,t]$(vtY_i_d['19000',d_ene,t] + vtM_i_d['19000',d_ene,t]) = vtY_i_d['19000',d_ene,t]/(vtY_i_d['19000',d_ene,t] + vtM_i_d['19000',d_ene,t]) * vtYM_d[d_ene,t]; 
+# vtM_i_d['19000',d_ene,t]$(vtY_i_d['19000',d_ene,t] + vtM_i_d['19000',d_ene,t]) = vtM_i_d['19000',d_ene,t]/(vtY_i_d['19000',d_ene,t] + vtM_i_d['19000',d_ene,t]) * vtYM_d[d_ene,t]; 
 
 
 #Compute IO incl. taxes, based on above distribution

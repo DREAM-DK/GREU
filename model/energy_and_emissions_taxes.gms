@@ -184,7 +184,11 @@ $IF %stage% == "equations":
 						vtY_i_d[i,d,t]
 							=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * vte_NAS[es,e,d_a,t]) + vtY_i_d_calib[i,d,t]; 
 
-    tM_i_d&_not_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
+    tY_i_d&energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
+						vtY_i_d[i,d,t]
+							=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * vte_NAS[es,e,d_a,t]) + vtY_i_d_calib[i,d,t]; 
+
+    tM_i_d&_not_energymargins[i,d,t]$(d1M_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
 						vtM_i_d[i,d,t]
 							=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  (1-sum(i_a,sCorr[d,e,i_a,t])) * vte_NAS[es,e,d_a,t]) + vtM_i_d_calib[i,d,t]; 
 
@@ -307,11 +311,11 @@ $IF %stage% == "calibration":
     energy_and_emissions_taxes_links_endogenous
 
     energy_and_emissions_taxes_calibration_endogenous
-    # vtY_i_d_calib[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d] and t1[t])
     # vtM_i_d_calib[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d] and t1[t])
     # jvtY_i_d[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])
     # jvtM_i_d[i,d,t]$(d1M_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])
-    vtY_i_d[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d] and t1[t])
+    vtY_i_d[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])
+    vtY_i_d_calib[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d] and t1[t])
     vtM_i_d[i,d,t]$(d1M_i_d[i,d,t] and not i_energymargins[i] and d_ene[d] and t1[t])
     
     calibration_endogenous
