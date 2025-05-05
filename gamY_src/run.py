@@ -2,7 +2,7 @@ import sys
 import shutil
 import os
 import dreamtools as dt
-import gamspy as gp
+# import gamspy as gp
 
 dt.gamY.default_initial_level = 0
 dt.gamY.automatic_dummy_suffix = "_exists_dummy"
@@ -18,8 +18,7 @@ sys.path.insert(0, root)
 os.environ["GAMS"] = "C:/GAMS/49/gams.exe"
 
 ## Read abatement data
-os.chdir(fr"{root}/data/Abatement_data")
-import Import_abatement_data
+from data.Abatement_data import Import_abatement_data
 
 ## Set working directory to model folder
 os.chdir(fr"{root}/gamY_src")
@@ -34,19 +33,19 @@ import plot_supply_curves
 ## Save calibration.gdx as previous_calibration.gdx
 # shutil.copy("calibration.gdx", "previous_calibration.gdx")
 
-dt.REFERENCE_DATABASE = b = dt.Gdx("calibration.gdx")
-ab = dt.Gdx("Abatement_partial.gdx")
+# dt.REFERENCE_DATABASE = b = dt.Gdx("calibration.gdx")
+# ab = dt.Gdx("Abatement_partial.gdx")
 
-dt.time(2019, 2030)
-dt.plot(ab.qE_tech.loc[['heating'],:,[10030],:], "m")
+# dt.time(2019, 2030)
+# dt.plot(ab.qE_tech.loc[['heating'],:,[10030],:], "m")
 
 
 ## Electrification
-e = dt.Gdx("Abatement_partial_elec.gdx")
+# e = dt.Gdx("Abatement_partial_elec.gdx")
 
 
 ## Carbon tax
-c = dt.Gdx("Abatement_partial_carbon_tax.gdx")
+# c = dt.Gdx("Abatement_partial_carbon_tax.gdx")
 
 
 
