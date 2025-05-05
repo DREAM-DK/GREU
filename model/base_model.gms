@@ -8,6 +8,7 @@ $IMPORT sets/sectors.sets.gms
 $IMPORT sets/input_output.sets.gms
 $IMPORT sets/output.sets.gms
 $IMPORT sets/production.sets.gms
+$IMPORT sets/households.sets.gms
 $IMPORT sets/emissions.sets.gms
 $IMPORT sets/energy_taxes_and_emissions.sets.gms
 
@@ -72,7 +73,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT emissions.gms 
   $IMPORT energy_and_emissions_taxes.gms 
   $IMPORT input_output.gms
-  $IMPORT households.gms
+  # $IMPORT households.gms
   $IMPORT government.gms
   # $IMPORT exports.gms
   $IMPORT factor_demand.gms
@@ -140,7 +141,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT emissions.gms 
   $IMPORT energy_and_emissions_taxes.gms 
   $IMPORT input_output.gms
-  $IMPORT households.gms
+  # $IMPORT households.gms
   $IMPORT government.gms
   # $IMPORT exports.gms
   $IMPORT factor_demand.gms

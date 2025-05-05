@@ -312,19 +312,19 @@
 
 
 					# jfpY_i_d&_not_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
-					# 	pY_i[i,t] * (1+jfpY_i_d[i,d,t]) * qY_i_d[i,d,t]/(1+tY_i_d[i,d,tBase])
+					# 	vY_i_d_base[i,d,t]
 					# 		=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * vEpj_base[es,e,d_a,t]) + vY_i_d_calib[i,d,t]; 
 
 					# jfpY_i_d&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
-					# 	pY_i[i,t]* (1+jfpY_i_d[i,d,t]) * qY_i_d[i,d,t]/(1+tY_i_d[i,d,tBase])  
+					# 	vY_i_d_base[i,d,t] 
 					# 		=E= sum((e,es,d_a)$es_d2d(es,d_a,d), pDAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_retail[i]) 
 					# 																	     + pCAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
 					# 																	     + pEAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + vY_i_d_calib[i,d,t]; 
 
-																							# No need to add an equation for margins, as they are all contained in domestic price .
-					jfpM_i_d[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d])..
-						pM_i[i,t] * (1+jfpM_i_d[i,d,t]) * qM_i_d[i,d,t]/(1+tM_i_d[i,d,tBase])
-							=E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a,sCorr[d,e,i_a,t])) * vEpj_base[es,e,d_a,t]) + vM_i_d_calib[i,d,t]; 
+					# 																		# No need to add an equation for margins, as they are all contained in domestic price .
+					# jfpM_i_d[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d])..
+					# 	vM_i_d_base[i,d,t]
+					# 		=E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a,sCorr[d,e,i_a,t])) * vEpj_base[es,e,d_a,t]) + vM_i_d_calib[i,d,t]; 
 
 
 					sCorr[d_ene,e,i,t]$(t.val>tDataEnd.val)..
@@ -339,10 +339,10 @@
 						qY_i_d[i,d,t]*pY_i_d_base[i,d,tBase]=E=  sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t])  + jqY_i_d[i,d,t];
 
 
-					# rYM&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
-					# 	qY_i_d[i,d,t]*pY_i_d[i,d,tBase]/(1+tY_i_d[i,d,tBase])  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),  pDAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_retail[i]) 
-					# 																																   	                         + pCAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
-					# 																																   	                         + pEAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
+					rYM&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
+						qY_i_d[i,d,t]*pY_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),  pDAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_retail[i]) 
+																																					   	                         + pCAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
+																																					   	                         + pEAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
 
 
 					#NOTE THAT THIS IS RM0 (not RM), BECAUSE OF THE "IMPORTS.GMS"-MODULE THAT TAKES OVER RM IN INPUT_OUTPUT
@@ -353,12 +353,12 @@
 					# 	qM_i_d[i,d,t]*pM_i_d[i,d,tBase]/(1+tM_i_d[i,d,tBase])  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 
 					#VERSION WITHOUT IMPORTS-MODULE TURNED ON
-					rM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and d1Y_i_d[i,d,t] and d_ene[d])..
-						qM_i_d[i,d,t]*pM_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
+					# rM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and d1Y_i_d[i,d,t] and d_ene[d])..
+					# 	qM_i_d[i,d,t]*pM_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 
 
-					rYM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t] and d_ene[d])..
-						qM_i_d[i,d,t]*pM_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
+					# rYM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t] and d_ene[d])..
+					# 	qM_i_d[i,d,t]*pM_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 
 					#JUST TESTS
 					# qY_i_d_test_var[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..

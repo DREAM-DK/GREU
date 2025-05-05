@@ -104,6 +104,9 @@ $Group+ all_variables
 
   jvtY_i_d[i,d,t]$(d1Y_i_d[i,d,t]) "J-term, which is turned on in the calibration of energy. In principle this should be zero, but it catches data inconsistencies"
   jvtM_i_d[i,d,t]$(d1M_i_d[i,d,t]) "J-term, which is turned on in the calibration of energy. In principle this should be zero, but it catches data inconsistencies"
+
+  jvY_i[i,t]$(d1Y_i[i,t]) "J-term, which is turned on when turning on bottom-up modelling of energy. In this case markets will clear in energy_markets.gms and non_energy_markets.gms."
+  jvM_i[i,t]$(d1M_i[i,t]) "J-term, which is turned on when turning on bottom-up modelling of energy. In this case markets will clear in energy_markets.gms and non_energy_markets.gms."
 ;
 $ENDIF # variables
 
@@ -150,7 +153,7 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. qX[t] * pX[t-1] =E= sum(x,  pD[x,t-1]  * qD[x,t]);
 
   # Equilibrium condition: supply + net duties = demand in each industry.
-  .. vY_i[i,t] + vtY_i[i,t] =E= sum(d, vY_i_d[i,d,t]);
+  .. vY_i[i,t] + vtY_i[i,t] =E= sum(d, vY_i_d[i,d,t]); #+ jvY_i[i,t];
   .. vY[t] =E= sum(i, vY_i[i,t]);
   .. pY[t] * qY[t] =E= vY[t];
   .. qY[t] * pY[t-1] =E= sum(i, pY_i[i,t-1] * qY_i[i,t]);
@@ -159,7 +162,7 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. qM_i[i,t] =E= sum(d, qM_i_d[i,d,t] / (1+tM_i_d[i,d,tBase]));
 
   # Aggregate imports from each import industry
-  .. vM_i[i,t] + vtM_i[i,t] =E= sum(d, vM_i_d[i,d,t]);
+  .. vM_i[i,t] + vtM_i[i,t] =E= sum(d, vM_i_d[i,d,t]); # + jvM_i[i,t];
   .. vM[t] =E= sum(i, vM_i[i,t]);
   .. pM[t] * qM[t] =E= vM[t];
   .. qM[t] * pM[t-1] =E= sum(i, pM_i[i,t-1] * qM_i[i,t]);
@@ -295,6 +298,8 @@ $Group+ calibration_endogenous
   -vY_i_d_base[i,d,t1], -vM_i_d_base[i,d,t1], rYM[i,d,t1], rM[i,d,t]$(t1[t] and d1M_i_d[i,d,t] and d1Y_i_d[i,d,t]) 
 
   calibration_endogenous
+  # jvY_i, -vY_i 
+  # jvM_i, -vM_i 
 ;
 
 $Group+ G_flat_after_last_data_year

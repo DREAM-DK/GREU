@@ -10,8 +10,9 @@ $Group+ all_variables
   rCHabit[t] "Habit formation parameter."
   qCHhxRef[t] "Private consumption net of habits and Keynesian consumption."
   rSurvival[t] "Survival rate."
-  qCHh[t] "Private consumption of households."
-  pCHh[t] "Usercost of private consumption of households."
+  qCHh[cNest,t] "Private consumption of households."
+  pCHh[cNest,t] "Usercost of private consumption of households."
+  jqChh_ctot[t] "J-term to be endogenized when CES-utility in households_CES_demand.gms is turned on"
 ;
 
 $ENDIF # variables
@@ -22,16 +23,16 @@ $ENDIF # variables
 $IF %stage% == "equations":
 
 $BLOCK ramsey_household_equations ramsey_household_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-  .. qCHhxRef[t] =E= qCHh[t] - rCHabit[t] * qCHh[t-1]/fq - rMPC[t] * vHhIncome[t] / pCHh[t];
+  .. qCHhxRef[t] =E= qCHh['cTot',t] - rCHabit[t] * qCHh['cTot',t-1]/fq - rMPC[t] * vHhIncome[t] / pCHh['cTot',t];
 
   # Will be replaced by CES utility function
-  .. qCHh[t] =E= sum(c, qD[c,t]);
-  .. pCHh[t] * qCHh[t] =E= sum(c, vD[c,t]);
+  .. qCHh['ctot',t] =E= sum(c, qD[c,t]) + jqChh_ctot[t];
+  .. pCHh['ctot',t] * qCHh['ctot',t] =E= sum(c, vD[c,t]);
 
   .. qmuC[t] =E= (qCHhxRef[t]/qCHhxRef[tBase])**(-eCRRA);
 
   rMPCW[t]$(not tEnd[t])..
-    qmuC[t] =E= pCHh[t]/(pCHh[t+1]*fp) * (1+mrHhReturn[t+1]) # Real expected return on wealth
+    qmuC[t] =E= pCHh[t]/(pCHh['ctot',t+1]*fp) * (1+mrHhReturn[t+1]) # Real expected return on wealth
               * qmuC[t+1]*fq**(-eCRRA) # Expected marginal utility of consumption
               * rSurvival[t] / (1+rHhDiscount[t+1]); # Survival rate and discount rate
   rMPCW&_tEnd[t]$(tEnd[t] and not t1[t]).. rMPCW[t] =E= rMPCW[t-1];
