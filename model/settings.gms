@@ -29,6 +29,11 @@ $ONECHO > conopt4.opt
   #  Keep searching for a solution even if a bound is hit (due to non linearities)
   lmmxsf = 1
 
+  #Optimality tolerance for reduced gradient
+  # RTREDG = 1.e-6
+
+  # Mtd_Step_Phase0 = 0
+
   # Limit on number of error messages related to infeasible pre-triangle
   # 25 is default but often not enough. 
   Lim_Pre_Msg = 400

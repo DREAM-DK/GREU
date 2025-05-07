@@ -78,14 +78,39 @@ set demand_transaction_temp[transaction] /'input_in_production','household_consu
 set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','cav','nox_tax','so2_tax','vat','base'/;
 set i_energymargins[i]/45000,46000,47000/;
 #Rettelser og data-hacks
-
 Energybalance[ebalitems,'export','xEne',es,e,t]       = Energybalance[ebalitems,'export','xOth',es,e,t];   Energybalance[ebalitems,'export','xOth',es,e,t]   = 0;
 Energybalance[ebalitems,'inventory','invt_ene',es,e,t] = Energybalance[ebalitems,'inventory','invt',es,e,t]; Energybalance[ebalitems,'inventory','invt',es,e,t] = 0;
 
+#Retter in mærkelig en for el
 execute_unload 'test.gdx';
-Energybalance[ebalitems,transaction,d,es,e,t]$(Energybalance['BASE',transaction,d,es,e,t] and abs(Energybalance['BASE',transaction,d,es,e,t])<1e-6) = no; 
 Energybalance['pj','input_in_production','35011','process_special','electricity',t] = Energybalance['base','input_in_production','35011','process_special','electricity',t]/0.1;
 Energybalance['pj','production','35011','unspecified','electricity',t] = Energybalance['pj','production','35011','unspecified','electricity',t] + Energybalance['pj','input_in_production','35011','process_special','electricity',t];
+
+#Fjerner små entries
+Energybalance[ebalitems,transaction,d,es,e,t]$(Energybalance['BASE',transaction,d,es,e,t] and abs(Energybalance['BASE',transaction,d,es,e,t])<1e-6) = no; 
+
+#Laver extraction gas
+Energybalance[ebalitems,'production','0600a','unspecified','natural gas (extraction)',t] = Energybalance[ebalitems,'production','0600a','unspecified','natural gas incl. biongas',t];
+Energybalance[ebalitems,'production','0600a','unspecified','natural gas incl. biongas',t] = 0;
+
+Energybalance[ebalitems,'imports','19000','unspecified','natural gas (extraction)',t] = Energybalance[ebalitems,'imports','19000','unspecified','natural gas incl. biongas',t];
+Energybalance[ebalitems,'imports','19000','unspecified','natural gas incl. biongas',t] = 0;
+
+Energybalance['PJ','imports','19000','unspecified','natural gas (extraction)',t]$Energybalance['PJ','imports','19000','unspecified','natural gas (extraction)',t]
+   = Energybalance['PJ','imports','19000','unspecified','natural gas (extraction)',t] - 30;
+Energybalance['PJ','production','35002','unspecified','natural gas incl. biongas',t]$Energybalance['PJ','production','35002','unspecified','natural gas incl. biongas',t]
+   = Energybalance['PJ','production','35002','unspecified','natural gas incl. biongas',t]  + 30;
+
+Energybalance[ebalitems,'transmission_losses','tl','unspecified','natural gas (extraction)',t] = Energybalance[ebalitems,'transmission_losses','tl','unspecified','natural gas incl. biongas',t];
+Energybalance[ebalitems,'transmission_losses','tl','unspecified','natural gas incl. biongas',t] = 0;
+
+Energybalance[ebalitems,'input_in_production','35002','process_special','natural gas (extraction)',t] = Energybalance[ebalitems,'production','0600a','unspecified','natural gas (extraction)',t]
+                                                                                                       +Energybalance[ebalitems,'imports','19000','unspecified','natural gas (extraction)',t]
+                                                                                                       -Energybalance[ebalitems,'transmission_losses','tl','unspecified','natural gas (extraction)',t];
+
+Energybalance[ebalitems,'input_in_production','35002','process_special','natural gas incl. biongas',t] = Energybalance[ebalitems,'input_in_production','35002','process_special','natural gas incl. biongas',t]
+                                                                                                        -Energybalance[ebalitems,'input_in_production','35002','process_special','natural gas (extraction)',t];
+
 
 vIOxE_y['35002',d,t] = 0; vIOxE_y['19000',d,t] = 0; vIOxE_y['38393',d,t] = 0; #This hack £
 vIOxE_m['35002',d,t] = 0; vIOxE_m['19000',d,t] = 0; vIOxE_m['38393',d,t] = 0; 

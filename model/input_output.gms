@@ -235,8 +235,8 @@ $Group+ data_covered_variables input_output_data_variables$(t.val <= %calibratio
 #Cells at approx 1e-5 still left here...
 vM_i_d.l[i,d,t]$(not sameas[i,'19000'] and d_ene[d]) = 0;
 
-d1Y_i_d[i,d,t] = abs(vY_i_d.l[i,d,t]) > 1e-6;
-d1M_i_d[i,d,t] = abs(vM_i_d.l[i,d,t]) > 1e-6;
+d1Y_i_d[i,d,t] = abs(vY_i_d.l[i,d,t]) > 1e-6; d1Y_i_d[i,d,'2019'] = d1Y_i_d[i,d,'2020'];
+d1M_i_d[i,d,t] = abs(vM_i_d.l[i,d,t]) > 1e-6; d1M_i_d[i,d,'2019'] = d1M_i_d[i,d,'2020'];  
 d1YM_i_d[i,d,t] = d1Y_i_d[i,d,t] or d1M_i_d[i,d,t];
 d1Y_d[d,t] = sum(i, d1Y_i_d[i,d,t]);
 d1M_d[d,t] = sum(i, d1M_i_d[i,d,t]);
@@ -281,25 +281,28 @@ $ENDIF # exogenous_values
 $IF %stage% == "calibration":
 
 $BLOCK input_output_calibration_equations input_output_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+      pY_i_d_base&_t0[i,d,t]$(t1[t]) ..pY_i_d_base[i,d,t0] =E= pY_i_d_base[i,d,t1];
+
+      pM_i_d_base&_t0[i,d,t]$(t1[t]) ..pM_i_d_base[i,d,t0] =E= pM_i_d_base[i,d,t1];
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
 model calibration /
   input_output_equations
-  # input_output_calibration_equations
+  input_output_calibration_equations
 /;
 # Add endogenous variables to calibration model
 $Group+ calibration_endogenous
   input_output_endogenous
-  input_output_calibration_endogenous
   -vtY_i_d[i,d,t1], tY_i_d[i,d,t1]
   -vtM_i_d[i,d,t1], tM_i_d[i,d,t1]
   # -vY_i_d[i,d,t1], -vM_i_d[i,d,t1], rYM[i,d,t1], rM[i,d,t]$(t1[t] and d1M_i_d[i,d,t] and d1Y_i_d[i,d,t]) 
   -vY_i_d_base[i,d,t1], -vM_i_d_base[i,d,t1], rYM[i,d,t1], rM[i,d,t]$(t1[t] and d1M_i_d[i,d,t] and d1Y_i_d[i,d,t]) 
 
+  input_output_calibration_endogenous
+  pY_i_d_base[i,d,t0], pM_i_d_base[i,d,t0]
+  
   calibration_endogenous
-  # jvY_i, -vY_i 
-  # jvM_i, -vM_i 
 ;
 
 $Group+ G_flat_after_last_data_year

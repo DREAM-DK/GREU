@@ -73,6 +73,11 @@ $IF %stage% == "variables":
 				#  ..qM_CET[out_other,i,t] =E= sum(d_non_ene, qM_i_d_non_ene[i,d_non_ene,t]);
 				 ..qM_CET[out_other,i,t] =E= sum(d_non_ene,qM_i_d[i,d_non_ene,t]/ (1+tM_i_d[i,d_non_ene,tBase]));
 
+
+				 .. vY_CET[out_other,i,t] =E= pY_CET[out_other,i,t]*qY_CET[out_other,i,t];
+
+				 .. vM_CET[out_other,i,t] =E= pM_CET[out_other,i,t]*qM_CET[out_other,i,t];
+
     $ENDBLOCK 
 
     $BLOCK non_energy_markets_IO non_energy_markets_IO_endogenous $(t1.val <= t.val and t.val <= tEnd.val)

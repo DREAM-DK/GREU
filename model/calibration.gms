@@ -23,7 +23,9 @@ solve calibration using CNS;
 
 PARAMETER qY_i_d_test[i,d,t], qM_i_d_test[i,d,t], pD_test[d,t], vD_energy[d,t], vD_IO[d,t], vS_energy_y[i,t], vS_IO_y[i,t], vS_energy_m[i,t], vS_IO_m[i,t], vD_energy_test[d,t],
  vS_energy_y_test[i,t], vS_energy_m_test[i,t], 
- vD_energy_taxes_and_vat_IO[d,t], vD_energy_taxes_and_vat_energy[d,t], vD_energy_taxes_and_vat_test[d,t];
+ vD_energy_taxes_and_vat_IO[d,t], vD_energy_taxes_and_vat_energy[d,t], vD_energy_taxes_and_vat_test[d,t],
+ implied_importshare[d,e,t],
+ test_dist_profits[t];
 
 
 $FUNCTION compute_tests({turnontests}):
@@ -58,19 +60,30 @@ $FUNCTION compute_tests({turnontests}):
 
 	vD_energy_taxes_and_vat_test[d,t] = vD_energy_taxes_and_vat_energy[d,t] - vD_energy_taxes_and_vat_IO[d,t];
 
+implied_importshare[d,e,t]$(d_ene[d] and (sum(i,d1pY_CET[e,i,t]) or sum(i, d1pM_CET[e,i,t])) and sum((es,d_a)$es_d2d(es,d_a,d), d1pEpj_base[es,e,d_a,t]))
+	 = (1-sum(i_a, sCorr.l[d,e,i_a,t]));
+
+	 test_dist_profits[t] = sum(i, vY_i.l[i,t]) - sum((out,i), vY_CET.l[out,i,t])
+	 											+ sum(i, vM_i.l[i,t]) - sum((out,i), vM_CET.l[out,i,t])
+												- sum(e,vDistributionProfits.l[e,t])
+												- vOtherDistributionProfits_CAV.l[t]
+												- vOtherDistributionProfits_DAV.l[t]
+												- vOtherDistributionProfits_EAV.l[t]
+												;
+
 	$IF '{turnontests}'=='1':
-		LOOP((d,t)$(t1[t]),
+		LOOP((d,t)$(t_endoyrs[t]),
 			ABORT$(abs(vD_energy_test[d,t])>0.5) 'Difference in value of energy demand between IO and bottom-up energy-data, tolerance set at half a billion DKK';
 		);
-		LOOP((i,t)$(t1[t]),
+		LOOP((i,t)$(t_endoyrs[t]),
 			ABORT$(abs(vS_energy_y_test[i,t])>0.25) 'Difference in value of domestic energy supply between IO and bottom-up energy-data, tolerance set at 250 a million DKK';
 		);
 
-		LOOP((i,t)$(t1[t]),
+		LOOP((i,t)$(t_endoyrs[t]),
 			ABORT$(abs(vS_energy_m_test[i,t])>0.4) 'Difference in value of imports of energy between IO and bottom-up energy-data, tolerance set at 400 million DKK';
 		);
 
-		LOOP((d,t)$(t1[t]),
+		LOOP((d,t)$(t_endoyrs[t]),
 			ABORT$(abs(vD_energy_taxes_and_vat_test[d,t])>0.1) 'Difference in value of imports of energy between IO and bottom-up energy-data, tolerance set at 100 million DKK';
 		);
 

@@ -175,8 +175,12 @@
 
 		$BLOCK energy_demand_prices_links energy_demand_prices_links_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
 			#Link to factor demand
-			jqE_re_i[re,i,t].. 
+			# jqE_re_i[re,i,t].. 
+			# 	vE_re_i[re,i,t] =E= sum((es,e)$es2re(es,re), vEpj[es,e,i,t]) + jvE_re_i[re,i,t];
+
+			jvE_re_i[re,i,t].. 
 				vE_re_i[re,i,t] =E= sum((es,e)$es2re(es,re), vEpj[es,e,i,t]) + jvE_re_i[re,i,t];
+
 		$ENDBLOCK
 
 
@@ -212,8 +216,8 @@
 		.. qEtot[e,t] =E= sum((es,d)$(d1pEpj_base[es,e,d,t] or tl[d]), qEpj[es,e,d,t]);
 
 		.. vDistributionProfits[e,t] =E= sum((es,d), pEpj_base[es,e,d,t] * qEpj[es,e,d,t])
-																															- sum(i,   pY_CET[e,i,t] * qY_CET[e,i,t])
-																															- sum(i,   pM_CET[e,i,t] * qM_CET[e,i,t]);
+																	  	- sum(i,   pY_CET[e,i,t] * qY_CET[e,i,t])
+																	  	- sum(i,   pM_CET[e,i,t] * qM_CET[e,i,t]);
 		#Values
 		.. vY_CET[e,i,t] =E= pY_CET[e,i,t] * qY_CET[e,i,t];
 
@@ -263,21 +267,23 @@
 
 
 
-				..  vOtherDistributionProfits_EAV[t] =E= sum((es,e,d), vEAV[es,e,d,t])
+				..  vOtherDistributionProfits_EAV[t] =E= vD_EAV[t]
                                               - pY_CET['out_other','46000',t]*qD_EAV[t]
                                               ;
 
        
-        ..  vOtherDistributionProfits_DAV[t] =E= sum((es,e,d), vCAV[es,e,d,t])
+        ..  vOtherDistributionProfits_DAV[t] =E= vD_DAV[t]
                                               - pY_CET['out_other','47000',t]*qD_DAV[t]
                                               ;
 
 
-	      ..  vOtherDistributionProfits_CAV[t] =E= sum((es,e,d), vDAV[es,e,d,t])
+	      ..  vOtherDistributionProfits_CAV[t] =E= vD_CAV[t]
                                               - pY_CET['out_other','45000',t]*qD_CAV[t]
                                               ;
       $ENDBLOCK
 
+			set excludeD[d]/invt_ene/;
+			excludeD[d] = no;
 			$BLOCK energy_markets_IO_link energy_markets_IO_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
 
 				# ..sSupply_e_i_y[e,i,t] =E= qY_CET[e,i,t]/sum(i_a, qY_CET[e,i_a,t] + qM_CET[e,i_a,t]);
@@ -288,43 +294,21 @@
 				..sSupply_e_i_m[e,i,t] =E= vM_CET[e,i,t]/sum(i_a, vY_CET[e,i_a,t] + vM_CET[e,i_a,t]);
 
 					#Prices of energy
-					# jfpY_i_d_test_var&_not_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
-					# 	pY_i[i,t] * (1+jfpY_i_d_test_var[i,d,t]) * qY_i_d[i,d,t]/(1+tY_i_d[i,d,tBase])
-					# 		=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * vEpj_base[es,e,d_a,t]) + vY_i_d_calib[i,d,t]; 
 
-					# jfpY_i_d_test_var&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
-					# 	pY_i[i,t]* (1+jfpY_i_d_test_var[i,d,t]) * qY_i_d[i,d,t]/(1+tY_i_d[i,d,tBase])  
-					# 		=E= sum((e,es,d_a)$es_d2d(es,d_a,d), pDAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_retail[i]) 
-					# 																	     + pCAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
-					# 																	     + pEAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + vY_i_d_calib[i,d,t]; 
+					jfpY_i_d&_not_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d] and not excludeD[d])..
+						vY_i_d_base[i,d,t]
+							=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * vEpj_base[es,e,d_a,t]) + vY_i_d_calib[i,d,t]; 
 
-																							#No need to add an equation for margins, as they are all contained in domestic price .
-					# jfpM_i_d_test_var[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d])..
-					# 	pM_i[i,t] * (1+jfpM_i_d_test_var[i,d,t]) * qM_i_d[i,d,t]/(1+tM_i_d[i,d,tBase])
-					# 		=E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a,sCorr[d,e,i_a,t])) * vEpj_base[es,e,d_a,t]) + vM_i_d_calib[i,d,t]; 
+					jfpY_i_d&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d] and not excludeD[d])..
+						vY_i_d_base[i,d,t] 
+							=E= sum((e,es,d_a)$es_d2d(es,d_a,d), pDAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_retail[i]) 
+																						     + pCAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
+																						     + pEAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + vY_i_d_calib[i,d,t]; 
 
-					vY_i_d_base_test_var[i,d,t]$(d1Y_i_d[i,d,t] and d_ene[d])..
-						vY_i_d_base_test_var[i,d,t] =E= pY_i[i,t] * (1+jfpY_i_d_test_var[i,d,t]) * qY_i_d[i,d,t]/(1+tY_i_d[i,d,tBase]); 
-
-					vM_i_d_base_test_var[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d])..
-						vM_i_d_base_test_var[i,d,t] =E= pM_i[i,t] * (1+jfpM_i_d_test_var[i,d,t]) * qM_i_d[i,d,t]/(1+tM_i_d[i,d,tBase]); 
-
-
-
-					# jfpY_i_d&_not_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
-					# 	vY_i_d_base[i,d,t]
-					# 		=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * vEpj_base[es,e,d_a,t]) + vY_i_d_calib[i,d,t]; 
-
-					# jfpY_i_d&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
-					# 	vY_i_d_base[i,d,t] 
-					# 		=E= sum((e,es,d_a)$es_d2d(es,d_a,d), pDAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_retail[i]) 
-					# 																	     + pCAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
-					# 																	     + pEAV[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + vY_i_d_calib[i,d,t]; 
-
-					# 																		# No need to add an equation for margins, as they are all contained in domestic price .
-					# jfpM_i_d[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d])..
-					# 	vM_i_d_base[i,d,t]
-					# 		=E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a,sCorr[d,e,i_a,t])) * vEpj_base[es,e,d_a,t]) + vM_i_d_calib[i,d,t]; 
+																							# No need to add an equation for margins, as they are all contained in domestic price .
+					jfpM_i_d[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d] and not excludeD[d])..
+						vM_i_d_base[i,d,t]
+							=E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a,sCorr[d,e,i_a,t])) * vEpj_base[es,e,d_a,t]) + vM_i_d_calib[i,d,t]; 
 
 
 					sCorr[d_ene,e,i,t]$(t.val>tDataEnd.val)..
@@ -332,52 +316,44 @@
 
 
 					adj_sCorr[e,i,t]..					
-						sum(d, sum((es,d_a)$es_d2d(es,d_a,d), sCorr[d,e,i,t] * pEpj_base[es,e,d_a,t]*qEpj[es,e,d_a,t])) =E= pY_CET[e,i,t] * qY_CET[e,i,t] + j_adj_sCorr[e,i]$(tDataEnd[t]);
+						# sum(d, sum((es,d_a)$es_d2d(es,d_a,d), sCorr[d,e,i,t] * vEpj_base[es,e,d_a,t])) =E= vY_CET[e,i,t] + j_adj_sCorr[e,i]$(tDataEnd[t]);
+						sum(d, sum((es,d_a)$es_d2d(es,d_a,d), sCorr[d,e,i,t] * vEpj_base[es,e,d_a,t])) =E= vY_CET[e,i,t] + j_adj_sCorr[e,i]$(tDataEnd[t]);
+
+					#Quantities of energy
+					rYM[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d] and not excludeD[d])..
+						# qY_i_d[i,d,t]*pY_i_d_base[i,d,tBase]=E=  sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t])  + jqY_i_d[i,d,t];
+						qY_i_d[i,d,t]*pY_i_d_base[i,d,t-1]=E=  sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t])  + jqY_i_d[i,d,t];
 
 
-					rYM[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
-						qY_i_d[i,d,t]*pY_i_d_base[i,d,tBase]=E=  sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t])  + jqY_i_d[i,d,t];
+					rYM&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d] and not excludeD[d])..
+						# qY_i_d[i,d,t]*pY_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),  pDAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_retail[i]) 
+																																					   	                        #  + pCAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
+																																					   	                        #  + pEAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
+						qY_i_d[i,d,t]*pY_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),  pDAV[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_retail[i]) 
+																																					   	                         + pCAV[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
+																																					   	                         + pEAV[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
 
-
-					rYM&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
-						qY_i_d[i,d,t]*pY_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),  pDAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_retail[i]) 
-																																					   	                         + pCAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
-																																					   	                         + pEAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
 
 
 					#NOTE THAT THIS IS RM0 (not RM), BECAUSE OF THE "IMPORTS.GMS"-MODULE THAT TAKES OVER RM IN INPUT_OUTPUT
 					# rM0&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and d1Y_i_d[i,d,t] and d_ene[d])..
 					# 	qM_i_d[i,d,t]*pM_i_d[i,d,tBase]/(1+tM_i_d[i,d,tBase])  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
+						# qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 
 					# rYM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t] and d_ene[d])..
 					# 	qM_i_d[i,d,t]*pM_i_d[i,d,tBase]/(1+tM_i_d[i,d,tBase])  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
+						# qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 
 					#VERSION WITHOUT IMPORTS-MODULE TURNED ON
-					# rM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and d1Y_i_d[i,d,t] and d_ene[d])..
-					# 	qM_i_d[i,d,t]*pM_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
+					rM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and d1Y_i_d[i,d,t] and d_ene[d] and not excludeD[d])..
+						# qM_i_d[i,d,t]*pM_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
+						qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 
 
-					# rYM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t] and d_ene[d])..
-					# 	qM_i_d[i,d,t]*pM_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
-
-					#JUST TESTS
-					# qY_i_d_test_var[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
-					# 	# qY_i_d_test_var[i,d,t]*pY_i_d[i,d,tBase]/(1+tY_i_d[i,d,t]) =E=  sum((e,es,d_a)$es_d2d(es,d_a,d),  sSupply_e_i_y[e,i,t] * pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t])  + jqY_i_d[i,d,t];
-					# 	# qY_i_d_test_var[i,d,t]*pY_i_d[i,d,tBase]/(1+tY_i_d[i,d,t]) =E=  sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t])  + jqY_i_d[i,d,t];
-					# 	qY_i_d_test_var[i,d,t] =E=  sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t])  + jqY_i_d[i,d,t];
-					# 	# qY_i_d_test_var[i,d,t] =E=  sum((e,es,d_a)$es_d2d(es,d_a,d), pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t])  + jqY_i_d[i,d,t];
-
-
-					# qY_i_d_test_var&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
-					# 	qY_i_d_test_var[i,d,t]*pY_i_d[i,d,tBase]/(1+tY_i_d[i,d,tBase])  =E= sum((e,es,d_a)$es_d2d(es,d_a,d) , pDAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_retail[i]) 
-					# 																																   	  + pCAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
-					# 																																   	  + pEAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
-					
-					qM_i_d_test_var[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d])..
-						qM_i_d_test_var[i,d,t]*pM_i_d[i,d,tBase]/(1+tM_i_d[i,d,tBase])   =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]); # + jqM_i_d[i,d,t];
-
-
-
+					rYM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t] and d_ene[d] and not excludeD[d])..
+						# qM_i_d[i,d,t]*pM_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
+						qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
+#
 
 		$ENDBLOCK 
 
@@ -425,7 +401,8 @@
 		# ------------------------------------------------------------------------------
 
 		#Energy demand prices
-		d1pEpj_base[es,e,d,t]  = yes$(pEpj_base.l[es,e,d,t]);
+		pEpj_base.l[es,e,d,'2019'] = pEpj_base.l[es,e,d,'2020']; 
+		d1pEpj_base[es,e,d,t]  = yes$(pEpj_base.l[es,e,d,t]); 
 
 		
 		d1pY_CET[out,i,t] = yes$(pY_CET.l[out,i,t]);
@@ -447,9 +424,9 @@
 		
 
 		#Margins 
-		d1pEAV[es,e,d,t]    = yes$(vEAV.l[es,e,d,t]);
-		d1pDAV[es,e,d,t]    = yes$(vDAV.l[es,e,d,t]);
-		d1pCAV[es,e,d,t]    = yes$(vCAV.l[es,e,d,t]);
+		d1pEAV[es,e,d,t]    = yes$(vEAV.l[es,e,d,t]); d1pEAV[es,e,d,'2019'] = d1pEAV[es,e,d,'2020'];
+		d1pDAV[es,e,d,t]    = yes$(vDAV.l[es,e,d,t]); d1pDAV[es,e,d,'2019'] = d1pDAV[es,e,d,'2020'];
+		d1pCAV[es,e,d,t]    = yes$(vCAV.l[es,e,d,t]); d1pCAV[es,e,d,'2019'] = d1pCAV[es,e,d,'2020'];
 
 
 
@@ -462,7 +439,7 @@
 $IF %stage% == "calibration":
 
 	$BLOCK energy_demand_prices_calibration energy_demand_prices_calibration_endogenous $(t1.val <= t.val and t.val<=tEnd.val)
-		jvE_re_i[re,i,t]$(t.val> t1.val and d1E_re_i[re,i,t]).. 
+		jvE_re_i&_calib[re,i,t]$(t.val> t1.val and d1E_re_i[re,i,t]).. 
 				jvE_re_i[re,i,t] =E= 0;
 	$ENDBLOCK
 
@@ -499,7 +476,8 @@ $IF %stage% == "calibration":
 		  sCorr_inp[d_ene,e,i,t] =E= sSupply_e_i_y[e,i,t] + sCorr_calib[d_ene,i]; 
 
 		sCorr&_calib_exists_imports[d_ene,e,i,t]$(t.val=t1.val and d1pY_CET[e,i,t] and d1Y_i_d[i,d_ene,t])..
-		  sCorr[d_ene,e,i,t] =E= min(sCorr_inp[d_ene,e,i,t],1.001); 
+		  sCorr[d_ene,e,i,t] =E= min(sCorr_inp[d_ene,e,i,t],1); 
+		  # sCorr[d_ene,e,i,t] =E= sCorr_inp[d_ene,e,i,t]; 
 
 
 		# qY_i_d_test_var&_t1[i,d,t]$(t1[t] and d_ene[d] and not i_energymargins[i])..
@@ -521,13 +499,22 @@ $IF %stage% == "calibration":
 			vM_i_d_calib[i,d,t] =E= 0;
 
 
+		pEAV&_t0[es,e,d,t]$(t1[t])..
+			pEAV[es,e,d,t0] =E= pEAV[es,e,d,t1];
+
+		pDAV&_t0[es,e,d,t]$(t1[t])..
+			pDAV[es,e,d,t0] =E= pDAV[es,e,d,t1];
+
+		pCAV&_t0[es,e,d,t]$(t1[t])..
+			pCAV[es,e,d,t0] =E= pCAV[es,e,d,t1];
+
 	$ENDBLOCK
 
 	# Add equations and calibration equations to calibration model
 	model calibration /
 		energy_demand_prices
 		energy_demand_prices_links
-		energy_demand_prices_calibration			
+		# energy_demand_prices_calibration			
 
 		energy_markets_clearing
 		-E_qY_CET_SeveralNonExoSuppliers
@@ -547,7 +534,7 @@ $IF %stage% == "calibration":
 		fpE[es,e,d,t1],  -pEpj_base[es,e,d,t1]
 		energy_demand_prices_links_endogenous
 		-jqE_re_i[re,i,t1],  jvE_re_i[re,i,t1]
-		energy_demand_prices_calibration_endogenous
+		# energy_demand_prices_calibration_endogenous
 
 		energy_markets_clearing_endogenous
 
@@ -580,9 +567,13 @@ $IF %stage% == "calibration":
 		jqM_i_d[i,d_ene,t1]
 		jqY_i_d[i,d_ene,t1]$(i_energymargins[i])
 		sCorr_calib$(not i_energymargins[i] and sum(t1,sum(e,d1pY_CET[e,i,t1])) and sum(t1, sum(e,sum(i_a, d1pM_CET[e,i_a,t1]))) and d_ene[d]) # and not invt_ene[d])
-		# jqY_i_d[i,d_ene,t1]$(not i_energymargins[i] and sum(e,d1pY_CET[e,i,t]) and not sum(e,sum(i_a, d1pM_CET[e,i_a,t])) and d_ene[d]) # and invt_ene[d])
+		# jqY_i_d$(not i_energymargins[i] and sum(t1,sum(e, d1pY_CET[e,i,t1])) and sum(t1, sum(e, sum(i_a, d1pM_CET[e,i_a,t1])))) # and invt_ene[d])
 		-adj_sCorr[e,i,t1], j_adj_sCorr
 		energy_markets_IO_link_calibration_endogenous
+		# pEpj_base[es,e,d,t]$(t0[t] and sameas[e,'refinery gas'])
+		pEAV[es,e,d,t0]
+		pDAV[es,e,d,t0]
+		pCAV[es,e,d,t0]
 
 		calibration_endogenous
 	;

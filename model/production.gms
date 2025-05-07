@@ -89,6 +89,7 @@ $IF %stage% == "equations":
     #jqE_re_i ensures that the input_output system is balanced in values. jqE_re_i is computed so that total energy-costs, pE_re_i * qE_re_i matches bottom-up computation of total energy-costs (see energy_markerkets.gms for link)
     #AKB, to be investigated: Maybe qE_re_i, computed as a residual, become meaningless as a "quantity". 
     .. pProd[pf_bottom_e,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], pE_re_i[re,i,t]) + jpProd[pf_bottom_e,i,t];    
+    
     qE2qY_re_i[re,i,t]..  
       qE_re_i[re,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], qProd[pf_bottom_e,i,t]) + jqE_re_i[re,i,t]; 
 
