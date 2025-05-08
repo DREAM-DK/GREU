@@ -4,7 +4,6 @@
 
 
 set consumption_nests /
-  Meat "Pig, cow, poultry and fish"
   Food "All food"
   Goods "Goods" 
   TourServ "Tourisme and services"
@@ -27,8 +26,7 @@ set cf_top[cf] /TopCfunction/;
 
 
 set cf_mapping[cfNest,cf] /
-  Meat . (cFoodPig, cFoodCow, cFoodPoul, cFoodFish)
-  Food . (Meat, cFoodDairy, cFoodVeg, cFoodBev)
+  Food . (cFoodMeat, cFoodDairy, cFoodVeg, cFoodBev)
   Goods . (Food, cNonFood)
   TourServ . (cSer, cTou)
   GooTouSer . (Goods, TourServ)
@@ -39,9 +37,7 @@ set cf_mapping[cfNest,cf] /
 /;  
 
 set c2cf_bottom_mapping[c,cf_bottom] /
-  cFoodPig.cFoodPig
-  cFoodCow.cFoodCow
-  cFoodPoul.cFoodPoul
+  cFoodMeat.cFoodMeat
   cFoodFish.cFoodFish
   cFoodDairy.cFoodDairy
   cFoodVeg.cFoodVeg

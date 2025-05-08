@@ -72,9 +72,6 @@ $IF %stage% == "exogenous_values":
 #                                Food cNonFood   cSer  cTou  
 #                              / 1.1 \
 #                  Meat cFoodDairy cFoodVeg cFoodBev
-#                / 1.3 \
-# cFoodPig cFoodCow cFoodPoul cFoodFish
-
 
 eCHh.l['TopCfunction'] = 0.3;
 eCHh.l['HouSer'] = 0.3;
@@ -84,7 +81,6 @@ eCHh.l['CarSer'] = 0.3;
 eCHh.l['Goods'] = 0.3;
 eCHh.l['TourServ'] = 1.25;
 eCHh.l['Food'] = 1.1;
-eCHh.l['Meat'] = 1.3;
 
 
 qCHh.l[cf_bottom,t] = sum(c $c2cf_bottom_mapping[c,cf_bottom], qD.l[c,t]);
