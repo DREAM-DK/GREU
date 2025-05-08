@@ -38,6 +38,9 @@ $IF %stage% == "equations":
     # rMarkup_i[i,t]..
     #      vY_i[i,t] =E= sum(out, pY_CET[out,i,t]*qY_CET[out,i,t]) + jvY_i[i,t]; 
 
+    # rMarkup_i[i,t]$(t.val > tDataEnd.val)..
+    #      (1+rMarkup_i[i,t])* pY0_i[i,t]*qY0_i[i,t] =E= sum(out, vY_CET[out,i,t]);
+
     jvY_i[i,t]..
          vY_i[i,t] =E= sum(out, pY_CET[out,i,t]*qY_CET[out,i,t]) + jvY_i[i,t]; 
 

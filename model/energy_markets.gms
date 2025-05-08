@@ -315,7 +315,7 @@
 						sCorr[d_ene,e,i,t] =E= sCorr[d_ene,e,i,tDataEnd] + adj_sCorr[e,i,t];
 
 
-					adj_sCorr[e,i,t]..					
+					adj_sCorr[e,i,t]$(t.val>tDataEnd.val)..					
 						# sum(d, sum((es,d_a)$es_d2d(es,d_a,d), sCorr[d,e,i,t] * vEpj_base[es,e,d_a,t])) =E= vY_CET[e,i,t] + j_adj_sCorr[e,i]$(tDataEnd[t]);
 						sum(d, sum((es,d_a)$es_d2d(es,d_a,d), sCorr[d,e,i,t] * vEpj_base[es,e,d_a,t])) =E= vY_CET[e,i,t] + j_adj_sCorr[e,i]$(tDataEnd[t]);
 
@@ -330,8 +330,8 @@
 																																					   	                        #  + pCAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
 																																					   	                        #  + pEAV[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
 						qY_i_d[i,d,t]*pY_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),  pDAV[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_retail[i]) 
-																																					   	                         + pCAV[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
-																																					   	                         + pEAV[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
+																																					   	      + pCAV[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
+																																					   	      + pEAV[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
 
 
 

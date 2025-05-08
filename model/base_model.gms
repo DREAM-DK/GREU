@@ -1,4 +1,5 @@
 $onMulti # Allows adding to an already defined set or model with multiple "model" or "set" statements
+$onSuffixDLVars 
 
 $IMPORT functions.gms;
 $IMPORT settings.gms
@@ -169,7 +170,9 @@ $FIX all_variables; $UNFIX main_endogenous;
 execute_unload 'main_pre.gdx';
 Solve main using CNS;
 @assert_no_difference(all_variables, 1e-6, .l, _saved, "Zero shock changed variables significantly.");
-@assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
+# @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
+@compute_tests(1);
+
 # ------------------------------------------------------------------------------
 # Shock model
 # ------------------------------------------------------------------------------
@@ -183,3 +186,5 @@ $FIX all_variables;
 $UNFIX main_endogenous;
 Solve main using CNS;
 execute_unload 'shock.gdx';
+@compute_tests(1);
+

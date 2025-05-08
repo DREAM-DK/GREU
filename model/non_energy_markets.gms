@@ -38,6 +38,8 @@ $IF %stage% == "variables":
 
         sSupply_e_i_m[e,i,t]$(d1pM_CET[e,i,t]) ""
         sSupply_e_i_y[e,i,t]$(d1pY_CET[e,i,t]) ""
+
+				adj_jfpY_i_d[i,t]$(d1Y_i_nepnei[i,t] and not i_energymargins[i]) ""
 				;
 
 
@@ -73,6 +75,14 @@ $IF %stage% == "variables":
 				#  ..qM_CET[out_other,i,t] =E= sum(d_non_ene, qM_i_d_non_ene[i,d_non_ene,t]);
 				 ..qM_CET[out_other,i,t] =E= sum(d_non_ene,qM_i_d[i,d_non_ene,t]/ (1+tM_i_d[i,d_non_ene,tBase]));
 
+
+				#Non-energy production in energy-producing sectors
+					jfpY_i_d[i,d,t]$(d1Y_i_nepnei[i,t] and d1Y_i_d[i,d,t] and d_non_ene[d] and not i_energymargins[i] and t.val>t1.val)..
+							jfpY_i_d[i,d,t] =E= adj_jfpY_i_d[i,t];
+
+					adj_jfpY_i_d[i,t]$(d1Y_i_nepnei[i,t] and not i_energymargins[i] and t.val>t1.val)..
+							sum(d_non_ene, pY_i_d_base[i,d_non_ene,t] * qY_i_d[i,d_non_ene,t]) =E= vY_CET['out_other',i,t];
+			
 
 				 .. vY_CET[out_other,i,t] =E= pY_CET[out_other,i,t]*qY_CET[out_other,i,t];
 
