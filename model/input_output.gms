@@ -136,7 +136,7 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. vR[t] =E= sum(rx, vD[rx,t]);
   .. vE[t] =E= sum(re, vD[re,t]); #Only firms aggregate of energy-input, households energy is in vC and exports in vX.
   .. vI[t] =E= sum(k, vD[k,t]) + vD['invt',t];
-  .. vC[t] =E= sum(c, vD[c,t]);
+  .. vC[t] =E= sum(c, vD[c,t]) + vC_WalrasLaw[t];
   .. vG[t] =E= sum(g, vD[g,t]);
   .. vX[t] =E= sum(x, vD[x,t]);
 

@@ -10,9 +10,8 @@ $Group+ all_variables
   rCHabit[t] "Habit formation parameter."
   qCHhxRef[t] "Private consumption net of habits and Keynesian consumption."
   rSurvival[t] "Survival rate."
-  qCHh[t] "Private consumption of households."
-  pCHh[t] "Usercost of private consumption of households."
-  jqChh_ctot[t] "J-term to be endogenized when CES-utility in households_CES_demand.gms is turned on"
+  jC_ramsey[t] "Adjustment of consumption due to behavior"
+  qC_ramsey[t] "Total consumption in Ramsey model"
 ;
 
 $ENDIF # variables
@@ -23,19 +22,25 @@ $ENDIF # variables
 $IF %stage% == "equations":
 
 $BLOCK ramsey_household_equations ramsey_household_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-  .. qCHhxRef[t] =E= qCHh[t] - rCHabit[t] * qCHh[t-1]/fq - rMPC[t] * vHhIncome[t] / pCHh[t];
+# In this module aggregate consumption is determined by the Ramsey model.
+  jC_ramsey[t]$(not t1[t]).. qC[t] =E= qC_ramsey[t]; # This is the link to the rest of the model
 
-  # Will be replaced by CES utility function
-  .. qCHh[t] =E= sum(c, qD[c,t]) + jqChh_ctot[t];
-  .. pCHh[t] * qCHh[t] =E= sum(c, vD[c,t]);
 
+# This is the Ramsey model for aggregate consumption
+ .. qCHhxRef[t] =E= qC_ramsey[t] - rCHabit[t] * qC_ramsey[t-1]/fq - rMPC[t] * vHhIncome[t] / pC[t];
+  
   .. qmuC[t] =E= (qCHhxRef[t]/qCHhxRef[tBase])**(-eCRRA);
 
-  rMPCW[t]$(not tEnd[t])..
-    qmuC[t] =E= pCHh[t]/(pCHh[t+1]*fp) * (1+mrHhReturn[t+1]) # Real expected return on wealth
+  qC_ramsey[t]$(not tEnd[t])..
+    qmuC[t] =E= pC[t]/(pC[t+1]*fp) * (1+mrHhReturn[t+1]) # Real expected return on wealth
               * qmuC[t+1]*fq**(-eCRRA) # Expected marginal utility of consumption
               * rSurvival[t] / (1+rHhDiscount[t+1]); # Survival rate and discount rate
-  rMPCW&_tEnd[t]$(tEnd[t] and not t1[t]).. rMPCW[t] =E= rMPCW[t-1];
+
+  qC_ramsey&_tEnd[t]$(tEnd[t] and not t1[t]).. qC_ramsey[t] =E= qC_ramsey[t-1]; # Terminal condition - maybe not the best way to do it
+ 
+
+
+
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -53,9 +58,6 @@ eCRRA.l = 1/0.8;
 rSurvival.l[t] = 0.993;
 rHhDiscount.l[t] = 1.04 / fp - 1;
 
-# $Group ramsey_household_data_variables ;
-# @load(ramsey_household_data_variables, "../data/data.gdx")
-# $Group+ data_covered_variables ramsey_household_data_variables$(t.val <= %calibration_year%);
 
 $ENDIF # exogenous_values
 
@@ -65,18 +67,22 @@ $ENDIF # exogenous_values
 $IF %stage% == "calibration":
 
 $BLOCK ramsey_household_calibration_equations ramsey_household_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+
+  qC_ramsey&_t1[t]$(t1[t]).. qC_ramsey[t] =E= qC[t];
+
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
 model calibration /
   ramsey_household_equations
-  # ramsey_household_calibration_equations
+  ramsey_household_calibration_equations
 /;
 # Add endogenous variables to calibration model
 $Group calibration_endogenous
   ramsey_household_endogenous
   ramsey_household_calibration_endogenous
-  -rMPCW[t1], rHhDiscount[t1]
+
+  rHhDiscount[t1]
 
   calibration_endogenous
 ;

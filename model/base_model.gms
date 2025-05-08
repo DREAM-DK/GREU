@@ -1,5 +1,4 @@
 $onMulti # Allows adding to an already defined set or model with multiple "model" or "set" statements
-$onSuffixDLVars 
 
 $IMPORT functions.gms;
 $IMPORT settings.gms
@@ -12,6 +11,7 @@ $IMPORT sets/production.sets.gms
 $IMPORT sets/households.sets.gms
 $IMPORT sets/emissions.sets.gms
 $IMPORT sets/energy_taxes_and_emissions.sets.gms
+$IMPORT sets/households.sets.gms
 
 set_time_periods(%first_data_year%, %terminal_year%);
 
@@ -30,7 +30,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT production.gms 
   $IMPORT pricing.gms 
   $IMPORT imports.gms
-  $IMPORT production_CET.gms
+  $IMPORT production_CET.gms;
   $IMPORT emissions.gms 
   $IMPORT energy_and_emissions_taxes.gms 
   $IMPORT input_output.gms
@@ -39,6 +39,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT exports.gms
   $IMPORT factor_demand.gms
   $IMPORT ramsey_household.gms
+  $IMPORT consumption_disaggregated.gms 
 $ENDFUNCTION
 
 # ------------------------------------------------------------------------------
@@ -74,11 +75,12 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT emissions.gms 
   $IMPORT energy_and_emissions_taxes.gms 
   $IMPORT input_output.gms
-  # $IMPORT households.gms
+  $IMPORT households.gms
   $IMPORT government.gms
   $IMPORT exports.gms
   $IMPORT factor_demand.gms
-  # $IMPORT ramsey_household.gms
+  $IMPORT ramsey_household.gms
+  $IMPORT consumption_disaggregated.gms 
 $ENDFUNCTION
 
 
@@ -97,13 +99,13 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT submodel_template.gms
   $IMPORT financial_accounts.gms
   $IMPORT labor_market.gms
-  $IMPORT energy_markets.gms
-  $IMPORT non_energy_markets.gms 
+  $IMPORT energy_markets.gms #Energy-markets need to be before industries_CES_energydemand in terms of getting levels loaded for qREa
+  $IMPORT non_energy_markets.gms
   $IMPORT production_CES_energydemand.gms 
   $IMPORT production.gms 
   $IMPORT pricing.gms 
   $IMPORT imports.gms
-  $IMPORT production_CET.gms
+  $IMPORT production_CET.gms;
   $IMPORT emissions.gms 
   $IMPORT energy_and_emissions_taxes.gms 
   $IMPORT input_output.gms
@@ -112,8 +114,8 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT exports.gms
   $IMPORT factor_demand.gms
   $IMPORT ramsey_household.gms
+  $IMPORT consumption_disaggregated.gms 
 $ENDFUNCTION
-
 
 
 @import_from_modules("exogenous_values")
@@ -142,14 +144,13 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT emissions.gms 
   $IMPORT energy_and_emissions_taxes.gms 
   $IMPORT input_output.gms
-  # $IMPORT households.gms
+  $IMPORT households.gms
   $IMPORT government.gms
   $IMPORT exports.gms
   $IMPORT factor_demand.gms
-  # $IMPORT ramsey_household.gms
+  $IMPORT ramsey_household.gms
+  $IMPORT consumption_disaggregated.gms 
 $ENDFUNCTION
-
-
 
 $Group calibration_endogenous ;
 @import_from_modules("calibration")

@@ -1,25 +1,56 @@
+# set types_of_consumption /
+#   set.c
+# /;
 
-set cNest "Household consumption nests"
-  /cHousing, cGoods, cGoodsFood, cGoodsNonFood, cCarTrans, cTouSer, cTouSerGoo, cNonHou, cTot/;
 
-# set cNest2c[cNest,c] "Nesting structure for households"/
+set consumption_nests /
+  Meat "Pig, cow, poultry and fish"
+  Food "All food"
+  Goods "Goods" 
+  TourServ "Tourisme and services"
+  GooTouSer "Goods, tourisme and services"
+  CarSer "Cars incl. energy"
+  NonHou "Consumption exluding housing"
+  HouSer "Housing incl. energy"
+  TopCfunction "The top nest of consumption function"
+/;
 
-#   #First nest
-#   cTot . (cHousing, cNonHou) 
 
-#   #Second nest 
-#   cHousing  . (cHou, cHouEne)
-#   cNonHou . (cTouSerGoo, cCarTrans) 
+set cf "Inputs and their nests in consumption function" /
+  set.c
+  set.consumption_nests
+/;
 
-#   #Third nest 
-#   cCarTrans . (cCar, cCarEne)
-#   cTouSerGoo . (cTouSer, cGoods)
-  
-#   #Fourth nest 
-#   cTouSer . (cTou, cSer) 
-#   cGoods . (cGoodsFood, cGoodsNonFood)
+set cf_bottom[cf] /set.c/;
+set cfNest[cf] /set.consumption_nests/;
+set cf_top[cf] /TopCfunction/;
 
-#   #Fifth nest
-#   cGoodsFood . (cFoodVeg, cFoodMeat, cFoodFish, cFoodDairy, cFoodBev) 
 
-#   /;
+set cf_mapping[cfNest,cf] /
+  Meat . (cFoodPig, cFoodCow, cFoodPoul, cFoodFish)
+  Food . (Meat, cFoodDairy, cFoodVeg, cFoodBev)
+  Goods . (Food, cNonFood)
+  TourServ . (cSer, cTou)
+  GooTouSer . (Goods, TourServ)
+  CarSer . (cCarEne, cCar)
+  NonHou . (GooTouSer, CarSer)
+  HouSer . (cHouEne, cHou)
+  TopCfunction . (NonHou, HouSer)
+/;  
+
+set c2cf_bottom_mapping[c,cf_bottom] /
+  cFoodPig.cFoodPig
+  cFoodCow.cFoodCow
+  cFoodPoul.cFoodPoul
+  cFoodFish.cFoodFish
+  cFoodDairy.cFoodDairy
+  cFoodVeg.cFoodVeg
+  cFoodBev.cFoodBev
+  cNonFood.cNonFood
+  cSer.cSer
+  cTou.cTou
+  cCarEne.cCarEne
+  cCar.cCar
+  cHouEne.cHouEne
+  cHou.cHou
+/;  

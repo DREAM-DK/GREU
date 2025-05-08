@@ -1,4 +1,4 @@
 import dreamtools as dt
 
-dt.gamY.run("test.gms")
+dt.gamY.run("model/test.gms")
 
