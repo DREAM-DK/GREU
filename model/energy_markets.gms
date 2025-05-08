@@ -336,23 +336,23 @@
 
 
 					#NOTE THAT THIS IS RM0 (not RM), BECAUSE OF THE "IMPORTS.GMS"-MODULE THAT TAKES OVER RM IN INPUT_OUTPUT
-					# rM0&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and d1Y_i_d[i,d,t] and d_ene[d])..
+					rM0&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and d1Y_i_d[i,d,t] and d_ene[d])..
 					# 	qM_i_d[i,d,t]*pM_i_d[i,d,tBase]/(1+tM_i_d[i,d,tBase])  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
-						# qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
+						qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 
-					# rYM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t] and d_ene[d])..
+					rYM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t] and d_ene[d])..
 					# 	qM_i_d[i,d,t]*pM_i_d[i,d,tBase]/(1+tM_i_d[i,d,tBase])  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
-						# qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
+						qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 
 					#VERSION WITHOUT IMPORTS-MODULE TURNED ON
-					rM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and d1Y_i_d[i,d,t] and d_ene[d] and not excludeD[d])..
+					# rM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and d1Y_i_d[i,d,t] and d_ene[d] and not excludeD[d])..
 						# qM_i_d[i,d,t]*pM_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
-						qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
+						# qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 
 
-					rYM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t] and d_ene[d] and not excludeD[d])..
+					# rYM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t] and d_ene[d] and not excludeD[d])..
 						# qM_i_d[i,d,t]*pM_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
-						qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
+						# qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sCorr[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 #
 
 		$ENDBLOCK 

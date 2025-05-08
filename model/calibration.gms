@@ -24,7 +24,8 @@ solve calibration using CNS;
 PARAMETER qY_i_d_test[i,d,t], qM_i_d_test[i,d,t], pD_test[d,t], vD_energy[d,t], vD_IO[d,t], vS_energy_y[i,t], vS_IO_y[i,t], vS_energy_m[i,t], vS_IO_m[i,t], vD_energy_test[d,t],
  vS_energy_y_test[i,t], vS_energy_m_test[i,t], 
  vD_energy_taxes_and_vat_IO[d,t], vD_energy_taxes_and_vat_energy[d,t], vD_energy_taxes_and_vat_test[d,t],
- implied_importshare[d,e,t]
+ implied_importshare[d,e,t],
+ pY_i_d_base_neg[i,d,t]
  ;
 
 
@@ -61,6 +62,8 @@ $FUNCTION compute_tests({turnontests}):
 
 
 
+	pY_i_d_base_neg[i,d,t]$(d1Y_i_d[i,d,t] and pY_i_d.l[i,d,t]<0) = pY_i_d_base.l[i,d,t];
+
 	$IF '{turnontests}'=='1':
 		LOOP((d,t)$(t_endoyrs[t]),
 			ABORT$(abs(vD_energy_test[d,t])>0.5) 'Difference in value of energy demand between IO and bottom-up energy-data, tolerance set at half a billion DKK';
@@ -73,9 +76,31 @@ $FUNCTION compute_tests({turnontests}):
 			ABORT$(abs(vS_energy_m_test[i,t])>0.4) 'Difference in value of imports of energy between IO and bottom-up energy-data, tolerance set at 400 million DKK';
 		);
 
+		#Testing that bottom-up energy data on taxes does not differ from IO-data on taxes on energy on the aggregate
 		LOOP((d,t)$(tDataEnd[t]),
 			ABORT$(abs(vD_energy_taxes_and_vat_test[d,t])>0.1) 'Difference in value of taxes bottom-up energy-data, tolerance set at 100 million DKK';
 		);
+
+		#Testing that no IO-prices or quantities (except from inventories) are negative, when energy-modules are turned on to take over IO-module
+			#Domestic prices
+			LOOP((i,d,t)$(t_endoyrs[t]),
+				ABORT$(pY_i_d_base.l[i,d,t]<0) 'IO-prices are negative, when energy-modules are turned on to take over IO-module';
+			);
+
+			# #Import prices
+			LOOP((i,d,t)$(t_endoyrs[t]),
+				ABORT$(pM_i_d_base.l[i,d,t]<0) 'IO-prices are negative, when energy-modules are turned on to take over IO-module';
+			);
+
+			#Quantities (inventories, and investments may be negative)
+			LOOP((i,d,t)$(t_endoyrs[t] and not invt[d] and not invt_ene[d] and not k[d]),
+				ABORT$(qY_i_d.l[i,d,t]<0) 'IO-quentities from domestic production are negative, when energy-modules are turned on to take over IO-module';
+			);
+
+			LOOP((i,d,t)$(t_endoyrs[t] and not invt[d] and not invt_ene[d] and not k[d]),
+				ABORT$(qM_i_d.l[i,d,t]<0) 'IO-quantities from imports are negative, when energy-modules are turned on to take over IO-module';
+			);
+
 
 	$ENDIF
 

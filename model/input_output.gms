@@ -237,6 +237,11 @@ $Group+ data_covered_variables input_output_data_variables$(t.val <= %calibratio
 #Cells at approx 1e-5 still left here...
 vM_i_d.l[i,d,t]$(not sameas[i,'19000'] and d_ene[d]) = 0;
 
+#Goodbye non-energy in energy industries 
+vY_i_d.l['19000',d_non_ene,t] = no;
+vY_i_d.l['35002',d_non_ene,t] = no;
+vY_i_d.l['38393',d_non_ene,t] = no;
+
 d1Y_i_d[i,d,t] = abs(vY_i_d.l[i,d,t]) > 1e-6; d1Y_i_d[i,d,'2019'] = d1Y_i_d[i,d,'2020'];
 d1M_i_d[i,d,t] = abs(vM_i_d.l[i,d,t]) > 1e-6; d1M_i_d[i,d,'2019'] = d1M_i_d[i,d,'2020'];  
 d1YM_i_d[i,d,t] = d1Y_i_d[i,d,t] or d1M_i_d[i,d,t];
