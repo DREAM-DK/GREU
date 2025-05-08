@@ -134,8 +134,9 @@ execute_unloaddi "calibration_pre.gdx";
 solve calibration using CNS;
 
 # @unload_previous_difference(data_covered_variables, _difference)
-# @set_difference_parameters(data_covered_variables, _difference);
-# @load_previous_difference(data_covered_variables, _difference);
-# @assert_no_difference(data_covered_variables, 1e-6, _difference, _previous_difference, "data_covered_variables does not change more than previously done so by calibration.");
+@create_difference_parameters(data_covered_variables, _difference);
+@set_difference_parameters(data_covered_variables, _difference);
+@load_previous_difference(data_covered_variables, _difference);
+@assert_no_difference(data_covered_variables, 1e-6, _difference, _previous_difference, "data_covered_variables does not change more than previously done so by calibration.");
 @compute_tests(1);
 execute_unloaddi "calibration.gdx";
