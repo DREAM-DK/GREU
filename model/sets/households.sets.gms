@@ -36,17 +36,5 @@ set cf_mapping[cfNest,cf] /
   TopCfunction . (NonHou, HouSer)
 /;  
 
-set c2cf_bottom_mapping[c,cf_bottom] /
-  cFoodMeat.cFoodMeat
-  cFoodFish.cFoodFish
-  cFoodDairy.cFoodDairy
-  cFoodVeg.cFoodVeg
-  cFoodBev.cFoodBev
-  cNonFood.cNonFood
-  cSer.cSer
-  cTou.cTou
-  cCarEne.cCarEne
-  cCar.cCar
-  cHouEne.cHouEne
-  cHou.cHou
-/;  
+set c2cf_bottom_mapping[c,cf_bottom];
+c2cf_bottom_mapping[c,cf_bottom] = yes$(sameas[c,cf_bottom]);

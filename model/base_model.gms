@@ -75,12 +75,12 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT emissions.gms 
   $IMPORT energy_and_emissions_taxes.gms 
   $IMPORT input_output.gms
-  # $IMPORT households.gms
+  $IMPORT households.gms
   $IMPORT government.gms
   $IMPORT exports.gms
   $IMPORT factor_demand.gms
-  # $IMPORT ramsey_household.gms
-  # $IMPORT consumption_disaggregated.gms 
+  $IMPORT ramsey_household.gms
+  $IMPORT consumption_disaggregated.gms 
 $ENDFUNCTION
 
 
@@ -144,12 +144,12 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT emissions.gms 
   $IMPORT energy_and_emissions_taxes.gms 
   $IMPORT input_output.gms
-  # $IMPORT households.gms
+  $IMPORT households.gms
   $IMPORT government.gms
   $IMPORT exports.gms
   $IMPORT factor_demand.gms
-  # $IMPORT ramsey_household.gms
-  # $IMPORT consumption_disaggregated.gms 
+  $IMPORT ramsey_household.gms
+  $IMPORT consumption_disaggregated.gms 
 $ENDFUNCTION
 
 $Group calibration_endogenous ;

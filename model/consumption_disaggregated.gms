@@ -114,7 +114,7 @@ $Group calibration_endogenous
 ;
 
 $GROUP+ G_flat_after_last_data_year
-uCHh[cf,t]
+uCHh[cf,t]$(not cf_top[cf]) #No CES-share on aggregate consumption
 ;
 
 $ENDIF # calibration
