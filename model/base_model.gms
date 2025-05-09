@@ -40,6 +40,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT factor_demand.gms
   $IMPORT ramsey_household.gms
   $IMPORT consumption_disaggregated.gms 
+  $IMPORT consumption_disaggregated_energy.gms 
 $ENDFUNCTION
 
 # ------------------------------------------------------------------------------
@@ -81,6 +82,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT factor_demand.gms
   $IMPORT ramsey_household.gms
   $IMPORT consumption_disaggregated.gms 
+  $IMPORT consumption_disaggregated_energy.gms 
 $ENDFUNCTION
 
 
@@ -115,6 +117,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT factor_demand.gms
   $IMPORT ramsey_household.gms
   $IMPORT consumption_disaggregated.gms 
+  $IMPORT consumption_disaggregated_energy.gms 
 $ENDFUNCTION
 
 
@@ -150,6 +153,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT factor_demand.gms
   $IMPORT ramsey_household.gms
   $IMPORT consumption_disaggregated.gms 
+  $IMPORT consumption_disaggregated_energy.gms 
 $ENDFUNCTION
 
 $Group calibration_endogenous ;
@@ -179,13 +183,13 @@ Solve main using CNS;
 # ------------------------------------------------------------------------------
 set_time_periods(2020, %terminal_year%);
 
-tY_i_d.l[i,re,t]$(t.val >= t1.val) = 0.01 + tY_i_d.l[i,re,t];
-
+# tY_i_d.l[i,re,t]$(t.val >= t1.val) = 0.01 + tY_i_d.l[i,re,t];
+tEmarg_duty.l['ener_tax',es,e,d,t]$(t.val >= t1.val) = 2*tEmarg_duty.l['ener_tax',es,e,d,t]; #Doubling energy-taxes
 
 $FIX all_variables;
 # $UNFIX main_endogenous, vHhTaxes2vGDP[t], -vNetFinAssets[Gov,t];
 $UNFIX main_endogenous;
 Solve main using CNS;
-execute_unload 'shock.gdx';
 @compute_tests(1);
+execute_unload 'shock.gdx';
 

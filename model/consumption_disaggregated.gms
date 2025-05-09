@@ -44,7 +44,8 @@ $BLOCK consumption_disaggregated_equations consumption_disaggregated_endogenous 
 
   .. pCHh[cfNest,t] * qCHh[cfNest,t] =E= sum(cf_mapping[cfNest,cf], pCHh[cf,t] * qCHh[cf,t]);
 
-  .. pCHh2pNest[cf,cfNest,t] * pCHh[cfNest,t] =E= pCHh[cf,t];
+  pCHh2pNest[cf,cfNest,t]$(cf_mapping[cfNest,cf])..
+   pCHh2pNest[cf,cfNest,t] * pCHh[cfNest,t] =E= pCHh[cf,t];
 
 
 

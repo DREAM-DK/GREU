@@ -42,7 +42,7 @@ $FUNCTION compute_tests({turnontests}):
 
 	vD_energy[d,t] = sum((es,e,d_a)$es_d2d(es,d_a,d), vEpj_base.l[es,e,d_a,t]);
 	vS_energy_y[i,t]$(t.val>=t1.val and t.val<=tEnd.val) = sum(e,vY_CET.l[e,i,t]);
-	vS_energy_m[i,t]$(t.val>=t1.val and t.val<=tEnd.val) = sum(e,vM_CET.l[e,i,t]) + sum(e,vDistributionProfits.l[e,t]);
+	vS_energy_m[i,t]$(t.val>=t1.val and t.val<=tEnd.val) = sum(e,vM_CET.l[e,i,t]) + sum(e,vDistributionProfits.l[e,t])$(i_refineries[i]);
 
 
 	vD_energy_test[d,t]   = vD_energy[d,t] - vD_IO[d,t];
@@ -65,39 +65,39 @@ $FUNCTION compute_tests({turnontests}):
 	pY_i_d_base_neg[i,d,t]$(d1Y_i_d[i,d,t] and pY_i_d.l[i,d,t]<0) = pY_i_d_base.l[i,d,t];
 
 	$IF '{turnontests}'=='1':
-		LOOP((d,t)$(t_endoyrs[t]),
-			ABORT$(abs(vD_energy_test[d,t])>0.5) 'Difference in value of energy demand between IO and bottom-up energy-data, tolerance set at half a billion DKK';
+		LOOP((d,t)$(t_endoyrs[t] and not tDataEnd[t]),
+			ABORT$(abs(vD_energy_test[d,t])>1e-4) 'Difference in value of energy demand between IO and bottom-up energy';
 		);
-		LOOP((i,t)$(t_endoyrs[t]),
-			ABORT$(abs(vS_energy_y_test[i,t])>0.25) 'Difference in value of domestic energy supply between IO and bottom-up energy-data, tolerance set at 250 a million DKK';
+		LOOP((i,t)$(t_endoyrs[t] and not tDataEnd[t]),
+			ABORT$(abs(vS_energy_y_test[i,t])>1e-4) 'Difference in value of domestic energy supply between IO and bottom-up energy-data';
 		);
 
-		LOOP((i,t)$(t_endoyrs[t]),
-			ABORT$(abs(vS_energy_m_test[i,t])>0.4) 'Difference in value of imports of energy between IO and bottom-up energy-data, tolerance set at 400 million DKK';
+		LOOP((i,t)$(t_endoyrs[t] and not tDataEnd[t]),
+			ABORT$(abs(vS_energy_m_test[i,t])>1e-4) 'Difference in value of imports of energy between IO and bottom-up energy';
 		);
 
 		#Testing that bottom-up energy data on taxes does not differ from IO-data on taxes on energy on the aggregate
 		LOOP((d,t)$(tDataEnd[t]),
-			ABORT$(abs(vD_energy_taxes_and_vat_test[d,t])>0.1) 'Difference in value of taxes bottom-up energy-data, tolerance set at 100 million DKK';
+			ABORT$(abs(vD_energy_taxes_and_vat_test[d,t])>0.1) 'Difference in value of taxes bottom-up energy-data';
 		);
 
 		#Testing that no IO-prices or quantities (except from inventories) are negative, when energy-modules are turned on to take over IO-module
 			#Domestic prices
-			LOOP((i,d,t)$(t_endoyrs[t]),
+			LOOP((i,d,t)$(t_endoyrs[t] and not tDataEnd[t]),
 				ABORT$(pY_i_d_base.l[i,d,t]<0) 'IO-prices are negative, when energy-modules are turned on to take over IO-module';
 			);
 
 			# #Import prices
-			LOOP((i,d,t)$(t_endoyrs[t]),
+			LOOP((i,d,t)$(t_endoyrs[t] and not tDataEnd[t]),
 				ABORT$(pM_i_d_base.l[i,d,t]<0) 'IO-prices are negative, when energy-modules are turned on to take over IO-module';
 			);
 
 			#Quantities (inventories, and investments may be negative)
-			LOOP((i,d,t)$(t_endoyrs[t] and not invt[d] and not invt_ene[d] and not k[d]),
+			LOOP((i,d,t)$(t_endoyrs[t] and not invt[d] and not invt_ene[d] and not k[d] and not tDataEnd[t]),
 				ABORT$(qY_i_d.l[i,d,t]<0) 'IO-quentities from domestic production are negative, when energy-modules are turned on to take over IO-module';
 			);
 
-			LOOP((i,d,t)$(t_endoyrs[t] and not invt[d] and not invt_ene[d] and not k[d]),
+			LOOP((i,d,t)$(t_endoyrs[t] and not invt[d] and not invt_ene[d] and not k[d] and not tDataEnd[t]),
 				ABORT$(qM_i_d.l[i,d,t]<0) 'IO-quantities from imports are negative, when energy-modules are turned on to take over IO-module';
 			);
 
@@ -158,7 +158,7 @@ $FIX all_variables; $UNFIX calibration_endogenous;
 execute_unloaddi "calibration_pre.gdx";
 solve calibration using CNS;
 
-# @unload_previous_difference(data_covered_variables, _difference)
+@unload_previous_difference(data_covered_variables, _difference)
 @create_difference_parameters(data_covered_variables, _difference);
 @set_difference_parameters(data_covered_variables, _difference);
 @load_previous_difference(data_covered_variables, _difference);
