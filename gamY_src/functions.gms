@@ -97,6 +97,26 @@ $FUNCTION define_set_complement({name_set_c},{set},{set_c},{isitalist}):
 $ENDFUNCTION
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Mean value and continous approximation of max and min functions
+# ----------------------------------------------------------------------------------------------------------------------
+
+$FUNCTION mean({dim}, {expression}): sum({dim}, {expression}) / sum({dim}, 1) $ENDFUNCTION
+
+# Smooth approximation of ABS function. The error is zero when {x} is zero and goes to -smooth_abs_delta as abs({x}) increases.
+scalar smooth_abs_delta /0.01/;
+$FUNCTION abs({x}): (sqrt(sqr({x}) + sqr(smooth_abs_delta)) - smooth_abs_delta)$ENDFUNCTION
+
+# Smooth approximation of MAX function. The error is smooth_max_delta/2 when {x}=={y} and goes to zero as {x} and {y} diverge.
+scalar smooth_max_delta /0.001/;
+$FUNCTION max({x}, {y}): (({x} + {y} + Sqrt(Sqr({x} - {y}) + Sqr(smooth_max_delta))) / 2)$ENDFUNCTION
+
+# Smooth approximation of MIN function. The error is -smooth_min_delta/2 when {x}=={y} and goes to zero as {x} and {y} diverge.
+scalar smooth_min_delta /0.001/;
+$FUNCTION min({x}, {y}): (({x} + {y} - Sqrt(Sqr({x} - {y}) + Sqr(smooth_min_delta))) / 2)$ENDFUNCTION
+
+$FUNCTION InInterval({x},{y},{z}): (({x} + (({z} + {y} - Sqrt(Sqr({z} - {y}) + Sqr(smooth_min_delta))) / 2) + Sqrt(Sqr({x} - (({z} + {y} - Sqrt(Sqr({z} - {y}) + Sqr(smooth_min_delta))) / 2)) + Sqr(smooth_max_delta))) / 2) $ENDFUNCTION
+
+# ----------------------------------------------------------------------------------------------------------------------
 # Probalitily distributions
 # ----------------------------------------------------------------------------------------------------------------------
 
@@ -108,3 +128,11 @@ $FUNCTION cdfLogNorm({x},{mu},{std}): errorf((log( ( ({x}/{mu})**2 )**0.5) + 0.5
 
 #Integral of cumulative distribution of a log-normal distribution with expected value mu and standard deviation std 
 $FUNCTION Int_cdfLogNorm({x},{mu},{std}): errorf((log( ( ({x}/{mu})**2 )**0.5) - 0.5*{std}**2 )/{std}) $ENDFUNCTION                                                            
+
+#Partial expectation of a log normal distributed random variable X with mean value mu, standard deviaton std and a threshold X<k
+$FUNCTION PartExpLogNorm({k},{mu},{std}): ({mu} * errorf((log( ( ({k}/{mu})**2 )**0.5) - 0.5*{std}**2 )/{std})) $ENDFUNCTION            
+
+#Conditional expected value of a log normal distributed random variable X with mean value mu, standard deviaton std and conditional on x<k
+$FUNCTION CondExpLogNorm({k},{mu},{std}):  (@PartExpLogNorm({k},{mu},{std}) / @cdfLogNorm({k},{mu},{std})) $ENDFUNCTION 
+
+# Reference: https://en.wikipedia.org/wiki/Log-normal_distribution

@@ -115,7 +115,7 @@ parameters auxiliary_data_parameters
   # Abatement
   sTPotential_load[l,es,i,t] "Potential, technology."
   uTE_load[l,es,e,i,t] "Energy use, technology."
-  uTK_load[l,es,i,t] "Capital use, technology."
+  uTKexp_load[l,es,i,t] "Capital use, technology."
   pTE_base_load[es,e,i,t] "Base price of energy input (billion EUR per PJ)"
   pTE_tax_load[es,e,i,t] "Tax on energy input (billion EUR per PJ)"
   pTK_load[i,t] "User cost of capital"
@@ -179,7 +179,7 @@ parameters GREU_data
   # Abatement
   sTPotential[l,es,i,t] "Potential, technology."
   uTE[l,es,e,i,t] "Energy use, technology."
-  uTK[l,es,i,t] "Capital use, technology."
+  uTKexp[l,es,i,t] "Capital use, technology."
   pTE_base[es,e,i,t] "Base price of energy input (billion EUR per PJ)"
   pTE_tax[es,e,i,t] "Tax on energy input (billion EUR per PJ)"
   pTK[i,t] "User cost of capital"
@@ -209,7 +209,7 @@ $load vtCAP_prodsubsidy=vtCAP_top.l
 $gdxIn 
 
 $gdxIn %abatement_data_path%
-$load l=l sTPotential_load=sTPotential.l, uTE_load=uTE.l, uTK_load=uTK.l, pTE_base_load=pTE_base.l, pTE_tax_load=pTE_tax.l, pTK_load=pTK.l, qES_load=qES.l
+$load l=l sTPotential_load=sTPotential.l, uTE_load=uTE.l, uTKexp_load=uTKexp.l, pTE_base_load=pTE_base.l, pTE_tax_load=pTE_tax.l, pTK_load=pTK.l, qES_load=qES.l
 $gdxIn
 
 # Labor-market
@@ -301,7 +301,7 @@ qInvt_i[i,t] = qI_s.l['invt',i,t];
   # Abatement
   sTPotential[l,es,i,t] = sTPotential_load[l,es,i,t];
   uTE[l,es,e,i,t] = uTE_load[l,es,e,i,t];
-  uTK[l,es,i,t] = uTK_load[l,es,i,t];
+  uTKexp[l,es,i,t] = uTKexp_load[l,es,i,t];
   pTE_base[es,e,i,t] = pTE_base_load[es,e,i,t];
   pTE_tax[es,e,i,t] = pTE_tax_load[es,e,i,t];
   pTK[i,t] = pTK_load[i,t];
@@ -334,7 +334,7 @@ execute_unloaddi "data",
   vtE_duty, vtE_vat, tCO2_Emarg, tEmarg_duty
   Energybalance, NonEnergyEmissions
 
-  sTPotential, uTE, uTK, pTE_base, pTE_tax, pTK, qES
+  sTPotential, uTE, uTKexp, pTE_base, pTE_tax, pTK, qES
 
   vIOxE_y, vIOxE_m, vIOxE_a, vIO_y, vIO_m, vIO_a
 ;

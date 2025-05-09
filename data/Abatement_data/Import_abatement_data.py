@@ -34,7 +34,7 @@ rename_col_list = {'TechID':"l",
                    'Year':"t",
                    'Potential (Share of energy demand)':"sTPotential",
                    'Energy intensity (PJ in per PJ out)':"uTE",
-                   'Capital intensity (billion EUR per PJ out)':"uTK",
+                   'Capital intensity (billion EUR per PJ out)':"uTKexp",
                    'Energy price (billion EUR per PJ in)':"pTE_base",
                    'Energy tax (billion EUR per PJ in)':"pTE_tax",
                    'Capital cost index':"pTK",
@@ -51,10 +51,10 @@ df_technologies = df_technologies.rename(columns=rename_col_list)
 # Set index for dataframe
 df_technologies = df_technologies.set_index(['l','es','e','i','t']) 
 
-# Create dataframe with sTPotential, uTE and uTK
+# Create dataframe with sTPotential, uTE and uTKexp
 df_sTPotential = pd.DataFrame(df_technologies['sTPotential'])
 df_uTE = pd.DataFrame(df_technologies['uTE'])
-df_uTK = pd.DataFrame(df_technologies['uTK'])
+df_uTKexp = pd.DataFrame(df_technologies['uTKexp'])
 
 # Drop energy dimension for sTPotential
 df_sTPotential = df_sTPotential.reset_index()
@@ -63,9 +63,9 @@ df_sTPotential = df_sTPotential.drop(columns = 'e')
 # Reset index for uTE
 df_uTE = df_uTE.reset_index()
 
-# Drop energy dimension for uTK
-df_uTK = df_uTK.reset_index()
-df_uTK = df_uTK.drop(columns = 'e')
+# Drop energy dimension for uTKexp
+df_uTKexp = df_uTKexp.reset_index()
+df_uTKexp = df_uTKexp.drop(columns = 'e')
 
 # DATA FOR ENERGY PRICE
 # Reading data from excel
@@ -142,7 +142,7 @@ t=gp.Set(db_abatement,name='t',description='Year',records=set_year_list)
 # Adding parameters to database
 sTPotential=gp.Parameter(db_abatement,name='sTPotential',domain=[l,es,i,t],description='Potential supply by technology l in ratio of energy service (share of qES)',records=df_sTPotential.values.tolist())
 uTE=gp.Parameter(db_abatement,name='uTE',domain=[l,es,e,i,t],description='Input of energy in technology l per PJ output at full potential',records=df_uTE.values.tolist())
-uTK=gp.Parameter(db_abatement,name='uTK',domain=[l,es,i,t],description='Input of machinery capital in technology l per PJ output output at full potential',records=df_uTK.values.tolist())
+uTKexp=gp.Parameter(db_abatement,name='uTKexp',domain=[l,es,i,t],description='Input of machinery capital in technology l per PJ output output at full potential',records=df_uTKexp.values.tolist())
 pTE_base=gp.Parameter(db_abatement,name='pTE_base',domain=[es,e,i,t],description='Base price of energy input',records=df_energy_price.values.tolist())
 pTE_tax=gp.Parameter(db_abatement,name='pTE_tax',domain=[es,e,i,t],description='Tax on energy input',records=df_energy_tax.values.tolist())
 pTK=gp.Parameter(db_abatement,name='pTK',domain=[i,t],description='User cost of capital in technologies for energy services',records=df_capital_cost_index.values.tolist())
