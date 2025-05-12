@@ -49,8 +49,6 @@ $FUNCTION compute_tests({turnontests}):
 	vS_energy_y_test[i,t] = vS_energy_y[i,t] - vS_IO_y[i,t];
 	vS_energy_m_test[i,t] = vS_energy_m[i,t] - vS_IO_m[i,t];
 
-	pD_test[d_non_ene,t] = pD.l[d_non_ene,t] - pD_non_ene.l[d_non_ene,t];
-
 	vD_energy_taxes_and_vat_IO[d,t]$(d_ene[d]) = sum(i, vtY_i_d__load__[i,d,t] + vtM_i_d__load__[i,d,t]);
 	vD_energy_taxes_and_vat_energy[d,t]$(d_ene[d]) = sum(i,sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr.l[d,e,i,t] * vte_NAS.l[es,e,d_a,t]))
 																									+sum((e,es,d_a)$es_d2d(es,d_a,d),  (1-sum(i_a,sCorr.l[d,e,i_a,t])) * vte_NAS.l[es,e,d_a,t]); 

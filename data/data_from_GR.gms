@@ -72,6 +72,44 @@ set demand_transaction_temp[transaction] /'input_in_production','household_consu
 set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','cav','nox_tax','so2_tax','vat','base'/; #AKB: Auxiliary set 
 set i_energymargins[i]/45000,46000,47000/;
 
+#Tests of energy-IO and energybalance
+Parameter testvY[i,t], testvM[i,t], testvE_base[d,t], testvE_duties[d,t], testvE_vat[d,t];
+$FUNCTION test_data_1():
+
+testvY[i,t] =  sum((es,e), Energybalance['base','production',i,es,e,t]) 
+             + sum((d,es,e,transaction), Energybalance['CAV',transaction,d,es,e,t])$(sameas[i,'45000'])
+             + sum((d,es,e,transaction), Energybalance['EAV',transaction,d,es,e,t])$(sameas[i,'46000'])
+             + sum((d,es,e,transaction), Energybalance['DAV',transaction,d,es,e,t])$(sameas[i,'47000'])
+             - sum(d, vIOE_y[i,d,t]);
+ABORT$(abs(sum((i,t1), testvY[i,t1]))>1) 'Test of energy-IO and energybalance failed! Value of production in industries do not match'; #Tolerance sat højt pga hack -> £
+
+
+testvM[i,t] =  sum((es,e), Energybalance['base','imports',i,es,e,t]) 
+             - sum(d, vIOE_m[i,d,t]);
+ABORT$(abs(sum((i,t1), testvM[i,t1]))>1) 'Test of energy-IO and energybalance failed! Value of imports do not match'; #Tolerance sat højt pga hack -> £
+
+
+testvE_base[d,t] 
+  = sum((es,e,demand_transaction_temp), Energybalance['base',demand_transaction_temp,d,es,e,t]) 
+  - sum(i, vIOE_y[i,d,t] + vIOE_m[i,d,t]);
+
+*ABORT$(abs(sum((d,t1), testvE_base[d,t1]))>1) 'Test of energy-IO and energybalance failed! Value of energy demand do not match'; #Tolerance sat højt pga hack -> £
+
+
+testvE_duties[d,t] = sum((es,e,demand_transaction_temp,etaxes), Energybalance[etaxes,demand_transaction_temp,d,es,e,t]) 
+                  -  vIOE_a['TaxSub',d,t];
+
+# ABORT$(abs(sum((d,t1), testvE_duties[d,t1]))>1) 'Test of energy-IO and energybalance failed! Value of energy duty revenues do not match'; #Tolerance sat højt pga hack -> £
+
+
+testvE_vat[d,t] = sum((es,e,demand_transaction_temp), Energybalance['VAT',demand_transaction_temp,d,es,e,t]) 
+                -  vIOE_a['Moms',d,t];
+
+# ABORT$(abs(sum((d,t1), testvE_vat[d,t1]))>1) 'Test of energy-IO and energybalance failed! Value of VAT do not match'; #Tolerance sat højt pga hack -> £
+
+$ENDFUNCTION 
+
+
 #Corrections and data hacks
 Energybalance[ebalitems,'export','xEne',es,e,t]       = Energybalance[ebalitems,'export','xOth',es,e,t];   Energybalance[ebalitems,'export','xOth',es,e,t]   = 0;
 Energybalance[ebalitems,'inventory','invt_ene',es,e,t] = Energybalance[ebalitems,'inventory','invt',es,e,t]; Energybalance[ebalitems,'inventory','invt',es,e,t] = 0;
@@ -136,25 +174,7 @@ vIOE_y['35002','invt_ene',t] = 0; #Inconsistency: No energy-inventories in energ
 vIOE_y['02000','invt_ene',t] = 0; #Inconsistency: No energy-inventories in energybalances from 02000....
 
 
-#Tests of energy-IO and energybalance
-Parameter testvY[i,t], testvM[i,t];
-$FUNCTION test_data_1({vIOE_y}):
-testvY[i,t] =  sum((es,e), Energybalance['base','production',i,es,e,t]) 
-             + sum((d,es,e,transaction), Energybalance['CAV',transaction,d,es,e,t])$(sameas[i,'45000'])
-             + sum((d,es,e,transaction), Energybalance['EAV',transaction,d,es,e,t])$(sameas[i,'46000'])
-             + sum((d,es,e,transaction), Energybalance['DAV',transaction,d,es,e,t])$(sameas[i,'47000'])
-             - sum(d, {vIOE_y}[i,d,t]);
-
-testvY[i,t] =  sum((es,e), Energybalance['base','production',i,es,e,t]) 
-             + sum((d,es,e,transaction), Energybalance['CAV',transaction,d,es,e,t])$(sameas[i,'45000'])
-             + sum((d,es,e,transaction), Energybalance['EAV',transaction,d,es,e,t])$(sameas[i,'46000'])
-             + sum((d,es,e,transaction), Energybalance['DAV',transaction,d,es,e,t])$(sameas[i,'47000'])
-             - sum(d, {vIOE_y}[i,d,t]);
-
-display testvY;
-ABORT$(abs(sum((i,t1), testvY[i,t1]))>1) 'Test of energy-IO and energybalance failed!'; #Tolerance sat højt pga hack -> £
-$ENDFUNCTION 
-@test_data_1(vIOE_y);
+@test_data_1();
 
 #Inserting energy-inputs into IO
 vIO_y[i,'xENE',t]         = vIOE_y[i,'xENE',t]; 
@@ -203,7 +223,7 @@ vIOE_a[a_rows_,'heating_energy',t] = sum(rx, vIOE_a[a_rows_,'heating_energy',t])
 vIOE_y[i,rx,t] = 0;
 vIOE_m[i,rx,t] = 0;
 vIOE_a[a_rows_,rx,t] = 0;
-@test_data_1(vIOE_y);
+@test_data_1();
 
 m[i] = yes$sum((d,t1), vIO_m[i,d,t1]);
 
@@ -224,7 +244,6 @@ parameters GREU_data
   vD[d,t] "Demand components in purchasing prices."
   vD_base[d,t] "Demand components in base-prices "
   qD[d,t] "Real demand by demand component."
-  qD_non_ene[d_non_ene,t] "Real demand for non-energy by demand component"
   vtYM_d[d,t] "Net duties by demand component."
 
   # Factor demand
@@ -235,14 +254,6 @@ parameters GREU_data
   qInvt_i[i,t] "Inventory investments by industry."
   qInvt_ene_i[i,t] "Inventory investments by industry."
   qE_re_i[re,i,t] "Energy demand from industry i, split on energy-types re"
-
-
-  #Non-energy materials
-  vY_i_d_non_ene[i,d_non_ene,t] ""
-	vM_i_d_non_ene[i,d_non_ene,t] ""
-	vtY_i_d_non_ene[i,d_non_ene,t] ""
-	vtM_i_d_non_ene[i,d_non_ene,t] ""
-  vtYM_i_d_non_ene[d_non_ene,t] ""
 
   #Energy and emissions.
   qEmmBorderTrade[em,t] ""
@@ -314,20 +325,6 @@ qM_CET['out_other',i,t] = sum(d_non_ene,vIOxE_m[i,d_non_ene,t]);
 pY_CET['out_other',i,t]$qY_CET['out_other',i,t] = 1;
 pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 
-vY_i_d_non_ene[i,d_non_ene,t] = vIOxE_y[i,d_non_ene,t]; 
-vM_i_d_non_ene[i,d_non_ene,t] = vIOxE_m[i,d_non_ene,t];
-vtYM_i_d_non_ene[d_non_ene,t] = vIOxE_a['TaxSub',d_non_ene,t] + vIOxE_a['Moms',d_non_ene,t]; 
-
-#Assume same tax-rates per IO-cell 
-vtY_i_d_non_ene[i,d_non_ene,t]$(sum(i_a, vY_i_d_non_ene[i_a,d_non_ene,t] + vM_i_d_non_ene[i_a,d_non_ene,t])) 
-  = vtYM_i_d_non_ene[d_non_ene,t] * vY_i_d_non_ene[i,d_non_ene,t]/sum(i_a, vY_i_d_non_ene[i_a,d_non_ene,t] + vM_i_d_non_ene[i_a,d_non_ene,t]);
-
-vtM_i_d_non_ene[i,d_non_ene,t]$(sum(i_a, vY_i_d_non_ene[i_a,d_non_ene,t] + vM_i_d_non_ene[i_a,d_non_ene,t])) 
-  = vtYM_i_d_non_ene[d_non_ene,t] * vM_i_d_non_ene[i,d_non_ene,t]/sum(i_a, vY_i_d_non_ene[i_a,d_non_ene,t] + vM_i_d_non_ene[i_a,d_non_ene,t]);
-
-vY_i_d_non_ene[i,d_non_ene,t] = vY_i_d_non_ene[i,d_non_ene,t] + vtY_i_d_non_ene[i,d_non_ene,t];
-vM_i_d_non_ene[i,d_non_ene,t] = vM_i_d_non_ene[i,d_non_ene,t] + vtM_i_d_non_ene[i,d_non_ene,t];
-
 #Demand-components, total in base prices
 vD_base[d,t] = sum(i, vY_i_d_base[i,d,t] + vM_i_d_base[i,d,t]);
 
@@ -337,10 +334,6 @@ vtYM_d[d,t]       = vIO_a["TaxSub",d,t] + vIO_a["Moms",d,t];
 #Assume same tax-rates per IO-cell
 vtY_i_d[i,d,t]$(vD_base[d,t]) = vY_i_d_base[i,d,t] / vD_base[d,t] * vtYM_d[d,t]; 
 vtM_i_d[i,d,t]$(vD_base[d,t]) = vM_i_d_base[i,d,t] / vD_base[d,t] * vtYM_d[d,t]; 
-
-#For energy we assume it's all on 19000 (when bottom-up module is turned on tax-rates are endogenized)
-# vtY_i_d['19000',d_ene,t]$(vtY_i_d['19000',d_ene,t] + vtM_i_d['19000',d_ene,t]) = vtY_i_d['19000',d_ene,t]/(vtY_i_d['19000',d_ene,t] + vtM_i_d['19000',d_ene,t]) * vtYM_d[d_ene,t]; 
-# vtM_i_d['19000',d_ene,t]$(vtY_i_d['19000',d_ene,t] + vtM_i_d['19000',d_ene,t]) = vtM_i_d['19000',d_ene,t]/(vtY_i_d['19000',d_ene,t] + vtM_i_d['19000',d_ene,t]) * vtYM_d[d_ene,t]; 
 
 
 #Compute IO incl. taxes, based on above distribution
@@ -353,7 +346,6 @@ vD[d,t] = sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
 
 #We normalize prices to 1 and load quantities into model
 qD[d,t] = vD[d,t];
-qD_non_ene[d_non_ene,t] = qD[d_non_ene,t];
 
 
 #Energy and emissions.
