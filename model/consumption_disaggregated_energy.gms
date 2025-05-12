@@ -17,16 +17,14 @@ $ENDIF # variables
 $IF %stage% == "equations":
   $BLOCK consumption_disaggregated_energy_equations consumption_disaggregated_energy_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
-      #Budget constraint
-    .. pChh[cf_ene,t] * qChh[cf_ene,t] =E= sum((es,e,c)$es2cf2d(es,cf_ene,c), vEpj[es,e,c,t]);
+    #CES-demand based on average, not marginal energy prices (this is in contrast to industries, and should be modified in later versions)
+      ..qEpj[es,e,c,t] =E= uChh_Epj[es,e,c,t] * sum(cf_ene$es2cf2d(es,cf_ene,c),
+                                                    pEpj2pChh[es,e,c,cf_ene,t] **(-eChh_cEne[cf_ene]) * qChh[cf_ene,t]
+                                                    );
 
-      #CES-demand based on average, not marginal energy prices (this is in contrast to industries, and should be modified in later versions)
-    #   ..qEpj[es,e,c,t] =E= uChh_Epj[es,e,c,t] * sum(cf_ene$es2cf2d(es,cf_ene,c),
-    #                                                 pEpj2pChh[es,e,c,cf_ene,t] **(-eChh_cEne[cf_ene]) * qChh[cf_ene,t]
-    #                                                 );
-
-    # pEpj2pChh[es,e,c,cf_ene,t]$(es2cf2d(es,cf_ene,c) and d1pEpj_base[es,e,c,t])..
-    #   pEpj2pChh[es,e,c,cf_ene,t] * pChh[cf_ene,t] =E= pEpj[es,e,c,t];
+    #Relative price
+    pEpj2pChh[es,e,c,cf_ene,t]$(es2cf2d(es,cf_ene,c) and d1pEpj_base[es,e,c,t])..
+      pEpj2pChh[es,e,c,cf_ene,t] * pChh[cf_ene,t] =E= pEpj[es,e,c,t];
 
 # Epj2pChh.lo[es,e,c,cf_ene,t]$((((t1.val <= t.val and t.val <= tEnd.val) and (es2cf2d(es,cf,d))) and pEpj2pChh_exists_dummy[es,e,c,cf_ene,t])) = -inf;
   $ENDBLOCK
@@ -61,7 +59,7 @@ model calibration /
 $Group calibration_endogenous
   consumption_disaggregated_energy_endogenous
 
-  # -qEpj[es,e,c,t1], uChh_Epj[es,e,c,t1]
+  -qEpj[es,e,c,t1], uChh_Epj[es,e,c,t1]
   calibration_endogenous
 ;
 

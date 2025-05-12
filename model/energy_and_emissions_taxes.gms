@@ -117,7 +117,7 @@ $IF %stage% == "equations":
       #Average tax-rate on energy
       tpE[es,e,d,t]..
          (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t] * qEpj[es,e,d,t]
-          =E= vtE[es,e,d,t];
+          =E= vEpj[es,e,d,t];
 
         #CO2-taxes based on emissions (currently only industries) 
           #Domestic CO2-tax                                                                                                                                                                                     #AKB: Depending on how EOP-abatement i modelled this should be adjusted for EOP

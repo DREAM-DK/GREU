@@ -41,6 +41,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT ramsey_household.gms
   $IMPORT consumption_disaggregated.gms 
   $IMPORT consumption_disaggregated_energy.gms 
+  $IMPORT exports_energy.gms
 $ENDFUNCTION
 
 # ------------------------------------------------------------------------------
@@ -83,6 +84,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT ramsey_household.gms
   $IMPORT consumption_disaggregated.gms 
   $IMPORT consumption_disaggregated_energy.gms 
+  $IMPORT exports_energy.gms
 $ENDFUNCTION
 
 
@@ -118,15 +120,15 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT ramsey_household.gms
   $IMPORT consumption_disaggregated.gms 
   $IMPORT consumption_disaggregated_energy.gms 
+  $IMPORT exports_energy.gms
 $ENDFUNCTION
 
 
 @import_from_modules("exogenous_values")
-d1scorr[d,e,i,t] = yes$(d1Y_i_d[i,d,t] and d_ene[d] and d1pY_CET[e,i,t] and sum((es,d_a)$es_d2d(es,d_a,d), d1pEpj_base[es,e,d_a,t]));
+d1scorr[d,e,i,t] = yes$(d1Y_i_d[i,d,t] and d_ene[d] and d1pY_CET[e,i,t] and sum((es,d_a)$es_d2d(es,d_a,d), d1pEpj_base[es,e,d_a,t])); #£AKB
 @inf_growth_adjust()
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
 @update_exist_dummies()
-
 
 # ------------------------------------------------------------------------------
 # Calibrate model
@@ -154,6 +156,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT ramsey_household.gms
   $IMPORT consumption_disaggregated.gms 
   $IMPORT consumption_disaggregated_energy.gms 
+  $IMPORT exports_energy.gms
 $ENDFUNCTION
 
 $Group calibration_endogenous ;
@@ -184,12 +187,12 @@ Solve main using CNS;
 set_time_periods(2020, %terminal_year%);
 
 # tY_i_d.l[i,re,t]$(t.val >= t1.val) = 0.01 + tY_i_d.l[i,re,t];
-tEmarg_duty.l['ener_tax',es,e,d,t]$(t.val >= t1.val) = 2*tEmarg_duty.l['ener_tax',es,e,d,t]; #Doubling energy-taxes
+tEmarg_duty.l['ener_tax',es,e,d,t]$(t.val > t1.val) = 2*tEmarg_duty.l['ener_tax',es,e,d,t]; #Doubling energy-taxes
 
 $FIX all_variables;
 # $UNFIX main_endogenous, vHhTaxes2vGDP[t], -vNetFinAssets[Gov,t];
 $UNFIX main_endogenous;
 Solve main using CNS;
-@compute_tests(1);
+@compute_tests(0);
 execute_unload 'shock.gdx';
 

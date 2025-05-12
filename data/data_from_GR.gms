@@ -56,15 +56,8 @@ parameters
   qEmmBorderTrade[em,t]
   Energybalance[ebalitems,transaction,d,es,e,t] "Main data input with regards to energy and energy-related emissions"
   NonEnergyEmissions[ebalitems,transaction,d,t] "Main data input with regards to non-energy related emissions"
-  ImportShareEnergy_e_i[e,i,t] "Import share"
-  ImportShare_e[e,t] ""
-  DomesticShare[e,i,t] ""
-  Share_re[re,e,t] ""
-  FinalPurposeSharesSectors[re,t] ""
-  vIOE_y_computed[i,d,t] ""
-  vIOE_m_computed[i,d,t] ""
-  vIOE_a_computed[a_rows_,d,t] ""
 ;
+
 $gdxin dataa_ny.gdx
 $load d, d_non_ene, d_ene, i,c,x,g,rx,re,invt,invt_ene,tl,out,e,t,t1,land5,em_accounts,i_,k_
 $load factors_of_production, k, ebalitems, em,etaxes,a_rows_,transaction,demand_transaction,es
@@ -74,22 +67,23 @@ $load qEmmLULUCF=qEmmLULUCF.l,qEmmBorderTrade=qEmmBorderTrade.l,qCO2_ETS_freeall
 $load Energybalance=Energybalance.l
 $load NonEnergyEmissions=NonEnergyemissions.l
 
-set demand_transaction_temp[transaction] /'input_in_production','household_consumption','inventory','export','transmission_losses'/;
-set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','cav','nox_tax','so2_tax','vat','base'/;
+#Creating auxiliary sets (The first needs to be loaded from data instead)
+set demand_transaction_temp[transaction] /'input_in_production','household_consumption','inventory','export','transmission_losses'/; #AKB: In "demand_transaction" there is an error with "households" being the set-element for households
+set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','cav','nox_tax','so2_tax','vat','base'/; #AKB: Auxiliary set 
 set i_energymargins[i]/45000,46000,47000/;
-#Rettelser og data-hacks
+
+#Corrections and data hacks
 Energybalance[ebalitems,'export','xEne',es,e,t]       = Energybalance[ebalitems,'export','xOth',es,e,t];   Energybalance[ebalitems,'export','xOth',es,e,t]   = 0;
 Energybalance[ebalitems,'inventory','invt_ene',es,e,t] = Energybalance[ebalitems,'inventory','invt',es,e,t]; Energybalance[ebalitems,'inventory','invt',es,e,t] = 0;
 
-#Retter in mærkelig en for el
-execute_unload 'test.gdx';
+#Correction - is being investigated with Statistics DK
 Energybalance['pj','input_in_production','35011','process_special','electricity',t] = Energybalance['base','input_in_production','35011','process_special','electricity',t]/0.1;
 Energybalance['pj','production','35011','unspecified','electricity',t] = Energybalance['pj','production','35011','unspecified','electricity',t] + Energybalance['pj','input_in_production','35011','process_special','electricity',t];
 
-#Fjerner små entries
+#Removing small entries. Should ideally be replaced by an elaborate RAS-procedure.
 Energybalance[ebalitems,transaction,d,es,e,t]$(Energybalance['BASE',transaction,d,es,e,t] and abs(Energybalance['BASE',transaction,d,es,e,t])<1e-6) = no; 
 
-#Laver extraction gas
+#Creating an energy-goods called "Natural gas (Extraction)" - should be in final data from DST.
 Energybalance[ebalitems,'production','0600a','unspecified','natural gas (extraction)',t] = Energybalance[ebalitems,'production','0600a','unspecified','natural gas incl. biongas',t];
 Energybalance[ebalitems,'production','0600a','unspecified','natural gas incl. biongas',t] = 0;
 
@@ -112,18 +106,20 @@ Energybalance[ebalitems,'input_in_production','35002','process_special','natural
                                                                                                         -Energybalance[ebalitems,'input_in_production','35002','process_special','natural gas (extraction)',t];
 
 
+#There are very small entries of non-energy production in refineries and waste incineration sectors. Maybe this is feature and not a bug? For now it is removed.
 vIOxE_y['35002',d,t] = 0; vIOxE_y['19000',d,t] = 0; vIOxE_y['38393',d,t] = 0; #This hack £
 vIOxE_m['35002',d,t] = 0; vIOxE_m['19000',d,t] = 0; vIOxE_m['38393',d,t] = 0; 
 
-#Move all 
+#Inconsistency: IO contains energy-production in 13150 that is not present in Energybalance. 
 vIO_y['13150',d_ene,t] = 0; vIOxE_y['13150',d_ene,t] = 0; vIOE_y['13150',d,t] = 0;
 vIOxE_y['13150',d,t] = vIO_y['13150',d,t];
 
+#Inconsistency: IO contains energy-production in 20000 that is not present in Energybalance. 
 vIO_y['20000',d_ene,t] = 0; vIOxE_y['20000',d_ene,t] = 0; vIOE_y['20000',d,t] = 0;
 vIOxE_y['20000',d,t]   = vIO_y['20000',d,t];
 
 
-#Energy-IO
+#Computing energy-IO
 vIOE_y[i,d,t]         = vIO_y[i,d,t] - vIOxE_y[i,d,t];
 vIOE_m[i,d,t]         = vIO_m[i,d,t] - vIOxE_m[i,d,t];
 vIOE_a[a_rows_,d,t]   = vIO_a[a_rows_,d,t] - vIOxE_a[a_rows_,d,t];
@@ -136,8 +132,8 @@ vIOE_y[i,'invt_ene',t]      = vIOE_y[i,'invt',t];       vIOE_y[i,'invt',t] = 0;
 vIOE_m[i,'invt_ene',t]      = vIOE_m[i,'invt',t];       vIOE_m[i,'invt',t] = 0;
 vIOE_a[a_rows_,'invt_ene',t] =vIOE_a[a_rows_,'invt',t]; vIOE_a[a_rows_,'invt',t] = 0;
 
-vIOE_y['35002','invt_ene',t] = 0; #No energy-inventories in energybalances from 35002....
-vIOE_y['02000','invt_ene',t] = 0; #No energy-inventories in energybalances from 02000....
+vIOE_y['35002','invt_ene',t] = 0; #Inconsistency: No energy-inventories in energybalances from 35002....
+vIOE_y['02000','invt_ene',t] = 0; #Inconsistency: No energy-inventories in energybalances from 02000....
 
 
 #Tests of energy-IO and energybalance
@@ -159,7 +155,6 @@ display testvY;
 ABORT$(abs(sum((i,t1), testvY[i,t1]))>1) 'Test of energy-IO and energybalance failed!'; #Tolerance sat højt pga hack -> £
 $ENDFUNCTION 
 @test_data_1(vIOE_y);
-
 
 #Inserting energy-inputs into IO
 vIO_y[i,'xENE',t]         = vIOE_y[i,'xENE',t]; 

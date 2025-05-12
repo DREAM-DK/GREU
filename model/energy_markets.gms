@@ -168,7 +168,6 @@
 
 			.. vEpj_NAS[es,e,d,t] =E=  vEpj_base[es,e,d,t]
 													+ vtE_NAS[es,e,d,t] #Total taxes, excluding ETS 
-													# + vDAV[es,e,d,t] + vEAV[es,e,d,t] + vCAV[es,e,d,t] #Wholesale and retail margins
 													;
 			.. vEpj[es,e,d,t] =E= vEpj_NAS[es,e,d,t] + vDAV[es,e,d,t] + vEAV[es,e,d,t] + vCAV[es,e,d,t];
 
@@ -397,6 +396,8 @@
 		# ------------------------------------------------------------------------------
 
 		eDist.l[e] = 5;
+
+		pEpj.l[es,e,d,t]$(pEpj_base.l[es,e,d,t]) = fpt[t];
 
 		# ------------------------------------------------------------------------------
 		# Dummies
