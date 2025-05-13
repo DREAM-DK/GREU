@@ -252,7 +252,7 @@ d1M_i[i,t] = sum(d, d1M_i_d[i,d,t]);
 d1YM_d[d,t] = d1Y_d[d,t] or d1M_d[d,t];
 
 d1Y_i_nepnei[i,t] = sum(d_non_ene,d1Y_i_d[i,d_non_ene,t]) and sum(d_ene, d1Y_i_d[i,d_ene,t]);
-d1M_i_nemnei[i,t] = sum(d_non_ene,d1M_i_d[i,d_non_ene,t]) and sum(d_ene, d1M_i_d[i,d_ene,t]);;
+d1M_i_nemnei[i,t] = sum(d_non_ene,d1M_i_d[i,d_non_ene,t]) and sum(d_ene, d1M_i_d[i,d_ene,t]);
 
 #Initial values
 rM.l[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t]) = 1;

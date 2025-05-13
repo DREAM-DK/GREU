@@ -30,8 +30,8 @@ PARAMETER qY_i_d_test[i,d,t], qM_i_d_test[i,d,t], pD_test[d,t], vD_energy[d,t], 
 
 
 $FUNCTION compute_tests({turnontests}):
-	vS_IO_y[i,t]$(t1[t] and not i_energymargins[i]) = sum(d_ene, qY_i_d_test_var.l[i,d_ene,t]); 
-	vS_IO_m[i,t]$(t1[t] and not i_energymargins[i]) = sum(d_ene, qM_i_d_test_var.l[i,d_ene,t]); 
+	vS_IO_y[i,t]$(t1[t] and not i_energymargins[i]) = sum(d_ene, qY_i_d.l[i,d_ene,t]); 
+	vS_IO_m[i,t]$(t1[t] and not i_energymargins[i]) = sum(d_ene, qM_i_d.l[i,d_ene,t]); 
 
 	vD_IO[d,t]$(d_ene[d] and t.val>=t1.val and t.val<=tEnd.val) = sum(i$(not i_energymargins[i]), vY_i_d_base.l[i,d,t]) 
 																	+ sum(i$(not i_energymargins[i]), vM_i_d_base.l[i,d,t]);
@@ -50,13 +50,13 @@ $FUNCTION compute_tests({turnontests}):
 	vS_energy_m_test[i,t] = vS_energy_m[i,t] - vS_IO_m[i,t];
 
 	vD_energy_taxes_and_vat_IO[d,t]$(d_ene[d]) = sum(i, vtY_i_d__load__[i,d,t] + vtM_i_d__load__[i,d,t]);
-	vD_energy_taxes_and_vat_energy[d,t]$(d_ene[d]) = sum(i,sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr.l[d,e,i,t] * vte_NAS.l[es,e,d_a,t]))
-																									+sum((e,es,d_a)$es_d2d(es,d_a,d),  (1-sum(i_a,sCorr.l[d,e,i_a,t])) * vte_NAS.l[es,e,d_a,t]); 
+	vD_energy_taxes_and_vat_energy[d,t]$(d_ene[d]) = sum(i,sum((e,es,d_a)$es_d2d(es,d_a,d),  sSupply_d_e_i_adj.l[d,e,i,t] * vte_NAS.l[es,e,d_a,t]))
+																									+sum((e,es,d_a)$es_d2d(es,d_a,d),  (1-sum(i_a,sSupply_d_e_i_adj.l[d,e,i_a,t])) * vte_NAS.l[es,e,d_a,t]); 
 
 	vD_energy_taxes_and_vat_test[d,t] = vD_energy_taxes_and_vat_energy[d,t] - vD_energy_taxes_and_vat_IO[d,t];
 
 	implied_importshare[d,e,t]$(d_ene[d] and (sum(i,d1pY_CET[e,i,t]) or sum(i, d1pM_CET[e,i,t])) and sum((es,d_a)$es_d2d(es,d_a,d), d1pEpj_base[es,e,d_a,t]))
-	 = (1-sum(i_a, sCorr.l[d,e,i_a,t]));
+	 = (1-sum(i_a, sSupply_d_e_i_adj.l[d,e,i_a,t]));
 
 
 

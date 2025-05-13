@@ -125,7 +125,7 @@ $ENDFUNCTION
 
 
 @import_from_modules("exogenous_values")
-d1scorr[d,e,i,t] = yes$(d1Y_i_d[i,d,t] and d_ene[d] and d1pY_CET[e,i,t] and sum((es,d_a)$es_d2d(es,d_a,d), d1pEpj_base[es,e,d_a,t])); #£AKB
+d1sSupply_d_e_i_adj[d,e,i,t] = yes$(d1Y_i_d[i,d,t] and d_ene[d] and d1pY_CET[e,i,t] and sum((es,d_a)$es_d2d(es,d_a,d), d1pEpj_base[es,e,d_a,t])); #£AKB
 @inf_growth_adjust()
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
 @update_exist_dummies()

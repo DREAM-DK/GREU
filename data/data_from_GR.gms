@@ -261,9 +261,9 @@ parameters GREU_data
   vtE_duty[etaxes,es,e,d,t] ""
   vtE_vat[es,e,d,t]  ""
   qEpj[es,e,d,t] ""
-  vEAV[es,e,d,t] ""
-  vCAV[es,e,d,t] ""
-  vDAV[es,e,d,t] ""
+  vWMA[es,e,d,t] ""
+  vCMA[es,e,d,t] ""
+  vRMA[es,e,d,t] ""
   qEmmE_BU[em,es,e,d,t] ""
   qEmmxE[em,d,t] ""
   tCO2_Emarg[em,es,e,d,t]   
@@ -354,9 +354,9 @@ qD[d,t] = vD[d,t];
   pEpj_base[es,e,d,t]$(sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t])) = sum(demand_transaction_temp, Energybalance['BASE',demand_transaction_temp,d,es,e,t])/sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
   qEpj[es,e,d,t] = sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
 
-  vEAV[es,e,d,t] = sum(demand_transaction_temp, Energybalance['EAV',demand_transaction_temp,d,es,e,t]);
-  vCAV[es,e,d,t] = sum(demand_transaction_temp, Energybalance['CAV',demand_transaction_temp,d,es,e,t]);
-  vDAV[es,e,d,t] = sum(demand_transaction_temp, Energybalance['DAV',demand_transaction_temp,d,es,e,t]);
+  vWMA[es,e,d,t] = sum(demand_transaction_temp, Energybalance['EAV',demand_transaction_temp,d,es,e,t]);
+  vCMA[es,e,d,t] = sum(demand_transaction_temp, Energybalance['CAV',demand_transaction_temp,d,es,e,t]);
+  vRMA[es,e,d,t] = sum(demand_transaction_temp, Energybalance['DAV',demand_transaction_temp,d,es,e,t]);
 
   qY_CET[e,i,t] = sum(es, Energybalance['PJ','production',i,es,e,t]);
 
@@ -469,7 +469,7 @@ execute_unload 'data'
 
 #   es, out, e, invt,tl
 #   pE_avg, 
-#   vEAV, vDAV, vCAV,
+#   vWMA, vRMA, vCMA,
 #   qProd, pProd,
 #   em, em_accounts, land5, qEmmE_BU, qEmmxE, qEmmLULUCF5, qEmmLULUCF, sBioNatGas, qEmmBorderTrade
 #   GWP,
