@@ -162,8 +162,9 @@ vIOE_a[a_rows_,'invt_ene',t] =vIOE_a[a_rows_,'invt',t]; vIOE_a[a_rows_,'invt',t]
 vIOE_y['35002','invt_ene',t] = 0; #Inconsistency: No energy-inventories in energybalances from 35002....
 vIOE_y['02000','invt_ene',t] = 0; #Inconsistency: No energy-inventories in energybalances from 02000....
 
-
+#Test on input-data!
 @test_data();
+
 
 #Inserting energy-inputs into IO
 vIO_y[i,'xENE',t]         = vIOE_y[i,'xENE',t]; 

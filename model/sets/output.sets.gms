@@ -4,12 +4,6 @@ set es "End-purpose of ergy";
 
 set prd/heating,transport,Otherergy/;
 
-#  set mapPrd2es(prd,es)/
-#  	heating . heating 
-#  	transport . transport 
-#  	Otherergy . (process_normal,process_special, in_ETS)
-#  	/;
-
 $gdxIn ../data/data.gdx
 $load out, e, es
 $gdxIn
@@ -24,7 +18,6 @@ sets out_other[out]/out_other/
      straw[out]/"Straw for energy purposes"/
      biogas[out]/"Biogas"/
      crudeoil[out]/"Crude oil"/
-     #EnergyDistmargin[out]/"WholeAndRetailSaleMarginE"/
      ;
 
 sets transport[es]/Transport/
