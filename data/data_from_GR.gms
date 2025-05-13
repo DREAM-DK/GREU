@@ -128,34 +128,11 @@ Energybalance[ebalitems,'export','xEne',es,e,t]       = Energybalance[ebalitems,
 Energybalance[ebalitems,'inventory','invt_ene',es,e,t] = Energybalance[ebalitems,'inventory','invt',es,e,t]; Energybalance[ebalitems,'inventory','invt',es,e,t] = 0;
 
 #Correction - is being investigated with Statistics DK
-Energybalance['pj','input_in_production','35011','process_special','electricity',t] = Energybalance['base','input_in_production','35011','process_special','electricity',t]/0.1;
-Energybalance['pj','production','35011','unspecified','electricity',t] = Energybalance['pj','production','35011','unspecified','electricity',t] + Energybalance['pj','input_in_production','35011','process_special','electricity',t];
+#Energybalance['pj','input_in_production','35011','process_special','electricity',t] = Energybalance['base','input_in_production','35011','process_special','electricity',t]/0.1;
+#Energybalance['pj','production','35011','unspecified','electricity',t] = Energybalance['pj','production','35011','unspecified','electricity',t] + Energybalance['pj','input_in_production','35011','process_special','electricity',t];
 
 #Removing small entries. Should ideally be replaced by an elaborate RAS-procedure.
 Energybalance[ebalitems,transaction,d,es,e,t]$(Energybalance['BASE',transaction,d,es,e,t] and abs(Energybalance['BASE',transaction,d,es,e,t])<1e-6) = no; 
-
-#Creating an energy-goods called "Natural gas (Extraction)" - should be in final data from DST.
-Energybalance[ebalitems,'production','0600a','unspecified','natural gas (extraction)',t] = Energybalance[ebalitems,'production','0600a','unspecified','natural gas incl. biongas',t];
-Energybalance[ebalitems,'production','0600a','unspecified','natural gas incl. biongas',t] = 0;
-
-Energybalance[ebalitems,'imports','19000','unspecified','natural gas (extraction)',t] = Energybalance[ebalitems,'imports','19000','unspecified','natural gas incl. biongas',t];
-Energybalance[ebalitems,'imports','19000','unspecified','natural gas incl. biongas',t] = 0;
-
-Energybalance['PJ','imports','19000','unspecified','natural gas (extraction)',t]$Energybalance['PJ','imports','19000','unspecified','natural gas (extraction)',t]
-   = Energybalance['PJ','imports','19000','unspecified','natural gas (extraction)',t] - 30;
-Energybalance['PJ','production','35002','unspecified','natural gas incl. biongas',t]$Energybalance['PJ','production','35002','unspecified','natural gas incl. biongas',t]
-   = Energybalance['PJ','production','35002','unspecified','natural gas incl. biongas',t]  + 30;
-
-Energybalance[ebalitems,'transmission_losses','tl','unspecified','natural gas (extraction)',t] = Energybalance[ebalitems,'transmission_losses','tl','unspecified','natural gas incl. biongas',t];
-Energybalance[ebalitems,'transmission_losses','tl','unspecified','natural gas incl. biongas',t] = 0;
-
-Energybalance[ebalitems,'input_in_production','35002','process_special','natural gas (extraction)',t] = Energybalance[ebalitems,'production','0600a','unspecified','natural gas (extraction)',t]
-                                                                                                       +Energybalance[ebalitems,'imports','19000','unspecified','natural gas (extraction)',t]
-                                                                                                       -Energybalance[ebalitems,'transmission_losses','tl','unspecified','natural gas (extraction)',t];
-
-Energybalance[ebalitems,'input_in_production','35002','process_special','natural gas incl. biongas',t] = Energybalance[ebalitems,'input_in_production','35002','process_special','natural gas incl. biongas',t]
-                                                                                                        -Energybalance[ebalitems,'input_in_production','35002','process_special','natural gas (extraction)',t];
-
 
 #There are very small entries of non-energy production in refineries and waste incineration sectors. Maybe this is feature and not a bug? For now it is removed.
 vIOxE_y['35002',d,t] = 0; vIOxE_y['19000',d,t] = 0; vIOxE_y['38393',d,t] = 0; #This hack £
