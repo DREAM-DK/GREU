@@ -11,6 +11,10 @@ $Group+ all_variables
   vHhTaxes[t] "Taxes on income and wealth of households and non-profits."
   vHhTransfers[t] "Transfers to households and non-profits from government."
   vHhTaxes2vGDP[t] "Household taxes to GDP ratio"
+
+  vGovPrimaryBalance[t] "Primary balance of government."
+  vGovRevenue[t] "Revenue of government."
+  vGovExpenditure[t] "Expenditure of government."
 ;
 
 $ENDIF # variables
@@ -26,6 +30,17 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
   qD[g,t].. vD[g,t] =E= rG_g[g,t] * vG[t];
 
   .. vHhTaxes[t] =E= vHhTaxes2vGDP[t] * vGDP[t];
+
+
+  .. vGovPrimaryBalance[t] =E= vGovRevenue[t] - vGovExpenditure[t];
+
+  .. vGovRevenue[t] =E=     + sum(i$i_public[i], vEBITDA_i[i,t]) - vI_public[t]
+                            + vtY[t] + vtM[t] # Net duties, paid through R, E, I, C, G, and X
+                            + vHhTaxes[t] + vCorpTaxes[t];
+
+  .. vGovExpenditure[t] =E= vG[t] + vHhTransfers[t];
+
+
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model

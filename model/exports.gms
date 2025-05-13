@@ -18,7 +18,7 @@ $ENDIF # variables
 $IF %stage% == "equations":
 
 $BLOCK exports_market_equations exports_market_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-  .. qD[x,t] =E= qXMarket[x,t];#  * pX2pRoW_x[x,t]**(-eX[x])  ;
+  .. qD[x,t] =E= qXMarket[x,t] * pX2pRoW_x[x,t]**(-eX[x]);
   .. pX2pRoW_x[x,t] =E= pD[x,t] / pRoW_x[x,t];
 $ENDBLOCK
 

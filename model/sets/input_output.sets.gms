@@ -37,6 +37,8 @@ d_non_ene2k(d_non_ene,k) = yes$(sameas[d_non_ene,k]);
 
 # set energy[d]/energy/;
 
+Set xEne[d]/xEne/;
+
 Set i_public[i] "Public industries." / off /;
 Set i_private[i] "Private industries.";
 i_private[i] = not i_public[i];

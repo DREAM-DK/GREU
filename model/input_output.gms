@@ -18,6 +18,8 @@ $SetGroup+ SG_flat_after_last_data_year
   d1YM_d[d,t] "Dummy. Does the IO cell exist?"
   d1Y_i[i,t] "Dummy. Does the IO cell exist? (any domestic production from industry i)"
   d1M_i[i,t] "Dummy. Does the IO cell exist? (any imports from industry i)"
+  d1Y_i_nepnei[i,t] "Non energy production, in energy producing industry"
+  d1M_i_nemnei[i,t] "Non energy imports, in energy producing industry"
 ;
 
 $Group+ all_variables
@@ -134,7 +136,7 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. vR[t] =E= sum(rx, vD[rx,t]);
   .. vE[t] =E= sum(re, vD[re,t]); #Only firms aggregate of energy-input, households energy is in vC and exports in vX.
   .. vI[t] =E= sum(k, vD[k,t]) + vD['invt',t];
-  .. vC[t] =E= sum(c, vD[c,t]);
+  .. vC[t] =E= sum(c, vD[c,t]) + vC_WalrasLaw[t];
   .. vG[t] =E= sum(g, vD[g,t]);
   .. vX[t] =E= sum(x, vD[x,t]);
 
@@ -235,14 +237,22 @@ $Group+ data_covered_variables input_output_data_variables$(t.val <= %calibratio
 #Cells at approx 1e-5 still left here...
 vM_i_d.l[i,d,t]$(not sameas[i,'19000'] and d_ene[d]) = 0;
 
-d1Y_i_d[i,d,t] = abs(vY_i_d.l[i,d,t]) > 1e-6;
-d1M_i_d[i,d,t] = abs(vM_i_d.l[i,d,t]) > 1e-6;
+#Goodbye non-energy in energy industries 
+vY_i_d.l['19000',d_non_ene,t] = no;
+vY_i_d.l['35002',d_non_ene,t] = no;
+vY_i_d.l['38393',d_non_ene,t] = no;
+
+d1Y_i_d[i,d,t] = abs(vY_i_d.l[i,d,t]) > 1e-6; d1Y_i_d[i,d,'2019'] = d1Y_i_d[i,d,'2020'];
+d1M_i_d[i,d,t] = abs(vM_i_d.l[i,d,t]) > 1e-6; d1M_i_d[i,d,'2019'] = d1M_i_d[i,d,'2020'];  
 d1YM_i_d[i,d,t] = d1Y_i_d[i,d,t] or d1M_i_d[i,d,t];
 d1Y_d[d,t] = sum(i, d1Y_i_d[i,d,t]);
 d1M_d[d,t] = sum(i, d1M_i_d[i,d,t]);
 d1Y_i[i,t] = sum(d, d1Y_i_d[i,d,t]);
 d1M_i[i,t] = sum(d, d1M_i_d[i,d,t]);
 d1YM_d[d,t] = d1Y_d[d,t] or d1M_d[d,t];
+
+d1Y_i_nepnei[i,t] = sum(d_non_ene,d1Y_i_d[i,d_non_ene,t]) and sum(d_ene, d1Y_i_d[i,d_ene,t]);
+d1M_i_nemnei[i,t] = sum(d_non_ene,d1M_i_d[i,d_non_ene,t]) and sum(d_ene, d1M_i_d[i,d_ene,t]);
 
 #Initial values
 rM.l[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t]) = 1;
@@ -281,25 +291,28 @@ $ENDIF # exogenous_values
 $IF %stage% == "calibration":
 
 $BLOCK input_output_calibration_equations input_output_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+      pY_i_d_base&_t0[i,d,t]$(t1[t]) ..pY_i_d_base[i,d,t0] =E= pY_i_d_base[i,d,t1];
+
+      pM_i_d_base&_t0[i,d,t]$(t1[t]) ..pM_i_d_base[i,d,t0] =E= pM_i_d_base[i,d,t1];
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
 model calibration /
   input_output_equations
-  # input_output_calibration_equations
+  input_output_calibration_equations
 /;
 # Add endogenous variables to calibration model
 $Group+ calibration_endogenous
   input_output_endogenous
-  input_output_calibration_endogenous
   -vtY_i_d[i,d,t1], tY_i_d[i,d,t1]
   -vtM_i_d[i,d,t1], tM_i_d[i,d,t1]
   # -vY_i_d[i,d,t1], -vM_i_d[i,d,t1], rYM[i,d,t1], rM[i,d,t]$(t1[t] and d1M_i_d[i,d,t] and d1Y_i_d[i,d,t]) 
   -vY_i_d_base[i,d,t1], -vM_i_d_base[i,d,t1], rYM[i,d,t1], rM[i,d,t]$(t1[t] and d1M_i_d[i,d,t] and d1Y_i_d[i,d,t]) 
 
+  input_output_calibration_endogenous
+  pY_i_d_base[i,d,t0], pM_i_d_base[i,d,t0]
+  
   calibration_endogenous
-  # jvY_i, -vY_i 
-  # jvM_i, -vM_i 
 ;
 
 $Group+ G_flat_after_last_data_year

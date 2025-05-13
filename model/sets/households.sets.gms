@@ -1,25 +1,42 @@
+set consumption_nests /
+  Food "All food"
+  Goods "Goods" 
+  TourServ "Tourisme and services"
+  GooTouSer "Goods, tourisme and services"
+  CarSer "Cars incl. energy"
+  NonHou "Consumption exluding housing"
+  HouSer "Housing incl. energy"
+  TopCfunction "The top nest of consumption function"
+/;
 
-set cNest "Household consumption nests"
-  /cHousing, cGoods, cGoodsFood, cGoodsNonFood, cCarTrans, cTouSer, cTouSerGoo, cNonHou, cTot/;
 
-# set cNest2c[cNest,c] "Nesting structure for households"/
+set cf "Inputs and their nests in consumption function" /
+  set.c
+  set.consumption_nests
+/;
 
-#   #First nest
-#   cTot . (cHousing, cNonHou) 
+set cf_bottom[cf] /set.c/;
+set cfNest[cf] /set.consumption_nests/;
+set cf_top[cf] /TopCfunction/;
+set cf_ene[cf]/cHouEne,cCarEne/;
 
-#   #Second nest 
-#   cHousing  . (cHou, cHouEne)
-#   cNonHou . (cTouSerGoo, cCarTrans) 
 
-#   #Third nest 
-#   cCarTrans . (cCar, cCarEne)
-#   cTouSerGoo . (cTouSer, cGoods)
-  
-#   #Fourth nest 
-#   cTouSer . (cTou, cSer) 
-#   cGoods . (cGoodsFood, cGoodsNonFood)
+set cf_mapping[cfNest,cf] /
+  Food . (cFoodMeat, cFoodDairy, cFoodVeg, cFoodBev,cFoodFish)
+  Goods . (Food, cNonFood)
+  TourServ . (cSer, cTou)
+  GooTouSer . (Goods, TourServ)
+  CarSer . (cCarEne, cCar)
+  NonHou . (GooTouSer, CarSer)
+  HouSer . (cHouEne, cHou)
+  TopCfunction . (NonHou, HouSer)
+/;  
 
-#   #Fifth nest
-#   cGoodsFood . (cFoodVeg, cFoodMeat, cFoodFish, cFoodDairy, cFoodBev) 
+set c2cf_bottom_mapping[c,cf_bottom];
+c2cf_bottom_mapping[c,cf_bottom] = yes$(sameas[c,cf_bottom]);
 
-#   /;
+
+set es2cf2d(es,cf,d)/
+  (heating, appliances) . cHouEne . cHouEne 
+  (Transport) . cCarEne . cCarEne
+  /;

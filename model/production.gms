@@ -51,8 +51,8 @@ $IF %stage% == "equations":
     .. pY0_i[i,t] * qY0_i[i,t] =E= pProd['TopPfunction',i,t] * qProd['TopPfunction',i,t]
                                 + vProdOtherProductionCosts[i,t];
 
-
-    .. pProd2pNest[pf,pfNest,i,t] =E= pProd[pf,i,t] / pProd[pfNest,i,t];
+    pProd2pNest[pf,pfNest,i,t]$(pf_mapping[pfNest,pf,i])..
+      pProd2pNest[pf,pfNest,i,t] =E= pProd[pf,i,t] / pProd[pfNest,i,t];
 
     #CES-nests in production function
     qProd[pf,i,t]$(not pf_top[pf])..
@@ -61,16 +61,16 @@ $IF %stage% == "equations":
                           pProd2pNest[pf,pfNest,i,t]**(-eProd[pfNest,i]) * qProd[pfNest,i,t]
                       );
 
-    .. pProd[pfNest,i,t] * qProd[pfNest,i,t] =E= sum(pf_mapping[pfNest,pf,i], pProd[pf,i,t] * qProd[pf,i,t]);
+        .. pProd[pfNest,i,t] * qProd[pfNest,i,t] =E= sum(pf_mapping[pfNest,pf,i], pProd[pf,i,t] * qProd[pf,i,t]);
 
     # # Other production costs, not in nesting tree 
     .. vProdOtherProductionCosts[i,t] =E= 
                                           # vtNetproductionRest[i,t]      #Net production subsidies and taxes not internalized in user-cost of capital and not included in other items listed below
-                                        -vtBotded[i,t];                 #"Bottom deductions on energy-use"
+                                           -vtBotded[i,t]                 #"Bottom deductions on energy-use"
     #                                     - vDiffMarginAvgE[i,t]          #"Difference between marginal and average energy-costs"
     #                                     + vtEmmRxE[i,t]                 #Taxes on non-energy related emissions
     #                                     - vtCAP_prodsubsidy[i,t]        #Agricultural subsidies from EU CAP subsidizing production directly.
-                                        + vEnergycostsnotinnesting[i,t] #Energy costs not in nesting tree
+                                        + vEnergycostsnotinnesting[i,t]   #Energy costs not in nesting tree
                                         ;
   $ENDBLOCK
 
@@ -89,6 +89,7 @@ $IF %stage% == "equations":
     #jqE_re_i ensures that the input_output system is balanced in values. jqE_re_i is computed so that total energy-costs, pE_re_i * qE_re_i matches bottom-up computation of total energy-costs (see energy_markerkets.gms for link)
     #AKB, to be investigated: Maybe qE_re_i, computed as a residual, become meaningless as a "quantity". 
     .. pProd[pf_bottom_e,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], pE_re_i[re,i,t]) + jpProd[pf_bottom_e,i,t];    
+    
     qE2qY_re_i[re,i,t]..  
       qE_re_i[re,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], qProd[pf_bottom_e,i,t]) + jqE_re_i[re,i,t]; 
 

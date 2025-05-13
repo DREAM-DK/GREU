@@ -85,9 +85,9 @@ $IF %stage% == "equations":
     #Total VAT paid on energy
      ..   vtE_vat[es,e,d,t] =E= tE_vat[es,e,d,t] * (pEpj_base[es,e,d,t]*qEpj[es,e,d,t]
                                                   + sum(etaxes, tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] - qEpj_duty_deductible[etaxes,es,e,d,t]))
-                                                  + pEAV[es,e,d,t]*qEpj[es,e,d,t]
-                                                  + pDAV[es,e,d,t]*qEpj[es,e,d,t]
-                                                  + pCAV[es,e,d,t]*qEpj[es,e,d,t]);
+                                                  + pWMA[es,e,d,t]*qEpj[es,e,d,t]
+                                                  + pRMA[es,e,d,t]*qEpj[es,e,d,t]
+                                                  + pCMA[es,e,d,t]*qEpj[es,e,d,t]);
 
       #Total taxes on energy, excluding ETS, i.e. how it is computed in Danish National Accounts
       ..   vtE_NAS[es,e,d,t] =E= vtE_vat[es,e,d,t] 
@@ -108,16 +108,16 @@ $IF %stage% == "equations":
         (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t] 
           =E= (1+tE_vat[es,e,d,t]) * (pEpj_base[es,e,d,t]
                                       + sum(etaxes, tEmarg_duty[etaxes,es,e,d,t]) #Marginal domestic CO2-tax is contained in tEmarg_duty
-                                      + pEAV[es,e,d,t]
-                                      + pDAV[es,e,d,t]
-                                      + pCAV[es,e,d,t])
+                                      + pWMA[es,e,d,t]
+                                      + pRMA[es,e,d,t]
+                                      + pCMA[es,e,d,t])
                                       + sum(em, tCO2_ETS_pj[em,es,e,d,t])
                                       + sum(em, tCO2_ETS2_pj[em,es,e,d,t])
                                       ;        
       #Average tax-rate on energy
       tpE[es,e,d,t]..
          (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t] * qEpj[es,e,d,t]
-          =E= vtE[es,e,d,t];
+          =E= vEpj[es,e,d,t];
 
         #CO2-taxes based on emissions (currently only industries) 
           #Domestic CO2-tax                                                                                                                                                                                     #AKB: Depending on how EOP-abatement i modelled this should be adjusted for EOP
@@ -182,15 +182,15 @@ $IF %stage% == "equations":
     #Taxes 
     tY_i_d&_not_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
 						vtY_i_d[i,d,t]
-							=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * vte_NAS[es,e,d_a,t]) + vtY_i_d_calib[i,d,t]; 
+							=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  sSupply_d_e_i_adj[d,e,i,t] * vte_NAS[es,e,d_a,t]) + vtY_i_d_calib[i,d,t]; 
 
     tY_i_d&energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
 						vtY_i_d[i,d,t]
-							=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  sCorr[d,e,i,t] * vte_NAS[es,e,d_a,t]) + vtY_i_d_calib[i,d,t]; 
+							=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  sSupply_d_e_i_adj[d,e,i,t] * vte_NAS[es,e,d_a,t]) + vtY_i_d_calib[i,d,t]; 
 
     tM_i_d&_not_energymargins[i,d,t]$(d1M_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
 						vtM_i_d[i,d,t]
-							=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  (1-sum(i_a,sCorr[d,e,i_a,t])) * vte_NAS[es,e,d_a,t]) + vtM_i_d_calib[i,d,t]; 
+							=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  (1-sum(i_a,sSupply_d_e_i_adj[d,e,i_a,t])) * vte_NAS[es,e,d_a,t]) + vtM_i_d_calib[i,d,t]; 
 
 
   $ENDBLOCK
