@@ -122,14 +122,13 @@ $FUNCTION test_data():
 
 $ENDFUNCTION 
 
-
-#Corrections and data hacks
-Energybalance[ebalitems,'export','xEne',es,e,t]       = Energybalance[ebalitems,'export','xOth',es,e,t];   Energybalance[ebalitems,'export','xOth',es,e,t]   = 0;
-Energybalance[ebalitems,'inventory','invt_ene',es,e,t] = Energybalance[ebalitems,'inventory','invt',es,e,t]; Energybalance[ebalitems,'inventory','invt',es,e,t] = 0;
-
 #Correction - is being investigated with Statistics DK
-#Energybalance['pj','input_in_production','35011','process_special','electricity',t] = Energybalance['base','input_in_production','35011','process_special','electricity',t]/0.1;
-#Energybalance['pj','production','35011','unspecified','electricity',t] = Energybalance['pj','production','35011','unspecified','electricity',t] + Energybalance['pj','input_in_production','35011','process_special','electricity',t];
+Energybalance['pj','input_in_production','35011','process_special','electricity',t] = Energybalance['base','input_in_production','35011','process_special','electricity',t]/0.1;
+Energybalance['pj','production','35011','unspecified','electricity',t] = Energybalance['pj','production','35011','unspecified','electricity',t] + Energybalance['pj','input_in_production','35011','process_special','electricity',t];
+
+#Corrections to data, and changes
+Energybalance[ebalitems,'export','xEne',es,e,t]       = Energybalance[ebalitems,'export','xOth',es,e,t];      Energybalance[ebalitems,'export','xOth',es,e,t]   = 0;
+Energybalance[ebalitems,'inventory','invt_ene',es,e,t] = Energybalance[ebalitems,'inventory','invt',es,e,t]; Energybalance[ebalitems,'inventory','invt',es,e,t] = 0;
 
 #Removing small entries. Should ideally be replaced by an elaborate RAS-procedure.
 Energybalance[ebalitems,transaction,d,es,e,t]$(Energybalance['BASE',transaction,d,es,e,t] and abs(Energybalance['BASE',transaction,d,es,e,t])<1e-6) = no; 
@@ -308,12 +307,6 @@ vW[t]$(nL[t]) = sum(i, vWages_i[i,t]) / nL[t];
 vY_i_d_base[i,d,t] = vIO_y[i,d,t];
 vM_i_d_base[i,d,t] = vIO_m[i,d,t];
 
-
-qY_CET['out_other',i,t] = sum(d_non_ene,vIOxE_y[i,d_non_ene,t]) + sum(d,vIOE_y[i,d,t])$(sameas[i,'46000'] or sameas[i,'45000'] or sameas[i,'47000']);
-qM_CET['out_other',i,t] = sum(d_non_ene,vIOxE_m[i,d_non_ene,t]);
-pY_CET['out_other',i,t]$qY_CET['out_other',i,t] = 1;
-pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
-
 #Demand-components, total in base prices
 vD_base[d,t] = sum(i, vY_i_d_base[i,d,t] + vM_i_d_base[i,d,t]);
 
@@ -335,6 +328,12 @@ vD[d,t] = sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
 
 #We normalize prices to 1 and load quantities into model
 qD[d,t] = vD[d,t];
+
+#Non-energy-markets
+qY_CET['out_other',i,t] = sum(d_non_ene,vIOxE_y[i,d_non_ene,t]) + sum(d,vIOE_y[i,d,t])$(sameas[i,'46000'] or sameas[i,'45000'] or sameas[i,'47000']);
+qM_CET['out_other',i,t] = sum(d_non_ene,vIOxE_m[i,d_non_ene,t]);
+pY_CET['out_other',i,t]$qY_CET['out_other',i,t] = 1;
+pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 
 
 #Energy and emissions.
