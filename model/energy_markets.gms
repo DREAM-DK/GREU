@@ -117,6 +117,7 @@
 			;
 
 			$Group+ all_variables
+				#AKB: The following are not used currently. For a long time
 				sSupply_d_e_i_adj[d,e,i,t]$(d1sSupply_d_e_i_adj[d,e,i,t]) "Bounded share of total supply of energy (e) from domestic industry (i) delivered to (d), adjusted to match energy-IO"
 				sSupply_d_e_i_adj_inp[d,e,i,t]$(d1sSupply_d_e_i_adj[d,e,i,t]) "Unbounded share of total supply of energy (e) from domestic industry (i) delivered to (d), adjusted to match energy-IO"
 				adj_sSupply_d_e_i_adj[e,i,t]$(d1pY_CET[e,i,t]) "Adjustment parameter, allocating domestic supply of energy (e) from domestic industry (i) to demand-comp. (d)"
@@ -303,17 +304,14 @@
 			#The IO_cell qY_i_d is adjusted based on a chain-index of quantities at the bottom-level of energy qEpj and pEpj_base. Since the bottom-level does not sort demanded energy on origin (domestic or import),
 			#the demand is split based on the varaible sSupply_d_e_i_adj. sSupply_d_e_i_adj is based don the economy-wide domestic share (sSupply_e_i_y a couple equations above this one). It is, however, adjusted
 			#to reflect the energy-IO. sSupply_d_e_i_adj is also endogenous (see bottom of this block of equations) when running the model, adjusting the input-output coefficient to reflect changes in the Y/M split of energy
-			#The IO-share rYM as well as the import-share rM0 are endogenized to reflect bottom-level in the equations below
+			#The IO-share rYM as well as the import-share rM0 are endogenized to reflect bottom-level in the equations below.
+			#AKB: We could consider using a simpler quantity-index. The chain-indeces are kept for now though so as to be consistent with the method in NAS.
 
 			rYM[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
-				# qY_i_d[i,d,t]*pY_i_d_base[i,d,tBase]=E=  sum((e,es,d_a)$es_d2d(es,d_a,d),  sSupply_d_e_i_adj[d,e,i,t] * pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t])  + jqY_i_d[i,d,t];
 				qY_i_d[i,d,t]*pY_i_d_base[i,d,t-1]=E=  sum((e,es,d_a)$es_d2d(es,d_a,d),  sSupply_d_e_i_adj[d,e,i,t] * pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t])  + jqY_i_d[i,d,t];
 
 	
 			rYM&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
-				# qY_i_d[i,d,t]*pY_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),  pRMA[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_retail[i]) 
-																																																	#  + pCMA[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
-																																																	#  + pWMA[es,e,d_a,tBase] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
 				qY_i_d[i,d,t]*pY_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),  pRMA[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_retail[i]) 
 																																								+ pCMA[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
 																																								+ pWMA[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
@@ -322,32 +320,27 @@
 
 			#NOTE THAT THIS IS RM0 (not RM), BECAUSE OF THE "IMPORTS.GMS"-MODULE THAT TAKES OVER RM IN INPUT_OUTPUT
 			rM0&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and d1Y_i_d[i,d,t] and d_ene[d])..
-			# 	qM_i_d[i,d,t]*pM_i_d[i,d,tBase]/(1+tM_i_d[i,d,tBase])  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sSupply_d_e_i_adj[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 				qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sSupply_d_e_i_adj[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 
 			rYM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t] and d_ene[d])..
-			# 	qM_i_d[i,d,t]*pM_i_d[i,d,tBase]/(1+tM_i_d[i,d,tBase])  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sSupply_d_e_i_adj[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 				qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sSupply_d_e_i_adj[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 
 			#VERSION WITHOUT IMPORTS-MODULE TURNED ON - IN THIS CASE rM NEEDS TO BE ENDOGENIZED
 			# rM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and d1Y_i_d[i,d,t] and d_ene[d])..
-				# qM_i_d[i,d,t]*pM_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sSupply_d_e_i_adj[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 				# qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sSupply_d_e_i_adj[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 
 
 			# rYM&_energy_imports[i,d,t]$(d1M_i_d[i,d,t] and not d1Y_i_d[i,d,t] and d_ene[d])..
-				# qM_i_d[i,d,t]*pM_i_d_base[i,d,tBase]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sSupply_d_e_i_adj[d,e,i_a,t])) *  pEpj_base[es,e,d_a,tBase] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 				# qM_i_d[i,d,t]*pM_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), (1-sum(i_a, sSupply_d_e_i_adj[d,e,i_a,t])) *  pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t]) + jqM_i_d[i,d,t];
 
 
 			#Endogenizing the domestic share of supply of energy (e) from industry (i) to end-use (d). 
 				sSupply_d_e_i_adj[d_ene,e,i,t]$(t.val>tDataEnd.val)..
 					sSupply_d_e_i_adj[d_ene,e,i,t] =E= sSupply_d_e_i_adj[d_ene,e,i,tDataEnd] + adj_sSupply_d_e_i_adj[e,i,t];
-					# sSupply_d_e_i_adj[d_ene,e,i,t] =E= sSupply_e_i_y[e,i,t];
+					# sSupply_d_e_i_adj[d_ene,e,i,t] =E= sSupply_e_i_y[e,i,t] + adj_sSupply_d_e_i_adj[e,i,t];
 
 				#The adjustment parameter is adjusted using the below identity. Note, that this means that distribution "profits" (positive or negative) are allocated to imports.
 				adj_sSupply_d_e_i_adj[e,i,t]$(t.val>tDataEnd.val)..					
-					# sum(d, sum((es,d_a)$es_d2d(es,d_a,d), sSupply_d_e_i_adj[d,e,i,t] * vEpj_base[es,e,d_a,t])) =E= vY_CET[e,i,t] + j_adj_sSupply_d_e_i_adj[e,i]$(tDataEnd[t]);
 					sum(d, sum((es,d_a)$es_d2d(es,d_a,d), sSupply_d_e_i_adj[d,e,i,t] * vEpj_base[es,e,d_a,t])) =E= vY_CET[e,i,t] + j_adj_sSupply_d_e_i_adj[e,i]$(tDataEnd[t]);
 
 		$ENDBLOCK 
@@ -555,9 +548,59 @@ $IF %stage%=='tests':
 	ABORT$(abs(sum((re,i,t)$(t.val>t1.val and t.val<=tEnd.val), jvE_re_i[re,i,t]))>1e-6) 'Test in endogenous years, i.e test of model';
 
 	#Testing adjustment share 
-
 	LOOP((d_ene,e,i,t)$(t.val>=t1.val and t.val<=tEnd.val),
-		# ABORT$(sSupply_d_e_i_adj.l[d_ene,e,i,t]<0 or sSupply_d_e_i_adj.l[d_ene,e,i,t]>1) 'Y/M split on energy-coefficient needs to be between 1 and 0';
+		# ABORT$(sSupply_d_e_i_adj.l[d_ene,e,i,t]<0 or sSupply_d_e_i_adj.l[d_ene,e,i,t]>1) 'Y/M split on energy-coefficient needs to be between 1 and 0'; AKB:
 		);
 
+	#Testing that method to split energy on IO-cells does not produce negative prices of value (except for inventories, where quantities may be negative),
+	LOOP((d_ene,i,t)$(t.val>=t1.val and t.val<=tEnd.val),
+		ABORT$(pY_i_d_base.l[i,d_ene,t]<0) 'Splitting energy on IO-cells has produced a negative price in pY_i_d_base';
+		ABORT$(pM_i_d_base.l[i,d_ene,t]<0) 'Splitting energy on IO-cells has produced a negative price in pM_i_d_base';
+	);
+
+	LOOP((d_ene,i,t)$(t.val>=t1.val and t.val<=tEnd.val and not sameas[d_ene,'invt_ene']),
+		ABORT$(qY_i_d.l[i,d_ene,t]<0) 'Splitting energy on IO-cells has produced a negative quantity in qY_i_d';
+		ABORT$(qM_i_d.l[i,d_ene,t]<0) 'Splitting energy on IO-cells has produced a negative quantity in qM_i_d';
+	);
+
+
+	#Testing that supply and demand matches for energy, when comparing with input_output.gms
+	$PGROUP PG_test_energy_markets 
+		vD_ene_IO[d,t] "Value of energy, base prices, in input_output.gms, excluding margins"
+		vD_ene_BU[d,t] "Value of energy, base prices, in energy_markets.gms, excluding margins"
+
+		vS_ene_IO_y[i,t] "Value of domestic energy production in input_output.gms"
+		vS_ene_IO_m[i,t] "Value of imported energy  in input_output.gms"
+
+		vS_ene_BU_y[i,t] "Value of domestic energy production in energy_markets.gms"
+		vS_ene_BU_m[i,t] "Value of imported energy in energy_markets.gms, note that distribution profits are allocated to this one"
+	;
+
+	#Total demand in IO
+	vD_ene_IO[d,t]$(d_ene[d] and t.val>=t1.val and t.val<=tEnd.val) = sum(i$(not i_energymargins[i]), vY_i_d_base.l[i,d,t]) 
+																	+ sum(i$(not i_energymargins[i]), vM_i_d_base.l[i,d,t]);
+
+	#Total supply in IO
+	vS_ene_IO_y[i,t]$(t.val>=t1.val and t.val<=tEnd.val and not i_energymargins[i]) = sum(d_ene, vY_i_d_base.l[i,d_ene,t]); 
+	vS_ene_IO_m[i,t]$(t.val>=t1.val and t.val<=tEnd.val and not i_energymargins[i]) = sum(d_ene, vM_i_d_base.l[i,d_ene,t]); 
+
+	#Total demand in energy-markets
+	vD_ene_BU[d,t] = sum((es,e,d_a)$es_d2d(es,d_a,d), vEpj_base.l[es,e,d_a,t]);
+
+	#Total supply in energy-markets
+	vS_ene_BU_y[i,t]$(t.val>=t1.val and t.val<=tEnd.val) = sum(e,vY_CET.l[e,i,t]);
+	vS_ene_BU_m[i,t]$(t.val>=t1.val and t.val<=tEnd.val) = sum(e,vM_CET.l[e,i,t]) + sum(e,vDistributionProfits.l[e,t])$(i_refineries[i]);
+
+	#Testing demand and supply (tests should include data-years in longer run):
+	LOOP((d,t)$(d_ene[d] and t.val>=t1.val and t.val<=tEnd.val and t.val>tDataEnd.val),
+		ABORT$(abs(vD_ene_IO[d,t] -vD_ene_BU[d,t])>1e-6) 'Value of energy demand in IO does not value of energy demand in bottom-level energy';
+	);
+
+	LOOP((i,t)$(not i_energymargins[i] and t.val>=t1.val and t.val<=tEnd.val and t.val>tDataEnd.val),
+		ABORT$(abs(vS_ene_IO_y[i,t] - vS_ene_BU_y[i,t])>1e-6) 'Value of domestic energy supply does not match between IO and bottom-level energy';
+	);
+
+	LOOP((i,t)$(not i_energymargins[i] and t.val>=t1.val and t.val<=tEnd.val and t.val>tDataEnd.val),
+		ABORT$(abs(vS_ene_IO_m[i,t] - vS_ene_BU_m[i,t])>1e-6) 'Value of domestic energy supply does not match between IO and bottom-level energy';
+	);
 $ENDIF

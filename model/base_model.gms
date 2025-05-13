@@ -167,7 +167,7 @@ $IMPORT calibration.gms
 # ------------------------------------------------------------------------------
 # Tests
 # ------------------------------------------------------------------------------
-# $import sanitychecks.gms
+
 @import_from_modules("tests")
 # Data check  -  Abort if any data covered variables have been changed by the calibration
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
@@ -179,7 +179,6 @@ execute_unload 'main_pre.gdx';
 Solve main using CNS;
 @assert_no_difference(all_variables, 1e-6, .l, _saved, "Zero shock changed variables significantly.");
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
-@compute_tests(1);
 
 # ------------------------------------------------------------------------------
 # Shock model
@@ -190,9 +189,8 @@ set_time_periods(2020, %terminal_year%);
 tEmarg_duty.l['ener_tax',es,e,d,t]$(t.val > t1.val) = 2*tEmarg_duty.l['ener_tax',es,e,d,t]; #Doubling energy-taxes
 
 $FIX all_variables;
-# $UNFIX main_endogenous, vHhTaxes2vGDP[t], -vNetFinAssets[Gov,t];
 $UNFIX main_endogenous;
 Solve main using CNS;
-@compute_tests(0);
 execute_unload 'shock.gdx';
+@import_from_modules("tests")
 

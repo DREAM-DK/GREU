@@ -372,10 +372,6 @@ qD[d,t] = vD[d,t];
 
 
   #Corrections for non-priced energy in data
-  # qY_CET['Electricity','35011',t]               = qY_CET['Electricity','35011',t] -0.000001;
-  # qY_CET['Straw for energy purposes','01011',t] = qY_CET['Straw for energy purposes','01011',t] -4.564215;
-  # qY_CET['Straw for energy purposes','01012',t] = qY_CET['Straw for energy purposes','01012',t] -0.173631;
-
   qY_CET['Electricity','35011',t] = qY_CET['Electricity','35011',t] + diff_demand_supply['electricity',t];
   qY_CET['Straw for energy purposes','01011',t] = qY_CET['Straw for energy purposes','01011',t] + diff_demand_supply['Straw for energy purposes',t];
 
