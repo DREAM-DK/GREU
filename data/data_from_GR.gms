@@ -34,8 +34,6 @@ Set m(i);
 Set land5; #land area types
 Set em_accounts; #set of accounts for emissions
 
-
-
 parameters
   vIO_y[i,d,t]
   vIO_m[i,d,t]
@@ -71,41 +69,56 @@ $load NonEnergyEmissions=NonEnergyemissions.l
 set demand_transaction_temp[transaction] /'input_in_production','household_consumption','inventory','export','transmission_losses'/; #AKB: In "demand_transaction" there is an error with "households" being the set-element for households
 set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','cav','nox_tax','so2_tax','vat','base'/; #AKB: Auxiliary set 
 set i_energymargins[i]/45000,46000,47000/;
+set tData[t]/2020/;
+
 
 #Tests of energy-IO and energybalance
-Parameter testvY[i,t], testvM[i,t], testvE_base[d,t], testvE_duties[d,t], testvE_vat[d,t];
-$FUNCTION test_data_1():
+$FUNCTION test_data():
+  $OnMultiR
+  Parameter testvY[i,t], testvM[i,t], testvE_base[d,t], testvE_duties[d,t], testvE_vat[d,t];
+  $OffMulti
 
-testvY[i,t] =  sum((es,e), Energybalance['base','production',i,es,e,t]) 
-             + sum((d,es,e,transaction), Energybalance['CAV',transaction,d,es,e,t])$(sameas[i,'45000'])
-             + sum((d,es,e,transaction), Energybalance['EAV',transaction,d,es,e,t])$(sameas[i,'46000'])
-             + sum((d,es,e,transaction), Energybalance['DAV',transaction,d,es,e,t])$(sameas[i,'47000'])
-             - sum(d, vIOE_y[i,d,t]);
-ABORT$(abs(sum((i,t1), testvY[i,t1]))>1) 'Test of energy-IO and energybalance failed! Value of production in industries do not match'; #Tolerance sat højt pga hack -> £
+  #Testing energy-IO for negative cells (apart from inventories these are not allowed)
+  LOOP((i,d,t)$(tData[t] and not (sameas[d,'invt_ene'] or sameas[d,'invt'] or sameas[d,'im'] or sameas[d,'ib'] or sameas[d,'it'])),
+    ABORT$(vIOE_y[i,d,t]<-1e-5)  'vIOE_y has negative cells, data-quality needs to be revisited';
+    ABORT$(vIOE_m[i,d,t]<-1e-5)  'vIOE_m has negative cells, data-quality needs to be revisited';
+    ABORT$(vIOxE_y[i,d,t]<-1e-5) 'vIOxE_y has negative cells, data-quality needs to be revisited';
+    ABORT$(vIOxE_m[i,d,t]<-1e-5) 'vIOxE_m has negative cells, data-quality needs to be revisited';
+    );
 
-
-testvM[i,t] =  sum((es,e), Energybalance['base','imports',i,es,e,t]) 
-             - sum(d, vIOE_m[i,d,t]);
-ABORT$(abs(sum((i,t1), testvM[i,t1]))>1) 'Test of energy-IO and energybalance failed! Value of imports do not match'; #Tolerance sat højt pga hack -> £
-
-
-testvE_base[d,t] 
-  = sum((es,e,demand_transaction_temp), Energybalance['base',demand_transaction_temp,d,es,e,t]) 
-  - sum(i, vIOE_y[i,d,t] + vIOE_m[i,d,t]);
-
-*ABORT$(abs(sum((d,t1), testvE_base[d,t1]))>1) 'Test of energy-IO and energybalance failed! Value of energy demand do not match'; #Tolerance sat højt pga hack -> £
+  testvY[i,t] =  sum((es,e), Energybalance['base','production',i,es,e,t]) 
+              + sum((d,es,e,transaction), Energybalance['CAV',transaction,d,es,e,t])$(sameas[i,'45000'])
+              + sum((d,es,e,transaction), Energybalance['EAV',transaction,d,es,e,t])$(sameas[i,'46000'])
+              + sum((d,es,e,transaction), Energybalance['DAV',transaction,d,es,e,t])$(sameas[i,'47000'])
+              - sum(d, vIOE_y[i,d,t]);
+  ABORT$(abs(sum((i,tData), testvY[i,tData]))>1) 'Test of energy-IO and energybalance failed! Value of production in industries do not match'; #Tolerance sat højt pga hack -> £
 
 
-testvE_duties[d,t] = sum((es,e,demand_transaction_temp,etaxes), Energybalance[etaxes,demand_transaction_temp,d,es,e,t]) 
-                  -  vIOE_a['TaxSub',d,t];
+  testvM[i,t] =  sum((es,e), Energybalance['base','imports',i,es,e,t]) 
+              - sum(d, vIOE_m[i,d,t]);
+  ABORT$(abs(sum((i,tData), testvM[i,tData]))>1) 'Test of energy-IO and energybalance failed! Value of imports do not match'; #Tolerance sat højt pga hack -> £
 
-# ABORT$(abs(sum((d,t1), testvE_duties[d,t1]))>1) 'Test of energy-IO and energybalance failed! Value of energy duty revenues do not match'; #Tolerance sat højt pga hack -> £
+
+  testvE_base[d,t] 
+    = sum((es,e,demand_transaction_temp), Energybalance['base',demand_transaction_temp,d,es,e,t])
+    + sum((es,e,demand_transaction_temp), Energybalance['cav',demand_transaction_temp,d,es,e,t])
+    + sum((es,e,demand_transaction_temp), Energybalance['eav',demand_transaction_temp,d,es,e,t])
+    + sum((es,e,demand_transaction_temp), Energybalance['dav',demand_transaction_temp,d,es,e,t]) 
+    - sum(i, vIOE_y[i,d,t] + vIOE_m[i,d,t]);
+
+  ABORT$(abs(sum((d,tData), testvE_base[d,tData]))>1) 'Test of energy-IO and energybalance failed! Value of energy demand do not match'; #Tolerance sat højt pga hack -> £
 
 
-testvE_vat[d,t] = sum((es,e,demand_transaction_temp), Energybalance['VAT',demand_transaction_temp,d,es,e,t]) 
-                -  vIOE_a['Moms',d,t];
+  testvE_duties[d,t] = sum((es,e,demand_transaction_temp,etaxes), Energybalance[etaxes,demand_transaction_temp,d,es,e,t]) 
+                    -  vIOE_a['TaxSub',d,t];
 
-# ABORT$(abs(sum((d,t1), testvE_vat[d,t1]))>1) 'Test of energy-IO and energybalance failed! Value of VAT do not match'; #Tolerance sat højt pga hack -> £
+  ABORT$(abs(sum((d,tData), testvE_duties[d,tData]))>1) 'Test of energy-IO and energybalance failed! Value of energy duty revenues do not match'; #Tolerance sat højt pga hack -> £
+
+
+  testvE_vat[d,t] = sum((es,e,demand_transaction_temp), Energybalance['VAT',demand_transaction_temp,d,es,e,t]) 
+                  -  vIOE_a['Moms',d,t];
+
+  ABORT$(abs(sum((d,tData), testvE_vat[d,tData]))>1) 'Test of energy-IO and energybalance failed! Value of VAT do not match'; #Tolerance sat højt pga hack -> £
 
 $ENDFUNCTION 
 
@@ -174,7 +187,7 @@ vIOE_y['35002','invt_ene',t] = 0; #Inconsistency: No energy-inventories in energ
 vIOE_y['02000','invt_ene',t] = 0; #Inconsistency: No energy-inventories in energybalances from 02000....
 
 
-@test_data_1();
+@test_data();
 
 #Inserting energy-inputs into IO
 vIO_y[i,'xENE',t]         = vIOE_y[i,'xENE',t]; 
@@ -223,7 +236,6 @@ vIOE_a[a_rows_,'heating_energy',t] = sum(rx, vIOE_a[a_rows_,'heating_energy',t])
 vIOE_y[i,rx,t] = 0;
 vIOE_m[i,rx,t] = 0;
 vIOE_a[a_rows_,rx,t] = 0;
-@test_data_1();
 
 m[i] = yes$sum((d,t1), vIO_m[i,d,t1]);
 
@@ -349,8 +361,6 @@ qD[d,t] = vD[d,t];
 
 
 #Energy and emissions.
-  #$import create_energybalance.gms #Here GreenREFORM variables are combine to create the full energybalance as we would preferably receive it from the Statistical Office.
-
   pEpj_base[es,e,d,t]$(sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t])) = sum(demand_transaction_temp, Energybalance['BASE',demand_transaction_temp,d,es,e,t])/sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
   qEpj[es,e,d,t] = sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
 
