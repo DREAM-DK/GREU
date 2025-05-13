@@ -385,22 +385,15 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   qProd['heating_energy',i,t]      = sum((es,e,ebalitems_totalprice)$(sameas[es,'heating']), Energybalance[ebalitems_totalprice,'input_in_production',i,es,e,t]);
   pProd[factors_of_production,i,t] = 1;
 
-#Margins 
-
-
 # Factor demand
   qK_k_i[k,i,t] = qK[k,i,t]; qK_k_i[k,i,t] = qK_k_i[k,i,'2020'];
-  #qI_k_i[k,i,t] =qI_s.l[k,i,t]; #We read this variable directly
-  qR_i[i,t] =sum(i_a,vY_i_d[i_a,i,t] + vM_i_d[i_a,i,t]); #qRxE.l[i,t]; #sum(i_a,vY_i_d[i_a,i,t] + vM_i_d[i_a,i,t]) + vtYM_d[i,t]; #right?
+  #qI_k_i[k,i,t] =qI_s.l[k,i,t]; #We read this variable directly from input-data
+  qR_i[i,t] =sum(i_a,vY_i_d[i_a,i,t] + vM_i_d[i_a,i,t]); 
   qL_i[i,t] = qL[i,t];
 
-  #£Temp
-  # qE_re_i['machine_energy',i,t]   = qProd['machine_energy',i,t];      #qE_re_i['machine_energy',i,'2019']   = qProd['machine_energy',i,'2020'];
-  # qE_re_i['transport_energy',i,t] = qProd['transport_energy',i,t];    #qE_re_i['transport_energy',i,'2019'] = qProd['transport_energy',i,'2020'];
-  # qE_re_i['heating_energy',i,t]   = qProd['heating_energy',i,t];      #qE_re_i['heating_energy',i,'2019']   = qProd['heating_energy',i,'2020'];
-
+  #Energy
   qE_re_i['heating_energy',i,t] = qProd['machine_energy',i,t] + qProd['transport_energy',i,t] + qProd['heating_energy',i,t];
-  qInvt_i[i,t] = vY_i_d[i,'invt',t] + vM_i_d[i,'invt',t]; # + vtYM_d['invt',t]; AKB: In input_output.gms vY_i_d and vM_i_d are defined including taxes
+  qInvt_i[i,t] = vY_i_d[i,'invt',t] + vM_i_d[i,'invt',t];              # + vtYM_d['invt',t]; AKB: In input_output.gms vY_i_d and vM_i_d are defined including taxes
   qInvt_ene_i[i,t] = vY_i_d[i,'invt_ene',t] + vM_i_d[i,'invt_ene',t];  #+ vtYM_d['invt_ene',t]; AKB: In input_output.gms vY_i_d and vM_i_d are defined including taxes
 
 
