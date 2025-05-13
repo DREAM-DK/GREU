@@ -71,9 +71,10 @@ $FIX all_variables; $UNFIX calibration_endogenous;
 execute_unloaddi "calibration_pre.gdx";
 solve calibration using CNS;
 
-@unload_previous_difference(data_covered_variables, _difference)
-@create_difference_parameters(data_covered_variables, _difference);
-@set_difference_parameters(data_covered_variables, _difference);
-@load_previous_difference(data_covered_variables, _difference);
+# @unload_previous_difference(data_covered_variables, _difference); # This one unloads the previous differences to previous_calibration.gdx file. Only do this if you are certain that differences are tolerable.
+@create_difference_parameters(data_covered_variables, _difference); #This one creates parameters with suffix _difference of all data covered variables
+@set_difference_parameters(data_covered_variables, _difference);    #This one sets the difference parameters to the difference between the current values and the values loaded from data
+@load_previous_difference(data_covered_variables, _difference);     #This one loads previous differences from the previous_calibration.gdx file
 @assert_no_difference(data_covered_variables, 1e-6, _difference, _previous_difference, "data_covered_variables does not change more than previously done so by calibration.");
+# @assert_no_difference(data_covered_variables, 1e-6, _data,.l, "data_covered_variables does not change more than previously done so by calibration."); #Ideally this check should be done rather than "diff-in-diff" above
 execute_unloaddi "calibration.gdx";

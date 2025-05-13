@@ -41,39 +41,6 @@ $FUNCTION load({group}, {gdx}):
 $ENDFUNCTION
 
 
-$FUNCTION create_difference_parameters({group},{suffix}):
-  $offlisting
-    $LOOP {group}:
-      parameter {name}{suffix}{sets};
-    $ENDLOOP 
-  $onlisting
-$ENDFUNCTION
-
-$FUNCTION set_difference_parameters({group}, {suffix}):
-  $offlisting
-  $LOOP {group}:
-    {name}{suffix}{sets}${conditions} = {name}.l{sets} - {name}_data{sets};
-  $ENDLOOP 
-  $onlisting
-$ENDFUNCTION
-
-$FUNCTION unload_previous_difference({group}, {suffix}):
-  $offlisting
-  @create_difference_parameters({group}, {suffix})
-  @set_difference_parameters({group}, {suffix})
-
-  execute_unload  "..\data\previous_difference.gdx" $LOOP {group}: {name}{suffix} $ENDLOOP;
-  $onlisting
-$ENDFUNCTION
-
-$FUNCTION load_previous_difference({group}, {suffix}):
-  $offlisting
-  @create_difference_parameters({group}, _previous{suffix})
-
-  execute_load "..\data\previous_difference.gdx" $LOOP {group}: {name}_previous{suffix} = {name}{suffix} $ENDLOOP;
-  $onlisting
-$ENDFUNCTION
-
 # Abort if differences exceed the threshold. Differences are between the current values of a group of variables and the previously saved values.
 $FUNCTION assert_no_difference({group}, {threshold}, {suffix1}, {suffix2}, {msg}):
   $offlisting
@@ -128,4 +95,40 @@ $FUNCTION define_set_complement({name_set_c},{set},{set_c},{isitalist}):
 
     #Hvis fejl
     ABORT$(parm_error=1) parm_error, "Set-compliment not in set. Make sure that set elements are written as defined with upper/lower-case letters. This error is due to Python case-sensitivity"
+$ENDFUNCTION
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Functions for previous difference check. When data is completely consistent this would be redundant.
+# ----------------------------------------------------------------------------------------------------------------------
+$FUNCTION create_difference_parameters({group},{suffix}):
+  $offlisting
+    $LOOP {group}:
+      parameter {name}{suffix}{sets};
+    $ENDLOOP 
+  $onlisting
+$ENDFUNCTION
+
+$FUNCTION set_difference_parameters({group}, {suffix}):
+  $offlisting
+  $LOOP {group}:
+    {name}{suffix}{sets}${conditions} = {name}.l{sets} - {name}_data{sets};
+  $ENDLOOP 
+  $onlisting
+$ENDFUNCTION
+
+$FUNCTION unload_previous_difference({group}, {suffix}):
+  $offlisting
+  @create_difference_parameters({group}, {suffix})
+  @set_difference_parameters({group}, {suffix})
+
+  execute_unload  "..\data\previous_difference.gdx" $LOOP {group}: {name}{suffix} $ENDLOOP;
+  $onlisting
+$ENDFUNCTION
+
+$FUNCTION load_previous_difference({group}, {suffix}):
+  $offlisting
+  @create_difference_parameters({group}, _previous{suffix})
+
+  execute_load "..\data\previous_difference.gdx" $LOOP {group}: {name}_previous{suffix} = {name}{suffix} $ENDLOOP;
+  $onlisting
 $ENDFUNCTION
