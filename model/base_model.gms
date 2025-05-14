@@ -18,7 +18,6 @@ set_time_periods(%first_data_year%, %terminal_year%);
 # ------------------------------------------------------------------------------
 # Select modules
 # ------------------------------------------------------------------------------
-
 #The function import_from_modules adds modules to the model. 
 #A zero in the second column means that the equations and endogenous variables of the module in question are neither 
 #added to the calibration-model nor the main-model. Variables from these modules are however still initialized,
@@ -60,7 +59,6 @@ $ENDFUNCTION
 # ------------------------------------------------------------------------------
 # Define variables and dummies
 # ------------------------------------------------------------------------------
-
 # Group of all variables, identical to ALL group, except containing only elements that exist (not dummied out)
 $Group all_variables ; # All variables in the model
 $Group main_endogenous ;
@@ -74,7 +72,6 @@ $IMPORT growth_adjustments.gms
 # ------------------------------------------------------------------------------
 # Define equations
 # ------------------------------------------------------------------------------
-
 model main;
 model calibration;
 @import_from_modules("equations")
@@ -84,7 +81,6 @@ main.optfile=1;
 # ------------------------------------------------------------------------------
 # Import data and set parameters
 # ------------------------------------------------------------------------------
-
 @import_from_modules("exogenous_values")
 @inf_growth_adjust()
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
@@ -93,8 +89,6 @@ main.optfile=1;
 # ------------------------------------------------------------------------------
 # Calibrate model
 # ------------------------------------------------------------------------------
-
-
 $Group calibration_endogenous ;
 @import_from_modules("calibration")
 calibration.optfile=1;
@@ -103,7 +97,6 @@ $IMPORT calibration.gms
 # ------------------------------------------------------------------------------
 # Tests
 # ------------------------------------------------------------------------------
-
 @import_from_modules("tests")
 # Data check  -  Abort if any data covered variables have been changed by the calibration
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
