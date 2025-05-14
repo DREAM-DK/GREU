@@ -52,9 +52,6 @@ $Group+ all_variables
 
   qESE[es,e,d,t]$(d1qES_e[es,e,d,t]) "Quantity of energy in energy services"
   qESK[es,d,t]$(d1pTK[d,t])             "Quantity of machinery capital in energy services"
-
-  #For initialization
-  sqT2qES_sum[es,d,t]$(sum(l, d1sTPotential[l,es,d,t]))  "Smoothed aggregate supply curve"
 ;
 
 $ENDIF # variables
@@ -208,11 +205,6 @@ d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 d1pTE[es,e,d,t] = yes$(pTE.l[es,e,d,t]);
 d1qES[es,d,t] = yes$(qES.l[es,d,t]);
 
-# ------------------------------------------------------------------------------
-# Depicting discrete and smooth supply curves
-# ------------------------------------------------------------------------------
-# $import Supply_curves_abatement.gms
-execute_unloaddi "abatement_data_load.gdx";
 $ENDIF # exogenous_values
 
 # ------------------------------------------------------------------------------

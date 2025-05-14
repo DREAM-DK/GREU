@@ -46,7 +46,10 @@ main.optfile=1;
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
 @update_exist_dummies()
 
-$import Supply_curves_abatement_new.gms
+# ------------------------------------------------------------------------------
+# Depicting discrete and smooth supply curves
+# ------------------------------------------------------------------------------
+$import Supply_curves_abatement.gms
 
 # ------------------------------------------------------------------------------
 # Calibrate model
