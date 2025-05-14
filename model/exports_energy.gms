@@ -41,16 +41,22 @@ $ENDIF # exogenous_values
 # Calibration
 # ------------------------------------------------------------------------------
 $IF %stage% == "calibration":
-
+# $IF %stage% == "calibration":
 # Add equations and calibration equations to calibration model
+$BLOCK exports_energy_calibration_equations exports_energy_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+  .. pEpj_foreign[es,e,t] =E= pEpj[es,e,'xEne',t];
+$ENDBLOCK
+
 model calibration /
   exports_energy_equations
+  exports_energy_calibration_equations
 /;
 # Add endogenous variables to calibration model
 $Group calibration_endogenous
   exports_energy_endogenous
   -qEpj[es,e,xEne,t1], uEpj_xEne[es,e,t1]
 
+  exports_energy_calibration_endogenous
   calibration_endogenous
 ;
 

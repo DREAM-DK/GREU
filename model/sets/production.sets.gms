@@ -69,7 +69,7 @@ set pf_mapping[pfNest,pf,i] /
 
 #£Temp
 set pf_bottom_e2re[pf_bottom_e,re]/
-    machine_energy   .  heating_energy
-    transport_energy .   heating_energy
-    heating_energy .   heating_energy
+    machine_energy   .  energy
+    transport_energy .   energy
+    heating_energy .   energy
 /;

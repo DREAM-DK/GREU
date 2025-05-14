@@ -56,7 +56,7 @@ parameters
   NonEnergyEmissions[ebalitems,transaction,d,t] "Main data input with regards to non-energy related emissions"
 ;
 
-$gdxin dataa_ny.gdx
+$gdxin data_DK.gdx
 $load d, d_non_ene, d_ene, i,c,x,g,rx,re,invt,invt_ene,tl,out,e,t,t1,land5,em_accounts,i_,k_
 $load factors_of_production, k, ebalitems, em,etaxes,a_rows_,transaction,demand_transaction,es
 $load vIO_y=vIO_y.l, vIO_m=vIO_m.l, vIOxE_y=vIOxE_y.l, vIOxE_m=vIOxE_m.l, vIO_a=vIO_a.l,vIOxE_a=vIOxE_a.l
@@ -193,9 +193,9 @@ vIOE_m[i,d,t]$(not sameas[i,'19000']) = 0;
 
 #We can now add energy-IO to our IO-matrix
 #£Temp
-vIO_y[i,'heating_energy',t] = sum(i_a,vIOE_y[i,i_a,t]);
-vIO_m[i,'heating_energy',t] = sum(i_a,vIOE_m[i,i_a,t]);
-vIO_a[a_rows_,'heating_energy',t]  = sum(i_a,vIOE_a[a_rows_,i_a,t]);
+vIO_y[i,'energy',t] = sum(i_a,vIOE_y[i,i_a,t]);
+vIO_m[i,'energy',t] = sum(i_a,vIOE_m[i,i_a,t]);
+vIO_a[a_rows_,'energy',t]  = sum(i_a,vIOE_a[a_rows_,i_a,t]);
 
 vIO_y[i,re,'2019']       = vIO_y[i,re,'2020'];
 vIO_m[i,re,'2019']       = vIO_m[i,re,'2020'];
@@ -206,9 +206,9 @@ vIO_y[i,rx,t]       = vIO_y[i,rx,t]       - vIOE_y[i,rx,t];
 vIO_m[i,rx,t]       = vIO_m[i,rx,t]       - vIOE_m[i,rx,t];
 vIO_a[a_rows_,rx,t] = vIO_a[a_rows_,rx,t] - vIOE_a[a_rows_,rx,t];
 
-vIOE_y[i,'heating_energy',t] = sum(rx, vIOE_y[i,rx,t]);
-vIOE_m[i,'heating_energy',t] = sum(rx, vIOE_m[i,rx,t]);
-vIOE_a[a_rows_,'heating_energy',t] = sum(rx, vIOE_a[a_rows_,'heating_energy',t]); 
+vIOE_y[i,'energy',t] = sum(rx, vIOE_y[i,rx,t]);
+vIOE_m[i,'energy',t] = sum(rx, vIOE_m[i,rx,t]);
+vIOE_a[a_rows_,'energy',t] = sum(rx, vIOE_a[a_rows_,'energy',t]); 
 
 vIOE_y[i,rx,t] = 0;
 vIOE_m[i,rx,t] = 0;
@@ -393,7 +393,7 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   qL_i[i,t] = qL[i,t];
 
   #Energy
-  qE_re_i['heating_energy',i,t] = qProd['machine_energy',i,t] + qProd['transport_energy',i,t] + qProd['heating_energy',i,t];
+  qE_re_i['energy',i,t] = qProd['machine_energy',i,t] + qProd['transport_energy',i,t] + qProd['heating_energy',i,t];
   qInvt_i[i,t] = vY_i_d[i,'invt',t] + vM_i_d[i,'invt',t];              # + vtYM_d['invt',t]; AKB: In input_output.gms vY_i_d and vM_i_d are defined including taxes
   qInvt_ene_i[i,t] = vY_i_d[i,'invt_ene',t] + vM_i_d[i,'invt_ene',t];  #+ vtYM_d['invt_ene',t]; AKB: In input_output.gms vY_i_d and vM_i_d are defined including taxes
 
