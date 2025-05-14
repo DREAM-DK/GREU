@@ -19,29 +19,42 @@ set_time_periods(%first_data_year%, %terminal_year%);
 # Select modules
 # ------------------------------------------------------------------------------
 
-$FUNCTION import_from_modules(stage_key):
-  $SETGLOBAL stage stage_key;
-  $IMPORT submodel_template.gms
-  $IMPORT financial_accounts.gms
-  $IMPORT labor_market.gms
-  $IMPORT energy_markets.gms #Energy-markets need to be before industries_CES_energydemand in terms of getting levels loaded for qREa
-  $IMPORT non_energy_markets.gms
-  $IMPORT production_CES_energydemand.gms 
-  $IMPORT production.gms 
-  $IMPORT pricing.gms 
-  $IMPORT imports.gms
-  $IMPORT production_CET.gms;
-  $IMPORT emissions.gms 
-  $IMPORT energy_and_emissions_taxes.gms 
-  $IMPORT input_output.gms
-  $IMPORT households.gms
-  $IMPORT government.gms
-  $IMPORT exports.gms
-  $IMPORT factor_demand.gms
-  $IMPORT ramsey_household.gms
-  $IMPORT consumption_disaggregated.gms 
-  $IMPORT consumption_disaggregated_energy.gms 
-  $IMPORT exports_energy.gms
+#The function import_from_modules adds modules to the model. 
+#A zero in the second column means that the equations and endogenous variables of the module in question are neither 
+#added to the calibration-model nor the main-model. Variables from these modules are however still initialized,
+# and data is still loaded.
+#A one in the second column means that the module will be added to both calibration-model and main-model.
+#How the function works is explained in more detail in the GREU-manual.
+
+$FUNCTION import_from_modules({stage_key}):
+  $SET stage {stage_key};
+  $FOR {module}, {include} in [
+    ("submodel_template.gms", 1),
+    ("financial_accounts.gms", 1),
+    ("labor_market.gms", 1),
+    ("energy_markets.gms" , 1),
+    ("non_energy_markets.gms", 1),
+    ("production_CES_energydemand.gms", 1),
+    ("production.gms" , 1),
+    ("pricing.gms" , 1),
+    ("imports.gms", 1),
+    ("production_CET.gms", 1),
+    ("emissions.gms" , 1),
+    ("energy_and_emissions_taxes.gms" , 1),
+    ("input_output.gms", 1),
+    ("households.gms", 1),
+    ("government.gms", 1),
+    ("exports.gms", 1),
+    ("factor_demand.gms", 1),
+    ("ramsey_household.gms", 1), 
+    ("consumption_disaggregated.gms", 1), 
+    ("consumption_disaggregated_energy.gms", 1), 
+    ("exports_energy.gms", 1),
+  ]:
+    $IF {include} or {stage_key} not in ["equations", "calibration"]:
+      $IMPORT {module}
+    $ENDIF
+  $ENDFOR
 $ENDFUNCTION
 
 # ------------------------------------------------------------------------------

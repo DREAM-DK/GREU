@@ -44,6 +44,7 @@ $IF %stage% == "calibration":
 # $IF %stage% == "calibration":
 # Add equations and calibration equations to calibration model
 $BLOCK exports_energy_calibration_equations exports_energy_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+  #In this equation we fix energy-exports to the value in data-year. Consider changing if you want baseline-forecast to produce varying energy-exports.
   .. pEpj_foreign[es,e,t] =E= pEpj[es,e,'xEne',t];
 $ENDBLOCK
 
