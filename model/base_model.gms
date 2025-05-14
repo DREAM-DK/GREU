@@ -62,32 +62,6 @@ $IMPORT growth_adjustments.gms
 # Define equations
 # ------------------------------------------------------------------------------
 
-$FUNCTION import_from_modules(stage_key):
-  $SETGLOBAL stage stage_key;
-  $IMPORT submodel_template.gms
-  $IMPORT financial_accounts.gms
-  $IMPORT labor_market.gms
-  $IMPORT energy_markets.gms #Energy-markets need to be before industries_CES_energydemand in terms of getting levels loaded for qREa
-  $IMPORT non_energy_markets.gms
-  $IMPORT production_CES_energydemand.gms 
-  $IMPORT production.gms 
-  $IMPORT pricing.gms 
-  $IMPORT imports.gms
-  $IMPORT production_CET.gms;
-  $IMPORT emissions.gms 
-  $IMPORT energy_and_emissions_taxes.gms 
-  $IMPORT input_output.gms
-  $IMPORT households.gms
-  $IMPORT government.gms
-  $IMPORT exports.gms
-  $IMPORT factor_demand.gms
-  $IMPORT ramsey_household.gms
-  $IMPORT consumption_disaggregated.gms 
-  $IMPORT consumption_disaggregated_energy.gms 
-  $IMPORT exports_energy.gms
-$ENDFUNCTION
-
-
 model main;
 model calibration;
 @import_from_modules("equations")
@@ -97,32 +71,6 @@ main.optfile=1;
 # ------------------------------------------------------------------------------
 # Import data and set parameters
 # ------------------------------------------------------------------------------
-
-$FUNCTION import_from_modules(stage_key):
-  $SETGLOBAL stage stage_key;
-  $IMPORT submodel_template.gms
-  $IMPORT financial_accounts.gms
-  $IMPORT labor_market.gms
-  $IMPORT energy_markets.gms #Energy-markets need to be before industries_CES_energydemand in terms of getting levels loaded for qREa
-  $IMPORT non_energy_markets.gms
-  $IMPORT production_CES_energydemand.gms 
-  $IMPORT production.gms 
-  $IMPORT pricing.gms 
-  $IMPORT imports.gms
-  $IMPORT production_CET.gms;
-  $IMPORT emissions.gms 
-  $IMPORT energy_and_emissions_taxes.gms 
-  $IMPORT input_output.gms
-  $IMPORT households.gms
-  $IMPORT government.gms
-  $IMPORT exports.gms
-  $IMPORT factor_demand.gms
-  $IMPORT ramsey_household.gms
-  $IMPORT consumption_disaggregated.gms 
-  $IMPORT consumption_disaggregated_energy.gms 
-  $IMPORT exports_energy.gms
-$ENDFUNCTION
-
 
 @import_from_modules("exogenous_values")
 d1sSupply_d_e_i_adj[d,e,i,t] = yes$(d1Y_i_d[i,d,t] and d_ene[d] and d1pY_CET[e,i,t] and sum((es,d_a)$es_d2d(es,d_a,d), d1pEpj_base[es,e,d_a,t])); #£AKB
@@ -134,30 +82,6 @@ d1sSupply_d_e_i_adj[d,e,i,t] = yes$(d1Y_i_d[i,d,t] and d_ene[d] and d1pY_CET[e,i
 # Calibrate model
 # ------------------------------------------------------------------------------
 
-$FUNCTION import_from_modules(stage_key):
-  $SETGLOBAL stage stage_key;
-  $IMPORT submodel_template.gms
-  $IMPORT financial_accounts.gms
-  $IMPORT labor_market.gms
-  $IMPORT energy_markets.gms #Energy-markets need to be before industries_CES_energydemand in terms of getting levels loaded for qREa
-  $IMPORT non_energy_markets.gms
-  $IMPORT production_CES_energydemand.gms 
-  $IMPORT production.gms 
-  $IMPORT pricing.gms 
-  $IMPORT imports.gms
-  $IMPORT production_CET.gms;
-  $IMPORT emissions.gms 
-  $IMPORT energy_and_emissions_taxes.gms 
-  $IMPORT input_output.gms
-  $IMPORT households.gms
-  $IMPORT government.gms
-  $IMPORT exports.gms
-  $IMPORT factor_demand.gms
-  $IMPORT ramsey_household.gms
-  $IMPORT consumption_disaggregated.gms 
-  $IMPORT consumption_disaggregated_energy.gms 
-  $IMPORT exports_energy.gms
-$ENDFUNCTION
 
 $Group calibration_endogenous ;
 @import_from_modules("calibration")
