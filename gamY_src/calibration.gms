@@ -16,11 +16,7 @@ $ENDLOOP
 $FIX all_variables; $UNFIX calibration_endogenous;
 
 execute_unload 'static_calibration_pre.gdx';
-
-uTKmarg.lo[l,es,d,t]$(sTPotential.l[l,es,d,t]) = 0.0001;
-sqT2qES.lo[l,es,d,t]$(sTPotential.l[l,es,d,t]) = 0.00000000001;
-pESmarg.lo[es,d,t]$(sum(l,sTPotential.l[l,es,d,t])) = 0.0001;
-
+@Setbounds_abatement();
 solve calibration using CNS;
 execute_unload 'static_calibration.gdx';
 
