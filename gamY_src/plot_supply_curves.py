@@ -12,45 +12,45 @@ prop_cycle = plt.rcParams["axes.prop_cycle"]
 colors = prop_cycle.by_key()["color"]
 
 ## Read data in gdx-file
-e = dt.Gdx("supply_curves_data.gdx")
+e = dt.Gdx("Abatement_partial_supply_curve.gdx")
 
 # READING DATA
 # Prices (discrete)
 pTPotential = e["pTPotential"].to_frame()
 pTPotential = pTPotential.reset_index()
-pTPotential = pTPotential.rename(columns={"es":"purpose","d":"s"})
-pTPotential.set_index(['t', 's','purpose','l'], inplace=True)
+# pTPotential = pTPotential.rename(columns={"es":"purpose","d":"s"})
+pTPotential.set_index(['t', 'd','es','l'], inplace=True)
 
 # Potentials (discrete)
 sTPotential = e["sTPotential"].to_frame()
 sTPotential = sTPotential.reset_index()
-sTPotential = sTPotential.rename(columns={"es":"purpose","d":"s","sTPotential":"sTPotential"})
-sTPotential.set_index(['t', 's','purpose','l'], inplace=True)
+# sTPotential = sTPotential.rename(columns={"es":"purpose","d":"s","sTPotential":"sTPotential"})
+sTPotential.set_index(['t', 'd','es','l'], inplace=True)
 
 # Prices and potentials in a joint dataframe (discrete)
 df_discrete_input = sTPotential.reset_index().merge(pTPotential.reset_index(), how="left").set_index(sTPotential.index.names)
 df_discrete_input = df_discrete_input[df_discrete_input.index.get_level_values("t")>2018]
 
 # Prices (smooth)
-pESmarg_trace = e["pESmarg_trace"].to_frame()
-pESmarg_trace = pESmarg_trace.reset_index()
-pESmarg_trace = pESmarg_trace.rename(columns={"es":"purpose","d":"s"})
-pESmarg_trace.set_index(['t', 's','purpose','trace'], inplace=True)
+pESmarg_scen = e["pESmarg_scen"].to_frame()
+pESmarg_scen = pESmarg_scen.reset_index()
+# pESmarg_trace = pESmarg_trace.rename(columns={"es":"purpose","d":"s"})
+pESmarg_scen.set_index(['t', 'd','es','scen'], inplace=True)
 
 # Price where energy equals energy service demanded
 pESmarg_eq = e["pESmarg_eq"].to_frame()
 pESmarg_eq = pESmarg_eq.reset_index()
-pESmarg_eq = pESmarg_eq.rename(columns={"es":"purpose","d":"s"})
-pESmarg_eq.set_index(['t', 's','purpose','trace'], inplace=True)
+# pESmarg_eq = pESmarg_eq.rename(columns={"es":"purpose","d":"s"})
+pESmarg_eq.set_index(['t', 'd','es'], inplace=True)
 
 # Potentials (smooth)
-sTSupply_trace_suml = e["sTSupply_trace_suml"].to_frame()
-sTSupply_trace_suml = sTSupply_trace_suml.reset_index()
-sTSupply_trace_suml = sTSupply_trace_suml.rename(columns={"es":"purpose","d":"s"})
-sTSupply_trace_suml.set_index(['t', 's','purpose','trace'], inplace=True)
+sqT2qES_sum_scen = e["sqT2qES_sum_scen"].to_frame()
+sqT2qES_sum_scen = sqT2qES_sum_scen.reset_index()
+# sTSupply_scen_suml = sTSupply_trace_suml.rename(columns={"es":"purpose","d":"s"})
+sqT2qES_sum_scen.set_index(['t', 'd','es','scen'], inplace=True)
 
 # Prices and potentials in a joint dataframe (Smooth)
-df_smooth_input = sTSupply_trace_suml.reset_index().merge(pESmarg_trace.reset_index(), how="left").set_index(sTSupply_trace_suml.index.names)
+df_smooth_input = sqT2qES_sum_scen.reset_index().merge(pESmarg_scen.reset_index(), how="left").set_index(sqT2qES_sum_scen.index.names)
 df_smooth_input = df_smooth_input[df_smooth_input.index.get_level_values("t")>2018]
 
 
@@ -60,7 +60,7 @@ def Discrete_supply(df_discrete_input,ss,p,yr=2019):
  
     # Eliminating dimensions
     xs_list = (ss,p,yr)
-    df = df_discrete_input.xs(xs_list,level = ['s','purpose','t'])
+    df = df_discrete_input.xs(xs_list,level = ['d','es','t'])
     # Sorting data from cheapest to most expensive
     df.reset_index(inplace=True)
     df = df.sort_values(by='pTPotential', ascending=True)
@@ -92,12 +92,12 @@ def Smooth_supply(df_smooth_input,pESmarg_eq,ss,p,yr=2019):
     # DESCRIPTION
  
     xs_list = (ss,p,yr)
-    df = df_smooth_input.xs(xs_list,level = ['s','purpose','t'])
+    df = df_smooth_input.xs(xs_list,level = ['d','es','t'])
     df.reset_index(inplace=True)
-    df = df.sort_values(by='pESmarg_trace', ascending=True)
-    df.set_index('trace', inplace=True)
+    df = df.sort_values(by='pESmarg_scen', ascending=True)
+    df.set_index('scen', inplace=True)
 
-    pESmarg_smooth = pESmarg_eq.xs(xs_list,level = ['s','purpose','t'])
+    pESmarg_smooth = pESmarg_eq.xs(xs_list,level = ['d','es','t'])
     pESmarg_smooth = list(pESmarg_smooth['pESmarg_eq'])[0]
 
     return df, pESmarg_smooth
@@ -117,7 +117,7 @@ def plot_supply_curve(ss,p,yr=2019,pct=100):
 
     # Plot smooth curve
     df_smooth=Smooth_supply(df_smooth_input,pESmarg_eq,ss,p,yr)[0]
-    plt.plot(pct*df_smooth['sTSupply_trace_suml'],df_smooth['pESmarg_trace'], label='Smooth',linewidth=1.5)
+    plt.plot(pct*df_smooth['sqT2qES_sum_scen'],df_smooth['pESmarg_scen'], label='Smooth',linewidth=1.5)
     # Plot smooth pESmarg
     pESmarg_smooth=Smooth_supply(df_smooth_input,pESmarg_eq,ss,p,yr)[1]
     plt.axhline(pESmarg_smooth,color=colors[1], linestyle='--',linewidth=1.5)
@@ -142,8 +142,8 @@ def plot_supply_curve(ss,p,yr=2019,pct=100):
 # Calling function for plotting discrete and smooth supply curve
 with PdfPages('Supply_curves.pdf') as pdf:
     for yr in year_list:
-        for ss in df_discrete_input.index.get_level_values('s').unique().tolist():
-            for p in sorted(df_discrete_input[df_discrete_input.index.get_level_values('s')==ss].index.get_level_values('purpose').unique().tolist()):
+        for ss in df_discrete_input.index.get_level_values('d').unique().tolist():
+            for p in sorted(df_discrete_input[df_discrete_input.index.get_level_values('d')==ss].index.get_level_values('es').unique().tolist()):
                 plot_supply_curve(ss,p,yr=yr)
                 pdf.savefig(bbox_inches='tight')
                 plt.show()
