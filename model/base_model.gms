@@ -10,6 +10,7 @@ $IMPORT sets/output.sets.gms
 $IMPORT sets/production.sets.gms
 $IMPORT sets/emissions.sets.gms
 $IMPORT sets/energy_taxes_and_emissions.sets.gms
+$IMPORT sets/households.sets.gms
 
 set_time_periods(%first_data_year%, %terminal_year%);
 
@@ -35,6 +36,7 @@ $FUNCTION import_from_modules(stage_key):
   $IMPORT exports.gms
   $IMPORT factor_demand.gms
   $IMPORT ramsey_household.gms
+  $IMPORT consumption_disaggregated.gms 
 $ENDFUNCTION
 
 # ------------------------------------------------------------------------------
@@ -50,14 +52,6 @@ $SetGroup SG_flat_after_last_data_year ; # Dummies that are extended with "flat 
 $IMPORT variable_groups.gms
 $IMPORT growth_adjustments.gms
 
-# ------------------------------------------------------------------------------
-# Define equations
-# ------------------------------------------------------------------------------
-model main;
-model calibration;
-@import_from_modules("equations")
-@add_exist_dummies_to_model(main) # Limit the main model to only include elements that are not dummied out
-main.optfile=1;
 
 # ------------------------------------------------------------------------------
 # Import data and set parameters
@@ -66,6 +60,43 @@ main.optfile=1;
 @inf_growth_adjust()
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
 @update_exist_dummies()
+
+
+# ------------------------------------------------------------------------------
+# Define equations
+# ------------------------------------------------------------------------------
+$FUNCTION import_from_modules(stage_key):
+  $SETGLOBAL stage stage_key;
+  $IMPORT submodel_template.gms
+  $IMPORT input_output.gms
+  $IMPORT financial_accounts.gms
+  
+  $IMPORT households.gms
+  $IMPORT ramsey_household.gms
+  $IMPORT consumption_disaggregated.gms 
+
+  $IMPORT labor_market.gms
+  # $IMPORT energy_markets.gms; 
+  # $IMPORT industries_CES_energydemand.gms; 
+  $IMPORT production.gms; 
+  $IMPORT pricing.gms; 
+  $IMPORT imports.gms
+  # $IMPORT production_CET.gms;
+  # $IMPORT emissions.gms; 
+  # $IMPORT energy_and_emissions_taxes.gms; 
+  $IMPORT government.gms
+  $IMPORT exports.gms
+  $IMPORT factor_demand.gms
+
+$ENDFUNCTION
+
+
+
+model main;
+model calibration;
+@import_from_modules("equations")
+@add_exist_dummies_to_model(main) # Limit the main model to only include elements that are not dummied out
+main.optfile=1;
 
 # ------------------------------------------------------------------------------
 # Calibrate model
