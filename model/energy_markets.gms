@@ -117,7 +117,6 @@
 			;
 
 			$Group+ all_variables
-				#AKB: The following are not used currently. For a long time
 				sSupply_d_e_i_adj[d,e,i,t]$(d1sSupply_d_e_i_adj[d,e,i,t]) "Bounded share of total supply of energy (e) from domestic industry (i) delivered to (d), adjusted to match energy-IO"
 				sSupply_d_e_i_adj_inp[d,e,i,t]$(d1sSupply_d_e_i_adj[d,e,i,t]) "Unbounded share of total supply of energy (e) from domestic industry (i) delivered to (d), adjusted to match energy-IO"
 				adj_sSupply_d_e_i_adj[e,i,t]$(d1pY_CET[e,i,t]) "Adjustment parameter, allocating domestic supply of energy (e) from domestic industry (i) to demand-comp. (d)"
@@ -232,11 +231,11 @@
 
 		$BLOCK energy_margins energy_margins_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
 
-			.. pWMA[es,e,d,t] =E=  (1+fpWMA[es,e,d,t]) * pY_CET['out_other','46000',t]/pY_CET['out_other','46000',tBase];
+			.. pWMA[es,e,d,t] =E=  fpWMA[es,e,d,t] * pY_CET['out_other','46000',t]/pY_CET['out_other','46000',tBase];
 
-			.. pRMA[es,e,d,t] =E= (1+fpRMA[es,e,d,t]) * pY_CET['out_other','47000',t]/pY_CET['out_other','47000',tBase];
+			.. pRMA[es,e,d,t] =E= fpRMA[es,e,d,t] * pY_CET['out_other','47000',t]/pY_CET['out_other','47000',tBase];
 
-			.. pCMA[es,e,d,t] =E= (1+fpCMA[es,e,d,t]) * pY_CET['out_other','45000',t]/pY_CET['out_other','45000',tBase];
+			.. pCMA[es,e,d,t] =E= fpCMA[es,e,d,t] * pY_CET['out_other','45000',t]/pY_CET['out_other','45000',tBase];
 
 			.. vWMA[es,e,d,t] =E=  pWMA[es,e,d,t] * qEpj[es,e,d,t];
 
