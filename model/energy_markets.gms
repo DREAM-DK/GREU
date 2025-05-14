@@ -117,8 +117,8 @@
 			;
 
 			$Group+ all_variables
-				sSupply_d_e_i_adj[d,e,i,t]$(d1sSupply_d_e_i_adj[d,e,i,t]) "Bounded share of total supply of energy (e) from domestic industry (i) delivered to (d), adjusted to match energy-IO"
-				sSupply_d_e_i_adj_inp[d,e,i,t]$(d1sSupply_d_e_i_adj[d,e,i,t]) "Unbounded share of total supply of energy (e) from domestic industry (i) delivered to (d), adjusted to match energy-IO"
+				sSupply_d_e_i_adj[d,e,i,t]$(d1Y_i_d[i,d,t] and d_ene[d] and d1pY_CET[e,i,t] and sum(es, sum(d_a, es_d2d(es,d_a,d) and d1pEpj_base[es,e,d_a,t]))) "Bounded share of total supply of energy (e) from domestic industry (i) delivered to (d), adjusted to match energy-IO"
+				sSupply_d_e_i_adj_inp[d,e,i,t]$(d1Y_i_d[i,d,t] and d_ene[d] and d1pY_CET[e,i,t] and sum(es, sum(d_a,es_d2d(es,d_a,d) and d1pEpj_base[es,e,d_a,t]))) "Unbounded share of total supply of energy (e) from domestic industry (i) delivered to (d), adjusted to match energy-IO"
 				adj_sSupply_d_e_i_adj[e,i,t]$(d1pY_CET[e,i,t]) "Adjustment parameter, allocating domestic supply of energy (e) from domestic industry (i) to demand-comp. (d)"
 				j_adj_sSupply_d_e_i_adj[e,i] "Calibrating parameter in data-year, capturing difference in energybalance/energy-IO" 
 				sSupply_d_e_i_adj_calib[d,i]  "Calibrating parameter from data-year capturing difference between economy-wide vY[e]/(vY[e]+vM[e]), and delivery to domestic IO-cell (d x e x i)"
