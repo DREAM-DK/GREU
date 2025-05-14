@@ -46,4 +46,4 @@ sqT2qES.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = sTPotential.l[l,es,d,t]*@cdfLogN
 #pESmarg.l[es,d,t] = pESmarg_trace_eq[es,d,t] ;
 
 # Unload gdx-file with dummy technologies
-execute_unloaddi "supply_curves_data.gdx";
+execute_unloaddi "abatement_old_supply_curves.gdx";

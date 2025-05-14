@@ -46,6 +46,8 @@ main.optfile=1;
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
 @update_exist_dummies()
 
+$import Supply_curves_abatement_new.gms
+
 # ------------------------------------------------------------------------------
 # Calibrate model
 # ------------------------------------------------------------------------------
@@ -105,26 +107,26 @@ execute_unloaddi "calibration.gdx";
 # tCO2_Emarg.l[em,es,e,i,t] = 5 * tCO2_Emarg.l[em,es,e,i,t]; #Increase in CO2-tax of 10%
 
 # #uTKexp.l['t1','heating','10030',t]$(d1sTPotential['t1','heating','10030',t]) = 10;
- uTE.l['t4','heating','Coal and coke','10030',t]$(d1sTPotential['t4','heating','10030',t]) = 20000;
+#  uTE.l['t4','heating','Coal and coke','10030',t]$(d1sTPotential['t4','heating','10030',t]) = 20000;
 
-#Residual calculation of the marginal costs of capital for given value of pESmarg_trace. Equivilant to equation governing uTK in abatement.gms
-uTKmarg_trace[l,es,d,t,trace]$(sTPotential.l[l,es,d,t]) = max (0.000001, ( pESmarg_trace[es,d,t,trace] - sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t])	) / pTK.l[d,t] ); 
+# #Residual calculation of the marginal costs of capital for given value of pESmarg_trace. Equivilant to equation governing uTK in abatement.gms
+# uTKmarg_trace[l,es,d,t,trace]$(sTPotential.l[l,es,d,t]) = max (0.000001, ( pESmarg_trace[es,d,t,trace] - sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t])	) / pTK.l[d,t] ); 
 
-# Smoothed supply curve for technology l
-sqT2qES_trace[l,es,d,t,trace]$(sTPotential.l[l,es,d,t]) = sTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_trace[l,es,d,t,trace],uTKexp.l[l,es,d,t],eP.l[l,es,d,t]);
+# # Smoothed supply curve for technology l
+# sqT2qES_trace[l,es,d,t,trace]$(sTPotential.l[l,es,d,t]) = sTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_trace[l,es,d,t,trace],uTKexp.l[l,es,d,t],eP.l[l,es,d,t]);
 
-# Smoothed supply curve for technology for all technologies
-sqT2qES_trace_suml[es,d,t,trace] = sum(l$(sTPotential.l[l,es,d,t]), sqT2qES_trace[l,es,d,t,trace] );
+# # Smoothed supply curve for technology for all technologies
+# sqT2qES_trace_suml[es,d,t,trace] = sum(l$(sTPotential.l[l,es,d,t]), sqT2qES_trace[l,es,d,t,trace] );
 
-uTKmarg_trace_eq[l,es,d,t]$(sTPotential.l[l,es,d,t]) = sum(trace, uTKmarg_trace[l,es,d,t,trace]$(sqT2qES_trace_suml[es,d,t,trace]  >= 1 and sqT2qES_trace_suml[es,d,t,trace-1]  < 1) );
+# uTKmarg_trace_eq[l,es,d,t]$(sTPotential.l[l,es,d,t]) = sum(trace, uTKmarg_trace[l,es,d,t,trace]$(sqT2qES_trace_suml[es,d,t,trace]  >= 1 and sqT2qES_trace_suml[es,d,t,trace-1]  < 1) );
 
-pESmarg_trace_eq[es,d,t] =   smax(l, sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t])	+ uTKmarg_trace_eq[l,es,d,t]*pTK.l[d,t] )  ;
+# pESmarg_trace_eq[es,d,t] =   smax(l, sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t])	+ uTKmarg_trace_eq[l,es,d,t]*pTK.l[d,t] )  ;
 
-#Initial values for pESmarg and sTold (helps the solver getting a good starting point)
-uTKmarg.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = uTKmarg_trace_eq[l,es,d,t] ;
-uTKmargNobound.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t] ;
-sqT2qES.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = sTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_trace_eq[l,es,d,t],uTKexp.l[l,es,d,t],eP.l[l,es,d,t]);
-pESmarg.l[es,d,t] = pESmarg_trace_eq[es,d,t] ;
+# #Initial values for pESmarg and sTold (helps the solver getting a good starting point)
+# uTKmarg.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = uTKmarg_trace_eq[l,es,d,t] ;
+# uTKmargNobound.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t] ;
+# sqT2qES.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = sTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_trace_eq[l,es,d,t],uTKexp.l[l,es,d,t],eP.l[l,es,d,t]);
+# pESmarg.l[es,d,t] = pESmarg_trace_eq[es,d,t] ;
 
  $FIX all_variables;
  $UNFIX main_endogenous;
@@ -136,119 +138,119 @@ pESmarg.l[es,d,t] = pESmarg_trace_eq[es,d,t] ;
 # ------------------------------------------------------------------------------
 # Module for generating supply curves and setting initial values
 # ------------------------------------------------------------------------------
- set scen / 1*100 /;
+#  set scen / 1*100 /;
 
 #Resetting uTE 
  uTE.l['t4','heating','Coal and coke','10030',t]$(d1sTPotential['t4','heating','10030',t]) = 1.1;
 
 ## Create scenario specific versions of all endogenous variables
-$GROUP G_scenarios
-  $LOOP abatement_endogenous_core:
-    {name}_scen{sets}{$}[+scen]${conditions} "Alternate version of {name} used in {scenario} scenario."
-  $ENDLOOP
-;
-$LOOP G_scenarios:
-  {name}_exists_dummy{sets} = {conditions};
-$ENDLOOP
+# $GROUP G_scenarios
+#   $LOOP abatement_endogenous_core:
+#     {name}_scen{sets}{$}[+scen]${conditions} "Alternate version of {name} used in {scenario} scenario."
+#   $ENDLOOP
+# ;
+# $LOOP G_scenarios:
+#   {name}_exists_dummy{sets} = {conditions};
+# $ENDLOOP
 
-# Set starting value of scenario specific variables equal to their original counterparts
-$LOOP abatement_endogenous_core:
-  {name}_scen.l{sets}{$}[+scen]${conditions} = {name}.l{sets};
-$ENDLOOP
+# # Set starting value of scenario specific variables equal to their original counterparts
+# $LOOP abatement_endogenous_core:
+#   {name}_scen.l{sets}{$}[+scen]${conditions} = {name}.l{sets};
+# $ENDLOOP
 
-# Create scenario specific versions of entire model, with all endogenous variables replaced by scenario specific counterparts
-$BLOCK B_scenarios
-  # Substitute each variable in g_replace_scen by adding '_scen' to the name and adding ',scen' to the sets.
-  $REGEX(('(?<=[\s\+\*\(\-\/])('+'|'.join(self.groups['abatement_endogenous_core'].keys())+')\[(.+?)\]'), '\g<1>_scen[\g<2>,scen]')  
-    $LOOP abatement_equations_core:
-        {name}_scen{sets}{$}[+scen]${conditions}.. {LHS} =E= {RHS};
-    $ENDLOOP
-  $ENDREGEX
-$ENDBLOCK
+# # Create scenario specific versions of entire model, with all endogenous variables replaced by scenario specific counterparts
+# $BLOCK B_scenarios
+#   # Substitute each variable in g_replace_scen by adding '_scen' to the name and adding ',scen' to the sets.
+#   $REGEX(('(?<=[\s\+\*\(\-\/])('+'|'.join(self.groups['abatement_endogenous_core'].keys())+')\[(.+?)\]'), '\g<1>_scen[\g<2>,scen]')  
+#     $LOOP abatement_equations_core:
+#         {name}_scen{sets}{$}[+scen]${conditions}.. {LHS} =E= {RHS};
+#     $ENDLOOP
+#   $ENDREGEX
+# $ENDBLOCK
 
-#Including the new scenario specific variables in the list of variables
-$GROUP all_variables_scen
-  all_variables
-  G_scenarios
-;
+# #Including the new scenario specific variables in the list of variables
+# $GROUP all_variables_scen
+#   all_variables
+#   G_scenarios
+# ;
 
-#Solving the model for exogenous marginal price
-$MODEL M_supply_initialization_pre
-      B_scenarios
-      -E_pESmarg_es_d_scen
-;
+# #Solving the model for exogenous marginal price
+# $MODEL M_supply_initialization_pre
+#       B_scenarios
+#       -E_pESmarg_es_d_scen
+# ;
 
-$GROUP G_supply_initialization
-        G_scenarios 
-        - pESmarg_scen
-;
+# $GROUP G_supply_initialization
+#         G_scenarios 
+#         - pESmarg_scen
+# ;
 
- $FIX all_variables_scen;
- $UNFIX G_supply_initialization;
- @Setbounds_abatement();
- Solve M_supply_initialization_pre using CNS;
- execute_unload 'Abatement_partial_initialization_pre.gdx';
+#  $FIX all_variables_scen;
+#  $UNFIX G_supply_initialization;
+#  @Setbounds_abatement();
+#  Solve M_supply_initialization_pre using CNS;
+#  execute_unload 'Abatement_partial_initialization_pre.gdx';
 
 #Solving the model for different values of pESmarg 
-parameter
-  d1Expensive_tech_smooth_scen[es,d,t] "Most expensive technology"
-  uTKmarg_eq[l,es,d,t]  "The marginal cost of capital in equilibrium, ie. at the point where demand is satisified"
-  pESmarg_eq[es,d,t]    "The marginal cost of energy service in equilibrium, ie. at the point where demand is satisified"
-;
+# parameter
+#   d1Expensive_tech_smooth_scen[es,d,t] "Most expensive technology"
+#   uTKmarg_eq[l,es,d,t]  "The marginal cost of capital in equilibrium, ie. at the point where demand is satisified"
+#   pESmarg_eq[es,d,t]    "The marginal cost of energy service in equilibrium, ie. at the point where demand is satisified"
+# ;
 
-    #Må være en smartere måde at gøre dette på...
-      $GROUP init_group
-        $LOOP sqT2qES_sum:
-          {name}_scen{sets}{$}[+scen]${conditions} "Alternate version of {name} used in {scenario} scenario."
-        $ENDLOOP
-      ;
-      $LOOP init_group:
-        {name}_exists_dummy{sets} = (((t1.val <= t.val and t.val <= tEnd.val)) and sqT2qES_sum_exists_dummy[es,d,t]);
-      $ENDLOOP
+#     #Må være en smartere måde at gøre dette på...
+#       $GROUP init_group
+#         $LOOP sqT2qES_sum:
+#           {name}_scen{sets}{$}[+scen]${conditions} "Alternate version of {name} used in {scenario} scenario."
+#         $ENDLOOP
+#       ;
+#       $LOOP init_group:
+#         {name}_exists_dummy{sets} = (((t1.val <= t.val and t.val <= tEnd.val)) and sqT2qES_sum_exists_dummy[es,d,t]);
+#       $ENDLOOP
 
-      $LOOP sqT2qES_sum:
-        {name}_scen.l{sets}{$}[+scen]${conditions} = {name}.l{sets};
-      $ENDLOOP
+#       $LOOP sqT2qES_sum:
+#         {name}_scen.l{sets}{$}[+scen]${conditions} = {name}.l{sets};
+#       $ENDLOOP
 
 
-$BLOCK abatement_equations_supply_curve abatement_endogenous_supply_curve $(t1.val <= t.val and t.val <= tEnd.val)  
-  .. pTPotential[l,es,d,t]	=E= sum(e, uTE[l,es,e,d,t]*pTE[es,e,d,t]$(d1pTE[es,e,d,t] and d1uTE[l,es,e,d,t]))+ uTKexp[l,es,d,t]*pTK[d,t];
-  .. pESmarg_scen[es,d,t,scen]$(sum(l, d1sTPotential[l,es,d,t])) =E= ord(scen)/100 * d1Expensive_tech_smooth_scen[es,d,t];
-  .. sqT2qES_sum_scen[es,d,t,scen] =E= sum(l$(d1sTPotential[l,es,d,t]), sqT2qES_scen[l,es,d,t,scen] );
-$ENDBLOCK
+# $BLOCK abatement_equations_supply_curve abatement_endogenous_supply_curve $(t1.val <= t.val and t.val <= tEnd.val)  
+#   .. pTPotential[l,es,d,t]	=E= sum(e, uTE[l,es,e,d,t]*pTE[es,e,d,t]$(d1pTE[es,e,d,t] and d1uTE[l,es,e,d,t]))+ uTKexp[l,es,d,t]*pTK[d,t];
+#   .. pESmarg_scen[es,d,t,scen]$(sum(l, d1sTPotential[l,es,d,t])) =E= ord(scen)/100 * d1Expensive_tech_smooth_scen[es,d,t];
+#   .. sqT2qES_sum_scen[es,d,t,scen] =E= sum(l$(d1sTPotential[l,es,d,t]), sqT2qES_scen[l,es,d,t,scen] );
+# $ENDBLOCK
 
-# Re-determining the most expensive technology
-d1Expensive_tech_smooth_scen[es,d,t] = smax(l, pTPotential.l[l,es,d,t] * (1 + 4 * eP.l[l,es,d,t]));
+# # Re-determining the most expensive technology
+# d1Expensive_tech_smooth_scen[es,d,t] = smax(l, pTPotential.l[l,es,d,t] * (1 + 4 * eP.l[l,es,d,t]));
 
-#Model for creating supply curve
-$MODEL M_supply_initialization_supply_curve
-  M_supply_initialization_pre
-  abatement_equations_supply_curve;
+# #Model for creating supply curve
+# $MODEL M_supply_initialization_supply_curve
+#   M_supply_initialization_pre
+#   abatement_equations_supply_curve;
 
-@add_exist_dummies_to_model(M_supply_initialization_supply_curve) # Limit the main model to only include elements that are not dummied out
+# @add_exist_dummies_to_model(M_supply_initialization_supply_curve) # Limit the main model to only include elements that are not dummied out
 
-$GROUP+ G_supply_initialization 
-abatement_endogenous_supply_curve;
+# $GROUP+ G_supply_initialization 
+# abatement_endogenous_supply_curve;
 
-# $GROUP+ all_variables_scen
-#   sqT2qES_scen$(d1sTPotential[l,es,d,t])
-#   ;
+# # $GROUP+ all_variables_scen
+# #   sqT2qES_scen$(d1sTPotential[l,es,d,t])
+# #   ;
 
- $FIX all_variables_scen;
- $UNFIX G_supply_initialization;
- @Setbounds_abatement();
- execute_unload 'Abatement_partial_supply_curve_pre.gdx';
- Solve M_supply_initialization_supply_curve using CNS;
- execute_unload 'Abatement_partial_supply_curve.gdx';
+#  $FIX all_variables_scen;
+#  $UNFIX G_supply_initialization;
+#  @Setbounds_abatement();
+#  execute_unload 'Abatement_partial_supply_curve_pre.gdx';
+#  Solve M_supply_initialization_supply_curve using CNS;
+#  execute_unload 'Abatement_partial_supply_curve.gdx';
 
-# Smoothed supply curve for technology for all technologies
-uTKmarg_eq[l,es,d,t]$(sTPotential.l[l,es,d,t]) = sum(scen, uTKmarg_scen.l[l,es,d,t,scen]$(sqT2qES_sum_scen.l[es,d,t,scen]  >= 1 and sqT2qES_sum_scen.l[es,d,t,scen-1]  < 1) );
-pESmarg_eq[es,d,t] =   smax(l, sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t])	+ uTKmarg_eq[l,es,d,t]*pTK.l[d,t] )  ;
+# # Smoothed supply curve for technology for all technologies
+# uTKmarg_eq[l,es,d,t]$(sTPotential.l[l,es,d,t]) = sum(scen, uTKmarg_scen.l[l,es,d,t,scen]$(sqT2qES_sum_scen.l[es,d,t,scen]  >= 1 and sqT2qES_sum_scen.l[es,d,t,scen-1]  < 1) );
+# pESmarg_eq[es,d,t] =   smax(l, sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t])	+ uTKmarg_eq[l,es,d,t]*pTK.l[d,t] )  ;
 
 # Initial values for pESmarg and sTold (helps the solver getting a good starting point)
-uTKmarg.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = uTKmarg_eq[l,es,d,t] ;
-uTKmargNobound.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t] ;
-sqT2qES.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = sTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_eq[l,es,d,t],uTKexp.l[l,es,d,t],eP.l[l,es,d,t]);
-pESmarg.l[es,d,t] = pESmarg_eq[es,d,t] ;
+# uTKmarg.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = uTKmarg_eq[l,es,d,t] ;
+# uTKmargNobound.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t] ;
+# sqT2qES.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = sTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_eq[l,es,d,t],uTKexp.l[l,es,d,t],eP.l[l,es,d,t]);
+# pESmarg.l[es,d,t] = pESmarg_eq[es,d,t] ;
 
  execute_unload 'Abatement_partial_initialization.gdx';

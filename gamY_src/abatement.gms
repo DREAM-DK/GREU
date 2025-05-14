@@ -211,7 +211,7 @@ d1qES[es,d,t] = yes$(qES.l[es,d,t]);
 # ------------------------------------------------------------------------------
 # Depicting discrete and smooth supply curves
 # ------------------------------------------------------------------------------
-$import Supply_curves_abatement.gms
+# $import Supply_curves_abatement.gms
 execute_unloaddi "abatement_data_load.gdx";
 $ENDIF # exogenous_values
 
