@@ -399,18 +399,28 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 
 
 #Taxes 
-  tCO2_Emarg['CO2ubio',es,e,d,t]$(sum(demand_transaction_temp$Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t], Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t]))
-                                 = sum(demand_transaction_temp$Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t], Energybalance['co2_tax',demand_transaction_temp,d,es,e,t])/
-                                   sum(demand_transaction_temp$Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t], Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t]);
+  # tCO2_Emarg['CO2ubio',es,e,d,t]$(sum(demand_transaction_temp$Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t], Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t]))
+  #                                = sum(demand_transaction_temp$Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t], Energybalance['co2_tax',demand_transaction_temp,d,es,e,t])/
+  #                                  sum(demand_transaction_temp$Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t], Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t]);
 
-  tCO2_Emarg['CO2ubio',es,e,d,t]$tCO2_Emarg['CO2ubio',es,e,d,t] = tCO2_Emarg['CO2ubio',es,e,d,t] + 0.01;  
+  # tCO2_Emarg['CO2ubio',es,e,d,t]$tCO2_Emarg['CO2ubio',es,e,d,t] = tCO2_Emarg['CO2ubio',es,e,d,t] + 0.01;  
 
-  tCO2_Emarg['CO2bio',es,e,d,t]$(sameas[e,'natural gas incl. biongas'] and sum(demand_transaction_temp$Energybalance['CO2bio',demand_transaction_temp,d,es,e,t], Energybalance['CO2bio',demand_transaction_temp,d,es,e,t])) 
-                                 = sum(demand_transaction_temp$Energybalance['CO2bio',demand_transaction_temp,d,es,e,t], Energybalance['co2_tax',demand_transaction_temp,d,es,e,t])/
-                                   sum(demand_transaction_temp$Energybalance['CO2bio',demand_transaction_temp,d,es,e,t], Energybalance['CO2bio',demand_transaction_temp,d,es,e,t]);
+  # tCO2_Emarg['CO2bio',es,e,d,t]$(sameas[e,'natural gas incl. biongas'] and sum(demand_transaction_temp$Energybalance['CO2bio',demand_transaction_temp,d,es,e,t], Energybalance['CO2bio',demand_transaction_temp,d,es,e,t])) 
+  #                                = sum(demand_transaction_temp$Energybalance['CO2bio',demand_transaction_temp,d,es,e,t], Energybalance['co2_tax',demand_transaction_temp,d,es,e,t])/
+  #                                  sum(demand_transaction_temp$Energybalance['CO2bio',demand_transaction_temp,d,es,e,t], Energybalance['CO2bio',demand_transaction_temp,d,es,e,t]);
 
-  tCO2_Emarg['CO2bio',es,e,d,t]$tCO2_Emarg['CO2bio',es,e,d,t] = tCO2_Emarg['CO2bio',es,e,d,t] + 0.01;  
+  
 
+  # tCO2_Emarg['CO2bio',es,e,d,t]$tCO2_Emarg['CO2bio',es,e,d,t] = tCO2_Emarg['CO2bio',es,e,d,t] + 0.01;  
+
+  PARAMETER tCO2_REmarg[es,e,d,t,em]; #Marginal Danish tax-rates directly from GR-DK
+  execute_load 'data_DK.gdx' tCO2_REmarg = tCO2_REmarg.l;
+
+  tCO2_Emarg[em,es,e,d,t] = tCO2_REmarg[es,e,d,t,em];
+  tCO2_Emarg[em,es,e,'cHouEne',t] = tCO2_Emarg[em,'heating',e,'68203',t];
+  tCO2_Emarg[em,es,e,'cCarEne',t] = tCO2_Emarg[em,'transport',e,'68203',t];
+
+  #
 
 
   tEmarg_duty[etaxes,es,e,d,t]$(not sameas[etaxes,'CO2_tax'] and sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]))
