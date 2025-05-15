@@ -120,6 +120,11 @@ $FUNCTION test_data():
 
   ABORT$(abs(sum((d,tData), testvE_vat[d,tData]))>1) 'Test of energy-IO and energybalance failed! Value of VAT do not match'; #Tolerance sat højt pga hack -> £
 
+  #Test energybalance for internal consistency
+    #Testing if all emissions are tied up to a use of energy
+    LOOP((em,demand_transaction_temp,d,es,e,t)$(tData[t]),
+    ABORT$(sum(em$Energybalance[em,demand_transaction_temp,d,es,e,t], 1$Energybalance[em,demand_transaction_temp,d,es,e,t] - 1$Energybalance['PJ',demand_transaction_temp,d,es,e,t]) <> 0) 'Data contains entries with emissions without any energy-use.';
+    );
 $ENDFUNCTION 
 
 #Correction - is being investigated with Statistics DK
@@ -415,6 +420,8 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 
   PARAMETER tCO2_REmarg[es,e,d,t,em]; #Marginal Danish tax-rates directly from GR-DK
   execute_load 'data_DK.gdx' tCO2_REmarg = tCO2_REmarg.l;
+
+  tCO2_REmarg[es,'district heat',d,t,em]$tCO2_REmarg[es,'district heat',d,t,em] = 0;
 
   tCO2_Emarg[em,es,e,d,t] = tCO2_REmarg[es,e,d,t,em];
   tCO2_Emarg[em,es,e,'cHouEne',t] = tCO2_Emarg[em,'heating',e,'68203',t];

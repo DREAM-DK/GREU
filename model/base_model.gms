@@ -29,6 +29,7 @@ $FUNCTION import_from_modules({stage_key}):
   $SET stage {stage_key};
   $FOR {module}, {include} in [
     ("submodel_template.gms", 1),
+    ("emissions.gms" , 1),
     ("financial_accounts.gms", 1),
     ("labor_market.gms", 1),
     ("energy_markets.gms" , 1),
@@ -39,7 +40,6 @@ $FUNCTION import_from_modules({stage_key}):
     ("pricing.gms" , 1),
     ("imports.gms", 1),
     ("production_CET.gms", 1),
-    ("emissions.gms" , 1),
     ("input_output.gms", 1),
     ("households.gms", 1),
     ("government.gms", 1),
@@ -48,7 +48,7 @@ $FUNCTION import_from_modules({stage_key}):
     ("ramsey_household.gms", 1), 
     ("consumption_disaggregated.gms", 1), 
     ("consumption_disaggregated_energy.gms", 1), 
-    ("exports_energy.gms", 0),
+    ("exports_energy.gms", 1),
   ]:
     $IF {include} or {stage_key} not in ["equations", "calibration"]:
       $IMPORT {module}

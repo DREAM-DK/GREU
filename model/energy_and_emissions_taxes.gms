@@ -252,22 +252,22 @@ $IF %stage% == "exogenous_values":
 
     d1tE_duty[etaxes,es,e,d,t] = yes$((vtE_duty.l[etaxes,es,e,d,t] or (sameas[etaxes,'co2_tax'] and sum(em,tCO2_Emarg.l[em,es,e,d,t]))) and d1qEpj[es,e,d,t]);
     d1tE_duty_tot[d,t]         = yes$(sum((etaxes,es,e), d1tE_duty[etaxes,es,e,d,t]));
-    d1tE_vat[es,e,d,t]         = yes$(vtE_vat.l[es,e,d,t] and d1pEpj_base[es,e,d,t]);
+    d1tE_vat[es,e,d,t]         = yes$(vtE_vat.l[es,e,d,t] and pEpj_base.l[es,e,d,t]);
     d1tE_vat_tot[d,t]          = yes$(sum((es,e), d1tE_vat[es,e,d,t]));
  
-    d1tCO2_E[em,es,e,d,t]      = yes$(tCO2_Emarg.l[em,es,e,d,t] and d1qEpj[es,e,d,t]);
+    d1tCO2_E[em,es,e,d,t]      = yes$(tCO2_Emarg.l[em,es,e,d,t] and qEpj.l[es,e,d,t]);
     d1tCO2_xE[d,t]             = yes$(tCO2_xEmarg.l[d,t]);
-    d1tCO2_ETS_E[em,es,e,d,t]  = yes$(d1EmmE_BU[em,es,e,d,t] and CO2ubio[em] and d1qEpj[es,e,d,t] and in_ETS[es]);
-    d1tCO2_ETS_E[em,es,e,d,t]$(d1EmmE_BU[em,es,e,d,t] and CO2bio[em] and d1qEpj[es,e,d,t] and in_ETS[es] and natgas[e]) = yes;
+    d1tCO2_ETS_E[em,es,e,d,t]  = yes$(qEmmE_BU.l[em,es,e,d,t] and CO2ubio[em] and qEpj.l[es,e,d,t] and in_ETS[es]);
+    d1tCO2_ETS_E[em,es,e,d,t]$(qEmmE_BU.l[em,es,e,d,t] and CO2bio[em] and qEpj.l[es,e,d,t] and in_ETS[es] and natgas[e]) = yes;
     d1tCO2_ETS[i,t]             = yes$(sum((em,es,e), d1tCO2_ETS_E[em,es,e,i,t]));
 
-    d1tCO2_ETS2_E[em,es,e,d,t]  = yes$(d1EmmE_BU[em,es,e,d,t] and CO2ubio[em] and d1qEpj[es,e,d,t] and not in_ETS[es]);
-    d1tCO2_ETS2_E[em,es,e,d,t]$(d1EmmE_BU[em,es,e,d,t] and CO2bio[em] and d1qEpj[es,e,d,t] and not in_ETS[es] and natgas[e]) = yes;
+    d1tCO2_ETS2_E[em,es,e,d,t]  = yes$(qEmmE_BU.l[em,es,e,d,t] and CO2ubio[em] and qEpj.l[es,e,d,t] and not in_ETS[es]);
+    d1tCO2_ETS2_E[em,es,e,d,t]$(qEmmE_BU.l[em,es,e,d,t] and CO2bio[em] and qEpj.l[es,e,d,t] and not in_ETS[es] and natgas[e]) = yes;
 
-    d1tE[es,e,d,t]             = yes$((sum(etaxes,d1tE_duty[etaxes,es,e,d,t])  or d1tE_vat[es,e,d,t] or sum(em,d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) and d1pEpj_base[es,e,d,t]);
-    d1tqEpj[es,e,d,t]          = yes$((sum(etaxes, d1tE_duty[etaxes,es,e,d,t]) or sum(em,d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) and d1qEpj[es,e,d,t] and not d1pEpj_base[es,e,d,t]);
+    d1tE[es,e,d,t]             = yes$((sum(etaxes,d1tE_duty[etaxes,es,e,d,t])  or d1tE_vat[es,e,d,t] or sum(em,d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) and pEpj_base.l[es,e,d,t]);
+    d1tqEpj[es,e,d,t]          = yes$((sum(etaxes, d1tE_duty[etaxes,es,e,d,t]) or sum(em,d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) and d1qEpj[es,e,d,t] and not pEpj_base.l[es,e,d,t]);
 
-    d1pEpj[es,e,d,t]           = yes$(d1tE[es,e,d,t] or d1tqEpj[es,e,d,t]);
+    d1pEpj[es,e,d,t]           = yes$(d1tE[es,e,d,t] or d1tqEpj[es,e,d,t] or d1pEpj_base[es,e,d,t]);
 
     #From production_CES_energydemand.gms
     d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj[es,e_a,i,t] and process_special[es] and crudeoil[e_a] and i_refineries[i]) = yes; #Refinery feedstock of crude oil
