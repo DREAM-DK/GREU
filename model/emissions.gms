@@ -180,7 +180,7 @@ $IF %stage% == "exogenous_values":
   # ------------------------------------------------------------------------------
   # Dummies
   # ------------------------------------------------------------------------------
-  d1EmmE_BU[em,es,e,d,t]     = yes$(qEmmE_BU.l[em,es,e,d,t] and d1qEpj[es,e,d,t]);
+  d1EmmE_BU[em,es,e,d,t]     = yes$(qEmmE_BU.l[em,es,e,d,t]);
   d1EmmE[em,d,t]             = yes$(sum((es,e), d1EmmE_BU[em,es,e,d,t]));
   d1EmmxE[em,d,t]            = yes$(qEmmxE.l[em,d,t]);
   d1EmmLULUCF5[land5,t]      = yes$(qEmmLULUCF5.l[land5,t]);

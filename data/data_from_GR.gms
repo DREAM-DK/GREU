@@ -122,9 +122,16 @@ $FUNCTION test_data():
 
   #Test energybalance for internal consistency
     #Testing if all emissions are tied up to a use of energy
-    LOOP((em,demand_transaction_temp,d,es,e,t)$(tData[t]),
+    LOOP((demand_transaction_temp,d,es,e,t)$(tData[t]),
     ABORT$(sum(em$Energybalance[em,demand_transaction_temp,d,es,e,t], 1$Energybalance[em,demand_transaction_temp,d,es,e,t] - 1$Energybalance['PJ',demand_transaction_temp,d,es,e,t]) <> 0) 'Data contains entries with emissions without any energy-use.';
     );
+
+    #Testing if there are CO2ubio emissions where a tax-payment is registred. GR-DK data does not pass this test currently. The tax ends up being applied as a per PJ-tax instead. This should be fixed in data.
+    LOOP((demand_transaction_temp,d,es,e,t)$(tData[t] and Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t] and not sameas[e,'district heat'] and not sameas[e,'liquid biofuels']),
+    # ABORT$(1$Energybalance['co2_tax',demand_transaction_temp,d,es,e,t] - 1$Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t] <> 0) 'CO2-revenues where no emissions are registrered.';
+    );
+    
+
 $ENDFUNCTION 
 
 #Correction - is being investigated with Statistics DK
@@ -424,6 +431,9 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   tCO2_REmarg[es,'district heat',d,t,em]$tCO2_REmarg[es,'district heat',d,t,em] = 0;
 
   tCO2_Emarg[em,es,e,d,t] = tCO2_REmarg[es,e,d,t,em];
+  tCO2_Emarg['CO2bio','transport','liquid biofuels',d,t]$tCO2_Emarg['CO2bio','transport','gasoline for transport',d,t] = tCO2_Emarg['CO2ubio','transport','gasoline for transport',d,t];
+  tCO2_Emarg['CO2bio','transport','liquid biofuels',d,t]$(not tCO2_Emarg['CO2bio','transport','gasoline for transport',d,t]) = tCO2_Emarg['CO2ubio','transport','diesel for transport',d,t];
+
   tCO2_Emarg[em,es,e,'cHouEne',t] = tCO2_Emarg[em,'heating',e,'68203',t];
   tCO2_Emarg[em,es,e,'cCarEne',t] = tCO2_Emarg[em,'transport',e,'68203',t];
 

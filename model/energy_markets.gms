@@ -545,10 +545,10 @@ $IF %stage%=='tests':
 	
 	#Testing energy-use in industries
 	PARAMETER jvE_re_i[re,i,t] "Difference in top-down and BU-energy";
-	jvE_re_i[re,i,t] = vE_re_i.l[re,i,t] - sum((es,e)$es2re(es,re), vEpj.l[es,e,i,t]) + sum((es,e)$(es2re(es,re) and d1tqEpj[es,e,i,t] and not (sum(i_a, d1Y_i_d[i_a,re,t] or d1M_i_d[i_a,re,t]))), vtE_NAS.l[es,e,i,t]);
+	jvE_re_i[re,i,t] = vE_re_i.l[re,i,t] - sum((es,e)$es2re(es,re), vEpj.l[es,e,i,t]); 
 
 	#  ABORT$(abs(sum((re,i,tDataEnd), jvE_re_i[re,i,tDataEnd]))>1) 'Testing value of energy-use in data-year. Should ideally be zero';
-	# ABORT$(abs(sum((re,i,t)$(t.val>t1.val and t.val<=tEnd.val), jvE_re_i[re,i,t]))>1e-6) 'Test in endogenous years, i.e test of model';
+	ABORT$(abs(sum((re,i,t)$(t.val>t1.val and t.val<=tEnd.val), jvE_re_i[re,i,t]))>1e-6) 'Test in endogenous years, i.e test of model';
 
 	#Testing adjustment share 
 	LOOP((d_ene,e,i,t)$(t.val>=t1.val and t.val<=tEnd.val),

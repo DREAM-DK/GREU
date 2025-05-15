@@ -238,13 +238,13 @@ $IF %stage% == "exogenous_values":
   # Initial values 
   # ------------------------------------------------------------------------------
 
-   tCO2_Emarg.l[em,es,'District heat',d,t] = no;
-
    tCO2_ETS.l[t] = 750;
    tCO2_ETS2.l[t] = 375; 
 
    tCO2_xEmarg.l['23001',t] = 125;
    tCO2_xEmarg.l['23002',t] = 125;
+
+
    
   # ------------------------------------------------------------------------------
   # Dummies 
@@ -267,7 +267,7 @@ $IF %stage% == "exogenous_values":
     d1tE[es,e,d,t]             = yes$((sum(etaxes,d1tE_duty[etaxes,es,e,d,t])  or d1tE_vat[es,e,d,t] or sum(em,d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) and pEpj_base.l[es,e,d,t]);
     d1tqEpj[es,e,d,t]          = yes$((sum(etaxes, d1tE_duty[etaxes,es,e,d,t]) or sum(em,d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) and d1qEpj[es,e,d,t] and not pEpj_base.l[es,e,d,t]);
 
-    d1pEpj[es,e,d,t]           = yes$(d1tE[es,e,d,t] or d1tqEpj[es,e,d,t] or d1pEpj_base[es,e,d,t]);
+    d1pEpj[es,e,d,t]           = yes$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]); #There is a price if a) There is a base-price or b) if the energy-good is taxed.
 
     #From production_CES_energydemand.gms
     d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj[es,e_a,i,t] and process_special[es] and crudeoil[e_a] and i_refineries[i]) = yes; #Refinery feedstock of crude oil
