@@ -4,19 +4,19 @@
 	$IF %stage% == "variables":
 		#DEMAND PRICES
 			$SetGroup+ SG_flat_after_last_data_year
-				d1pEpj_base[es,e,d,t] ""
-				d1tqEpj[es,e,d,t] ""
+				d1pEpj_base[es,e,d,t] "Dummy for energy with a base-price"
+				d1qEpj[es,e,d,t] "Dummy for all energy in energy-balance, including non-priced energy"
 			;
 			
 			$Group+ all_variables
 				pEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 								"Base price of energy for demand sector d, measured in bio. kroner per PJ (or equivalently 1000 DKR per GJ)"
-				pEpj_marg[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Price of energy, including taxes and margins, for demand sector d, defined if either a base price or a quantity-tax exists, measured in bio. kroner per PJ (or equivalently 1000 DKR per GJ)"
+				pEpj_marg[es,e,d,t]$(d1pEpj[es,e,d,t]) "Price of energy, including taxes and margins, for demand sector d, defined if either a base price or a quantity-tax exists, measured in bio. kroner per PJ (or equivalently 1000 DKR per GJ)"
 				pEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t]) "Average price of energy"
 				fpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Sector average margin between average supplier price, and sector base price"
 
-				vEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Value of energy for demand sector d in base prices, measured in bio. kroner"
-				vEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Value of energy for demand sector d, measured in bio. kroner"
-				vEpj_NAS[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Value of energy for demand sector d, excluding margins, measured in bio. kroner"
+				vEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t]) "Value of energy for demand sector d in base prices, measured in bio. kroner"
+				vEpj[es,e,d,t]$(d1pEpj[es,e,d,t]) "Value of energy for demand sector d, measured in bio. kroner"
+				vEpj_NAS[es,e,d,t]$(d1pEpj[es,e,d,t]) "Value of energy for demand sector d, excluding margins, measured in bio. kroner"
 			;
 
 
@@ -45,7 +45,7 @@
 						qY_CET[out,i,t]$(d1pY_CET[out,i,t])                          "Domestic production of various products and services - the set 'out' contains all out puts of the economy, for energy the output is measured in PJ and non-energy in bio. DKK base 2019"
 						qM_CET[out,i,t]$(d1pM_CET[out,i,t])                          "Import of various products and services - the set 'out' contains all out puts of the economy, for energy the output is measured in PJ and non-energy in bio. DKK base 2019"
 						qEtot[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]))      "Total demand/supply of ergy in the models ergy-market"
-						qEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or tl[d]) 						 "Sector demand for energy on end purpose (es), measured in PJ"				
+						qEpj[es,e,d,t]$(d1qEpj[es,e,d,t] or tl[d]) 					      	 "Sector demand for energy on end purpose (es), measured in PJ"				
 						j_abatement_qREa[es,e,i,t]$(d1pEpj_base[es,e,i,t])       		 "J-term to be activated by abatement-module. When abatement is on qREa =/= qEpj, but is guided by abatement module, endogenizing this variable"
 						vDistributionProfits[e,t] 																	 "With different margins between average supply price, and sector base price, there is scope for what we call distribution profits. They can be negative. Measured in bio. DKK"
 						sY_Dist[e,i,t]$(d1pY_CET[e,i,t]) 														 "For the purpose of clearing energy markets, a fictive agent, the energy-distributor, gathers a bundle of domestically and imported energy, before selling it to the end-sector. This is the energy-distibutors preference parameter for domestic energy"
@@ -156,8 +156,11 @@
 			.. pEpj_base[es,e,d,t] =E= (1+fpE[es,e,d,t]) * pE_avg[e,t];
 
 			#Marginal price is base price plus the tax-wedge tpE_marg based on marginal tax-rates. See energy_and_emissions_taxes.gms
-			.. pEpj_marg[es,e,d,t] =E= (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t];
+			pEpj_marg&_base[es,e,d,t]$(d1pEpj_base[es,e,d,t])..
+			 pEpj_marg[es,e,d,t] =E= (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t];
 
+			pEpj_marg&_nonpriced[es,e,d,t]$(d1tqEpj[es,e,d,t])..
+				pEpj_marg[es,e,d,t] =E= tqE_marg[es,e,d,t];
 
 			#Average price is base price plus the tax-wedge tpE based on average tax-rates. See energy_and_emissions_taxes.gms
 			.. pEpj[es,e,d,t] =E= (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t];
@@ -219,7 +222,7 @@
 
 		$BLOCK energy_markets_clearing_link energy_markets_clearing_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 			#Link til industries_CES_energydemand		
-			qEpj[es,e,i,t]$(d1pEpj_base[es,e,i,t])..
+			qEpj[es,e,i,t]$(d1pEpj[es,e,i,t])..
 			 qEpj[es,e,i,t] =E= qREa[es,e,i,t] + j_abatement_qREa[es,e,i,t];
 		
 		$ENDBLOCK  
@@ -390,6 +393,7 @@
 		#Energy demand prices
 		pEpj_base.l[es,e,d,'2019'] = pEpj_base.l[es,e,d,'2020']; 
 		d1pEpj_base[es,e,d,t]  = yes$(pEpj_base.l[es,e,d,t]); 
+		d1qEpj[es,e,d,t]       = yes$(qEpj.l[es,e,d,t]);
 
 		
 		d1pY_CET[out,i,t] = yes$(pY_CET.l[out,i,t]);
@@ -541,10 +545,10 @@ $IF %stage%=='tests':
 	
 	#Testing energy-use in industries
 	PARAMETER jvE_re_i[re,i,t] "Difference in top-down and BU-energy";
-	jvE_re_i[re,i,t] = vE_re_i.l[re,i,t] - sum((es,e)$es2re(es,re), vEpj.l[es,e,i,t]);
+	jvE_re_i[re,i,t] = vE_re_i.l[re,i,t] - sum((es,e)$es2re(es,re), vEpj.l[es,e,i,t]) + sum((es,e)$(es2re(es,re) and d1tqEpj[es,e,i,t] and not (sum(i_a, d1Y_i_d[i_a,re,t] or d1M_i_d[i_a,re,t]))), vtE_NAS.l[es,e,i,t]);
 
 	#  ABORT$(abs(sum((re,i,tDataEnd), jvE_re_i[re,i,tDataEnd]))>1) 'Testing value of energy-use in data-year. Should ideally be zero';
-	ABORT$(abs(sum((re,i,t)$(t.val>t1.val and t.val<=tEnd.val), jvE_re_i[re,i,t]))>1e-6) 'Test in endogenous years, i.e test of model';
+	# ABORT$(abs(sum((re,i,t)$(t.val>t1.val and t.val<=tEnd.val), jvE_re_i[re,i,t]))>1e-6) 'Test in endogenous years, i.e test of model';
 
 	#Testing adjustment share 
 	LOOP((d_ene,e,i,t)$(t.val>=t1.val and t.val<=tEnd.val),

@@ -17,6 +17,10 @@ $IF %stage% == "variables":
     d1tCO2_xE[d,t] ""
     d1tCO2_ETS_E[em,es,e,d,t] ""
     d1tCO2_ETS2_E[em,es,e,d,t] ""
+
+    d1pEpj[es,e,d,t] "Dummy for priced energy. This includes if the energy does not have a base price but is taxed"
+    d1tqEpj[es,e,d,t] "Dummy for non-priced energy that is taxed"
+
   ;
 
   $Group+ all_variables
@@ -35,8 +39,8 @@ $IF %stage% == "variables":
     qCO2_ETS_freeallowances[i,t]$(d1tCO2_ETS[i,t])                     "This one needs to have added non-energy related emissions"
 
 		tpE_marg[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Aggregate marginal tax-rate on priced energy, measured as a mark-up over base price"
-		tpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Aggregate marginal tax-rate on priced energy, measured as a mark-up over base price"
-		tqE[es,e,d,t]$(d1tqEpj[es,e,d,t]) 												 "Aggregate marginal tax-rate on non-priced energy, measured as bio. kroner per PJ (or equivalently 1000 DKR per GJ)" 
+		tpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 									    	 "Aggregate average tax-rate on priced energy, measured as a mark-up over base price"
+		tqE_marg[es,e,d,t]$(d1tqEpj[es,e,d,t]) 												 "Aggregate marginal tax-rate on non-priced energy, measured as bio. kroner per PJ (or equivalently 1000 DKR per GJ)" 
 
 
     vtE_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "Tax revenue from duties on energy"
@@ -103,7 +107,7 @@ $IF %stage% == "equations":
       #Total taxes, if marginal rates applied to all energy-use                      
       ..   vtEmarg[es,e,d,t] =E= (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t] * qEpj[es,e,d,t];
 
-      #Marginal tax-rate on en energy
+      #Marginal tax-rate on priced-energy
       tpE_marg[es,e,d,t]..
         (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t] 
           =E= (1+tE_vat[es,e,d,t]) * (pEpj_base[es,e,d,t]
@@ -113,11 +117,19 @@ $IF %stage% == "equations":
                                       + pCMA[es,e,d,t])
                                       + sum(em, tCO2_ETS_pj[em,es,e,d,t])
                                       + sum(em, tCO2_ETS2_pj[em,es,e,d,t])
-                                      ;        
+                                      ;     
+                                         
       #Average tax-rate on energy
       tpE[es,e,d,t]..
          (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t] * qEpj[es,e,d,t]
           =E= vEpj[es,e,d,t];
+      
+      #Marginal tax-rate on non-priced energy
+      tqE_marg[es,e,d,t]..
+        tqE_marg[es,e,d,t] 
+          =E= sum(etaxes, tEmarg_duty[etaxes,es,e,d,t])
+             +sum(em, tCO2_ETS_pj[em,es,e,d,t])
+             +sum(em, tCO2_ETS2_pj[em,es,e,d,t]);
 
         #CO2-taxes based on emissions (currently only industries) 
           #Domestic CO2-tax                                                                                                                                                                                     #AKB: Depending on how EOP-abatement i modelled this should be adjusted for EOP
@@ -182,7 +194,9 @@ $IF %stage% == "equations":
     #Taxes 
     tY_i_d&_not_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
 						vtY_i_d[i,d,t]
-							=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  sSupply_d_e_i_adj[d,e,i,t] * vte_NAS[es,e,d_a,t]) + vtY_i_d_calib[i,d,t]; 
+							=E=   sum((e,es,d_a)$es_d2d(es,d_a,d),  sSupply_d_e_i_adj[d,e,i,t] * vte_NAS[es,e,d_a,t]) 
+                  # + sum((e,es,d_a)$(es_d2d(es,d_a,d) and d1pY_CET[e,i,t] and d1tqEpj[es,e,d_a,t]), vte_NAS[es,e,d_a,t]) #Allocating energy-taxes on non-priced energy
+                  + vtY_i_d_calib[i,d,t]; 
 
     tY_i_d&energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
 						vtY_i_d[i,d,t]
@@ -190,7 +204,9 @@ $IF %stage% == "equations":
 
     tM_i_d&_not_energymargins[i,d,t]$(d1M_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
 						vtM_i_d[i,d,t]
-							=E= sum((e,es,d_a)$es_d2d(es,d_a,d),  (1-sum(i_a,sSupply_d_e_i_adj[d,e,i_a,t])) * vte_NAS[es,e,d_a,t]) + vtM_i_d_calib[i,d,t]; 
+							=E=   sum((e,es,d_a)$es_d2d(es,d_a,d),  (1-sum(i_a,sSupply_d_e_i_adj[d,e,i_a,t])) * vte_NAS[es,e,d_a,t]) 
+                  # + sum((e,es,d_a)$(es_d2d(es,d_a,d) and d1pM_CET[e,i,t] and not d1pY_CET[e,i,t] and d1tqEpj[es,e,d_a,t]), vte_NAS[es,e,d_a,t]) #Allocating energy-taxes on non-priced energy
+                  + vtM_i_d_calib[i,d,t]; 
 
 
   $ENDBLOCK
@@ -234,20 +250,38 @@ $IF %stage% == "exogenous_values":
   # Dummies 
   # ------------------------------------------------------------------------------
 
-    d1tE_duty[etaxes,es,e,d,t] = yes$(vtE_duty.l[etaxes,es,e,d,t] and d1pEpj_base[es,e,d,t]);
+    d1tE_duty[etaxes,es,e,d,t] = yes$((vtE_duty.l[etaxes,es,e,d,t] or (sameas[etaxes,'co2_tax'] and sum(em,tCO2_Emarg.l[em,es,e,d,t]))) and d1qEpj[es,e,d,t]);
     d1tE_duty_tot[d,t]         = yes$(sum((etaxes,es,e), d1tE_duty[etaxes,es,e,d,t]));
     d1tE_vat[es,e,d,t]         = yes$(vtE_vat.l[es,e,d,t] and d1pEpj_base[es,e,d,t]);
     d1tE_vat_tot[d,t]          = yes$(sum((es,e), d1tE_vat[es,e,d,t]));
-    d1tE[es,e,d,t]             = yes$(sum(etaxes,d1tE_duty[etaxes,es,e,d,t]) or d1tE_vat[es,e,d,t]);
-
-    d1tCO2_E[em,es,e,d,t]      = yes$(tCO2_Emarg.l[em,es,e,d,t] and d1pEpj_base[es,e,d,t]);
+ 
+    d1tCO2_E[em,es,e,d,t]      = yes$(tCO2_Emarg.l[em,es,e,d,t] and d1qEpj[es,e,d,t]);
     d1tCO2_xE[d,t]             = yes$(tCO2_xEmarg.l[d,t]);
-    d1tCO2_ETS_E[em,es,e,d,t]  = yes$(d1EmmE_BU[em,es,e,d,t] and CO2ubio[em] and d1pEpj_base[es,e,d,t] and in_ETS[es]);
-    d1tCO2_ETS_E[em,es,e,d,t]$(d1EmmE_BU[em,es,e,d,t] and CO2bio[em] and d1pEpj_base[es,e,d,t] and in_ETS[es] and natgas[e]) = yes;
+    d1tCO2_ETS_E[em,es,e,d,t]  = yes$(d1EmmE_BU[em,es,e,d,t] and CO2ubio[em] and d1qEpj[es,e,d,t] and in_ETS[es]);
+    d1tCO2_ETS_E[em,es,e,d,t]$(d1EmmE_BU[em,es,e,d,t] and CO2bio[em] and d1qEpj[es,e,d,t] and in_ETS[es] and natgas[e]) = yes;
     d1tCO2_ETS[i,t]             = yes$(sum((em,es,e), d1tCO2_ETS_E[em,es,e,i,t]));
 
-    d1tCO2_ETS2_E[em,es,e,d,t]  = yes$(d1EmmE_BU[em,es,e,d,t] and CO2ubio[em] and d1pEpj_base[es,e,d,t] and not in_ETS[es]);
-    d1tCO2_ETS2_E[em,es,e,d,t]$(d1EmmE_BU[em,es,e,d,t] and CO2bio[em] and d1pEpj_base[es,e,d,t] and not in_ETS[es] and natgas[e]) = yes;
+    d1tCO2_ETS2_E[em,es,e,d,t]  = yes$(d1EmmE_BU[em,es,e,d,t] and CO2ubio[em] and d1qEpj[es,e,d,t] and not in_ETS[es]);
+    d1tCO2_ETS2_E[em,es,e,d,t]$(d1EmmE_BU[em,es,e,d,t] and CO2bio[em] and d1qEpj[es,e,d,t] and not in_ETS[es] and natgas[e]) = yes;
+
+    d1tE[es,e,d,t]             = yes$((sum(etaxes,d1tE_duty[etaxes,es,e,d,t])  or d1tE_vat[es,e,d,t] or sum(em,d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) and d1pEpj_base[es,e,d,t]);
+    d1tqEpj[es,e,d,t]          = yes$((sum(etaxes, d1tE_duty[etaxes,es,e,d,t]) or sum(em,d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) and d1qEpj[es,e,d,t] and not d1pEpj_base[es,e,d,t]);
+
+    d1pEpj[es,e,d,t]           = yes$(d1tE[es,e,d,t] or d1tqEpj[es,e,d,t]);
+
+    #From production_CES_energydemand.gms
+    d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj[es,e_a,i,t] and process_special[es] and crudeoil[e_a] and i_refineries[i]) = yes; #Refinery feedstock of crude oil
+	  d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj[es,e_a,i,t] and process_special[es] and natgas_ext[e_a] and i_gasdistribution[i]) = yes; #Input of fossile natural gas in gas distribution sector
+	  d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj[es,e_a,i,t] and process_special[es] and biogas[e_a] and i_gasdistribution[i]) = yes; #Input of biogas for converting to natural gas in gas distribution sector
+	  d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj[es,e_a,i,t] and process_special[es] and el[e_a] and i_service_for_industries[i]) = yes; #Electricity for data centers (only applies when calibrated to Climate Outlook)
+
+	  d1pREa_inNest[es,e_a,i,t]    = yes$(d1pEpj[es,e_a,i,t] and not d1pREa_NotinNest[es,e_a,i,t]);
+	  d1pREa[es,e_a,i,t]           = yes$(d1pREa_inNest[es,e_a,i,t] or d1pREa_NotinNest[es,e_a,i,t]);
+
+	  d1pEes[es,i,t] 			 				 = yes$(sum(e_a, d1pREa_inNest[es,e_a,i,t]));	
+	  d1pREmachine[i,t]            = yes$(sum(es$(not (heating[es] or transport[es])), d1pEes[es,i,t]));
+	  d1Prod[pf,i,t]               = yes$(pProd.l[pf,i,t]);
+
 
 $ENDIF
 # ------------------------------------------------------------------------------
@@ -264,33 +298,6 @@ $IF %stage% == "calibration":
 
     vtM_i_d_calib[i,d,t]$(t.val > t1.val and d1M_i_d[i,d,t] and d_ene[d])..
       vtM_i_d_calib[i,d,t] =E= 0;
-
-
-    # jvtY_i_d[i,d,t]$(t.val > t1.val and d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
-    #   jvtY_i_d[i,d,t] =E= 0;
-
-
-    # jvtY_i_d&_t1[i,d,t]$(t.val = t1.val and d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
-    #   jvtY_i_d[i,d,t] =E= adj_jvtY_i_d[t];
-
-    # Ensuring that industry taxes still add up to IO-values for domestic energy production 
-    # adj_jvtY_i_d[t]$(t.val = t1.val)..
-    #   sum((i,d)$(d_ene[d] and not i_energymargins[i]), vtY_i_d[i,d,t]) =E= sum((i,d)$(d_ene[d] and not i_energymargins[i]), vtY_i_d__load__[i,d,t]);
-
-
-    # jvtM_i_d&_t1[i,d,t]$(t.val = t1.val and d1M_i_d[i,d,t] and d_ene[d])..
-    #   jvtM_i_d[i,d,t] =E= adj_jvtM_i_d[t];
-
-    # Ensuring that industry taxes still add up to IO-values for imported energy 
-    # adj_jvtM_i_d[t]$(t.val = t1.val)..
-    #   sum((i,d)$(d_ene[d] and not i_energymargins[i]), vtM_i_d[i,d,t]) =E= sum((i,d)$(d_ene[d] and not i_energymargins[i]), vtM_i_d__load__[i,d,t]);
-
-
-    # jvtM_i_d[i,d,t]$(t.val > t1.val and d1M_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
-    #   jvtM_i_d[i,d,t] =E= 0;
-
-
-
 
   $ENDBLOCK 
 
@@ -314,9 +321,6 @@ $IF %stage% == "calibration":
     energy_and_emissions_taxes_links_endogenous
 
     energy_and_emissions_taxes_calibration_endogenous
-    # vtM_i_d_calib[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d] and t1[t])
-    # jvtY_i_d[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])
-    # jvtM_i_d[i,d,t]$(d1M_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])
     vtY_i_d[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d] and t1[t])
     vtY_i_d[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d] and t1[t])
     vtM_i_d[i,d,t]$(d1M_i_d[i,d,t] and not i_energymargins[i] and d_ene[d] and t1[t])

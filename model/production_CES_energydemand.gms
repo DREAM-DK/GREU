@@ -143,18 +143,7 @@ $IF %stage% == "exogenous_values":
 # ------------------------------------------------------------------------------
 # Set dummies 
 # ------------------------------------------------------------------------------
-
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and crudeoil[e_a] and i_refineries[i]) = yes; #Refinery feedstock of crude oil
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and natgas_ext[e_a] and i_gasdistribution[i]) = yes; #Input of fossile natural gas in gas distribution sector
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and biogas[e_a] and i_gasdistribution[i]) = yes; #Input of biogas for converting to natural gas in gas distribution sector
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and el[e_a] and i_service_for_industries[i]) = yes; #Electricity for data centers (only applies when calibrated to Climate Outlook)
-
-	d1pREa_inNest[es,e_a,i,t]    = yes$(pEpj_base.l[es,e_a,i,t] and not d1pREa_NotinNest[es,e_a,i,t]);
-	d1pREa[es,e_a,i,t]           = yes$(d1pREa_inNest[es,e_a,i,t] or d1pREa_NotinNest[es,e_a,i,t]);
-
-	d1pEes[es,i,t] 			 				 = yes$(sum(e_a, d1pREa_inNest[es,e_a,i,t]));	
-	d1pREmachine[i,t]            = yes$(sum(es$(not (heating[es] or transport[es])), d1pEes[es,i,t]));
-	d1Prod[pf,i,t]               = yes$(pProd.l[pf,i,t]);
+	#Moved to energy_and_emissions_taxes.gms
 
 $ENDIF
 

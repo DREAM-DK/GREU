@@ -68,7 +68,7 @@ $FIX all_variables; $UNFIX calibration_endogenous;
 execute_unloaddi "calibration_pre.gdx";
 solve calibration using CNS;
 
-#@unload_previous_difference(data_covered_variables, _difference); # This one unloads the previous differences to previous_calibration.gdx file. Only do this if you are certain that differences are tolerable.
+# @unload_previous_difference(data_covered_variables, _difference); # This one unloads the previous differences to previous_calibration.gdx file. Only do this if you are certain that differences are tolerable.
 #Consider bunching three below into single function
 @create_difference_parameters(data_covered_variables, _difference); #This one creates parameters with suffix _difference of all data covered variables
 @set_difference_parameters(data_covered_variables, _difference);    #This one sets the difference parameters to the difference between the current values and the values loaded from data

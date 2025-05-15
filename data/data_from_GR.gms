@@ -127,7 +127,7 @@ Energybalance['pj','input_in_production','35011','process_special','electricity'
 Energybalance['pj','production','35011','unspecified','electricity',t] = Energybalance['pj','production','35011','unspecified','electricity',t] + Energybalance['pj','input_in_production','35011','process_special','electricity',t];
 
 #Corrections to data, and changes
-Energybalance[ebalitems,'export','xEne',es,e,t]       = Energybalance[ebalitems,'export','xOth',es,e,t];      Energybalance[ebalitems,'export','xOth',es,e,t]   = 0;
+Energybalance[ebalitems,'export','xEne',es,e,t]        = Energybalance[ebalitems,'export','xOth',es,e,t];    Energybalance[ebalitems,'export','xOth',es,e,t]   = 0;
 Energybalance[ebalitems,'inventory','invt_ene',es,e,t] = Energybalance[ebalitems,'inventory','invt',es,e,t]; Energybalance[ebalitems,'inventory','invt',es,e,t] = 0;
 
 #Removing small entries. Should ideally be replaced by an elaborate RAS-procedure.

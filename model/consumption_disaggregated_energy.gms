@@ -18,7 +18,8 @@ $IF %stage% == "equations":
   $BLOCK consumption_disaggregated_energy_equations consumption_disaggregated_energy_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
     #CES-demand based on average, not marginal energy prices (this is in contrast to industries, and should be modified in later versions)
-      ..qEpj[es,e,c,t] =E= uChh_Epj[es,e,c,t] * sum(cf_ene$es2cf2d(es,cf_ene,c),
+      qEpj[es,e,c,t]$(d1pEpj[es,e,c,t])..
+        qEpj[es,e,c,t] =E= uChh_Epj[es,e,c,t] * sum(cf_ene$es2cf2d(es,cf_ene,c),
                                                     pEpj2pChh[es,e,c,cf_ene,t] **(-eChh_cEne[cf_ene]) * qChh[cf_ene,t]
                                                     );
 
