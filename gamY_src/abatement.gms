@@ -70,19 +70,14 @@ $BLOCK abatement_equations_core abatement_endogenous_core $(t1.val <= t.val and 
 
 ## Core of the model
 
-#---------------------------JSK start---------------------------
   # Equality between marginal price of energy service and marginal price of technology determines capital intensity of technologies at the margin of supply
   uTKmargNoBound[l,es,d,t].. pESmarg[es,d,t] =E= sum(e, uTE[l,es,e,d,t]*pTE[es,e,d,t]$(d1pTE[es,e,d,t] and d1uTE[l,es,e,d,t]))	+ uTKmargNoBound[l,es,d,t]*pTK[d,t];
 
-  #uTKmargNoBound[l,es,d,t].. pESmarg[es,d,t] =E= sum(e, uTE[l,es,e,d,t])	+ uTKmargNoBound[l,es,d,t];
-
   # A lower bound close to zero is set to avoid indeterminancy in cdfLognorm in sqTqES. uTKmargNoBoun<=0 happen when a technology is very energy intensive (ineffecient).
-  #.. uTKmarg[l,es,d,t] =E= @max(0.001, uTKmargNoBound[l,es,d,t]  );
   .. uTKmarg[l,es,d,t] =E= @InInterval(0.001, uTKmargNoBound[l,es,d,t],uTKexp[l,es,d,t]*[1+5*eP[l,es,d,t]] );
 
   # Supply of tecnology l in ratio of energy service demand qES
  .. sqT2qES[l,es,d,t] =E= sTPotential[l,es,d,t]*@cdfLogNorm(uTKmarg[l,es,d,t],uTKexp[l,es,d,t],eP[l,es,d,t]);
- #.. sqT2qES[l,es,d,t] =E= sTPotential[l,es,d,t]*@cdfLogNorm(uTKmargNobound[l,es,d,t],uTKexp[l,es,d,t],eP[l,es,d,t]);
 
  #Average capital intensity at level of supply
  # .. uTK[l,es,d,t] =E= @CondExpLogNorm(uTKmarg[l,es,d,t],uTKexp[l,es,d,t],eP[l,es,d,t]) ;
@@ -90,23 +85,11 @@ $BLOCK abatement_equations_core abatement_endogenous_core $(t1.val <= t.val and 
  	# Shadow value identifying marginal technology for energy purpose
 	pESmarg[es,d,t].. 1 =E= sum(l$(d1sTPotential[l,es,d,t]), sqT2qES[l,es,d,t]) ;
                 
-#---------------------------JSK end---------------------------
-
-  # Average price of technology l at full potential, ie. when sTSupply=sTPotential
-	# .. pTPotential[l,es,d,t]	=E= sum(e, uTE[l,es,e,d,t]*pTE[es,e,d,t])
-	# 									+ uTKexp[l,es,d,t]*pTK[d,t];
-
-  # Supply of tecnology l in ratio of energy demand qES
-  # .. sTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*@cdfLogNorm(pESmarg[es,d,t],pTPotential[l,es,d,t],eP[l,es,d,t]);
-  
-	# Shadow value identifying marginal technology for energy purpose
-	# pESmarg[es,d,t].. 1 =E= sum(l, sTSupply[l,es,d,t]);
-
 $ENDBLOCK
 
 $BLOCK abatement_equations_output abatement_endogenous_output $(t1.val <= t.val and t.val <= tEnd.val) 
 ## Supplementary output
-#---------------------------JSK start---------------------------
+
   # Use of energy in production of energy service
   .. qESE[es,e,d,t] =E= qES[es,d,t] * sum(l$(d1sTPotential[l,es,d,t]), sqT2qES[l,es,d,t] * uTE[l,es,e,d,t] ) ;
     
@@ -115,28 +98,12 @@ $BLOCK abatement_equations_output abatement_endogenous_output $(t1.val <= t.val 
                     # The line above may seem unintuitive. It is equivalent to below, but which 
                     # may result in division by zero error. This is also why uTK is only calculated in the reporting
                     # sum(l$(d1sTPotential[l,es,d,t]),sqT2qES[l,es,d,t]*uTK[l,es,d,t]);
-                   
-                 
-                    
-.. vES[es,d,t] =E=    sum(e,qESE[es,e,d,t]*pTE[es,e,d,t]) + qESK[es,d,t]*pTK[d,t]  ;
 
- .. pES[es,d,t] =E=    vES[es,d,t] / qES[es,d,t] ;   
-#---------------------------JSK end---------------------------
+  # Value of energy service                                       
+  .. vES[es,d,t] =E=    sum(e,qESE[es,e,d,t]*pTE[es,e,d,t]) + qESK[es,d,t]*pTK[d,t]  ;
 
-  # Value (or costs) of energy service supplied by technology l
-  # .. vTSupply[l,es,d,t] =E= sTPotential[l,es,d,t]*@Int_cdfLogNorm(pESmarg[es,d,t],pTPotential[l,es,d,t],eP[l,es,d,t])*qES[es,d,t]*pTPotential[l,es,d,t];
-
-  # Value of energy service
-  # .. vES[es,d,t] =E= sum(l,vTSupply[l,es,d,t]);
-
-	# # Price index for energy purposes
-	# .. pES[es,d,t] =E= vES[es,d,t] / qES[es,d,t] ;
-
-  # Use of energy goods - Adjusted for price of supply being lower than at full potential
-  # .. qES_e[es,e,d,t] =E= sum(l$(d1sTPotential[l,es,d,t]), uTE[l,es,e,d,t]*vTSupply[l,es,d,t]/pTPotential[l,es,d,t] ) ;
-  
-  # # Use of machinery capital for technologies - Adjusted for price of supply being lower than at full potential
-  # .. qES_k[d,t] =E= sum((l,es)$(d1sTPotential[l,es,d,t]), uTKexp[l,es,d,t]*vTSupply[l,es,d,t]/pTPotential[l,es,d,t] ) ;
+  # Price of energy service
+  .. pES[es,d,t] =E=    vES[es,d,t] / qES[es,d,t] ;   
 
 $ENDBLOCK
 
@@ -224,24 +191,18 @@ $GROUP calibration_endogenous
 ;
 
 $Group+ G_flat_after_last_data_year
-  # qES[es,d,t]
   pESold[es,d,t]
   vES[es,d,t]
   
-  # pTE[es,e,d,t]
   qES_e[es,e,d,t]
 
   pTPotential[l,es,d,t]
 
-  # pTK[d,t]
   qES_k[d,t]
 
   sTold[l,es,d,t]
   vTSupply[l,es,d,t]
 
-  # sTPotential[l,es,d,t]
-  # uTE[l,es,e,d,t]
-  # uTKexp[l,es,d,t]
   uTKmarg[l,es,d,t]
   pESmarg[es,d,t]
 
