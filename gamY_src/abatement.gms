@@ -35,7 +35,7 @@ $Group+ all_variables
   pT[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Average price of technology l at level of supply"
 
   sTold[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Supply by technology l in ratio of energy service (share of qES)"
-  sqT2qES[l,es,d,t]$(d1sTPotential[l,es,d,t])   "Supply by technology l in ratio of energy service (share of qES)"
+  sqT[l,es,d,t]$(d1sTPotential[l,es,d,t])   "Supply by technology l in ratio of energy service (share of qES)"
 
   pESmarg[es,d,t]$(sum(l, d1sTPotential[l,es,d,t])) "Marginal price of energy services based on the supply by technologies"
 
@@ -77,13 +77,13 @@ $BLOCK abatement_equations_core abatement_endogenous_core $(t1.val <= t.val and 
   .. uTKmarg[l,es,d,t] =E= @InInterval(0.001, uTKmargNoBound[l,es,d,t],uTKexp[l,es,d,t]*[1+5*eP[l,es,d,t]] );
 
   # Supply of tecnology l in ratio of energy service demand qES
- .. sqT2qES[l,es,d,t] =E= sTPotential[l,es,d,t]*@cdfLogNorm(uTKmarg[l,es,d,t],uTKexp[l,es,d,t],eP[l,es,d,t]);
+ .. sqT[l,es,d,t] =E= sTPotential[l,es,d,t]*@cdfLogNorm(uTKmarg[l,es,d,t],uTKexp[l,es,d,t],eP[l,es,d,t]);
 
  #Average capital intensity at level of supply
  # .. uTK[l,es,d,t] =E= @CondExpLogNorm(uTKmarg[l,es,d,t],uTKexp[l,es,d,t],eP[l,es,d,t]) ;
 
  	# Shadow value identifying marginal technology for energy purpose
-	pESmarg[es,d,t].. 1 =E= sum(l$(d1sTPotential[l,es,d,t]), sqT2qES[l,es,d,t]) ;
+	pESmarg[es,d,t].. 1 =E= sum(l$(d1sTPotential[l,es,d,t]), sqT[l,es,d,t]) ;
                 
 $ENDBLOCK
 
@@ -91,13 +91,13 @@ $BLOCK abatement_equations_output abatement_endogenous_output $(t1.val <= t.val 
 ## Supplementary output
 
   # Use of energy in production of energy service
-  .. qESE[es,e,d,t] =E= qES[es,d,t] * sum(l$(d1sTPotential[l,es,d,t]), sqT2qES[l,es,d,t] * uTE[l,es,e,d,t] ) ;
+  .. qESE[es,e,d,t] =E= qES[es,d,t] * sum(l$(d1sTPotential[l,es,d,t]), sqT[l,es,d,t] * uTE[l,es,e,d,t] ) ;
     
   # Use of machinery capital for technologies - Adjusted for price of supply being lower than at full potential
   .. qESK[es,d,t] =E= sum(l$(d1sTPotential[l,es,d,t]),sTPotential[l,es,d,t]*@PartExpLogNorm(uTKmarg[l,es,d,t],uTKexp[l,es,d,t],eP[l,es,d,t]) ) ;
                     # The line above may seem unintuitive. It is equivalent to below, but which 
                     # may result in division by zero error. This is also why uTK is only calculated in the reporting
-                    # sum(l$(d1sTPotential[l,es,d,t]),sqT2qES[l,es,d,t]*uTK[l,es,d,t]);
+                    # sum(l$(d1sTPotential[l,es,d,t]),sqT[l,es,d,t]*uTK[l,es,d,t]);
 
   # Value of energy service                                       
   .. vES[es,d,t] =E=    sum(e,qESE[es,e,d,t]*pTE[es,e,d,t]) + qESK[es,d,t]*pTK[d,t]  ;
@@ -125,8 +125,8 @@ $GROUP+ main_endogenous abatement_endogenous;
 $FUNCTION Setbounds_abatement():
   uTKmarg.lo[l,es,d,t]$(sTPotential.l[l,es,d,t] and uTKmarg.lo[l,es,d,t] ne uTKmarg.up[l,es,d,t]) = 0.001*0.99;
   uTKmarg.up[l,es,d,t]$(sTPotential.l[l,es,d,t] and uTKmarg.lo[l,es,d,t] ne uTKmarg.up[l,es,d,t]) = uTKexp.l[l,es,d,t]*[1+5*eP.l[l,es,d,t]]*1.01 ;
-  sqT2qES.lo[l,es,d,t]$(sTPotential.l[l,es,d,t] and sqT2qES.lo[l,es,d,t] ne sqT2qES.up[l,es,d,t]) = 0.00000000001;
-  sqT2qES.up[l,es,d,t]$(sTPotential.l[l,es,d,t] and sqT2qES.lo[l,es,d,t] ne sqT2qES.up[l,es,d,t]) = sTPotential.l[l,es,d,t] ;
+  sqT.lo[l,es,d,t]$(sTPotential.l[l,es,d,t] and sqT.lo[l,es,d,t] ne sqT.up[l,es,d,t]) = 0.00000000001;
+  sqT.up[l,es,d,t]$(sTPotential.l[l,es,d,t] and sqT.lo[l,es,d,t] ne sqT.up[l,es,d,t]) = sTPotential.l[l,es,d,t] ;
   pESmarg.lo[es,d,t]$(sum(l,sTPotential.l[l,es,d,t]) and pESmarg.lo[es,d,t] ne pESmarg.up[es,d,t]) = 0.001;
 $ENDFUNCTION
 
@@ -211,7 +211,7 @@ $Group+ G_flat_after_last_data_year
   uTKmarg[l,es,d,t]
   pESmarg[es,d,t]
 
-  sqT2qES[l,es,d,t]
+  sqT[l,es,d,t]
 
   eP[l,es,d,t]
  ;

@@ -46,13 +46,13 @@ def plot_supply_curve(gdxname):
     pESmarg_eq.set_index(['t', 'd','es'], inplace=True)
 
     # Potentials (smooth)
-    sqT2qES_sum_scen = e["sqT2qES_sum_scen"].to_frame()
-    sqT2qES_sum_scen = sqT2qES_sum_scen.reset_index()
+    sqT_sum_scen = e["sqT_sum_scen"].to_frame()
+    sqT_sum_scen = sqT_sum_scen.reset_index()
     # sTSupply_scen_suml = sTSupply_trace_suml.rename(columns={"es":"purpose","d":"s"})
-    sqT2qES_sum_scen.set_index(['t', 'd','es','scen'], inplace=True)
+    sqT_sum_scen.set_index(['t', 'd','es','scen'], inplace=True)
 
     # Prices and potentials in a joint dataframe (Smooth)
-    df_smooth_input = sqT2qES_sum_scen.reset_index().merge(pESmarg_scen.reset_index(), how="left").set_index(sqT2qES_sum_scen.index.names)
+    df_smooth_input = sqT_sum_scen.reset_index().merge(pESmarg_scen.reset_index(), how="left").set_index(sqT_sum_scen.index.names)
     df_smooth_input = df_smooth_input[df_smooth_input.index.get_level_values("t")>2018]
 
 
@@ -119,7 +119,7 @@ def plot_supply_curve(gdxname):
 
         # Plot smooth curve
         df_smooth=Smooth_supply(df_smooth_input,pESmarg_eq,ss,p,yr)[0]
-        plt.plot(pct*df_smooth['sqT2qES_sum_scen'],df_smooth['pESmarg_scen'], label='Smooth',linewidth=1.5)
+        plt.plot(pct*df_smooth['sqT_sum_scen'],df_smooth['pESmarg_scen'], label='Smooth',linewidth=1.5)
         # Plot smooth pESmarg
         pESmarg_smooth=Smooth_supply(df_smooth_input,pESmarg_eq,ss,p,yr)[1]
         plt.axhline(pESmarg_smooth,color=colors[1], linestyle='--',linewidth=1.5)

@@ -39,7 +39,7 @@ Solve M_abatement_supply_curve using CNS;
 # ------------------------------------------------------------------------------
 
 # Determining uTKmarg and pESmarg in equilibrium
-uTKmarg_eq[l,es,d,t]$(sTPotential.l[l,es,d,t]) = sum(scen, uTKmarg_scen.l[l,es,d,t,scen]$(sqT2qES_sum_scen.l[es,d,t,scen]  >= 1 and sqT2qES_sum_scen.l[es,d,t,scen-1]  < 1) );
+uTKmarg_eq[l,es,d,t]$(sTPotential.l[l,es,d,t]) = sum(scen, uTKmarg_scen.l[l,es,d,t,scen]$(sqT_sum_scen.l[es,d,t,scen]  >= 1 and sqT_sum_scen.l[es,d,t,scen-1]  < 1) );
 pESmarg_eq[es,d,t] = smax(l, sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t])	+ uTKmarg_eq[l,es,d,t]*pTK.l[d,t] )  ;
 
 # Setting starting values for the main model
@@ -48,6 +48,6 @@ uTKmarg.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = uTKmarg_eq[l,es,d,t];
 uTKmarg.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t] + 3; 
 
 uTKmargNobound.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t];
-sqT2qES.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = sTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_eq[l,es,d,t],uTKexp.l[l,es,d,t],eP.l[l,es,d,t]);
+sqT.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = sTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_eq[l,es,d,t],uTKexp.l[l,es,d,t],eP.l[l,es,d,t]);
 pESmarg.l[es,d,t] = pESmarg_eq[es,d,t];
 
