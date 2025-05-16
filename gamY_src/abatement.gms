@@ -155,9 +155,9 @@ $GROUP+ data_covered_variables abatement_data_variables;
 # ------------------------------------------------------------------------------
 
 # Change in unit prices of energy and capital (for figure in documentation)
-pTE_base.l[es,e,d,t] = pTE_base.l[es,e,d,t] * 0.37;
-pTE_tax.l[es,e,d,t] = pTE_tax.l[es,e,d,t] * 0.37; 
-pTK.l[d,t] = pTK.l[d,t] * 0.37;
+# pTE_base.l[es,e,d,t] = pTE_base.l[es,e,d,t] * 0.37;
+# pTE_tax.l[es,e,d,t] = pTE_tax.l[es,e,d,t] * 0.37; 
+# pTK.l[d,t] = pTK.l[d,t] * 0.37;
 
 uTKexp.l[l,es,d,t] = uTKexp.l[l,es,d,t] * 100;
 uTKexp.l['t1',es,d,t] = uTKexp.l['t1',es,d,t] * 10;

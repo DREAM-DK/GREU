@@ -2,6 +2,9 @@
 # Module for solving supply curves and setting initial values
 # ==============================================================================
 
+# Updating energy input price for plotting the discrete supply curve
+pTE.l[es,e,d,t] =  pTE_base.l[es,e,d,t] + pTE_tax.l[es,e,d,t]; 
+
 # Technology price for plotting the discrete supply curve
 pTPotential.l[l,es,d,t]	= sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t])
 										    + uTKexp.l[l,es,d,t]*pTK.l[d,t];

@@ -2,6 +2,8 @@ import sys
 import shutil
 import os
 import dreamtools as dt
+from plot_supply_curves import plot_supply_curve # Function to plot abatement supply curves
+
 # import gamspy as gp
 
 dt.gamY.default_initial_level = 0
@@ -23,12 +25,13 @@ from data.Abatement_data import Import_abatement_data
 ## Set working directory to model folder
 os.chdir(fr"{root}/gamY_src")
 
-# dt.gamY.run("../data/data_from_GR.gms")
-
 dt.gamY.run("base_model.gms")
 
 # Plot smooth and discrete supply curves
-import plot_supply_curves
+plot_supply_curve("calibration.gdx")
+plot_supply_curve("shock_capital_cost.gdx")
+plot_supply_curve("shock_carbon_tax.gdx")
+
 
 ## Save calibration.gdx as previous_calibration.gdx
 # shutil.copy("calibration.gdx", "previous_calibration.gdx")
