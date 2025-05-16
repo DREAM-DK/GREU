@@ -259,9 +259,11 @@ parameters GREU_data
   #Energy and emissions.
   qEmmBorderTrade[em,t] ""
   pEpj_base[es,e,d,t] ""
+  pEpj_own[es,e,d,t] ""
   vtE_duty[etaxes,es,e,d,t] ""
   vtE_vat[es,e,d,t]  ""
   qEpj[es,e,d,t] ""
+  qEpj_own[es,e,d,t] ""
   vWMA[es,e,d,t] ""
   vCMA[es,e,d,t] ""
   vRMA[es,e,d,t] ""
@@ -272,6 +274,8 @@ parameters GREU_data
   qEtot[e,t] ""
   pE_avg[e,t] ""
   qY_CET[out,i,t] ""
+  qY_CETown[out,i,t] ""
+  qY_CETgross[out,i,t] ""
   qM_CET[out,i,t] ""
   pY_CET[out,i,t] ""
   pM_CET[out,i,t] ""
@@ -357,7 +361,14 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   vCMA[es,e,d,t] = sum(demand_transaction_temp, Energybalance['CAV',demand_transaction_temp,d,es,e,t]);
   vRMA[es,e,d,t] = sum(demand_transaction_temp, Energybalance['DAV',demand_transaction_temp,d,es,e,t]);
 
-  qY_CET[e,i,t] = sum(es, Energybalance['PJ','production',i,es,e,t]);
+  #Own-consumption is handled relatively ad hoc
+  qY_CETgross[e,i,t] = sum(es, Energybalance['PJ','production',i,es,e,t]);
+  qY_CETgross['out_other',i,t] = qY_CET['out_other',i,t];
+  qEpj_own[es,e,i,t] = sum(demand_transaction_temp$(not Energybalance['BASE',demand_transaction_temp,i,es,e,t] and (sameas[e,'Straw for energy purposes'] or sameas[e,'natural gas (Extraction)'])), Energybalance['PJ',demand_transaction_temp,i,es,e,t]);
+  qEpj_own[es,e,i,t]$(not sameas[e,'natural gas (extraction)']) = 0;
+  
+  qY_CETown[e,i,t]$sum(i_a, qY_CETgross[e,i_a,t]) = sum((es,i_a), qEpj_own[es,e,i_a,t])*qY_CETgross[e,i,t]/sum(i_a, qY_CETgross[e,i_a,t]);
+
 
   parameter total_supply[e,t], total_demand[e,t], diff_demand_supply[e,t];
   total_supply[e,t]$(sum((es,i), Energybalance['BASE','production',i,es,e,t]) or sum((es,i), Energybalance['BASE','imports',i,es,e,t])) 
@@ -370,14 +381,21 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   diff_demand_supply[e,t] = total_demand[e,t] - total_supply[e,t];
 
 
-  #Corrections for non-priced energy in data
-  qY_CET['Electricity','35011',t] = qY_CET['Electricity','35011',t] + diff_demand_supply['electricity',t];
-  qY_CET['Straw for energy purposes','01011',t] = qY_CET['Straw for energy purposes','01011',t] + diff_demand_supply['Straw for energy purposes',t];
+  #Corrections for residual of non-priced energy in data (it should only be a bit of electricity and the straw that goes to households in DK data)
+  qY_CETgross['Electricity','35011',t] = qY_CETgross['Electricity','35011',t] + diff_demand_supply['electricity',t];
+  qY_CETgross['Straw for energy purposes','01011',t] = qY_CETgross['Straw for energy purposes','01011',t] 
+                                                      + diff_demand_supply['Straw for energy purposes',t]; 
+                                                      # - qY_CETown['Straw for energy purposes','01011',t] 
+                                                      # - qY_CETown['Straw for energy purposes','01012',t];
 
+  qY_CET[e,i,t] = qY_CETgross[e,i,t] - qY_CETown[e,i,t];
   qM_CET[e,i,t] = sum(es, Energybalance['PJ','imports',i,es,e,t]);
 
   pY_CET[e,i,t]$(qY_CET[e,i,t]) = sum(es,Energybalance['BASE','production',i,es,e,t])/qY_CET[e,i,t];
   pM_CET[e,i,t]$(qM_CET[e,i,t]) = sum(es,Energybalance['BASE','imports',i,es,e,t])/qM_CET[e,i,t];
+
+  #Price of own production 
+  pEpj_own[es,e,i,t]$(qEpj_own[es,e,i,t] and sum(i_a, qY_CET[e,i_a,t])) = sum(i_a, pY_CET[e,i_a,t]*qY_CET[e,i_a,t])/sum(i_a, qY_CET[e,i_a,t]);
 
 #Emissions
   qEmmE_BU[em,es,e,d,t]     = sum(demand_transaction_temp,Energybalance[em,demand_transaction_temp,d,es,e,t]);

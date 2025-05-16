@@ -50,3 +50,8 @@ set es_d2d(es,d_a,d)/
      set.es . xEne . xEne 
      set.es . invt_ene . invt_ene
      /;
+
+
+# set d2i_own(e,d,i)/
+#      'natural gas (extraction)' . d . 0600a 
+#      /;

@@ -11,7 +11,10 @@ $IF %stage% == "variables":
     rMarkup_out_i_calib[i,t]$(d1Y_i[i,t]) "Markup on production, used in calibration"
     jvY_i[i,t]$(d1Y_i[i,t]) ""
     jvM_i[i,t]$(d1M_i[i,t]) ""
+    qY_CETown[out,i,t]$(d1pY_CET[out,i,t]) "Production for own-consumption, not in NAS"
+    qY_CETgross[out,i,t]$(d1pY_CET[out,i,t]) "Gross-production, including production for own-consumption"
   ;
+  
 
 $ENDIF # variables
 
@@ -25,14 +28,17 @@ $IF %stage% == "equations":
     .. pY_CET[out,i,t] =E= pY0_CET[out,i,t] * (1 + rMarkup_out_i[out,i,t]);
 
     pY0_CET[out,i,t].. 
-      qY_CET[out,i,t] =E= uY_CET[out,i,t] * (pY0_CET[out,i,t]/pY0_i[i,t])**eCET[i] * qY0_i[i,t];  
+      qY_CETgross[out,i,t] =E= uY_CET[out,i,t] * (pY0_CET[out,i,t]/pY0_i[i,t])**eCET[i] * qY0_i[i,t];  
 
+    .. qY_CETgross[out,i,t] =E= qY_CET[out,i,t] + qY_CETown[out,i,t];
+
+    .. qY_CETown[e,i,t] =E= sum((es,d)$(d1pEpj_own[es,e,d,t]), qEpj[es,e,d,t]) * qY_CETgross[e,i,t]/sum(i_a, qY_CETgross[e,i_a,t]);
   $ENDBLOCK
 
   $BLOCK production_CET_links production_CET_links_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
     #Link to production function - this equation determines demand for qY0_i by disconnecting qY0_i from qY_i from input-output model
     qPFtop2qY[i,t]..
-      pY0_i[i,t] * qY0_i[i,t] =E= sum(out, pY0_CET[out,i,t] * qY_CET[out,i,t]); 
+      pY0_i[i,t] * qY0_i[i,t] =E= sum(out, pY0_CET[out,i,t] * qY_CETgross[out,i,t]); 
     
     #Link to pricing
     # rMarkup_i[i,t]..
@@ -70,11 +76,21 @@ $IF %stage% == "exogenous_values":
   # Data 
   # ------------------------------------------------------------------------------
 
+  $Group production_CET_data_variables
+    qY_CETgross, qY_CETown 
+  ;
+    $Group+ data_covered_variables production_CET_data_variables$(t.val <= %calibration_year%); 
+
+  @load(production_CET_data_variables, "../data/data.gdx")
+
+
+
   # ------------------------------------------------------------------------------
   # Exogenous variables 
   # ------------------------------------------------------------------------------
   eCET.l[i] = 5;
   pY0_CET.l[out,i,t] = pY_CET.l[out,i,t]; #Initial value to help solver
+
 
 $ENDIF # exogenous_values
 

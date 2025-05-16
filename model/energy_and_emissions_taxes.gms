@@ -41,7 +41,7 @@ $IF %stage% == "variables":
 		tpE_marg[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Aggregate marginal tax-rate on priced energy, measured as a mark-up over base price"
 		tpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 									    	 "Aggregate average tax-rate on priced energy, measured as a mark-up over base price"
 		tqE_marg[es,e,d,t]$(d1tqEpj[es,e,d,t]) 												 "Aggregate marginal tax-rate on non-priced energy, measured as bio. kroner per PJ (or equivalently 1000 DKR per GJ)" 
-
+    tqE[es,e,d,t]$(d1tqEpj[es,e,d,t])                              "Aggregate average tax-rate on non-priced energy, measured as bio. kroner per PJ (or equivalently 1000 DKR PER GJ)"
 
     vtE_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "Tax revenue from duties on energy"
     vtE_duty_tot[d,t]$(d1tE_duty_tot[d,t]) "Total tax revenue from duties on energy"
@@ -130,6 +130,11 @@ $IF %stage% == "equations":
           =E= sum(etaxes, tEmarg_duty[etaxes,es,e,d,t])
              +sum(em, tCO2_ETS_pj[em,es,e,d,t])
              +sum(em, tCO2_ETS2_pj[em,es,e,d,t]);
+
+      tqE[es,e,d,t]..
+        tqE[es,e,d,t] =E= sum(etaxes,vtE_duty[etaxes,es,e,d,t]/qEpj[es,e,d,t]) 
+                        + sum(em, tCO2_ETS_pj[em,es,e,d,t])
+                        + sum(em, tCO2_ETS2_pj[em,es,e,d,t]);
 
         #CO2-taxes based on emissions (currently only industries) 
           #Domestic CO2-tax                                                                                                                                                                                     #AKB: Depending on how EOP-abatement i modelled this should be adjusted for EOP
@@ -249,7 +254,7 @@ $IF %stage% == "exogenous_values":
   # ------------------------------------------------------------------------------
   # Dummies 
   # ------------------------------------------------------------------------------
-
+    
     d1tE_duty[etaxes,es,e,d,t] = yes$((vtE_duty.l[etaxes,es,e,d,t] or (sameas[etaxes,'co2_tax'] and sum(em,tCO2_Emarg.l[em,es,e,d,t]))) and d1qEpj[es,e,d,t]);
     d1tE_duty_tot[d,t]         = yes$(sum((etaxes,es,e), d1tE_duty[etaxes,es,e,d,t]));
     d1tE_vat[es,e,d,t]         = yes$(vtE_vat.l[es,e,d,t] and pEpj_base.l[es,e,d,t]);
@@ -264,10 +269,10 @@ $IF %stage% == "exogenous_values":
     d1tCO2_ETS2_E[em,es,e,d,t]  = yes$(qEmmE_BU.l[em,es,e,d,t] and CO2ubio[em] and qEpj.l[es,e,d,t] and not in_ETS[es]);
     d1tCO2_ETS2_E[em,es,e,d,t]$(qEmmE_BU.l[em,es,e,d,t] and CO2bio[em] and qEpj.l[es,e,d,t] and not in_ETS[es] and natgas[e]) = yes;
 
-    d1tE[es,e,d,t]             = yes$((sum(etaxes,d1tE_duty[etaxes,es,e,d,t])  or d1tE_vat[es,e,d,t] or sum(em,d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) and pEpj_base.l[es,e,d,t]);
-    d1tqEpj[es,e,d,t]          = yes$((sum(etaxes, d1tE_duty[etaxes,es,e,d,t]) or sum(em,d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) and d1qEpj[es,e,d,t] and not pEpj_base.l[es,e,d,t]);
+    d1tE[es,e,d,t]             = yes$((sum(etaxes,d1tE_duty[etaxes,es,e,d,t])  or d1tE_vat[es,e,d,t] or sum(em,d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) and (pEpj_base.l[es,e,d,t] or pEpj_own.l[es,e,d,t]));
+    d1tqEpj[es,e,d,t]          = yes$((sum(etaxes, d1tE_duty[etaxes,es,e,d,t]) or sum(em,d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) and d1qEpj[es,e,d,t] and not (pEpj_base.l[es,e,d,t] or pEpj_own.l[es,e,d,t]));
 
-    d1pEpj[es,e,d,t]           = yes$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]); #There is a price if a) There is a base-price or b) if the energy-good is taxed.
+    d1pEpj[es,e,d,t]           = yes$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t] or d1pEpj_own[es,e,d,t]); #There is a price if a) There is a base-price or b) if the energy-good is taxed.
 
     #From production_CES_energydemand.gms
     d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj[es,e_a,i,t] and process_special[es] and crudeoil[e_a] and i_refineries[i]) = yes; #Refinery feedstock of crude oil
