@@ -51,8 +51,3 @@ uTKmargNobound.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t];
 sqT2qES.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = sTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_eq[l,es,d,t],uTKexp.l[l,es,d,t],eP.l[l,es,d,t]);
 pESmarg.l[es,d,t] = pESmarg_eq[es,d,t];
 
-# ------------------------------------------------------------------------------
-# Unloading the gdx-file with the supply curves
-# ------------------------------------------------------------------------------
-
-execute_unload 'Abatement_partial_supply_curve.gdx';

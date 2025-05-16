@@ -66,38 +66,42 @@ execute_unloaddi "calibration.gdx";
 # Increasing capital costs for one technology
 # ------------------------------------------------------------------------------
 
-uTKexp.l['t1','heating','10030',t]$(d1sTPotential['t1','heating','10030',t]) 
-  = uTKexp.l['t1','heating','10030',t] * 100;
+# uTKexp.l['t1','heating','10030',t]$(d1sTPotential['t1','heating','10030',t]) 
+#   = uTKexp.l['t1','heating','10030',t] * 100;
 
-$import Supply_curves_abatement.gms
+# $import Supply_curves_abatement.gms
 
-$FIX all_variables;
-$UNFIX main_endogenous;
-@Setbounds_abatement();
-Solve main using CNS;
-$IMPORT report_abatement.gms
-execute_unload 'shock_capital_cost.gdx';
+# $FIX all_variables;
+# $UNFIX main_endogenous;
+# @Setbounds_abatement();
+# Solve main using CNS;
+# $IMPORT report_abatement.gms
+# execute_unload 'shock_capital_cost.gdx';
 
+
+# # ------------------------------------------------------------------------------
+# # Increasing carbon tax
+# # ------------------------------------------------------------------------------
+
+# # Re-setting capital costs to original values
+# uTKexp.l['t1','heating','10030',t]$(d1sTPotential['t1','heating','10030',t]) 
+#   = uTKexp_data['t1','heating','10030',t];
+
+# # Carbon tax
+# pTE_tax.l[es,e,d,t]$(sameas[e,'Gasoline for transport'] or sameas[e,'Diesel for transport'] or sameas[e,'Natural gas incl. biongas'] or sameas[e,'Coal and coke'] or sameas[e,'Waste'])
+#     = pTE.l[es,e,d,t]*30;
+
+# $import Supply_curves_abatement.gms
+
+# $FIX all_variables;
+# $UNFIX main_endogenous;
+# @Setbounds_abatement();
+# Solve main using CNS;
+# $IMPORT report_abatement.gms
+# execute_unload 'shock_carbon_tax.gdx';
 
 # ------------------------------------------------------------------------------
-# Increasing carbon tax
+# Module for plotting the cdf_log_norm function
 # ------------------------------------------------------------------------------
 
-# Re-setting capital costs to original values
-uTKexp.l['t1','heating','10030',t]$(d1sTPotential['t1','heating','10030',t]) 
-  = uTKexp_data['t1','heating','10030',t];
-
-# Carbon tax
-pTE_tax.l[es,e,d,t]$(sameas[e,'Gasoline for transport'] or sameas[e,'Diesel for transport'] or sameas[e,'Natural gas incl. biongas'] or sameas[e,'Coal and coke'] or sameas[e,'Waste'])
-    = pTE.l[es,e,d,t]*30;
-
-$import Supply_curves_abatement.gms
-
-$FIX all_variables;
-$UNFIX main_endogenous;
-@Setbounds_abatement();
-Solve main using CNS;
-$IMPORT report_abatement.gms
-execute_unload 'shock_carbon_tax.gdx';
-
-
+$import cdf_log_norm.gms
