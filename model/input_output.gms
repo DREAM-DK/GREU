@@ -96,19 +96,21 @@ $Group+ all_variables
   vtY[t] "Net duties on domestic production."
   vtM[t] "Net duties on imports."
 
+  vtY_i_Sub[i,t]$(d1Y_i[i,t]) "Production subsidies by industry"
+  vtY_i_Tax[i,t]$(d1Y_i[i,t]) "Production taxes by industry"
+  tY_i_sub[i,t]$(d1Y_i[i,t]) "Average subsidy rate per output unit recorded in NAS"
+  tY_i_tax[i,t]$(d1Y_i[i,t]) "Average production tax rate per output unit recorded in NAS"
+  vtY_i_NetTaxSub[i,t]$(d1Y_i[i,t]) "Net production taxes and subsidies by industry"
+  vtY_Tax[t] "Net production taxes and subsidies, total"
+  vtY_Sub[t] "Net production taxes and subsidies, total"
+
   jfpY_i_d[i,d,t] "Deviation from average industry price."
   jfpM_i_d[i,d,t] "Deviation from average industry price."
 
   rYM[i,d,t]$(d1YM_i_d[i,d,t]) "industry composition of demand."
-
   rM[i,d,t]$(d1YM_i_d[i,d,t]) "Import share."
-  fYM[d,t] "Deviation from law of one price."
 
-  jvtY_i_d[i,d,t]$(d1Y_i_d[i,d,t]) "J-term, which is turned on in the calibration of energy. In principle this should be zero, but it catches data inconsistencies"
-  jvtM_i_d[i,d,t]$(d1M_i_d[i,d,t]) "J-term, which is turned on in the calibration of energy. In principle this should be zero, but it catches data inconsistencies"
 
-  jvY_i[i,t]$(d1Y_i[i,t]) "J-term, which is turned on when turning on bottom-up modelling of energy. In this case markets will clear in energy_markets.gms and non_energy_markets.gms."
-  jvM_i[i,t]$(d1M_i[i,t]) "J-term, which is turned on when turning on bottom-up modelling of energy. In this case markets will clear in energy_markets.gms and non_energy_markets.gms."
 ;
 $ENDIF # variables
 
@@ -155,7 +157,7 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. qX[t] * pX[t-1] =E= sum(x,  pD[x,t-1]  * qD[x,t]);
 
   # Equilibrium condition: supply + net duties = demand in each industry.
-  .. vY_i[i,t] + vtY_i[i,t] =E= sum(d, vY_i_d[i,d,t]); #+ jvY_i[i,t];
+  .. vY_i[i,t] + vtY_i[i,t] =E= sum(d, vY_i_d[i,d,t]); 
   .. vY[t] =E= sum(i, vY_i[i,t]);
   .. pY[t] * qY[t] =E= vY[t];
   .. qY[t] * pY[t-1] =E= sum(i, pY_i[i,t-1] * qY_i[i,t]);
@@ -164,24 +166,29 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. qM_i[i,t] =E= sum(d, qM_i_d[i,d,t] / (1+tM_i_d[i,d,tBase]));
 
   # Aggregate imports from each import industry
-  .. vM_i[i,t] + vtM_i[i,t] =E= sum(d, vM_i_d[i,d,t]); # + jvM_i[i,t];
+  .. vM_i[i,t] + vtM_i[i,t] =E= sum(d, vM_i_d[i,d,t]); 
   .. vM[t] =E= sum(i, vM_i[i,t]);
   .. pM[t] * qM[t] =E= vM[t];
   .. qM[t] * pM[t-1] =E= sum(i, pM_i[i,t-1] * qM_i[i,t]);
 
   # Net duties on domestic production and imports
-  .. vtY_i_d[i,d,t] =E= tY_i_d[i,d,t] * vY_i_d_base[i,d,t] + jvtY_i_d[i,d,t];
-  .. vtM_i_d[i,d,t] =E= tM_i_d[i,d,t] * vM_i_d_base[i,d,t] + jvtM_i_d[i,d,t];
-
-  # .. vtY_i_d[i,d,t] =E= tY_i_d[i,d,t] * (vY_i_d[i,d,t]-vtY_i_d[i,d,t]) + jvtY_i_d[i,d,t];
-  # .. vtM_i_d[i,d,t] =E= tM_i_d[i,d,t] * (vM_i_d[i,d,t]-vtM_i_d[i,d,t]) + jvtM_i_d[i,d,t];
-
+  .. vtY_i_d[i,d,t] =E= tY_i_d[i,d,t] * vY_i_d_base[i,d,t];
+  .. vtM_i_d[i,d,t] =E= tM_i_d[i,d,t] * vM_i_d_base[i,d,t];
 
   .. vtY_i[i,t] =E= sum(d, vtY_i_d[i,d,t]);
   .. vtM_i[i,t] =E= sum(d, vtM_i_d[i,d,t]);
 
   .. vtY[t] =E= sum(i, vtY_i[i,t]);
   .. vtM[t] =E= sum(i, vtM_i[i,t]);
+
+  # Production taxes and subsidies  
+  .. vtY_i_sub[i,t] =E= tY_i_sub[i,t] * qY_i[i,t];
+  .. vtY_i_tax[i,t] =E= tY_i_tax[i,t] * qY_i[i,t];
+
+  .. vtY_i_NetTaxSub[i,t] =E= vtY_i_tax[i,t] - vtY_i_sub[i,t];
+  .. vtY_Tax[t]     =E= sum(i, vtY_i_Tax[i,t]);
+  .. vtY_Sub[t]     =E= sum(i, vtY_i_Sub[i,t]);
+
 
   # Real demand, qD, is determined in other modules. E.g. consumption chosen by households, factor inputs by firms.
   .. vD[d,t] =E= sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
@@ -190,11 +197,8 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   # Input-output prices reflect industry-prices or import prices, plus any taxes
   # jfp[YM]_d can be endogenized by submodels to reflect pricing-to-market etc.
 
-  # .. pY_i_d[i,d,t] =E= (1+tY_i_d[i,d,t]) / (1+tY_i_d[i,d,tBase]) * (1+jfpY_i_d[i,d,t]) * pY_i[i,t] ;
-  # .. pM_i_d[i,d,t] =E= (1+tM_i_d[i,d,t]) / (1+tM_i_d[i,d,tBase]) * (1+jfpM_i_d[i,d,t]) * pM_i[i,t] ;
-
-  .. pY_i_d[i,d,t] =E= (1+tY_i_d[i,d,t]) * pY_i_d_base[i,d,t]; #pY_i_d_base[i,d,t] ;
-  .. pM_i_d[i,d,t] =E= (1+tM_i_d[i,d,t]) * pM_i_d_base[i,d,t]; #pM_i_d_base[i,d,t] ;
+  .. pY_i_d[i,d,t] =E= (1+tY_i_d[i,d,t]) * pY_i_d_base[i,d,t]; 
+  .. pM_i_d[i,d,t] =E= (1+tM_i_d[i,d,t]) * pM_i_d_base[i,d,t]; 
 
   .. pY_i_d_base[i,d,t] =E= (1+jfpY_i_d[i,d,t])/ (1+tY_i_d[i,d,tBase]) * pY_i[i,t];
   .. pM_i_d_base[i,d,t] =E= (1+jfpM_i_d[i,d,t])/ (1+tM_i_d[i,d,tBase]) * pM_i[i,t];
@@ -226,7 +230,7 @@ $ENDIF # equations
 $IF %stage% == "exogenous_values":
 
 $Group input_output_data_variables
-  vY_i_d_base, vY_i_d, vtY_i_d 
+  vY_i_d_base, vY_i_d, vtY_i_d, vtY_i_Sub, vtY_i_Tax 
   vM_i_d_base, vM_i_d, vtM_i_d 
 ;
 # $Group+ data_covered_variables input_output_data_variables$(t.val <= %calibration_year%),-vY_i_d[i,'energy',t];
@@ -306,8 +310,9 @@ $Group+ calibration_endogenous
   input_output_endogenous
   -vtY_i_d[i,d,t1], tY_i_d[i,d,t1]
   -vtM_i_d[i,d,t1], tM_i_d[i,d,t1]
-  # -vY_i_d[i,d,t1], -vM_i_d[i,d,t1], rYM[i,d,t1], rM[i,d,t]$(t1[t] and d1M_i_d[i,d,t] and d1Y_i_d[i,d,t]) 
   -vY_i_d_base[i,d,t1], -vM_i_d_base[i,d,t1], rYM[i,d,t1], rM[i,d,t]$(t1[t] and d1M_i_d[i,d,t] and d1Y_i_d[i,d,t]) 
+  -vtY_i_Sub[i,t1], tY_i_sub[i,t1]
+  -vtY_i_Tax[i,t1], tY_i_tax[i,t1]
 
   input_output_calibration_endogenous
   pY_i_d_base[i,d,t0], pM_i_d_base[i,d,t0]

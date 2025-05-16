@@ -246,6 +246,9 @@ parameters GREU_data
   vD_base[d,t] "Demand components in base-prices "
   qD[d,t] "Real demand by demand component."
   vtYM_d[d,t] "Net duties by demand component."
+  vtY_i_Sub[i,t] "Production subsidies by industry"
+  vtY_i_Tax[i,t] "Production taxes by industry"
+  vtY_i_NetTaxSub[i,t] "Net production taxes and subsidies by industry"
 
   # Factor demand
   qK_k_i[k,i,t] "Real capital stock by capital type and industry."
@@ -334,6 +337,9 @@ vtYM_d[d,t]       = vIO_a["TaxSub",d,t] + vIO_a["Moms",d,t];
 vtY_i_d[i,d,t]$(vD_base[d,t]) = vY_i_d_base[i,d,t] / vD_base[d,t] * vtYM_d[d,t]; 
 vtM_i_d[i,d,t]$(vD_base[d,t]) = vM_i_d_base[i,d,t] / vD_base[d,t] * vtYM_d[d,t]; 
 
+#Production taxes and subsidies
+vtY_i_Sub[I,t] = -vIO_a['OthSubs',i,t];
+vtY_i_Tax[I,t] =  vIO_a['OthTax',i,t] ;
 
 #Compute IO incl. taxes, based on above distribution
 #AKB: In input_output.gms vY_i_d and vM_i_d are defined including taxes
@@ -455,9 +461,7 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   tCO2_Emarg[em,es,e,'cHouEne',t] = tCO2_Emarg[em,'heating',e,'68203',t];
   tCO2_Emarg[em,es,e,'cCarEne',t] = tCO2_Emarg[em,'transport',e,'68203',t];
 
-  #
-
-
+  #Other duties, not CO2 is given a value
   tEmarg_duty[etaxes,es,e,d,t]$(not sameas[etaxes,'CO2_tax'] and sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]))
                                 = sum(demand_transaction_temp, Energybalance[etaxes,demand_transaction_temp,d,es,e,t])
                                  /sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);

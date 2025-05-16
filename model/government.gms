@@ -36,9 +36,10 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
 
   .. vGovRevenue[t] =E=     + sum(i$i_public[i], vEBITDA_i[i,t]) - vI_public[t]
                             + vtY[t] + vtM[t] # Net duties, paid through R, E, I, C, G, and X
+                            + vtY_Tax[t] #Production taxes
                             + vHhTaxes[t] + vCorpTaxes[t];
 
-  .. vGovExpenditure[t] =E= vG[t] + vHhTransfers[t];
+  .. vGovExpenditure[t] =E= vG[t] + vHhTransfers[t] + vtY_Sub[t];
 
 
 $ENDBLOCK
