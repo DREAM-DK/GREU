@@ -23,6 +23,7 @@ $Group+ all_variables
   uPhillipsCurveEmpl[t] "Sensitivity of wages to deviations from structural employment."
   uPhillipsCurveExpWage[t] "Sensitivity of wages to expected future wages."
   jnL[t] "Deviations from Phillips curve. Can be used to override the Phillips curve model."
+
 ;
 
 $ENDIF # variables
@@ -83,6 +84,8 @@ $GROUP+ data_covered_variables labor_market_data_variables$(t.val <= %calibratio
 
 @load(labor_market_data_variables, "../data/data.gdx")
 pW.l[t] = fpt[t];
+pL_i.l[i,t] = fpt[t];
+qL_i.l[i,t] = vWages_i.l[i,t];
 rWageInflation.l[t] = fv-1;
 
 $ENDIF # exogenous_values

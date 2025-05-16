@@ -16,7 +16,7 @@ $IF %stage% == "variables":
 
   #AKB: It would be nice to have an "add from group, but excluding dummies feature"
   $Group G_emissions_BU_data 
-    qEmmE_BU
+    qEmmE_BU$(not CO2e[em])
     sBioNatGas
   ;
 
@@ -56,7 +56,6 @@ $IF %stage% == "variables":
     $Group G_emissions_aggregates_data 
       qEmmLULUCF5
       # qEmmTot #Husk at lav eordentligt
-      GWP
       qEmmBorderTrade
     ;
 
@@ -104,7 +103,7 @@ $IF %stage% == "equations":
       qEmmE&_CO2e[em,d,t]$(CO2e[em])..
         qEmmE['CO2e',d,t] =E= sum(em_a$(not CO2e[em_a]), GWP[em_a] * qEmmE[em_a,d,t]); 
 
-      # Non-energy related emissions
+      Non-energy related emissions
       qEmmxE&_production[em,i,t]$(not CO2e[em])..
         qEmmxE[em,i,t] =E= uEmmxE[em,i,t] * sum(pf_top, qProd[pf_top,i,t]);
 
@@ -120,7 +119,7 @@ $IF %stage% == "equations":
 
       ..  qEmmLULUCF[t] =E= sum(land5, qEmmLULUCF5[land5,t]);
 
-      #Total emissions
+      Total emissions
       ..  qEmmTot[em,em_accounts,t] =E= sum(d, qEmmE[em,d,t]) 
                                     + sum(d, qEmmxE[em,d,t]) 
                                     + qEmmLULUCF[t]
@@ -163,16 +162,14 @@ $IF %stage% == "exogenous_values":
   @load(G_emissions_data, "../data/data.gdx")
   @remove_inf_growth_adjustment()
 
-  $GROUP G_emissions_data_xgwp 
-    G_emissions_data 
-    -GWP 
-  ;
+  GWP.l['CO2ubio'] = 1;
+  GWP.l['CH4']     = 28;
+  GWP.l['N2O']     = 265;
+  # GWP.l['HFC']     = 1; #HFC-gasses are already in CO2e in Danish data
+  # GWP.l['PFC']     = 1; #PFC-gasses are already in CO2e in Danish data
+  # GWP.l['SF6']     = 1; #SF6 is already measured in CO2e in Danish data
 
-  $GROUP G_GWP 
-    GWP[em]
-  ;
-
-  $Group+ data_covered_variables G_emissions_data_xgwp$(t.val <= %calibration_year%), G_GWP;
+  $Group+ data_covered_variables G_emissions_data$(t.val <= %calibration_year%);
 
   # ------------------------------------------------------------------------------
   # Initial values 
@@ -183,7 +180,7 @@ $IF %stage% == "exogenous_values":
   # ------------------------------------------------------------------------------
   # Dummies
   # ------------------------------------------------------------------------------
-  d1EmmE_BU[em,es,e,d,t]     = yes$(qEmmE_BU.l[em,es,e,d,t] and d1pEpj_base[es,e,d,t]);
+  d1EmmE_BU[em,es,e,d,t]     = yes$(qEmmE_BU.l[em,es,e,d,t]);
   d1EmmE[em,d,t]             = yes$(sum((es,e), d1EmmE_BU[em,es,e,d,t]));
   d1EmmxE[em,d,t]            = yes$(qEmmxE.l[em,d,t]);
   d1EmmLULUCF5[land5,t]      = yes$(qEmmLULUCF5.l[land5,t]);

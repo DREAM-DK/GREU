@@ -10,6 +10,7 @@ $IF %stage% == "variables":
   $Group+ all_variables
     pProd[pf,i,t]$(d1Prod[pf,i,t]) "Production price index, both nests and factors"
     pY0_i[i,t]$(d1Y_i[i,t]) "Cost price index, net of installation costs and other costs not in CES-nesting tree"
+    qY0_i[i,t]$(d1Y_i[i,t]) "Cost price index, net of installation costs and other costs not in CES-nesting tree"
 
     qProd[pf,i,t]$(d1Prod[pf,i,t]) "Production quantity, both nests and factors"
 
@@ -25,9 +26,12 @@ $IF %stage% == "variables":
 
     pProd2pNest[pf,pfNest,i,t]$(d1Prod[pf,i,t] and d1Prod[pfNest,i,t]) "Price ratio between production factor and its nest."
 
-    qPFtop2qY[i] "Ratio between qProd[pf_top] and qY_i in basis year where prices are set to 1."
-  ;
+    qPFtop2qY[i,t] "Ratio between qProd[pf_top] and qY_i in basis year where prices are set to 1."
 
+    jqE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "J-term to be endogenized when energy module is turned on. Necessary, because bottom-up energy is partly in the top and partly in CES-nests"
+    jpProd[pf,i,t]$(d1Prod[pf,i,t]) "J-term to be endogenized when energy module is turned on"
+  ;
+ 
 $ENDIF # variables
 
 # ------------------------------------------------------------------------------
@@ -38,13 +42,17 @@ $IF %stage% == "equations":
   $BLOCK production_equations production_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
     # Output is determined in the input-output system, to meet the demand at the prevailing price levels.
     # Given the level of production, we determine the most cost-effective way to produce it in this module.
-    .. qProd[pf_top,i,t] =E= qPFtop2qY[i] * qY_i[i,t];
+    .. qY0_i[i,t] =E= qPFtop2qY[i,t] * qY_i[i,t];
+
+
+    ..qProd[pf_top,i,t] =E= qY0_i[i,t]; #This is just a 1:1 further, further down the line qProd will have installation costs substracted 
 
     # Marginal cost. These are marginal cost of production from CES-production (pProd['TopPfunction']), net of any adjustment costs, and other costs not covered in the production function
-    .. pY0_i[i,t] * qY_i[i,t] =E= pProd['TopPfunction',i,t] * qProd['TopPfunction',i,t]
+    .. pY0_i[i,t] * qY0_i[i,t] =E= pProd['TopPfunction',i,t] * qProd['TopPfunction',i,t]
                                 + vProdOtherProductionCosts[i,t];
 
-    .. pProd2pNest[pf,pfNest,i,t] =E= pProd[pf,i,t] / pProd[pfNest,i,t];
+    pProd2pNest[pf,pfNest,i,t]$(pf_mapping[pfNest,pf,i])..
+      pProd2pNest[pf,pfNest,i,t] =E= pProd[pf,i,t] / pProd[pfNest,i,t];
 
     #CES-nests in production function
     qProd[pf,i,t]$(not pf_top[pf])..
@@ -53,30 +61,37 @@ $IF %stage% == "equations":
                           pProd2pNest[pf,pfNest,i,t]**(-eProd[pfNest,i]) * qProd[pfNest,i,t]
                       );
 
-    .. pProd[pfNest,i,t] * qProd[pfNest,i,t] =E= sum(pf_mapping[pfNest,pf,i], pProd[pf,i,t] * qProd[pf,i,t]);
+        .. pProd[pfNest,i,t] * qProd[pfNest,i,t] =E= sum(pf_mapping[pfNest,pf,i], pProd[pf,i,t] * qProd[pf,i,t]);
 
     # # Other production costs, not in nesting tree 
-    # .. vProdOtherProductionCosts[i,t] =E= vtNetproductionRest[i,t]      #Net production subsidies and taxes not internalized in user-cost of capital and not included in other items listed below
-    #                                     - vtBotded[i,t]                 #"Bottom deductions on energy-use"
+    .. vProdOtherProductionCosts[i,t] =E= 
+                                          # vtNetproductionRest[i,t]      #Net production subsidies and taxes not internalized in user-cost of capital and not included in other items listed below
+                                           -vtBotded[i,t]                 #"Bottom deductions on energy-use"
     #                                     - vDiffMarginAvgE[i,t]          #"Difference between marginal and average energy-costs"
     #                                     + vtEmmRxE[i,t]                 #Taxes on non-energy related emissions
     #                                     - vtCAP_prodsubsidy[i,t]        #Agricultural subsidies from EU CAP subsidizing production directly.
-    #                                     + vEnergycostsnotinnesting[i,t] #Energy costs not in nesting tree
-    #                                     ;
+                                        + vEnergycostsnotinnesting[i,t]   #Energy costs not in nesting tree
+                                        ;
   $ENDBLOCK
 
   $BLOCK production_bottom_link_equations production_bottom_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-    .. pProd[RxE,i,t] =E= pD[i,t];
+    .. pProd[RxE,i,t] =E= pD[i,t] + jpProd[Rxe,i,t];
     qR2qY_i[i,t].. qD[i,t] =E= qProd['RxE',i,t];
 
     .. pProd[pf_bottom_capital,i,t] =E= sum(sameas[pf_bottom_capital,k], pK_k_i[k,i,t] / pK_k_i[k,i,tBase]); # We set the price to 1 in the base year, and adjust the quantity inversely
     qK2qY_k_i[k,i,t].. sum(sameas[pf_bottom_capital,k], qProd[pf_bottom_capital,i,t]) =E= qK_k_i[k,i,t] * pK_k_i[k,i,tBase];
 
-    .. pProd[pf_bottom_e,i,t] =E= pE_i[i,t]; 
-    qE2qY_i[i,t].. qE_i[i,t] =E= sum(pf_bottom_e, qProd[pf_bottom_e,i,t]);
-    # .. pProd[machine_energy,i,t] =E= pREmachine[i,t]; 
-    # .. pProd[heating_energy,i,t] =E= pREes['heating',i,t];
-    # .. pProd[transport_energy,i,t] =E= pREes['transport',i,t];
+    #When energy is turned on the IO/factor-demand variables pE_re_i and qE_re_i =/= pProd[pf_bottom_e] and qProd[pf_bottom_e].
+    #This is due to a) Not all energy being handled in CES-nest (some of the energy is Leontief in top of p-function), 
+    #               b) The energy-prices in pProd, qProd are based on marginal tax-rates (i.e. before deductions).
+    #               c) When abatement is turned on pProd and qProd are further also comprised of abatement costs, which are the full abatement cost including technology and materials for a given technology
+    #To handle this a couple of J-terms are introduced. jpProd ensures that pProd[pf_bottom_e] is equal to the marginal price of energy (i.e. with marginal tax-rate applying and including abatement costs)
+    #jqE_re_i ensures that the input_output system is balanced in values. jqE_re_i is computed so that total energy-costs, pE_re_i * qE_re_i matches bottom-up computation of total energy-costs (see energy_markerkets.gms for link)
+    #AKB, to be investigated: Maybe qE_re_i, computed as a residual, become meaningless as a "quantity". 
+    .. pProd[pf_bottom_e,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], pE_re_i[re,i,t]) + jpProd[pf_bottom_e,i,t];    
+    
+    qE2qY_re_i[re,i,t]..  
+      qE_re_i[re,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], qProd[pf_bottom_e,i,t]) + jqE_re_i[re,i,t]; 
 
     .. pProd[labor,i,t] =E= pL_i[i,t];
     qL2qY_i[i,t].. qL_i[i,t] =E= qProd['labor',i,t];
@@ -116,12 +131,15 @@ $IF %stage% == "exogenous_values":
   # ------------------------------------------------------------------------------
   # Exogenous variables 
   # ------------------------------------------------------------------------------
+
   eProd.l[pfNest,i] = 0.7;
 
   # ------------------------------------------------------------------------------
   # Initial values  
   # ------------------------------------------------------------------------------
+
   pProd.l[pfNest,i,tDataEnd] = 1;
+  pY0_i.l[i,tDataEnd] = 1;
 
   qProd.l[pfNest,i,t] =  sum(pf_bottom$(pf_mapping[pfNest,pf_bottom,i]), pProd.l[pf_bottom,i,t]*qProd.l[pf_bottom,i,t]);
   qProd.l[pfNest,i,t] =  sum(pf$(pf_mapping[pfNest,pf,i]), pProd.l[pf,i,t]*qProd.l[pf,i,t]);
@@ -146,6 +164,7 @@ $IF %stage% == "calibration":
 
 $BLOCK production_calibration_equations production_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
   # jpK_k_i[k,i,t]$(t1[t] and not tEnd[t]).. qK_k_i[k,i,t] =E= qK_k_i[k,i,t+1];
+
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
@@ -161,21 +180,33 @@ $Group calibration_endogenous
   production_bottom_link_endogenous
   production_calibration_endogenous
 
-  -qR2qY_i[i,t1], uProd[RxE,i,t1]
-  -qK2qY_k_i[k,i,t1], uProd[pf_bottom,i,t1]
-  -qProd[pf_bottom_e,i,t1], uProd[pf_bottom_e,i,t1]
-  -qE2qY_i[i,t1], qProd[heating_energy,i,t1]$(d1Prod[heating_energy,i,t1]), qProd[machine_energy,i,t1]$(not d1Prod['heating_energy',i,t1])
+  #Endo/exo in the partial model
+  uProd[pf_bottom,i,t1], -qProd[pf_bottom,i,t1]
+  uProd[pfNest,i,t1]$(not pf_top[pfNest]), -pProd[pfNest,i,t1]$(not pf_top[pfNest])
+  qPFtop2qY[i,tBase], -pProd[pf_top,i,tBase] #Normalize price at 1
+  
 
-  -qL2qY_i[i,t1], uProd[labor,i,t1]
-  -pProd[pfNest,i,t1]$(not pf_top[pfNest]), uProd[pfNest,i,t1]$(not pf_top[pfNest])
+  #Items are swapped back, the module is calibrated alongside factor_demand
+  qProd[RxE,i,t1]
+  qProd[pf_bottom_capital,i,t1]
+  # qProd[pf_bottom_e,i,t1]
+  jqE_re_i[re,i,t1] #£Temp, erstatter opvenstående 
+  qProd[labor,i,t1]
 
-  qPFtop2qY[i], -pProd[pf_top,i,tBase]
+  # -qR2qY_i[i,t1], uProd[RxE,i,t1]
+  # -qK2qY_k_i[k,i,t1], uProd[pf_bottom,i,t1]
+  # -qProd[pf_bottom_e,i,t1], uProd[pf_bottom_e,i,t1]
+
+  # -qL2qY_i[i,t1], uProd[labor,i,t1]
+  # -pProd[pfNest,i,t1]$(not pf_top[pfNest]), uProd[pfNest,i,t1]$(not pf_top[pfNest])
+
 
   calibration_endogenous
 ;
 
 $Group+ G_flat_after_last_data_year
-  uProd[pf,i,t]
+  uProd
+  qPFtop2qY
 ;
 
 $ENDIF # calibration

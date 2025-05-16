@@ -1,13 +1,8 @@
 
-set factors_of_production /
-  "labor"
-  RxE #Non-ergy input
-  set.k, # Types of capital
-  machine_energy
-  transport_energy
-  heating_energy
-/;
-
+set factors_of_production;
+$gdxin ../data/data.gdx
+$load factors_of_production
+$gdxin
 
 set production_nests /
   KE "machine capial and ergy for machine"
@@ -64,4 +59,17 @@ set pf_mapping[pfNest,pf,i] /
   KETELBE  . (KETEL   , BE)      . set.i_standard
   TopPfunction . (KETELBE , RxE) . set.i_standard
 
+/;
+
+# set pf_bottom_e2re[pf_bottom_e,re]/
+#     machine_energy  .  machine_energy
+#     transport_energy .   transport_energy
+#     heating_energy .   heating_energy
+# /;
+
+#£Temp
+set pf_bottom_e2re[pf_bottom_e,re]/
+    machine_energy   .  energy
+    transport_energy .   energy
+    heating_energy .   energy
 /;

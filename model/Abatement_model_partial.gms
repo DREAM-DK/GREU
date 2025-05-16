@@ -38,7 +38,7 @@ $IMPORT growth_adjustments.gms
 # $IMPORT test_module.gms
 #  $IMPORT labor_market.gms
 $IMPORT energy_markets.gms; 
-$IMPORT industries_CES_energydemand.gms; 
+$IMPORT production_CES_energydemand.gms; 
 $IMPORT production.gms; 
 $IMPORT emissions.gms; 
 $IMPORT energy_and_emissions_taxes.gms; 

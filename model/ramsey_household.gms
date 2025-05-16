@@ -10,7 +10,6 @@ $Group+ all_variables
   rCHabit[t] "Habit formation parameter."
   qCHhxRef[t] "Private consumption net of habits and Keynesian consumption."
   rSurvival[t] "Survival rate."
-
   jC_ramsey[t] "Adjustment of consumption due to behavior"
   qC_ramsey[t] "Total consumption in Ramsey model"
 ;
@@ -23,7 +22,6 @@ $ENDIF # variables
 $IF %stage% == "equations":
 
 $BLOCK ramsey_household_equations ramsey_household_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-
 # In this module aggregate consumption is determined by the Ramsey model.
   jC_ramsey[t]$(not t1[t]).. qC[t] =E= qC_ramsey[t]; # This is the link to the rest of the model
 
