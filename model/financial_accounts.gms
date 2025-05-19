@@ -62,7 +62,8 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
   .. vNetFinAssets[RoW,t] =E= vNetFinAssets[RoW,t-1]/fv
                             + vNetInterests[RoW,t] + vNetDividends[RoW,t] + vNetRevaluations[RoW,t]
                             + vM[t]
-                            - vX[t];
+                            - vX[t]
+                            + vtCO2_ETS_tot[t];
 
   .. vEBITDA_i[i,t] =E= vY_i[i,t] - vWages_i[i,t] - vD[i,t] - vE_i[i,t] - vtY_i_NetTaxSub[i,t]; # Net duties should be subtracted here - AKB: What? They are contained in vD and vE_i
 

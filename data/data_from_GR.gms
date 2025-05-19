@@ -69,6 +69,9 @@ $load NonEnergyEmissions=NonEnergyemissions.l
 set demand_transaction_temp[transaction] /'input_in_production','household_consumption','inventory','export','transmission_losses'/; #AKB: In "demand_transaction" there is an error with "households" being the set-element for households
 set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','cav','nox_tax','so2_tax','vat','base'/; #AKB: Auxiliary set 
 set i_energymargins[i]/45000,46000,47000/;
+set eBunkering[e]/'Bunkering of Danish operated trucks on foreign territory',
+                  'Bunkering of Danish operated vessels on foreign territory',
+                  'Bunkering of Danish operated planes on foreign territory'/;
 set tData[t]/2020/;
 
 
@@ -261,6 +264,7 @@ parameters GREU_data
 
   #Energy and emissions.
   qEmmBorderTrade[em,t] ""
+  qEmmBunkering[em,t] ""
   pEpj_base[es,e,d,t] ""
   pEpj_own[es,e,d,t] ""
   vtE_duty[etaxes,es,e,d,t] ""
@@ -288,6 +292,7 @@ parameters GREU_data
 
   qEmmLULUCF5[land5,t]
   qEmmLULUCF[t] 
+  qEmmTot[em,em_accounts,t]
   sBioNatGas[t]
 
   GWP[em]
@@ -339,7 +344,7 @@ vtM_i_d[i,d,t]$(vD_base[d,t]) = vM_i_d_base[i,d,t] / vD_base[d,t] * vtYM_d[d,t];
 
 #Production taxes and subsidies
 vtY_i_Sub[I,t] = -vIO_a['OthSubs',i,t];
-vtY_i_Tax[I,t] =  vIO_a['OthTax',i,t] ;
+vtY_i_Tax[I,t] =  vIO_a['OthTax',i,t];
 
 #Compute IO incl. taxes, based on above distribution
 #AKB: In input_output.gms vY_i_d and vM_i_d are defined including taxes
@@ -409,6 +414,14 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   sBioNatGas[t]$((sum((demand_transaction_temp,es,d), Energybalance['CO2bio',demand_transaction_temp,d,es,'Natural gas incl. biongas',t]) + sum((demand_transaction_temp,es,d), Energybalance['CO2ubio',demand_transaction_temp,d,es,'Natural gas incl. biongas',t])))
                =  sum((demand_transaction_temp,es,d), Energybalance['CO2bio',demand_transaction_temp,d,es,'Natural gas incl. biongas',t])/
                  (sum((demand_transaction_temp,es,d), Energybalance['CO2bio',demand_transaction_temp,d,es,'Natural gas incl. biongas',t]) + sum((demand_transaction_temp,es,d), Energybalance['CO2ubio',demand_transaction_temp,d,es,'Natural gas incl. biongas',t]));
+
+
+  qEmmTot[em,em_accounts,t] = sum((es,e,d), qEmmE_BU[em,es,e,d,t]) + sum(d, qEmmxE[em,d,t]);
+
+  qEmmBunkering[em,t] = sum((demand_transaction_temp,es,d,e)$(eBunkering[e]), Energybalance[em,demand_transaction_temp,d,es,e,t]);
+
+
+  qEmmBorderTrade[em,t] = qEmmBorderTrade[em,t] - qEmmE_Bu[em,'transport','diesel for transport','49509',t] - qEmmE_BU[em,'transport','jet petroleum','51009',t];
 
   #Production
   #AKB: In input_output.gms vY_i_d and vM_i_d are defined including taxes

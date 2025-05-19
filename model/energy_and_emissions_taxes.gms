@@ -50,10 +50,17 @@ $IF %stage% == "variables":
     vtE[es,e,d,t]$(sum(etaxes,d1tE_duty[etaxes,es,e,d,t]) or d1tE_vat[es,e,d,t] or sum(em, d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t]))     "Total tax revenue from energy"
     vtEmarg[es,e,d,t]$(sum(etaxes,d1tE_duty[etaxes,es,e,d,t]) or d1tE_vat[es,e,d,t] or sum(em, d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) "Total marginal tax revenue from energy, used to compute total bottom deductions"
     vtE_NAS[es,e,d,t]$(sum(etaxes,d1tE_duty[etaxes,es,e,d,t]) or d1tE_vat[es,e,d,t]) "Total tax revenue excluding ETS, the National Accounts demarkation"
-    vtCO2_ETS[d,t]$(d1tCO2_ETS[d,t]) "Tax revenue from ETS1"
-    vtCO2_ETS2[d,t]$(d1tCO2_ETS2[d,t]) "Tax revenue from ETS2"
-    vtCO2_ETS_xE[d,t]$(d1tCO2_ETS[d,t] and d1EmmxE['CO2ubio',d,t]) "Tax revenue from ETS1, non-energy related emissions"
     vtCO2_xE[d,t]$(d1tCO2_xE[d,t] and d1EmmxE['CO2ubio',d,t])      "Tax revenue from national carbon tax, non-energy related emissions"
+
+    vtCO2_ETS[d,t]$(d1tCO2_ETS[d,t]) "Revenue from ETS1, total"
+    vtCO2_ETS_E[d,t]$(d1tCO2_ETS[d,t]) "Revenue from ETS1, energy-related"
+    vtCO2_ETS_xE[d,t]$(d1tCO2_ETS[d,t] and d1EmmxE['CO2ubio',d,t]) "Tax revenue from ETS1, non-energy related emissions"
+    vtCO2_ETS2[d,t]$(d1tCO2_ETS2[d,t]) "Tax revenue from ETS2, total"
+    vtCO2_ETS2_E[d,t]$(d1tCO2_ETS2[d,t]) "Revenue from ETS2, energy"
+    vtCO2_ETS2_xE[d,t]$(d1tCO2_ETS[d,t] and d1EmmxE['CO2ubio',d,t]) "Tax revenue from ETS2, non-energy related emissions"
+    vtCO2_ETS_tot[t] "Total revenue from ETS1 and ETS2"
+
+
 
     jvtE_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "J-term to capture instances ,where data contains a revenue, but the marginal rate is zero."
 
@@ -164,9 +171,15 @@ $IF %stage% == "equations":
 
           tCO2_ETS_pj&_NatgasuBio[em,es,e,i,t]$(d1tCO2_ETS_E[em,es,e,i,t] and natgas[e] and CO2ubio[em])..
             tCO2_ETS_pj[em,es,e,i,t] =E= tCO2_ETS[t]/10**6 * uEmmE_BU[em,es,e,i,t] * (1-sBioNatGas[t]);
+
+          
+          .. vtCO2_ETS_E[i,t] =E= sum((em,es,e), tCO2_ETS_pj[em,es,e,i,t] * qEpj[es,e,i,t]);
           
           #Non-energy   
             ..  vtCO2_ETS_xE[i,t] =E= tCO2_ETS[t]/10**6 * qEmmxE['CO2ubio',i,t];
+
+          #Total revenue from ET1
+            .. vtCO2_ETS[i,t] =E= vtCO2_ETS_E[i,t] + vtCO2_ETS_xE[i,t] - tCO2_ETS[t]/10**6 * qCO2_ETS_freeallowances[i,t]; 
 
         #ETS2 (note that whereas ETS1 is only households, ETS2 extends to households as well)
           tCO2_ETS2_pj&_notNatgas[em,es,e,d,t]$(not natgas[e])..
@@ -177,6 +190,10 @@ $IF %stage% == "equations":
 
           tCO2_ETS2_pj&_NatgasuBio[em,es,e,d,t]$(natgas[e] and CO2ubio[em])..
             tCO2_ETS2_pj[em,es,e,d,t] =E= tCO2_ETS2[t]/10**6 * uEmmE_BU[em,es,e,d,t] * (1-sBioNatGas[t]);
+
+          .. vtCO2_ETS2_E[d,t] =E= sum((em,es,e), tCO2_ETS2_pj[em,es,e,d,t] * qEpj[es,e,d,t]);
+
+          .. vtCO2_ETS2[d,t] =E= vtCO2_ETS2_E[d,t] + vtCO2_ETS2_xE[d,t];
 
   $ENDBLOCK           
 
