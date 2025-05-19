@@ -13,4 +13,6 @@ set CO2bio[em]/CO2bio/;
 set CO2ubio[em]/CO2ubio/;
 
 set gna[em_accounts]/GNA/
-    unfccc[em_accounts]/UNFCCC/;
+    gna_lulufc[em_accounts]/gna_lulucf/
+    unfccc[em_accounts]/UNFCCC/
+    unfccc_lulucf[em_accounts]/unfccc_lulucf/;
