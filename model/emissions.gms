@@ -93,39 +93,44 @@ $IF %stage% == "equations":
 
   #BLOCK 2/3 EMISSIONS AGGREGATES - CAN RUN SEPARATELY OF BOTTOM-UP EMISSIONS. WHEN LINKING 1 AND 2 (THROUGH 3) CALIBRATION VARAIBLES IN 2 ARE ENDOGENIZED TO MATCH BOTTOM-UP EMISSIONS
   $BLOCK emissions_aggregates emissions_aggregates_endogenous $(t1.val <= t.val and t1.val <=tEnd.val)
-      #Energy-related emissions
+    #Energy-related emissions
+      #Production
       qEmmE&_production[em,i,t]$(not CO2e[em])..
         qEmmE[em,i,t] =E= uEmmE[em,i,t] * (qProd['Machine_energy',i,t] + qProd['Transport_energy',i,t] + qProd['Heating_energy',i,t]);
 
-      qEmmE&not_production[em,d,t]$(not i[d] and not CO2e[em])..
+      #Households
+      qEmmE&_households[em,c,t]$(not CO2e[em])..
+        qEmmE[em,c,t] =E= uEmmE[em,c,t] * sum(cf_bottom$c2cf_bottom_mapping[c,cf_bottom], qChh[cf_bottom,t]);
+
+      qEmmE&_rest[em,d,t]$(not (i[d] or c[d]) and not CO2e[em])..
         qEmmE[em,d,t] =E= uEmmE[em,d,t];
 
-      qEmmE&_CO2e[em,d,t]$(CO2e[em])..
-        qEmmE['CO2e',d,t] =E= sum(em_a$(not CO2e[em_a]), GWP[em_a] * qEmmE[em_a,d,t]); 
+    qEmmE&_CO2e[em,d,t]$(CO2e[em])..
+      qEmmE['CO2e',d,t] =E= sum(em_a$(not CO2e[em_a]), GWP[em_a] * qEmmE[em_a,d,t]); 
 
-      Non-energy related emissions
-      qEmmxE&_production[em,i,t]$(not CO2e[em])..
-        qEmmxE[em,i,t] =E= uEmmxE[em,i,t] * sum(pf_top, qProd[pf_top,i,t]);
+    Non-energy related emissions
+    qEmmxE&_production[em,i,t]$(not CO2e[em])..
+      qEmmxE[em,i,t] =E= uEmmxE[em,i,t] * sum(pf_top, qProd[pf_top,i,t]);
 
-      qEmmxE&not_production[em,d,t]$(not i[d] and not CO2e[em])..
-        qEmmxE[em,d,t] =E= uEmmxE[em,d,t];
+    qEmmxE&not_production[em,d,t]$(not i[d] and not CO2e[em])..
+      qEmmxE[em,d,t] =E= uEmmxE[em,d,t];
 
-      qEmmxE&_CO2e[em,d,t]$(CO2e[em])..
-        qEmmxE['CO2e',d,t] =E= sum(em_a$(not CO2e[em_a]), GWP[em_a] * qEmmxE[em_a,d,t]);
+    qEmmxE&_CO2e[em,d,t]$(CO2e[em])..
+      qEmmxE['CO2e',d,t] =E= sum(em_a$(not CO2e[em_a]), GWP[em_a] * qEmmxE[em_a,d,t]);
 
 
-      # LULUCF (is measured in CO2e from the get-go, and we didn't need LULUCF5, if this is only a matter of hitting total emissions in official inventories)
-      ..  qEmmLULUCF5[land5,t] =E= uEmmLULUCF5[land5,t];
+    # LULUCF (is measured in CO2e from the get-go, and we didn't need LULUCF5, if this is only a matter of hitting total emissions in official inventories)
+    ..  qEmmLULUCF5[land5,t] =E= uEmmLULUCF5[land5,t];
 
-      ..  qEmmLULUCF[t] =E= sum(land5, qEmmLULUCF5[land5,t]);
+    ..  qEmmLULUCF[t] =E= sum(land5, qEmmLULUCF5[land5,t]);
 
-      Total emissions
-      ..  qEmmTot[em,em_accounts,t] =E= sum(d, qEmmE[em,d,t]) 
-                                    + sum(d, qEmmxE[em,d,t]) 
-                                    + qEmmLULUCF[t]
-                                    + qEmmBorderTrade[em,t]$(gna[em_accounts])
-                                    - qEmmInternationalAviation[em,t]$(unfccc[em_accounts])
-      ;
+    Total emissions
+    ..  qEmmTot[em,em_accounts,t] =E= sum(d, qEmmE[em,d,t]) 
+                                  + sum(d, qEmmxE[em,d,t]) 
+                                  + qEmmLULUCF[t]
+                                  + qEmmBorderTrade[em,t]$(gna[em_accounts])
+                                  - qEmmInternationalAviation[em,t]$(unfccc[em_accounts])
+    ;
 
   $ENDBLOCK 
 
