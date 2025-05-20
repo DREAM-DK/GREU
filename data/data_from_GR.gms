@@ -462,8 +462,8 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 
   # tCO2_Emarg['CO2bio',es,e,d,t]$tCO2_Emarg['CO2bio',es,e,d,t] = tCO2_Emarg['CO2bio',es,e,d,t] + 0.01;  
 
-  PARAMETER tCO2_REmarg[es,e,d,t,em]; #Marginal Danish tax-rates directly from GR-DK
-  execute_load 'data_DK.gdx' tCO2_REmarg = tCO2_REmarg.l;
+  PARAMETER tCO2_REmarg[es,e,d,t,em], tEAFG_REmarg[es,e,d,t]; #Marginal Danish tax-rates directly from GR-DK
+  execute_load 'data_DK.gdx' tCO2_REmarg = tCO2_REmarg.l, tEAFG_REmarg = tEAFG_REmarg.l;
 
   tCO2_REmarg[es,'district heat',d,t,em]$tCO2_REmarg[es,'district heat',d,t,em] = 0;
 
@@ -480,6 +480,11 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
                                  /sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
 
   tEmarg_duty[etaxes,es,e,d,t]$tEmarg_duty[etaxes,es,e,d,t] = tEmarg_duty[etaxes,es,e,d,t] + 0.01;
+
+  tEmarg_duty['EAFG_tax',es,e,d,t] = tEAFG_REmarg[es,e,d,t];
+  tEmarg_duty['EAFG_tax',es,e,'cHouEne',t] = tEmarg_duty['EAFG_tax','heating',e,'68203',t];
+  tEmarg_duty['EAFG_tax',es,e,'cCarEne',t] = tEmarg_duty['EAFG_tax','transport',e,'68203',t];
+
 
   vtE_duty[etaxes,es,e,d,t] = sum(demand_transaction_temp, Energybalance[etaxes,demand_transaction_temp,d,es,e,t]);
   vtE_vat[es,e,d,t]          = sum(demand_transaction_temp, Energybalance['VAT',demand_transaction_temp,d,es,e,t]);
