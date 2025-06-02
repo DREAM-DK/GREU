@@ -32,7 +32,7 @@ rename_col_list = {'TechID':"l",
                    'Energy service':"es",
                    'Energy input':"e",
                    'Year':"t",
-                   'Potential (Share of energy demand)':"sTPotential",
+                   'Potential (Share of energy demand)':"sqTPotential",
                    'Energy intensity (PJ in per PJ out)':"uTE",
                    'Capital intensity (billion EUR per PJ out)':"uTKexp",
                    'Energy price (billion EUR per PJ in)':"pTE_base",
@@ -51,14 +51,14 @@ df_technologies = df_technologies.rename(columns=rename_col_list)
 # Set index for dataframe
 df_technologies = df_technologies.set_index(['l','es','e','i','t']) 
 
-# Create dataframe with sTPotential, uTE and uTKexp
-df_sTPotential = pd.DataFrame(df_technologies['sTPotential'])
+# Create dataframe with sqTPotential, uTE and uTKexp
+df_sqTPotential = pd.DataFrame(df_technologies['sqTPotential'])
 df_uTE = pd.DataFrame(df_technologies['uTE'])
 df_uTKexp = pd.DataFrame(df_technologies['uTKexp'])
 
-# Drop energy dimension for sTPotential
-df_sTPotential = df_sTPotential.reset_index()
-df_sTPotential = df_sTPotential.drop(columns = 'e')
+# Drop energy dimension for sqTPotential
+df_sqTPotential = df_sqTPotential.reset_index()
+df_sqTPotential = df_sqTPotential.drop(columns = 'e')
 
 # Reset index for uTE
 df_uTE = df_uTE.reset_index()
@@ -92,6 +92,9 @@ df_energy_tax = df_energy_tax.reset_index()
 df_capital_cost_index = pd.read_excel(file_name,sheet_name='Capital cost index')
 # Rename columns to match names in the model
 df_capital_cost_index = df_capital_cost_index.rename(columns=rename_col_list)   
+# Determining columns as strings in order to avoid issues with GDX export
+df_capital_cost_index["i"] = df_capital_cost_index["i"].astype(str)
+df_capital_cost_index["t"] = df_capital_cost_index["t"].astype(str)
 
 # DATA FOR ENERGY SERVICE
 # Reading data from excel
@@ -137,10 +140,8 @@ es=gp.Set(db_abatement,name='es',description='Energy service',records=set_energy
 i=gp.Set(db_abatement,name='i',description='Industry',records=set_industry_list)
 t=gp.Set(db_abatement,name='t',description='Year',records=set_year_list)
 
-# print('Duplicate columns:', df_energy_price.index[df_energy_price.index.duplicated()].tolist())
-
 # Adding parameters to database
-sTPotential=gp.Parameter(db_abatement,name='sTPotential',domain=[l,es,i,t],description='Potential supply by technology l in ratio of energy service (share of qES)',records=df_sTPotential.values.tolist())
+sqTPotential=gp.Parameter(db_abatement,name='sqTPotential',domain=[l,es,i,t],description='Potential supply by technology l in ratio of energy service (share of qES)',records=df_sqTPotential.values.tolist())
 uTE=gp.Parameter(db_abatement,name='uTE',domain=[l,es,e,i,t],description='Input of energy in technology l per PJ output at full potential',records=df_uTE.values.tolist())
 uTKexp=gp.Parameter(db_abatement,name='uTKexp',domain=[l,es,i,t],description='Input of machinery capital in technology l per PJ output output at full potential',records=df_uTKexp.values.tolist())
 pTE_base=gp.Parameter(db_abatement,name='pTE_base',domain=[es,e,i,t],description='Base price of energy input',records=df_energy_price.values.tolist())

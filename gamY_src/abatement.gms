@@ -215,7 +215,6 @@ $GROUP calibration_endogenous
 $Group+ G_flat_after_last_data_year
   vES[es,d,t]
   qES_e[es,e,d,t]
-  pTPotential[l,es,d,t]
   qES_k[d,t]
   vTSupply[l,es,d,t]
   uTKmarg[l,es,d,t]
