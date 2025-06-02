@@ -25,12 +25,12 @@ d1Expensive_tech_smooth_scen[es,d,t] = smax(l, pTPotential.l[l,es,d,t] * (1 + 4 
 
 # 2.2 Marginal Cost Setup
 # Defining marginal costs for each trace (goes from zero up to 4 standard deviations times the price of the most expensive technology)
-pESmarg_scen.l[es,d,t,scen]$(sum(l, d1sTPotential[l,es,d,t])) = ord(scen)/100 * d1Expensive_tech_smooth_scen[es,d,t];
+pESmarg_scen.l[es,d,t,scen]$(sum(l, d1sqTPotential[l,es,d,t])) = ord(scen)/100 * d1Expensive_tech_smooth_scen[es,d,t];
 
 # 2.3 Initial Capital Costs
 # Random starting values for the marginal costs of capital
-uTKmarg_scen.l[l,es,d,t,scen]$(sTPotential.l[l,es,d,t]) = 1;
-uTKmargNobound_scen.l[l,es,d,t,scen]$(sTPotential.l[l,es,d,t]) = uTKmarg_scen.l[l,es,d,t,scen];
+uTKmarg_scen.l[l,es,d,t,scen]$(sqTPotential.l[l,es,d,t]) = 1;
+uTKmargNobound_scen.l[l,es,d,t,scen]$(sqTPotential.l[l,es,d,t]) = uTKmarg_scen.l[l,es,d,t,scen];
 
 # ----------------------------------------------------------------------------------------------------------------------
 # 3. Supply Curve Solution
@@ -46,21 +46,21 @@ Solve M_abatement_supply_curve using CNS;
 # ----------------------------------------------------------------------------------------------------------------------
 # 4.1 Equilibrium Values
 # Determining uTKmarg and pESmarg in equilibrium
-uTKmarg_eq[l,es,d,t]$(sTPotential.l[l,es,d,t]) = 
+uTKmarg_eq[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 
   sum(scen, uTKmarg_scen.l[l,es,d,t,scen]$(sqT_sum_scen.l[es,d,t,scen] >= 1 and sqT_sum_scen.l[es,d,t,scen-1] < 1));
 
 pESmarg_eq[es,d,t] = smax(l, sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t]) + uTKmarg_eq[l,es,d,t]*pTK.l[d,t]);
 
 # 4.2 Starting Values, Marginal Capital Intensity
 # Setting starting values for the main model
-uTKmarg.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = uTKmarg_eq[l,es,d,t]; 
+uTKmarg.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg_eq[l,es,d,t]; 
 
 # For some reason, the model can't solve when given too good starting values for uTKmarg
-uTKmarg.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t] + 3; 
+uTKmarg.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t] + 3; 
 
 # 4.3 Starting Values, Other Core Variables
-uTKmargNobound.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t];
-sqT.l[l,es,d,t]$(sTPotential.l[l,es,d,t]) = 
-  sTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_eq[l,es,d,t], uTKexp.l[l,es,d,t], eP.l[l,es,d,t]);
+uTKmargNobound.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t];
+sqT.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 
+  sqTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_eq[l,es,d,t], uTKexp.l[l,es,d,t], eP.l[l,es,d,t]);
 pESmarg.l[es,d,t] = pESmarg_eq[es,d,t];
 

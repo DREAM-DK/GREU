@@ -54,12 +54,12 @@ $ENDBLOCK
 # ----------------------------------------------------------------------------------------------------------------------
 # 3.1 Supply Curve Variables
 $Group+ all_variables
-  sqT_sum_scen[es,d,t,scen]$(sum(l, d1sTPotential[l,es,d,t]))  "Smoothed aggregate supply curve"
+  sqT_sum_scen[es,d,t,scen]$(sum(l, d1sqTPotential[l,es,d,t]))  "Smoothed aggregate supply curve"
 ;
 
 # 3.2 Supply Curve Equations
 $BLOCK abatement_equations_supply_curve abatement_endogenous_supply_curve $(t1.val <= t.val and t.val <= tEnd.val)  
-  .. sqT_sum_scen[es,d,t,scen] =E= sum(l$(d1sTPotential[l,es,d,t]), sqT_scen[l,es,d,t,scen]);
+  .. sqT_sum_scen[es,d,t,scen] =E= sum(l$(d1sqTPotential[l,es,d,t]), sqT_scen[l,es,d,t,scen]);
 $ENDBLOCK
 
 # ----------------------------------------------------------------------------------------------------------------------
