@@ -1,0 +1,2530 @@
+#LyX 2.4 created this file. For more info see https://www.lyx.org/
+\lyxformat 620
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\begin_preamble
+\usepackage{babel}
+\end_preamble
+\use_default_options false
+\maintain_unincluded_children no
+\language danish
+\language_package default
+\inputencoding utf8
+\fontencoding T1
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_roman_osf false
+\font_sans_osf false
+\font_typewriter_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 2
+\use_package amssymb 0
+\use_package cancel 0
+\use_package esint 1
+\use_package mathdots 0
+\use_package mathtools 0
+\use_package mhchem 0
+\use_package stackrel 0
+\use_package stmaryrd 0
+\use_package undertilde 0
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 0
+\use_formatted_ref 0
+\use_minted 0
+\use_lineno 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style danish
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tablestyle default
+\tracking_changes false
+\output_changes false
+\change_bars false
+\postpone_fragile_content true
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\docbook_table_output 0
+\docbook_mathml_prefix 1
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Documentation of the Abatement Model of the GreenREFORM EU Model
+\end_layout
+
+\begin_layout Author
+Louis Stewart,
+ Peter Stephensen,
+ and Jens Sand Kirk
+\end_layout
+
+\begin_layout Date
+June 2nd,
+ 2025
+\end_layout
+
+\begin_layout Standard
+ 
+\end_layout
+
+\begin_layout Section
+Foreword
+\end_layout
+
+\begin_layout Standard
+This note provides preliminary documentation of the abatement model of the GreenREFORM EU model.
+ Section 2 offers a brief introduction to the CGE model of GreenREFORM EU,
+ with which the abatement model interacts.
+ This serves as the foundation for the introduction to the abatement model in Section 3,
+ which discusses the key design features of the model.
+ Section 4 presents the three core equations of the model,
+ emphasizing intuitive understanding rather than mathematical rigor.
+ A comprehensive theoretical documentation is provided in Section 10.
+ Section 5 offers a brief presentation of various supplementary outputs.
+ Section 6 discusses various issues related to the statistical properties of the log-normal distribution.
+ Section 7 provides a brief introduction to a separate model used for tracing supply curves.
+ Section 8 introduces the Excel-based data input module,
+ which allows the model to be scaled flexibly according to the properties of the provided data.
+ Finally,
+ Section 9 offers a brief introduction to residual reporting variables.
+\end_layout
+
+\begin_layout Section
+The CGE Model
+\end_layout
+
+\begin_layout Standard
+GreenREFORM EU is a dynamic CGE model with forward-looking expectations and fully integrated energy and emissions accounts.
+ Energy goods are represented in physical units of energy content.
+ Energy is used as an input into production in each industry or for household consumption.
+ Energy input can be divided into various purposes,
+ which may represent tax brackets and/or different technical applications of energy use.
+ Furthermore,
+ input of energy is complemented by a quantity of machinery capital.
+ For each purpose,
+ the aggregate of energy and capital is referred to as an 'energy service'.
+ In the CGE model,
+ production is described by standard nested CES demand functions,
+ including the aggregation of energy and machinery capital to 'energy services'.
+ Energy-related emissions in the CGE model are linked to energy input through exogenous emission coefficients.
+\end_layout
+
+\begin_layout Standard
+GreenREFORM EU is a single-country model designed to be adopted in any given country and can be further tailored as needed.
+ The number of industries,
+ energy services,
+ and types of energy inputs and emissions represented depend on the data available for any specific country.
+ A benchmark dataset has been developed for Denmark.
+ Building on this data,
+ the Danish version of the GreenREFORM EU model features 53 industries,
+ 29 types of energy inputs,
+ 5 tax purposes,
+ and 11 types of emissions.
+\end_layout
+
+\begin_layout Section
+Introduction to the Abatement Model
+\end_layout
+
+\begin_layout Standard
+The abatement model provides an alternative description of the production of energy services,
+ where the demand for energy input as well as emission coefficients can change discretely based on exogenous information about available technologies.
+ The abatement model can function in full integration (hard-linked) with the CGE model or as a standalone partial model.
+ In the latter case,
+ the abatement model describes the cost-minimizing technology mix at given input prices and given demand for energy services.
+ When integrated with the CGE model,
+ the demand for energy services and input prices are endogenously determined by the CGE model and provided to the abatement model,
+ while the price of energy services and the demand for inputs (energy and capital) are determined by the abatement model and provided to the CGE model.
+ Changes in input prices during simulation compared to baseline assumptions thus alter the merit order of technologies simultaneously,
+ and changes in the price of energy services concurrently affect the demand for energy services.
+\end_layout
+
+\begin_layout Standard
+The abatement model is inspired by energy system models such as TIMES.
+ Indeed,
+ the ambition is to bridge the gap between the top-down approach of CGE models and the bottom-up approach of energy system models.
+ The abatement model has two distinct technical features that set it apart from energy system models,
+ which are crucial for achieving full integration with the CGE model,
+ allowing both models to be solved by the same solver.
+\end_layout
+
+\begin_layout Standard
+1) First,
+ in the tradition of CGE models,
+ optimization is decentralized to the respective agents of the model.
+ This contrasts with energy system models like TIMES,
+ which feature centralized cost minimization.
+ In the abatement model,
+ representative agents for firms and households adopt all cheaper technology options at their respective potentials until the price point where demand for energy service is exactly satisfied.
+ Mathematically,
+ this is expressed as
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+\begin_inset Formula 
+\[
+sqT_{l}=\begin{cases}
+sqT_{l}^{Potential} & \text{if }pT_{l}\leq pES^{marg}\\
+0 & \text{otherwise}
+\end{cases}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $sqT_{l}$
+\end_inset
+
+ is production of energy service by technology 
+\begin_inset Formula $l$
+\end_inset
+
+ and 
+\begin_inset Formula $sqT_{l}^{Potential}$
+\end_inset
+
+ is potential production.
+ Both in relative terms to demand.
+ 
+\begin_inset Formula $pT_{l}$
+\end_inset
+
+ is the unit cost,
+ and 
+\begin_inset Formula $pES^{marg}$
+\end_inset
+
+ is the price point where supply equals demand for energy service.
+\end_layout
+
+\begin_layout Standard
+2) The true discrete choice of energy system models is replaced by a continuous approximation:
+ The costs of variants 
+\begin_inset Formula $i$
+\end_inset
+
+ of a technology 
+\begin_inset Formula $l$
+\end_inset
+
+ are assumed to be log-normally distributed.
+ The share of variants that meet the criteria 
+\begin_inset Formula $pT_{l}^{i}\leq pES^{marg}$
+\end_inset
+
+ can then be described in continuous form by the cumulative distribution function (
+\begin_inset Formula $cdf)$
+\end_inset
+
+ of the unit costs 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\nospellcheck off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $pT_{l}^{i}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+The production by technology 
+\begin_inset Formula $l$
+\end_inset
+
+ is thus
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+\begin_inset Formula 
+\begin{equation}
+sqT_{l}=sqT_{l}^{potential}\cdot cdf\left(pES^{marg}\right)\label{eq:sqT-1}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\nospellcheck off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+Figure 1 pictures the cumulative distribution function with an arbitrary expected value of
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\nospellcheck default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\nospellcheck off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $pT_{l}^{i}$
+\end_inset
+
+ equal to 1.
+ Depending on the variance of the distribution (
+\begin_inset Formula $\text{\ensuremath{\sigma^{2}}}$
+\end_inset
+
+),
+ if the marginal price of energy service is higher than 
+\begin_inset Formula $1$
+\end_inset
+
+ the technology will be fully adopted,
+ and otherwise not.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement document
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Continous approximation of discrete choice
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename Figures/Smoothing_tech.svg
+	scale 60
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As illustrated,
+ if the variance of the distribution is set close to zero,
+ the approximation to the discrete form is very close.
+ This is optimal in the case that only one variant of a technology exists.
+ In energy system models,
+ technologies are often separated into many variants to capture variations in costs.
+ In the abatement model,
+ this can instead be captured explicitly by adjustment of the variance of the distribution,
+ potentially reducing the computational size of the model substantially.
+\end_layout
+
+\begin_layout Standard
+In the current version of the abatement model,
+ the variance is not in the unit costs of a technology but specifically in the underlying capital intensity.
+ This is to ensure that the energy intensity of technologies is determined directly by exogenous data,
+ which makes intepretation of model results easier.
+ It is also done to avoid a caveat,
+ that dividing a technology into many variants with variation in energy effeciency may result in unrealistic implicit assumptions about the energy efficiency of both low-cost and high-cost variants.
+ 
+\end_layout
+
+\begin_layout Standard
+It does however also make the model slightly more complex than portrayed above,
+ cf.
+ section 4.
+ 
+\end_layout
+
+\begin_layout Section
+The Core Equations Explained
+\end_layout
+
+\begin_layout Standard
+In this section we present three core equations and three variables of the model in the same form as in the GAMS-code itself,
+ while also striving to provide further intuition.
+ 
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+A technology is a means of producing an energy service (
+\begin_inset Formula $es)$
+\end_inset
+
+ such as heating,
+ cooling,
+ or propulsion in a given industry (
+\begin_inset Formula $d$
+\end_inset
+
+) in a given year (
+\begin_inset Formula $t$
+\end_inset
+
+) by a specific quantity of energy of various types (
+\begin_inset Formula $e$
+\end_inset
+
+) and machinery capital.
+ Each technology has the potential to supply a fraction 
+\begin_inset Formula $sqT_{l,es,d,t}^{potential}$
+\end_inset
+
+ of any given amount of energy service.
+ For each technology 
+\begin_inset Formula $l$
+\end_inset
+
+,
+ there exists a subset of variants 
+\begin_inset Formula $i$
+\end_inset
+
+.
+ Each variant differs only by its capital intensity of production;
+ that is,
+ all variants of a technology have the same energy efficiency.
+ For intuition,
+ consider all heat pumps within a given category having equal energy efficiency,
+ while costs of installation and maintenance may differ depending on specific circumstances.
+ 
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+All variables of the abatement model are defined on 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\nospellcheck off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+\lang danish
+
+\begin_inset Formula $(es,d,t)$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\nospellcheck default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+\lang english
+.
+ To simplify the presentation,
+ we suppress this,
+ so that for example 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\nospellcheck off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+\lang danish
+
+\begin_inset Formula $sqT_{l,es,d,t}^{potential}$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\nospellcheck default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+\lang english
+is presented as 
+\begin_inset Formula $sqT_{l}^{potential}$
+\end_inset
+
+
+\lang danish
+.
+ 
+\end_layout
+
+\begin_layout Standard
+We start by defining the marginal price of energy services 
+\begin_inset Formula $pES^{marg}$
+\end_inset
+
+ as the price point at which the supply of energy service equals demand.
+ In the model,
+ 
+\begin_inset Formula $pES^{marg}$
+\end_inset
+
+ is implicitly determined by the previously mentioned market equilibrium,
+ which in relative terms is 
+\begin_inset Formula 
+\begin{equation}
+1=\sum_{l}sqT_{l}\label{eq:EQ}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $sqT_{l}$
+\end_inset
+
+ is the share of demand for energy service produced by technology 
+\begin_inset Formula $l$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement document
+alignment document
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Market equilibrium
+\end_layout
+
+\end_inset
+
+
+\begin_inset Graphics
+	filename Figures/Supply_curve.svg
+	scale 60
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 2 pictures the sum of supply by technologies relative to demand on the x-axis at different price points on the y-axis.
+ The dotted line represents total demand,
+ and the intersection equilibrium.
+ As in Figure 1,
+ the supply curve in discrete form is pictured as a blue curve for comparison.
+ Again,
+ the approximation to the discrete form is close,
+ if the variance is close to zero.
+\end_layout
+
+\begin_layout Standard
+The unit cost of variant 
+\begin_inset Formula $i$
+\end_inset
+
+ of technology 
+\begin_inset Formula $l$
+\end_inset
+
+ is a function of the underlying capital intensity,
+ or in mathematical terms 
+\begin_inset Formula $pT_{l}^{i}\left(utk_{l}^{i}\right)$
+\end_inset
+
+,
+ where
+\lang english
+ 
+\lang danish
+
+\begin_inset Formula $utk_{l}^{i}$
+\end_inset
+
+ is the capital intensity drawn from a random variable  
+\begin_inset Formula $UTK_{l}$
+\end_inset
+
+with cumulative distribution function 
+\begin_inset Formula $cdf$
+\end_inset
+
+ and probability distribution function 
+\begin_inset Formula $pdf$
+\end_inset
+
+
+\lang english
+ We further assume that input ratios are fixed (Leontief production),
+ such that the cost (or price) per unit of energy service produced by variant 
+\begin_inset Formula $i$
+\end_inset
+
+ of technology 
+\begin_inset Formula $l$
+\end_inset
+
+ is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+pT_{l}^{i}\left(utk_{l}^{i}\right)=\sum_{e}\left(uTE_{l,e}\cdot pTE_{e}\right)+utk_{l}^{i}\cdot pTK_{l}\label{eq:pTi}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $uTE_{l,e}$
+\end_inset
+
+ is the energy intensity,
+ 
+\begin_inset Formula $pTE_{e}$
+\end_inset
+
+ is the price of energy input,
+ and 
+\begin_inset Formula $pTK_{l}$
+\end_inset
+
+ is the price of capital.
+\end_layout
+
+\begin_layout Standard
+Now,
+ as explained before,
+ variant 
+\begin_inset Formula $i$
+\end_inset
+
+ will produce only if the unit cost is lower than or equal to the marginal price of energy service,
+ i.e.,
+ if
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+pT_{l}^{i}\left(utk_{l}^{i}\right)\leq pES^{marg}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+By combining the two equations above and rearranging,
+ it can be shown (see Section 10) that this effectively places a restriction on the capital intensity of technology variants,
+ such that only variants with capital intensity lower than a threshold value 
+\begin_inset Formula $uTK^{marg}{}_{l}$
+\end_inset
+
+ will produce.
+ Formally,
+ 
+\begin_inset Formula $uTK^{marg}{}_{l}$
+\end_inset
+
+ is defined as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+uTK^{marg}{}_{l}\equiv\frac{pES^{marg}-\sum_{e}uTE_{l,e}\cdot pTE_{e}}{pTK}\label{uTKmarg}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The share of variants 
+\begin_inset Formula $i$
+\end_inset
+
+ of technology 
+\begin_inset Formula $l$
+\end_inset
+
+ with capital intensity lower than 
+\begin_inset Formula $uTK^{marg}{}_{l}$
+\end_inset
+
+ can be found using the cumulative distribution of 
+\begin_inset Formula $UTK_{l}$
+\end_inset
+
+,
+ i.e.,
+ 
+\begin_inset Formula $cdf\left(uTK^{marg}{}_{l}\right).$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Finally,
+ the production by technology 
+\begin_inset Formula $l$
+\end_inset
+
+ relative to the demand for energy service is restricted to 
+\lang english
+
+\begin_inset Formula $sqT_{l,es,d,t}^{potential}$
+\end_inset
+
+.
+ It is assumed that the potential is uniformly distributed across variants.
+ This allows us to complete the model by defining the supply function at the technology level as
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+\begin_inset Formula 
+\begin{equation}
+sqT_{l}=sqT_{l}^{potential}\cdot cdf\left(uTK^{marg}{}_{l}\right)\label{eq:sqT}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The core equations of the model are 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:EQ"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+,
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "uTKmarg"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+,
+ and 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:sqT"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+.
+ Together,
+ they solve for the core variables 
+\begin_inset Formula $sqT_{l}$
+\end_inset
+
+,
+ 
+\begin_inset Formula $pES^{marg}$
+\end_inset
+
+,
+ and 
+\begin_inset Formula $uTK^{marg}{}_{l}$
+\end_inset
+
+ at exogenous values of the remaining variables and a well-defined distribution 
+\begin_inset Formula $UTK_{l}$
+\end_inset
+
+.
+ Specifically,
+ we assume a log-normal distribution with mean value 
+\begin_inset Formula $uTK_{l}^{exp}$
+\end_inset
+
+ and standard deviation 
+\begin_inset Formula $\sigma$
+\end_inset
+
+,
+ both of which are also exogenously determined.
+
+\lang english
+ 
+\end_layout
+
+\begin_layout Section
+Supplementary Output
+\end_layout
+
+\begin_layout Standard
+The demand for energy in the production of energy services 
+\begin_inset Formula $qESE_{l,e}$
+\end_inset
+
+ is the average energy intensity of technologies 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\nospellcheck off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $uTE_{l,e}$
+\end_inset
+
+ weighed by their respective share of energy service demand 
+\begin_inset Formula $sqT_{l}$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\nospellcheck default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ times total energy service 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\nospellcheck off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $qES$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\nospellcheck default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+,
+ ie.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+qESE_{l,e}=qES\cdot\sum_{l}sqT_{l}\cdot uTE_{l,e}\label{eq:qESE}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+While the energy intensity of technologies is exogenously determined,
+ the capital intensity is endogenously determined in the model.
+ Observe that 
+\begin_inset Formula $uTK_{l}^{exp}$
+\end_inset
+
+ is the unconditional expected capital intensity.
+ In the case where only a subset of variants are adopted,
+ the average capital intensity of these will be lower.
+ In the continuous form of the model,
+ this measure,
+ which we call 
+\begin_inset Formula $uTK_{l}$
+\end_inset
+
+,
+ is captured by the conditional expectation of 
+\begin_inset Formula $UTK_{l}$
+\end_inset
+
+ with respect to an upper threshold of 
+\begin_inset Formula $uTK^{marg}{}_{l}$
+\end_inset
+
+,
+ as only variants with realizations of 
+\begin_inset Formula $UTK_{l}$
+\end_inset
+
+ lower than or equal to 
+\begin_inset Formula $uTK^{marg}{}_{l}$
+\end_inset
+
+ are adopted,
+ or mathematically
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+\begin_inset Formula 
+\begin{equation}
+uTK_{l}=E[UTK_{l}|utk_{l}^{i}\leq uTK^{marg}{}_{l}]\label{eq:utK-1}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The demand for machinery capital in the production of energy services 
+\begin_inset Formula $qESK$
+\end_inset
+
+ is thus
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+qESK=qES\cdot\sum_{l}sqT_{l}\cdot uTK_{l}\label{qESK}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Note however,
+ that the expression for 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\nospellcheck off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $qESK$
+\end_inset
+
+ in the GAMS-code is slightly different,
+ cf.
+ section 6 and specifically equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:qESKalt"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+The costs of producing an energy service 
+\begin_inset Formula $vES$
+\end_inset
+
+ (v for value) is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+vES=\sum_{e}\left(qESE_{l,e}\cdot pTE_{e}\right)+qESK\cdot pTK
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Finally,
+ the price of energy services 
+\begin_inset Formula $pES$
+\end_inset
+
+ is simply the value divided by the quantity of energy service:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+pES=\frac{vES}{qES}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Issues Related to the Log-Normal Distribution
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+We assume that 
+\begin_inset Formula $UTK_{l}$
+\end_inset
+
+ follows a log-normal distribution as follows:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+log(UTK_{l})\sim N\left(log\left(uTK^{exp}{}_{l}\right)-\frac{\sigma^{2}}{2},\sigma^{2}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This formulation guarantees that the expected value of 
+\begin_inset Formula $UTK_{l}$
+\end_inset
+
+ is 
+\begin_inset Formula $uTK^{exp}{}_{l}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+It follows that the cumulative distribution can be formulated as follows
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+cdf\left(uTK^{marg}{}_{l,es,d,t}\right)=\Phi\left(\frac{log\left(uTK^{marg}\right)-log\left(uTK^{exp}\right)+\frac{\sigma^{2}}{2}}{\sigma}\right)\label{eq:cdf}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+,
+ where 
+\begin_inset Formula $\Phi$
+\end_inset
+
+ is the cumulative distribution of the normal distribution.
+\end_layout
+
+\begin_layout Standard
+The partial expected value of 
+\begin_inset Formula $UTK_{l}$
+\end_inset
+
+ with respect to an upper threshold 
+\begin_inset Formula $uTK^{marg}{}_{l}$
+\end_inset
+
+ is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+E^{partial}\left(uTK_{l}^{marg}\right)=uTK_{l}^{exp}\cdot\Phi\left(\frac{log\left(uTK_{l}^{marg}\right)-log\left(uTK_{l}^{exp}\right)+\frac{\sigma^{2}}{2}-\sigma^{2}}{\sigma}\right)\label{eq:PartExp}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Finally,
+ the conditional expectation of 
+\begin_inset Formula $UTK_{l}$
+\end_inset
+
+ with respect to an upper threshold 
+\begin_inset Formula $uTK^{marg}{}_{l}$
+\end_inset
+
+ is the fraction between the partial expectation and the cumulative distribution,
+ i.e.:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\begin{array}{ccc}
+E^{conditional}\left(uTK^{marg}{}_{l}\right) & = & E[UTK_{l}|utk_{l}^{i}\leq uTK^{marg}{}_{l}]\\
+ & = & \frac{E^{partial}\left(uTK_{l}^{marg}\right)}{cdf\left(uTK_{l}^{marg}\right)}\\
+ & = & \frac{\Phi\left(\frac{log\left(uTK_{l}^{marg}\right)-log\left(uTK_{l}^{exp}\right)+\frac{\sigma^{2}}{2}-\sigma^{2}}{\sigma}\right)}{\Phi\left(\frac{log\left(uTK_{l}^{marg}\right)-log\left(uTK_{l}^{exp}\right)+\frac{\sigma^{2}}{2}}{\sigma}\right)}
+\end{array}\label{eq:CondExp}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In the practical implementation of the model,
+ the conditional expectation has been prone to lead to 'division by zero' errors in GAMS.
+ To avoid this,
+ we only calculate 
+\begin_inset Formula $uTK_{l}$
+\end_inset
+
+ after the model is solved in the reporting section of the model.
+ 
+\begin_inset Formula $uTK_{l}$
+\end_inset
+
+ only enters in equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "qESK"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+.
+ By inserting from equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:sqT"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ into equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "qESK"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+,
+ we can avoid an explicit representation of 
+\begin_inset Formula $uTK_{l}$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+qESK=qES\cdot\sum_{l}sqT_{l}^{potential}\cdot cdf\left(uTK^{marg}{}_{l}\right)\cdot\frac{E^{partial}\left(uTK_{l}^{marg}\right)}{cdf\left(uTK_{l}^{marg}\right)}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+which simplifies to
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+qESK=qES\cdot\sum_{l}sqT_{l}^{potential}\cdot E^{partial}\left(uTK_{l}^{marg}\right)\label{eq:qESKalt}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The domain of the log-normal distribution is restricted to positive values.
+ If,
+ for a particular technology,
+ the costs of energy input in production (
+\begin_inset Formula $\sum_{e}uTE_{l,e}\cdot pTE_{e}$
+\end_inset
+
+) exceed the marginal price of energy 
+\begin_inset Formula $pES^{marg}$
+\end_inset
+
+,
+ the marginal capital intensity in equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "uTKmarg"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ will be negative.
+ This presents the problem that the cumulative distribution function cannot be evaluated outside the domain of the distribution.
+\end_layout
+
+\begin_layout Standard
+The practical solution is to distinguish between an unbounded version (labelled 'unbounded' in GAMS) expressed by equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "uTKmarg"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+,
+ and a bounded version called 
+\begin_inset Formula $uTK_{l}^{marg}$
+\end_inset
+
+,
+ which enters in its place in all other equations.
+ The bounded version is restricted to values above 0 by continuous approximation.
+ We also introduce an upper bound at 5 standard deviations above 
+\begin_inset Formula $uTK^{exp}{}_{l}$
+\end_inset
+
+.
+ This limits the potential production of technologies ever so slightly while helping the solver converge in some cases.
+\end_layout
+
+\begin_layout Standard
+In the abatement model GAMS code,
+ all of the above functions are represented by macro functions with '@' as prefix and similar names as in this text.
+ The functions themselves are defined in the file 'functions.gms'.
+ This is also the case for the function used to set bounds on 
+\begin_inset Formula $uTK^{marg}{}_{l}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section
+The Energy Service Supply Curve
+\end_layout
+
+\begin_layout Standard
+The abatement model provides a singular point on the energy service supply curve,
+ i.e.,
+ at a given level of energy service demand.
+ To facilitate a better understanding of the model,
+ it is useful to be able to trace the entire supply curve,
+ as illustrated in figure 2.
+ This is done in the file 'supply_curves.gms',
+ where a supply curve simulation model is defined and simulated.
+ Technically,
+ it is quite involved,
+ but the underyling principles are simple enough:
+ Building on the core variables and equations in Section 4,
+ we first replace the market clearing condition (equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:EQ"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) with an exogenous threshold price 
+\begin_inset Formula $pES^{marg}$
+\end_inset
+
+.
+ Next,
+ we expand all core equations and variables with a extra set dimension 
+\begin_inset Formula $n$
+\end_inset
+
+ in this exposition.
+ This allows us to solve the model for 
+\begin_inset Formula $sqT_{l,n}$
+\end_inset
+
+ for a range of price prices 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\nospellcheck off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $pES_{n}^{marg}$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\nospellcheck default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ simultaneously.
+ Finally,
+ summing across technologies 
+\begin_inset Formula $l$
+\end_inset
+
+ provides a measure 
+\begin_inset Formula $sQES_{n}$
+\end_inset
+
+ of the total supply of energy service relative to demand,
+ i.e.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+sQES_{n}=\sum_{l}sqT_{l,n}\label{eq:sQES}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The supply curve model is obviously useful for making illustrations like the above.
+ More importantly,
+ it can be used to discover unusual errors in the input data and to help understanding why the solver fails to converge in a particular experiment.
+\end_layout
+
+\begin_layout Standard
+The supply curve simulation model is also used as a pre-model to gain good initial values for the core variables of the abatement model.
+ When used as a pre-model,
+ the supply curve model is simulated,
+ and initial values are picked from 
+\begin_inset Formula $n$
+\end_inset
+
+,
+ where 
+\begin_inset Formula $sQES_{n}\cong1$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section
+Excel-Based Input Module
+\end_layout
+
+\begin_layout Standard
+The partial abatement model is based on an excel-based data module in the file 'Abatement_dummy_data.xslx'.
+ In the input module,
+ the user determines the scope and scale of the model 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\nospellcheck off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $(e,es,d,t)$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\nospellcheck default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ as well as the energy demand,
+ technology characteristics (
+\begin_inset Formula $l$
+\end_inset
+
+),
+ energy prices etc.
+ The input module consists of six different data sheets:
+\end_layout
+
+\begin_layout Enumerate
+
+\bar under
+Model sets:
+
+\bar default
+ Definition of set elements of the model.
+ Note,
+ that the set elements do not have to be consistent with the CGE-model as long as the abatement is used as stand-alone.
+ The sets that is used by the model are:
+\end_layout
+
+\begin_deeper
+\begin_layout Enumerate
+TechID:
+ Technology names
+\end_layout
+
+\begin_layout Enumerate
+e:
+ Energy input
+\end_layout
+
+\begin_layout Enumerate
+es:
+ Energy service
+\end_layout
+
+\begin_layout Enumerate
+d:
+ Industry
+\end_layout
+
+\begin_layout Enumerate
+t:
+ Year
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+
+\bar under
+Technologies:
+
+\bar default
+ Determines the technology characteristics.
+ A technology has to be assigned an element in each of the above mentioned sets.
+ A technology is defined through three parameters:
+\end_layout
+
+\begin_deeper
+\begin_layout Enumerate
+Potential:
+ Translate into 
+\begin_inset Formula $sqT_{l}^{potential}$
+\end_inset
+
+,
+ which defines the share of the energy service that the technology can supply.
+\end_layout
+
+\begin_layout Enumerate
+Energy intensity:
+ Translate into 
+\begin_inset Formula $uTE_{l}$
+\end_inset
+
+,
+ which defines the amount of energy input required to supply one unit of energy output.
+\end_layout
+
+\begin_layout Enumerate
+Capital intensity:
+ Translate into 
+\begin_inset Formula $uTK_{l}^{exp}$
+\end_inset
+
+,
+ which defines the amount of capital required to supply one unit of energy output.
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+
+\bar under
+Energy price:
+
+\bar default
+ Determines the base price of the different energy inputs,
+ which translate into 
+\begin_inset Formula $pTE^{base}$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Enumerate
+
+\bar under
+Energy tax:
+
+\bar default
+ Determines the tax on the use of energy input,
+ which translate into 
+\begin_inset Formula $pTE^{tax}$
+\end_inset
+
+.
+ Together with the energy price this makes up the total price of energy input.
+\end_layout
+
+\begin_layout Enumerate
+
+\bar under
+Capital cost index:
+
+\bar default
+ Determines a cost index for capital costs.
+\end_layout
+
+\begin_layout Enumerate
+
+\bar under
+Energy service:
+
+\bar default
+ Determines the amount of energy service demanded by the specific industries.
+\end_layout
+
+\begin_layout Section
+Report Variables
+\end_layout
+
+\begin_layout Standard
+[Document reporting variables in output]
+\end_layout
+
+\begin_layout Section
+Appendix:
+ Rigorous documentation of the Core Model
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+We assume that the quantity produced 
+\begin_inset Formula $qT_{l}^{i}$
+\end_inset
+
+ is a Leontief production function of inputs:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+qT_{l}^{i}=min\left\{ \frac{qTE_{l,1}^{i}}{uTE_{l,1}},...,\frac{qTE_{l,E}^{i}}{uTE_{l,E}},\frac{qTK_{l}^{i}}{utk_{l}^{i}}\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $qTE_{l,e}^{i}$
+\end_inset
+
+ is energy input 
+\begin_inset Formula $e$
+\end_inset
+
+ and 
+\begin_inset Formula $qTK_{l}^{i}$
+\end_inset
+
+ is capital input in the 
+\begin_inset Formula $i$
+\end_inset
+
+-th variant.
+ Note that we assume that 
+\begin_inset Formula $uTE_{l,e}$
+\end_inset
+
+ is identical for all variants,
+ but that 
+\begin_inset Formula $utk_{l}^{i}$
+\end_inset
+
+ differs.
+\end_layout
+
+\begin_layout Standard
+In optimum,
+ this implies that:
+ 
+\begin_inset Formula 
+\begin{equation}
+qTE_{l,e}^{i}=uTE_{l,e}\cdot qT_{l}^{i}\label{eq:TE}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+qTK_{l}^{i}=utk_{l}^{i}\cdot qT_{l}^{i}\label{eq:TK}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The price of output by variant 
+\begin_inset Formula $i$
+\end_inset
+
+ of technology 
+\begin_inset Formula $l$
+\end_inset
+
+ is as follows:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+pT_{l}^{i}\left(utk_{l}^{i}\right)=\sum_{e}uTE_{l,e}\cdot pTE_{e}+utk_{l}^{i}\cdot pTK_{l}\label{eq:pT}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $pTE_{e}$
+\end_inset
+
+ is the input price of energy,
+ and 
+\begin_inset Formula $pTK$
+\end_inset
+
+ is the user cost of capital (the same for all variants).
+\end_layout
+
+\begin_layout Standard
+The quantity of variant 
+\begin_inset Formula $i$
+\end_inset
+
+ is restricted by:
+ 
+\begin_inset Formula 
+\begin{equation}
+qT_{l}^{i}\leq sqT_{l}^{Potential}qES\label{eq:res1}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $sqT_{l}^{Potential}$
+\end_inset
+
+ is the relative potential of variant 
+\begin_inset Formula $i$
+\end_inset
+
+ (the same for all variants) and 
+\begin_inset Formula $qES$
+\end_inset
+
+ is the total use of the energy service.
+\end_layout
+
+\begin_layout Standard
+The user of the energy service (a firm or a consumer) seeks to minimize their costs,
+ given a fixed level of energy service 
+\begin_inset Formula $qES$
+\end_inset
+
+,
+ and will thus choose to adopt all lower price variants until demand is satisfied.
+\end_layout
+
+\begin_layout Standard
+Total costs 
+\begin_inset Formula $vC$
+\end_inset
+
+ is given by:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+vC=\sum_{l}\int_{0}^{\infty}pT_{l}^{i}\left(utk_{l}^{i}\right)\cdot qT_{l}^{i}\left(utk_{l}^{i}\right)\cdot pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $qT_{l}^{i}\left(utk_{l}^{i}\right)$
+\end_inset
+
+ is 
+\begin_inset Formula $qT_{l}^{i}$
+\end_inset
+
+ given 
+\begin_inset Formula $utk_{l}^{i}$
+\end_inset
+
+ (a policy function),
+ and where 
+\begin_inset Formula $pdf\left(utk_{l}^{i}\right)$
+\end_inset
+
+ denotes the probability density function of 
+\begin_inset Formula $UTK_{l}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+The total costs should be minimized under the restrictions (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:res1"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) and the restriction:
+ 
+\begin_inset Formula 
+\begin{equation}
+\sum_{l}\int_{0}^{\infty}qT_{l}^{i}\left(utk_{l}^{i}\right)\cdot pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}=qES\label{eq:res2}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $qES$
+\end_inset
+
+ is the total use of the energy service.
+ For this purpose,
+ we define a Lagrange function:
+ 
+\begin_inset Formula 
+\begin{align*}
+L & =\sum_{l}\int_{0}^{\infty}pT_{l}^{i}\left(utk_{l}^{i}\right)\cdot sqT_{l}^{i}\left(utk_{l}^{i}\right)\cdot pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}\\
+ & -pES^{marg}\left(\sum_{l}\int_{0}^{\infty}sqT_{l}^{i}\left(utk_{l}^{i}\right)\cdot pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}-1\right)
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula 
+\[
+sqT_{l}^{i}\left(utk_{l}^{i}\right)\equiv\frac{qT_{l}^{i}\left(utk_{l}^{i}\right)}{qES}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+and 
+\begin_inset Formula $pES^{marg}$
+\end_inset
+
+ is the 
+\lang british
+shadow
+\lang danish
+ 
+\lang english
+price
+\lang danish
+ 
+\lang british
+of
+\lang danish
+ the restriction.
+ Observe that we have normalized with 
+\begin_inset Formula $qES$
+\end_inset
+
+.
+ We should minimize the Lagrange function under the additional restrictions:
+ 
+\begin_inset Formula 
+\[
+sqT_{l}^{i}\left(utk_{l}^{i}\right)\leq sqT_{l}^{Potential}
+\]
+
+\end_inset
+
+We can re-write the Lagrange function:
+ 
+\begin_inset Formula 
+\begin{align}
+L & =\sum_{l}\int_{0}^{\infty}\left(pT_{l}^{i}\left(utk_{l,}^{i}\right)-pES^{marg}\right)sqT_{l}^{i}\left(utk_{l}^{i}\right)\cdot pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}\label{eq:L}\\
+ & +pES^{marg}\nonumber 
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+From (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:L"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) it is clear that the policy function is given by:
+ 
+\begin_inset Formula 
+\[
+sqT_{l}^{i}\left(utk_{l,}^{i}\right)=\begin{cases}
+sqT_{l}^{Potential} & \text{if }pT_{l}^{i}\left(utk_{l}^{i}\right)\leq pES^{marg}\\
+0 & \text{otherwise}
+\end{cases}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+or equivalently from (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:pT"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+):
+ 
+\begin_inset Formula 
+\begin{equation}
+sqT_{l}^{i}\left(utk_{l}^{i}\right)=\begin{cases}
+sqT_{l}^{Potential} & \text{if }utk_{l}^{i}\leq uTK_{l}^{marg}\\
+0 & \text{otherwise}
+\end{cases}\label{eq:policy}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+uTK_{l}^{marg}\equiv\frac{pES^{marg}-\sum_{e}\left(uTE_{l,e}\cdot pTE_{e}\right)}{pTK}\label{uTKmarg-1}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The market clearing condition is given by 
+\begin_inset Formula 
+\begin{equation}
+\sum_{l}sqT_{l}=1\label{eq:EQ-1}
+\end{equation}
+
+\end_inset
+
+where from (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:policy"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+):
+ 
+\begin_inset Formula 
+\begin{align}
+sqT_{l} & \equiv\int_{0}^{\infty}sqT_{l}^{i}\left(utk_{l}^{i}\right)\cdot pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}\nonumber \\
+ & =sqT_{l}^{Potential}\int_{0}^{uTK_{l}^{marg}}pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}\label{eq:sT}\\
+ & =sqT_{l}^{Potential}cdf\left(uTK_{l}^{marg}\right)\nonumber 
+\end{align}
+
+\end_inset
+
+where 
+\begin_inset Formula $cdf$
+\end_inset
+
+ is the cumulative distribution function.
+ Observe that this expression is identical to equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:sqT"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+The average price of energy service 
+\begin_inset Formula $pES$
+\end_inset
+
+ is given by:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{align}
+pES & \equiv\frac{vC}{qES}=\sum_{l}\int_{0}^{\infty}pT_{l}^{i}\left(utk_{l}^{i}\right)\cdot sqT_{l}^{i}\left(utk_{l,}^{i}\right)\cdot pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}\nonumber \\
+ & =\sum_{l}\left(\sum_{e}uTE_{l,e}\cdot pTE_{e}\right)\cdot\int_{0}^{\infty}sqT_{l}^{i}\left(utk_{l}^{i}\right)\cdot pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}\nonumber \\
+ & +pTK\cdot\sum_{l}\int_{0}^{\infty}utk_{l}^{i}\cdot sqT_{l}^{i}\left(utk_{l,}^{i}\right)\cdot pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}\label{eq:pES}\\
+ & =\sum_{l}\left(\sum_{e}uTE_{l,e}\cdot pTE_{e}\right)\cdot sqT_{l}^{Potential}\cdot cdf\left(uTK_{l}^{marg}\right)\nonumber \\
+ & +pTK\cdot\sum_{l}sqT_{l}^{Potential}\cdot\int_{0}^{uTK_{l}^{marg}}utk_{l}^{i}\cdot pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}\nonumber \\
+ & =\sum_{l}\left(\sum_{e}uTE_{l,e}\cdot pTE_{e}\right)\cdot sqT_{l}^{Potential}\cdot cdf\left(uTK_{l}^{marg}\right)\nonumber \\
+ & +pTK\cdot\sum_{l}sqT_{l}^{Potential}\cdot cdf\left(uTK_{l}^{marg}\right)\cdot E\left[UTK_{l}|utk_{l}^{i}\leq uTK_{l}^{marg}\right]\nonumber 
+\end{align}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+as 
+\begin_inset Formula 
+\[
+E\left[UTK_{l}|utk_{l}^{i}\leq uTK_{l}^{marg}\right]=\frac{\int_{0}^{uTK_{l}^{marg}}utk_{l}^{i}\cdot pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}}{cdf\left(uTK_{l}^{marg}\right)}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Inserting from 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:sT"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ in 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:pES"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ and rearranging leads to
+\end_layout
+
+\begin_layout Standard
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\nospellcheck off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+\begin_inset Formula 
+\begin{equation}
+pES=\sum_{l}\left(sqT_{l}\sum_{e}\left(uTE_{l,e}\cdot pTE_{e}\right)+pTK\cdot E\left[UTK_{l}|utk_{l}^{i}\leq uTK_{l}^{marg}\right]\right)\label{eq:pES_b}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+,
+ which can be observed to be consistent with equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:pTi"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:utK-1"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ combined.
+\end_layout
+
+\begin_layout Standard
+We now make the specific assumption that 
+\begin_inset Formula $UTK_{l}$
+\end_inset
+
+ follows a log-normal distribution as follows:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+log(UTK_{l})\sim N\left(log\left(uTK_{l}^{exp}\right)-\frac{\sigma^{2}}{2},\sigma^{2}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\nospellcheck off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+This formulation guarantees that the expected value of 
+\begin_inset Formula $UTK_{l}$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\nospellcheck default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ is 
+\begin_inset Formula $uTK_{l}^{exp}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+It follows that the cumulative distribution can be formulated as follows,
+ where 
+\begin_inset Formula $\Phi$
+\end_inset
+
+ is the cumulative distribution of the normal distribution:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+cdf\left(uTK_{l}^{marg}\right)=\Phi\left(\frac{log\left(uTK_{l}^{marg}\right)-log\left(uTK_{l}^{exp}\right)+\frac{\sigma^{2}}{2}}{\sigma}\right)\label{eq:cdf-1}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It can be proven that:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+E[UTK_{l}|utk_{l}^{i}\leq uTK_{l}^{marg}]=\frac{\Phi\left(\frac{log\left(uTK_{l}^{marg}\right)-log\left(uTK_{l}^{exp}\right)-\frac{\sigma^{2}}{2}}{\sigma}\right)}{\Phi\left(\frac{log\left(uTK_{l}^{marg}\right)-log\left(uTK_{l}^{exp}\right)+\frac{\sigma^{2}}{2}}{\sigma}\right)}uTK_{l}^{exp}\label{eq:CondExp-1}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+From (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:pES_b"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) we then have that:
+\end_layout
+
+\begin_layout Standard
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\nospellcheck off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+\begin_inset Formula 
+\begin{equation}
+pES=\sum_{l}\left(sqT_{l}\sum_{e}\left(uTE_{l,e}\cdot pTE_{e}\right)+pTK\cdot\frac{\Phi\left(\frac{log\left(uTK_{l}^{marg}\right)-log\left(uTK_{l}^{exp}\right)-\frac{\sigma^{2}}{2}}{\sigma}\right)}{\Phi\left(\frac{log\left(uTK_{l}^{marg}\right)-log\left(uTK_{l}^{exp}\right)+\frac{\sigma^{2}}{2}}{\sigma}\right)}uTK_{l}^{exp}\right)\label{eq:pES_b-1}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+From (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:sT"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) we have that:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+qT_{l}=sqT_{l}^{Potential}\cdot\Phi\left(\frac{log\left(uTK_{l}^{marg}\right)-log\left(uTK_{l}^{exp}\right)+\frac{\sigma^{2}}{2}}{\sigma}\right)\cdot qES
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+From (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:TE"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) we have that:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+qTE_{l,e}=uTE_{l,e}\cdot qT_{l}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+which can be observed to be consistent with equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:sqT"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:qESE"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ combined.
+\end_layout
+
+\begin_layout Standard
+And from (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:TK"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) and (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:CondExp-1"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+):
+\begin_inset Formula 
+\begin{align*}
+qTK_{l} & \equiv\int_{0}^{\infty}qTK_{l}^{i}pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}\\
+ & =\int_{0}^{\infty}utk{}_{l}^{i}\cdot qT_{l}^{i}\cdot pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}\\
+ & =qT_{l}^{Potential}\cdot\int_{0}^{uTK_{l}^{marg}}utk_{l}^{i}\cdot pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}\\
+ & =qT_{l}^{Potential}\cdot\Phi\left(\frac{log\left(uTK_{l}^{marg}\right)-log\left(uTK_{l}^{exp}\right)+\frac{\sigma^{2}}{2}}{\sigma}\right)\cdot\frac{\int_{0}^{uTK_{l}^{marg}}utk_{l}^{i}\cdot pdf\left(utk_{l}^{i}\right)dutk_{l}^{i}}{\Phi\left(\frac{log\left(uTK_{l}^{marg}\right)-log\left(uTK_{l}^{exp}\right)+\frac{\sigma^{2}}{2}}{\sigma}\right)}\\
+ & =qT_{l}^{Potential}\cdot\Phi\left(\frac{log\left(uTK_{l}^{marg}\right)-log\left(uTK_{l}^{exp}\right)+\frac{\sigma^{2}}{2}}{\sigma}\right)\cdot E[UTK_{l}|utk_{l}^{i}\leq uTK_{l}^{marg}]\\
+ & =qT_{l}^{Potential}\cdot\Phi\left(\frac{log\left(uTK_{l}^{marg}\right)-log\left(uTK_{l}^{exp}\right)-\frac{\sigma^{2}}{2}}{\sigma}\right)\cdot uTK_{l}^{exp}
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+which is consistent with equation 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:qESKalt"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+.
+\end_layout
+
+\end_body
+\end_document
