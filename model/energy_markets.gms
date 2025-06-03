@@ -299,7 +299,7 @@
 		$BLOCK energy_markets_IO_link energy_markets_IO_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
 		#THIS BLOCK OF EQUATIONS LINK BOTTOM-UP ENERGY PRODUCTION AND CONSUMPTION WITH IO-CELLS IN INPUT_OUTPUT.GMS
 
-		#Domestic supply of energy (e) from industry (i)'s share of total supply of e, measured in values
+		#Domestic supply of energy (e) from industry (i)'s share of total supply of (e), measured in values
 		..sSupply_e_i_y[e,i,t] =E= vY_CET[e,i,t]/sum(i_a, vY_CET[e,i_a,t] + vM_CET[e,i_a,t]);
 
 

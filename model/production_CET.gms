@@ -40,18 +40,17 @@ $IF %stage% == "equations":
     qPFtop2qY[i,t]..
       pY0_i[i,t] * qY0_i[i,t] =E= sum(out, pY0_CET[out,i,t] * qY_CETgross[out,i,t]); 
     
-    #Link to pricing
-    # rMarkup_i[i,t]..
-    #      vY_i[i,t] =E= sum(out, pY_CET[out,i,t]*qY_CET[out,i,t]) + jvY_i[i,t]; 
 
+    #Link to pricing
     # rMarkup_i[i,t]$(t.val > tDataEnd.val)..
     #      (1+rMarkup_i[i,t])* pY0_i[i,t]*qY0_i[i,t] =E= sum(out, vY_CET[out,i,t]);
 
+    #Just for testing. Should herpahs not have its own equations
     jvY_i[i,t]..
          vY_i[i,t] =E= sum(out, pY_CET[out,i,t]*qY_CET[out,i,t]) + jvY_i[i,t]; 
 
     jvM_i[i,t]..
-         vM_i[i,t] =E= sum(out, pM_CET[out,i,t]*qM_CET[out,i,t]) + jvM_i[i,t]; 
+         vM_i[i,t] =E= sum(out, pM_CET[out,i,t]*qM_CET[out,i,t]) + sum(e,vDistributionProfits[e,t])$(i_refineries[i]) + jvM_i[i,t]; 
 
   $ENDBLOCK
 
@@ -133,3 +132,18 @@ $IF %stage% == "calibration":
   ;
 
 $ENDIF # calibration
+
+# ------------------------------------------------------------------------------
+# Model tests
+# ------------------------------------------------------------------------------
+
+$IF %stage%=='tests':
+  LOOP((t,i)$(t.val>tDataEnd.val),
+  ABORT$(abs(jvY_i.l[i,t])>1e-6) 'Production value vY_i computed in input_out.gms does not align with production value in CET-split';
+  );
+
+  #This test should be adjusted to handle distribution profits (which is why the test does not work )
+  # LOOP((t,i)$(t.val>tDataEnd.val),
+  # ABORT$(abs(jvM_i.l[i,t])>1e-6) 'Import value vM_i computed in input_out.gms does not align with production value in CET-split';
+  # );
+$ENDIF
