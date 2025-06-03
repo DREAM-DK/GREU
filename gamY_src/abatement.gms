@@ -38,14 +38,14 @@ $Group+ all_variables
   uTE[l,es,e,d,t]$(d1uTE[l,es,e,d,t]) "Input of energy in technology l per PJ output at full potential"
   uTKexp[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Average input of machinery capital in technology l per PJ output at full potential"
 
-  InvCost[l,es,d,t]$(d1sTPotential[l,es,d,t]) "billion EUR per PJ output at full potential"
-  VarCost[l,es,d,t]$(d1sTPotential[l,es,d,t]) "billion EUR per PJ output at full potential"
-  LifeSpan[l,es,d]$(sum(t, d1sTPotential[l,es,d,t])) "Life span of technology l in years"
-  DiscountRate[l,es,d]$(sum(t, d1sTPotential[l,es,d,t])) "Discount rate of technology l"
+  InvCost[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "billion EUR per PJ output at full potential"
+  VarCost[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "billion EUR per PJ output at full potential"
+  LifeSpan[l,es,d]$(sum(t, d1sqTPotential[l,es,d,t])) "Life span of technology l in years"
+  DiscountRate[l,es,d]$(sum(t, d1sqTPotential[l,es,d,t])) "Discount rate of technology l"
 
   # 1.2.2 Core Endogenous Variables
 
-  vTK_LCOE[l,es,d,t]$(d1sTPotential[l,es,d,t]) "Levelized cost of energy (LCOE) in technology l per PJ output at full potential"
+  vTK_LCOE[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Levelized cost of energy (LCOE) in technology l per PJ output at full potential"
 
   # 1.2.2.1 Marginal Capital Intensity
   uTKmargNoBound[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Input of machinery capital in technology l per PJ output at the margin of supply - Unrestricted"
@@ -88,7 +88,7 @@ $BLOCK abatement_equations_core abatement_endogenous_core $(t1.val <= t.val and 
   .. pTE[es,e,d,t] =E=  pTE_base[es,e,d,t] + pTE_tax[es,e,d,t]; 
 
   # Levelized cost of energy (LCOE) in technology l per PJ output at full potential
-  .. vTK_LCOE[l,es,d,t]$(d1sTPotential[l,es,d,t]) =E= 
+  .. vTK_LCOE[l,es,d,t]$(d1sqTPotential[l,es,d,t]) =E= 
       sum(tt, InvCost[l,es,d,tt] / ((1+DiscountRate[l,es,d])**(tt.val-t.val))
             + VarCost[l,es,d,tt] / ((1+DiscountRate[l,es,d])**(tt.val-t.val))) 
     / sum(tt, 1 / ((1+DiscountRate[l,es,d])**(tt.val-t.val)));
@@ -190,7 +190,6 @@ $GROUP+ data_covered_variables abatement_data_variables;
 # 3.2 Initial Values and Dummy Setup
 # Set initial values for technology parameters
 uTKexp.l[l,es,d,t] = uTKexp.l[l,es,d,t] * 100;
-uTKexp.l['t1',es,d,t] = uTKexp.l['t1',es,d,t] * 10;
 
 # Calculate initial prices
 pTE.l[es,e,d,t] = pTE_base.l[es,e,d,t] + pTE_tax.l[es,e,d,t];
@@ -209,10 +208,10 @@ d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 d1pTE[es,e,d,t] = yes$(pTE.l[es,e,d,t]);
 d1qES[es,d,t] = yes$(qES.l[es,d,t]);
 
-InvCost.l[l,es,d,t]$(d1sTPotential[l,es,d,t] and sameas[t,'2019']) = 1;
-VarCost.l[l,es,d,t]$(d1sTPotential[l,es,d,t]) = 0.1;
-LifeSpan.l[l,es,d]$(sum(t, d1sTPotential[l,es,d,t])) = 5;
-DiscountRate.l[l,es,d]$(sum(t, d1sTPotential[l,es,d,t])) = 0.05;
+InvCost.l[l,es,d,t]$(d1sqTPotential[l,es,d,t] and sameas[t,'2019']) = 1;
+VarCost.l[l,es,d,t]$(d1sqTPotential[l,es,d,t]) = 0.1;
+LifeSpan.l[l,es,d]$(sum(t, d1sqTPotential[l,es,d,t])) = 5;
+DiscountRate.l[l,es,d]$(sum(t, d1sqTPotential[l,es,d,t])) = 0.05;
 
 
 $ENDIF # exogenous_values

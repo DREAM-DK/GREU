@@ -103,14 +103,14 @@ pTE_tax.l[es,e,d,t]$(sameas[e,'Gasoline for transport'] or
                      sameas[e,'Waste'])
     = pTE.l[es,e,d,t]*30;
 
-# $import Supply_curves_abatement.gms
+$import Supply_curves_abatement.gms
 
-# $FIX all_variables;
-# $UNFIX main_endogenous;
-# @Setbounds_abatement();
-# Solve main using CNS;
-# $IMPORT report_abatement.gms
-# execute_unload 'shock_carbon_tax.gdx';
+$FIX all_variables;
+$UNFIX main_endogenous;
+@Setbounds_abatement();
+Solve main using CNS;
+$IMPORT report_abatement.gms
+execute_unload 'shock_carbon_tax.gdx';
 
 # ----------------------------------------------------------------------------------------------------------------------
 # 7. Additional Analysis

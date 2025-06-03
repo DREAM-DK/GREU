@@ -118,11 +118,11 @@ df_sets = pd.read_excel(file_name,sheet_name='Model sets')
 db_abatement=gp.Container()
 
 # Creating list with model sets
-set_technologies_list=list(df_sets['Set for technologies'].unique())
-set_energy_input_list=list(df_sets['Set for energy input'].unique())
-set_energy_service_list=list(df_sets['Set for energy service'].unique())
-set_industry_list=list(df_sets['Set for industry'].unique())
-set_year_list=list(df_sets['Set for year'].unique())
+set_technologies_list=list(df_sets['Set for technologies (TechID)'].unique())
+set_energy_input_list=list(df_sets['Set for energy input (e) '].unique())
+set_energy_service_list=list(df_sets['Set for energy service (es)'].unique())
+set_industry_list=list(df_sets['Set for industry (d)'].unique())
+set_year_list=list(df_sets['Set for year (t)'].unique())
 
 # Removing missing values in list with model sets
 set_energy_input_list = [x for x in set_energy_input_list if not (isinstance(x, float) and math.isnan(x)) and x is not None]
