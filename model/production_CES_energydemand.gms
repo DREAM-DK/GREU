@@ -4,7 +4,7 @@
 
 $IF %stage% == "variables":
 	$SetGroup+ SG_flat_after_last_data_year
-		# d1pREa[es,e_a,i,t] #£Skal flyttes hertil, når vi får stages. Pt i energy_markets
+		d1pREa[es,e_a,i,t] ""
 		d1pREa_inNest[es,e_a,i,t] ""
 		d1pREa_NotinNest[es,e_a,i,t] ""
 		d1pEes[es,i,t] ""
@@ -17,7 +17,7 @@ $IF %stage% == "variables":
 		pREes[es,i,t]$(d1pEes[es,i,t]) 						"Price of nest of energy-activities, aggregated to energy-services, CES-price index."
 		pREmachine[i,t]$(d1pREmachine[i,t]) 			"Price of machine energy, CES-price index."
 		pProd[pf,i,t]$(d1Prod[pf,i,t]) 						"Production price of production function pf in sector i at time t" #Should be moved to production.gms when stages are implemented
-		# qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) "" £Skal flyttes hertil, når vi får stages. Pt i energy_markets
+		qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 									 "Industries demand for energy activity (e_a). When abatement is turned off, the energy-activity is measured in PJ, and corresponds 1:1 to qEpj"		#Skal flyttes til industries_CES_energydemand.gms, når vi får stages
 		qREes[es,i,t]$(d1pEes[es,i,t]) 						"CES-Quantity of energy-services, measured in bio 2019-DKK"
 		qREmachine[i,t]$(d1pREmachine[i,t]) 			"CES-Quantity of machine energy, measured in bio 2019-DKK"
 		qProd[pf,i,t]$(d1Prod[pf,i,t]) 						"CES-quantity of production function pf in sector i at time t" #Should be moved to production.gms when stages are implemented
@@ -27,11 +27,12 @@ $IF %stage% == "variables":
 		eREa[es,i] 																	"Elasticity of substitution between energy-activities for a given energy-service"
 		uREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 			"CES-share for energy-activity in industry i"
 	
-		uREes[es,i,t] 															"CES-share between energy-service and energy-activity"				
+		vREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 			"Value of energy-activity (e_a) in industry i, measured in bio 2019-DKK"
+
+		uREes[es,i,t]$(d1pEes[es,i,t] and not (heating[es] or transport[es])) "CES-share between energy-service and energy-activity"				
 		eREes[i] 																		"Elasticity of substitution between energy-services for industri i"
 
-		jqREes[es,i,t]$(d1pEes[es,i,t]) 						"Calibration term to avoid problem between static and dynamic calibration"
-		jqREmachine[i,t]$(d1pREmachine[i,t]) 				"Calibration term to avoid problem between static and dynamic calibration"
+
 	;
 $ENDIF
 
@@ -66,28 +67,44 @@ $IF %stage% == "equations":
 			qREa&_ElectricityForDatacenters[es,e_a,i,t]$(d1pREa_NotinNest[es,e_a,i,t] and process_special[es] and el[e_a] and i_service_for_industries[i])..	
 				qREa[es,e_a,i,t] =E= uREa[es,e_a,i,t] * qREa_ElectricityForDatacentersData[t];
 
-			qREa&_Natural[es,e_a,i,t]$(d1pREa_NotinNest[es,e_a,i,t] and process_special[es] and el[e_a] and i_service_for_industries[i])..	
+			qREa&_Natural[es,e_a,i,t]$(d1pREa_NotinNest[es,e_a,i,t] and process_special[es] and natgas_ext[e_a] and i_gasdistribution[i])..	
 				qREa[es,e_a,i,t] =E= uREa[es,e_a,i,t] * (qY_CET['Natural gas incl. biongas','35002',t] - qREa['process_special','Biogas','35002',t]);
 		
 			vEnergycostsnotinnesting[i,t].. vEnergycostsnotinnesting[i,t] =E= sum((es,e_a)$(d1pREa_NotinNest[es,e_a,i,t]), pREa[es,e_a,i,t] * qREa[es,e_a,i,t]);
+
+			.. vREa[es,e_a,i,t] =E= pREa[es,e_a,i,t] * qREa[es,e_a,i,t]; #Value of energy-activity (e_a) in industry i, measured in bio 2019-DKK
 
 	$ENDBLOCK		
 
 	$BLOCK industries_energy_demand_link industries_energy_demand_link_endogenous $(t.val>=t1.val and t.val<=tEnd.val)
 	    qREes&_heating[es,i,t]$(d1pEes[es,i,t] and heating[es])..
-	      qREes['heating',i,t] =E= qProd['heating_energy',i,t] + jqREes[es,i,t];
+	      qREes['heating',i,t] =E= qProd['heating_energy',i,t];
 	  
 	    qREes&_transport[es,i,t]$(d1pEes[es,i,t] and transport[es])..
-	      qREes['transport',i,t] =E= qProd['transport_energy',i,t] + jqREes[es,i,t];
+	      qREes['transport',i,t] =E= qProd['transport_energy',i,t];
 
 			qREmachine[i,t]$(d1pREmachine[i,t])..
-				qREmachine[i,t] =E= qProd['machine_energy',i,t] + jqREmachine[i,t];
+				qREmachine[i,t] =E= qProd['machine_energy',i,t];
+
+		
+			jpProd&_machine_energy[pf_bottom_e,i,t]$(sameas[pf_bottom_e,'machine_energy'])..
+				pProd[pf_bottom_e,i,t] =E= pREmachine[i,t];
+
+			jpProd&_transport_energy[pf_bottom_e,i,t]$(sameas[pf_bottom_e,'transport_energy'])..
+				pProd[pf_bottom_e,i,t] =E= pREes['transport',i,t];
+
+			jpProd&_heating_energy[pf_bottom_e,i,t]$(sameas[pf_bottom_e,'heating_energy'])..
+				pProd[pf_bottom_e,i,t] =E= pREes['heating',i,t];
+
+			#Should be linked in abatement-module when turned on
+			.. pREa[es,e,i,t] =E= pEpj_marg[es,e,i,t];
 
 	$ENDBLOCK
 
 	# Add equation and endogenous variables to main model
 	model main / industries_energy_demand
-								industries_energy_demand_link/;
+								industries_energy_demand_link
+								/;
 	$Group+ main_endogenous 
 			industries_energy_demand_endogenous
 			industries_energy_demand_link_endogenous
@@ -111,6 +128,7 @@ $IF %stage% == "exogenous_values":
 	
 	qREa.l[es,e_a,i,t]                = qEpj.l[es,e_a,i,t];
 	pREa.l[es,e_a,i,t]                = pEpj_base.l[es,e_a,i,t];
+	pEpj_marg.l[es,e,i,t]             = pREa.l[es,e,i,t];
 	qREes.l[es,i,t]$(tDataEnd[t])     = sum(e_a, qREa.l[es,e_a,i,t]);
 	pREes.l[es,i,t]$(tDataEnd[t])     = 1;
 	pREmachine.l[i,t]$(tDataEnd[t])   = 1;
@@ -121,21 +139,11 @@ $IF %stage% == "exogenous_values":
 
 	qREa_BiogasForConvertingData.l[t]       = qEpj.l['process_special','Biogas','35002',t];
 	qREa_ElectricityForDatacentersData.l[t] = qEpj.l['process_special','Electricity','71000',t];
+
 # ------------------------------------------------------------------------------
 # Set dummies 
 # ------------------------------------------------------------------------------
-
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and crudeoil[e_a] and i_refineries[i]) = yes; #Refinery feedstock of crude oil
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and natgas_ext[e_a] and i_gasdistribution[i]) = yes; #Input of fossile natural gas in gas distribution sector
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and biogas[e_a] and i_gasdistribution[i]) = yes; #Input of biogas for converting to natural gas in gas distribution sector
-	d1pREa_NotinNest[es,e_a,i,t]$(pEpj_base.l[es,e_a,i,t] and process_special[es] and el[e_a] and i_service_for_industries[i]) = yes; #Electricity for data centers (only applies when calibrated to Climate Outlook)
-
-	d1pREa_inNest[es,e_a,i,t]    = yes$(pEpj_base.l[es,e_a,i,t] and not d1pREa_NotinNest[es,e_a,i,t]);
-	d1pREa[es,e_a,i,t]           = yes$(d1pREa_inNest[es,e_a,i,t] or d1pREa_NotinNest[es,e_a,i,t]);
-
-	d1pEes[es,i,t] 			 				 = yes$(sum(e_a, d1pREa_inNest[es,e_a,i,t]));	
-	d1pREmachine[i,t]            = yes$(sum(es$(not (heating[es] or transport[es])), d1pEes[es,i,t]));
-	d1Prod[pf,i,t]               = yes$(pProd.l[pf,i,t]);
+	#Moved to energy_and_emissions_taxes.gms
 
 $ENDIF
 
@@ -160,9 +168,14 @@ $IF %stage% == "calibration":
 		-pREmachine[i,t1], qREmachine[i,t1]
 
 		industries_energy_demand_link_endogenous
-		jqREmachine[i,t1]
-		jqREes[es,i,t1] #When linked, quantities are back in exogenously
+		qProd[pf_bottom_e,i,t1]
 
 			calibration_endogenous
 	;
+
+	$Group+ G_flat_after_last_data_year
+  	uREa$(d1pREa_inNest[es,e_a,i,t] or d1pREa_NotinNest[es,e_a,i,t])
+		uREes
+	;
+
 $ENDIF

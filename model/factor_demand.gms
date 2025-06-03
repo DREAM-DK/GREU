@@ -5,6 +5,7 @@ $IF %stage% == "variables":
 
 $SetGroup+ SG_flat_after_last_data_year
   d1K_k_i[k,i,t] "Dummy. Does industry i have capital of type k?"
+  d1E_re_i[re,i,t] "Dummy. Does industry i use energy inputs for purpose re?"
   d1E_i[i,t] "Dummy. Does industry i use energy inputs?"
 ;
 
@@ -18,6 +19,10 @@ $Group+ all_variables
   qInvt_i[i,t] "Net real inventory investments by industry."
   vInvt_i[i,t] "Net inventory investments by industry."
 
+  qInvt_ene_i[i,t] "Net real inventory investments in energy by industry."
+  vInvt_ene_i[i,t] "Net inventory investments in energy by industry."
+
+
   pK_k_i[k,i,t]$(d1K_k_i[k,i,t]) "User cost of capital by capital type and industry."
   rHurdleRate_i[i,t]$(d1Y_i[i,t]) "Corporations' hurdle rate of investments by industry."
   jpK_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Additive residual in user cost of capital."
@@ -26,10 +31,12 @@ $Group+ all_variables
   qL2qY_i[i,t] "Labor to output ratio by industry."
   qR2qY_i[i,t] "Intermediate input to output ratio by industry."
   qInvt2qY_i[i,t] "Inventory investment to output ratio by industry."
-  qE2qY_i[i,t]$(d1E_i[i,t]) "Demand for intermediate energy inputs to output ratio by industry."
-  pE_i[i,t]$(d1E_i[i,t]) "Price index of energy inputs, by industry."
-  qE_i[i,t]$(d1E_i[i,t]) "Real energy inputs by industry."
-  vE_i[i,t]$(d1E_i[i,t]) "Energy inputs by industry."
+  qInvt_ene2qY_i[i,t] "Inventory investment in energy to output ration by industry"
+  qE2qY_re_i[re,i,t]$(d1E_re_i[re,i,t]) "Demand for intermediate energy inputs to output ratio by industry."
+  pE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "Price index of energy inputs, by industry."
+  qE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "Real energy inputs by industry."
+  vE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "Energy inputs by industry and final purpose."
+  vE_i[i,t]$(d1E_i[i,t]) "Energy inputs by industry"
 ;
 
 $ENDIF # variables
@@ -44,27 +51,35 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   .. qK_k_i[k,i,t] =E= qK2qY_k_i[k,i,t] * qY_i[i,t];
   .. qL_i[i,t] =E= qL2qY_i[i,t] * qY_i[i,t];
 
-  # Inventory investments
-  .. qInvt_i[i,t] =E= qInvt2qY_i[i,t] * qY_i[i,t];
-  .. qD[invt,t] =E= sum(i, qInvt_i[i,t]);
-  .. vInvt_i[i,t] =E= pD['invt',t] * qInvt_i[i,t];
-
   # Link demand for non-energy intermediate inputs to input-output model
   # We use a one-to-one mapping between types of intermediate inputs and industries
   .. qD[i,t] =E= qR2qY_i[i,t] * qY_i[i,t];
 
   # Link demand for energy intermediate inputs to input-output model
-  .. pE_i[i,t] =E= sum(i2re[i,re], pD[re,t]);
-  .. qE_i[i,t] =E= qE2qY_i[i,t] * qY_i[i,t];
-  .. qD[re,t] =E= sum(i2re[i,re], qE_i[i,t]);
-  .. vE_i[i,t] =E= sum(i2re[i,re], vD[re,t]);
+  .. pE_re_i[re,i,t] =E=  pD[re,t];
+  .. qE_re_i[re,i,t] =E= qE2qY_re_i[re,i,t] * qY_i[i,t];
+  .. qD[re,t] =E= sum(i, qE_re_i[re,i,t]);
+  .. vE_re_i[re,i,t] =E= pE_re_i[re,i,t] * qE_re_i[re,i,t] ;
+
+  .. vE_i[i,t] =E= sum(re, vE_re_i[re,i,t]);
+
+  # Inventory investments
+  .. qInvt_i[i,t] =E= qInvt2qY_i[i,t] * qY_i[i,t];
+  .. qD[invt,t] =E= sum(i, qInvt_i[i,t]);
+  .. vInvt_i[i,t] =E= pD['invt',t] * qInvt_i[i,t];
+
+  # Energy inventory investments
+  .. qInvt_ene_i[i,t] =E= qInvt_ene2qY_i[i,t] * qY_i[i,t];
+  .. qD[Invt_ene,t] =E= sum(i, qInvt_ene_i[i,t]);
+  .. vInvt_ene_i[i,t] =E= pD['Invt_ene',t] * qInvt_ene_i[i,t];
+
+  # Capital accumulation (firms demand capital directly, investments are residual from capital accumulation)
+  .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq;
 
   # Link demand for investments to input-output model
   .. qD[k,t] =E= sum(i, qI_k_i[k,i,t]);
   .. vI_k_i[k,i,t] =E= pD[k,t] * qI_k_i[k,i,t];
 
-  # Capital accumulation (firms demand capital directly, investments are residual from capital accumulation)
-  .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq;
 
     $(not tEnd[t])..
       pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t+1]) * pD[k,t+1]*fp + jpK_k_i[k,i,t];
@@ -88,16 +103,25 @@ $Group factor_demand_data_variables
   qI_k_i[k,i,t]
   qD[i,t]
   qD[re,t]
+  qD[k,t]
+  qD[invt_ene,t]
+  qD[invt,t]
+  
   qInvt_i[i,t]
+  qInvt_ene_i[i,t]
+  qE_re_i[re,i,t] 
 ;
 @load(factor_demand_data_variables, "../data/data.gdx")
 $Group+ data_covered_variables factor_demand_data_variables$(t.val <= %calibration_year%);
 
-d1K_k_i[k,i,t] = abs(qK_k_i.l[k,i,t]) > 1e-9;
-d1E_i[i,t] = abs(sum(i2re[i,re], qD.l[re,t])) > 1e-9;
+d1K_k_i[k,i,t]    = abs(qK_k_i.l[k,i,t]) > 1e-9;
+d1E_re_i[re,i,t] = abs(qE_re_i.l[re,i,t]) > 1e-9;
+d1E_i[i,t]       = yes$(sum(re, d1E_re_i[re,i,t]));
 
 rHurdleRate_i.l[i,t] = 0.2;
 
+pK_k_i.l[k,i,t]$d1K_k_i[k,i,t] = rHurdleRate_i.l[i,t]; 
+pE_re_i.l[re,i,t]$d1E_re_i[re,i,t] = fpt[t];
 $ENDIF # exogenous_values
 
 # ------------------------------------------------------------------------------
@@ -106,6 +130,8 @@ $ENDIF # exogenous_values
 $IF %stage% == "calibration":
 
 $BLOCK factor_demand_calibration_equations factor_demand_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+  # jpK_k_i[k,i,t]$(t.val>t1.val and t.val <tEnd.val)..
+  #   pK_k_i[k,i,t] =E= pK_k_i[k,i,t1];
 $ENDBLOCK
 
 # Add equations and calibration equations to calibration model
@@ -122,7 +148,8 @@ $Group calibration_endogenous
   -qD[i,t1], qR2qY_i[i,t1]
   -qI_k_i[k,i,t1], rKDepr_k_i[k,i,t1]
   -qInvt_i[i,t1], qInvt2qY_i[i,t1]
-  -qD[re,t1], qE2qY_i[i,t1]
+  -qInvt_ene_i[i,t1], qInvt_ene2qY_i[i,t1]
+  -qE_re_i[re,i,t1], qE2qY_re_i[re,i,t1]
 
   calibration_endogenous
 ;
