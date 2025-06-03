@@ -28,6 +28,7 @@ os.chdir(fr"{root}/gamY_src")
 dt.gamY.run("base_model.gms")
 
 # Plot smooth and discrete supply curves
+plot_supply_curve("supply_curves_pre_calibration.gdx")
 plot_supply_curve("calibration.gdx")
 plot_supply_curve("shock_capital_cost.gdx")
 plot_supply_curve("shock_carbon_tax.gdx")

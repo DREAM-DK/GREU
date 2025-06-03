@@ -20,35 +20,30 @@ def plot_supply_curve(gdxname):
     # Prices (discrete)
     pTPotential = e["pTPotential"].to_frame()
     pTPotential = pTPotential.reset_index()
-    # pTPotential = pTPotential.rename(columns={"es":"purpose","d":"s"})
     pTPotential.set_index(['t', 'd','es','l'], inplace=True)
 
     # Potentials (discrete)
-    sTPotential = e["sTPotential"].to_frame()
-    sTPotential = sTPotential.reset_index()
-    # sTPotential = sTPotential.rename(columns={"es":"purpose","d":"s","sTPotential":"sTPotential"})
-    sTPotential.set_index(['t', 'd','es','l'], inplace=True)
+    sqTPotential = e["sqTPotential"].to_frame()
+    sqTPotential = sqTPotential.reset_index()
+    sqTPotential.set_index(['t', 'd','es','l'], inplace=True)
 
     # Prices and potentials in a joint dataframe (discrete)
-    df_discrete_input = sTPotential.reset_index().merge(pTPotential.reset_index(), how="left").set_index(sTPotential.index.names)
+    df_discrete_input = sqTPotential.reset_index().merge(pTPotential.reset_index(), how="left").set_index(sqTPotential.index.names)
     df_discrete_input = df_discrete_input[df_discrete_input.index.get_level_values("t")>2018]
 
     # Prices (smooth)
     pESmarg_scen = e["pESmarg_scen"].to_frame()
     pESmarg_scen = pESmarg_scen.reset_index()
-    # pESmarg_trace = pESmarg_trace.rename(columns={"es":"purpose","d":"s"})
     pESmarg_scen.set_index(['t', 'd','es','scen'], inplace=True)
 
     # Price where energy equals energy service demanded
     pESmarg_eq = e["pESmarg_eq"].to_frame()
     pESmarg_eq = pESmarg_eq.reset_index()
-    # pESmarg_eq = pESmarg_eq.rename(columns={"es":"purpose","d":"s"})
     pESmarg_eq.set_index(['t', 'd','es'], inplace=True)
 
     # Potentials (smooth)
     sqT_sum_scen = e["sqT_sum_scen"].to_frame()
     sqT_sum_scen = sqT_sum_scen.reset_index()
-    # sTSupply_scen_suml = sTSupply_trace_suml.rename(columns={"es":"purpose","d":"s"})
     sqT_sum_scen.set_index(['t', 'd','es','scen'], inplace=True)
 
     # Prices and potentials in a joint dataframe (Smooth)
@@ -69,19 +64,19 @@ def plot_supply_curve(gdxname):
         df.set_index('l', inplace=True)
 
         # Calculate the cumulated potential within a combination of sector, purpose and tax-step
-        df['theta_cumsum'] = df['sTPotential'].cumsum()
+        df['theta_cumsum'] = df['sqTPotential'].cumsum()
         # Calculating how much potential that is left after the utilization of each technology 
         df['theta_remaining'] = 1-df['theta_cumsum'].shift(periods=1) # (to cover the energy service demanded for each combination of sector and purpose the cumulated potential has to be 1)
         df.loc[df.index == df.index[0],'theta_remaining'] = 1
 
         # Calculating the utilization of the tecnologies potential
-        df['theta_util'] = df[['sTPotential','theta_remaining']].min(axis=1)
+        df['theta_util'] = df[['sqTPotential','theta_remaining']].min(axis=1)
         df.loc[df['theta_util']<0, 'theta_util'] = 0
 
         df_MAC=df.copy()
         df_MAC_lower = df.copy()
 
-        df_MAC_lower['theta_cumsum'] = df_MAC['theta_cumsum'] - df_MAC['sTPotential']
+        df_MAC_lower['theta_cumsum'] = df_MAC['theta_cumsum'] - df_MAC['sqTPotential']
         df_MAC = pd.concat([df_MAC,df_MAC_lower])
         df_MAC = df_MAC.sort_values(by=['pTPotential','theta_cumsum'])
 

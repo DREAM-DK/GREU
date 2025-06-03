@@ -1,15 +1,19 @@
 # ======================================================================================================================
-# Functions and macros
+# Functions and Macros for the GreenREFORM EU Model
 # ======================================================================================================================
-# In this file we define functions and macros to be used elsewhere in the model
-# Macros are a vanilla GAMS feature
-# The FUNCTION command is is a gamY feature. It should be used when the user defined function includes other gamY commands.
+# This file defines utility functions and macros used throughout the model.
+# - Macros are standard GAMS features
+# - Functions (using $FUNCTION) are gamY-specific features for user-defined functions
+#   that include other gamY commands
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Save, load, and compare states
+# 1. State Management Functions
 # ----------------------------------------------------------------------------------------------------------------------
-# For each variable in a {group}, assign level from {suffix2} to {suffix1}. I.e. {name}{suffix1}{sets}${conditions} = {name}{suffix2}{sets}
-$FUNCTION set({group}, {suffix1},  {suffix2}):
+# Functions for saving, loading, and comparing model states
+
+# 1.1 Set Variable Values
+# Assigns values from one suffix to another for a group of variables
+$FUNCTION set({group}, {suffix1}, {suffix2}):
   $offlisting
   $IF "{suffix1}" not in [".l", "", ".fx", ".up", ".lo"]:
     parameters
@@ -22,7 +26,8 @@ $FUNCTION set({group}, {suffix1},  {suffix2}):
   $onlisting
 $ENDFUNCTION
 
-# Load values from a GDX file and assign them to the {suffix} of the variables in a {group}
+# 1.2 Load Data from GDX
+# Loads values from a GDX file and assigns them to variables in a group
 $FUNCTION load_as({group}, {gdx}, {suffix}):
   $offlisting
   parameters
@@ -36,11 +41,13 @@ $FUNCTION load_as({group}, {gdx}, {suffix}):
   $onlisting
 $ENDFUNCTION
 
+# 1.3 Load Data with Default Level Assignment
 $FUNCTION load({group}, {gdx}):
    @load_as({group}, {gdx}, .l)
 $ENDFUNCTION
 
-# Abort if differences exceed the threshold. Differences are between the current values of a group of variables and the previously saved values.
+# 1.4 State Comparison
+# Aborts if differences between current and saved values exceed threshold
 $FUNCTION assert_no_difference({group}, {threshold}, {suffix1}, {suffix2}, {msg}):
   $offlisting
     $LOOP {group}:
@@ -60,79 +67,101 @@ $FUNCTION assert_no_difference({group}, {threshold}, {suffix1}, {suffix2}, {msg}
 $ENDFUNCTION
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Set operations
+# 2. Set Operations
 # ----------------------------------------------------------------------------------------------------------------------
+# Basic set operations and utilities
+
+# 2.1 Set Position Macros
 $macro first(x) ord(x)=1
 $macro last(x) ord(x)=card(x)
 
+# 2.2 Set Complement Function
+# Defines the complement of a set relative to its parent set
 $FUNCTION define_set_complement({name_set_c},{set},{set_c},{isitalist}):   
-  #Set compliment is defined on mother-set
   set {name_set_c}({set});
 
-   $onMultiR    
-      PARAMETER parm_error/0/;
-      $onEmbeddedCode Python:
-
-      #If set {set_c} is just a list of set-elements then we define the set-compliment with this code
+  $onMultiR    
+    PARAMETER parm_error/0/;
+    $onEmbeddedCode Python:
+      # Handle list-based set complement
       if {isitalist}=='fromlist':
-        #Python is case-sensitive and this can cause problems. For this reason a check is run to make sure that {set_c} is contained in {set}
         import sys 
         if set({set_c}).issubset(set(gams.get("{set}")))==False:
           gams.set("parm_error",[1])
         else:
           gams.set("parm_error",[0])
-
         gams.set("{name_set_c}", list(set(gams.get("{set}")) - set({set_c})))
       
-      #If set {set_c} is already a model set we use this to extract the compliment
+      # Handle model set complement
       if {isitalist}!='fromlist':
         gams.set("{name_set_c}", list(set(gams.get("{set}")) - set(gams.get("{set_c}"))))
-        gams.set("parm_error",[0]) #Set to indicicate no error       
+        gams.set("parm_error",[0])
 
-      $offEmbeddedCode {name_set_c} parm_error
-    $OffMulti
+    $offEmbeddedCode {name_set_c} parm_error
+  $OffMulti
 
-    #Hvis fejl
-    ABORT$(parm_error=1) parm_error, "Set-compliment not in set. Make sure that set elements are written as defined with upper/lower-case letters. This error is due to Python case-sensitivity"
+  ABORT$(parm_error=1) parm_error, "Set-compliment not in set. Make sure that set elements are written as defined with upper/lower-case letters. This error is due to Python case-sensitivity"
 $ENDFUNCTION
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Mean value and continous approximation of max and min functions
+# 3. Mathematical Functions
 # ----------------------------------------------------------------------------------------------------------------------
+# Utility functions for mathematical operations
 
+# 3.1 Basic Statistics
 $FUNCTION mean({dim}, {expression}): sum({dim}, {expression}) / sum({dim}, 1) $ENDFUNCTION
 
-# Smooth approximation of ABS function. The error is zero when {x} is zero and goes to -smooth_abs_delta as abs({x}) increases.
-scalar smooth_abs_delta /0.01/;
+# 3.2 Smooth Approximations
+# Parameters for smooth approximations
+scalar smooth_abs_delta /0.01/;    # Error parameter for smooth ABS
+scalar smooth_max_delta /0.001/;   # Error parameter for smooth MAX
+scalar smooth_min_delta /0.001/;   # Error parameter for smooth MIN
+
+# Smooth approximation of absolute value
 $FUNCTION abs({x}): (sqrt(sqr({x}) + sqr(smooth_abs_delta)) - smooth_abs_delta)$ENDFUNCTION
 
-# Smooth approximation of MAX function. The error is smooth_max_delta/2 when {x}=={y} and goes to zero as {x} and {y} diverge.
-scalar smooth_max_delta /0.001/;
+# Smooth approximation of maximum
 $FUNCTION max({x}, {y}): (({x} + {y} + Sqrt(Sqr({x} - {y}) + Sqr(smooth_max_delta))) / 2)$ENDFUNCTION
 
-# Smooth approximation of MIN function. The error is -smooth_min_delta/2 when {x}=={y} and goes to zero as {x} and {y} diverge.
-scalar smooth_min_delta /0.001/;
+# Smooth approximation of minimum
 $FUNCTION min({x}, {y}): (({x} + {y} - Sqrt(Sqr({x} - {y}) + Sqr(smooth_min_delta))) / 2)$ENDFUNCTION
 
-$FUNCTION InInterval({x},{y},{z}): (({x} + (({z} + {y} - Sqrt(Sqr({z} - {y}) + Sqr(smooth_min_delta))) / 2) + Sqrt(Sqr({x} - (({z} + {y} - Sqrt(Sqr({z} - {y}) + Sqr(smooth_min_delta))) / 2)) + Sqr(smooth_max_delta))) / 2) $ENDFUNCTION
+# Interval function combining min and max
+$FUNCTION InInterval({x},{y},{z}): 
+  (({x} + (({z} + {y} - Sqrt(Sqr({z} - {y}) + Sqr(smooth_min_delta))) / 2) + 
+    Sqrt(Sqr({x} - (({z} + {y} - Sqrt(Sqr({z} - {y}) + Sqr(smooth_min_delta))) / 2)) + 
+    Sqr(smooth_max_delta))) / 2) 
+$ENDFUNCTION
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Probalitily distributions
+# 4. Probability Distributions
 # ----------------------------------------------------------------------------------------------------------------------
+# Functions for working with normal and log-normal distributions
 
-# #Cumulative distribution of a normal distribution
-$FUNCTION cdfNorm({x},{mu},{std}): errorf(({x}-{mu})/({std})) $ENDFUNCTION
+# 4.1 Normal Distribution
+$FUNCTION cdfNorm({x},{mu},{std}): 
+  errorf(({x}-{mu})/({std})) 
+$ENDFUNCTION
 
-# #Cumulative distribution of a log-normal distribution with expected value mu and standard deviation std 
-$FUNCTION cdfLogNorm({x},{mu},{std}): errorf((log( ( ({x}/{mu})**2 )**0.5) + 0.5*{std}**2 )/{std}) $ENDFUNCTION                                                            
+# 4.2 Log-normal Distribution
+# Cumulative distribution function
+$FUNCTION cdfLogNorm({x},{mu},{std}): 
+  errorf((log((({x}/{mu})**2)**0.5) + 0.5*{std}**2)/{std}) 
+$ENDFUNCTION                                                            
 
-#Integral of cumulative distribution of a log-normal distribution with expected value mu and standard deviation std 
-$FUNCTION Int_cdfLogNorm({x},{mu},{std}): errorf((log( ( ({x}/{mu})**2 )**0.5) - 0.5*{std}**2 )/{std}) $ENDFUNCTION                                                            
+# Integral of cumulative distribution
+$FUNCTION Int_cdfLogNorm({x},{mu},{std}): 
+  errorf((log((({x}/{mu})**2)**0.5) - 0.5*{std}**2)/{std}) 
+$ENDFUNCTION                                                            
 
-#Partial expectation of a log normal distributed random variable X with mean value mu, standard deviaton std and a threshold X<k
-$FUNCTION PartExpLogNorm({k},{mu},{std}): ({mu} * errorf((log( ( ({k}/{mu})**2 )**0.5) - 0.5*{std}**2 )/{std})) $ENDFUNCTION            
+# Partial expectation
+$FUNCTION PartExpLogNorm({k},{mu},{std}): 
+  ({mu} * errorf((log((({k}/{mu})**2)**0.5) - 0.5*{std}**2)/{std})) 
+$ENDFUNCTION            
 
-#Conditional expected value of a log normal distributed random variable X with mean value mu, standard deviaton std and conditional on x<k
-$FUNCTION CondExpLogNorm({k},{mu},{std}):  (@PartExpLogNorm({k},{mu},{std}) / @cdfLogNorm({k},{mu},{std})) $ENDFUNCTION 
+# Conditional expected value
+$FUNCTION CondExpLogNorm({k},{mu},{std}):  
+  (@PartExpLogNorm({k},{mu},{std}) / @cdfLogNorm({k},{mu},{std})) 
+$ENDFUNCTION 
 
 # Reference: https://en.wikipedia.org/wiki/Log-normal_distribution

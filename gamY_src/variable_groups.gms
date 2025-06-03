@@ -1,10 +1,18 @@
+# ======================================================================================================================
+# Variable Groups for GreenREFORM EU Model
+# ======================================================================================================================
+# This file defines variable groups and their relationships for the model.
+# It includes automatic grouping based on variable names and prefixes.
+
 # ----------------------------------------------------------------------------------------------------------------------
-# Grouping variables by name
+# 1. Base Variable Groups
 # ----------------------------------------------------------------------------------------------------------------------
+# 1.1 Core Groups
 $Group nonexisting All, -all_variables; # Group of all elements that are dummied out and should not be accessed
 $Group constant_variables ; # Variables without a time index
 $Group scalar_variables ; # Variables without a time index
 
+# 1.2 Time-Dependent Groups
 $Group+ constant_variables
   $EvalPython
     ",".join(
@@ -25,14 +33,19 @@ $Group+ scalar_variables
   $EndEvalPython
 ;
 
+# 1.3 Derived Groups
 $Group all_variables_except_scalars all_variables, -scalar_variables;
 $Group all_variables_except_constants all_variables, -constant_variables;
 
-# Exceptions to to the naming scheme can be added directly to the groups below
+# ----------------------------------------------------------------------------------------------------------------------
+# 2. Variable Classification by Type
+# ----------------------------------------------------------------------------------------------------------------------
+# 2.1 Core Variable Types
 $Group price_variables ; # Variables that are adjusted for steady state inflation
 $Group quantity_variables ; # Variables that are adjusted for steady state productivity growth
 $Group value_variables ; # Variables that are adjusted for both steady state inflation and productivity growth
 
+# 2.2 Variables to be Classified
 $GROUP variables_to_be_assigned_by_prefix
   all_variables
   - price_variables
@@ -41,6 +54,7 @@ $GROUP variables_to_be_assigned_by_prefix
   - constant_variables
 ;
 
+# 2.3 Price Variables Classification
 $GROUP+ price_variables
   $EvalPython
     ",".join(
@@ -55,6 +69,7 @@ $GROUP+ price_variables
   $EndEvalPython
 ;
 
+# 2.4 Quantity Variables Classification
 $GROUP+ quantity_variables
   $EvalPython
     ",".join(
@@ -69,6 +84,7 @@ $GROUP+ quantity_variables
   $EndEvalPython
 ;
 
+# 2.5 Value Variables Classification
 $GROUP+ value_variables
   $EvalPython
     ",".join(
@@ -83,6 +99,10 @@ $GROUP+ value_variables
   $EndEvalPython
 ;
 
+# ----------------------------------------------------------------------------------------------------------------------
+# 3. Utility Functions
+# ----------------------------------------------------------------------------------------------------------------------
+# 3.1 Dummy Variable Management
 # For each variable, set a dummy that is 1 if the variable exists for the combination of set elements
 $FUNCTION update_exist_dummies():
   $Group all_variables_except_scalars all_variables, -scalar_variables;
@@ -91,6 +111,7 @@ $FUNCTION update_exist_dummies():
   $ENDLOOP
 $ENDFUNCTION
 
+# 3.2 Model Element Management
 # Limit a model to only include elements that are not dummied out
 $FUNCTION add_exist_dummies_to_model({model}):
   $Group all_variables_except_scalars all_variables, -scalar_variables;

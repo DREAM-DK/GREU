@@ -113,7 +113,7 @@ parameters auxiliary_data_parameters
   qEmmBorderTrade_load[t,em]
 
   # Abatement
-  sTPotential_load[l,es,i,t] "Potential, technology."
+  sqTPotential_load[l,es,i,t] "Potential, technology."
   uTE_load[l,es,e,i,t] "Energy use, technology."
   uTKexp_load[l,es,i,t] "Capital use, technology."
   pTE_base_load[es,e,i,t] "Base price of energy input (billion EUR per PJ)"
@@ -177,7 +177,7 @@ parameters GREU_data
   vtCAP_prodsubsidy[i,t]
 
   # Abatement
-  sTPotential[l,es,i,t] "Potential, technology."
+  sqTPotential[l,es,i,t] "Potential, technology."
   uTE[l,es,e,i,t] "Energy use, technology."
   uTKexp[l,es,i,t] "Capital use, technology."
   pTE_base[es,e,i,t] "Base price of energy input (billion EUR per PJ)"
@@ -209,7 +209,7 @@ $load vtCAP_prodsubsidy=vtCAP_top.l
 $gdxIn 
 
 $gdxIn %abatement_data_path%
-$load l=l sTPotential_load=sTPotential.l, uTE_load=uTE.l, uTKexp_load=uTKexp.l, pTE_base_load=pTE_base.l, pTE_tax_load=pTE_tax.l, pTK_load=pTK.l, qES_load=qES.l
+$load l=l sqTPotential_load=sqTPotential.l, uTE_load=uTE.l, uTKexp_load=uTKexp.l, pTE_base_load=pTE_base.l, pTE_tax_load=pTE_tax.l, pTK_load=pTK.l, qES_load=qES.l
 $gdxIn
 
 # Labor-market
@@ -299,7 +299,7 @@ qInvt_i[i,t] = qI_s.l['invt',i,t];
   tEmarg_duty['EAFG_tax',es,e,i,t]      = tEAFG_REmarg[es,e,i,t]/1000; #Dividing by 1000 to convert from kroner per GJ to bio. kroner per Pj.
 
   # Abatement
-  sTPotential[l,es,i,t] = sTPotential_load[l,es,i,t];
+  sqTPotential[l,es,i,t] = sqTPotential_load[l,es,i,t];
   uTE[l,es,e,i,t] = uTE_load[l,es,e,i,t];
   uTKexp[l,es,i,t] = uTKexp_load[l,es,i,t];
   pTE_base[es,e,i,t] = pTE_base_load[es,e,i,t];
@@ -334,7 +334,7 @@ execute_unloaddi "data",
   vtE_duty, vtE_vat, tCO2_Emarg, tEmarg_duty
   Energybalance, NonEnergyEmissions
 
-  sTPotential, uTE, uTKexp, pTE_base, pTE_tax, pTK, qES
+  sqTPotential, uTE, uTKexp, pTE_base, pTE_tax, pTK, qES
 
   vIOxE_y, vIOxE_m, vIOxE_a, vIO_y, vIO_m, vIO_a
 ;
