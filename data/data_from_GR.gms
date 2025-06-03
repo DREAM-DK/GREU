@@ -1,5 +1,27 @@
+
+#£)
 $set data_path P:/akg/Til_EU_projekt
 
+###Overview 
+#
+#This file is the final layer of data-treatment before the data enters the model. The structure of the file is:
+#
+# A) Model sets are initialized. To be used in reading from Python-treated data.
+#
+# B) Initilization of data-parameters. To be used in reading from Python-treated data.
+#
+# C) Tests of data-consistency
+#
+# D) Initializing parameters to be read into model
+#
+# E) Reading Python treated data into parameters to be read into model
+#
+#  F) Unload gdx with data in parameters with same names as model-variables, to be read into model
+#
+# £) These parts should be removed from final version by either fixing input data or moving to Python data-treatment
+###
+
+### A) Initilization of model sets
 set l "Technologies";
 Set t ;#time periods
 Set t1(t); #year 2020 
@@ -31,31 +53,32 @@ Set tl(d); #transmission losses
 Set out; #output types
 Set e(out); #energy outputs
 Set m(i);
-Set land5; #land area types
 Set em_accounts; #set of accounts for emissions
 
-parameters
-  vIO_y[i,d,t]
-  vIO_m[i,d,t]
-  vIO_a[a_rows_,d,t]
-  vIOxE_y[i,d,t]
-  vIOxE_m[i,d,t]
-  vIOxE_a[a_rows_,d,t]
-  vIOE_y[i,d,t]
-  vIOE_m[i,d,t]
-  vIOE_a[a_rows_,d,t]
+### B) Initialization of parameters to be read from Python treated data
+$PGROUP PG_data_from_Python
+  vIO_y[i,d,t] "IO - data, domesticsupply"
+  vIO_m[i,d,t] "IO - data, imports"
+  vIO_a[a_rows_,d,t] "IO -data, decomposition of GVA"
+  vIOxE_y[i,d,t] "IO, excluding energy -data, domestic supply"
+  vIOxE_m[i,d,t] "IO, excluding energy -data, imports"
+  vIOxE_a[a_rows_,d,t] "IO, excluding energy - data, decomposition of GVA"
+  vIOE_y[i,d,t] "EnergyIO -data, domestic supply"
+  vIOE_m[i,d,t] "EnergyIO -data, imports"
+  vIOE_a[a_rows_,d,t] "EnergyIO - data, decomposition of GVA"
 
-  nEmployed[t]
-  qL[i,t]
-  qK[k,i,t]
-  qI_k_i[k,i,t]
-  qCO2_ETS_freeallowances[i,t]
-  qEmmLULUCF[t]
-  qEmmBorderTrade[em,t]
+  nEmployed[t] "Total labor supply data"
+  qL[i,t] "Labour supply data"
+  qK[k,i,t] "Capital stock data"
+  qI_k_i[k,i,t] "Capital investments data"
+  qCO2_ETS_freeallowances[i,t] "ETS1 free allowances data"
+  qEmmLULUCF[t] "LULUCF-emissions data"
+  qEmmBorderTrade[em,t]                         "Border trade emissions data"
   Energybalance[ebalitems,transaction,d,es,e,t] "Main data input with regards to energy and energy-related emissions"
   NonEnergyEmissions[ebalitems,transaction,d,t] "Main data input with regards to non-energy related emissions"
 ;
 
+# £) 
 $gdxin data_DK.gdx
 $load d, d_non_ene, d_ene, i,c,x,g,rx,re,invt,invt_ene,tl,out,e,t,t1,land5,em_accounts,i_,k_
 $load factors_of_production, k, ebalitems, em,etaxes,a_rows_,transaction,demand_transaction,es
@@ -65,7 +88,7 @@ $load qEmmLULUCF=qEmmLULUCF.l,qEmmBorderTrade=qEmmBorderTrade.l,qCO2_ETS_freeall
 $load Energybalance=Energybalance.l
 $load NonEnergyEmissions=NonEnergyemissions.l
 
-#Creating auxiliary sets (The first needs to be loaded from data instead)
+#Creating auxiliary sets (These should be read from Python data)
 set demand_transaction_temp[transaction] /'input_in_production','household_consumption','inventory','export','transmission_losses'/; #AKB: In "demand_transaction" there is an error with "households" being the set-element for households
 set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','cav','nox_tax','so2_tax','vat','base'/; #AKB: Auxiliary set 
 set i_energymargins[i]/45000,46000,47000/;
@@ -75,7 +98,7 @@ set eBunkering[e]/'Bunkering of Danish operated trucks on foreign territory',
 set tData[t]/2020/;
 
 
-#Tests of energy-IO and energybalance
+### C) Tests of energy-IO and energybalance (pt 1.)
 $FUNCTION test_data():
   $OnMultiR
   Parameter testvY[i,t], testvM[i,t], testvE_base[d,t], testvE_duties[d,t], testvE_vat[d,t];
@@ -134,105 +157,105 @@ $FUNCTION test_data():
     # ABORT$(1$Energybalance['co2_tax',demand_transaction_temp,d,es,e,t] - 1$Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t] <> 0) 'CO2-revenues where no emissions are registrered.';
     );
     
-
 $ENDFUNCTION 
 
-#Correction - is being investigated with Statistics DK
-Energybalance['pj','input_in_production','35011','process_special','electricity',t] = Energybalance['base','input_in_production','35011','process_special','electricity',t]/0.1;
-Energybalance['pj','production','35011','unspecified','electricity',t] = Energybalance['pj','production','35011','unspecified','electricity',t] + Energybalance['pj','input_in_production','35011','process_special','electricity',t];
+#£)
+  #Correction - is being investigated with Statistics DK
+  Energybalance['pj','input_in_production','35011','process_special','electricity',t] = Energybalance['base','input_in_production','35011','process_special','electricity',t]/0.1;
+  Energybalance['pj','production','35011','unspecified','electricity',t] = Energybalance['pj','production','35011','unspecified','electricity',t] + Energybalance['pj','input_in_production','35011','process_special','electricity',t];
 
-#Corrections to data, and changes
-Energybalance[ebalitems,'export','xEne',es,e,t]        = Energybalance[ebalitems,'export','xOth',es,e,t];    Energybalance[ebalitems,'export','xOth',es,e,t]   = 0;
-Energybalance[ebalitems,'inventory','invt_ene',es,e,t] = Energybalance[ebalitems,'inventory','invt',es,e,t]; Energybalance[ebalitems,'inventory','invt',es,e,t] = 0;
+  #Corrections to data, and changes
+  Energybalance[ebalitems,'export','xEne',es,e,t]        = Energybalance[ebalitems,'export','xOth',es,e,t];    Energybalance[ebalitems,'export','xOth',es,e,t]   = 0;
+  Energybalance[ebalitems,'inventory','invt_ene',es,e,t] = Energybalance[ebalitems,'inventory','invt',es,e,t]; Energybalance[ebalitems,'inventory','invt',es,e,t] = 0;
 
-#Removing small entries. Should ideally be replaced by an elaborate RAS-procedure.
-Energybalance[ebalitems,transaction,d,es,e,t]$(Energybalance['BASE',transaction,d,es,e,t] and abs(Energybalance['BASE',transaction,d,es,e,t])<1e-6) = no; 
+  #Removing small entries. Should ideally be replaced by an elaborate RAS-procedure.
+  Energybalance[ebalitems,transaction,d,es,e,t]$(Energybalance['BASE',transaction,d,es,e,t] and abs(Energybalance['BASE',transaction,d,es,e,t])<1e-6) = no; 
 
-#There are very small entries of non-energy production in refineries and waste incineration sectors. Maybe this is feature and not a bug? For now it is removed.
-vIOxE_y['35002',d,t] = 0; vIOxE_y['19000',d,t] = 0; vIOxE_y['38393',d,t] = 0; #This hack £
-vIOxE_m['35002',d,t] = 0; vIOxE_m['19000',d,t] = 0; vIOxE_m['38393',d,t] = 0; 
+  #There are very small entries of non-energy production in refineries and waste incineration sectors. Maybe this is feature and not a bug? For now it is removed.
+  vIOxE_y['35002',d,t] = 0; vIOxE_y['19000',d,t] = 0; vIOxE_y['38393',d,t] = 0; #This hack £
+  vIOxE_m['35002',d,t] = 0; vIOxE_m['19000',d,t] = 0; vIOxE_m['38393',d,t] = 0; 
 
-#Inconsistency: IO contains energy-production in 13150 that is not present in Energybalance. 
-vIO_y['13150',d_ene,t] = 0; vIOxE_y['13150',d_ene,t] = 0; vIOE_y['13150',d,t] = 0;
-vIOxE_y['13150',d,t] = vIO_y['13150',d,t];
+  #Inconsistency: IO contains energy-production in 13150 that is not present in Energybalance. 
+  vIO_y['13150',d_ene,t] = 0; vIOxE_y['13150',d_ene,t] = 0; vIOE_y['13150',d,t] = 0;
+  vIOxE_y['13150',d,t] = vIO_y['13150',d,t];
 
-#Inconsistency: IO contains energy-production in 20000 that is not present in Energybalance. 
-vIO_y['20000',d_ene,t] = 0; vIOxE_y['20000',d_ene,t] = 0; vIOE_y['20000',d,t] = 0;
-vIOxE_y['20000',d,t]   = vIO_y['20000',d,t];
+  #Inconsistency: IO contains energy-production in 20000 that is not present in Energybalance. 
+  vIO_y['20000',d_ene,t] = 0; vIOxE_y['20000',d_ene,t] = 0; vIOE_y['20000',d,t] = 0;
+  vIOxE_y['20000',d,t]   = vIO_y['20000',d,t];
 
 
-#Computing energy-IO
-vIOE_y[i,d,t]         = vIO_y[i,d,t] - vIOxE_y[i,d,t];
-vIOE_m[i,d,t]         = vIO_m[i,d,t] - vIOxE_m[i,d,t];
-vIOE_a[a_rows_,d,t]   = vIO_a[a_rows_,d,t] - vIOxE_a[a_rows_,d,t];
+  #Computing energy-IO
+  vIOE_y[i,d,t]         = vIO_y[i,d,t] - vIOxE_y[i,d,t];
+  vIOE_m[i,d,t]         = vIO_m[i,d,t] - vIOxE_m[i,d,t];
+  vIOE_a[a_rows_,d,t]   = vIO_a[a_rows_,d,t] - vIOxE_a[a_rows_,d,t];
 
-vIOE_y[i,'xENE',t]      = vIOE_y[i,'xOth',t];       vIOE_y[i,'xOth',t] = 0; 
-vIOE_m[i,'xENE',t]      = vIOE_m[i,'xOth',t];       vIOE_m[i,'xOth',t] = 0;
-vIOE_a[a_rows_,'xENE',t] =vIOE_a[a_rows_,'xOth',t]; vIOE_a[a_rows_,'xOth',t] = 0;
+  vIOE_y[i,'xENE',t]      = vIOE_y[i,'xOth',t];       vIOE_y[i,'xOth',t] = 0; 
+  vIOE_m[i,'xENE',t]      = vIOE_m[i,'xOth',t];       vIOE_m[i,'xOth',t] = 0;
+  vIOE_a[a_rows_,'xENE',t] =vIOE_a[a_rows_,'xOth',t]; vIOE_a[a_rows_,'xOth',t] = 0;
 
-vIOE_y[i,'invt_ene',t]      = vIOE_y[i,'invt',t];       vIOE_y[i,'invt',t] = 0; 
-vIOE_m[i,'invt_ene',t]      = vIOE_m[i,'invt',t];       vIOE_m[i,'invt',t] = 0;
-vIOE_a[a_rows_,'invt_ene',t] =vIOE_a[a_rows_,'invt',t]; vIOE_a[a_rows_,'invt',t] = 0;
+  vIOE_y[i,'invt_ene',t]      = vIOE_y[i,'invt',t];       vIOE_y[i,'invt',t] = 0; 
+  vIOE_m[i,'invt_ene',t]      = vIOE_m[i,'invt',t];       vIOE_m[i,'invt',t] = 0;
+  vIOE_a[a_rows_,'invt_ene',t] =vIOE_a[a_rows_,'invt',t]; vIOE_a[a_rows_,'invt',t] = 0;
 
-vIOE_y['35002','invt_ene',t] = 0; #Inconsistency: No energy-inventories in energybalances from 35002....
-vIOE_y['02000','invt_ene',t] = 0; #Inconsistency: No energy-inventories in energybalances from 02000....
+  vIOE_y['35002','invt_ene',t] = 0; #Inconsistency: No energy-inventories in energybalances from 35002....
+  vIOE_y['02000','invt_ene',t] = 0; #Inconsistency: No energy-inventories in energybalances from 02000....
 
-#Test on input-data!
+### C) Tests of energy-IO and energybalance (pt 2.) 
 @test_data();
 
 
-#Inserting energy-inputs into IO
-vIO_y[i,'xENE',t]         = vIOE_y[i,'xENE',t]; 
-vIO_m[i,'xENE',t]         = vIOE_m[i,'xENE',t]; 
-vIO_a[a_rows_,'xENE',t]   = vIOE_a[a_rows_,'xENE',t];
+#£)
+  #Inserting energy-inputs into IO
+  vIO_y[i,'xENE',t]         = vIOE_y[i,'xENE',t]; 
+  vIO_m[i,'xENE',t]         = vIOE_m[i,'xENE',t]; 
+  vIO_a[a_rows_,'xENE',t]   = vIOE_a[a_rows_,'xENE',t];
 
-vIO_y[i,'xOth',t]         = vIO_y[i,'xOth',t]       - vIOE_y[i,'xENE',t]; 
-vIO_m[i,'xOth',t]         = vIO_m[i,'xOth',t]       - vIOE_m[i,'xENE',t]; 
-vIO_a[a_rows_,'xOth',t]   = vIO_a[a_rows_,'xOth',t] - vIOE_a[a_rows_,'xENE',t];
+  vIO_y[i,'xOth',t]         = vIO_y[i,'xOth',t]       - vIOE_y[i,'xENE',t]; 
+  vIO_m[i,'xOth',t]         = vIO_m[i,'xOth',t]       - vIOE_m[i,'xENE',t]; 
+  vIO_a[a_rows_,'xOth',t]   = vIO_a[a_rows_,'xOth',t] - vIOE_a[a_rows_,'xENE',t];
 
-vIO_y[i,'invt_ene',t]       = vIOE_y[i,'invt_ene',t]; 
-vIO_m[i,'invt_ene',t]       = vIOE_m[i,'invt_ene',t]; 
-vIO_a[a_rows_,'invt_ene',t] = vIOE_a[a_rows_,'invt_ene',t];
+  vIO_y[i,'invt_ene',t]       = vIOE_y[i,'invt_ene',t]; 
+  vIO_m[i,'invt_ene',t]       = vIOE_m[i,'invt_ene',t]; 
+  vIO_a[a_rows_,'invt_ene',t] = vIOE_a[a_rows_,'invt_ene',t];
 
-vIO_y[i,'invt',t]       = vIO_y[i,'invt',t]       - vIOE_y[i,'invt_ene',t]; 
-vIO_m[i,'invt',t]       = vIO_m[i,'invt',t]       - vIOE_m[i,'invt_ene',t]; 
-vIO_a[a_rows_,'invt',t] = vIO_a[a_rows_,'invt',t] - vIOE_a[a_rows_,'invt_ene',t];
+  vIO_y[i,'invt',t]       = vIO_y[i,'invt',t]       - vIOE_y[i,'invt_ene',t]; 
+  vIO_m[i,'invt',t]       = vIO_m[i,'invt',t]       - vIOE_m[i,'invt_ene',t]; 
+  vIO_a[a_rows_,'invt',t] = vIO_a[a_rows_,'invt',t] - vIOE_a[a_rows_,'invt_ene',t];
 
-#Move all IOE_m to 19000 as it is in energybalance 
-vIO_m['19000',d,t] = vIO_m['19000',d,t] + sum(i$(not sameas[i,'19000']), vIOE_m[i,d,t]);
-vIO_m[i,d,t]$(not sameas[i,'19000']) = vIO_m[i,d,t] - vIOE_m[i,d,t];
+  #Move all IOE_m to 19000 as it is in energybalance 
+  vIO_m['19000',d,t] = vIO_m['19000',d,t] + sum(i$(not sameas[i,'19000']), vIOE_m[i,d,t]);
+  vIO_m[i,d,t]$(not sameas[i,'19000']) = vIO_m[i,d,t] - vIOE_m[i,d,t];
 
-vIOE_m['19000',d,t] = vIOE_m['19000',d,t] + sum(i$(not sameas[i,'19000']), vIOE_m[i,d,t]);
-vIOE_m[i,d,t]$(not sameas[i,'19000']) = 0;
+  vIOE_m['19000',d,t] = vIOE_m['19000',d,t] + sum(i$(not sameas[i,'19000']), vIOE_m[i,d,t]);
+  vIOE_m[i,d,t]$(not sameas[i,'19000']) = 0;
 
 
-#We can now add energy-IO to our IO-matrix
-#£Temp
-vIO_y[i,'energy',t] = sum(i_a,vIOE_y[i,i_a,t]);
-vIO_m[i,'energy',t] = sum(i_a,vIOE_m[i,i_a,t]);
-vIO_a[a_rows_,'energy',t]  = sum(i_a,vIOE_a[a_rows_,i_a,t]);
+  #We can now add energy-IO to our IO-matrix
+  vIO_y[i,'energy',t] = sum(i_a,vIOE_y[i,i_a,t]);
+  vIO_m[i,'energy',t] = sum(i_a,vIOE_m[i,i_a,t]);
+  vIO_a[a_rows_,'energy',t]  = sum(i_a,vIOE_a[a_rows_,i_a,t]);
 
-vIO_y[i,re,'2019']       = vIO_y[i,re,'2020'];
-vIO_m[i,re,'2019']       = vIO_m[i,re,'2020'];
-vIO_a[a_rows_,re,'2019'] = vIO_a[a_rows_,re,'2020'];
+  vIO_y[i,re,'2019']       = vIO_y[i,re,'2020'];
+  vIO_m[i,re,'2019']       = vIO_m[i,re,'2020'];
+  vIO_a[a_rows_,re,'2019'] = vIO_a[a_rows_,re,'2020'];
 
-#We subtract the industry by industry energy, as this has been moved to the three energy categories for industries
-vIO_y[i,rx,t]       = vIO_y[i,rx,t]       - vIOE_y[i,rx,t];
-vIO_m[i,rx,t]       = vIO_m[i,rx,t]       - vIOE_m[i,rx,t];
-vIO_a[a_rows_,rx,t] = vIO_a[a_rows_,rx,t] - vIOE_a[a_rows_,rx,t];
+  #We subtract the industry by industry energy, as this has been moved to the three energy categories for industries
+  vIO_y[i,rx,t]       = vIO_y[i,rx,t]       - vIOE_y[i,rx,t];
+  vIO_m[i,rx,t]       = vIO_m[i,rx,t]       - vIOE_m[i,rx,t];
+  vIO_a[a_rows_,rx,t] = vIO_a[a_rows_,rx,t] - vIOE_a[a_rows_,rx,t];
 
-vIOE_y[i,'energy',t] = sum(rx, vIOE_y[i,rx,t]);
-vIOE_m[i,'energy',t] = sum(rx, vIOE_m[i,rx,t]);
-vIOE_a[a_rows_,'energy',t] = sum(rx, vIOE_a[a_rows_,'energy',t]); 
+  vIOE_y[i,'energy',t] = sum(rx, vIOE_y[i,rx,t]);
+  vIOE_m[i,'energy',t] = sum(rx, vIOE_m[i,rx,t]);
+  vIOE_a[a_rows_,'energy',t] = sum(rx, vIOE_a[a_rows_,'energy',t]); 
 
-vIOE_y[i,rx,t] = 0;
-vIOE_m[i,rx,t] = 0;
-vIOE_a[a_rows_,rx,t] = 0;
+  vIOE_y[i,rx,t] = 0;
+  vIOE_m[i,rx,t] = 0;
+  vIOE_a[a_rows_,rx,t] = 0;
 
 m[i] = yes$sum((d,t1), vIO_m[i,d,t1]);
 
-
-parameters GREU_data
+### D) Initilizating parameters to be read into model
+$PGROUP PG_GREU_data 
   # Labor-market
   vWages_i[i,t] "Compensation of employees by industry."
   nL[t] "Total employment."
@@ -262,46 +285,40 @@ parameters GREU_data
   qInvt_ene_i[i,t] "Inventory investments by industry."
   qE_re_i[re,i,t] "Energy demand from industry i, split on energy-types re"
 
-  #Energy and emissions.
-  qEmmBorderTrade[em,t] ""
-  qEmmBunkering[em,t] ""
-  pEpj_base[es,e,d,t] ""
-  pEpj_own[es,e,d,t] ""
-  vtE_duty[etaxes,es,e,d,t] ""
-  vtE_vat[es,e,d,t]  ""
-  qEpj[es,e,d,t] ""
-  qEpj_own[es,e,d,t] ""
-  vWMA[es,e,d,t] ""
-  vCMA[es,e,d,t] ""
-  vRMA[es,e,d,t] ""
-  qEmmE_BU[em,es,e,d,t] ""
-  qEmmxE[em,d,t] ""
-  tCO2_Emarg[em,es,e,d,t]   
-  tEmarg_duty[etaxes,es,e,d,t]      
-  qEtot[e,t] ""
-  pE_avg[e,t] ""
-  qY_CET[out,i,t] ""
-  qY_CETown[out,i,t] ""
-  qY_CETgross[out,i,t] ""
-  qM_CET[out,i,t] ""
-  pY_CET[out,i,t] ""
-  pM_CET[out,i,t] ""
+  #Energy (and output including non-energy output in Y_CET and M_CET). 
+  pEpj_base[es,e,d,t] "Base prices of energy, by energy-service, energy-good and demand component"
+  pEpj_own[es,e,d,t] "Price of consumption of own-production of energy, by energy-service, energy-good and demand component"
+  vtE_duty[etaxes,es,e,d,t] "Duty-revenues on energy by tax, energy-service, energy-good and demand component"
+  vtE_vat[es,e,d,t]  "VAT-revenue on energy by energy-service, energy-good and demand component"
+  qEpj[es,e,d,t] "Energy consumption by energy-service, energy-good and demand component"
+  qEpj_own[es,e,d,t] "Energy consumption from own-production by energy-service, energy-good and demand component"
+  vWMA[es,e,d,t] "Margins on wholesale of energy by energy-service, energy-good and demand component"
+  vCMA[es,e,d,t] "Margins on energy sold from car-dealerships, by energy-service, energy-good and demand component"
+  vRMA[es,e,d,t] "Margins on energy sold reatil, by energy-service, energy-good and demand component"
+  qEmmE_BU[em,es,e,d,t] "Energy-related emissions by emission-type, energy-service, energy-good, and demand component"
+  qEmmxE[em,d,t] "Non-energy related emissions by emission-type and demand component"
+  tCO2_Emarg[em,es,e,d,t] "Marginal carbon taxes by emission-type, energy-service, energy-good, and demand component"  
+  tEmarg_duty[etaxes,es,e,d,t] "Marginal energy tax by emission-type, energy-service, energy-good, and demand component"       
+  qY_CET[out,i,t] "Total production by output and industry"
+  qY_CETown[out,i,t] "Total production for own-consumption by output and industry"
+  qY_CETgross[out,i,t] "Total production including own-consumption by output and industry"
+  qM_CET[out,i,t] "Total imports by output and industry"
+  pY_CET[out,i,t] "Price of domestic supply by output and industry"
+  pM_CET[out,i,t] "Price of imports by output and industry"
+  qCO2_ETS_freeallowances[i,t] "Free ETS1-allowances by industry"
 
-  qProd[factors_of_production,i,t]
-  pProd[factors_of_production,i,t]
 
-  qEmmLULUCF5[land5,t]
-  qEmmLULUCF[t] 
-  qEmmTot[em,em_accounts,t]
+  #Emissions
+  qEmmBunkering[em,t] "Bunkering emissions"
+  qEmmBorderTrade[em,t] "Border trade emissions"
+  qEmmLULUCF[t] ""
+  qEmmTot[em,em_accounts,t] ""
+  GWP[em]
   sBioNatGas[t]
 
-  GWP[em]
-
-  vtCO2_ETS[i,t] 
-  qCO2_ETS_freeallowances[i,t]
-
-  vtNetproductionRest[i,t]
-  vtCAP_prodsubsidy[i,t]
+  #Production function
+  qProd[factors_of_production,i,t] "Factors of production, value"
+  pProd[factors_of_production,i,t] "Factors of production, price"
 
   # Abatement
   theta_load[l,es,i,e,t] "Potential, technology."
@@ -316,12 +333,13 @@ parameters GREU_data
   vGov2Foreign[t] "Payments to foreign countries."
 ;
 
-
+#£)
 $gdxIn %data_path%/EU_tech_data_disagg.gdx
 $load l=l, theta_load=theta.l, uTE_load=uTE.l, uTK_load=uTK.l
 $gdxIn
 
 
+### E) Reading Python treated data into parameters to be read into model
 
 # Labor-market
 vWages_i[i,t] = vIO_a["SalEmpl",i,t];
@@ -448,20 +466,7 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 
 
 #Taxes 
-  # tCO2_Emarg['CO2ubio',es,e,d,t]$(sum(demand_transaction_temp$Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t], Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t]))
-  #                                = sum(demand_transaction_temp$Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t], Energybalance['co2_tax',demand_transaction_temp,d,es,e,t])/
-  #                                  sum(demand_transaction_temp$Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t], Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t]);
-
-  # tCO2_Emarg['CO2ubio',es,e,d,t]$tCO2_Emarg['CO2ubio',es,e,d,t] = tCO2_Emarg['CO2ubio',es,e,d,t] + 0.01;  
-
-  # tCO2_Emarg['CO2bio',es,e,d,t]$(sameas[e,'natural gas incl. biongas'] and sum(demand_transaction_temp$Energybalance['CO2bio',demand_transaction_temp,d,es,e,t], Energybalance['CO2bio',demand_transaction_temp,d,es,e,t])) 
-  #                                = sum(demand_transaction_temp$Energybalance['CO2bio',demand_transaction_temp,d,es,e,t], Energybalance['co2_tax',demand_transaction_temp,d,es,e,t])/
-  #                                  sum(demand_transaction_temp$Energybalance['CO2bio',demand_transaction_temp,d,es,e,t], Energybalance['CO2bio',demand_transaction_temp,d,es,e,t]);
-
-  
-
-  # tCO2_Emarg['CO2bio',es,e,d,t]$tCO2_Emarg['CO2bio',es,e,d,t] = tCO2_Emarg['CO2bio',es,e,d,t] + 0.01;  
-
+  #£)
   PARAMETER tCO2_REmarg[es,e,d,t,em], tEAFG_REmarg[es,e,d,t]; #Marginal Danish tax-rates directly from GR-DK
   execute_load 'data_DK.gdx' tCO2_REmarg = tCO2_REmarg.l, tEAFG_REmarg = tEAFG_REmarg.l;
 
@@ -495,36 +500,6 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   uTK[l,es,i,t] = sum(e, uTK_load[l,es,i,e,t]);
 
 
+###  F) Unload gdx with data in parameters with same names as model-variables, to be read into model
 execute_unload 'data'
 
-# execute_unloaddi "data",
-#   # Labor-market
-#   vIOE_y, vIOE_m, vIOE_a
-#   vWages_i, nL, vW
-  
-#   # Input-output
-#   d, rx, re, k, c, g, x, i, m ,factors_of_production,demand_transaction
-#   vY_i_d, vM_i_d, vtY_i_d, vtM_i_d,
-#   qD
-
-#   # Factor demand
-#   qK_k_i, qI_k_i, qR_i, qInvt_i, qE_re_i
-
-#   es, out, e, invt,tl
-#   pE_avg, 
-#   vWMA, vRMA, vCMA,
-#   qProd, pProd,
-#   em, em_accounts, land5, qEmmE_BU, qEmmxE, qEmmLULUCF5, qEmmLULUCF, sBioNatGas, qEmmBorderTrade
-#   GWP,
-#   vtCO2_ETS, qCO2_ETS_freeallowances
-#   vtNetproductionRest,
-#   vtCAP_prodsubsidy
-#   pEpj_base, qEpj
-#   vtE_duty, vtE_vat, tCO2_Emarg, tEmarg_duty
-#   Energybalance, NonEnergyEmissions
-
-#   #theta, uTE, uTK,
-#   pEpj_base,qEpj
-
-#   vIOxE_y, vIOxE_m, vIOxE_a, vIO_y, vIO_m, vIO_a,vtYM_d
-# ;

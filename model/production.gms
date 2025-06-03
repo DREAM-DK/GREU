@@ -65,12 +65,8 @@ $IF %stage% == "equations":
 
     # # Other production costs, not in nesting tree 
     .. vProdOtherProductionCosts[i,t] =E= 
-                                             vtY_i_NetTaxSub[i,t]           #Should be replaced by other variable
-                                          # vtNetproductionRest[i,t]        #Net production subsidies and taxes not internalized in user-cost of capital and not included in other items listed below
+                                            vtY_i_NetTaxSub[i,t]           #Net production taxes and subsidies, excluding ETS free allowances
                                            -vtBotded[i,t]                   #"Bottom deductions on energy-use"
-    #                                     - vDiffMarginAvgE[i,t]            #"Difference between marginal and average energy-costs"
-    #                                     + vtEmmRxE[i,t]                   #Taxes on non-energy related emissions
-    #                                     - vtCAP_prodsubsidy[i,t]          #Agricultural subsidies from EU CAP subsidizing production directly.
                                           + vEnergycostsnotinnesting[i,t]   #Energy costs not in nesting tree
                                           ;
   $ENDBLOCK
