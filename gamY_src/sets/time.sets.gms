@@ -15,3 +15,4 @@ $MACRO set_time_periods(start, end) \
   tEnd[t] = yes$(t.val=&end);\
   t_dummies[t] = yes$(t.val>=&start and t.val<=&end);\
 
+alias(t,tt)

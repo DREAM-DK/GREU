@@ -1,7 +1,7 @@
 def plot_supply_curve(gdxname):
 
     # Define which years the supply curves should be plottet for
-    year_list = [2019,2020]
+    year_list = [2019]
 
     # Import packages
     import dreamtools as dt
@@ -115,14 +115,14 @@ def plot_supply_curve(gdxname):
         # Plot discrete supply curve
         plt.plot(pct*df_MAC['theta_cumsum'],df_MAC['pTPotential'], label='Discreet',linewidth=1.5)
         # Plot discrete pESmarg
-        plt.axhline(pESmarg_discrete,color=colors[0], linestyle='--',linewidth=1.5)
+        # plt.axhline(pESmarg_discrete,color=colors[0], linestyle='--',linewidth=1.5)
 
         # Plot smooth curve
         df_smooth=Smooth_supply(df_smooth_input,pESmarg_eq,ss,p,yr)[0]
         plt.plot(pct*df_smooth['sqT_sum_scen'],df_smooth['pESmarg_scen'], label='Smooth',linewidth=1.5)
         # Plot smooth pESmarg
-        pESmarg_smooth=Smooth_supply(df_smooth_input,pESmarg_eq,ss,p,yr)[1]
-        plt.axhline(pESmarg_smooth,color=colors[1], linestyle='--',linewidth=1.5)
+        # pESmarg_smooth=Smooth_supply(df_smooth_input,pESmarg_eq,ss,p,yr)[1]
+        # plt.axhline(pESmarg_smooth,color=colors[1], linestyle='--',linewidth=1.5)
 
         # Insert line where demand equals supply (where sTSupply_suml = 1)
         plt.axvline(pct, color= 'k', linestyle='--',linewidth=1.5)
@@ -137,8 +137,14 @@ def plot_supply_curve(gdxname):
         plt.ylabel(r'$pES^{marg}_{es,d,t}$',fontsize='12')
         plt.xticks(fontsize=12)
         plt.yticks(fontsize=12)
+
+        # Define the size of the figure
+        plt.tight_layout()
+
+        plt.savefig('Supply_curve.svg')
+
         # Title settings
-        plt.title("Energy supply, "+str(ss)+", "+str(p)+", "+str(yr),fontsize='12',weight='bold')
+        # plt.title("Energy supply, "+str(ss)+", "+str(p)+", "+str(yr),fontsize='12',weight='bold')
 
 
     # Calling function for plotting discrete and smooth supply curve

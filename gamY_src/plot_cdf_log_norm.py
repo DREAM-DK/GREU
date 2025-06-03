@@ -93,7 +93,7 @@ def Smooth_supply(df_smooth_input):
     return df
 
 
-def plot_abatement():
+def plot_smoothing_tech():
 
     # Within each combination of sector, purpose and tax-step the tehnologies are sorted after the lowest new price (pTPotential)
     df_MAC=Discrete_supply(df_discrete_input)
@@ -103,9 +103,9 @@ def plot_abatement():
 
     # Plot smooth curve
     df_smooth=Smooth_supply(df_smooth_input)
-    plt.plot(df_smooth['cdf_scen_input'], df_smooth['cdf_scen_sigma_low'], label='Sigma=0.05',linewidth=1.5)
-    plt.plot(df_smooth['cdf_scen_input'], df_smooth['cdf_scen_sigma_med'], label='Sigma=0.15',linewidth=1.5)
-    plt.plot(df_smooth['cdf_scen_input'], df_smooth['cdf_scen_sigma_high'], label='Sigma=0.30',linewidth=1.5)
+    plt.plot(df_smooth['cdf_scen_input'], df_smooth['cdf_scen_sigma_low'], label=r'$\sigma=0.05$',linewidth=1.5)
+    plt.plot(df_smooth['cdf_scen_input'], df_smooth['cdf_scen_sigma_med'], label=r'$\sigma=0.15$',linewidth=1.5)
+    plt.plot(df_smooth['cdf_scen_input'], df_smooth['cdf_scen_sigma_high'], label=r'$\sigma=0.30$',linewidth=1.5)
 
     # Legend
     plt.legend(loc='best', fontsize=12)
@@ -117,6 +117,59 @@ def plot_abatement():
     # Title settings
     # plt.title("CDF",fontsize='12',weight='bold')
 
+    # Define the size of the figure
+    plt.tight_layout()
+
+    # Save figure
+    plt.savefig('Smoothing_tech.svg')
+
+    # Show and close the plot
+    plt.show()
+    plt.close()
+
+
+def plot_partial_expected_value():
+
+    # Plot smooth curve
+    df_smooth=Smooth_supply(df_smooth_input)
+    plt.plot(df_smooth['cdf_scen_input'], df_smooth['cdf_scen_sigma_high'],linewidth=1.5, color='r')
+    
+    # Define technology adoption
+    x_cutoff = 1.25
+    df_smooth['cdf_input_fill'] = df_smooth.loc[df_smooth['cdf_scen_input']<=x_cutoff,'cdf_scen_input']
+    df_smooth['cdf_fill'] = df_smooth.loc[df_smooth['cdf_scen_input']<=x_cutoff,'cdf_scen_sigma_high']
+    y_cutoff = df_smooth['cdf_fill'].max()
+
+    # Fill area under the curve
+    # plt.fill_between(df_smooth['cdf_input_fill'], df_smooth['cdf_fill'], 0,color='none',hatch='//',edgecolor='m')
+    plt.fill_between(df_smooth['cdf_input_fill'], df_smooth['cdf_fill'], 0,color=(0.1,0.2,0.2),alpha=0.3)
+
+    # Horizontal line
+    plt.axhline(y_cutoff, color='k', linestyle='--',linewidth=1.5)
+
+    # Exact horizontal and vertical lines
+    # plt.plot([x_cutoff, x_cutoff], [0, y_cutoff], color='k', linestyle='--')
+    # plt.plot([0, x_cutoff], [y_cutoff, y_cutoff], color='k', linestyle='--')
+
+    # Axis settings
+    plt.xlabel(r'$pES^{marg}_{es,d,t}$',fontsize='12')
+    plt.ylabel(r'$cdf(pES^{marg}_{es,d,t})$',fontsize='12')
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    # Title settings
+    # plt.title("CDF",fontsize='12',weight='bold')
+    
+    # Define the size of the figure
+    plt.tight_layout()
+
+    # Save figure
+    plt.savefig('Partial_expected_value.svg')
+
+    # Show and close the plot
+    plt.show()
+    plt.close()
+
 
 # Calling function for plotting discrete and smooth supply curve
-plot_abatement()
+plot_smoothing_tech()
+plot_partial_expected_value()
