@@ -143,7 +143,7 @@ $IF %stage%=='tests':
   );
 
   #This test should be adjusted to handle distribution profits (which is why the test does not work )
-  # LOOP((t,i)$(t.val>tDataEnd.val),
-  # ABORT$(abs(jvM_i.l[i,t])>1e-6) 'Import value vM_i computed in input_out.gms does not align with production value in CET-split';
-  # );
+  LOOP((t,i)$(t.val>tDataEnd.val),
+  ABORT$(abs(jvM_i.l[i,t])>1e-6) 'Import value vM_i computed in input_out.gms does not align with production value in CET-split';
+  );
 $ENDIF
