@@ -133,6 +133,21 @@ $FUNCTION InInterval({x},{y},{z}):
     Sqr(smooth_max_delta))) / 2) 
 $ENDFUNCTION
 
+# 3.3 Discounting Functions
+# A closed form solution for the sum of a finite geometric series
+# with an initial term "a", a discount factor "r" and a number of terms "n"
+$FUNCTION FiniteGeometricSeries({a}, {r}, {n}):
+  ({a} * (1 - (1/(1+{r}))**{n}) / (1 - (1/(1+{r}))))
+$ENDFUNCTION
+
+# Present value of a future cash flow
+# "x" is the cash flow, "r" is the discount rate, and "p" is the number of years 
+# "d" is a dummy determining whether or not the cash flow exists in the given year
+$FUNCTION Discount2t({x},{r},{p},{d}):
+  sum(tt$(tt.val >= t.val and tt.val < t.val+{p} and {d}), 
+      {x} / ((1+{r})**(tt.val-t.val)))
+$ENDFUNCTION
+
 # ----------------------------------------------------------------------------------------------------------------------
 # 4. Probability Distributions
 # ----------------------------------------------------------------------------------------------------------------------
