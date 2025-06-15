@@ -114,7 +114,7 @@ def plot_supply_curve(gdxname):
 
         # Plot smooth curve
         df_smooth=Smooth_supply(df_smooth_input,pESmarg_eq,ss,p,yr)[0]
-        plt.plot(pct*df_smooth['sqT_sum_scen'],df_smooth['pESmarg_scen'], label='Smooth',linewidth=1.5)
+        plt.plot(pct*df_smooth['sqT_sum_scen'],df_smooth['pESmarg_scen'], label='Continous',linewidth=1.5)
         # Plot smooth pESmarg
         # pESmarg_smooth=Smooth_supply(df_smooth_input,pESmarg_eq,ss,p,yr)[1]
         # plt.axhline(pESmarg_smooth,color=colors[1], linestyle='--',linewidth=1.5)

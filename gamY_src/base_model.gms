@@ -77,8 +77,8 @@ execute_unloaddi "calibration.gdx";
 # ----------------------------------------------------------------------------------------------------------------------
 # 6.1 Capital Cost Shock
 # Increase capital costs for technology t1 in heating sector
-uTKexp.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
-  = uTKexp.l['t1','heating','10030',t] * 100;
+vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
+  = vTI.l['t1','heating','10030',t] * 100;
 
 $import Supply_curves_abatement.gms
 
@@ -92,8 +92,8 @@ execute_unload 'shock_capital_cost.gdx';
 
 # 6.2 Carbon Tax Shock
 # Reset capital costs to original values
-uTKexp.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
-  = uTKexp_data['t1','heating','10030',t];
+vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
+  = vTI_data['t1','heating','10030',t];
 
 # Apply carbon tax to specific energy types
 pTE_tax.l[es,e,d,t]$(sameas[e,'Gasoline for transport'] or 
@@ -116,4 +116,4 @@ execute_unload 'shock_carbon_tax.gdx';
 # 7. Additional Analysis
 # ----------------------------------------------------------------------------------------------------------------------
 # 7.1 Log-normal Distribution Visualization
-$import cdf_log_norm.gms
+# $import cdf_log_norm.gms

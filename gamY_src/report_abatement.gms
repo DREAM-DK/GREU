@@ -28,7 +28,8 @@ sqTAdoption[l,es,d,t]$(d1sqTPotential[l,es,d,t]) =
 
 # Calculate average capital intensity as conditional expectation
 # For technologies with adoption, calculate average capital intensity using conditional expectation formula
-uTK[l,es,d,t]$(d1sqTPotential[l,es,d,t] and sqT.l[l,es,d,t]) =@CondExpLogNorm(uTKmarg.l[l,es,d,t], uTKexp.l[l,es,d,t], eP.l[l,es,d,t]) ;
+uTK[l,es,d,t]$(d1sqTPotential[l,es,d,t] and sqT.l[l,es,d,t]>0.001)
+  = @CondExpLogNorm(uTKmarg.l[l,es,d,t], uTKexp.l[l,es,d,t], eP.l[l,es,d,t]) ;
 
 # 2.3 Price Analysis
 pTSupply[l,es,d,t]$(d1sqTPotential[l,es,d,t] and (sqT.l[l,es,d,t]*qES.l[es,d,t])) =

@@ -11,7 +11,23 @@
 # Updating energy input price for plotting the discrete supply curve
 pTE.l[es,e,d,t] =  pTE_base.l[es,e,d,t] + pTE_tax.l[es,e,d,t]; 
 
-# 1.2 Technology Prices
+# 1.2 Starting values for Levelized Cost of Energy (LCOE)
+uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d]+1 and d1sqTPotential[l,es,d,t]) =
+   (vTI.l[l,es,d,t] # Investment costs
+    + @Discount2t(vTC.l[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d], d1sqTPotential[l,es,d,tt])) # Discounted variable costs
+      / @Discount2t(1, DiscountRate[l,es,d], LifeSpan[l,es,d], d1sqTPotential[l,es,d,tt]) # Dicounted denominator
+      ;
+
+  # Levelized cost of energy (LCOE) in technology l per PJ output at full potential
+  uTKexp.l[l,es,d,t]$(t.val > tend.val-LifeSpan[l,es,d]+1 and d1sqTPotential[l,es,d,t]) =
+     (vTI.l[l,es,d,t] # Investment costs
+      + @Discount2t(vTC.l[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d], d1sqTPotential[l,es,d,tt]) # Discounted variable costs until tEnd
+      + (1/(1+DiscountRate[l,es,d]))**(1+tEnd.val-t.val)*@FiniteGeometricSeries({vTC.l[l,es,d,tEnd]}, {DiscountRate[l,es,d]}, {LifeSpan[l,es,d]-1+t.val-tEnd.val})) # Discounted variable costs after tEnd (Assuming constant costs after tEnd)
+      / (@Discount2t(1, DiscountRate[l,es,d], LifeSpan[l,es,d], d1sqTPotential[l,es,d,tt]) # Discount denominator until tEnd
+       + (1/(1+DiscountRate[l,es,d]))**(1+tEnd.val-t.val)*@FiniteGeometricSeries({1}, {DiscountRate[l,es,d]}, {LifeSpan[l,es,d]-1+t.val-tEnd.val})) # Discounted denominator after tEnd
+       ; 
+
+# 1.3 Technology Prices
 # Technology price for plotting the discrete supply curve
 pTPotential.l[l,es,d,t] = sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t])
                         + uTKexp.l[l,es,d,t]*pTK.l[d,t];
@@ -56,7 +72,7 @@ pESmarg_eq[es,d,t] = smax(l, sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t]) + uTKmarg
 uTKmarg.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg_eq[l,es,d,t]; 
 
 # For some reason, the model can't solve when given too good starting values for uTKmarg
-uTKmarg.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t] + 3; 
+uTKmarg.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t] *1.05; 
 
 # 4.3 Starting Values, Other Core Variables
 uTKmargNobound.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t];

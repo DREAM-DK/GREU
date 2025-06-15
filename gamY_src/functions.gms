@@ -144,7 +144,7 @@ $ENDFUNCTION
 # "x" is the cash flow, "r" is the discount rate, and "p" is the number of years 
 # "d" is a dummy determining whether or not the cash flow exists in the given year
 $FUNCTION Discount2t({x},{r},{p},{d}):
-  sum(tt$(tt.val >= t.val and tt.val < t.val+{p} and {d}), 
+  sum(tt$(tt.val >= t.val and tt.val <= tend.val and tt.val < t.val+{p} and {d}), 
       {x} / ((1+{r})**(tt.val-t.val)))
 $ENDFUNCTION
 

@@ -36,24 +36,13 @@ $Group+ all_variables
   theta[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "jsk same sqTPotential. only used adhoc for loading data"
   eP[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Parameter governing efficiency of costs of technology l (smoothing parameter)"
   uTE[l,es,e,d,t]$(d1uTE[l,es,e,d,t]) "Input of energy in technology l per PJ output at full potential"
-  uTKexp[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Average input of machinery capital in technology l per PJ output at full potential"
 
-  InvCost[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "billion EUR per PJ output at full potential"
-  VarCost[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "billion EUR per PJ output at full potential"
+  vTI[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Investment cost, billion EUR per PJ output at full potential"
+  vTC[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Variable capital costs, billion EUR per PJ output at full potential"
 
   # 1.2.2 Core Endogenous Variables
-
-  # vTK_LCOE_old[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Levelized cost of energy (LCOE) in technology l per PJ output at full potential"
-  # vTK_NAEVNER_old[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Levelized cost of energy (LCOE) in technology l per PJ output at full potential"
-  vTK_LCOE[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Levelized cost of energy (LCOE) in technology l per PJ output at full potential"
-  vTK_LCOE_alt[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Levelized cost of energy (LCOE) in technology l per PJ output at full potential"
-
-  # vTK_LCOE[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Levelized cost of energy (LCOE) in technology l per PJ output at full potential"
-  # vTK_LCOE_tEnd[l,es,d,t]$(tend[t] and d1sqTPotential[l,es,d,t]) "Levelized cost of energy (LCOE) in technology l per PJ output at full potential"
-  # vTK_LCOE_naevner_tEnd[l,es,d,t]$(tEnd[t] and d1sqTPotential[l,es,d,t]) ""
-  # vTK_LCOE_taeller_tEnd[l,es,d,t]$(tEnd[t] and d1sqTPotential[l,es,d,t]) ""
-  # vTK_LCOE_alt_tEnd[l,es,d,t]$(tEnd[t] and d1sqTPotential[l,es,d,t]) ""
-
+  # 1.2.2.1 Levelized Cost of Energy (LCOE) 
+  uTKexp[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Average input of machinery capital in technology l per PJ output at full potential"
 
   # 1.2.2.1 Marginal Capital Intensity
   uTKmargNoBound[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Input of machinery capital in technology l per PJ output at the margin of supply - Unrestricted"
@@ -83,9 +72,7 @@ $Group+ all_variables
 
 parameter
   LifeSpan[l,es,d] "Life span of technology l in years"
-  LifeSpan_t "Life span of technology l in years"
   DiscountRate[l,es,d] "Discount rate of technology l"
-  Beta[l,es,d] ""
   ;
 
 $ENDIF # variables
@@ -99,18 +86,18 @@ $BLOCK abatement_LCOE_equations abatement_LCOE_endogenous $(t1.val <= t.val and 
 
   # Levelized cost of energy (LCOE) in technology l per PJ output at full potential
   $(t.val <= tend.val-LifeSpan[l,es,d]+1 and d1sqTPotential[l,es,d,t]).. 
-    vTK_LCOE[l,es,d,t] =E=
-     (InvCost[l,es,d,t] # Investment costs
-      + @Discount2t(VarCost[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d], d1sqTPotential[l,es,d,tt])) # Discounted variable costs
+    uTKexp[l,es,d,t] =E=
+     (vTI[l,es,d,t] # Investment costs
+      + @Discount2t(vTC[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d], d1sqTPotential[l,es,d,tt])) # Discounted variable costs
         / @Discount2t(1, DiscountRate[l,es,d], LifeSpan[l,es,d], d1sqTPotential[l,es,d,tt]) # Dicounted denominator
         ;
 
   # Levelized cost of energy (LCOE) in technology l per PJ output at full potential
-  vTK_LCOE&_tEnd[l,es,d,t]$(t.val > tend.val-LifeSpan[l,es,d]+1 and d1sqTPotential[l,es,d,t]).. 
-    vTK_LCOE[l,es,d,t] =E= 
-     (InvCost[l,es,d,t] # Investment costs
-      + @Discount2t(VarCost[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d], d1sqTPotential[l,es,d,tt]) # Discounted variable costs until tEnd
-      + (1/(1+DiscountRate[l,es,d]))**(1+tEnd.val-t.val)*@FiniteGeometricSeries({VarCost[l,es,d,tEnd]}, {DiscountRate[l,es,d]}, {LifeSpan[l,es,d]-1+t.val-tEnd.val})) # Discounted variable costs after tEnd (Assuming constant costs after tEnd)
+  uTKexp&_tEnd[l,es,d,t]$(t.val > tend.val-LifeSpan[l,es,d]+1 and d1sqTPotential[l,es,d,t]).. 
+    uTKexp[l,es,d,t] =E= 
+     (vTI[l,es,d,t] # Investment costs
+      + @Discount2t(vTC[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d], d1sqTPotential[l,es,d,tt]) # Discounted variable costs until tEnd
+      + (1/(1+DiscountRate[l,es,d]))**(1+tEnd.val-t.val)*@FiniteGeometricSeries({vTC[l,es,d,tEnd]}, {DiscountRate[l,es,d]}, {LifeSpan[l,es,d]-1+t.val-tEnd.val})) # Discounted variable costs after tEnd (Assuming constant costs after tEnd)
       / (@Discount2t(1, DiscountRate[l,es,d], LifeSpan[l,es,d], d1sqTPotential[l,es,d,tt]) # Discount denominator until tEnd
        + (1/(1+DiscountRate[l,es,d]))**(1+tEnd.val-t.val)*@FiniteGeometricSeries({1}, {DiscountRate[l,es,d]}, {LifeSpan[l,es,d]-1+t.val-tEnd.val})) # Discounted denominator after tEnd
        ; 
@@ -211,7 +198,9 @@ $IF %stage% == "exogenous_values":
 $GROUP abatement_data_variables
   sqTPotential[l,es,d,t]
   uTE[l,es,e,d,t]
-  uTKexp[l,es,d,t]
+  # uTKexp[l,es,d,t]
+  vTI[l,es,d,t]
+  vTC[l,es,d,t]
   pTE_base[es,e,d,t]
   pTE_tax[es,e,d,t]
   pTK[d,t]
@@ -222,13 +211,8 @@ $GROUP+ data_covered_variables abatement_data_variables;
 
 
 # 3.2 Initial Values and Dummy Setup
-# Set initial values for technology parameters
-uTKexp.l[l,es,d,t] = uTKexp.l[l,es,d,t] * 100;
-
 # Calculate initial prices
 pTE.l[es,e,d,t] = pTE_base.l[es,e,d,t] + pTE_tax.l[es,e,d,t];
-pTPotential.l[l,es,d,t] = 
-  sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t]) + uTKexp.l[l,es,d,t]*pTK.l[d,t];
 
 # Set smoothing parameters
 eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.03;
@@ -242,41 +226,28 @@ d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 d1pTE[es,e,d,t] = yes$(pTE.l[es,e,d,t]);
 d1qES[es,d,t] = yes$(qES.l[es,d,t]);
 
-InvCost.l[l,es,d,t]$(d1sqTPotential[l,es,d,t]) = 1;
-# InvCost.l[l,es,d,t]$(sameas[t,'2019'] and d1sqTPotential[l,es,d,t]) = 2;
-# InvCost.l[l,es,d,t]$(sameas[t,'2020'] and d1sqTPotential[l,es,d,t]) = 1;
-# InvCost.l[l,es,d,t]$(sameas[t,'2021'] and d1sqTPotential[l,es,d,t]) = 3;
-# InvCost.l[l,es,d,t]$(sameas[t,'2022'] and d1sqTPotential[l,es,d,t]) = 4;
-# InvCost.l[l,es,d,t]$(sameas[t,'2023'] and d1sqTPotential[l,es,d,t]) = 5;
-# InvCost.l[l,es,d,t]$(sameas[t,'2024'] and d1sqTPotential[l,es,d,t]) = 4;
-# InvCost.l[l,es,d,t]$(sameas[t,'2025'] and d1sqTPotential[l,es,d,t]) = 3;
-# InvCost.l[l,es,d,t]$(sameas[t,'2026'] and d1sqTPotential[l,es,d,t]) = 2;
-# InvCost.l[l,es,d,t]$(sameas[t,'2027'] and d1sqTPotential[l,es,d,t]) = 1;
-# InvCost.l[l,es,d,t]$(sameas[t,'2028'] and d1sqTPotential[l,es,d,t]) = 1.5;
-# InvCost.l[l,es,d,t]$(sameas[t,'2029'] and d1sqTPotential[l,es,d,t]) = 2;
-# InvCost.l[l,es,d,t]$(sameas[t,'2030'] and d1sqTPotential[l,es,d,t]) = 2.5;
-
-VarCost.l[l,es,d,t]$(d1sqTPotential[l,es,d,t]) = 0.1;
-# VarCost.l[l,es,d,t]$(sameas[t,'2019'] and d1sqTPotential[l,es,d,t]) = 0.2;
-# VarCost.l[l,es,d,t]$(sameas[t,'2020'] and d1sqTPotential[l,es,d,t]) = 0.19;
-# VarCost.l[l,es,d,t]$(sameas[t,'2021'] and d1sqTPotential[l,es,d,t]) = 0.18;
-# VarCost.l[l,es,d,t]$(sameas[t,'2022'] and d1sqTPotential[l,es,d,t]) = 0.17;
-# VarCost.l[l,es,d,t]$(sameas[t,'2023'] and d1sqTPotential[l,es,d,t]) = 0.16;
-# VarCost.l[l,es,d,t]$(sameas[t,'2024'] and d1sqTPotential[l,es,d,t]) = 0.15;
-# VarCost.l[l,es,d,t]$(sameas[t,'2025'] and d1sqTPotential[l,es,d,t]) = 0.14;
-# VarCost.l[l,es,d,t]$(sameas[t,'2026'] and d1sqTPotential[l,es,d,t]) = 0.13;
-# VarCost.l[l,es,d,t]$(sameas[t,'2027'] and d1sqTPotential[l,es,d,t]) = 0.12;
-# VarCost.l[l,es,d,t]$(sameas[t,'2028'] and d1sqTPotential[l,es,d,t]) = 0.11;
-# VarCost.l[l,es,d,t]$(sameas[t,'2029'] and d1sqTPotential[l,es,d,t]) = 0.10;
-# VarCost.l[l,es,d,t]$(sameas[t,'2030'] and d1sqTPotential[l,es,d,t]) = 0.09;
-
 LifeSpan[l,es,d]$(sum(t, d1sqTPotential[l,es,d,t])) = 5;
-LifeSpan_t = 5;
 DiscountRate[l,es,d]$(sum(t, d1sqTPotential[l,es,d,t])) = 0.05;
-Beta[l,es,d]$(sum(t, d1sqTPotential[l,es,d,t])) = 1/(1+DiscountRate[l,es,d]);
 
-# vTK_LCOE_naevner_tEnd.l[l,es,d,t]$(tEnd[t] and d1sqTPotential[l,es,d,t]) = 
-#     @FiniteGeometricSeries({1}, {Beta[l,es,d]}, {LifeSpan[l,es,d]}); 
+# 4.4 Starting values for Levelized Cost of Energy (LCOE)
+uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d]+1 and d1sqTPotential[l,es,d,t]) =
+   (vTI.l[l,es,d,t] # Investment costs
+    + @Discount2t(vTC.l[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d], d1sqTPotential[l,es,d,tt])) # Discounted variable costs
+      / @Discount2t(1, DiscountRate[l,es,d], LifeSpan[l,es,d], d1sqTPotential[l,es,d,tt]) # Dicounted denominator
+      ;
+
+  # Levelized cost of energy (LCOE) in technology l per PJ output at full potential
+  uTKexp.l[l,es,d,t]$(t.val > tend.val-LifeSpan[l,es,d]+1 and d1sqTPotential[l,es,d,t]) =
+     (vTI.l[l,es,d,t] # Investment costs
+      + @Discount2t(vTC.l[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d], d1sqTPotential[l,es,d,tt]) # Discounted variable costs until tEnd
+      + (1/(1+DiscountRate[l,es,d]))**(1+tEnd.val-t.val)*@FiniteGeometricSeries({vTC.l[l,es,d,tEnd]}, {DiscountRate[l,es,d]}, {LifeSpan[l,es,d]-1+t.val-tEnd.val})) # Discounted variable costs after tEnd (Assuming constant costs after tEnd)
+      / (@Discount2t(1, DiscountRate[l,es,d], LifeSpan[l,es,d], d1sqTPotential[l,es,d,tt]) # Discount denominator until tEnd
+       + (1/(1+DiscountRate[l,es,d]))**(1+tEnd.val-t.val)*@FiniteGeometricSeries({1}, {DiscountRate[l,es,d]}, {LifeSpan[l,es,d]-1+t.val-tEnd.val})) # Discounted denominator after tEnd
+       ; 
+
+pTPotential.l[l,es,d,t] = 
+  sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t]) + uTKexp.l[l,es,d,t]*pTK.l[d,t];
+
 
 $ENDIF # exogenous_values
 
@@ -286,6 +257,15 @@ $ENDIF # exogenous_values
 $IF %stage% == "calibration":
 
 # 4.1 Calibration Model Setup
+# $BLOCK abatement_calibration_equations
+#     # Levelized cost of energy (LCOE) in technology l per PJ output at full potential
+#   $(t.val=2019 and d1sqTPotential[l,es,d,t]).. 
+#     vTK_LCOE[l,es,d,t] =E= 
+#      (vTI[l,es,d,t] # Investment costs
+#       + @FiniteGeometricSeries({vTC[l,es,d,tEnd]}, {DiscountRate[l,es,d]}, {LifeSpan[l,es,d]-1+t.val-tEnd.val})) # Discounted variable costs after tEnd (Assuming constant costs after tEnd)
+#       / @FiniteGeometricSeries({1}, {DiscountRate[l,es,d]}, {LifeSpan[l,es,d]-1+t.val-tEnd.val}) # Discounted denominator after tEnd
+#        ; 
+
 model calibration / abatement_equations /;
 
 # 4.2 Calibration Variables
