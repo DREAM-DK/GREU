@@ -2,6 +2,7 @@ import sys
 import shutil
 import os
 import dreamtools as dt
+
 dt.gamY.automatic_dummy_suffix = "_exists_dummy"
 dt.gamY.variable_equation_prefix = "E_"
 
@@ -11,12 +12,23 @@ sys.path.insert(0, root)
 os.environ["GAMS"] = "C:/GAMS/49/gams.exe"
 
 ## Set working directory
-os.chdir(fr"{root}/model")
+# os.chdir(fr"{root}/model")
 
 ## Create data.gdx based on GreenREFORM-DK data 
 # dt.gamY.run("../data/data_from_GR.gms")
 
+## Create abatement_dummy_data.gdx based on excel-module
+from data.Abatement_data import Import_abatement_data
+
+## Re-set working directory
+os.chdir(fr"{root}/model")
+
 dt.gamY.run("base_model.gms")
+
+
+## Plotting of discrete and continous technical energy supply curves
+from plot_supply_curves import plot_supply_curve # Function to plot abatement supply curves
+
 
 ## Save calibration.gdx as previous_calibration.gdx
 # shutil.copy("calibration.gdx", "previous_calibration.gdx")
