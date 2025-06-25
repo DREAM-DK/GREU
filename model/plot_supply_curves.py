@@ -1,7 +1,7 @@
 def plot_supply_curve(gdxname):
 
     # Define which years the supply curves should be plottet for
-    year_list = [2019]
+    year_list = [2020]
 
     # Import packages
     import dreamtools as dt

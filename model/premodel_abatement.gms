@@ -71,12 +71,10 @@ $MODEL M_abatement_supply_curve
   -E_pESmarg_es_d_scen
   abatement_equations_supply_curve
   ;
-execute_unload 'premodel_abatement_1.gdx';
+  
 # 4.2 Dummy Variable Management
 @add_exist_dummies_to_model(M_abatement_supply_curve) # Limit the main model to only include elements that are not dummied out
 @update_exist_dummies()
-
-execute_unload 'premodel_abatement_2.gdx';
 
 # 4.3 Variable Classification
 # 4.3.1 Endogenous Variables
