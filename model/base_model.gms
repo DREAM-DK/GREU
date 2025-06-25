@@ -12,6 +12,7 @@ $IMPORT sets/households.sets.gms
 $IMPORT sets/emissions.sets.gms
 $IMPORT sets/energy_taxes_and_emissions.sets.gms
 $IMPORT sets/households.sets.gms
+$IMPORT sets/abatement.sets.gms
 
 set_time_periods(%first_data_year%, %terminal_year%);
 
@@ -49,6 +50,7 @@ $FUNCTION import_from_modules({stage_key}):
     ("consumption_disaggregated.gms", 1), 
     ("consumption_disaggregated_energy.gms", 1), 
     ("exports_energy.gms", 1),
+    ("abatement.gms", 1),
   ]:
     $IF {include} or {stage_key} not in ["equations", "calibration"]:
       $IMPORT {module}
@@ -85,6 +87,10 @@ main.optfile=1;
 @inf_growth_adjust()
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
 @update_exist_dummies()
+
+# 4.2 Supply Curve Visualization
+$import premodel_abatement.gms
+$import Supply_curves_abatement.gms
 
 # ------------------------------------------------------------------------------
 # Calibrate model
