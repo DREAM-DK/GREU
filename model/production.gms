@@ -16,10 +16,8 @@ $IF %stage% == "variables":
 
     vtBotded[i,t]$(d1Y_i[i,t]) "Value of bottom-up deductions, bio kroner"
     vProdOtherProductionCosts[i,t]$(d1Y_i[i,t]) "Other production costs not in CES-nesting tree, bio. kroner"
-    vtNetproductionRest[i,t]$(d1Y_i[i,t]) "Net production subsidies and taxes not internalized in user-cost of capital and not included in other items listed below, bio. kroner"
     vDiffMarginAvgE[i,t]$(d1Y_i[i,t]) "Difference between marginal and average energy-costs, bio. kroner"
     vtEmmRxE[i,t]$(d1Y_i[i,t]) "Taxes on non-energy related emissions, bio. kroner"
-    vtCAP_prodsubsidy[i,t]$(d1Y_i[i,t]) "Agricultural subsidies from EU CAP subsidizing production directly, bio. kroner"
 
     uProd[pf,i,t]$(d1Prod[pf,i,t]) "CES-Share of production for nest or factor (pf)"
     eProd[pFnest,i] "Elasticity of substitution between production nests"
@@ -116,8 +114,6 @@ $IF %stage% == "exogenous_values":
   $Group G_production_data_variables 
     pProd
     qProd
-    vtNetproductionRest
-    vtCAP_prodsubsidy
   ;
 
   @inf_growth_adjust()

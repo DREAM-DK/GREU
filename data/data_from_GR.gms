@@ -54,9 +54,11 @@ Set out; #output types
 Set e(out); #energy outputs
 Set m(i);
 Set em_accounts; #set of accounts for emissions
+set land5
 
 ### B) Initialization of parameters to be read from Python treated data
-$PGROUP PG_data_from_Python
+#$PGROUP PG_data_from_Python
+Parameters
   vIO_y[i,d,t] "IO - data, domesticsupply"
   vIO_m[i,d,t] "IO - data, imports"
   vIO_a[a_rows_,d,t] "IO -data, decomposition of GVA"
@@ -80,14 +82,13 @@ $PGROUP PG_data_from_Python
 
 # £) 
 $gdxin data_DK.gdx
-$load d, d_non_ene, d_ene, i,c,x,g,rx,re,invt,invt_ene,tl,out,e,t,t1,land5,em_accounts,i_,k_
+$load d, d_non_ene, d_ene, i,c,x,g,rx,re,invt,invt_ene,tl,out,e,t,t1,em_accounts,i_,k_,land5
 $load factors_of_production, k, ebalitems, em,etaxes,a_rows_,transaction,demand_transaction,es
-$load vIO_y=vIO_y.l, vIO_m=vIO_m.l, vIOxE_y=vIOxE_y.l, vIOxE_m=vIOxE_m.l, vIO_a=vIO_a.l,vIOxE_a=vIOxE_a.l
-$load nEmployed=nEmployed.l, qL=qL.l, qK=qK.l, qI_k_i=qI_k_i.l
-$load qEmmLULUCF=qEmmLULUCF.l,qEmmBorderTrade=qEmmBorderTrade.l,qCO2_ETS_freeallowances=qCO2_ETS_freeallowances.l
-$load Energybalance=Energybalance.l
-$load NonEnergyEmissions=NonEnergyemissions.l
-
+$load vIO_y,vIO_m,vIO_a,vIOxE_y,vIOxE_m,vIOxE_a
+$load nEmployed,qL,qK,qI_k_i
+$load qEmmLULUCF,qEmmBorderTrade,qCO2_ETS_freeallowances
+$load Energybalance, NonEnergyEmissions
+$gdxin
 #Creating auxiliary sets (These should be read from Python data)
 set demand_transaction_temp[transaction] /'input_in_production','household_consumption','inventory','export','transmission_losses'/; #AKB: In "demand_transaction" there is an error with "households" being the set-element for households
 set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','cav','nox_tax','so2_tax','vat','base'/; #AKB: Auxiliary set 
@@ -280,7 +281,7 @@ $PGROUP PG_GREU_data
   qK_k_i[k,i,t] "Real capital stock by capital type and industry."
   qL_i[i,t] "Labor in efficiency units by industry."
   qR_i[i,t] "Intermediate input by industry."
-  qI_k_i[k,i,t] "Real investments by capital type and industry."
+  #qI_k_i[k,i,t] "Real investments by capital type and industry."
   qInvt_i[i,t] "Inventory investments by industry."
   qInvt_ene_i[i,t] "Inventory investments by industry."
   qE_re_i[re,i,t] "Energy demand from industry i, split on energy-types re"
@@ -305,38 +306,38 @@ $PGROUP PG_GREU_data
   qM_CET[out,i,t] "Total imports by output and industry"
   pY_CET[out,i,t] "Price of domestic supply by output and industry"
   pM_CET[out,i,t] "Price of imports by output and industry"
-  qCO2_ETS_freeallowances[i,t] "Free ETS1-allowances by industry"
+  #qCO2_ETS_freeallowances[i,t] "Free ETS1-allowances by industry"
 
 
   #Emissions
   qEmmBunkering[em,t] "Bunkering emissions"
-  qEmmBorderTrade[em,t] "Border trade emissions"
-  qEmmLULUCF[t] ""
+  #qEmmBorderTrade[em,t] "Border trade emissions"
+  #qEmmLULUCF[t] ""
   qEmmTot[em,em_accounts,t] ""
-  GWP[em]
-  sBioNatGas[t]
+  GWP[em] ""
+  sBioNatGas[t] ""
 
   #Production function
   qProd[factors_of_production,i,t] "Factors of production, value"
   pProd[factors_of_production,i,t] "Factors of production, price"
 
   # Abatement
-  theta_load[l,es,i,e,t] "Potential, technology."
-  uTE_load[l,es,i,e,t] "Energy use, technology."
-  uTK_load[l,es,i,e,t] "Capital use, technology."
+  #theta_load[l,es,i,e,t] "Potential, technology."
+  #uTE_load[l,es,i,e,t] "Energy use, technology."
+  #uTK_load[l,es,i,e,t] "Capital use, technology."
 
-  theta[l,es,i,t] "Potential, technology."
-  uTE[l,es,e,i,t] "Energy use, technology."
-  uTK[l,es,i,t] "Capital use, technology."
+  #theta[l,es,i,t] "Potential, technology."
+  #uTE[l,es,e,i,t] "Energy use, technology."
+  #uTK[l,es,i,t] "Capital use, technology."
 
   #Gov
   vGov2Foreign[t] "Payments to foreign countries."
 ;
 
 #£)
-$gdxIn %data_path%/EU_tech_data_disagg.gdx
-$load l=l, theta_load=theta.l, uTE_load=uTE.l, uTK_load=uTK.l
-$gdxIn
+#$gdxIn %data_path%/EU_tech_data_disagg.gdx
+#$load l=l, theta_load=theta.l, uTE_load=uTE.l, uTK_load=uTK.l
+#$gdxIn
 
 
 ### E) Reading Python treated data into parameters to be read into model
@@ -495,9 +496,9 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   vtE_vat[es,e,d,t]          = sum(demand_transaction_temp, Energybalance['VAT',demand_transaction_temp,d,es,e,t]);
 
   # Abatement
-  theta[l,es,i,t] = sum(e, theta_load[l,es,i,e,t]);
-  uTE[l,es,e,i,t] = uTE_load[l,es,i,e,t];
-  uTK[l,es,i,t] = sum(e, uTK_load[l,es,i,e,t]);
+  #theta[l,es,i,t] = sum(e, theta_load[l,es,i,e,t]);
+  #uTE[l,es,e,i,t] = uTE_load[l,es,i,e,t];
+  #uTK[l,es,i,t] = sum(e, uTK_load[l,es,i,e,t]);
 
 
 ###  F) Unload gdx with data in parameters with same names as model-variables, to be read into model
