@@ -88,17 +88,31 @@ main.optfile=1;
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
 @update_exist_dummies()
 
-# 4.2 Supply Curve Visualization
-$import premodel_abatement.gms
-$import Supply_curves_abatement.gms
+# ------------------------------------------------------------------------------
+# Calibrate CGE model
+# ------------------------------------------------------------------------------
+# We turn the abatement model off while calibrating the CGE-model
+d1switch_abatement[t] = 0;
 
-# ------------------------------------------------------------------------------
-# Calibrate model
-# ------------------------------------------------------------------------------
 $Group calibration_endogenous ;
 @import_from_modules("calibration")
 calibration.optfile=1;
 $IMPORT calibration.gms
+
+# ------------------------------------------------------------------------------
+# Integrate the abatement model
+# ------------------------------------------------------------------------------
+# We turn the abatement model on to integrate it with the CGE-model
+d1switch_abatement[t] = 1;
+
+# 4.2 Supply Curve Visualization
+$import premodel_abatement.gms
+$import Supply_curves_abatement.gms
+
+$FIX all_variables; $UNFIX calibration_endogenous;
+solve calibration using CNS;
+
+execute_unload 'calibration_abatement.gdx';
 
 # ------------------------------------------------------------------------------
 # Tests
@@ -118,33 +132,33 @@ Solve main using CNS;
 # ------------------------------------------------------------------------------
 # Shock model
 # ------------------------------------------------------------------------------
-set_time_periods(2020, %terminal_year%);
+# set_time_periods(2020, %terminal_year%);
 
-# tY_i_d.l[i,re,t]$(t.val >= t1.val) = 0.01 + tY_i_d.l[i,re,t];
-tEmarg_duty.l['ener_tax',es,e,d,t]$(t.val > t1.val) = 2*tEmarg_duty.l['ener_tax',es,e,d,t]; #Doubling energy-taxes
+# # tY_i_d.l[i,re,t]$(t.val >= t1.val) = 0.01 + tY_i_d.l[i,re,t];
+# tEmarg_duty.l['ener_tax',es,e,d,t]$(t.val > t1.val) = 2*tEmarg_duty.l['ener_tax',es,e,d,t]; #Doubling energy-taxes
 
-$FIX all_variables;
-$UNFIX main_endogenous;
-Solve main using CNS;
-execute_unload 'shock.gdx';
-@import_from_modules("tests")
+# $FIX all_variables;
+# $UNFIX main_endogenous;
+# Solve main using CNS;
+# execute_unload 'shock.gdx';
+# @import_from_modules("tests")
 
 # ----------------------------------------------------------------------------------------------------------------------
 # 6. Simulation Scenarios In the Abatement Model
 # ----------------------------------------------------------------------------------------------------------------------
 # 6.1 Capital Cost Shock
 # Increase capital costs for technology t1 in heating sector
-vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
-  = vTI.l['t1','heating','10030',t] * 100;
+# vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
+#   = vTI.l['t1','heating','10030',t] * 100;
 
-$import Supply_curves_abatement.gms
+# $import Supply_curves_abatement.gms
 
-$FIX all_variables;
-$UNFIX main_endogenous;
-@Setbounds_abatement();
-Solve main using CNS;
-$IMPORT report_abatement.gms
-execute_unload 'shock_capital_cost.gdx';
+# $FIX all_variables;
+# $UNFIX main_endogenous;
+# @Setbounds_abatement();
+# Solve main using CNS;
+# $IMPORT report_abatement.gms
+# execute_unload 'shock_capital_cost.gdx';
 
 
 # 6.2 Carbon Tax Shock
@@ -153,12 +167,7 @@ vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t])
   = vTI_data['t1','heating','10030',t];
 
 # Apply carbon tax to specific energy types
-pTE_tax.l[es,e,d,t]$(sameas[e,'Gasoline for transport'] or 
-                     sameas[e,'Diesel for transport'] or 
-                     sameas[e,'Natural gas incl. biongas'] or 
-                     sameas[e,'Coal and coke'] or 
-                     sameas[e,'Waste'])
-    = pTE.l[es,e,d,t]*30;
+tCO2_Emarg.l[em,es,e,i,t] = tCO2_Emarg.l[em,es,e,i,t]*10;
 
 $import Supply_curves_abatement.gms
 

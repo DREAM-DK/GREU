@@ -17,6 +17,7 @@ $SetGroup SG_Abatement_dummies
   d1uTE[l,es,e,d,t] "Dummy determining the existence of energy input in technology"
   d1qES_e[es,e,d,t] "Dummy determining the existence of energy use (sum across technologies)"
   d1qES[es,d,t] "Dummy determining the existence of energy service, quantity"
+  d1switch_abatement[t] "Dummy to control whether the abatement is turned on (=1) or off (=0)"
 ;
 
 # 1.2 Main Variables
@@ -82,7 +83,7 @@ $ENDIF # variables
 # ------------------------------------------------------------------------------
 $IF %stage% == "equations":
 
-$BLOCK abatement_LCOE_equations abatement_LCOE_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+$BLOCK abatement_LCOE_equations abatement_LCOE_endogenous $(t1.val <= t.val and t.val <= tEnd.val and d1switch_abatement[t])
 
   # Levelized cost of energy (LCOE) in technology l per PJ output at full potential
   $(t.val <= tend.val-LifeSpan[l,es,d]+1 and d1sqTPotential[l,es,d,t]).. 
@@ -106,7 +107,7 @@ $ENDBLOCK
 
 
 # 2.1 Core Model Equations
-$BLOCK abatement_equations_core abatement_endogenous_core $(t1.val <= t.val and t.val <= tEnd.val) 
+$BLOCK abatement_equations_core abatement_endogenous_core $(t1.val <= t.val and t.val <= tEnd.val and d1switch_abatement[t]) 
   
   # 2.1.1 Input Price Equations
   # Price on energy input including taxes
@@ -116,7 +117,7 @@ $BLOCK abatement_equations_core abatement_endogenous_core $(t1.val <= t.val and 
   # Equality between marginal price of energy service and marginal price of technology 
   # determines capital intensity of technologies at the margin of supply
   uTKmargNoBound[l,es,d,t].. pESmarg[es,d,t] =E= 
-    sum(e, uTE[l,es,e,d,t]*pTE[es,e,d,t]$(d1pTE[es,e,d,t] and d1uTE[l,es,e,d,t])) + 
+    sum(e, uTE[l,es,e,d,t]*pEpj_marg[es,e,d,t]$(d1pEpj[es,e,d,t] and d1uTE[l,es,e,d,t])) + 
     uTKmargNoBound[l,es,d,t]*pTK[d,t];
 
   # A lower bound close to zero is set to avoid indeterminancy in cdfLognorm in sqTqES
@@ -134,7 +135,7 @@ $BLOCK abatement_equations_core abatement_endogenous_core $(t1.val <= t.val and 
 $ENDBLOCK
 
 # 2.2 Output Equations
-$BLOCK abatement_equations_output abatement_endogenous_output $(t1.val <= t.val and t.val <= tEnd.val) 
+$BLOCK abatement_equations_output abatement_endogenous_output $(t1.val <= t.val and t.val <= tEnd.val and d1switch_abatement[t]) 
   # 2.2.1 Energy and Capital Use
   # Use of energy in production of energy service
   .. qESE[es,e,d,t] =E= 
@@ -148,7 +149,7 @@ $BLOCK abatement_equations_output abatement_endogenous_output $(t1.val <= t.val 
   # 2.2.2 Value and Price Calculations
   # Value of energy service                                       
   .. vES[es,d,t] =E= 
-    sum(e, qESE[es,e,d,t]*pTE[es,e,d,t]) + qESK[es,d,t]*pTK[d,t];
+    sum(e, qESE[es,e,d,t]*pEpj_marg[es,e,d,t]) + qESK[es,d,t]*pTK[d,t];
 
   # Price of energy service
   .. pES[es,d,t] =E= vES[es,d,t] / qES[es,d,t];   
@@ -225,6 +226,7 @@ d1pTK[d,t] = yes$(sum((l,es), d1sqTPotential[l,es,d,t]));
 d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 d1pTE[es,e,d,t] = yes$(pTE.l[es,e,d,t]);
 d1qES[es,d,t] = yes$(qES.l[es,d,t]);
+d1switch_abatement[t] = 1;
 
 LifeSpan[l,es,d]$(sum(t, d1sqTPotential[l,es,d,t])) = 5;
 DiscountRate[l,es,d]$(sum(t, d1sqTPotential[l,es,d,t])) = 0.05;
@@ -246,7 +248,7 @@ uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d]+1 and d1sqTPotential[l,es
        ; 
 
 pTPotential.l[l,es,d,t] = 
-  sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t]) + uTKexp.l[l,es,d,t]*pTK.l[d,t];
+  sum(e, uTE.l[l,es,e,d,t]*pEpj_marg.l[es,e,d,t]) + uTKexp.l[l,es,d,t]*pTK.l[d,t];
 
 
 $ENDIF # exogenous_values

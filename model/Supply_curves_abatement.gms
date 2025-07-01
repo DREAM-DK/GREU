@@ -3,6 +3,16 @@
 # ======================================================================================================================
 # This module solves a pre-model in order to calculate supply curves for the main abatement model.
 
+model energy_price_partial / energy_demand_prices/;
+
+$Group energy_price_partial_endogenous
+  energy_demand_prices_endogenous
+  ;
+
+# # 3.1 Pre-model Solution
+@add_exist_dummies_to_model(energy_price_partial);
+$FIX all_variables; $UNFIX energy_price_partial_endogenous;
+Solve energy_price_partial using CNS;
 
 # ----------------------------------------------------------------------------------------------------------------------
 # 1. Price Initialization
@@ -29,7 +39,7 @@ uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d]+1 and d1sqTPotential[l,es
 
 # 1.3 Technology Prices
 # Technology price for plotting the discrete supply curve
-pTPotential.l[l,es,d,t] = sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t])
+pTPotential.l[l,es,d,t] = sum(e, uTE.l[l,es,e,d,t]*pEpj_marg.l[es,e,d,t])
                         + uTKexp.l[l,es,d,t]*pTK.l[d,t];
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -72,11 +82,11 @@ pESmarg_eq[es,d,t] = smax(l, sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t]) + uTKmarg
 uTKmarg.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg_eq[l,es,d,t]; 
 
 # For some reason, the model can't solve when given too good starting values for uTKmarg
-uTKmarg.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t] *1.05; 
+uTKmarg.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t] *1; 
 
 # 4.3 Starting Values, Other Core Variables
 uTKmargNobound.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t];
-sqT.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 
+sqT.l[l,es,d,t]$(sqTPotential.l[l,es,d,t] and uTKmarg_eq[l,es,d,t]) = 
   sqTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_eq[l,es,d,t], uTKexp.l[l,es,d,t], eP.l[l,es,d,t]);
 pESmarg.l[es,d,t] = pESmarg_eq[es,d,t];
 

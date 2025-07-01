@@ -404,6 +404,14 @@
 
 		pEpj.l[es,e,d,t]$(pEpj_base.l[es,e,d,t]) = fpt[t];
 
+		qEtot.l[e,t] = sum(i, qY_CET.l[e,i,t] + qM_CET.l[e,i,t]);
+
+		pE_avg.l[e,t]$(qEtot.l[e,t])
+			= (sum(i, pY_CET.l[e,i,t]*qY_CET.l[e,i,t]) 
+			 + sum(i, pM_CET.l[e,i,t]*qM_CET.l[e,i,t]))
+			 / qEtot.l[e,t];
+
+
 		# ------------------------------------------------------------------------------
 		# Dummies
 		# ------------------------------------------------------------------------------
