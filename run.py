@@ -8,7 +8,7 @@ dt.gamY.variable_equation_prefix = "E_"
 ## Set local paths
 root = dt.find_root("LICENSE")
 sys.path.insert(0, root)
-# os.environ["GAMS"] = "C:/GAMS/46/gams.exe"
+os.environ["GAMS"] = "C:/GAMS/49/gams.exe"
 
 ## Set working directory
 os.chdir(fr"{root}/model")

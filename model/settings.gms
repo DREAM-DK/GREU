@@ -11,10 +11,10 @@ OPTION
 ;
 
 $SETLOCAL first_data_year 2015;
-$SETLOCAL calibration_year 2019;
+$SETLOCAL calibration_year 2020;
 $SETLOCAL terminal_year 2030;
 
-$SETLOCAL base_year 2019;
+$SETLOCAL base_year 2020;
 
 parameter gp "Steady state rate of inflation." /0.02/;
 parameter gq "Steady state labor saving technical progress." /0.01/;
@@ -28,6 +28,11 @@ $ONECHO > conopt4.opt
 
   #  Keep searching for a solution even if a bound is hit (due to non linearities)
   lmmxsf = 1
+
+  #Optimality tolerance for reduced gradient
+  # RTREDG = 1.e-6
+
+  # Mtd_Step_Phase0 = 0
 
   # Limit on number of error messages related to infeasible pre-triangle
   # 25 is default but often not enough. 

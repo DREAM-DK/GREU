@@ -11,7 +11,7 @@
     ;
 
 		$GROUP G_abatement_prices 
-      pEpj[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Energy price."
+      pEpjmarg[es,e,d,t]$(d1pEpj_base[es,e,d,t] or d1tqEpj[es,e,d,t]) "Energy price."
       pES[es,d,t]$(sum(l, d1theta[l,es,d,t])) "Price index for energy purposes"
       pT[l,es,d,t]$(d1theta[l,es,d,t]) "Price index, technology."
       pT_bar[es,d,t]$(sum(l, d1theta[l,es,d,t])) "Average technology price"
@@ -125,7 +125,7 @@ $GROUP G_abatement_other
 $BLOCK abatement G_abatement_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
 # and included_industries[d] and included_service[es])
   # Price index, technology
-	.. pT[l,es,d,t]	=E= sum(e, uTE[l,es,e,d,t]*pEpj[es,e,d,t])
+	.. pT[l,es,d,t]	=E= sum(e, uTE[l,es,e,d,t]*pEpjmarg[es,e,d,t])
 										+ uTK[l,es,d,t]*pK_abatement[d,t];
 
   # Scaled technology price
