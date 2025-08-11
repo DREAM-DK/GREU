@@ -78,7 +78,8 @@ $IF %stage% == "variables":
     vtE_duty
     vtE_vat 
     tCO2_Emarg 
-    tEmarg_duty
+    # tEmarg_duty
+    tE_duty
     qCO2_ETS_freeallowances
   ;
 $ENDIF 
@@ -90,12 +91,27 @@ $ENDIF
 $IF %stage% == "equations":
 
   $BLOCK energy_and_emissions_taxes energy_and_emissions_taxes_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
+
+    #  ..   vtCO2e[i,t] =E= tCO2e['energy',t] * 
+    #                       sum((es,e), qemme_BU['CO2e',es,e,i,t]
+    #                                 - qemme_BU['CO2e',es,e,i,t]$MapBunkering['CO2e',es,e,i]
+    #                                 - qemme_BU['CO2e',es,e,i,t]$MapOtherDifferencesShips['CO2e',es,e,i]
+    #                                 - qemme_BU['CO2e',es,e,i,t]$MapInternationalAviation['CO2e',es,e,i]
+    #                                 );
+
+
+
+
      #Total duties, net of bottom deductions
-     ..   vtE_duty[etaxes,es,e,d,t] =E= tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] - qEpj_duty_deductible[etaxes,es,e,d,t]) +  jvtE_duty[etaxes,es,e,d,t];
+    #  ..   vtE_duty[etaxes,es,e,d,t] =E= tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] - qEpj_duty_deductible[etaxes,es,e,d,t]) +  jvtE_duty[etaxes,es,e,d,t];
+
+     ..   vtE_duty[etaxes,es,e,d,t] =E= tE_duty[etaxes,es,e,d,t]*qEpj[es,e,d,t];
+
 
     #Total VAT paid on energy
      ..   vtE_vat[es,e,d,t] =E= tE_vat[es,e,d,t] * (pEpj_base[es,e,d,t]*qEpj[es,e,d,t]
-                                                  + sum(etaxes, tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] - qEpj_duty_deductible[etaxes,es,e,d,t]))
+                                                  # + sum(etaxes, tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] - qEpj_duty_deductible[etaxes,es,e,d,t]))
+                                                  + sum(etaxes, tE_duty[etaxes,es,e,d,t]*qEpj[es,e,d,t])
                                                   + pWMA[es,e,d,t]*qEpj[es,e,d,t]
                                                   + pRMA[es,e,d,t]*qEpj[es,e,d,t]
                                                   + pCMA[es,e,d,t]*qEpj[es,e,d,t]);
@@ -118,7 +134,8 @@ $IF %stage% == "equations":
       tpE_marg[es,e,d,t]..
         (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t] 
           =E= (1+tE_vat[es,e,d,t]) * (pEpj_base[es,e,d,t]
-                                      + sum(etaxes, tEmarg_duty[etaxes,es,e,d,t]) #Marginal domestic CO2-tax is contained in tEmarg_duty
+                                      # + sum(etaxes, tEmarg_duty[etaxes,es,e,d,t]) #Marginal domestic CO2-tax is contained in tEmarg_duty
+                                      + sum(etaxes, tE_duty[etaxes,es,e,d,t]) #Marginal domestic CO2-tax is contained in tEmarg_duty
                                       + pWMA[es,e,d,t]
                                       + pRMA[es,e,d,t]
                                       + pCMA[es,e,d,t])
@@ -134,7 +151,8 @@ $IF %stage% == "equations":
       #Marginal tax-rate on non-priced energy
       tqE_marg[es,e,d,t]..
         tqE_marg[es,e,d,t] 
-          =E= sum(etaxes, tEmarg_duty[etaxes,es,e,d,t])
+          # =E= sum(etaxes, tEmarg_duty[etaxes,es,e,d,t])
+          =E= sum(etaxes, tE_duty[etaxes,es,e,d,t])
              +sum(em, tCO2_ETS_pj[em,es,e,d,t])
              +sum(em, tCO2_ETS2_pj[em,es,e,d,t]);
 
@@ -144,19 +162,19 @@ $IF %stage% == "equations":
                         + sum(em, tCO2_ETS2_pj[em,es,e,d,t]);
 
         #CO2-taxes based on emissions (currently only industries) 
-          #Domestic CO2-tax                                                                                                                                                                                     #AKB: Depending on how EOP-abatement i modelled this should be adjusted for EOP
-          tCO2_Emarg_pj&_notNatgas[em,es,e,i,t]$(not natgas[e]).. tCO2_Emarg_pj[em,es,e,i,t] =E= tCO2_Emarg[em,es,e,i,t] /10**6 * uEmmE_BU[em,es,e,i,t];
+          # #Domestic CO2-tax                                                                                                                                                                                     #AKB: Depending on how EOP-abatement i modelled this should be adjusted for EOP
+          # tCO2_Emarg_pj&_notNatgas[em,es,e,i,t]$(not natgas[e]).. tCO2_Emarg_pj[em,es,e,i,t] =E= tCO2_Emarg[em,es,e,i,t] /10**6 * uEmmE_BU[em,es,e,i,t];
 
-          #Consider removing as emission coefficient is the same for ubio/bio
-          tCO2_Emarg_pj&_NatgasBio[em,es,e,i,t]$(natgas[e] and CO2bio[em]).. 
-            tCO2_Emarg_pj[em,es,e,i,t] =E= tCO2_Emarg[em,es,e,i,t] /10**6 * uEmmE_BU[em,es,e,i,t] * sBioNatGas[t]; 
+          # #Consider removing as emission coefficient is the same for ubio/bio
+          # tCO2_Emarg_pj&_NatgasBio[em,es,e,i,t]$(natgas[e] and CO2bio[em]).. 
+          #   tCO2_Emarg_pj[em,es,e,i,t] =E= tCO2_Emarg[em,es,e,i,t] /10**6 * uEmmE_BU[em,es,e,i,t] * sBioNatGas[t]; 
 
-          tCO2_Emarg_pj&_NatgasuBio[em,es,e,i,t]$(natgas[e] and CO2ubio[em]).. 
-              tCO2_Emarg_pj[em,es,e,i,t] =E= tCO2_Emarg[em,es,e,i,t] /10**6 * uEmmE_BU[em,es,e,i,t] * (1-sBioNatGas[t]); 
+          # tCO2_Emarg_pj&_NatgasuBio[em,es,e,i,t]$(natgas[e] and CO2ubio[em]).. 
+          #     tCO2_Emarg_pj[em,es,e,i,t] =E= tCO2_Emarg[em,es,e,i,t] /10**6 * uEmmE_BU[em,es,e,i,t] * (1-sBioNatGas[t]); 
 
           #Linking to per PJ tax-rate (currently only industries)   #AKB: Kan ikke fjerne dummies her, undersøg hvorfor
-          tEmarg_duty[etaxes,es,e,i,t]$(sum(em,d1tCO2_E[em,es,e,i,t]) and d1tE_duty[etaxes,es,e,i,t] and CO2_tax[etaxes]).. 
-            tEmarg_duty[etaxes,es,e,i,t] =E= sum(em$(d1tCO2_E[em,es,e,i,t]), tCO2_Emarg_pj[em,es,e,i,t]); 
+          # tEmarg_duty[etaxes,es,e,i,t]$(sum(em,d1tCO2_E[em,es,e,i,t]) and d1tE_duty[etaxes,es,e,i,t] and CO2_tax[etaxes]).. 
+          #   tEmarg_duty[etaxes,es,e,i,t] =E= sum(em$(d1tCO2_E[em,es,e,i,t]), tCO2_Emarg_pj[em,es,e,i,t]); 
 
           #Non-energy related emissions
           .. vtCO2_xE[d,t] =E=  tCO2_xEmarg[d,t]/10**6 * qEmmxE['CO2ubio',d,t];
@@ -333,9 +351,9 @@ $IF %stage% == "calibration":
   # Add endogenous variables to calibration model
   $Group calibration_endogenous
     energy_and_emissions_taxes_endogenous 
-    -vtE_duty[etaxes,es,e,d,t1], tEmarg_duty[etaxes,es,e,d,t1]
-    -tEmarg_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] <>0), qEpj_duty_deductible['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] <>0)
-    -tEmarg_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] =0), jvtE_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] =0)
+    # -vtE_duty[etaxes,es,e,d,t1], tEmarg_duty[etaxes,es,e,d,t1]
+    # -tEmarg_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] <>0), qEpj_duty_deductible['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] <>0)
+    # -tEmarg_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] =0), jvtE_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] =0)
     -vtE_vat[es,e,d,t1], tE_vat[es,e,d,t1]
 
     qEpj_duty_deductible[etaxes,es,e,d,t1]$(d1tE_duty[etaxes,es,e,d,t] and CO2_tax[etaxes] and sum(em,d1tCO2_E[em,es,e,d,t]) and i[d])

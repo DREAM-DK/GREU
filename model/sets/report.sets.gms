@@ -1,0 +1,47 @@
+Set iagg "Aggregration of industries" /Agriculture, indu, forsyning, construction, service/;
+
+set iagg2i(iagg,i) "Mapping from i to iagg"/
+  Agriculture .('01011','01012','01020','01031','01032','01051','01052','01061','01062','01070','01080','02000','03000')
+  indu .('10010','10020','10030','10040','10120','13150','16000','20000','21000','23001','23002','25000')
+  forsyning .('0600a','19000','35011','35002','36000','37000','38391','38392','38393','38394','38395')
+  construction .('41430')
+  service .('45000','46000','47000','49011','49012','49022','49024','49025','49031','49509','50001','51001','51009','52000','53000','55560','64000','68203','71000','off')
+  /;
+
+
+Set emission_categories "Emission categories"/
+  Total
+  ETS1
+  ETS2
+  Energy_NotETS
+  NonEnergyEmissions
+  /;
+
+Set NotETS_industries(i) "Industries not in ETS2"/
+  '01011','01012','01020','01031','01032','01051','01052','01061','01062','01070','01080'
+  /;
+
+
+
+# Set emission_categories2purpose(emission_categories,es,d) "Mapping from emission categories to purpose"/
+#   ETS1.('in_ETS')
+#   ETS2. (heating,transport,appliances,process_normal,process_special,unspecified)
+#   /;
+
+set esXin_ETS[es];
+esXin_ETS[es]=yes;
+esxin_ETS['in_ETS']=no;
+
+Set map_emission_categories(emission_categories,es,i) "Mapping from purpose and industries to emission categories";
+map_emission_categories('ETS1','in_ETS',i)=yes;
+map_emission_categories('ETS2',esxin_ETS,i)=yes;
+map_emission_categories('ETS2',esxin_ETS,NotETS_industries)=no;
+map_emission_categories('Energy_NotETS',esxin_ETS,NotETS_industries)=yes;
+
+
+
+
+
+
+
+

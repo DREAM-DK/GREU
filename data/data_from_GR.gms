@@ -300,6 +300,8 @@ $PGROUP PG_GREU_data
   qEmmxE[em,d,t] "Non-energy related emissions by emission-type and demand component"
   tCO2_Emarg[em,es,e,d,t] "Marginal carbon taxes by emission-type, energy-service, energy-good, and demand component"  
   tEmarg_duty[etaxes,es,e,d,t] "Marginal energy tax by emission-type, energy-service, energy-good, and demand component"       
+  tE_duty[etaxes,es,e,d,t] "Marginal energy tax by emission-type, energy-service, energy-good, and demand component"       
+  
   qY_CET[out,i,t] "Total production by output and industry"
   qY_CETown[out,i,t] "Total production for own-consumption by output and industry"
   qY_CETgross[out,i,t] "Total production including own-consumption by output and industry"
@@ -481,15 +483,25 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   tCO2_Emarg[em,es,e,'cCarEne',t] = tCO2_Emarg[em,'transport',e,'68203',t];
 
   #Other duties, not CO2 is given a value
-  tEmarg_duty[etaxes,es,e,d,t]$(not sameas[etaxes,'CO2_tax'] and sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]))
+  # tEmarg_duty[etaxes,es,e,d,t]$(not sameas[etaxes,'CO2_tax'] and sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]))
+  #                               = sum(demand_transaction_temp, Energybalance[etaxes,demand_transaction_temp,d,es,e,t])
+  #                                /sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
+
+  # tEmarg_duty[etaxes,es,e,d,t]$tEmarg_duty[etaxes,es,e,d,t] = tEmarg_duty[etaxes,es,e,d,t] + 0.01;
+
+  # tEmarg_duty['EAFG_tax',es,e,d,t] = tEAFG_REmarg[es,e,d,t];
+  # tEmarg_duty['EAFG_tax',es,e,'cHouEne',t] = tEmarg_duty['EAFG_tax','heating',e,'68203',t];
+  # tEmarg_duty['EAFG_tax',es,e,'cCarEne',t] = tEmarg_duty['EAFG_tax','transport',e,'68203',t];
+
+  tE_duty[etaxes,es,e,d,t]$(not sameas[etaxes,'CO2_tax'] and sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]))
                                 = sum(demand_transaction_temp, Energybalance[etaxes,demand_transaction_temp,d,es,e,t])
                                  /sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
 
-  tEmarg_duty[etaxes,es,e,d,t]$tEmarg_duty[etaxes,es,e,d,t] = tEmarg_duty[etaxes,es,e,d,t] + 0.01;
+  tE_duty[etaxes,es,e,d,t]$tE_duty[etaxes,es,e,d,t] = tE_duty[etaxes,es,e,d,t] + 0.01;
 
-  tEmarg_duty['EAFG_tax',es,e,d,t] = tEAFG_REmarg[es,e,d,t];
-  tEmarg_duty['EAFG_tax',es,e,'cHouEne',t] = tEmarg_duty['EAFG_tax','heating',e,'68203',t];
-  tEmarg_duty['EAFG_tax',es,e,'cCarEne',t] = tEmarg_duty['EAFG_tax','transport',e,'68203',t];
+  tE_duty['EAFG_tax',es,e,d,t] = tEAFG_REmarg[es,e,d,t];
+  tE_duty['EAFG_tax',es,e,'cHouEne',t] = tE_duty['EAFG_tax','heating',e,'68203',t];
+  tE_duty['EAFG_tax',es,e,'cCarEne',t] = tE_duty['EAFG_tax','transport',e,'68203',t];
 
 
   vtE_duty[etaxes,es,e,d,t] = sum(demand_transaction_temp, Energybalance[etaxes,demand_transaction_temp,d,es,e,t]);

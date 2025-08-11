@@ -16,3 +16,9 @@ set gna[em_accounts]/GNA/
     gna_lulufc[em_accounts]/gna_lulucf/
     unfccc[em_accounts]/UNFCCC/
     unfccc_lulucf[em_accounts]/unfccc_lulucf/;
+
+set CO2etax "Categories of CO2e-taxation" /
+    "energy"
+    "agriculture non-energy"
+    "other"/
+;
