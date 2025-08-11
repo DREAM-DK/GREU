@@ -633,7 +633,11 @@ non_energy_emissions=gp.Parameter(m,name='NonEnergyEmissions',domain=[ebalitems,
 '''energy emissions'''
 EnergyBalance=gp.Parameter(m,'EnergyBalance',domain=[ebalitems,transaction,d,es,out,t],description='Main data input with regards to energy and energy-related emissions',records=energy_and_emissions[['ebalitems','transaction','d','es','e','year','level']].values.tolist(),domain_forwarding=True)
 '''demand_transaction ⊂ transaction, transaction is currently populated using domain_forwarding, meaning it is not populated before EnergyBalance and NonEnergyEmissions are defined'''
-demand_transaction=gp.Set(m,name='demand_transaction',domain=[transaction],description='Demand components',records=['households','input_in_production','export','inventory','transmission_losses'])
+
+# OUDE VERSIE: demand_transaction=gp.Set(m,name='demand_transaction',domain=[transaction],description='Demand components',records=['households','input_in_production','export','inventory','transmission_losses'])
+
+
+demand_transaction=gp.Set(m,name='demand_transaction' ,description='Demand components',records=['households','input_in_production','export','inventory','transmission_losses'])
 '''IO'''
 vIO_y=gp.Parameter(m,name='vIO_y',domain=[d,d,t],description='Production IO',records=io_y[['i', 'd', 'year', 'level']].values.tolist(),domain_forwarding=True)
 vIO_m=gp.Parameter(m,name='vIO_m',domain=[d,d,t],description='Production IO',records=io_m[['i', 'd', 'year', 'level']].values.tolist(),domain_forwarding=True)
@@ -855,8 +859,25 @@ emm_eq_not_in_em=[str(y) for y in emm_eq if str(y).lower() not in [str(x).lower(
 tCO2_REmarg_df = tCO2_REmarg_df[~tCO2_REmarg_df['emm_eq'].str.lower().isin([x.lower() for x in emm_eq_not_in_em])]
 
 #add to container
-tEAFG_REmarg=gp.Variable(m,'tEAFG_REmarg',domain=[es,e,d,t],records=tEAFG_REmarg_df)
-tCO2_REmarg=gp.Variable(m,'tCO2_REmarg',domain=[es,e,d,t,em],records=tCO2_REmarg_df)
+
+#DEBUGGING DOOR LUKAS
+m.write('../data/lukas_debug.gdx')
+# set(tEAFG_REmarg_df['es'])
+#set(energy_and_emissions['ebalitems']
+# tEAFG_REmarg_df['t'] = tEAFG_REmarg_df['t'].astype(str)
+#
+
+tEAFG_REmarg_df.drop(columns=['marginal','scale','upper','lower'], inplace=True)
+tEAFG_REmarg_df=gp.Parameter(m,'tEAFG_REmarg',domain=[es,out,d,t],description='EAFG marginal tax rates',records=tEAFG_REmarg_df.values.tolist(),domain_forwarding=True)
+
+tCO2_REmarg_df.drop(columns=['marginal','scale','upper','lower'], inplace=True)
+# tCO2_REmarg_df=gp.Parameter(m,'tCO2_REmarg',domain=[es,out,d,t,ebalitems],description='tCO2 marginal tax rates',records=tCO2_REmarg_df.values.tolist(),domain_forwarding=True)
+
+m.write('../data/lukas_debug2.gdx')
+
+# OUDE VERSIE!!
+# tEAFG_REmarg=gp.Variable(m,'tEAFG_REmarg',domain=[es,out,d,t],records=tEAFG_REmarg_df)
+#tCO2_REmarg=gp.Variable(m,'tCO2_REmarg',domain=[es,e,d,t,em],records=tCO2_REmarg_df)
 
 #Export
 '''13.3.25:

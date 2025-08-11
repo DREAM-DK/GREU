@@ -5,6 +5,10 @@ import dreamtools as dt
 dt.gamY.automatic_dummy_suffix = "_exists_dummy"
 dt.gamY.variable_equation_prefix = "E_"
 
+#additional imports lukas
+import plotly.io as pio
+pio.renderers.default = "browser"
+
 ## Set local paths
 root = dt.find_root("LICENSE")
 sys.path.insert(0, root)
@@ -32,9 +36,20 @@ dt.TIME_AXIS_TITLE = ""
 dt.REFERENCE_DATABASE = b = dt.Gdx("calibration.gdx") # b for baseline
 s = dt.Gdx("shock.gdx") # s for shock
 dt.time(2019, 2030)
-dt.plot([b.vNetFinAssets/b.vGDP], layout={"title": "Net Financial Assets to GDP"})
-dt.plot([s.qGDP, s.qC, s.qI, s.qG, s.qX, s.qM], "m", function=lambda x: x/b.vGDP, names=["GDP", "C", "I", "G", "X", "M"], layout={"yaxis_title": "Change relative to baseline GDP"})
-dt.plot(s, "m", lambda db: db.vNetFinAssets/db.vGDP, layout={"title": "Net Financial Assets to GDP"})
+
+fig = dt.plot([b.vNetFinAssets / b.vGDP], layout={"title": "Net Financial Assets to GDP"})
+fig.show()
+fig = dt.plot([s.qGDP, s.qC, s.qI, s.qG, s.qX, s.qM], "m", function=lambda x: x / b.vGDP,
+               names=["GDP", "C", "I", "G", "X", "M"], layout={"yaxis_title": "Change relative to baseline GDP"})
+fig.show()
+fig = dt.plot(s, "m", lambda db: db.vNetFinAssets / db.vGDP, layout={"title": "Net Financial Assets to GDP"})
+fig.show()
+print("finished")
+
+
+# dt.plot([b.vNetFinAssets/b.vGDP], layout={"title": "Net Financial Assets to GDP"})
+# dt.plot([s.qGDP, s.qC, s.qI, s.qG, s.qX, s.qM], "m", function=lambda x: x/b.vGDP, names=["GDP", "C", "I", "G", "X", "M"], layout={"yaxis_title": "Change relative to baseline GDP"})
+# dt.plot(s, "m", lambda db: db.vNetFinAssets/db.vGDP, layout={"title": "Net Financial Assets to GDP"})
 
 ## Running the partial abatement model
 # dt.gamY.run("abatement_model_partial.gms")
