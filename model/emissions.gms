@@ -119,11 +119,11 @@ $IF %stage% == "equations":
       #Energy-related emissions
       uEmmE[em,d,t]$(not CO2e[em]).. qEmmE[em,d,t] =E= sum((e,es), qEmmE_BU[em,es,e,d,t]);
 
-      .. qEmmInternationalAviation[em,t] =E= sum(i_international_aviation,qEmmE_BU[em,'transport','jet petroleum',i_international_aviation,t]);
+      .. qEmmInternationalAviation[em,t] =E= sum((es,e,i)$MapInternationalAviation[em,es,e,i], qEmmE_BU[em,es,e,i,t]);
 
-      .. qEmmBunkering[em,t] =E= sum((i,es,eBunkering), qEmmE_BU[em,es,eBunkering,i,t]);
+      .. qEmmBunkering[em,t] =E= sum((es,e,i)$MapBunkering[em,es,e,i], qEmmE_BU[em,es,e,i,t]);
 
-      .. qEmmOtherDifferencesShips[em,t] =E= qEmmE_BU[em,'transport','diesel for transport','49509',t];
+      .. qEmmOtherDifferencesShips[em,t] =E= sum((es,e,i)$MapOtherDifferencesShips[em,es,e,i], qEmmE_BU[em,es,e,i,t]);
 
   $ENDBLOCK 
 
@@ -193,7 +193,7 @@ $IF %stage% == "exogenous_values":
   d1GWP[em]                  = yes$(GWP.l[em]);
   d1Sbionatgas[t]            = yes$(sBioNatGas.l[t]);
   d1EmmBorderTrade[em,t]     = yes$(qEmmBorderTrade.l[em,t]);
-  d1EmmInternationlAviation[em,t] = yes$(sum(i_international_aviation, qEmmE_BU.l[em,'transport','jet petroleum',i_international_aviation,t])) ;
+  d1EmmInternationlAviation[em,t] = yes$(sum((es,e,i)$MapInternationalAviation[em,es,e,i], qEmmE_BU.l[em,es,e,i,t])) ;
 
 $ENDIF
 # ------------------------------------------------------------------------------

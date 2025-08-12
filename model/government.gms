@@ -15,6 +15,7 @@ $Group+ all_variables
   vGovPrimaryBalance[t] "Primary balance of government."
   vGovRevenue[t] "Revenue of government."
   vGovExpenditure[t] "Expenditure of government."
+  vGovRevenue_fromPublicProduction[t] "Revenue from public production."
 ;
 
 $ENDIF # variables
@@ -34,12 +35,16 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
 
   .. vGovPrimaryBalance[t] =E= vGovRevenue[t] - vGovExpenditure[t];
 
-  .. vGovRevenue[t] =E=     + sum(i$i_public[i], vEBITDA_i[i,t]) - vI_public[t]
-                            + vtY[t] + vtM[t] # Net duties, paid through R, E, I, C, G, and X
-                            + vtY_Tax[t]  - vtCO2_ETS_tot[t] #Production taxes minus ETS-revenue
-                            + vHhTaxes[t] + vCorpTaxes[t];
+
+  .. vGovRevenue[t] =E=   vtY[t] + vtM[t] # Net duties, paid through R, E, I, C, G, and X
+                        + vtY_Tax[t]  - vtCO2_ETS_tot[t] #Production taxes minus ETS-revenue
+                        + vHhTaxes[t] + vCorpTaxes[t]
+                        + vGovRevenue_fromPublicProduction[t];
+
 
   .. vGovExpenditure[t] =E= vG[t] + vHhTransfers[t] + vtY_Sub[t];
+
+  .. vGovRevenue_fromPublicProduction[t] =E= sum(i$i_public[i], vEBITDA_i[i,t]) - vI_public[t];
 
 
 $ENDBLOCK

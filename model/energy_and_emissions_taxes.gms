@@ -60,6 +60,8 @@ $IF %stage% == "variables":
     vtCO2_ETS2_xE[d,t]$(d1tCO2_ETS[d,t] and d1EmmxE['CO2ubio',d,t]) "Tax revenue from ETS2, non-energy related emissions"
     vtCO2_ETS_tot[t] "Total revenue from ETS1 and ETS2"
 
+    vtCO2e[d,t] "Provenu from CO2e-taxation"
+    tCO2e[CO2etax,t] "Marginal CO2e-tax"
 
 
     jvtE_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "J-term to capture instances ,where data contains a revenue, but the marginal rate is zero."
@@ -92,12 +94,12 @@ $IF %stage% == "equations":
 
   $BLOCK energy_and_emissions_taxes energy_and_emissions_taxes_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
-    #  ..   vtCO2e[i,t] =E= tCO2e['energy',t] * 
-    #                       sum((es,e), qemme_BU['CO2e',es,e,i,t]
-    #                                 - qemme_BU['CO2e',es,e,i,t]$MapBunkering['CO2e',es,e,i]
-    #                                 - qemme_BU['CO2e',es,e,i,t]$MapOtherDifferencesShips['CO2e',es,e,i]
-    #                                 - qemme_BU['CO2e',es,e,i,t]$MapInternationalAviation['CO2e',es,e,i]
-    #                                 );
+     ..   vtCO2e[i,t] =E= tCO2e['energy',t] * 
+                          sum((es,e), qemme_BU['CO2e',es,e,i,t]
+                                    - qemme_BU['CO2e',es,e,i,t]$MapBunkering['CO2e',es,e,i]
+                                    - qemme_BU['CO2e',es,e,i,t]$MapOtherDifferencesShips['CO2e',es,e,i]
+                                    - qemme_BU['CO2e',es,e,i,t]$MapInternationalAviation['CO2e',es,e,i]
+                                    );
 
 
 

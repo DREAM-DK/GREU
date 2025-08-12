@@ -12,6 +12,7 @@ $IMPORT sets/households.sets.gms
 $IMPORT sets/emissions.sets.gms
 $IMPORT sets/energy_taxes_and_emissions.sets.gms
 $IMPORT sets/households.sets.gms
+$IMPORT sets/subsets.sets.gms
 
 set_time_periods(%first_data_year%, %terminal_year%);
 
@@ -49,6 +50,7 @@ $FUNCTION import_from_modules({stage_key}):
     ("consumption_disaggregated.gms", 1), 
     ("consumption_disaggregated_energy.gms", 1), 
     ("exports_energy.gms", 1),
+    ("Report/All.Report.gms", 1),      
   ]:
     $IF {include} or {stage_key} not in ["equations", "calibration"]:
       $IMPORT {module}
@@ -109,17 +111,17 @@ Solve main using CNS;
 @assert_no_difference(all_variables, 1e-6, .l, _saved, "Zero shock changed variables significantly.");
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
 
-# ------------------------------------------------------------------------------
-# Shock model
-# ------------------------------------------------------------------------------
-set_time_periods(2020, %terminal_year%);
+# # ------------------------------------------------------------------------------
+# # Shock model
+# # ------------------------------------------------------------------------------
+# set_time_periods(2020, %terminal_year%);
 
-# tY_i_d.l[i,re,t]$(t.val >= t1.val) = 0.01 + tY_i_d.l[i,re,t];
-tEmarg_duty.l['ener_tax',es,e,d,t]$(t.val > t1.val) = 2*tEmarg_duty.l['ener_tax',es,e,d,t]; #Doubling energy-taxes
+# # tY_i_d.l[i,re,t]$(t.val >= t1.val) = 0.01 + tY_i_d.l[i,re,t];
+# tEmarg_duty.l['ener_tax',es,e,d,t]$(t.val > t1.val) = 2*tEmarg_duty.l['ener_tax',es,e,d,t]; #Doubling energy-taxes
 
-$FIX all_variables;
-$UNFIX main_endogenous;
-Solve main using CNS;
-execute_unload 'shock.gdx';
-@import_from_modules("tests")
+# $FIX all_variables;
+# $UNFIX main_endogenous;
+# Solve main using CNS;
+# execute_unload 'shock.gdx';
+# @import_from_modules("tests")
 
