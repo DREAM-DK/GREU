@@ -469,7 +469,7 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 #Taxes 
   #£)
   PARAMETER tCO2_REmarg[es,e,d,t,em], tEAFG_REmarg[es,e,d,t]; #Marginal Danish tax-rates directly from GR-DK
-  execute_load 'data_DK.gdx' tCO2_REmarg = tCO2_REmarg.l, tEAFG_REmarg = tEAFG_REmarg.l;
+  execute_load 'data_DK.gdx' tCO2_REmarg = tCO2_REmarg, tEAFG_REmarg = tEAFG_REmarg;
 
   tCO2_REmarg[es,'district heat',d,t,em]$tCO2_REmarg[es,'district heat',d,t,em] = 0;
 
