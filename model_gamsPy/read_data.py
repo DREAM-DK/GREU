@@ -788,39 +788,56 @@ i_not_in_r.remove('tot')
 #Add sectors not in GR
 '''add new rows - fortuneately, the "missing" sectors fall neatly into categories (waste treatment + transport) with uniform marginal tax rates'''
 
+# EAFG
 tEAFG_REmarg_df38394 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '38393'].copy()
-tEAFG_REmarg_df38394['r'] = tEAFG_REmarg_df38394['r'].replace({'38393': '38394'})
+tEAFG_REmarg_df38394['r'] = tEAFG_REmarg_df38394['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '38394' if c == '38393' else c)
+
 tEAFG_REmarg_df38395 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '38393'].copy()
-tEAFG_REmarg_df38395['r'] = tEAFG_REmarg_df38395['r'].replace({'38393': '38395'})
+tEAFG_REmarg_df38395['r'] = tEAFG_REmarg_df38395['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '38395' if c == '38393' else c)
+
 tEAFG_REmarg_df49012 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '49011'].copy()
-tEAFG_REmarg_df49012['r'] = tEAFG_REmarg_df49012['r'].replace({'49011': '49012'})
+tEAFG_REmarg_df49012['r'] = tEAFG_REmarg_df49012['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49012' if c == '49011' else c)
+
 tEAFG_REmarg_df49025 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '49024'].copy()
-tEAFG_REmarg_df49025['r'] = tEAFG_REmarg_df49025['r'].replace({'49024': '49025'})
+tEAFG_REmarg_df49025['r'] = tEAFG_REmarg_df49025['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49025' if c == '49024' else c)
+
 tEAFG_REmarg_df49022 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '49024'].copy()
-tEAFG_REmarg_df49022['r'] = tEAFG_REmarg_df49022['r'].replace({'49024': '49022'})
+tEAFG_REmarg_df49022['r'] = tEAFG_REmarg_df49022['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49022' if c == '49024' else c)
+
 tEAFG_REmarg_df52000 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '53000'].copy()
-tEAFG_REmarg_df52000['r'] = tEAFG_REmarg_df52000['r'].replace({'53000': '52000'})
+tEAFG_REmarg_df52000['r'] = tEAFG_REmarg_df52000['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '52000' if c == '53000' else c)
 
-tEAFG_REmarg_df=pd.concat([tEAFG_REmarg_df,tEAFG_REmarg_df38394, tEAFG_REmarg_df38395, tEAFG_REmarg_df49012, tEAFG_REmarg_df49025, tEAFG_REmarg_df49022, tEAFG_REmarg_df52000], ignore_index=True)
+tEAFG_REmarg_df = pd.concat(
+    [
+        tEAFG_REmarg_df,
+        tEAFG_REmarg_df38394,
+        tEAFG_REmarg_df38395,
+        tEAFG_REmarg_df49012,
+        tEAFG_REmarg_df49025,
+        tEAFG_REmarg_df49022,
+        tEAFG_REmarg_df52000
+    ],
+    ignore_index=True
+)
 
+# CO2
 tCO2_REmarg_df38394 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '38393'].copy()
-tCO2_REmarg_df38394['r'] = tCO2_REmarg_df38394['r'].replace({'38393': '38394'})
+tCO2_REmarg_df38394['r'] = tCO2_REmarg_df38394['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '38394' if c == '38393' else c)
 
 tCO2_REmarg_df38395 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '38393'].copy()
-tCO2_REmarg_df38395['r'] = tCO2_REmarg_df38395['r'].replace({'38393': '38395'})
+tCO2_REmarg_df38395['r'] = tCO2_REmarg_df38395['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '38395' if c == '38393' else c)
 
 tCO2_REmarg_df49012 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '49011'].copy()
-tCO2_REmarg_df49012['r'] = tCO2_REmarg_df49012['r'].replace({'49011': '49012'})
+tCO2_REmarg_df49012['r'] = tCO2_REmarg_df49012['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49012' if c == '49011' else c)
 
 tCO2_REmarg_df49025 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '49024'].copy()
-tCO2_REmarg_df49025['r'] = tCO2_REmarg_df49025['r'].replace({'49024': '49025'})
+tCO2_REmarg_df49025['r'] = tCO2_REmarg_df49025['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49025' if c == '49024' else c)
 
 tCO2_REmarg_df49022 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '49024'].copy()
-tCO2_REmarg_df49022['r'] = tCO2_REmarg_df49022['r'].replace({'49024': '49022'})
+tCO2_REmarg_df49022['r'] = tCO2_REmarg_df49022['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49022' if c == '49024' else c)
 
 tCO2_REmarg_df52000 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '53000'].copy()
-tCO2_REmarg_df52000['r'] = tCO2_REmarg_df52000['r'].replace({'53000': '52000'})
-
+tCO2_REmarg_df52000['r'] = tCO2_REmarg_df52000['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '52000' if c == '53000' else c)
 tCO2_REmarg_df = pd.concat([
     tCO2_REmarg_df,
     tCO2_REmarg_df38394,
@@ -855,8 +872,14 @@ emm_eq_not_in_em=[str(y) for y in emm_eq if str(y).lower() not in [str(x).lower(
 tCO2_REmarg_df = tCO2_REmarg_df[~tCO2_REmarg_df['emm_eq'].str.lower().isin([x.lower() for x in emm_eq_not_in_em])]
 
 #add to container
-tEAFG_REmarg=gp.Variable(m,'tEAFG_REmarg',domain=[es,e,d,t],records=tEAFG_REmarg_df)
-tCO2_REmarg=gp.Variable(m,'tCO2_REmarg',domain=[es,e,d,t,em],records=tCO2_REmarg_df)
+#tEAFG_REmarg=gp.Variable(m,'tEAFG_REmarg',domain=[es,e,d,t],records=tEAFG_REmarg_df)
+#tCO2_REmarg=gp.Variable(m,'tCO2_REmarg',domain=[es,e,d,t,em],records=tCO2_REmarg_df)
+tCO2_REmarg_df.drop(columns=['marginal','scale','upper','lower'], inplace=True)
+tCO2_REmarg_df=gp.Parameter(m,'tCO2_REmarg',domain=[es,e,d,t,ebalitems],description='EAFG marginal tax rates',records=tCO2_REmarg_df.values.tolist())
+
+tEAFG_REmarg_df.drop(columns=['marginal','scale','upper','lower'], inplace=True)
+tEAFG_REmarg_df=gp.Parameter(m,'tEAFG_REmarg',domain=[es,e,d,t],description='EAFG marginal tax rates',records=tEAFG_REmarg_df.values.tolist(),domain_forwarding=True)
+
 
 #Export
 '''13.3.25:
