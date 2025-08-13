@@ -322,7 +322,7 @@ wages_employed * hours_independents / hours_employed
 and add this to the existing wage sum.
 Below reads the data required to compute the expression above:
 '''
-employed_fullset=pd.read_excel(r'data_BE\employed.xlsx',keep_default_na=True)
+employed_fullset=pd.read_excel(r'data_BE\employed_BE.xlsx',keep_default_na=True)
 employed_fullset.rename(columns={'indu':'i'},inplace=True)
 employed_employees=employed_fullset[employed_fullset['type']=='employees'][['year','i', 'hours']]
 employed_independent=employed_fullset[employed_fullset['type']=='self-employed'][['year','i', 'hours']]
