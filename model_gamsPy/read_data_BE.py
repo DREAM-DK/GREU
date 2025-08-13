@@ -270,10 +270,14 @@ io_combined_a=io_combined_a[['i','d','year','level']]
 i_elements =list(set(io_y['i']).union(set(io_m['i'])))
 ### Lukas change: changed '_re' by '+re' to not run into error for split with underscore due to industry identifiers also having underscore in Belgium.
 i_re_elements=[i+'+re' for i in i_elements]
+### OLD ###
+# i_re_elements=[i+'_re' for i in i_elements]
 '''there is another set "rx" whose elements are those of i, then there is a set which serves the purpose of mapping between rx and re.
 Below I construct a list of tuples on the form (x,x_re) where x ∈ re to populate this set.
 '''
 sorted_i_re_elements=sorted(i_re_elements,key=lambda x: i_elements.index(x.split('+')[0]))
+### OLD ###
+# sorted_i_re_elements=sorted(i_re_elements,key=lambda x: i_elements.index(x.split('_')[0]))
 rx2re_list=list(zip(i_elements,sorted_i_re_elements))
 
 '''a variable defined only on the demand components that are sectors in the model, so not on export, private consumption, etc.'''
