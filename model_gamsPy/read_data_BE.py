@@ -404,7 +404,6 @@ institutional_financial_accounts=institutional_financial_accounts.stack().to_fra
 institutional_financial_accounts.rename(columns={'level_3':'as_li_net'},inplace=True)
 #reorder columns
 institutional_financial_accounts=institutional_financial_accounts[['var','sector','as_li_net','year','level']]
-institutional_financial_accounts
 vNetDebtInstruments=institutional_financial_accounts.loc[institutional_financial_accounts['var']=='vNetDebtInstruments']
 vNetInterests=institutional_financial_accounts.loc[institutional_financial_accounts['var']=='vNetInterests']
 vNetEquity=institutional_financial_accounts.loc[institutional_financial_accounts['var']=='vNetEquity']
@@ -615,7 +614,7 @@ a_rows_=gp.Set(m,'a_rows_',description='other rows in the input-output table',re
 k=gp.Set(m,name="k",description='capital types',records=k_records)
 '''ebalitems + subsets, some are manually populated since they lack a sufficiently universal identifier in the data'''
 ebalitems=gp.Set(m,'ebalitems',description='identifiers tax joules prices etc for energy components by demand components',records=ebalitems_records)
-em=gp.Set(m,name='em',domain=[ebalitems],description='emission types',records=['ch4','co2ubio','n2o','co2e','co2bio'])
+em=gp.Set(m,name='em',domain=[ebalitems],description='emission types',records=['ch4','co2ubio','n2o','co2e','co2bio','PFC','HFC','SF6'])
 etaxes=gp.Set(m,name='etaxes',domain=[ebalitems],description='taxes from ebalitems',records=etaxes_records)
 '''d + subsets of d'''
 d=gp.Set(m,'d',description='demand components',records=d_records)
@@ -734,155 +733,6 @@ k_=gp.Set(m,name='k_',description='capital types including total, excluding inve
 
 #DANISH FIX: Marginal taxes from gdx
 '''receive data from gdx'''
-r=gp.Container('data/EU_GR_data.gdx')
-tEAFG_REmarg_df=r['tEAFG_REmarg'].records
-tCO2_REmarg_df=r['tCO2_REmarg'].records
-'''because of inconsistencies in set definitions we have to do some manual labor here...'''
-
-#Check uniformity of disaggregated food producing sectors
-r=tCO2_REmarg_df['r'].unique().tolist()
-r_not_in_i=[str(y) for y in r if str(y) not in [str(x[0]) for x in i_records_fortot]]
-i_not_in_r=[str(y[0]) for y in i_records_fortot if str(y[0]) not in r]
-
-group_cols=['t','energy19','purpose','emm_eq']
-'''check that r_not_in_i agrees on superfluous sectors'''
-tolerance = 1e-3
-# Apply tolerance to 'level' comparison within each group
-subset = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'].isin(r_not_in_i)]
-subset['level_tolerance_check'] = subset.groupby(group_cols)['level'].transform(
-    lambda x: np.all(np.isclose(x, x.iloc[0], atol=tolerance))
-)
-
-# Filter rows where tolerance check is False (i.e., values aren't close enough)
-offending_rows_with_tolerance = subset[~subset['level_tolerance_check']]
-if offending_rows_with_tolerance.empty:
-    pass
-else:
-    print(offending_rows_with_tolerance)
-    raise ValueError("There are rows with different values in the same group.")
-'''replace r's'''
-for i in i_not_in_r:
-    if i not in tEAFG_REmarg_df['r'].cat.categories:
-        tCO2_REmarg_df['r'] = tCO2_REmarg_df['r'].cat.add_categories([i])
-        tEAFG_REmarg_df['r'] = tEAFG_REmarg_df['r'].cat.add_categories([i])
-
-
-tCO2_REmarg_df.loc[tCO2_REmarg_df['r'].isin(r_not_in_i), 'r'] = '10010'
-#drop dupes
-tCO2_REmarg_df.drop_duplicates(subset=['t','energy19','purpose','emm_eq','r'], inplace=True)
-
-
-'''repeat for tEAFG_REmarg_df'''
-group_cols_n=['t','energy19','purpose']
-subset = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'].isin(r_not_in_i)]
-subset['level_tolerance_check'] = subset.groupby(group_cols_n)['level'].transform(
-    lambda x: np.all(np.isclose(x, x.iloc[0], atol=tolerance))
-)
-
-# Filter rows where tolerance check is superceded
-offending_rows_with_tolerance = subset[~subset['level_tolerance_check']]
-if offending_rows_with_tolerance.empty:
-    pass
-else:
-    print(offending_rows_with_tolerance)
-    raise ValueError("There are rows with different values in the same group.")
-'''replace r's'''
-
-tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'].isin(r_not_in_i), 'r'] = '10010'
-#drop dupes
-tEAFG_REmarg_df.drop_duplicates(subset=['t','energy19','purpose','r'], inplace=True)
-i_not_in_r.remove('10010')
-i_not_in_r.remove('tot')
-
-#Add sectors not in GR
-'''add new rows - fortuneately, the "missing" sectors fall neatly into categories (waste treatment + transport) with uniform marginal tax rates'''
-
-tEAFG_REmarg_df38394 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '38393'].copy()
-tEAFG_REmarg_df38394['r'] = tEAFG_REmarg_df38394['r'].replace({'38393': '38394'})
-tEAFG_REmarg_df38395 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '38393'].copy()
-tEAFG_REmarg_df38395['r'] = tEAFG_REmarg_df38395['r'].replace({'38393': '38395'})
-tEAFG_REmarg_df49012 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '49011'].copy()
-tEAFG_REmarg_df49012['r'] = tEAFG_REmarg_df49012['r'].replace({'49011': '49012'})
-tEAFG_REmarg_df49025 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '49024'].copy()
-tEAFG_REmarg_df49025['r'] = tEAFG_REmarg_df49025['r'].replace({'49024': '49025'})
-tEAFG_REmarg_df49022 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '49024'].copy()
-tEAFG_REmarg_df49022['r'] = tEAFG_REmarg_df49022['r'].replace({'49024': '49022'})
-tEAFG_REmarg_df52000 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '53000'].copy()
-tEAFG_REmarg_df52000['r'] = tEAFG_REmarg_df52000['r'].replace({'53000': '52000'})
-
-tEAFG_REmarg_df=pd.concat([tEAFG_REmarg_df,tEAFG_REmarg_df38394, tEAFG_REmarg_df38395, tEAFG_REmarg_df49012, tEAFG_REmarg_df49025, tEAFG_REmarg_df49022, tEAFG_REmarg_df52000], ignore_index=True)
-
-tCO2_REmarg_df38394 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '38393'].copy()
-tCO2_REmarg_df38394['r'] = tCO2_REmarg_df38394['r'].replace({'38393': '38394'})
-
-tCO2_REmarg_df38395 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '38393'].copy()
-tCO2_REmarg_df38395['r'] = tCO2_REmarg_df38395['r'].replace({'38393': '38395'})
-
-tCO2_REmarg_df49012 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '49011'].copy()
-tCO2_REmarg_df49012['r'] = tCO2_REmarg_df49012['r'].replace({'49011': '49012'})
-
-tCO2_REmarg_df49025 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '49024'].copy()
-tCO2_REmarg_df49025['r'] = tCO2_REmarg_df49025['r'].replace({'49024': '49025'})
-
-tCO2_REmarg_df49022 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '49024'].copy()
-tCO2_REmarg_df49022['r'] = tCO2_REmarg_df49022['r'].replace({'49024': '49022'})
-
-tCO2_REmarg_df52000 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '53000'].copy()
-tCO2_REmarg_df52000['r'] = tCO2_REmarg_df52000['r'].replace({'53000': '52000'})
-
-tCO2_REmarg_df = pd.concat([
-    tCO2_REmarg_df,
-    tCO2_REmarg_df38394,
-    tCO2_REmarg_df38395,
-    tCO2_REmarg_df49012,
-    tCO2_REmarg_df49025,
-    tCO2_REmarg_df49022,
-    tCO2_REmarg_df52000
-], ignore_index=True)
-
-#Drop set elements not in GREU
-e_rec=m['e'].records['out'].tolist()
-energy19=tCO2_REmarg_df['energy19'].cat.categories.tolist()
-energy19_not_in_e=[str(y) for y in energy19 if str(y) not in [str(x) for x in e_rec]]
-#Fix energy19 column
-tEAFG_REmarg_df=tEAFG_REmarg_df[~tEAFG_REmarg_df['energy19'].isin(energy19_not_in_e)]
-tCO2_REmarg_df=tCO2_REmarg_df[~tCO2_REmarg_df['energy19'].isin(energy19_not_in_e)]
-
-
-#Fix purpose column
-es_rec=m['es'].records['uni'].tolist()
-purpose=tCO2_REmarg_df['purpose'].cat.categories.tolist()
-purpose_not_in_es=[str(y) for y in purpose if str(y) not in [str(x) for x in es_rec]]
-tEAFG_REmarg_df=tEAFG_REmarg_df[~tEAFG_REmarg_df['purpose'].isin(purpose_not_in_es)]
-tCO2_REmarg_df=tCO2_REmarg_df[~tCO2_REmarg_df['purpose'].isin(purpose_not_in_es)]
-
-
-#fix em/emm_eq
-em_rec=m['em'].records['ebalitems'].tolist()
-emm_eq=tCO2_REmarg_df['emm_eq'].cat.categories.tolist()
-emm_eq_not_in_em=[str(y) for y in emm_eq if str(y).lower() not in [str(x).lower() for x in em_rec]]
-tCO2_REmarg_df = tCO2_REmarg_df[~tCO2_REmarg_df['emm_eq'].str.lower().isin([x.lower() for x in emm_eq_not_in_em])]
-
-#add to container
-
-#DEBUGGING DOOR LUKAS
-m.write('../data/lukas_debug.gdx')
-# set(tEAFG_REmarg_df['es'])
-#set(energy_and_emissions['ebalitems']
-# tEAFG_REmarg_df['t'] = tEAFG_REmarg_df['t'].astype(str)
-#
-
-tEAFG_REmarg_df.drop(columns=['marginal','scale','upper','lower'], inplace=True)
-tEAFG_REmarg_df=gp.Parameter(m,'tEAFG_REmarg',domain=[es,out,d,t],description='EAFG marginal tax rates',records=tEAFG_REmarg_df.values.tolist(),domain_forwarding=True)
-
-tCO2_REmarg_df.drop(columns=['marginal','scale','upper','lower'], inplace=True)
-tCO2_REmarg_df=gp.Parameter(m,'tCO2_REmarg',domain=[es,out,d,t,ebalitems],description='tCO2 marginal tax rates',records=tCO2_REmarg_df.values.tolist())
-
-m.write('../data/lukas_debug2.gdx')
-
-# OUDE VERSIE!!
-# tEAFG_REmarg=gp.Variable(m,'tEAFG_REmarg',domain=[es,out,d,t],records=tEAFG_REmarg_df)
-#tCO2_REmarg=gp.Variable(m,'tCO2_REmarg',domain=[es,e,d,t,em],records=tCO2_REmarg_df)
 
 #Export
 '''13.3.25:
