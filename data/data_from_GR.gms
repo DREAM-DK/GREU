@@ -256,7 +256,7 @@ $ENDFUNCTION
 m[i] = yes$sum((d,t1), vIO_m[i,d,t1]);
 
 ### D) Initilizating parameters to be read into model
-$PGROUP PG_GREU_data 
+Parameters
   # Labor-market
   vWages_i[i,t] "Compensation of employees by industry."
   nL[t] "Total employment."

@@ -80,18 +80,19 @@ $PGROUP PG_data_from_Python
 
  
 #  $gdxin data_DK.gdx #£) Here you should comment in and exchange data_DK.gdx with the gdx you have produced in read_data.py.
+$gdxin data_BE.gdx
 $load d, d_non_ene, d_ene, i,c,x,g,rx,re,invt,invt_ene,tl,out,e,t,t1,em_accounts,i_,k_
 $load factors_of_production, k, ebalitems, em,etaxes,a_rows_,transaction,demand_transaction,es
-$load vIO_y=vIO_y.l, vIO_m=vIO_m.l, vIOxE_y=vIOxE_y.l, vIOxE_m=vIOxE_m.l, vIO_a=vIO_a.l,vIOxE_a=vIOxE_a.l
-$load nEmployed=nEmployed.l, qL=qL.l, qK=qK.l, qI_k_i=qI_k_i.l
-$load qEmmLULUCF=qEmmLULUCF.l,qEmmBorderTrade=qEmmBorderTrade.l,qCO2_ETS_freeallowances=qCO2_ETS_freeallowances.l
-$load Energybalance=Energybalance.l
-$load NonEnergyEmissions=NonEnergyemissions.l
+$load vIO_y,vIO_m,vIO_a,vIOxE_y,vIOxE_m,vIOxE_a
+$load nEmployed,qL,qK,qI_k_i
+$load qEmmLULUCF,qEmmBorderTrade,qCO2_ETS_freeallowances
+$load Energybalance, NonEnergyEmissions
+$gdxin
 
 #Creating auxiliary sets (These should be read from Python data)
 set demand_transaction_temp[transaction] /'input_in_production','household_consumption','inventory','export','transmission_losses'/; #AKB: In "demand_transaction" there is an error with "households" being the set-element for households
 set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','cav','nox_tax','so2_tax','vat','base'/; #AKB: Auxiliary set. £ Should be changed in in order to relefct country specific. Eg. does the country have "eav", "dav" and "cav"?
-set i_energymargins[i]/45000,46000,47000/; #£ Country specific industries "producing" margins
+set i_energymargins[i]/G45, G46, G47/; #£ Country specific industries "producing" margins
 set eBunkering[e]/'Bunkering of Danish operated trucks on foreign territory',
                   'Bunkering of Danish operated vessels on foreign territory',
                   'Bunkering of Danish operated planes on foreign territory'/;
@@ -113,9 +114,9 @@ $FUNCTION test_data():
     );
 
   testvY[i,t] =  sum((es,e), Energybalance['base','production',i,es,e,t]) 
-              + sum((d,es,e,transaction), Energybalance['CAV',transaction,d,es,e,t])$(sameas[i,'45000']) #£Change to country-specfic margin producing sectors
-              + sum((d,es,e,transaction), Energybalance['EAV',transaction,d,es,e,t])$(sameas[i,'46000'])
-              + sum((d,es,e,transaction), Energybalance['DAV',transaction,d,es,e,t])$(sameas[i,'47000'])
+              + sum((d,es,e,transaction), Energybalance['CAV',transaction,d,es,e,t])$(sameas[i,'G45']) #£Change to country-specfic margin producing sectors
+              + sum((d,es,e,transaction), Energybalance['EAV',transaction,d,es,e,t])$(sameas[i,'G46'])
+              + sum((d,es,e,transaction), Energybalance['DAV',transaction,d,es,e,t])$(sameas[i,'G47'])
               - sum(d, vIOE_y[i,d,t]);
   ABORT$(abs(sum((i,tData), testvY[i,tData]))>1) 'Test of energy-IO and energybalance failed! Value of production in industries do not match'; #£ Note the test tolerance is set relatively high at 1 bio. DKK. This should ideally be much lower, eg 1e-6
 
@@ -186,7 +187,6 @@ $ENDFUNCTION
 @test_data();
 
 
-#£)
   #Inserting energy-inputs into IO
   vIO_y[i,'xENE',t]         = vIOE_y[i,'xENE',t]; 
   vIO_m[i,'xENE',t]         = vIOE_m[i,'xENE',t]; 
@@ -236,7 +236,7 @@ $ENDFUNCTION
 
 
 ### D) Initilizating parameters to be read into model
-$PGROUP PG_GREU_data 
+parameters
   # Labor-market
   vWages_i[i,t] "Compensation of employees by industry."
   nL[t] "Total employment."
@@ -294,8 +294,8 @@ $PGROUP PG_GREU_data
   qEmmBorderTrade[em,t] "Border trade emissions"
   qEmmLULUCF[t] ""
   qEmmTot[em,em_accounts,t] ""
-  GWP[em]
-  sBioNatGas[t]
+  GWP[em] ""
+  sBioNatGas[t] ""
 
   #Production function
   qProd[factors_of_production,i,t] "Factors of production, value"
@@ -356,8 +356,9 @@ vD[d,t] = sum(i, vY_i_d[i,d,t] + vM_i_d[i,d,t]);
 #We normalize prices to 1 and load quantities into model
 qD[d,t] = vD[d,t];
 
+ #£ correct for Belgian margins sectors
 #Non-energy-markets
-qY_CET['out_other',i,t] = sum(d_non_ene,vIOxE_y[i,d_non_ene,t]) + sum(d,vIOE_y[i,d,t])$(sameas[i,'46000'] or sameas[i,'45000'] or sameas[i,'47000']); #£ Replace margin-producing sectors by country-specific
+qY_CET['out_other',i,t] = sum(d_non_ene,vIOxE_y[i,d_non_ene,t]) + sum(d,vIOE_y[i,d,t])$(sameas[i,'G46'] or sameas[i,'G45'] or sameas[i,'G47']); #£ Replace margin-producing sectors by country-specific
 qM_CET['out_other',i,t] = sum(d_non_ene,vIOxE_m[i,d_non_ene,t]);
 pY_CET['out_other',i,t]$qY_CET['out_other',i,t] = 1;
 pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
@@ -367,9 +368,11 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   pEpj_base[es,e,d,t]$(sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t])) = sum(demand_transaction_temp, Energybalance['BASE',demand_transaction_temp,d,es,e,t])/sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
   qEpj[es,e,d,t] = sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
 
-  vWMA[es,e,d,t] = sum(demand_transaction_temp, Energybalance['EAV',demand_transaction_temp,d,es,e,t]);
-  vCMA[es,e,d,t] = sum(demand_transaction_temp, Energybalance['CAV',demand_transaction_temp,d,es,e,t]);
-  vRMA[es,e,d,t] = sum(demand_transaction_temp, Energybalance['DAV',demand_transaction_temp,d,es,e,t]);
+  #£ correct for Belgian margins sectors
+  vWMA[es,e,d,t] = sum(demand_transaction_temp, Energybalance['Margins',demand_transaction_temp,d,es,e,t]);
+#   vWMA[es,e,d,t] = sum(demand_transaction_temp, Energybalance['EAV',demand_transaction_temp,d,es,e,t]);
+#   vCMA[es,e,d,t] = sum(demand_transaction_temp, Energybalance['CAV',demand_transaction_temp,d,es,e,t]);
+#   vRMA[es,e,d,t] = sum(demand_transaction_temp, Energybalance['DAV',demand_transaction_temp,d,es,e,t]);
 
   #£ The below (commented out) showcases the ad hoc handling of consumption of own-produced energy that is not in NAS for the Danish case. A similar fix might be necessary for country-specific data
   #Own-consumption is handled relatively ad hoc
@@ -450,8 +453,8 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 #Taxes
 
   #£ The below (commented out) showcases how marginal taxes are handled for the Danish case. Replace with country-specific data      
-  #  PARAMETER tCO2_REmarg[es,e,d,t,em], tEAFG_REmarg[es,e,d,t]; #Marginal Danish tax-rates directly from GR-DK
-  #  execute_load 'data_DK.gdx' tCO2_REmarg = tCO2_REmarg.l, tEAFG_REmarg = tEAFG_REmarg.l;
+   PARAMETER tCO2_REmarg[es,e,d,t,em], tEAFG_REmarg[es,e,d,t]; #Marginal Danish tax-rates directly from GR-DK
+   execute_load 'data_BE.gdx' tCO2_REmarg = tEAFG_REmarg = tEAFG_REmarg.l;
 
   #  tCO2_REmarg[es,'district heat',d,t,em]$tCO2_REmarg[es,'district heat',d,t,em] = 0;
 
@@ -463,15 +466,16 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   #  tCO2_Emarg[em,es,e,'cCarEne',t] = tCO2_Emarg[em,'transport',e,'68203',t];
 
   #  #Other duties, not CO2 is given a value
-  #  tEmarg_duty[etaxes,es,e,d,t]$(not sameas[etaxes,'CO2_tax'] and sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]))
-  #                                = sum(demand_transaction_temp, Energybalance[etaxes,demand_transaction_temp,d,es,e,t])
-  #                                 /sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
+   tEmarg_duty[etaxes,es,e,d,t]$(not sameas[etaxes,'CO2_tax'] and sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]))
+                                 = sum(demand_transaction_temp, Energybalance[etaxes,demand_transaction_temp,d,es,e,t])
+                                  /sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
 
-  #  tEmarg_duty[etaxes,es,e,d,t]$tEmarg_duty[etaxes,es,e,d,t] = tEmarg_duty[etaxes,es,e,d,t] + 0.01;
+   tEmarg_duty[etaxes,es,e,d,t]$tEmarg_duty[etaxes,es,e,d,t] = tEmarg_duty[etaxes,es,e,d,t] + 0.01;
 
-  #  tEmarg_duty['EAFG_tax',es,e,d,t] = tEAFG_REmarg[es,e,d,t];
-  #  tEmarg_duty['EAFG_tax',es,e,'cHouEne',t] = tEmarg_duty['EAFG_tax','heating',e,'68203',t];
-  #  tEmarg_duty['EAFG_tax',es,e,'cCarEne',t] = tEmarg_duty['EAFG_tax','transport',e,'68203',t];
+# £ change to country specific serctor
+   tEmarg_duty['EAFG_tax',es,e,d,t] = tEAFG_REmarg[es,e,d,t];
+   tEmarg_duty['EAFG_tax',es,e,'HH_heating',t] = tEmarg_duty['EAFG_tax','heating',e,'real_estate',t];
+   tEmarg_duty['EAFG_tax',es,e,'HH_transport',t] = tEmarg_duty['EAFG_tax','transport',e,'real_estate',t];
 
 
   vtE_duty[etaxes,es,e,d,t] = sum(demand_transaction_temp, Energybalance[etaxes,demand_transaction_temp,d,es,e,t]);
@@ -485,5 +489,5 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 
 ###  F) Unload gdx with data in parameters with same names as model-variables, to be read into model
 #£ Give country-specific data a gdx-name below
-#  execute_unload 'data'
+execute_unload 'data_BE_final'
 

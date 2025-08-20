@@ -814,4 +814,4 @@ If energy is not counted, the former of the two interpretations does indeed give
 g_=gp.Set(m,'g_',description='hard coded',records=['g','gTot'])
 m_=gp.Set(m,name='m',domain=[i],description='industries with imports',records=io_combined_m['i'].unique().tolist())
 
-m.write('../data/data_DK.gdx')
+m.write('../data/data_BE.gdx')
