@@ -556,6 +556,8 @@ re_records = [(str(x) + '_re', y) for x, y in i_records]
 #populate es (w. text)
 metadata_energy_purposes=pd.read_excel(r'data\metadata.xlsx',sheet_name='energy_purposes',keep_default_na=True)
 es_records = list(metadata_energy_purposes.itertuples(index=False, name=None))
+#include 'unspecified' - hardcoded
+es_records.extend([('unspecified','')])
 #ppulate a_rows_ (w. text)
 metadata_flows=pd.read_excel(r'data\metadata.xlsx',sheet_name='flows',keep_default_na=True)
 metadata_flows_a=metadata_flows[metadata_flows['flow_type']=='prim_input']
@@ -570,7 +572,6 @@ k_records_fortot=k_records.copy()
 populate ebalitems, currently 'EAFG_tax is called explicitly in the model and is not present in data, so I add it manually to the set ebalitems and the subset etaxes.
 '''
 ebalitems_records=list(set(non_energy_emissions['ebalitems']).union(set(energy_and_emissions['ebalitems'])))
-ebalitems_records.append('EAFG_tax')
 #etaxes records
 etaxes_records=[s for s in ebalitems_records if '_tax' in s]
 
@@ -597,10 +598,17 @@ d_ene_records = [(x,) if isinstance(x, str) else x for x in d_ene_records]
 d_non_ene_records = [item for item in d_records if item not in d_ene_records]
 
 t=gp.Set(m,'t',description='year',records=t_list)
+'''transaction is populated by its corresponding columns in non_energy_emissions and EnergyBalance.
+To avoid using domain_forwarding=True, which may lead to dormant non-set member-symbols inside parametres or erroneously attributing an element to a set, which
+in the worst case can cause errors down the line that may be very difficult to detect and work having to be redone, I populate the set explicitly using the columns of the aforementioned frames.
+'''
+transaction_records=list(set(non_energy_emissions['transaction'].tolist()+ energy_and_emissions['transaction'].tolist()))
+if not 'households' in transaction_records:
+   transaction_records.extend(['households'])
 
 #Construction of GAMS-objects
 '''sets'''
-transaction=gp.Set(m,name='transaction',description='set of transaction types',records=['households'])
+transaction=gp.Set(m,name='transaction',description='set of transaction types',records=transaction_records)
 es=gp.Set(m,'es',description='energy service',records=es_records)
 out=gp.Set(m,'out',description='output types',records=out_vals)
 e=gp.Set(m,'e',domain=[out],description='energy products by industry',records=e_vals)
@@ -628,31 +636,27 @@ d_ene=gp.Set(m,name='d_ene',domain=[d],records=d_ene_records)
 d_non_ene=gp.Set(m,name='d_non_ene',domain=[d],records=d_non_ene_records)
 
 '''non-energy emissions'''
-non_energy_emissions=gp.Parameter(m,name='NonEnergyEmissions',domain=[ebalitems,transaction,d,t],description='emission from consumption of non-energy',records=non_energy_emissions.values.tolist(),domain_forwarding=True)
+non_energy_emissions=gp.Parameter(m,name='NonEnergyEmissions',domain=[ebalitems,transaction,d,t],description='emission from consumption of non-energy',records=non_energy_emissions.values.tolist())
 
 '''energy emissions'''
-EnergyBalance=gp.Parameter(m,'EnergyBalance',domain=[ebalitems,transaction,d,es,out,t],description='Main data input with regards to energy and energy-related emissions',records=energy_and_emissions[['ebalitems','transaction','d','es','e','year','level']].values.tolist(),domain_forwarding=True)
+EnergyBalance=gp.Parameter(m,'EnergyBalance',domain=[ebalitems,transaction,d,es,out,t],description='Main data input with regards to energy and energy-related emissions',records=energy_and_emissions[['ebalitems','transaction','d','es','e','year','level']].values.tolist())
 '''demand_transaction ⊂ transaction, transaction is currently populated using domain_forwarding, meaning it is not populated before EnergyBalance and NonEnergyEmissions are defined'''
-
-# OUDE VERSIE: demand_transaction=gp.Set(m,name='demand_transaction',domain=[transaction],description='Demand components',records=['households','input_in_production','export','inventory','transmission_losses'])
-
-
-demand_transaction=gp.Set(m,name='demand_transaction' ,description='Demand components',records=['households','input_in_production','export','inventory','transmission_losses'])
+demand_transaction=gp.Set(m,name='demand_transaction',domain=[transaction],description='Demand components',records=['households','input_in_production','export','inventory','transmission_losses'])
 '''IO'''
-vIO_y=gp.Parameter(m,name='vIO_y',domain=[d,d,t],description='Production IO',records=io_y[['i', 'd', 'year', 'level']].values.tolist(),domain_forwarding=True)
-vIO_m=gp.Parameter(m,name='vIO_m',domain=[d,d,t],description='Production IO',records=io_m[['i', 'd', 'year', 'level']].values.tolist(),domain_forwarding=True)
+vIO_y=gp.Parameter(m,name='vIO_y',domain=[d,d,t],description='Production IO',records=io_y[['i', 'd', 'year', 'level']].values.tolist())
+vIO_m=gp.Parameter(m,name='vIO_m',domain=[d,d,t],description='Production IO',records=io_m[['i', 'd', 'year', 'level']].values.tolist())
 
 
-vIOxE_y=gp.Parameter(m,name='vIOxE_y',domain=[d,d,t],description='non-energy IO of domestic production',records=io_combined_y[['i', 'd', 'year', 'level']].values.tolist(),domain_forwarding=True)
-vIOxE_m=gp.Parameter(m,name='vIOxE_m',domain=[d,d,t],description='non-energy IO of imports',records=io_combined_m[['i', 'd', 'year', 'level']].values.tolist(),domain_forwarding=True)
+vIOxE_y=gp.Parameter(m,name='vIOxE_y',domain=[d,d,t],description='non-energy IO of domestic production',records=io_combined_y[['i', 'd', 'year', 'level']].values.tolist())
+vIOxE_m=gp.Parameter(m,name='vIOxE_m',domain=[d,d,t],description='non-energy IO of imports',records=io_combined_m[['i', 'd', 'year', 'level']].values.tolist())
 
-vIO_a=gp.Parameter(m,name='vIO_a',domain=[a_rows_,d,t],description='other IO',records=io_a[['i', 'd', 'year', 'level']].values.tolist(),domain_forwarding=True)
-vIOxE_a=gp.Parameter(m,name='vIOxE_a',domain=[a_rows_,d,t],description='non energy other IO',records=io_combined_a[['i', 'd', 'year', 'level']].values.tolist(),domain_forwarding=True)
+vIO_a=gp.Parameter(m,name='vIO_a',domain=[a_rows_,d,t],description='other IO',records=io_a[['i', 'd', 'year', 'level']].values.tolist())
+vIOxE_a=gp.Parameter(m,name='vIOxE_a',domain=[a_rows_,d,t],description='non energy other IO',records=io_combined_a[['i', 'd', 'year', 'level']].values.tolist())
 
 '''demand side IO'''
 qI_k_i=gp.Parameter(m,'qI_k_i',domain=[k,d,t],description='Real capital stock by capital type and industry',records=io_inv_qI_k_i_agg[['k','i','year','level']].values.tolist())
 wagesum_with_t=gp.Parameter(m,name='qL',domain=[d,t],description='Wage expenses',records=wagesum_with_t[['i','year','level']].values.tolist())
-nemployed=gp.Parameter(m,name='nEmployed',domain=[t],description='Total number of employees including independents',records=nemployed_frame.values.tolist(),domain_forwarding=True)
+nemployed=gp.Parameter(m,name='nEmployed',domain=[t],description='Total number of employees including independents',records=nemployed_frame.values.tolist())
 
 '''capital fixed assets'''
 fixed_assets=gp.Parameter(m,name='qK',domain=[k,d,t],description='Capital split on types and sectors',records=fixed_assets[['k','i','year','level']].values.tolist())
@@ -792,39 +796,56 @@ i_not_in_r.remove('tot')
 #Add sectors not in GR
 '''add new rows - fortuneately, the "missing" sectors fall neatly into categories (waste treatment + transport) with uniform marginal tax rates'''
 
+# EAFG
 tEAFG_REmarg_df38394 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '38393'].copy()
-tEAFG_REmarg_df38394['r'] = tEAFG_REmarg_df38394['r'].replace({'38393': '38394'})
+tEAFG_REmarg_df38394['r'] = tEAFG_REmarg_df38394['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '38394' if c == '38393' else c)
+
 tEAFG_REmarg_df38395 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '38393'].copy()
-tEAFG_REmarg_df38395['r'] = tEAFG_REmarg_df38395['r'].replace({'38393': '38395'})
+tEAFG_REmarg_df38395['r'] = tEAFG_REmarg_df38395['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '38395' if c == '38393' else c)
+
 tEAFG_REmarg_df49012 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '49011'].copy()
-tEAFG_REmarg_df49012['r'] = tEAFG_REmarg_df49012['r'].replace({'49011': '49012'})
+tEAFG_REmarg_df49012['r'] = tEAFG_REmarg_df49012['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49012' if c == '49011' else c)
+
 tEAFG_REmarg_df49025 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '49024'].copy()
-tEAFG_REmarg_df49025['r'] = tEAFG_REmarg_df49025['r'].replace({'49024': '49025'})
+tEAFG_REmarg_df49025['r'] = tEAFG_REmarg_df49025['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49025' if c == '49024' else c)
+
 tEAFG_REmarg_df49022 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '49024'].copy()
-tEAFG_REmarg_df49022['r'] = tEAFG_REmarg_df49022['r'].replace({'49024': '49022'})
+tEAFG_REmarg_df49022['r'] = tEAFG_REmarg_df49022['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49022' if c == '49024' else c)
+
 tEAFG_REmarg_df52000 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '53000'].copy()
-tEAFG_REmarg_df52000['r'] = tEAFG_REmarg_df52000['r'].replace({'53000': '52000'})
+tEAFG_REmarg_df52000['r'] = tEAFG_REmarg_df52000['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '52000' if c == '53000' else c)
 
-tEAFG_REmarg_df=pd.concat([tEAFG_REmarg_df,tEAFG_REmarg_df38394, tEAFG_REmarg_df38395, tEAFG_REmarg_df49012, tEAFG_REmarg_df49025, tEAFG_REmarg_df49022, tEAFG_REmarg_df52000], ignore_index=True)
+tEAFG_REmarg_df = pd.concat(
+    [
+        tEAFG_REmarg_df,
+        tEAFG_REmarg_df38394,
+        tEAFG_REmarg_df38395,
+        tEAFG_REmarg_df49012,
+        tEAFG_REmarg_df49025,
+        tEAFG_REmarg_df49022,
+        tEAFG_REmarg_df52000
+    ],
+    ignore_index=True
+)
 
+# CO2
 tCO2_REmarg_df38394 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '38393'].copy()
-tCO2_REmarg_df38394['r'] = tCO2_REmarg_df38394['r'].replace({'38393': '38394'})
+tCO2_REmarg_df38394['r'] = tCO2_REmarg_df38394['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '38394' if c == '38393' else c)
 
 tCO2_REmarg_df38395 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '38393'].copy()
-tCO2_REmarg_df38395['r'] = tCO2_REmarg_df38395['r'].replace({'38393': '38395'})
+tCO2_REmarg_df38395['r'] = tCO2_REmarg_df38395['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '38395' if c == '38393' else c)
 
 tCO2_REmarg_df49012 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '49011'].copy()
-tCO2_REmarg_df49012['r'] = tCO2_REmarg_df49012['r'].replace({'49011': '49012'})
+tCO2_REmarg_df49012['r'] = tCO2_REmarg_df49012['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49012' if c == '49011' else c)
 
 tCO2_REmarg_df49025 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '49024'].copy()
-tCO2_REmarg_df49025['r'] = tCO2_REmarg_df49025['r'].replace({'49024': '49025'})
+tCO2_REmarg_df49025['r'] = tCO2_REmarg_df49025['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49025' if c == '49024' else c)
 
 tCO2_REmarg_df49022 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '49024'].copy()
-tCO2_REmarg_df49022['r'] = tCO2_REmarg_df49022['r'].replace({'49024': '49022'})
+tCO2_REmarg_df49022['r'] = tCO2_REmarg_df49022['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49022' if c == '49024' else c)
 
 tCO2_REmarg_df52000 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '53000'].copy()
-tCO2_REmarg_df52000['r'] = tCO2_REmarg_df52000['r'].replace({'53000': '52000'})
-
+tCO2_REmarg_df52000['r'] = tCO2_REmarg_df52000['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '52000' if c == '53000' else c)
 tCO2_REmarg_df = pd.concat([
     tCO2_REmarg_df,
     tCO2_REmarg_df38394,
@@ -859,25 +880,14 @@ emm_eq_not_in_em=[str(y) for y in emm_eq if str(y).lower() not in [str(x).lower(
 tCO2_REmarg_df = tCO2_REmarg_df[~tCO2_REmarg_df['emm_eq'].str.lower().isin([x.lower() for x in emm_eq_not_in_em])]
 
 #add to container
-
-#DEBUGGING DOOR LUKAS
-m.write('../data/lukas_debug.gdx')
-# set(tEAFG_REmarg_df['es'])
-#set(energy_and_emissions['ebalitems']
-# tEAFG_REmarg_df['t'] = tEAFG_REmarg_df['t'].astype(str)
-#
+#tEAFG_REmarg=gp.Variable(m,'tEAFG_REmarg',domain=[es,e,d,t],records=tEAFG_REmarg_df)
+#tCO2_REmarg=gp.Variable(m,'tCO2_REmarg',domain=[es,e,d,t,em],records=tCO2_REmarg_df)
+tCO2_REmarg_df.drop(columns=['marginal','scale','upper','lower'], inplace=True)
+tCO2_REmarg_df=gp.Parameter(m,'tCO2_REmarg',domain=[es,e,d,t,ebalitems],description='EAFG marginal tax rates',records=tCO2_REmarg_df.values.tolist())
 
 tEAFG_REmarg_df.drop(columns=['marginal','scale','upper','lower'], inplace=True)
-tEAFG_REmarg=gp.Parameter(m,'tEAFG_REmarg',domain=[es,out,d,t],description='EAFG marginal tax rates',records=tEAFG_REmarg_df.values.tolist(),domain_forwarding=True)
+tEAFG_REmarg_df=gp.Parameter(m,'tEAFG_REmarg',domain=[es,e,d,t],description='EAFG marginal tax rates',records=tEAFG_REmarg_df.values.tolist(),domain_forwarding=True)
 
-tCO2_REmarg_df.drop(columns=['marginal','scale','upper','lower'], inplace=True)
-tCO2_REmarg=gp.Parameter(m,'tCO2_REmarg',domain=[es,out,d,t,ebalitems],description='tCO2 marginal tax rates',records=tCO2_REmarg_df.values.tolist())
-
-m.write('../data/lukas_debug2.gdx')
-
-# OUDE VERSIE!!
-# tEAFG_REmarg=gp.Variable(m,'tEAFG_REmarg',domain=[es,out,d,t],records=tEAFG_REmarg_df)
-#tCO2_REmarg=gp.Variable(m,'tCO2_REmarg',domain=[es,e,d,t,em],records=tCO2_REmarg_df)
 
 #Export
 '''13.3.25:

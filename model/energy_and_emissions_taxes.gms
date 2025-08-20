@@ -334,8 +334,8 @@ $IF %stage% == "calibration":
   $Group calibration_endogenous
     energy_and_emissions_taxes_endogenous 
     -vtE_duty[etaxes,es,e,d,t1], tEmarg_duty[etaxes,es,e,d,t1]
-    -tEmarg_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] <>0), qEpj_duty_deductible['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] <>0)
-    -tEmarg_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] =0), jvtE_duty['EAFG_tax',es,e,i,t1]$(d1tE_duty['EAFG_tax',es,e,i,t1] and tEmarg_duty.l['EAFG_tax',es,e,i,t1] =0)
+    -tEmarg_duty['ener_tax',es,e,i,t1]$(d1tE_duty['ener_tax',es,e,i,t1] and tEmarg_duty.l['ener_tax',es,e,i,t1] <>0), qEpj_duty_deductible['ener_tax',es,e,i,t1]$(d1tE_duty['ener_tax',es,e,i,t1] and tEmarg_duty.l['ener_tax',es,e,i,t1] <>0)
+    -tEmarg_duty['ener_tax',es,e,i,t1]$(d1tE_duty['ener_tax',es,e,i,t1] and tEmarg_duty.l['ener_tax',es,e,i,t1] =0), jvtE_duty['ener_tax',es,e,i,t1]$(d1tE_duty['ener_tax',es,e,i,t1] and tEmarg_duty.l['ener_tax',es,e,i,t1] =0)
     -vtE_vat[es,e,d,t1], tE_vat[es,e,d,t1]
 
     qEpj_duty_deductible[etaxes,es,e,d,t1]$(d1tE_duty[etaxes,es,e,d,t] and CO2_tax[etaxes] and sum(em,d1tCO2_E[em,es,e,d,t]) and i[d])
