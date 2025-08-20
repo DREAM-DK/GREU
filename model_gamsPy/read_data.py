@@ -868,10 +868,10 @@ m.write('../data/lukas_debug.gdx')
 #
 
 tEAFG_REmarg_df.drop(columns=['marginal','scale','upper','lower'], inplace=True)
-tEAFG_REmarg_df=gp.Parameter(m,'tEAFG_REmarg',domain=[es,out,d,t],description='EAFG marginal tax rates',records=tEAFG_REmarg_df.values.tolist(),domain_forwarding=True)
+tEAFG_REmarg=gp.Parameter(m,'tEAFG_REmarg',domain=[es,out,d,t],description='EAFG marginal tax rates',records=tEAFG_REmarg_df.values.tolist(),domain_forwarding=True)
 
 tCO2_REmarg_df.drop(columns=['marginal','scale','upper','lower'], inplace=True)
-tCO2_REmarg_df=gp.Parameter(m,'tCO2_REmarg',domain=[es,out,d,t,ebalitems],description='tCO2 marginal tax rates',records=tCO2_REmarg_df.values.tolist())
+tCO2_REmarg=gp.Parameter(m,'tCO2_REmarg',domain=[es,out,d,t,ebalitems],description='tCO2 marginal tax rates',records=tCO2_REmarg_df.values.tolist())
 
 m.write('../data/lukas_debug2.gdx')
 

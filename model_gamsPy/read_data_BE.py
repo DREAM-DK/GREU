@@ -370,6 +370,13 @@ qCO2_ETS_freeallowances=ets[['indu','year', 'free_allowances']]
 #ensure level-column is called level
 qCO2_ETS_freeallowances.rename(columns={'free_allowances':'level','indu':'i'},inplace=True)
 
+#energy_taxes
+energy_tax=pd.read_excel(r'data_BE\energy_taxes_BE.xlsx',keep_default_na=True)
+#rename columns
+energy_tax.rename(columns={'indu':'d','product':'out','energy service':'es'},inplace=True)
+#reorder columns for energy taxes and drop redundants
+energy_tax=energy_tax[['es','out','d','year', 'Value']]
+
 #emissions_bridge_items
 emissions_bridge_items=pd.read_excel(r'data_BE\emissions_brigde_items_BE.xlsx',keep_default_na=True)
 
@@ -602,6 +609,60 @@ d_non_ene_records = [item for item in d_records if item not in d_ene_records]
 
 t=gp.Set(m,'t',description='year',records=t_list)
 
+
+
+# Energy taxes full combinations
+
+# Ensure 'es' and 'd' columns are strings for easy comparison
+energy_tax['es'] = energy_tax['es'].astype(str)
+energy_tax['d'] = energy_tax['d'].astype(str)
+
+# Ensure d_records and es_records are flat lists (strings), not tuples
+# If already tuples, flatten them:
+d_records_flat = [x[0] if isinstance(x, tuple) else x for x in d_records]
+es_records_flat = [x[0] if isinstance(x, tuple) else x for x in es_records]
+
+# Create DataFrame versions of d_records and es_records for merging
+d_df = pd.DataFrame(d_records_flat, columns=['d'])
+es_df = pd.DataFrame(es_records_flat, columns=['es'])
+
+# Split energy_tax into:
+# 1. fully specific entries (no wildcards)
+# 2. wildcard in 'd'
+# 3. wildcard in 'es'
+# 4. wildcard in both
+specific_entries = energy_tax[(energy_tax['d'] != '*') & (energy_tax['es'] != '*')]
+wild_d = energy_tax[(energy_tax['d'] == '*') & (energy_tax['es'] != '*')]
+wild_es = energy_tax[(energy_tax['d'] != '*') & (energy_tax['es'] == '*')]
+wild_both = energy_tax[(energy_tax['d'] == '*') & (energy_tax['es'] == '*')]
+
+# Expand wildcard in 'd'
+expanded_d = wild_d.merge(d_df, how='cross').drop(columns='d_x').rename(columns={'d_y': 'd'})
+
+# Expand wildcard in 'es'
+expanded_es = wild_es.merge(es_df, how='cross').drop(columns='es_x').rename(columns={'es_y': 'es'})
+
+# Expand wildcard in both 'd' and 'es'
+expanded_both = wild_both.merge(d_df, how='cross').merge(es_df, how='cross')
+expanded_both = expanded_both.drop(columns=['d_x', 'es_x']).rename(columns={'d_y': 'd', 'es_y': 'es'})
+
+# Combine all rows
+combined = pd.concat([specific_entries, expanded_d, expanded_es, expanded_both], ignore_index=True)
+
+# Drop duplicates, keeping the most specific ones
+# Define a priority key: lower is more specific
+def specificity(row):
+    return (row['d'] == '*') + (row['es'] == '*')  # 0: most specific, 1: semi, 2: least
+
+combined['specificity'] = combined.apply(specificity, axis=1)
+
+# Sort so most specific comes last (we will keep the last one)
+combined.sort_values(by=['es', 'out', 'd', 'year', 'specificity'], ascending=[True, True, True, True, False], inplace=True)
+
+# Drop duplicates and keep the most specific
+energy_tax_all = combined.drop_duplicates(subset=['es', 'out', 'd', 'year'], keep='last').drop(columns='specificity')
+
+
 #Construction of GAMS-objects
 '''sets'''
 transaction=gp.Set(m,name='transaction',description='set of transaction types',records=['households'])
@@ -663,6 +724,9 @@ fixed_assets=gp.Parameter(m,name='qK',domain=[k,d,t],description='Capital split 
 
 '''ets'''
 qCO2_ETS_freeallowances=gp.Parameter(m,name='qCO2_ETS_freeallowances',domain=[d,t],description='CO2-ETS free allowances',records=qCO2_ETS_freeallowances[['i','year','level']].values.tolist())
+
+'''energy taxes'''
+tEAFG_REmarg=gp.Parameter(m,'tEAFG_REmarg',domain=[es,out,d,t],description='EAFG marginal tax rates',records=energy_tax_all.values.tolist(),domain_forwarding=True)
 
 '''emissions bridge items'''
 qEmmLULUCF=gp.Parameter(m,name='qEmmLULUCF',domain=[t],description='Total LULUCF-emissions',records=qEmmLULUCF.values.tolist())
