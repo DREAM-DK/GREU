@@ -609,8 +609,6 @@ d_non_ene_records = [item for item in d_records if item not in d_ene_records]
 
 t=gp.Set(m,'t',description='year',records=t_list)
 
-
-
 # Energy taxes full combinations
 
 # Ensure 'es' and 'd' columns are strings for easy comparison
@@ -637,14 +635,12 @@ wild_es = energy_tax[(energy_tax['d'] != '*') & (energy_tax['es'] == '*')]
 wild_both = energy_tax[(energy_tax['d'] == '*') & (energy_tax['es'] == '*')]
 
 # Expand wildcard in 'd'
-expanded_d = wild_d.merge(d_df, how='cross').drop(columns='d_x').rename(columns={'d_y': 'd'})
-
+expanded_d = wild_d.merge(d_df, how='cross').rename(columns={'d_y': 'd'})
 # Expand wildcard in 'es'
-expanded_es = wild_es.merge(es_df, how='cross').drop(columns='es_x').rename(columns={'es_y': 'es'})
-
+expanded_es = wild_es.merge(es_df, how='cross').rename(columns={'es_y': 'es'})
 # Expand wildcard in both 'd' and 'es'
 expanded_both = wild_both.merge(d_df, how='cross').merge(es_df, how='cross')
-expanded_both = expanded_both.drop(columns=['d_x', 'es_x']).rename(columns={'d_y': 'd', 'es_y': 'es'})
+expanded_both = expanded_both.rename(columns={'d_y': 'd', 'es_y': 'es'})
 
 # Combine all rows
 combined = pd.concat([specific_entries, expanded_d, expanded_es, expanded_both], ignore_index=True)
@@ -652,7 +648,7 @@ combined = pd.concat([specific_entries, expanded_d, expanded_es, expanded_both],
 # Drop duplicates, keeping the most specific ones
 # Define a priority key: lower is more specific
 def specificity(row):
-    return (row['d'] == '*') + (row['es'] == '*')  # 0: most specific, 1: semi, 2: least
+    return (row['d_x'] == '*') + (row['es_x'] == '*')  # 0: most specific, 1: semi, 2: least
 
 combined['specificity'] = combined.apply(specificity, axis=1)
 
@@ -660,7 +656,7 @@ combined['specificity'] = combined.apply(specificity, axis=1)
 combined.sort_values(by=['es', 'out', 'd', 'year', 'specificity'], ascending=[True, True, True, True, False], inplace=True)
 
 # Drop duplicates and keep the most specific
-energy_tax_all = combined.drop_duplicates(subset=['es', 'out', 'd', 'year'], keep='last').drop(columns='specificity')
+energy_tax_all = combined.drop_duplicates(subset=['es', 'out', 'd', 'year'], keep='last').drop(columns=['specificity','d_x', 'es_x'])
 
 
 #Construction of GAMS-objects
