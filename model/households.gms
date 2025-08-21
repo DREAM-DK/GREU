@@ -66,7 +66,7 @@ rMPC.l[t] = 0.4;
 $Group households_data_variables
   qD[c,t]
 ;
-@load(households_data_variables, "../data/data.gdx")
+@load(households_data_variables, %path_data%)
 $Group+ data_covered_variables households_data_variables$(t.val <= %calibration_year%);
 
 $ENDIF # exogenous_values

@@ -80,7 +80,7 @@ $IF %stage% == "exogenous_values":
   ;
     $Group+ data_covered_variables production_CET_data_variables$(t.val <= %calibration_year%); 
 
-  @load(production_CET_data_variables, "../data/data.gdx")
+  @load(production_CET_data_variables, %path_data%)
 
 
 

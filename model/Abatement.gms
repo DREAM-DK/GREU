@@ -190,7 +190,7 @@ $GROUP abatement_data_variables
   uTE[l,es,e,d,t]
   uTK[l,es,d,t]
 ;
-@load(abatement_data_variables, "../data/data.gdx")
+@load(abatement_data_variables, %path_data%)
 $GROUP+ data_covered_variables abatement_data_variables;
 
 # Dummies

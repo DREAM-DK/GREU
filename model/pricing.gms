@@ -32,7 +32,7 @@ $IF %stage% == "exogenous_values":
 
 $Group pricing_data_variables
 ;
-# @load(pricing_data_variables, "../data/data.gdx")
+# @load(pricing_data_variables, %path_data%)
 $Group+ data_covered_variables pricing_data_variables;
 
 pY_i.l[i,t] = 1;

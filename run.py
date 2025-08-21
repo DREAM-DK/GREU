@@ -18,9 +18,9 @@ os.environ["GAMS"] = "C:/GAMS/49/gams.exe"
 os.chdir(fr"{root}/model")
 
 ## Create data.gdx based on GreenREFORM-DK data 
-dt.gamY.run("../data/data_for_model_template.gms")
+dt.gamY.run("../data/data_for_model_BE.gms")
 
-# dt.gamY.run("base_model.gms")
+dt.gamY.run("base_model.gms")
 #
 # ## Save calibration.gdx as previous_calibration.gdx
 # # shutil.copy("calibration.gdx", "previous_calibration.gdx")

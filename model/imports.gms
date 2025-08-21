@@ -36,7 +36,7 @@ $IF %stage% == "exogenous_values":
 
 # $Group imports_data_variables
 # ;
-# @load(imports_data_variables, "../data/data.gdx")
+# @load(imports_data_variables, %path_data%)
 # $Group+ data_covered_variables imports_data_variables;
 eM_i_d.l[i,d] = 2;
 

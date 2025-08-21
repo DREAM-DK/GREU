@@ -251,7 +251,7 @@ $ENDIF
 $IF %stage% == "exogenous_values":
 
   @inf_growth_adjust()
-  @load(G_energy_taxes_data, "../data/data.gdx")
+  @load(G_energy_taxes_data, %path_data%)
   @remove_inf_growth_adjustment()
   $Group+ data_covered_variables G_energy_taxes_data$(t.val <= %calibration_year%), -tEmarg_duty,-tCO2_Emarg; #Find ud af hvad, der går galt med de to her
 

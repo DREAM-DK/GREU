@@ -711,7 +711,10 @@ vIO_a=gp.Parameter(m,name='vIO_a',domain=[a_rows_,d,t],description='other IO',re
 vIOxE_a=gp.Parameter(m,name='vIOxE_a',domain=[a_rows_,d,t],description='non energy other IO',records=io_combined_a[['i', 'd', 'year', 'level']].values.tolist(),domain_forwarding=True)
 
 '''demand side IO'''
-qI_k_i=gp.Parameter(m,'qI_k_i',domain=[k,d,t],description='Real capital stock by capital type and industry',records=io_inv_qI_k_i_agg[['k','i','year','level']].values.tolist())
+# qI_k_i=gp.Parameter(m,'qI_k_i',domain=[k,d,t],description='Real capital stock by capital type and industry',records=io_inv_qI_k_i_agg[['k','i','year','level']].values.tolist())
+#£AKB
+qI_k_i=gp.Parameter(m,'qI_k_i',domain=[k,i,t],description='Real capital stock by capital type and industry',records=io_inv_qI_k_i_agg[['k','i','year','level']].values.tolist())
+
 wagesum_with_t=gp.Parameter(m,name='qL',domain=[d,t],description='Wage expenses',records=wagesum_with_t[['i','year','level']].values.tolist())
 nemployed=gp.Parameter(m,name='nEmployed',domain=[t],description='Total number of employees including independents',records=nemployed_frame.values.tolist(),domain_forwarding=True)
 

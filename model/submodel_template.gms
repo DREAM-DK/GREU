@@ -34,7 +34,7 @@ $IF %stage% == "exogenous_values":
 $Group template_data_variables
   submodel_template_test_variable[t]
 ;
-# @load(template_data_variables, "../data/data.gdx")
+# @load(template_data_variables, %path_data%)
 submodel_template_test_variable.l[t] = 1;
 $Group+ data_covered_variables template_data_variables;
 

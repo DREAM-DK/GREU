@@ -58,7 +58,7 @@ $IF %stage% == "exogenous_values":
 $Group government_data_variables
   qD[g,t]
 ;
-@load(government_data_variables, "../data/data.gdx")
+@load(government_data_variables, %path_data%)
 $Group+ data_covered_variables government_data_variables$(t.val <= %calibration_year%);
 
 $ENDIF # exogenous_values

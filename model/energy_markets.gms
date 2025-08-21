@@ -388,7 +388,7 @@
 
 	$IF %stage% == "exogenous_values":
 	  	@inf_growth_adjust()
-			@load(G_energy_markets_data, "../data/data.gdx")
+			@load(G_energy_markets_data, %path_data%)
 			@remove_inf_growth_adjustment()
 
 			$Group+ data_covered_variables

@@ -82,11 +82,14 @@ $Group labor_market_data_variables
 ;
 $GROUP+ data_covered_variables labor_market_data_variables$(t.val <= %calibration_year%);
 
-@load(labor_market_data_variables, "../data/data.gdx")
+@load(labor_market_data_variables, %path_data%)
 pW.l[t] = fpt[t];
 pL_i.l[i,t] = fpt[t];
 qL_i.l[i,t] = vWages_i.l[i,t];
 rWageInflation.l[t] = fv-1;
+
+#£AKB: Hack
+vW.l['2019'] = vW.l['2020']/fv;
 
 $ENDIF # exogenous_values
 

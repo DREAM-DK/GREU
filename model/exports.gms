@@ -38,7 +38,7 @@ pRoW_x.l[x,t] = 1;
 $Group exports_market_data_variables
   qD[x,t]
 ;
-@load(exports_market_data_variables, "../data/data.gdx")
+@load(exports_market_data_variables, %path_data%)
 $GROUP+ data_covered_variables exports_market_data_variables$(t.val <= %calibration_year%);
 
 $ENDIF # exogenous_values

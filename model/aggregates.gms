@@ -75,7 +75,7 @@ $Group aggregates_data_variables
   pM, qY
   pGDP, qGDP
 ;
-@load(aggregates_data_variables, "../data/data.gdx")
+@load(aggregates_data_variables, %path_data%)
 # $Group data_covered_variables data_covered_variables aggregates_data_variables;
 
 pC.l[tBase] = 1;

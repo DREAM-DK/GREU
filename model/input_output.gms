@@ -236,7 +236,7 @@ $Group input_output_data_variables
 # $Group+ data_covered_variables input_output_data_variables$(t.val <= %calibration_year%),-vY_i_d[i,'energy',t];
 $Group+ data_covered_variables input_output_data_variables$(t.val <= %calibration_year%); #, -vtY_i_d$(d_ene[d]), -vtM_i_d$(d_ene[d]), -vY_i_d$(d_ene[d]), -vM_i_d$(d_ene[d]); 
 
-@load(input_output_data_variables, "../data/data.gdx")
+@load(input_output_data_variables, %path_data%)
 
 #Cells at approx 1e-5 still left here...
 vM_i_d.l[i,d,t]$(not sameas[i,'19000'] and d_ene[d]) = 0;

@@ -157,7 +157,7 @@ $IF %stage% == "exogenous_values":
 
 
   @inf_growth_adjust()
-  @load(G_emissions_data, "../data/data.gdx")
+  @load(G_emissions_data, %path_data%)
   @remove_inf_growth_adjustment()
 
   GWP.l['CO2ubio'] = 1;

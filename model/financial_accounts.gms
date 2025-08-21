@@ -128,7 +128,7 @@ vNetEquity.l[sector,t] = vNetFinAssets.l[sector,t] - vNetDebtInstruments.l[secto
 rInterests.l[t] = 0.04;
 vNetInterests.l[sector,t] = rInterests.l[t] * vNetDebtInstruments.l[sector,t-1];
 
-# @load(financial_data_variables, "../data/data.gdx")
+# @load(financial_data_variables, %path_data%)
 $Group+ data_covered_variables financial_data_variables;
 
 $ENDIF # exogenous_values

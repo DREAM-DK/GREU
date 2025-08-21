@@ -111,7 +111,7 @@ $Group factor_demand_data_variables
   qInvt_ene_i[i,t]
   qE_re_i[re,i,t] 
 ;
-@load(factor_demand_data_variables, "../data/data.gdx")
+@load(factor_demand_data_variables, %path_data%)
 $Group+ data_covered_variables factor_demand_data_variables$(t.val <= %calibration_year%);
 
 d1K_k_i[k,i,t]    = abs(qK_k_i.l[k,i,t]) > 1e-9;

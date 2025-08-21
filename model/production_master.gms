@@ -105,7 +105,7 @@ $IF %stage% == "exogenous_values":
   ;
 
   @inf_growth_adjust()
-  @load(G_production_data_variables, "../data/data.gdx")
+  @load(G_production_data_variables, %path_data%)
   @remove_inf_growth_adjustment()
   $Group+ data_covered_variables G_production_data_variables$(t.val <= %calibration_year%), -qProd;
 
