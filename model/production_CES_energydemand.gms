@@ -68,7 +68,7 @@ $IF %stage% == "equations":
 				qREa[es,e_a,i,t] =E= uREa[es,e_a,i,t] * qREa_ElectricityForDatacentersData[t];
 
 			qREa&_Natural[es,e_a,i,t]$(d1pREa_NotinNest[es,e_a,i,t] and process_special[es] and natgas_ext[e_a] and i_gasdistribution[i])..	
-				qREa[es,e_a,i,t] =E= uREa[es,e_a,i,t] * (qY_CET['Natural gas incl. biongas','35002',t] - qREa['process_special','Biogas','35002',t]);
+				qREa[es,e_a,i,t] =E= uREa[es,e_a,i,t] * (qY_CET['Natural gas',i,t] - qREa['process_special','Biogas',i,t]);
 		
 			vEnergycostsnotinnesting[i,t].. vEnergycostsnotinnesting[i,t] =E= sum((es,e_a)$(d1pREa_NotinNest[es,e_a,i,t]), pREa[es,e_a,i,t] * qREa[es,e_a,i,t]);
 

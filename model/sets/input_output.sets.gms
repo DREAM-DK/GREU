@@ -23,7 +23,7 @@ Set i2rx(i,rx);
 Set d_non_ene2i(d,i);
 Set d_non_ene2k(d,k);
 
-$gdxIn ../data/data.gdx
+$gdxIn %path_data%
 $load d, d_non_ene, d_ene
 $load i, m
 $load rx=i, re, k, c, g, x,tl,invt, invt_ene
@@ -43,13 +43,13 @@ Set i_public[i] "Public industries." / off /;
 Set i_private[i] "Private industries.";
 i_private[i] = not i_public[i];
 
-Set i_refineries[i] / 19000 /;
-Set i_gasdistribution[i] / 35002 /;
-Set i_cardealers[i] / 45000 /;
-Set i_wholesale[i] / 46000 /;
-Set i_retail[i] / 47000 /;
-Set i_energymargins[i]/45000,46000,47000/;
+Set i_refineries[i] / C19 /;
+Set i_gasdistribution[i] / 35B /;
+Set i_cardealers[i] / G45 /;
+Set i_wholesale[i] / G46 /;
+Set i_retail[i] / G47 /;
+Set i_energymargins[i]/G45,G46,G47/;
 
-Set i_service_for_industries[i] / 71000 /;
-Set i_international_aviation[i] / 51009 /;
+Set i_service_for_industries[i] / serv_to_business /;
+Set i_international_aviation[i] / H51 /;
 SEt i_control[i]/set.i/;

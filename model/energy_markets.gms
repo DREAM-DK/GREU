@@ -252,11 +252,11 @@
 
 		$BLOCK energy_margins energy_margins_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
 
-			.. pWMA[es,e,d,t] =E=  fpWMA[es,e,d,t] * pY_CET['out_other','46000',t]/pY_CET['out_other','46000',tBase];
+			.. pWMA[es,e,d,t] =E=  fpWMA[es,e,d,t] * pY_CET['out_other','G45',t]/pY_CET['out_other','G45',tBase];
 
-			.. pRMA[es,e,d,t] =E= fpRMA[es,e,d,t] * pY_CET['out_other','47000',t]/pY_CET['out_other','47000',tBase];
+			# .. pRMA[es,e,d,t] =E= fpRMA[es,e,d,t] * pY_CET['out_other','47000',t]/pY_CET['out_other','47000',tBase];
 
-			.. pCMA[es,e,d,t] =E= fpCMA[es,e,d,t] * pY_CET['out_other','45000',t]/pY_CET['out_other','45000',tBase];
+			# .. pCMA[es,e,d,t] =E= fpCMA[es,e,d,t] * pY_CET['out_other','45000',t]/pY_CET['out_other','45000',tBase];
 
 			.. vWMA[es,e,d,t] =E=  pWMA[es,e,d,t] * qEpj[es,e,d,t];
 
@@ -275,25 +275,25 @@
 			qD_CMA[t]..
 					vD_CMA[t] =E= pD_CMA[t] * qD_CMA[t];
 
-			.. pD_WMA[t] =E= pY_CET['out_other','46000',t];
-			.. pD_RMA[t] =E= pY_CET['out_other','47000',t];
-			.. pD_CMA[t] =E= pY_CET['out_other','45000',t];
+			.. pD_WMA[t] =E= pY_CET['out_other','G45',t];
+			# .. pD_RMA[t] =E= pY_CET['out_other','47000',t];
+			# .. pD_CMA[t] =E= pY_CET['out_other','45000',t];
 
 
 
 			..  vOtherDistributionProfits_WMA[t] =E= vD_WMA[t]
-																						- pY_CET['out_other','46000',t]*qD_WMA[t]
+																						- pY_CET['out_other','G45',t]*qD_WMA[t]
 																						;
 
 			
-			..  vOtherDistributionProfits_RMA[t] =E= vD_RMA[t]
-																						- pY_CET['out_other','47000',t]*qD_RMA[t]
-																						;
+			# ..  vOtherDistributionProfits_RMA[t] =E= vD_RMA[t]
+			# 																			- pY_CET['out_other','47000',t]*qD_RMA[t]
+			# 																			;
 
 
-			..  vOtherDistributionProfits_CMA[t] =E= vD_CMA[t]
-																						- pY_CET['out_other','45000',t]*qD_CMA[t]
-																						;
+			# ..  vOtherDistributionProfits_CMA[t] =E= vD_CMA[t]
+			# 																			- pY_CET['out_other','45000',t]*qD_CMA[t]
+			# 																			;
 		$ENDBLOCK
 
 		$BLOCK energy_markets_IO_link energy_markets_IO_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
