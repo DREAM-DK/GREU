@@ -56,7 +56,8 @@ Set e(out); #energy outputs
 Set em_accounts; #set of accounts for emissions
 
 ### B) Initialization of parameters to be read from Python treated data
-$PGROUP PG_data_from_Python
+# $PGROUP PG_data_from_Python
+parameters
   vIO_y[i,d,t] "IO - data, domesticsupply"
   vIO_m[i,d,t] "IO - data, imports"
   vIO_a[a_rows_,d,t] "IO -data, decomposition of GVA"
@@ -91,7 +92,7 @@ $gdxin
 
 #Creating auxiliary sets (These should be read from Python data)
 set demand_transaction_temp[transaction] /'input_in_production','household_consumption','inventory','export','transmission_losses'/; #AKB: In "demand_transaction" there is an error with "households" being the set-element for households
-set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','cav','nox_tax','so2_tax','vat','base'/; #AKB: Auxiliary set. £ Should be changed in in order to relefct country specific. Eg. does the country have "eav", "dav" and "cav"?
+set ebalitems_totalprice[ebalitems]/'Excises_tax','Margins','Subsidies_tax','Import_tax','vat','base'/; #AKB: Auxiliary set. £ Should be changed in in order to relefct country specific. Eg. does the country have "eav", "dav" and "cav"?
 set i_energymargins[i]/G45, G46, G47/; #£ Country specific industries "producing" margins
 set eBunkering[e]/'Bunkering of Danish operated trucks on foreign territory',
                   'Bunkering of Danish operated vessels on foreign territory',
