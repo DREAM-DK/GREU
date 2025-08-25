@@ -2,10 +2,10 @@ set em  "Emission-types"; alias(em,em_a);
 set em_accounts "Different accounting levels of emissions inventories";
 set land5 "Five aggregate land-use categories";
 
-$gdxIn ../data/data.gdx
+$gdxIn %path_data%
 $load em
 $load em_accounts
-$load land5
+# $load land5
 $gdxIn
 
 set CO2e[em]/CO2e/;

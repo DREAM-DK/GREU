@@ -116,7 +116,7 @@ non_energy_emissions = non_energy_emissions[['ebalitems', 'transaction', 'd', 'y
 #Energy emissions
 energy_and_emissions=pd.read_excel(r'data_BE\energy_and_emissions_BE.xlsx',keep_default_na=True)
 
-'''rename coslumns for compatibility with data loading'''
+'''rename columns for compatibility with data loading'''
 energy_and_emissions.rename(columns={'indu':'d','product':'e','purp':'es','flow':'transaction'},inplace=True)
 energy_and_emissions.set_index(['year','bal','transaction','d','es','e'],drop=True,inplace=True)
 
@@ -581,7 +581,8 @@ k_records_fortot=k_records.copy()
 populate ebalitems, currently 'EAFG_tax is called explicitly in the model and is not present in data, so I add it manually to the set ebalitems and the subset etaxes.
 '''
 ebalitems_records=list(set(non_energy_emissions['ebalitems']).union(set(energy_and_emissions['ebalitems'])))
-ebalitems_records.append('EAFG_tax')
+# £LUKAS edit: EAFG_tax serves no purpose in CGE model. Energy taxes are upload by energy_and_emissions.xlsx under ebalitems.
+# ebalitems_records.append('EAFG_tax')
 #etaxes records
 etaxes_records=[s for s in ebalitems_records if '_tax' in s]
 
@@ -657,6 +658,8 @@ combined.sort_values(by=['es', 'out', 'd', 'year', 'specificity'], ascending=[Tr
 
 # Drop duplicates and keep the most specific
 energy_tax_all = combined.drop_duplicates(subset=['es', 'out', 'd', 'year'], keep='last').drop(columns=['specificity','d_x', 'es_x'])
+# replace product codes by names used in final dataset
+energy_tax_all['out']=energy_tax_all['out'].replace(dict_e)
 
 
 #Construction of GAMS-objects
@@ -725,7 +728,7 @@ fixed_assets=gp.Parameter(m,name='qK',domain=[k,d,t],description='Capital split 
 qCO2_ETS_freeallowances=gp.Parameter(m,name='qCO2_ETS_freeallowances',domain=[d,t],description='CO2-ETS free allowances',records=qCO2_ETS_freeallowances[['i','year','level']].values.tolist())
 
 '''energy taxes'''
-tEAFG_REmarg=gp.Parameter(m,'tEAFG_REmarg',domain=[es,out,d,t],description='EAFG marginal tax rates',records=energy_tax_all.values.tolist(),domain_forwarding=True)
+tEAFG_REmarg=gp.Parameter(m,'tEAFG_REmarg',domain=[es,out,d,t],description='EAFG marginal tax rates',records=energy_tax_all.values.tolist())
 
 '''emissions bridge items'''
 qEmmLULUCF=gp.Parameter(m,name='qEmmLULUCF',domain=[t],description='Total LULUCF-emissions',records=qEmmLULUCF.values.tolist())

@@ -141,9 +141,9 @@ set ebalitems_totalprice[ebalitems]/'Excises_tax','Margins','Subsidies_tax','Imp
 # set i_energymargins[i]/G45, G46, G47/; #£ Country specific industries "producing" margins
 set i_energymargins[i]/G45/;
 
-# set eBunkering[e]/'Bunkering of Danish operated trucks on foreign territory',
-#                   'Bunkering of Danish operated vessels on foreign territory',
-#                   'Bunkering of Danish operated planes on foreign territory'/;
+set eBunkering[e]/'Bunkering of Belgian operated trucks on foreign territory',
+                  'Bunkering of Belgian operated vessels on foreign territory',
+                  'Bunkering of Belgian operated planes on foreign territory'/;
 set tData[t]/2020/;
 
 parameter test_vIOxE_y[i,d,t];
@@ -473,7 +473,7 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   qEmmTot[em,em_accounts,t] = sum((es,e,d), qEmmE_BU[em,es,e,d,t]) + sum(d, qEmmxE[em,d,t]);
 
   #£AKB: Does not apply for BE?
-  # qEmmBunkering[em,t] = sum((demand_transaction_temp,es,d,e)$(eBunkering[e]), Energybalance[em,demand_transaction_temp,d,es,e,t]);
+  qEmmBunkering[em,t] = sum((demand_transaction_temp,es,d,e)$(eBunkering[e]), Energybalance[em,demand_transaction_temp,d,es,e,t]);
 
 
 

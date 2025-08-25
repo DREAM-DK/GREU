@@ -17,7 +17,7 @@ os.environ["GAMS"] = "C:/GAMS/49/gams.exe"
 ## Set working directory
 os.chdir(fr"{root}/model")
 
-## Create data.gdx based on GreenREFORM-DK data 
+## Create data.gdx based on GreenREFORM-BE data
 dt.gamY.run("../data/data_for_model_BE.gms")
 
 dt.gamY.run("base_model.gms")
