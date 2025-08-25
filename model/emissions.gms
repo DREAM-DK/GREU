@@ -119,11 +119,11 @@ $IF %stage% == "equations":
       #Energy-related emissions
       uEmmE[em,d,t]$(not CO2e[em]).. qEmmE[em,d,t] =E= sum((e,es), qEmmE_BU[em,es,e,d,t]);
 
-      .. qEmmInternationalAviation[em,t] =E= sum(i_international_aviation,qEmmE_BU[em,'transport','jet petroleum',i_international_aviation,t]);
+      .. qEmmInternationalAviation[em,t] =E= sum(i_international_aviation,qEmmE_BU[em,'transport','Kerosenes and jet fuels',i_international_aviation,t]);
 
       .. qEmmBunkering[em,t] =E= sum((i,es,eBunkering), qEmmE_BU[em,es,eBunkering,i,t]);
 
-      .. qEmmOtherDifferencesShips[em,t] =E= qEmmE_BU[em,'transport','diesel for transport','49509',t];
+      .. qEmmOtherDifferencesShips[em,t] =E= qEmmE_BU[em,'transport','Transport diesel','H49',t];
 
   $ENDBLOCK 
 

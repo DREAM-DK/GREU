@@ -5,20 +5,20 @@ set eBunkering[e] "Bunkering energy types";
 
 set prd/heating,transport,Otherergy/;
 
-$gdxIn ../data/data.gdx
+$gdxIn %path_data%
 $load out, e, es, eBunkering
 $gdxIn
 
 #  execute_loaddc '..\data\data.gdx' out e es;
 
 sets out_other[out]/out_other/
-     natgas[out]/"Natural gas incl. biongas"/
-     natgas_ext[out] /"Natural gas (Extraction)"/
-     el[out]/"Electricity"/
-     distheat[out]/"District heat"/
-     straw[out]/"Straw for energy purposes"/
+     natgas[out]/"Natural gas"/
+#     natgas_ext[out] /"Natural gas (Extraction)"/
+     el[out]/"Electrical energy"/
+#     distheat[out]/"Heat"/
+#     straw[out]/"Straw for energy purposes"/
      biogas[out]/"Biogas"/
-     crudeoil[out]/"Crude oil"/
+     crudeoil[out]/"Crude oil, NGL, and other hydrocarbons"/
      ;
 
 sets transport[es]/Transport/
@@ -45,8 +45,8 @@ set es2re(es,re)
        /;
 
 set es_d2d(es,d_a,d)/
-     (heating,appliances) . cHouEne . cHouEne
-     transport . cCarEne . cCarEne
+     (heating,appliances) . HH_heating . HH_heating
+     transport . HH_transport . HH_transport
      set.es . set.i . energy
      set.es . xEne . xEne 
      set.es . invt_ene . invt_ene
