@@ -114,7 +114,7 @@ parameters auxiliary_data_parameters
 
   # Abatement
   sqTPotential_load[l,es,i,t] "Potential, technology."
-  uTE_load[l,es,e,i,t] "Energy use, technology."
+  uTE_load[l,e] "Energy use, technology."
   uTKexp_load[l,es,i,t] "Capital use, technology."
   pTE_base_load[es,e,i,t] "Base price of energy input (billion EUR per PJ)"
   pTE_tax_load[es,e,i,t] "Tax on energy input (billion EUR per PJ)"
@@ -178,7 +178,7 @@ parameters GREU_data
 
   # Abatement
   sqTPotential[l,es,i,t] "Potential, technology."
-  uTE[l,es,e,i,t] "Energy use, technology."
+  uTE[l,e] "Energy use, technology."
   uTKexp[l,es,i,t] "Capital use, technology."
   pTE_base[es,e,i,t] "Base price of energy input (billion EUR per PJ)"
   pTE_tax[es,e,i,t] "Tax on energy input (billion EUR per PJ)"
@@ -300,7 +300,7 @@ qInvt_i[i,t] = qI_s.l['invt',i,t];
 
   # Abatement
   sqTPotential[l,es,i,t] = sqTPotential_load[l,es,i,t];
-  uTE[l,es,e,i,t] = uTE_load[l,es,e,i,t];
+  uTE[l,e] = uTE_load[l,e];
   uTKexp[l,es,i,t] = uTKexp_load[l,es,i,t];
   pTE_base[es,e,i,t] = pTE_base_load[es,e,i,t];
   pTE_tax[es,e,i,t] = pTE_tax_load[es,e,i,t];

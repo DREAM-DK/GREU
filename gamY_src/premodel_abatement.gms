@@ -8,7 +8,7 @@
 # 1. Supply Curve Parameters
 # ----------------------------------------------------------------------------------------------------------------------
 # 1.1 Scenario Set Definition
-set scen / 1*100 /; # Number of steps for tracing the supply curve
+set scen / 1*1000 /; # Number of steps for tracing the supply curve
 
 # 1.2 Key Parameters
 parameter

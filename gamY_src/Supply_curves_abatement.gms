@@ -41,7 +41,7 @@ d1Expensive_tech_smooth_scen[es,d,t] = smax(l, pTPotential.l[l,es,d,t] * (1 + 4 
 
 # 2.2 Marginal Cost Setup
 # Defining marginal costs for each trace (goes from zero up to 4 standard deviations times the price of the most expensive technology)
-pESmarg_scen.l[es,d,t,scen]$(sum(l, d1sqTPotential[l,es,d,t])) = ord(scen)/100 * d1Expensive_tech_smooth_scen[es,d,t];
+pESmarg_scen.l[es,d,t,scen]$(sum(l, d1sqTPotential[l,es,d,t])) = ord(scen)/1000 * d1Expensive_tech_smooth_scen[es,d,t];
 
 # 2.3 Initial Capital Costs
 # Random starting values for the marginal costs of capital

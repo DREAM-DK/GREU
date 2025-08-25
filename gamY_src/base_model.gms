@@ -112,6 +112,33 @@ Solve main using CNS;
 $IMPORT report_abatement.gms
 execute_unload 'shock_carbon_tax.gdx';
 
+# 6.3 Negative tax on captured CO2
+# Set negative tax on captured CO2
+pTE_tax.l[es,e,d,t]$(sum(ee, pTE_tax.l[es,ee,d,t]) and sameas[e,'Captured CO2'])
+    = 15;
+
+# Update energy prices
+pTE.l[es,e,d,t]$(pTE_base.l[es,e,d,t] or pTE_tax.l[es,e,d,t]) = pTE_base.l[es,e,d,t] + pTE_tax.l[es,e,d,t];
+
+# Update dummy on energy prices
+d1pTE[es,e,d,t]$(pTE.l[es,e,d,t]) = yes;
+
+# Update exist dummies
+@update_exist_dummies()
+
+$import Supply_curves_abatement.gms
+
+execute_unload 'pre_shock_CCS_subsidy.gdx';
+
+$FIX all_variables;
+$UNFIX main_endogenous;
+@Setbounds_abatement();
+Solve main using CNS;
+$IMPORT report_abatement.gms
+execute_unload 'shock_CCS_subsidy.gdx';
+
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # 7. Additional Analysis
 # ----------------------------------------------------------------------------------------------------------------------

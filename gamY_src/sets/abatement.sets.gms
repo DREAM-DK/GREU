@@ -14,4 +14,5 @@ set d /
   /;
 
 alias(l,ll);
+alias(e,ee);
 

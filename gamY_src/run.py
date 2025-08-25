@@ -31,7 +31,7 @@ dt.gamY.run("base_model.gms")
 plot_supply_curve("calibration.gdx")
 plot_supply_curve("shock_capital_cost.gdx")
 plot_supply_curve("shock_carbon_tax.gdx")
-
+plot_supply_curve("shock_CCS_subsidy.gdx")
 
 ## Save calibration.gdx as previous_calibration.gdx
 # shutil.copy("calibration.gdx", "previous_calibration.gdx")

@@ -21,7 +21,7 @@ os.chdir(fr"{root}/data/Abatement_data")
 # ------------------------------------------------------------------
 
 # Name of data file
-file_name = "Abatement_dummy_data.xlsx"
+file_name = "Nyt_abatement_dummy_data.xlsx"
 
 # Define list for columns that need to be dropped
 drop_cols_list = ["Tech type"]
@@ -40,6 +40,7 @@ rename_col_list = {'TechID':"l",
                    'Energy tax (billion EUR per PJ in)':"pTE_tax",
                    'Capital cost index':"pTK",
                    'Energy service (PJ out)':"qES",
+                   'Technical lifespan (years)':"t_life"
                    }
 
 # DATA FOR TECHNOLOGIES
@@ -50,28 +51,40 @@ df_technologies = df_technologies.drop(columns = drop_cols_list)
 # Rename columns to match names in the model
 df_technologies = df_technologies.rename(columns=rename_col_list)   
 # Set index for dataframe
-df_technologies = df_technologies.set_index(['l','es','e','i','t']) 
+df_technologies = df_technologies.set_index(['l','es','i','t']) 
 
 # Create dataframe with sqTPotential, uTE, vTI, vTC
 df_sqTPotential = pd.DataFrame(df_technologies['sqTPotential'])
-df_uTE = pd.DataFrame(df_technologies['uTE'])
+#df_uTE = pd.DataFrame(df_technologies['uTE'])
 df_vTI = pd.DataFrame(df_technologies['vTI'])
 df_vTC = pd.DataFrame(df_technologies['vTC'])
 
 # Drop energy dimension for sqTPotential
 df_sqTPotential = df_sqTPotential.reset_index()
-df_sqTPotential = df_sqTPotential.drop(columns = 'e')
+#df_sqTPotential = df_sqTPotential.drop(columns = 'e')  Overflødig med nyt abatament data
 
 # Reset index for uTE
-df_uTE = df_uTE.reset_index()
+#df_uTE = df_uTE.reset_index()
 
 # Drop energy dimension for vTI
 df_vTI = df_vTI.reset_index()
-df_vTI = df_vTI.drop(columns = 'e')
+#df_vTI = df_vTI.drop(columns = 'e')  Overflødig med nyt abatament data
 
 # Drop energy dimension for vTC
 df_vTC = df_vTC.reset_index()
-df_vTC = df_vTC.drop(columns = 'e')
+#df_vTC = df_vTC.drop(columns = 'e')  Overflødig med nyt abatament data
+
+
+
+# DATA FOR ENERGY INPUT
+# Reading data from excel
+df_uTE = pd.read_excel(file_name,sheet_name='Energy input')
+# Rename columns to match names in the model
+df_uTE = df_uTE.rename(columns=rename_col_list)   
+# Rearranging columns to match model dimensions
+df_uTE = df_uTE.set_index(['l','e'])
+# Resettign index
+df_uTE = df_uTE.reset_index()
 
 # DATA FOR ENERGY PRICE
 # Reading data from excel
@@ -83,7 +96,8 @@ df_energy_price = df_energy_price.set_index(['es','e','i','t'])
 # Resettign index
 df_energy_price = df_energy_price.reset_index()
 
-# DATA FOR ENERGY PRICE
+
+# DATA FOR ENERGY TAX
 # Reading data from excel
 df_energy_tax = pd.read_excel(file_name,sheet_name='Energy tax')
 # Rename columns to match names in the model
@@ -148,7 +162,7 @@ t=gp.Set(db_abatement,name='t',description='Year',records=set_year_list)
 
 # Adding parameters to database
 sqTPotential=gp.Parameter(db_abatement,name='sqTPotential',domain=[l,es,i,t],description='Potential supply by technology l in ratio of energy service (share of qES)',records=df_sqTPotential.values.tolist())
-uTE=gp.Parameter(db_abatement,name='uTE',domain=[l,es,e,i,t],description='Input of energy in technology l per PJ output at full potential',records=df_uTE.values.tolist())
+uTE=gp.Parameter(db_abatement,name='uTE_load',domain=[l,e],description='Input of energy in technology l per PJ output at full potential',records=df_uTE.values.tolist())
 vTI=gp.Parameter(db_abatement,name='vTI',domain=[l,es,i,t],description='Investment costs in technology l per PJ output at full potential',records=df_vTI.values.tolist())
 vTC=gp.Parameter(db_abatement,name='vTC',domain=[l,es,i,t],description='Variable capital costs in technology l per PJ output at full potential',records=df_vTC.values.tolist())
 pTE_base=gp.Parameter(db_abatement,name='pTE_base',domain=[es,e,i,t],description='Base price of energy input',records=df_energy_price.values.tolist())
