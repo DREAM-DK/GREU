@@ -25,7 +25,7 @@ Set d_non_ene2k(d,k);
 
 $gdxIn %path_data%
 $load d, d_non_ene, d_ene
-$load i, m
+$load i
 $load rx=i, re, k, c, g, x,tl,invt, invt_ene
 $gdxIn
 ;
