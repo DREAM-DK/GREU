@@ -21,7 +21,7 @@ os.chdir(fr"{root}/data/Abatement_data")
 # ------------------------------------------------------------------
 
 # Name of data file
-file_name = "Nyt_abatement_dummy_data.xlsx"
+file_name = "Abatement_dummy_data.xlsx"
 
 # Define list for columns that need to be dropped
 drop_cols_list = ["Tech type"]
