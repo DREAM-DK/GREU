@@ -74,14 +74,16 @@ $IF %stage% == "exogenous_values":
 #                              / 1.1 \
 #                  Meat cFoodDairy cFoodVeg cFoodBev
 
-eCHh.l['TopCfunction'] = 0.3;
-eCHh.l['HouSer'] = 0.3;
-eCHh.l['NonHou'] = 1.04;
-eCHh.l['GooTouSer'] = 0.94;
-eCHh.l['CarSer'] = 0.3;
-eCHh.l['Goods'] = 0.3;
-eCHh.l['TourServ'] = 1.25;
-eCHh.l['Food'] = 1.1;
+#inster BE-specific
+eChh.l[cfNest] =0.3;
+# eCHh.l['TopCfunction'] = 0.3;
+# eCHh.l['HouSer'] = 0.3;
+# eCHh.l['NonHou'] = 1.04;
+# eCHh.l['GooTouSer'] = 0.94;
+# eCHh.l['CarSer'] = 0.3;
+# eCHh.l['Goods'] = 0.3;
+# eCHh.l['TourServ'] = 1.25;
+# eCHh.l['Food'] = 1.1;
 
 
 qCHh.l[cf_bottom,t] = sum(c $c2cf_bottom_mapping[c,cf_bottom], qD.l[c,t]);

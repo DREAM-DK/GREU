@@ -263,8 +263,8 @@ $IF %stage% == "exogenous_values":
    tCO2_ETS.l[t] = 750;
    tCO2_ETS2.l[t] = 375; 
 
-   tCO2_xEmarg.l['23001',t] = 125;
-   tCO2_xEmarg.l['23002',t] = 125;
+  #  tCO2_xEmarg.l['23001',t] = 125;
+  #  tCO2_xEmarg.l['23002',t] = 125;
 
 
    
@@ -293,9 +293,9 @@ $IF %stage% == "exogenous_values":
 
     #From production_CES_energydemand.gms
     d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj[es,e_a,i,t] and process_special[es] and crudeoil[e_a] and i_refineries[i]) = yes; #Refinery feedstock of crude oil
-	  d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj[es,e_a,i,t] and process_special[es] and natgas_ext[e_a] and i_gasdistribution[i]) = yes; #Input of fossile natural gas in gas distribution sector
-	  d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj[es,e_a,i,t] and process_special[es] and biogas[e_a] and i_gasdistribution[i]) = yes; #Input of biogas for converting to natural gas in gas distribution sector
-	  d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj[es,e_a,i,t] and process_special[es] and el[e_a] and i_service_for_industries[i]) = yes; #Electricity for data centers (only applies when calibrated to Climate Outlook)
+	  # d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj[es,e_a,i,t] and process_special[es] and natgas_ext[e_a] and i_gasdistribution[i]) = yes; #Input of fossile natural gas in gas distribution sector
+	  # d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj[es,e_a,i,t] and process_special[es] and biogas[e_a] and i_gasdistribution[i]) = yes; #Input of biogas for converting to natural gas in gas distribution sector
+	  # d1pREa_NotinNest[es,e_a,i,t]$(d1pEpj[es,e_a,i,t] and process_special[es] and el[e_a] and i_service_for_industries[i]) = yes; #Electricity for data centers (only applies when calibrated to Climate Outlook)
 
 	  d1pREa_inNest[es,e_a,i,t]    = yes$(d1pEpj[es,e_a,i,t] and not d1pREa_NotinNest[es,e_a,i,t]);
 	  d1pREa[es,e_a,i,t]           = yes$(d1pREa_inNest[es,e_a,i,t] or d1pREa_NotinNest[es,e_a,i,t]);

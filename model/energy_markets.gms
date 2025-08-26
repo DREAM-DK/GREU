@@ -424,7 +424,8 @@
 		#Needs to come after d1pY_CET and d1pM_CET
 		d1OneSX[e,t] = yes;
 
-		d1OneSX[e,t]$(straw[e] or el[e] or distheat[e]) = no;
+		#£Not applicable for BE?
+		# d1OneSX[e,t]$(straw[e] or el[e] or distheat[e]) = no;
 
 		d1OneSX_y[e,t] = yes$(d1OneSX[e,t] and sum(i, d1pY_CET[e,i,t]));
 		d1OneSX_m[e,t] = yes$(d1OneSX[e,t] and sum(i, d1pM_CET[e,i,t]));

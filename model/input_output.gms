@@ -61,8 +61,8 @@ $Group+ all_variables
   vY[t] "Total output."
 
   pM_i[i,t] "Price of imports by industry."
-  qM_i[i,t]$(m[i]) "Real imports by industry."
-  vM_i[i,t]$(m[i]) "Imports by industry."
+  qM_i[i,t] "Real imports by industry."
+  vM_i[i,t] "Imports by industry."
 
   pM[t] "Deflator for total imports."
   qM[t] "Real imports."
@@ -92,7 +92,7 @@ $Group+ all_variables
   vtM_i_d[i,d,t]$(d1M_i_d[i,d,t]) "Net duties on imports by industry and demand component."
 
   vtY_i[i,t] "Net duties on domestic production by industry."
-  vtM_i[i,t]$(m[i]) "Net duties on imports by industry."
+  vtM_i[i,t] "Net duties on imports by industry."
   vtY[t] "Net duties on domestic production."
   vtM[t] "Net duties on imports."
 
@@ -242,9 +242,9 @@ $Group+ data_covered_variables input_output_data_variables$(t.val <= %calibratio
 vM_i_d.l[i,d,t]$(not sameas[i,'19000'] and d_ene[d]) = 0;
 
 #Goodbye non-energy in energy industries 
-vY_i_d.l['19000',d_non_ene,t] = no;
-vY_i_d.l['35002',d_non_ene,t] = no;
-vY_i_d.l['38393',d_non_ene,t] = no;
+# vY_i_d.l['19000',d_non_ene,t] = no;
+# vY_i_d.l['35002',d_non_ene,t] = no;
+# vY_i_d.l['38393',d_non_ene,t] = no;
 
 d1Y_i_d[i,d,t] = abs(vY_i_d.l[i,d,t]) > 1e-6; d1Y_i_d[i,d,'2019'] = d1Y_i_d[i,d,'2020'];
 d1M_i_d[i,d,t] = abs(vM_i_d.l[i,d,t]) > 1e-6; d1M_i_d[i,d,'2019'] = d1M_i_d[i,d,'2020'];  

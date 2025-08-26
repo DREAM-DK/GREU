@@ -17,7 +17,7 @@ Set tl[d<] "Transmission losses"; #/ tl /;
 
 # Set i "Production industries."; alias(i,i_a);
 Set i[d<] "Production industries."; alias(i,i_a);  # i should not be subset of d - use re or rx instead
-Set m[i] "Industries with imports.";
+# Set m[i] "Industries with imports.";
 
 Set i2rx(i,rx);
 Set d_non_ene2i(d,i);

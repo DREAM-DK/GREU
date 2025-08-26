@@ -39,9 +39,10 @@ $ENDIF
 # Data and exogenous parameters
 # ------------------------------------------------------------------------------
 $IF %stage% == "exogenous_values":
-  
-  eChh_cEne.l['cHouEne'] = 0.5;
-  eChh_cEne.l['cCarEne'] = 0.5;
+
+  #£Apply BE labels  
+  # eChh_cEne.l['cHouEne'] = 0.5;
+  # eChh_cEne.l['cCarEne'] = 0.5;
 
 $ENDIF # exogenous_values
 

@@ -16,7 +16,6 @@ $IF %stage% == "variables":
 
     #AGGREGATE EMISSIONS
     $SetGroup+ SG_flat_after_last_data_year 
-	      d1EmmLULUCF5[land5,t] ""
         d1EmmLULUCF[t] ""
         d1EmmE[em,d,t] ""
         d1EmmxE[em,d,t] ""
@@ -119,11 +118,11 @@ $IF %stage% == "equations":
       #Energy-related emissions
       uEmmE[em,d,t]$(not CO2e[em]).. qEmmE[em,d,t] =E= sum((e,es), qEmmE_BU[em,es,e,d,t]);
 
-      .. qEmmInternationalAviation[em,t] =E= sum(i_international_aviation,qEmmE_BU[em,'transport','Kerosenes and jet fuels',i_international_aviation,t]);
+      .. qEmmInternationalAviation[em,t] =E= 0; sum(i_international_aviation,qEmmE_BU[em,'transport','Kerosenes and jet fuels',i_international_aviation,t]);
 
-      .. qEmmBunkering[em,t] =E= sum((i,es,eBunkering), qEmmE_BU[em,es,eBunkering,i,t]);
+      .. qEmmBunkering[em,t] =E=  0; #sum((i,es,eBunkering), qEmmE_BU[em,es,eBunkering,i,t]);
 
-      .. qEmmOtherDifferencesShips[em,t] =E= qEmmE_BU[em,'transport','Transport diesel','H49',t];
+      .. qEmmOtherDifferencesShips[em,t] =E= 0 ;#qEmmE_BU[em,'transport','Transport diesel','H49',t];
 
   $ENDBLOCK 
 
@@ -193,7 +192,8 @@ $IF %stage% == "exogenous_values":
   d1GWP[em]                  = yes$(GWP.l[em]);
   d1Sbionatgas[t]            = yes$(sBioNatGas.l[t]);
   d1EmmBorderTrade[em,t]     = yes$(qEmmBorderTrade.l[em,t]);
-  d1EmmInternationlAviation[em,t] = yes$(sum(i_international_aviation, qEmmE_BU.l[em,'transport','jet petroleum',i_international_aviation,t])) ;
+  #£Applicable for BE?
+  # d1EmmInternationlAviation[em,t] = yes$(sum(i_international_aviation, qEmmE_BU.l[em,'transport','jet petroleum',i_international_aviation,t])) ;
 
 $ENDIF
 # ------------------------------------------------------------------------------
