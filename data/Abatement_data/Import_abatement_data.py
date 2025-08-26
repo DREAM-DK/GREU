@@ -40,7 +40,7 @@ rename_col_list = {'TechID':"l",
                    'Energy tax (billion EUR per PJ in)':"pTE_tax",
                    'Capital cost index':"pTK",
                    'Energy service (PJ out)':"qES",
-                   'Technical lifespan (years)':"t_life"
+                   'Technical lifespan (years)':"LifeSpan"
                    }
 
 # DATA FOR TECHNOLOGIES
@@ -53,28 +53,17 @@ df_technologies = df_technologies.rename(columns=rename_col_list)
 # Set index for dataframe
 df_technologies = df_technologies.set_index(['l','es','i','t']) 
 
-# Create dataframe with sqTPotential, uTE, vTI, vTC
+# Create dataframe with sqTPotential, vTI, vTC and LifeSpan
 df_sqTPotential = pd.DataFrame(df_technologies['sqTPotential'])
-#df_uTE = pd.DataFrame(df_technologies['uTE'])
 df_vTI = pd.DataFrame(df_technologies['vTI'])
 df_vTC = pd.DataFrame(df_technologies['vTC'])
+df_LifeSpan = pd.DataFrame(df_technologies['LifeSpan'])
 
-# Drop energy dimension for sqTPotential
+# Reset index for dataframes
 df_sqTPotential = df_sqTPotential.reset_index()
-#df_sqTPotential = df_sqTPotential.drop(columns = 'e')  Overflødig med nyt abatament data
-
-# Reset index for uTE
-#df_uTE = df_uTE.reset_index()
-
-# Drop energy dimension for vTI
 df_vTI = df_vTI.reset_index()
-#df_vTI = df_vTI.drop(columns = 'e')  Overflødig med nyt abatament data
-
-# Drop energy dimension for vTC
 df_vTC = df_vTC.reset_index()
-#df_vTC = df_vTC.drop(columns = 'e')  Overflødig med nyt abatament data
-
-
+df_LifeSpan = df_LifeSpan.reset_index()
 
 # DATA FOR ENERGY INPUT
 # Reading data from excel
@@ -95,7 +84,6 @@ df_energy_price = df_energy_price.rename(columns=rename_col_list)
 df_energy_price = df_energy_price.set_index(['es','e','i','t'])
 # Resettign index
 df_energy_price = df_energy_price.reset_index()
-
 
 # DATA FOR ENERGY TAX
 # Reading data from excel
@@ -165,6 +153,7 @@ sqTPotential=gp.Parameter(db_abatement,name='sqTPotential',domain=[l,es,i,t],des
 uTE=gp.Parameter(db_abatement,name='uTE_load',domain=[l,e],description='Input of energy in technology l per PJ output at full potential',records=df_uTE.values.tolist())
 vTI=gp.Parameter(db_abatement,name='vTI',domain=[l,es,i,t],description='Investment costs in technology l per PJ output at full potential',records=df_vTI.values.tolist())
 vTC=gp.Parameter(db_abatement,name='vTC',domain=[l,es,i,t],description='Variable capital costs in technology l per PJ output at full potential',records=df_vTC.values.tolist())
+LifeSpan=gp.Parameter(db_abatement,name='LifeSpan',domain=[l,es,i,t],description='Technical lifespan of technology l',records=df_LifeSpan.values.tolist())
 pTE_base=gp.Parameter(db_abatement,name='pTE_base',domain=[es,e,i,t],description='Base price of energy input',records=df_energy_price.values.tolist())
 pTE_tax=gp.Parameter(db_abatement,name='pTE_tax',domain=[es,e,i,t],description='Tax on energy input',records=df_energy_tax.values.tolist())
 pTK=gp.Parameter(db_abatement,name='pTK',domain=[i,t],description='User cost of capital in technologies for energy services',records=df_capital_cost_index.values.tolist())
