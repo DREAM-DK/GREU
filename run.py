@@ -32,136 +32,92 @@ dt.gamY.run("base_model.gms")
 # Running the shock opon the baseline model
 # ---------------
 
-dt.gamY.run("shock_model.gms")
-
-
+# dt.gamY.run("shock_model.gms")
 dt.gamY.run("shock_CO2eTax.gms")
-
 
 # ---------------
 # Setup for plotting and tables
 # ---------------
 
-import pandas as pd
-from define_output_functions import extract_table_by_name, multiple_conditions_extract_table_by_name, newname
-
-def table(series: pd.Series, target_values: dict, cols: str) -> pd.DataFrame:
-    """
-    From a MultiIndexed Series, extract entries matching multiple index level values and pivot one level into columns.
-
-    Parameters:
-    - series: pd.Series with MultiIndex
-    - target_values: dict of {level_name: list of allowed values}
-    - unstack_level: name of index level to pivot into columns
-
-    Returns:
-    - pd.DataFrame with one row per remaining levels, one column per value of unstacked level
-    """
-
-    indexer = pd.Series([True] * len(series), index=series.index)
-
-    for level, allowed in target_values.items():
-        level_vals = series.index.get_level_values(level)
-        indexer &= level_vals.isin(allowed)
-
-    # Filter and pivot
-    filtered = series[indexer]
-    df = filtered.unstack(cols)
-
-    # Ensure all expected columns are present (fill with NaN if missing)
-    expected_columns = target_values.get(cols, df.columns.tolist())
-    return df.reindex(columns=expected_columns)
-
-
-
-# Plotting
-dt.YAXIS_TITLE_FROM_OPERATOR = {
-  "pq": "Pct. changes relative to baseline",
-	"m": "Difference from baseline",
-}
-dt.TIME_AXIS_TITLE = ""
-
+exec(open('Report/report_settings.py').read())
 
 # ---------------
 # Specify the baseline and shock scenarios
 # ---------------
 
 dt.REFERENCE_DATABASE = b = dt.Gdx("Output/baseline.gdx") # b for baseline
-s = dt.Gdx("Output/shock.gdx") # s for shock
-dt.time(2019, 2030)
+# s = dt.Gdx("Output/shock.gdx") # s for shock
+s = dt.Gdx("Output/CO2eTax_Lumpsum2consumers.gdx") # s for shock
+s2 = dt.Gdx("Output/CO2eTax_Lumpsum2gov.gdx") # s for shock
 
+
+dt.time(2020, 2050)
 
 
 # løbende arbejde
-display(b.vtE_duty)
 
-tableCO2=table(b.vtE_duty,target_values={'t':[2030], 'etaxes':['co2_tax']},cols='d')-table(b.vtE_duty,target_values={'t':[2020], 'etaxes':['co2_tax']},cols='d')
-tableCO2=table(b.vtE_duty,target_values={'t':[2030], 'etaxes':['co2_tax']},cols='d')
-
-display(tableCO2)
+dt.plot([s.pY_iagg], "m", layout={"title": "Price by aggregated industries"})
+dt.plot([s.qY_iagg], "pq", layout={"title": "Output by aggregated industries"})
 
 
 # ---------------
 # Reporting of emissions
 # ---------------
 
-# Total reduction in emissions
-dt.plot([s.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], "m", layout={"title": "CO2e emissions, total"})
-tabel1=table(s.qEmmTot-b.qEmmTot,target_values={'em':['co2e'],'em_accounts':['UNFCCC_lulucf'],'t':[2030]},cols='t')
-tabel2=table(s.qCO2e_iagg-b.qCO2e_iagg,target_values={'emission_categories':['Total'],'t':[2030]},cols='t')
-tabel3=table(s.qEmmE-b.qEmmE, target_values={'em':['co2e'],'d':['cCarEne','cHouEne'],'t':[2030]}, cols='t')
+dt.plot([b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], names=["Total emissions"], layout={"title": "CO2e emissions, total"})
+qEmmEnergyPart = b.qCO2e_taxCategories.loc[['energy']]/b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]
+dt.plot([qEmmEnergyPart], names=["Share"], layout={"title": "Energy part of CO2e emissions"})
+dt.plot([s.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']], s.qCO2e_taxCategories.loc[['energy']]], "m", names=["All emissions", "Energy emissions"], layout={"title": "Change in CO2e emissions"})
+dt.plot([s.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']], s2.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], "m", names=["Lumpsum to households", "Without lumpsum"], layout={"title": "Change in total CO2e emissions"})
 
-display(tabel1)
-display(tabel2)
-display(tabel3)
 
-# Remove columns from tables
-tabel1 = tabel1.droplevel('em')
-tabel2 = tabel2.droplevel('emission_categories')
-tabel3 = tabel3.droplevel('em')
-
-# Combine tables
-combined_table = pd.concat([tabel1, tabel2, tabel3])
-display(combined_table)
-
-# Test if the underlying sum of the table is correct
-test_sum = combined_table[2030].drop('UNFCCC_lulucf').sum()
-test = combined_table.loc['UNFCCC_lulucf', 2030]- test_sum
-print(f"Is sum 0? {abs(test) < 1e-10}")  # Use small tolerance due to rounding errors
-
+exec(open('Report/qEmm2030-40-50.py').read())
 
 # Reduction on industry level
 dt.plot([s.qCO2e_iagg.loc[:,['Total']]], "m", layout={"title": "CO2e emissions, industri aggregated"})
 dt.plot([s.qCO2e_iagg.loc[['service'],:]], "m", layout={"title": "CO2e emissions, Services"})
 
-# Table for all industries
-tabel_qCO2e=table(series=s.qCO2e_iagg-b.qCO2e_iagg,target_values={'t':[2020,2025,2030]},cols='t')
-print(tabel_qCO2e)
+exec(open('Report/qEmm_industry_tables.py').read())
 
-# Only service
-tabel_services=table(series=s.qCO2e_iagg-b.qCO2e_iagg,target_values={'iagg':['service'],'t':[2020,2025,2030]},cols='t')
-print(tabel_services)
 
-# 2030
-tabel_2030=table(s.qCO2e_iagg-b.qCO2e_iagg,target_values={'t':[2030]},cols='t')
-print(tabel_2030)
+#-----------------
+# MACRO reporting
+#-----------------
 
-# Service industries in 2030
-tabel_serviceindustries=multiple_conditions_extract_table_by_name(s.qCO2e_i-b.qCO2e_i,target_values={'iagg':['service'],'t':[2030]},cols='emission_categories')
-print(tabel_serviceindustries)
 
-# Level, relative and absolute
-tabel_level=multiple_conditions_extract_table_by_name(b.qCO2e_i,target_values={'iagg':['service'],'emission_categories':['Total'],'t':[2030]},cols='t').droplevel(['iagg','emission_categories'])
-tabel_rela =multiple_conditions_extract_table_by_name((s.qCO2e_i/b.qCO2e_i-1)*100,target_values={'iagg':['service'],'emission_categories':['Total'],'t':[2030]},cols='t').droplevel(['iagg','emission_categories'])
-tabel_abso =multiple_conditions_extract_table_by_name(s.qCO2e_i-b.qCO2e_i,target_values={'iagg':['service'],'emission_categories':['Total'],'t':[2030]},cols='t').droplevel(['iagg','emission_categories'])
+# Plot of main macroeconomic variables
+dt.plot([s.pGDP, s.qGDP, s.pW], "pq", names=["GDP deflator", "Real GDP", "Wage level"], 
+    layout={
+        "title": "Main macroeconomic variables"
+    }
+)
 
-all_tabel = pd.DataFrame({
-    'Baseline level': tabel_level[2030],
-    'Relative changes (%)': tabel_rela[2030],
-    'Absolute changes': tabel_abso[2030]
-})
-print("\nCO2e emissions for service industries in 2030:")
-print(all_tabel)
+dt.plot([s.qC, s.qG, s.qI, s.qX, s.qM], "pq", names=["Consumption", "Government consumption", "Investments", "Exports", "Imports"], 
+    layout={
+        "title": "Main macroeconomic variables"
+    }
+)
+
+qC_Y = (s.qC/s.qGDP - b.qC/b.qGDP)*100
+qG_Y = (s.qG/s.qGDP - b.qG/b.qGDP)*100
+qI_Y = (s.qI/s.qGDP - b.qI/b.qGDP)*100
+qX_Y = (s.qX/s.qGDP - b.qX/b.qGDP)*100
+qM_Y = (s.qM/s.qGDP - b.qM/b.qGDP)*100
+
+dt.plot([qC_Y, qG_Y, qI_Y, qX_Y, qM_Y], names=["Consumption", "Government consumption", "Investments", "Exports", "Imports"], layout={"title": "Share of GDP (%)"})
+
+
+exec(open('Report/GDP_overview.py').read())
+
+
+dt.plot([s.vCashFlow], "m", layout={"title": "Cash flow between sectors"})
+dt.plot([s.vIncomeFlow.loc[:,['Corp'],:]], "m", layout={"title": "Cash flow between sectors"})
+dt.plot([s.vIncomeFlow.loc[:,['Hh'],:]], "m", layout={"title": "Cash flow between sectors"})
+dt.plot([s2.vIncomeFlow.loc[:,['Hh'],:]], "m", layout={"title": "Cash flow between sectors"})
+
+
+tabel1=table(s.vIncomeFlow - b.vIncomeFlow,target_values={'t':[2035]},cols='sector')
+display(tabel1)
 
 
 
@@ -169,90 +125,15 @@ print(all_tabel)
 # Reporting of public finances
 #--------------------------------
 
+dt.plot([b.vGovPrimaryBalance], names=["Baseline"], layout={"title": "Primary balance"})
+
+
 dt.plot([s.vGovPrimaryBalance, b.vGovPrimaryBalance], names=["Shock", "Baseline"], layout={"title": "Primary balance"})
 dt.plot(s.vGovPrimaryBalance,"m", layout={"title": "Primary balance"})
 
 print(s.vGovPrimaryBalance[2030],s.vGovPrimaryBalance[2025])
 
-
-# Create table with government finances in 2030
-gov_table = pd.DataFrame({
-    'Absolute change': {
-        'Primary balance': s.vGovPrimaryBalance[2030] - b.vGovPrimaryBalance[2030],
-        'Revenue': s.vGovRevenue[2030] - b.vGovRevenue[2030],
-        'Expenditure': s.vGovExpenditure[2030] - b.vGovExpenditure[2030]
-    },
-    'Relative change (%)': {
-        'Primary balance': None,  # No relative change for primary balance
-        'Revenue': (s.vGovRevenue[2030]/b.vGovRevenue[2030] - 1)*100,
-        'Expenditure': (s.vGovExpenditure[2030]/b.vGovExpenditure[2030] - 1)*100
-    }
-})
-print("\nGovernment finances in 2030:")
-print(gov_table)
-
-
-# Create detailed table with government revenue components in 2030
-gov_revenue_table = pd.DataFrame({
-    'Absolute change': {
-        'Total revenue': s.vGovRevenue[2030] - b.vGovRevenue[2030],
-        'Net duties': (s.vtY[2030] + s.vtM[2030]) - (b.vtY[2030] + b.vtM[2030]),
-        'Production taxes (net of ETS)': (s.vtY_Tax[2030] - s.vtCO2_ETS_tot[2030]) - (b.vtY_Tax[2030] - b.vtCO2_ETS_tot[2030]),
-        'Household taxes': s.vHhTaxes[2030] - b.vHhTaxes[2030],
-        'Corporate taxes': s.vCorpTaxes[2030] - b.vCorpTaxes[2030],
-        'Net revenue from public production': s.vGovRevenue_fromPublicProduction[2030] - b.vGovRevenue_fromPublicProduction[2030]
-    },
-    'Relative change (%)': {
-        'Total revenue': (s.vGovRevenue[2030]/b.vGovRevenue[2030] - 1)*100,
-        'Net duties': ((s.vtY[2030] + s.vtM[2030])/(b.vtY[2030] + b.vtM[2030]) - 1)*100,
-        'Production taxes (net of ETS)': ((s.vtY_Tax[2030] - s.vtCO2_ETS_tot[2030])/(b.vtY_Tax[2030] - b.vtCO2_ETS_tot[2030]) - 1)*100,
-        'Household taxes': (s.vHhTaxes[2030]/b.vHhTaxes[2030] - 1)*100,
-        'Corporate taxes': (s.vCorpTaxes[2030]/b.vCorpTaxes[2030] - 1)*100,
-        'Net revenue from public production': (s.vGovRevenue_fromPublicProduction[2030]/b.vGovRevenue_fromPublicProduction[2030] - 1)*100
-    }
-})
-print("\nDetailed government revenue in 2030:")
-print(gov_revenue_table)
-
-
-# Create detailed table with government expenditure components in 2030
-gov_expenditure_table = pd.DataFrame({
-    'Absolute change': {
-        'Total expenditure': s.vGovExpenditure[2030] - b.vGovExpenditure[2030],
-        'Government consumption': s.vG[2030] - b.vG[2030], 
-        'Household transfers': s.vHhTransfers[2030] - b.vHhTransfers[2030],
-        'Production subsidies': s.vtY_Sub[2030] - b.vtY_Sub[2030]
-    },
-    'Relative change (%)': {
-        'Total expenditure': (s.vGovExpenditure[2030]/b.vGovExpenditure[2030] - 1)*100,
-        'Government consumption': (s.vG[2030]/b.vG[2030] - 1)*100,
-        'Household transfers': (s.vHhTransfers[2030]/b.vHhTransfers[2030] - 1)*100,
-        'Production subsidies': (s.vtY_Sub[2030]/b.vtY_Sub[2030] - 1)*100
-    }
-})
-
-print("\nDetailed government expenditure in 2030:")
-print(gov_expenditure_table)
-
-
-# Create table with development in public consumption and GDP over time
-gov_gdp_table = pd.DataFrame({
-    'Public consumption (%)': {
-        t: (s.vG[t]/b.vG[t] - 1)*100 for t in range(2019, 2031)
-    },
-    'GDP (%)': {
-        t: (s.vGDP[t]/b.vGDP[t] - 1)*100 for t in range(2019, 2031)
-    },
-    'G/GDP ratio (%-points)': {
-        t: s.vG2vGDP[t] - b.vG2vGDP[t] for t in range(2019, 2031)
-    }
-})
-
-print("\nDevelopment in public consumption and GDP:")
-print(gov_gdp_table)
-
-
-
+exec(open('Report/Public_finances.py').read())
 
 
 

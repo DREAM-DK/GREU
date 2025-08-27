@@ -17,7 +17,7 @@ $IF %stage% == "variables":
     d1tCO2_xE[d,t] ""
     d1tCO2_ETS_E[em,es,e,d,t] ""
     d1tCO2_ETS2_E[em,es,e,d,t] ""
-
+    d1tCO2e[CO2etax,es,e,d,t] ""
     d1pEpj[es,e,d,t] "Dummy for priced energy. This includes if the energy does not have a base price but is taxed"
     d1tqEpj[es,e,d,t] "Dummy for non-priced energy that is taxed"
 
@@ -60,9 +60,10 @@ $IF %stage% == "variables":
     vtCO2_ETS2_xE[d,t]$(d1tCO2_ETS[d,t] and d1EmmxE['CO2ubio',d,t]) "Tax revenue from ETS2, non-energy related emissions"
     vtCO2_ETS_tot[t] "Total revenue from ETS1 and ETS2"
 
+    qCO2e_energy[es,e,d,t] "Emissions taxed with the CO2e-tax"
     vtCO2e[d,t] "Provenu from CO2e-taxation"
-    tCO2e[CO2etax,t] "Marginal CO2e-tax"
-
+    tCO2e[CO2etax,t] "Marginal CO2e-tax in bill kr. per 1000 ton CO2e"
+    tCO2e_pj[es,e,d,t]$(sum(CO2etax,d1tCO2e[CO2etax,es,e,d,t])) "Marginal CO2e-tax per PJ energy input"
 
     jvtE_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "J-term to capture instances ,where data contains a revenue, but the marginal rate is zero."
 
@@ -72,8 +73,6 @@ $IF %stage% == "variables":
 
     adj_jvtY_i_d[t] ""
     adj_jvtM_i_d[t] ""
-
-
   ;
 
   $Group G_energy_taxes_data  
@@ -94,13 +93,16 @@ $IF %stage% == "equations":
 
   $BLOCK energy_and_emissions_taxes energy_and_emissions_taxes_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
-     ..   vtCO2e[i,t] =E= tCO2e['energy',t] * 
-                          sum((es,e), qemme_BU['CO2e',es,e,i,t]
+    ..  qCO2e_energy[es,e,i,t]   =E=  qemme_BU['CO2e',es,e,i,t]
                                     - qemme_BU['CO2e',es,e,i,t]$MapBunkering['CO2e',es,e,i]
                                     - qemme_BU['CO2e',es,e,i,t]$MapOtherDifferencesShips['CO2e',es,e,i]
                                     - qemme_BU['CO2e',es,e,i,t]$MapInternationalAviation['CO2e',es,e,i]
-                                    );
+                                    ;
 
+
+    ..   vtCO2e[i,t] =E= tCO2e['energy',t] * sum((es,e), qCO2e_energy[es,e,i,t]);
+
+    ..   tCO2e_pj[es,e,i,t] =E= tCO2e['energy',t] * qCO2e_energy[es,e,i,t]/qEpj[es,e,i,t];
 
 
 
@@ -116,11 +118,15 @@ $IF %stage% == "equations":
                                                   + sum(etaxes, tE_duty[etaxes,es,e,d,t]*qEpj[es,e,d,t])
                                                   + pWMA[es,e,d,t]*qEpj[es,e,d,t]
                                                   + pRMA[es,e,d,t]*qEpj[es,e,d,t]
-                                                  + pCMA[es,e,d,t]*qEpj[es,e,d,t]);
+                                                  + pCMA[es,e,d,t]*qEpj[es,e,d,t]
+                                                  + tCO2e_pj[es,e,d,t]*qEpj[es,e,d,t]
+                                                  );
 
       #Total taxes on energy, excluding ETS, i.e. how it is computed in Danish National Accounts
       ..   vtE_NAS[es,e,d,t] =E= vtE_vat[es,e,d,t] 
                             + sum(etaxes, vtE_duty[etaxes,es,e,d,t])
+                            + tCO2e['energy',t] * qCO2e_energy[es,e,d,t]
+
                             ;
                             
       #Total taxes on energy, including ETS
@@ -140,9 +146,12 @@ $IF %stage% == "equations":
                                       + sum(etaxes, tE_duty[etaxes,es,e,d,t]) #Marginal domestic CO2-tax is contained in tEmarg_duty
                                       + pWMA[es,e,d,t]
                                       + pRMA[es,e,d,t]
-                                      + pCMA[es,e,d,t])
+                                      + pCMA[es,e,d,t]
+                                      + tCO2e_pj[es,e,d,t]
+                                      )
                                       + sum(em, tCO2_ETS_pj[em,es,e,d,t])
                                       + sum(em, tCO2_ETS2_pj[em,es,e,d,t])
+                                      
                                       ;     
                                          
       #Average tax-rate on energy
@@ -156,12 +165,16 @@ $IF %stage% == "equations":
           # =E= sum(etaxes, tEmarg_duty[etaxes,es,e,d,t])
           =E= sum(etaxes, tE_duty[etaxes,es,e,d,t])
              +sum(em, tCO2_ETS_pj[em,es,e,d,t])
-             +sum(em, tCO2_ETS2_pj[em,es,e,d,t]);
+             +sum(em, tCO2_ETS2_pj[em,es,e,d,t])
+             + tCO2e_pj[es,e,d,t]
+             ;
 
       tqE[es,e,d,t]..
         tqE[es,e,d,t] =E= sum(etaxes,vtE_duty[etaxes,es,e,d,t]/qEpj[es,e,d,t]) 
                         + sum(em, tCO2_ETS_pj[em,es,e,d,t])
-                        + sum(em, tCO2_ETS2_pj[em,es,e,d,t]);
+                        + sum(em, tCO2_ETS2_pj[em,es,e,d,t])
+                        + tCO2e_pj[es,e,d,t]
+                        ;
 
         #CO2-taxes based on emissions (currently only industries) 
           # #Domestic CO2-tax                                                                                                                                                                                     #AKB: Depending on how EOP-abatement i modelled this should be adjusted for EOP
@@ -273,7 +286,8 @@ $IF %stage% == "exogenous_values":
   @inf_growth_adjust()
   @load(G_energy_taxes_data, "../data/data.gdx")
   @remove_inf_growth_adjustment()
-  $Group+ data_covered_variables G_energy_taxes_data$(t.val <= %calibration_year%), -tEmarg_duty,-tCO2_Emarg; #Find ud af hvad, der går galt med de to her
+  $Group+ data_covered_variables G_energy_taxes_data$(t.val <= %calibration_year%);
+  #, -tEmarg_duty,-tCO2_Emarg; #Find ud af hvad, der går galt med de to her
 
 
   # ------------------------------------------------------------------------------
@@ -285,7 +299,6 @@ $IF %stage% == "exogenous_values":
 
    tCO2_xEmarg.l['23001',t] = 125;
    tCO2_xEmarg.l['23002',t] = 125;
-
 
    
   # ------------------------------------------------------------------------------
@@ -324,6 +337,11 @@ $IF %stage% == "exogenous_values":
 	  d1pREmachine[i,t]            = yes$(sum(es$(not (heating[es] or transport[es])), d1pEes[es,i,t]));
 	  d1Prod[pf,i,t]               = yes$(pProd.l[pf,i,t]);
 
+    d1tCO2e['energy',es,e,d,t]  = yes$(qemme_BU.l['CO2e',es,e,d,t]
+                                     - qemme_BU.l['CO2e',es,e,d,t]$MapBunkering['CO2e',es,e,d]
+                                     - qemme_BU.l['CO2e',es,e,d,t]$MapOtherDifferencesShips['CO2e',es,e,d]
+                                     - qemme_BU.l['CO2e',es,e,d,t]$MapInternationalAviation['CO2e',es,e,d]
+                                      );
 
 $ENDIF
 # ------------------------------------------------------------------------------

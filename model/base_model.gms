@@ -108,6 +108,7 @@ $IMPORT calibration.gms
 $FIX all_variables; $UNFIX main_endogenous;
 execute_unload 'main_pre.gdx';
 Solve main using CNS;
+execute_unload 'main.gdx';
 @assert_no_difference(all_variables, 1e-6, .l, _saved, "Zero shock changed variables significantly.");
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
 

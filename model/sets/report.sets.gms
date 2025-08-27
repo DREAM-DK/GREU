@@ -39,7 +39,23 @@ map_emission_categories('ETS2',esxin_ETS,NotETS_industries)=no;
 map_emission_categories('Energy_NotETS',esxin_ETS,NotETS_industries)=yes;
 
 
-
+Set flow "Types of flows between sectors" /
+  CashFlow
+  Interests
+  Wages
+  Transfers
+  HhTaxes
+  CorpTaxes
+  Y
+  C
+  I
+  ETS
+  X
+  M
+  NetTaxSub  
+  G
+  Duties
+  /;
 
 
 

@@ -12,7 +12,7 @@ OPTION
 
 $SETLOCAL first_data_year 2015;
 $SETLOCAL calibration_year 2020;
-$SETLOCAL terminal_year 2030;
+$SETLOCAL terminal_year 2050;
 
 $SETLOCAL base_year 2020;
 
