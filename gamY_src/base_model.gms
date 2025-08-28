@@ -115,7 +115,7 @@ execute_unload 'shock_carbon_tax.gdx';
 # 6.3 Negative tax on captured CO2
 # Set negative tax on captured CO2
 pTE_tax.l[es,e,d,t]$(sum(ee, pTE_tax.l[es,ee,d,t]) and sameas[e,'Captured CO2'])
-    = 15;
+    = 0.3;
 
 # Update energy prices
 pTE.l[es,e,d,t]$(pTE_base.l[es,e,d,t] or pTE_tax.l[es,e,d,t]) = pTE_base.l[es,e,d,t] + pTE_tax.l[es,e,d,t];
