@@ -40,9 +40,9 @@ $ENDIF
 # ------------------------------------------------------------------------------
 $IF %stage% == "exogenous_values":
 
-  #£Apply BE labels  
-  # eChh_cEne.l['cHouEne'] = 0.5;
-  # eChh_cEne.l['cCarEne'] = 0.5;
+  #£Apply BE labels
+  eChh_cEne.l['HH_heating'] = 0.5;
+  eChh_cEne.l['HH_transport'] = 0.5;
 
 $ENDIF # exogenous_values
 

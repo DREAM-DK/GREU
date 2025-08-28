@@ -604,6 +604,10 @@ d_ene_records = [
     item for item in d_records
     if (isinstance(item, tuple) and isinstance(item[0], str) and "ene" in item[0].lower())
     or (isinstance(item, str) and "ene" in item.lower())
+    or (isinstance(item, tuple) and isinstance(item[0], str) and "heating" in item[0].lower())
+    or (isinstance(item, str) and "heating" in item.lower())
+    or (isinstance(item, tuple) and isinstance(item[0], str) and "transport" in item[0].lower())
+    or (isinstance(item, str) and "transport" in item.lower())
 ]
 d_ene_records = [(x,) if isinstance(x, str) else x for x in d_ene_records]
 d_non_ene_records = [item for item in d_records if item not in d_ene_records]

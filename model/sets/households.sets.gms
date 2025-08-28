@@ -6,6 +6,7 @@ set consumption_nests /
 #   CarSer "Cars incl. energy"
 #   NonHou "Consumption exluding housing"
 #   HouSer "Housing incl. energy"
+  HH_energy "heating and fuel expenses"
 
   TopCfunction "The top nest of consumption function"
 /;
@@ -31,7 +32,8 @@ set cf_mapping[cfNest,cf] /
 #   NonHou . (GooTouSer, CarSer)
 #   HouSer . (HH_heating, cHou)
 #   TopCfunction . (NonHou, HouSer)
-  TopCfunction . (HH_heating, HH_transport, HH_others)
+  HH_energy . (HH_heating, HH_transport)
+  TopCfunction . (HH_energy, HH_others)
 /;  
 
 set c2cf_bottom_mapping[c,cf_bottom];

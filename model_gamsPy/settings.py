@@ -1,5 +1,5 @@
-first_data_year = 2015
-calibration_year = 2019
+first_data_year = 2020
+calibration_year = 2020
 terminal_year = 2030
 base_year = first_data_year # Year where prices are set to 1
 
