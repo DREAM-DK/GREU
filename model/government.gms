@@ -16,6 +16,7 @@ $Group+ all_variables
   vGovRevenue[t] "Revenue of government."
   vGovExpenditure[t] "Expenditure of government."
   vGovRevenue_fromPublicProduction[t] "Revenue from public production."
+  vLumpsum[t] ""
 ;
 
 $ENDIF # variables
@@ -43,7 +44,7 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
                         + vGovRevenue_fromPublicProduction[t];
 
 
-  .. vGovExpenditure[t] =E= vG[t] + vHhTransfers[t] + vtY_Sub[t];
+  .. vGovExpenditure[t] =E= vG[t] + vHhTransfers[t] + vtY_Sub[t] + vLumpsum[t];
 
   .. vGovRevenue_fromPublicProduction[t] =E= sum(i$i_public[i], vEBITDA_i[i,t]) - vI_public[t];
 

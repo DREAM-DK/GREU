@@ -18,7 +18,11 @@ set gna[em_accounts]/GNA/
     unfccc_lulucf[em_accounts]/unfccc_lulucf/;
 
 set CO2etax "Categories of CO2e-taxation" /
-    "energy"
+    "energy_Corp"
+    "energy_Hh"
     "agriculture non-energy"
     "other"/
 ;
+
+set energy_Corp[CO2etax] "Energy used in industries" /"energy_Corp"/;
+set energy_Hh[CO2etax] "Household use of energy" /"energy_Hh"/;

@@ -23,17 +23,18 @@ parameter phaseInTax[t];
   phaseInTax(t) $(t.val ge 2030) = 1;
 display phaseInTax;
 
-tCO2e.l['energy',t]$(t.val ge 2025) = 750 * phaseInTax[t] * fromkrperton2billper1000tons;
+# tCO2e.l['energy',t]$(t.val ge 2025) = 750 * phaseInTax[t] * fromkrperton2billper1000tons;
+tCO2e.l['energy_Hh',t]$(t.val ge 2025) = 750 * phaseInTax[t] * fromkrperton2billper1000tons;
 
 
 $FIX all_variables;
 $UNFIX main_endogenous, vG2vGDP, -qG, 
-# vHhTaxes2vGDP, -vGovPrimaryBalance
+vLumpsum, -vGovPrimaryBalance
 ;
 Solve main using CNS;
 
 @import_from_modules("report")
-execute_unload 'Output\CO2eTax_Lumpsum2gov.gdx';
+execute_unload 'Output\CO2eTax_Lumpsum2Hh.gdx';
 
 jvY_i.l[i,t]$(t.val LE t1.val) = 0;
 @import_from_modules("tests")

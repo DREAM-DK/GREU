@@ -27,7 +27,7 @@ $IF %stage% == "report":
 
   qCO2e_iagg.l[iagg,emission_categories,t] = sum(iagg2i[iagg,i], qCO2e_i.l[i,iagg,emission_categories,t]);
 
-  qCO2e_taxCategories.l['energy',t] = sum((es,e,i), qCO2e_energy.l[es,e,i,t]);
+  # qCO2e_taxCategories.l['energy_Corp',t] = sum((es,e,i), qCO2e_energy.l[es,e,i,t]);
 
 $ENDIF # report
 

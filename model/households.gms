@@ -32,7 +32,7 @@ $BLOCK households_equations households_endogenous $(t1.val <= t.val and t.val <=
   .. vC_CMP[t] =E= rMPC[t] * vHhIncome[t] + rMPCW[t] * vNetFinAssets['Hh',t-1]/fv;
 
   .. vHhIncome[t] =E= vWages[t]
-                    + vHhTransfers[t]
+                    + vHhTransfers[t] + vLumpsum[t]
                     - vHhTaxes[t]
                     + vNetInterests['Hh',t] + vNetRevaluations['Hh',t];
 

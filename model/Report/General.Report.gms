@@ -25,7 +25,7 @@ $IF %stage% == "report":
 
   vtE_vat_total.l[t] = sum(d, vtE_vat_tot.l[d,t]);
   vtE_duty_total.l[t] = sum(d, vtE_duty_tot.l[d,t]);
-  vtCO2e_total.l[t] = sum((d), vtCO2e.l[d,t]);
+  vtCO2e_total.l[t] = sum((CO2etax), tCO2e.l[CO2etax,t] * qCO2e_taxgroup.l[CO2etax,t]);
 
 
 $ENDIF # report

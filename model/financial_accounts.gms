@@ -47,6 +47,7 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
                            + vNetInterests[Hh,t] + vNetDividends[hh,t] + vNetRevaluations[Hh,t]
                            + vWages[t]
                            + vHhTransfers[t]
+                           + vLumpsum[t]
                            - vC[t]
                            - vHhTaxes[t];
 
