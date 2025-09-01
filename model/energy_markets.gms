@@ -367,18 +367,18 @@
 
 		# Add equation and endogenous variables to main model
 		model main / energy_demand_prices
-								energy_markets_clearing 
-								energy_margins
-								energy_markets_clearing_link
-								energy_markets_IO_link
+# 								energy_markets_clearing
+# 								energy_margins
+# 								energy_markets_clearing_link
+# 								energy_markets_IO_link
 								/;
 
 		$Group+ main_endogenous 
 				energy_demand_prices_endogenous
-				energy_markets_clearing_endogenous 
-				energy_margins_endogenous
-				energy_markets_clearing_link_endogenous
-				energy_markets_IO_link_endogenous
+# 				energy_markets_clearing_endogenous
+# 				energy_margins_endogenous
+# 				energy_markets_clearing_link_endogenous
+# 				energy_markets_IO_link_endogenous
 				;
 	$ENDIF 
 
@@ -509,15 +509,15 @@ $IF %stage% == "calibration":
 	model calibration /
 		energy_demand_prices
 
-		energy_markets_clearing
-		-E_qY_CET_SeveralNonExoSuppliers
-		-E_qM_CET_SeveralNonExoSuppliers
-		energy_markets_clearing_calibration
-
-		energy_margins
-		energy_markets_clearing_link
-		energy_markets_IO_link
-		energy_markets_IO_link_calibration
+# 		energy_markets_clearing
+# 		-E_qY_CET_SeveralNonExoSuppliers
+# 		-E_qM_CET_SeveralNonExoSuppliers
+# 		energy_markets_clearing_calibration
+#
+# 		energy_margins
+# 		energy_markets_clearing_link
+# 		energy_markets_IO_link
+# 		energy_markets_IO_link_calibration
 
 	/;
 
@@ -526,36 +526,36 @@ $IF %stage% == "calibration":
 		energy_demand_prices_endogenous
 		fpE[es,e,d,t1],  -pEpj_base[es,e,d,t1]
 
-		energy_markets_clearing_endogenous
+# 		energy_markets_clearing_endogenous
+#
+# 		energy_markets_clearing_calibration_endogenous
+# 		sY_Dist$(t1[t] and d1pY_CET[e,i,t] and not d1OneSX_y[e,t]),  -qY_CET$(t1[t] and d1pY_CET[out,i,t] and not d1OneSX_y[out,t] and e[out])
+# 		sM_Dist$(t1[t] and d1pM_CET[e,i,t] and not d1OneSX_m[e,t]),  -qM_CET$(t1[t] and d1pM_CET[out,i,t] and not d1OneSX_m[out,t] and e[out])
+#
+# 		energy_margins_endogenous
+# 		fpWMA[es,e,d,t1],    -vWMA[es,e,d,t1]
+# 		fpRMA[es,e,d,t1],    -vRMA[es,e,d,t1]
+# 		fpCMA[es,e,d,t1],    -vCMA[es,e,d,t1]
 
-		energy_markets_clearing_calibration_endogenous
-		sY_Dist$(t1[t] and d1pY_CET[e,i,t] and not d1OneSX_y[e,t]),  -qY_CET$(t1[t] and d1pY_CET[out,i,t] and not d1OneSX_y[out,t] and e[out]) 
-		sM_Dist$(t1[t] and d1pM_CET[e,i,t] and not d1OneSX_m[e,t]),  -qM_CET$(t1[t] and d1pM_CET[out,i,t] and not d1OneSX_m[out,t] and e[out]) 
-
-		energy_margins_endogenous
-		fpWMA[es,e,d,t1],    -vWMA[es,e,d,t1]	
-		fpRMA[es,e,d,t1],    -vRMA[es,e,d,t1]
-		fpCMA[es,e,d,t1],    -vCMA[es,e,d,t1]
-
-		energy_markets_clearing_link_endogenous
-
-		energy_markets_IO_link_endogenous
-
-		#IO-prices
-		jvY_i_d_base[i,d_ene,t1]$(not i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(not i_energymargins[i]) 
-		jvY_i_d_base[i,d_ene,t1]$(i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(i_energymargins[i]) 
-		jvM_i_d_base[i,d_ene,t1], -jfpM_i_d[i,d_ene,t1]
-
-		
-		#IO_quantities
-		jqM_i_d[i,d_ene,t1]
-		jqY_i_d[i,d_ene,t1]$(i_energymargins[i])
-		sSupply_d_e_i_adj_calib$(not i_energymargins[i] and sum(t1,sum(e,d1pY_CET[e,i,t1])) and sum(t1, sum(e,sum(i_a, d1pM_CET[e,i_a,t1]))) and d_ene[d]) 
-		-adj_sSupply_d_e_i_adj[e,i,t1], j_adj_sSupply_d_e_i_adj
-		energy_markets_IO_link_calibration_endogenous
-		pWMA[es,e,d,t0]
-		pRMA[es,e,d,t0]
-		pCMA[es,e,d,t0]
+# 		energy_markets_clearing_link_endogenous
+#
+# 		energy_markets_IO_link_endogenous
+#
+# 		#IO-prices
+# 		jvY_i_d_base[i,d_ene,t1]$(not i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(not i_energymargins[i])
+# 		jvY_i_d_base[i,d_ene,t1]$(i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(i_energymargins[i])
+# 		jvM_i_d_base[i,d_ene,t1], -jfpM_i_d[i,d_ene,t1]
+#
+#
+# 		#IO_quantities
+# 		jqM_i_d[i,d_ene,t1]
+# 		jqY_i_d[i,d_ene,t1]$(i_energymargins[i])
+# 		sSupply_d_e_i_adj_calib$(not i_energymargins[i] and sum(t1,sum(e,d1pY_CET[e,i,t1])) and sum(t1, sum(e,sum(i_a, d1pM_CET[e,i_a,t1]))) and d_ene[d])
+# 		-adj_sSupply_d_e_i_adj[e,i,t1], j_adj_sSupply_d_e_i_adj
+# 		energy_markets_IO_link_calibration_endogenous
+# 		pWMA[es,e,d,t0]
+# 		pRMA[es,e,d,t0]
+# 		pCMA[es,e,d,t0]
 
 		calibration_endogenous
 	;

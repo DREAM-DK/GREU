@@ -38,7 +38,7 @@ $FUNCTION import_from_modules({stage_key}):
     ("production_CES_energydemand.gms", 0),
     ("production.gms" , 0),
     ("pricing.gms" , 0),
-    ("imports.gms", 1),
+    ("imports.gms", 0),
     ("production_CET.gms", 0),
     ("input_output.gms", 1),
     ("households.gms", 1),
