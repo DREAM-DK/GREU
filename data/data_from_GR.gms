@@ -487,9 +487,9 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 
   tEmarg_duty[etaxes,es,e,d,t]$tEmarg_duty[etaxes,es,e,d,t] = tEmarg_duty[etaxes,es,e,d,t] + 0.01;
 
-  tEmarg_duty['EAFG_tax',es,e,d,t] = tEAFG_REmarg[es,e,d,t];
-  tEmarg_duty['EAFG_tax',es,e,'cHouEne',t] = tEmarg_duty['EAFG_tax','heating',e,'68203',t];
-  tEmarg_duty['EAFG_tax',es,e,'cCarEne',t] = tEmarg_duty['EAFG_tax','transport',e,'68203',t];
+  tEmarg_duty['ener_tax',es,e,d,t]         = tEAFG_REmarg[es,e,d,t]/1000; #Converting to 1000 DKK per GJ
+  tEmarg_duty['ener_tax',es,e,'cHouEne',t] = tEmarg_duty['ener_tax','heating',e,'68203',t];
+  tEmarg_duty['ener_tax',es,e,'cCarEne',t] = tEmarg_duty['ener_tax','transport',e,'68203',t];
 
 
   vtE_duty[etaxes,es,e,d,t] = sum(demand_transaction_temp, Energybalance[etaxes,demand_transaction_temp,d,es,e,t]);

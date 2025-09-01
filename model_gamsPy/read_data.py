@@ -572,7 +572,6 @@ k_records_fortot=k_records.copy()
 populate ebalitems, currently 'EAFG_tax is called explicitly in the model and is not present in data, so I add it manually to the set ebalitems and the subset etaxes.
 '''
 ebalitems_records=list(set(non_energy_emissions['ebalitems']).union(set(energy_and_emissions['ebalitems'])))
-ebalitems_records.append('EAFG_tax')
 #etaxes records
 etaxes_records=[s for s in ebalitems_records if '_tax' in s]
 

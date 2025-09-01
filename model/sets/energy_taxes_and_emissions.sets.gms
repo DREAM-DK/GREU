@@ -26,6 +26,5 @@ $gdxin
 #  /
 sets 
   CO2_tax[etaxes]/CO2_tax/
-  EAFG_tax[etaxes]/EAFG_tax/
   ;
       
