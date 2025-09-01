@@ -164,7 +164,7 @@ Solve main using CNS;
 # 6.2 Carbon Tax Shock
 # Reset capital costs to original values
 vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
-  = vTI_data['t1','heating','10030',t];
+  = vTI_saved['t1','heating','10030',t];
 
 # Apply carbon tax to specific energy types
 tCO2_Emarg.l[em,es,e,i,t] = tCO2_Emarg.l[em,es,e,i,t]*10;

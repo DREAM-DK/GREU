@@ -3,10 +3,12 @@
 # ======================================================================================================================
 # This module solves a pre-model in order to calculate supply curves for the main abatement model.
 
-model energy_price_partial / energy_demand_prices/;
+model energy_price_partial / energy_demand_prices
+                             energy_and_emissions_taxes/;
 
 $Group energy_price_partial_endogenous
   energy_demand_prices_endogenous
+  energy_and_emissions_taxes_endogenous
   ;
 
 # # 3.1 Pre-model Solution
