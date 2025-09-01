@@ -132,33 +132,33 @@ Solve main using CNS;
 # ------------------------------------------------------------------------------
 # Shock model
 # ------------------------------------------------------------------------------
-# set_time_periods(2020, %terminal_year%);
+set_time_periods(2020, %terminal_year%);
 
-# # tY_i_d.l[i,re,t]$(t.val >= t1.val) = 0.01 + tY_i_d.l[i,re,t];
-# tEmarg_duty.l['ener_tax',es,e,d,t]$(t.val > t1.val) = 2*tEmarg_duty.l['ener_tax',es,e,d,t]; #Doubling energy-taxes
+# tY_i_d.l[i,re,t]$(t.val >= t1.val) = 0.01 + tY_i_d.l[i,re,t];
+tEmarg_duty.l['ener_tax',es,e,d,t]$(t.val > t1.val) = 2*tEmarg_duty.l['ener_tax',es,e,d,t]; #Doubling energy-taxes
 
-# $FIX all_variables;
-# $UNFIX main_endogenous;
-# Solve main using CNS;
-# execute_unload 'shock.gdx';
-# @import_from_modules("tests")
+$FIX all_variables;
+$UNFIX main_endogenous;
+Solve main using CNS;
+execute_unload 'shock.gdx';
+@import_from_modules("tests")
 
 # ----------------------------------------------------------------------------------------------------------------------
 # 6. Simulation Scenarios In the Abatement Model
 # ----------------------------------------------------------------------------------------------------------------------
 # 6.1 Capital Cost Shock
 # Increase capital costs for technology t1 in heating sector
-# vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
-#   = vTI.l['t1','heating','10030',t] * 100;
+vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
+  = vTI.l['t1','heating','10030',t] * 100;
 
-# $import Supply_curves_abatement.gms
+$import Supply_curves_abatement.gms
 
-# $FIX all_variables;
-# $UNFIX main_endogenous;
-# @Setbounds_abatement();
-# Solve main using CNS;
-# $IMPORT report_abatement.gms
-# execute_unload 'shock_capital_cost.gdx';
+$FIX all_variables;
+$UNFIX main_endogenous;
+@Setbounds_abatement();
+Solve main using CNS;
+$IMPORT report_abatement.gms
+execute_unload 'shock_capital_cost.gdx';
 
 
 # 6.2 Carbon Tax Shock
