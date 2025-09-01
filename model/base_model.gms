@@ -28,7 +28,7 @@ set_time_periods(%first_data_year%, %terminal_year%);
 $FUNCTION import_from_modules({stage_key}):
   $SET stage {stage_key};
   $FOR {module}, {include} in [
-    ("submodel_template.gms", 1),
+    ("submodel_template.gms", 0),
     ("emissions.gms" , 0),
     ("financial_accounts.gms", 0),
     ("labor_market.gms", 1),
@@ -38,15 +38,15 @@ $FUNCTION import_from_modules({stage_key}):
     ("production_CES_energydemand.gms", 0),
     ("production.gms" , 0),
     ("pricing.gms" , 0),
-    ("imports.gms", 1),
+    ("imports.gms", 0),
     ("production_CET.gms", 0),
-    ("input_output.gms", 1),
-    ("households.gms", 1),
-    ("government.gms", 1),
-    ("exports.gms", 1),
+    ("input_output.gms", 0),
+    ("households.gms", 0),
+    ("government.gms", 0),
+    ("exports.gms", 0),
     ("factor_demand.gms", 0),
-    ("ramsey_household.gms", 1),
-    ("consumption_disaggregated.gms", 1),
+    ("ramsey_household.gms", 0),
+    ("consumption_disaggregated.gms", 0),
     ("consumption_disaggregated_energy.gms", 0), 
     ("exports_energy.gms", 0),
   ]:

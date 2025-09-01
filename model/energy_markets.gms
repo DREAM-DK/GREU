@@ -260,20 +260,20 @@
 
 			.. vWMA[es,e,d,t] =E=  pWMA[es,e,d,t] * qEpj[es,e,d,t];
 
-			.. vRMA[es,e,d,t] =E= pRMA[es,e,d,t]  * qEpj[es,e,d,t];
+			# .. vRMA[es,e,d,t] =E= pRMA[es,e,d,t]  * qEpj[es,e,d,t];
 
-			.. vCMA[es,e,d,t] =E= pCMA[es,e,d,t]  * qEpj[es,e,d,t];
+			# .. vCMA[es,e,d,t] =E= pCMA[es,e,d,t]  * qEpj[es,e,d,t];
 
 			.. vD_WMA[t] =E= sum((es,e,d), vWMA[es,e,d,t]); 
-			.. vD_RMA[t] =E= sum((es,e,d), vRMA[es,e,d,t]); 
-			.. vD_CMA[t] =E= sum((es,e,d), vCMA[es,e,d,t]);
+			# .. vD_RMA[t] =E= sum((es,e,d), vRMA[es,e,d,t]); 
+			# .. vD_CMA[t] =E= sum((es,e,d), vCMA[es,e,d,t]);
 
 			qD_WMA[t]..
 					vD_WMA[t] =E= pD_WMA[t] * qD_WMA[t]; 
-			qD_RMA[t]..
-					vD_RMA[t] =E= pD_RMA[t] * qD_RMA[t]; 
-			qD_CMA[t]..
-					vD_CMA[t] =E= pD_CMA[t] * qD_CMA[t];
+			# qD_RMA[t]..
+			# 		vD_RMA[t] =E= pD_RMA[t] * qD_RMA[t]; 
+			# qD_CMA[t]..
+			# 		vD_CMA[t] =E= pD_CMA[t] * qD_CMA[t];
 
 			.. pD_WMA[t] =E= pY_CET['out_other','G45',t];
 			# .. pD_RMA[t] =E= pY_CET['out_other','47000',t];
@@ -369,16 +369,16 @@
 		model main / energy_demand_prices  
 								energy_markets_clearing 
 								energy_margins
-								energy_markets_clearing_link
-								energy_markets_IO_link
+								# energy_markets_clearing_link
+								# energy_markets_IO_link
 								/;
 
 		$Group+ main_endogenous 
 				energy_demand_prices_endogenous 
 				energy_markets_clearing_endogenous 
 				energy_margins_endogenous
-				energy_markets_clearing_link_endogenous
-				energy_markets_IO_link_endogenous
+				# energy_markets_clearing_link_endogenous
+				# energy_markets_IO_link_endogenous
 				;
 	$ENDIF 
 
@@ -433,8 +433,8 @@
 
 		#Margins 
 		d1pWMA[es,e,d,t]    = yes$(vWMA.l[es,e,d,t]); d1pWMA[es,e,d,'2019'] = d1pWMA[es,e,d,'2020'];
-		d1pRMA[es,e,d,t]    = yes$(vRMA.l[es,e,d,t]); d1pRMA[es,e,d,'2019'] = d1pRMA[es,e,d,'2020'];
-		d1pCMA[es,e,d,t]    = yes$(vCMA.l[es,e,d,t]); d1pCMA[es,e,d,'2019'] = d1pCMA[es,e,d,'2020'];
+		# d1pRMA[es,e,d,t]    = yes$(vRMA.l[es,e,d,t]); d1pRMA[es,e,d,'2019'] = d1pRMA[es,e,d,'2020'];
+		# d1pCMA[es,e,d,t]    = yes$(vCMA.l[es,e,d,t]); d1pCMA[es,e,d,'2019'] = d1pCMA[es,e,d,'2020'];
 
 
 
@@ -497,11 +497,11 @@ $IF %stage% == "calibration":
 		pWMA&_t0[es,e,d,t]$(t1[t])..
 			pWMA[es,e,d,t0] =E= pWMA[es,e,d,t1];
 
-		pRMA&_t0[es,e,d,t]$(t1[t])..
-			pRMA[es,e,d,t0] =E= pRMA[es,e,d,t1];
+		# pRMA&_t0[es,e,d,t]$(t1[t])..
+		# 	pRMA[es,e,d,t0] =E= pRMA[es,e,d,t1];
 
-		pCMA&_t0[es,e,d,t]$(t1[t])..
-			pCMA[es,e,d,t0] =E= pCMA[es,e,d,t1];
+		# pCMA&_t0[es,e,d,t]$(t1[t])..
+		# 	pCMA[es,e,d,t0] =E= pCMA[es,e,d,t1];
 
 	$ENDBLOCK
 
@@ -515,9 +515,9 @@ $IF %stage% == "calibration":
 		energy_markets_clearing_calibration
 
 		energy_margins
-		energy_markets_clearing_link
-		energy_markets_IO_link
-		energy_markets_IO_link_calibration
+		# energy_markets_clearing_link
+		# energy_markets_IO_link
+		# energy_markets_IO_link_calibration
 
 	/;
 
@@ -534,28 +534,28 @@ $IF %stage% == "calibration":
 
 		energy_margins_endogenous
 		fpWMA[es,e,d,t1],    -vWMA[es,e,d,t1]	
-		fpRMA[es,e,d,t1],    -vRMA[es,e,d,t1]
-		fpCMA[es,e,d,t1],    -vCMA[es,e,d,t1]
+		# fpRMA[es,e,d,t1],    -vRMA[es,e,d,t1]
+		# fpCMA[es,e,d,t1],    -vCMA[es,e,d,t1]
 
-		energy_markets_clearing_link_endogenous
+		# energy_markets_clearing_link_endogenous
 
-		energy_markets_IO_link_endogenous
+		# energy_markets_IO_link_endogenous
 
-		#IO-prices
-		jvY_i_d_base[i,d_ene,t1]$(not i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(not i_energymargins[i]) 
-		jvY_i_d_base[i,d_ene,t1]$(i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(i_energymargins[i]) 
-		jvM_i_d_base[i,d_ene,t1], -jfpM_i_d[i,d_ene,t1]
+		# #IO-prices
+		# jvY_i_d_base[i,d_ene,t1]$(not i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(not i_energymargins[i]) 
+		# jvY_i_d_base[i,d_ene,t1]$(i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(i_energymargins[i]) 
+		# jvM_i_d_base[i,d_ene,t1], -jfpM_i_d[i,d_ene,t1]
 
 		
-		#IO_quantities
-		jqM_i_d[i,d_ene,t1]
-		jqY_i_d[i,d_ene,t1]$(i_energymargins[i])
-		sSupply_d_e_i_adj_calib$(not i_energymargins[i] and sum(t1,sum(e,d1pY_CET[e,i,t1])) and sum(t1, sum(e,sum(i_a, d1pM_CET[e,i_a,t1]))) and d_ene[d]) 
-		-adj_sSupply_d_e_i_adj[e,i,t1], j_adj_sSupply_d_e_i_adj
-		energy_markets_IO_link_calibration_endogenous
-		pWMA[es,e,d,t0]
-		pRMA[es,e,d,t0]
-		pCMA[es,e,d,t0]
+		# #IO_quantities
+		# jqM_i_d[i,d_ene,t1]
+		# jqY_i_d[i,d_ene,t1]$(i_energymargins[i])
+		# sSupply_d_e_i_adj_calib$(not i_energymargins[i] and sum(t1,sum(e,d1pY_CET[e,i,t1])) and sum(t1, sum(e,sum(i_a, d1pM_CET[e,i_a,t1]))) and d_ene[d]) 
+		# -adj_sSupply_d_e_i_adj[e,i,t1], j_adj_sSupply_d_e_i_adj
+		# energy_markets_IO_link_calibration_endogenous
+		# pWMA[es,e,d,t0]
+		# pRMA[es,e,d,t0]
+		# pCMA[es,e,d,t0]
 
 		calibration_endogenous
 	;

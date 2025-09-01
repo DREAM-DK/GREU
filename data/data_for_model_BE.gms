@@ -211,6 +211,11 @@ $FUNCTION test_data():
     # );
     
 $ENDFUNCTION 
+ 
+
+ Energybalance[ebalitems,'imports','C19',es,e,t] = Energybalance[ebalitems,'imports','IMPORT',es,e,t];
+ Energybalance[ebalitems,'imports','IMPORT',es,e,t] = 0;
+ 
 
   #Corrections to data - ideally this already be part of the input-data
   Energybalance[ebalitems,'export','xEne',es,e,t]        = Energybalance[ebalitems,'export','xOth',es,e,t];    Energybalance[ebalitems,'export','xOth',es,e,t]   = 0;
@@ -425,8 +430,8 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 
   #£ The below (commented out) showcases the ad hoc handling of consumption of own-produced energy that is not in NAS for the Danish case. A similar fix might be necessary for country-specific data
   #Own-consumption is handled relatively ad hoc
-  #  qY_CETgross[e,i,t] = sum(es, Energybalance['PJ','production',i,es,e,t]);
-  #  qY_CETgross['out_other',i,t] = qY_CET['out_other',i,t];
+   qY_CETgross[e,i,t] = sum(es, Energybalance['PJ','production',i,es,e,t]);
+   qY_CETgross['out_other',i,t] = qY_CET['out_other',i,t];
   #  qEpj_own[es,e,i,t] = sum(demand_transaction_temp$(not Energybalance['BASE',demand_transaction_temp,i,es,e,t] and (sameas[e,'Straw for energy purposes'] or sameas[e,'natural gas (Extraction)'])), Energybalance['PJ',demand_transaction_temp,i,es,e,t]);
   #  qEpj_own[es,e,i,t]$(not sameas[e,'natural gas (extraction)']) = 0;
   
@@ -451,11 +456,11 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   #                                                      # - qY_CETown['Straw for energy purposes','01011',t] 
   #                                                      # - qY_CETown['Straw for energy purposes','01012',t];
 
-  #  qY_CET[e,i,t] = qY_CETgross[e,i,t] - qY_CETown[e,i,t];
-  #  qM_CET[e,i,t] = sum(es, Energybalance['PJ','imports',i,es,e,t]);
+   qY_CET[e,i,t] = qY_CETgross[e,i,t];# - qY_CETown[e,i,t];
+   qM_CET[e,i,t] = sum(es, Energybalance['PJ','imports',i,es,e,t]);
 
-  #  pY_CET[e,i,t]$(qY_CET[e,i,t]) = sum(es,Energybalance['BASE','production',i,es,e,t])/qY_CET[e,i,t];
-  #  pM_CET[e,i,t]$(qM_CET[e,i,t]) = sum(es,Energybalance['BASE','imports',i,es,e,t])/qM_CET[e,i,t];
+   pY_CET[e,i,t]$(qY_CET[e,i,t]) = sum(es,Energybalance['BASE','production',i,es,e,t])/qY_CET[e,i,t];
+   pM_CET[e,i,t]$(qM_CET[e,i,t]) = sum(es,Energybalance['BASE','imports',i,es,e,t])/qM_CET[e,i,t];
 
   #  #Price of own production 
   #  pEpj_own[es,e,i,t]$(qEpj_own[es,e,i,t] and sum(i_a, qY_CET[e,i_a,t])) = sum(i_a, pY_CET[e,i_a,t]*qY_CET[e,i_a,t])/sum(i_a, qY_CET[e,i_a,t]);
