@@ -239,7 +239,7 @@ $Group+ data_covered_variables input_output_data_variables$(t.val <= %calibratio
 @load(input_output_data_variables, %path_data%)
 
 #Cells at approx 1e-5 still left here...
-vM_i_d.l[i,d,t]$(not sameas[i,'19000'] and d_ene[d]) = 0;
+# vM_i_d.l[i,d,t]$(not sameas[i,'19000'] and d_ene[d]) = 0;
 
 #Goodbye non-energy in energy industries 
 # vY_i_d.l['19000',d_non_ene,t] = no;

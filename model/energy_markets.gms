@@ -160,40 +160,40 @@
 			#The base-price is the average price adjusted for demand-specific margin fpE
 			.. pEpj_base[es,e,d,t] =E= (1+fpE[es,e,d,t]) * pE_avg[e,t];
 
-# 			.. pEpj_own[es,e,d,t] =E= sum(i,pY_CET[e,i,t]); #Should be modified with a mapping when including straw
+			.. pEpj_own[es,e,d,t] =E= sum(i,pY_CET[e,i,t]); #Should be modified with a mapping when including straw
 
-# 			#Marginal price is base price plus the tax-wedge tpE_marg based on marginal tax-rates. See energy_and_emissions_taxes.gms
-# 			pEpj_marg&_base[es,e,d,t]$(d1pEpj_base[es,e,d,t])..
-# 			 pEpj_marg[es,e,d,t] =E= (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t];
-#
-# 			pEpj_marg&_nonpriced[es,e,d,t]$(d1tqEpj[es,e,d,t])..
-# 				pEpj_marg[es,e,d,t] =E= tqE_marg[es,e,d,t];
-#
-# 			pEpj_marg&_own[es,e,d,t]$(d1pEpj_own[es,e,d,t])..
-# 				pEpj_marg[es,e,d,t] =E= (1+tpE_marg[es,e,d,t]) * pEpj_own[es,e,d,t];
-#
-# 			#Average price is base price plus the tax-wedge tpE based on average tax-rates. See energy_and_emissions_taxes.gms
-# 			 pEpj&_base[es,e,d,t]$(d1pEpj_base[es,e,d,t])..
-# 			 		pEpj[es,e,d,t] =E= (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t];
-#
-# 			 pEpj&_nonpriced[es,e,d,t]$(d1tqEpj[es,e,d,t])..
-# 			 	pEpj[es,e,d,t] =E= tqE[es,e,d,t];
-#
-# 			 pEpj&_own[es,e,d,t]$(d1pEpj_own[es,e,d,t])..
-# 			 	pEpj[es,e,d,t] =E= (1+tpE[es,e,d,t]) * pEpj_own[es,e,d,t];
-#
-#
-# 			#Value of energy-consumption in base prices
-# 			.. vEpj_base[es,e,d,t] =E= pEpj_base[es,e,d,t] * qEpj[es,e,d,t];
-#
-# 			#Value of energy-consumption as per National Account Systems (NAS): Based on average tax-rates and excluding ETS
-# 			.. vEpj_NAS[es,e,d,t] =E=  vEpj_base[es,e,d,t]
-# 															 + vtE_NAS[es,e,d,t] #Total taxes, excluding ETS
-# 															;
-#
-# 			#Total value of energy-consumption in energy-balances is the value of energy in NAS including the three margin categories (RMA,WMA,CMA)
-# 			.. vEpj[es,e,d,t] =E= vEpj_NAS[es,e,d,t] + vRMA[es,e,d,t] + vWMA[es,e,d,t] + vCMA[es,e,d,t];
-#
+			#Marginal price is base price plus the tax-wedge tpE_marg based on marginal tax-rates. See energy_and_emissions_taxes.gms
+			pEpj_marg&_base[es,e,d,t]$(d1pEpj_base[es,e,d,t])..
+			 pEpj_marg[es,e,d,t] =E= (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t];
+
+			pEpj_marg&_nonpriced[es,e,d,t]$(d1tqEpj[es,e,d,t])..
+				pEpj_marg[es,e,d,t] =E= tqE_marg[es,e,d,t];
+
+			pEpj_marg&_own[es,e,d,t]$(d1pEpj_own[es,e,d,t])..
+				pEpj_marg[es,e,d,t] =E= (1+tpE_marg[es,e,d,t]) * pEpj_own[es,e,d,t];
+
+			#Average price is base price plus the tax-wedge tpE based on average tax-rates. See energy_and_emissions_taxes.gms
+			 pEpj&_base[es,e,d,t]$(d1pEpj_base[es,e,d,t])..
+			 		pEpj[es,e,d,t] =E= (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t];
+
+			 pEpj&_nonpriced[es,e,d,t]$(d1tqEpj[es,e,d,t])..
+			 	pEpj[es,e,d,t] =E= tqE[es,e,d,t];
+
+			 pEpj&_own[es,e,d,t]$(d1pEpj_own[es,e,d,t])..
+			 	pEpj[es,e,d,t] =E= (1+tpE[es,e,d,t]) * pEpj_own[es,e,d,t];
+
+
+			#Value of energy-consumption in base prices
+			.. vEpj_base[es,e,d,t] =E= pEpj_base[es,e,d,t] * qEpj[es,e,d,t];
+
+			#Value of energy-consumption as per National Account Systems (NAS): Based on average tax-rates and excluding ETS
+			.. vEpj_NAS[es,e,d,t] =E=  vEpj_base[es,e,d,t]
+															 + vtE_NAS[es,e,d,t] #Total taxes, excluding ETS
+															;
+
+			#Total value of energy-consumption in energy-balances is the value of energy in NAS including the three margin categories (RMA,WMA,CMA)
+			.. vEpj[es,e,d,t] =E= vEpj_NAS[es,e,d,t] + vRMA[es,e,d,t] + vWMA[es,e,d,t] + vCMA[es,e,d,t];
+
 
 		$ENDBLOCK
 
@@ -327,9 +327,9 @@
 			#The IO-share rYM as well as the import-share rM0 are endogenized to reflect bottom-level in the equations below.
 			#AKB: We could consider using a simpler quantity-index. The chain-indeces are kept for now though so as to be consistent with the method in NAS.
 
-# 			rYM[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
-# 				qY_i_d[i,d,t]*pY_i_d_base[i,d,t-1]=E=  sum((e,es,d_a)$es_d2d(es,d_a,d),  sSupply_d_e_i_adj[d,e,i,t] * pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t])  + jqY_i_d[i,d,t];
-#
+			rYM[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d])..
+				qY_i_d[i,d,t]*pY_i_d_base[i,d,t-1]=E=  sum((e,es,d_a)$es_d2d(es,d_a,d),  sSupply_d_e_i_adj[d,e,i,t] * pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t])  + jqY_i_d[i,d,t];
+
 
 			rYM&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
 				qY_i_d[i,d,t]*pY_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),  pRMA[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_retail[i])
@@ -367,16 +367,16 @@
 
 		# Add equation and endogenous variables to main model
 		model main / energy_demand_prices
-# 								energy_markets_clearing
-# 								energy_margins
+								energy_markets_clearing
+								energy_margins
 # 								energy_markets_clearing_link
 # 								energy_markets_IO_link
 								/;
 
 		$Group+ main_endogenous 
 				energy_demand_prices_endogenous
-# 				energy_markets_clearing_endogenous
-# 				energy_margins_endogenous
+				energy_markets_clearing_endogenous
+				energy_margins_endogenous
 # 				energy_markets_clearing_link_endogenous
 # 				energy_markets_IO_link_endogenous
 				;
@@ -433,8 +433,8 @@
 
 		#Margins 
 		d1pWMA[es,e,d,t]    = yes$(vWMA.l[es,e,d,t]); d1pWMA[es,e,d,'2019'] = d1pWMA[es,e,d,'2020'];
-		d1pRMA[es,e,d,t]    = yes$(vRMA.l[es,e,d,t]); d1pRMA[es,e,d,'2019'] = d1pRMA[es,e,d,'2020'];
-		d1pCMA[es,e,d,t]    = yes$(vCMA.l[es,e,d,t]); d1pCMA[es,e,d,'2019'] = d1pCMA[es,e,d,'2020'];
+# 		d1pRMA[es,e,d,t]    = yes$(vRMA.l[es,e,d,t]); d1pRMA[es,e,d,'2019'] = d1pRMA[es,e,d,'2020'];
+# 		d1pCMA[es,e,d,t]    = yes$(vCMA.l[es,e,d,t]); d1pCMA[es,e,d,'2019'] = d1pCMA[es,e,d,'2020'];
 
 
 
@@ -509,12 +509,12 @@ $IF %stage% == "calibration":
 	model calibration /
 		energy_demand_prices
 
-# 		energy_markets_clearing
-# 		-E_qY_CET_SeveralNonExoSuppliers
-# 		-E_qM_CET_SeveralNonExoSuppliers
-# 		energy_markets_clearing_calibration
-#
-# 		energy_margins
+		energy_markets_clearing
+		-E_qY_CET_SeveralNonExoSuppliers
+		-E_qM_CET_SeveralNonExoSuppliers
+		energy_markets_clearing_calibration
+
+		energy_margins
 # 		energy_markets_clearing_link
 # 		energy_markets_IO_link
 # 		energy_markets_IO_link_calibration
@@ -526,14 +526,14 @@ $IF %stage% == "calibration":
 		energy_demand_prices_endogenous
 		fpE[es,e,d,t1],  -pEpj_base[es,e,d,t1]
 
-# 		energy_markets_clearing_endogenous
-#
-# 		energy_markets_clearing_calibration_endogenous
-# 		sY_Dist$(t1[t] and d1pY_CET[e,i,t] and not d1OneSX_y[e,t]),  -qY_CET$(t1[t] and d1pY_CET[out,i,t] and not d1OneSX_y[out,t] and e[out])
-# 		sM_Dist$(t1[t] and d1pM_CET[e,i,t] and not d1OneSX_m[e,t]),  -qM_CET$(t1[t] and d1pM_CET[out,i,t] and not d1OneSX_m[out,t] and e[out])
-#
-# 		energy_margins_endogenous
-# 		fpWMA[es,e,d,t1],    -vWMA[es,e,d,t1]
+		energy_markets_clearing_endogenous
+
+		energy_markets_clearing_calibration_endogenous
+		sY_Dist$(t1[t] and d1pY_CET[e,i,t] and not d1OneSX_y[e,t]),  -qY_CET$(t1[t] and d1pY_CET[out,i,t] and not d1OneSX_y[out,t] and e[out])
+		sM_Dist$(t1[t] and d1pM_CET[e,i,t] and not d1OneSX_m[e,t]),  -qM_CET$(t1[t] and d1pM_CET[out,i,t] and not d1OneSX_m[out,t] and e[out])
+
+		energy_margins_endogenous
+		fpWMA[es,e,d,t1],    -vWMA[es,e,d,t1]
 # 		fpRMA[es,e,d,t1],    -vRMA[es,e,d,t1]
 # 		fpCMA[es,e,d,t1],    -vCMA[es,e,d,t1]
 

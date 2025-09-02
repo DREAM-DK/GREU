@@ -18,6 +18,7 @@ $ENDLOOP
 
 pE_avg.l[e,t] = 1;
 
+# £ temporary for debugging: calculation of instances where vars pEpj_base and pE_avg don't match.
 Parameter baseprice_no_avg[es,e,d,t];
 baseprice_no_avg[es,e,d,t] = yes$(pEpj_base.l[es,e,d,t] and not (sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t])));
 

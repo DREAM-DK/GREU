@@ -135,8 +135,12 @@ energy_and_emissions['d'] = energy_and_emissions.apply(lambda row: 'xOth' if pd.
                                      else ('tl' if pd.isna(row['d']) and row['transaction'] == 'transmission_losses'
                                            else ('natural_input' if pd.isna(row['d']) and row['transaction'] == 'nat_input'
                                                  else ('residual' if pd.isna(row['d']) and row['transaction'] == 'res_input'
-                                                       else ('19000' if pd.isna(row['d']) and row['transaction']=='imports'
-                                                            else row['d']))))), axis=1)
+                                                       else ('20B' if pd.isna(row['d']) and row['transaction']=='imports' and row['e']=='P22'
+                                                             else ('C16' if pd.isna(row['d']) and row['transaction'] == 'imports' and row['e'] == 'P23'
+                                                                   else ('20F' if pd.isna(row['d']) and row['transaction'] == 'imports' and row['e'] == 'P24'
+                                                                         else('35A' if pd.isna(row['d']) and row['transaction'] == 'imports' and row['e'] == 'P26'
+                                                                              else ('C19' if pd.isna(row['d']) and row['transaction'] == 'imports'
+                                                                                    else row['d']))))))))), axis=1)
 '''apply dict_e'''
 energy_and_emissions['e']=energy_and_emissions['e'].replace(dict_e)
 
