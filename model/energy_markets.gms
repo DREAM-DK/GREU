@@ -260,20 +260,20 @@
 
 			.. vWMA[es,e,d,t] =E=  pWMA[es,e,d,t] * qEpj[es,e,d,t];
 
-			.. vRMA[es,e,d,t] =E= pRMA[es,e,d,t]  * qEpj[es,e,d,t];
-
-			.. vCMA[es,e,d,t] =E= pCMA[es,e,d,t]  * qEpj[es,e,d,t];
+# 			.. vRMA[es,e,d,t] =E= pRMA[es,e,d,t]  * qEpj[es,e,d,t];
+#
+# 			.. vCMA[es,e,d,t] =E= pCMA[es,e,d,t]  * qEpj[es,e,d,t];
 
 			.. vD_WMA[t] =E= sum((es,e,d), vWMA[es,e,d,t]); 
-			.. vD_RMA[t] =E= sum((es,e,d), vRMA[es,e,d,t]); 
-			.. vD_CMA[t] =E= sum((es,e,d), vCMA[es,e,d,t]);
+# 			.. vD_RMA[t] =E= sum((es,e,d), vRMA[es,e,d,t]);
+# 			.. vD_CMA[t] =E= sum((es,e,d), vCMA[es,e,d,t]);
 
 			qD_WMA[t]..
 					vD_WMA[t] =E= pD_WMA[t] * qD_WMA[t]; 
-			qD_RMA[t]..
-					vD_RMA[t] =E= pD_RMA[t] * qD_RMA[t]; 
-			qD_CMA[t]..
-					vD_CMA[t] =E= pD_CMA[t] * qD_CMA[t];
+# 			qD_RMA[t]..
+# 					vD_RMA[t] =E= pD_RMA[t] * qD_RMA[t];
+# 			qD_CMA[t]..
+# 					vD_CMA[t] =E= pD_CMA[t] * qD_CMA[t];
 
 			.. pD_WMA[t] =E= pY_CET['out_other','G45',t];
 			# .. pD_RMA[t] =E= pY_CET['out_other','47000',t];
@@ -497,11 +497,11 @@ $IF %stage% == "calibration":
 		pWMA&_t0[es,e,d,t]$(t1[t])..
 			pWMA[es,e,d,t0] =E= pWMA[es,e,d,t1];
 
-		pRMA&_t0[es,e,d,t]$(t1[t])..
-			pRMA[es,e,d,t0] =E= pRMA[es,e,d,t1];
-
-		pCMA&_t0[es,e,d,t]$(t1[t])..
-			pCMA[es,e,d,t0] =E= pCMA[es,e,d,t1];
+# 		pRMA&_t0[es,e,d,t]$(t1[t])..
+# 			pRMA[es,e,d,t0] =E= pRMA[es,e,d,t1];
+#
+# 		pCMA&_t0[es,e,d,t]$(t1[t])..
+# 			pCMA[es,e,d,t0] =E= pCMA[es,e,d,t1];
 
 	$ENDBLOCK
 

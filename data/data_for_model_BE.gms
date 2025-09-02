@@ -526,7 +526,7 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 
    tEmarg_duty[etaxes,es,e,d,t]$tEmarg_duty[etaxes,es,e,d,t] = tEmarg_duty[etaxes,es,e,d,t] + 0.01;
 
-# £ change to country specific serctor
+# £ change to country specific sector
    tEmarg_duty['Excises_tax',es,e,d,t] = tEAFG_REmarg[es,e,d,t];
    tEmarg_duty['Excises_tax',es,e,'HH_heating',t] = tEmarg_duty['Excises_tax','heating',e,'real_estate',t];
    tEmarg_duty['Excises_tax',es,e,'HH_transport',t] = tEmarg_duty['Excises_tax','transport',e,'real_estate',t];
