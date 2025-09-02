@@ -31,7 +31,7 @@ from plot_supply_curves import plot_supply_curve # Function to plot abatement su
 plot_supply_curve("calibration_abatement.gdx")
 plot_supply_curve("shock_capital_cost.gdx")
 plot_supply_curve("shock_carbon_tax.gdx")
-plot_supply_curve("shock_CCS_subsidy.gdx")
+# plot_supply_curve("shock_CCS_subsidy.gdx")
 
 ## Save calibration.gdx as previous_calibration.gdx
 # shutil.copy("calibration.gdx", "previous_calibration.gdx")
