@@ -198,7 +198,8 @@ $IF %stage% == "exogenous_values":
 # 3.1 Data Loading
 $GROUP abatement_data_variables
   sqTPotential[l,es,d,t]
-  uTE[l,es,e,d,t]
+  # uTE[l,es,e,d,t]
+  uTE_load[l,e]  "lirum larum"
   # uTKexp[l,es,d,t]
   vTI[l,es,d,t]
   vTC[l,es,d,t]
@@ -214,6 +215,8 @@ $GROUP+ data_covered_variables abatement_data_variables;
 # 3.2 Initial Values and Dummy Setup
 # Calculate initial prices
 pTE.l[es,e,d,t] = pTE_base.l[es,e,d,t] + pTE_tax.l[es,e,d,t];
+
+uTE.l[l,es,e,d,t]$(sqTPotential.l[l,es,d,t] and uTE_load.l[l,e]) = uTE_load.l[l,e] ;
 
 # Set smoothing parameters
 eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.03;

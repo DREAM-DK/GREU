@@ -6,4 +6,4 @@ $load l
 $gdxIn
 
 alias(l,ll);
-
+alias(e,ee);
