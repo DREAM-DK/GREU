@@ -3,6 +3,10 @@
 # ======================================================================================================================
 # This module solves a pre-model in order to calculate supply curves for the main abatement model.
 
+# ----------------------------------------------------------------------------------------------------------------------
+# 1. Update energy dummies and prices
+# ----------------------------------------------------------------------------------------------------------------------
+
 model energy_price_partial / energy_demand_prices
                              energy_and_emissions_taxes
                              
@@ -31,8 +35,15 @@ $import Dummies_new_energy_use.gms;
 # # 3.1 Pre-model Solution
 @add_exist_dummies_to_model(energy_price_partial);
 $FIX all_variables; $UNFIX energy_price_partial_endogenous;
-execute_unload 'premodel_abatement.gdx';
 Solve energy_price_partial using CNS;
+
+# ----------------------------------------------------------------------------------------------------------------------
+# 1. Initialize linking variables
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Set share parameter
+uES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # 1. Price Initialization
@@ -106,3 +117,4 @@ sqT.l[l,es,d,t]$(sqTPotential.l[l,es,d,t] and uTKmarg_eq[l,es,d,t]) =
   sqTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_eq[l,es,d,t], uTKexp.l[l,es,d,t], eP.l[l,es,d,t]);
 pESmarg.l[es,d,t] = pESmarg_eq[es,d,t];
 
+execute_unload 'premodel_abatement.gdx';

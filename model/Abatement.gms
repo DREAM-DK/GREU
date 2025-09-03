@@ -28,6 +28,7 @@ $Group+ all_variables
   
   # 1.2.1.2 Exogenous Energy Service Demand
   qES[es,d,t]$(d1qES[es,d,t]) "Energy service, quantity."
+  uES[es,d,t]$(d1qES[es,d,t]) "Share parameter linking energy service in abatement model to energy service demand in CGE model"
   
   # 1.2.1.3 Exogenous Technology Parameters
   sqTPotential[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Potential supply by technology l in ratio of energy service (share of qES)"
@@ -148,17 +149,25 @@ $BLOCK abatement_equations_output abatement_endogenous_output $(t1.val <= t.val 
 
 $ENDBLOCK
 
+$BLOCK abatement_equations_links abatement_endogenous_links $(t1.val <= t.val and t.val <= tEnd.val and d1switch_abatement[t])
+
+  .. qES[es,i,t] =E= uES[es,i,t]*qREes[es,i,t];
+
+$ENDBLOCK
+
 # 2.3 Model Assembly
 $GROUP abatement_endogenous
   abatement_LCOE_endogenous
   abatement_endogenous_core
   abatement_endogenous_output
+  abatement_endogenous_links
 ;
 
 $MODEL abatement_equations  
   abatement_LCOE_equations
   abatement_equations_core
   abatement_equations_output 
+  abatement_equations_links
 ;
 
 # Add equation and endogenous variables to main model
@@ -213,6 +222,9 @@ DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
 
 # Set smoothing parameters
 eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.03;
+
+# Set share parameter
+uES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
 
 # 3.3 Dummy Variable Setup
 # Set dummy determining the existence of technology potentials
