@@ -86,6 +86,7 @@ main.optfile=1;
 @import_from_modules("exogenous_values")
 @inf_growth_adjust()
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
+
 @update_exist_dummies()
 
 # ------------------------------------------------------------------------------
@@ -109,9 +110,10 @@ d1switch_abatement[t] = 1;
 $import premodel_abatement.gms
 $import Supply_curves_abatement.gms
 
-$FIX all_variables; $UNFIX calibration_endogenous;
-solve calibration using CNS;
-
+@add_exist_dummies_to_model(main);
+$FIX all_variables; $UNFIX main_endogenous;
+solve main using CNS;
+$IMPORT report_abatement.gms
 execute_unload 'calibration_abatement.gdx';
 
 # ------------------------------------------------------------------------------

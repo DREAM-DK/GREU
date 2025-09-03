@@ -39,7 +39,7 @@ $IF %stage% == "variables":
     qCO2_ETS_freeallowances[i,t]$(d1tCO2_ETS[i,t])                     "This one needs to have added non-energy related emissions"
 
 		tpE_marg[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Aggregate marginal tax-rate on priced energy, measured as a mark-up over base price"
-		tpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 									    	 "Aggregate average tax-rate on priced energy, measured as a mark-up over base price"
+		tpE[es,e,d,t]$(d1pEpj_base[es,e,d,t] and d1qEpj[es,e,d,t]) 		 "Aggregate average tax-rate on priced energy, measured as a mark-up over base price"
 		tqE_marg[es,e,d,t]$(d1tqEpj[es,e,d,t]) 												 "Aggregate marginal tax-rate on non-priced energy, measured as bio. kroner per PJ (or equivalently 1000 DKR per GJ)" 
     tqE[es,e,d,t]$(d1tqEpj[es,e,d,t])                              "Aggregate average tax-rate on non-priced energy, measured as bio. kroner per PJ (or equivalently 1000 DKR PER GJ)"
 

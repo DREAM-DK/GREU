@@ -7,3 +7,4 @@ $gdxIn
 
 alias(l,ll);
 alias(e,ee);
+alias(es,es_a);

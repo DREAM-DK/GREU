@@ -206,6 +206,7 @@ $GROUP abatement_data_variables
   pTE_tax[es,e,d,t]
   pTK[d,t]
   qES[es,d,t]
+
 ;
 @load(abatement_data_variables, "../data/Abatement_data/Abatement_dummy_data.gdx")
 $GROUP+ data_covered_variables abatement_data_variables;
