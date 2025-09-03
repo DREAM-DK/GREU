@@ -12,7 +12,6 @@ $IF %stage% == "variables":
 # 1.1 Dummy Variables
 $SetGroup SG_Abatement_dummies
   d1sqTPotential[l,es,d,t] "Dummy determining the existence of technology potentials"
-  d1pTE[es,e,d,t] "Dummy determining the existence of input price of energy in technologies for energy services"
   d1pTK[d,t] "Dummy determining the existence of user costs for technologies"
   d1uTE[l,es,e,d,t] "Dummy determining the existence of energy input in technology"
   d1qES_e[es,e,d,t] "Dummy determining the existence of energy use (sum across technologies)"
@@ -26,8 +25,6 @@ $Group+ all_variables
 
   # 1.2.1.1 Exogenous Input Prices
   pTK[d,t]$(d1pTK[d,t]) "User cost of capital in technologies for energy services"
-  pTE_base[es,e,d,t]$(d1pTE[es,e,d,t]) "Base price of energy input, excl. taxes, billion EUR per PJ"
-  pTE_tax[es,e,d,t]$(d1pTE[es,e,d,t]) "Tax on energy input, billion EUR per PJ"
   
   # 1.2.1.2 Exogenous Energy Service Demand
   qES[es,d,t]$(d1qES[es,d,t]) "Energy service, quantity."
@@ -50,7 +47,6 @@ $Group+ all_variables
   uTKmarg[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Input of machinery capital in technology l per PJ output at the margin of supply - Lower bounded"
   
   # 1.2.2.2 Prices
-  pTE[es,e,d,t]$(d1pTE[es,e,d,t]) "Input price of energy in technologies for energy services" 
   pTPotential[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Average price of technology l at full potential, ie. when sTSupply=sqTPotential"
   pT[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Average price of technology l at level of supply"
   pESmarg[es,d,t]$(sum(l, d1sqTPotential[l,es,d,t])) "Marginal price of energy services based on the supply by technologies"
@@ -108,16 +104,12 @@ $ENDBLOCK
 
 # 2.1 Core Model Equations
 $BLOCK abatement_equations_core abatement_endogenous_core $(t1.val <= t.val and t.val <= tEnd.val and d1switch_abatement[t]) 
-  
-  # 2.1.1 Input Price Equations
-  # Price on energy input including taxes
-  .. pTE[es,e,d,t] =E=  pTE_base[es,e,d,t] + pTE_tax[es,e,d,t]; 
 
   # 2.1.2 Technology Choice Equations
   # Equality between marginal price of energy service and marginal price of technology 
   # determines capital intensity of technologies at the margin of supply
   uTKmargNoBound[l,es,d,t].. pESmarg[es,d,t] =E= 
-    sum(e, uTE[l,es,e,d,t]*pEpj_marg[es,e,d,t]$(d1pEpj[es,e,d,t] and d1uTE[l,es,e,d,t])) + 
+    sum(e$(d1pEpj[es,e,d,t] and d1uTE[l,es,e,d,t]), uTE[l,es,e,d,t]*pEpj_marg[es,e,d,t]) + 
     uTKmargNoBound[l,es,d,t]*pTK[d,t];
 
   # A lower bound close to zero is set to avoid indeterminancy in cdfLognorm in sqTqES
@@ -202,8 +194,6 @@ $GROUP abatement_data_variables
   # uTKexp[l,es,d,t]
   vTI[l,es,d,t]
   vTC[l,es,d,t]
-  pTE_base[es,e,d,t]
-  pTE_tax[es,e,d,t]
   pTK[d,t]
   qES[es,d,t]
 
@@ -216,8 +206,6 @@ execute_load "../data/Abatement_data/Abatement_dummy_data.gdx" LifeSpan=LifeSpan
 
 # 3.2 Initial Values
 # Calculate initial prices
-pTE.l[es,e,d,t] = pTE_base.l[es,e,d,t] + pTE_tax.l[es,e,d,t];
-
 uTE.l[l,es,e,d,t]$(sqTPotential.l[l,es,d,t] and uTE_load.l[l,e]) = uTE_load.l[l,e] ;
 
 # Set discount rate
@@ -232,7 +220,6 @@ d1sqTPotential[l,es,d,t] = yes$(sqTPotential.l[l,es,d,t]);
 d1uTE[l,es,e,d,t] = yes$(uTE.l[l,es,e,d,t]);
 d1pTK[d,t] = yes$(sum((l,es), d1sqTPotential[l,es,d,t]));
 d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
-d1pTE[es,e,d,t] = yes$(pTE.l[es,e,d,t]);
 d1qES[es,d,t] = yes$(qES.l[es,d,t]);
 d1switch_abatement[t] = 1;
 

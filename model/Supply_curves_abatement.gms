@@ -3,8 +3,6 @@
 # ======================================================================================================================
 # This module solves a pre-model in order to calculate supply curves for the main abatement model.
 
-# model energy_price_partial / E_pEpj_base/;
-
 model energy_price_partial / energy_demand_prices
                              energy_and_emissions_taxes
                              
@@ -39,10 +37,6 @@ Solve energy_price_partial using CNS;
 # ----------------------------------------------------------------------------------------------------------------------
 # 1. Price Initialization
 # ----------------------------------------------------------------------------------------------------------------------
-# 1.1 Energy Input Prices
-# Updating energy input price for plotting the discrete supply curve
-pTE.l[es,e,d,t] =  pTE_base.l[es,e,d,t] + pTE_tax.l[es,e,d,t]; 
-
 # 1.2 Starting values for Levelized Cost of Energy (LCOE)
 uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,es,d,t]) =
    (vTI.l[l,es,d,t] # Investment costs
@@ -61,7 +55,7 @@ uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,
 
 # 1.3 Technology Prices
 # Technology price for plotting the discrete supply curve
-pTPotential.l[l,es,d,t] = sum(e, uTE.l[l,es,e,d,t]*pEpj_marg.l[es,e,d,t])
+pTPotential.l[l,es,d,t] = sum(e$(d1pEpj[es,e,d,t] and d1uTE[l,es,e,d,t]), uTE.l[l,es,e,d,t]*pEpj_marg.l[es,e,d,t])
                         + uTKexp.l[l,es,d,t]*pTK.l[d,t];
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -97,7 +91,7 @@ Solve M_abatement_supply_curve using CNS;
 uTKmarg_eq[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 
   sum(scen, uTKmarg_scen.l[l,es,d,t,scen]$(sqT_sum_scen.l[es,d,t,scen] >= 1 and sqT_sum_scen.l[es,d,t,scen-1] < 1));
 
-pESmarg_eq[es,d,t] = smax(l, sum(e, uTE.l[l,es,e,d,t]*pTE.l[es,e,d,t]) + uTKmarg_eq[l,es,d,t]*pTK.l[d,t]);
+pESmarg_eq[es,d,t] = smax(l, sum(e, uTE.l[l,es,e,d,t]*pEpj_marg.l[es,e,d,t]) + uTKmarg_eq[l,es,d,t]*pTK.l[d,t]);
 
 # 4.2 Starting Values, Marginal Capital Intensity
 # Setting starting values for the main model

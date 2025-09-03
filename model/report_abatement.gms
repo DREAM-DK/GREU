@@ -33,5 +33,5 @@ uTK[l,es,d,t]$(d1sqTPotential[l,es,d,t] and sqT.l[l,es,d,t]>0.001)
 
 # 2.3 Price Analysis
 pTSupply[l,es,d,t]$(d1sqTPotential[l,es,d,t] and (sqT.l[l,es,d,t]*qES.l[es,d,t])) =
-    pTK.l[d,t]*uTK[l,es,d,t] + sum(e$(d1pTE[es,e,d,t] and d1uTE[l,es,e,d,t]), pTE.l[es,e,d,t]*uTE.l[l,es,e,d,t]);
+    pTK.l[d,t]*uTK[l,es,d,t] + sum(e$(d1pEpj[es,e,d,t] and d1uTE[l,es,e,d,t]), pEpj_marg.l[es,e,d,t]*uTE.l[l,es,e,d,t]);
 
