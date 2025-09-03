@@ -25,7 +25,8 @@ $Group+ all_variables
 
   # 1.2.1.1 Exogenous Input Prices
   pTK[d,t]$(d1pTK[d,t]) "User cost of capital in technologies for energy services"
-  
+  jpTK[i,t] "Share parameter linking capital user cost in abatement model to CGE model"
+
   # 1.2.1.2 Exogenous Energy Service Demand
   qES[es,d,t]$(d1qES[es,d,t]) "Energy service, quantity."
   uES[es,d,t]$(d1qES[es,d,t]) "Share parameter linking energy service in abatement model to energy service demand in CGE model"
@@ -153,6 +154,8 @@ $BLOCK abatement_equations_links abatement_endogenous_links $(t1.val <= t.val an
 
   .. qES[es,i,t] =E= uES[es,i,t]*qREes[es,i,t];
 
+  .. pTK[i,t] =E= pK_k_i['iM',i,t]*jpTK[i,t];
+
 $ENDBLOCK
 
 # 2.3 Model Assembly
@@ -225,6 +228,7 @@ eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.03;
 
 # Set share parameter
 uES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
+jpTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pTK.l[i,t]/pK_k_i.l['iM',i,t];
 
 # 3.3 Dummy Variable Setup
 # Set dummy determining the existence of technology potentials
