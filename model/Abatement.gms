@@ -17,6 +17,7 @@ $SetGroup SG_Abatement_dummies
   d1qES_e[es,e,d,t] "Dummy determining the existence of energy use (sum across technologies)"
   d1qES[es,d,t] "Dummy determining the existence of energy service, quantity"
   d1switch_abatement[t] "Dummy to control whether the abatement is turned on (=1) or off (=0)"
+  d1switch_integrate_abatement[t] "Dummy to control whether the abatement is integrated with the CGE-model (=1) or not (=0)"
 ;
 
 # 1.2 Main Variables
@@ -67,6 +68,11 @@ $Group+ all_variables
   qES_k[d,t]$(d1pTK[d,t]) "Quantity of machinery capital in energy services"
   qESE[es,e,d,t]$(d1qES_e[es,e,d,t]) "Quantity of energy in energy services"
   qESK[es,d,t]$(d1pTK[d,t]) "Quantity of machinery capital in energy services"
+
+  # Variables for integration with CGE-model
+  qESE_baseline[es,e,d,t]$(d1qES_e[es,e,d,t]) "Energy input in the abatement model (baseline)"
+  Delta_qESE[es,e,d,t]$(d1qES_e[es,e,d,t]) "Difference between energy input in the abatement model (difference between shock and baseline)"
+  jqESE[es,e,i,t]$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t]) "Share parameter linking energy input in the abatement model to energy input in the CGE-model"
 ;
 
 parameter
@@ -150,11 +156,16 @@ $BLOCK abatement_equations_output abatement_endogenous_output $(t1.val <= t.val 
 
 $ENDBLOCK
 
-$BLOCK abatement_equations_links abatement_endogenous_links $(t1.val <= t.val and t.val <= tEnd.val and d1switch_abatement[t])
+$BLOCK abatement_equations_links abatement_endogenous_links $(t1.val <= t.val and t.val <= tEnd.val and d1switch_abatement[t] and d1switch_integrate_abatement[t])
 
   .. qES[es,i,t] =E= uES[es,i,t]*qREes[es,i,t];
 
   .. pTK[i,t] =E= pK_k_i['iM',i,t]*jpTK[i,t];
+
+  .. Delta_qESE[es,e,d,t] =E= qESE[es,e,d,t] - qESE_baseline[es,e,d,t];
+
+  #jqESE is endogenous when calibrating the model. In shocks, jqESE is exogenous and uREa is endogenous
+  jqESE[es,e,i,t].. qESE[es,e,i,t] + jqESE[es,e,i,t] =E= qREa[es,e,i,t];
 
 $ENDBLOCK
 
@@ -240,7 +251,7 @@ execute_load "../data/Abatement_data/calibrate_abatement_techs.gdx" LifeSpan=Lif
 DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
 
 # Set smoothing parameters
-eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.01;
+eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.03;
 
 # Set share parameter
 uES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
@@ -254,8 +265,7 @@ d1pTK[d,t] = yes$(sum((l,es), d1sqTPotential[l,es,d,t]));
 d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 d1qES[es,d,t] = yes$(qES.l[es,d,t]);
 d1switch_abatement[t] = 1;
-
-execute_unload "test.gdx";
+d1switch_integrate_abatement[t] = 0;
 
 # 4.4 Starting values for Levelized Cost of Energy (LCOE)
 uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,es,d,t]) =

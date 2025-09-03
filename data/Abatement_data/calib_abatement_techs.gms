@@ -44,8 +44,8 @@ loop(l_input$(sum((es,d,t), sqTPotential_input[l_input,es,d,t])),
     counter = counter+1;
     sqTPotential[l,es,i,t]$(ord(l)=counter) = sqTPotential_input[l_input,es,i,t];
     uTE[l,es,e,i,t]$(ord(l)=counter) = uTE_input[l_input,es,e,i,t];
-    vTI[l,es,i,t]$(ord(l)=counter and sqTPotential[l,es,i,t]) = counter;
-    vTC[l,es,i,t]$(ord(l)=counter and sqTPotential[l,es,i,t]) = counter/10;
+    vTI[l,es,i,t]$(ord(l)=counter and sqTPotential[l,es,i,t]) = counter/5;
+    vTC[l,es,i,t]$(ord(l)=counter and sqTPotential[l,es,i,t]) = counter/50;
 );
 
 LifeSpan[l,es,i,t]$(sqTPotential[l,es,i,t]) = 5;
@@ -93,13 +93,13 @@ vTI_max[es,d,t] = smax(l, vTI[l,es,d,t]);
 # First electrification technology
 sqTPotential['t26',es,i,t]$(sum(ll, sqTPotential[ll,es,i,t])) = 0.1;
 uTE['t26',es,'Electricity',i,t]$(sqTPotential['t26',es,i,t]) = 1;
-vTI['t26',es,i,t]$(sqTPotential['t26',es,i,t]) = vTI_max[es,i,t]+2;
+vTI['t26',es,i,t]$(sqTPotential['t26',es,i,t]) = vTI_max[es,i,t]+0.1;
 vTC['t26',es,i,t]$(sqTPotential['t26',es,i,t]) = vTI['t26',es,i,t]/10;
 
 # Second electrification technology
 sqTPotential['t27',es,i,t]$(sum(ll, sqTPotential[ll,es,i,t])) = 0.1;
 uTE['t27',es,'Electricity',i,t]$(sqTPotential['t27',es,i,t]) = 1;
-vTI['t27',es,i,t]$(sqTPotential['t27',es,i,t]) = vTI_max[es,i,t]+3;
+vTI['t27',es,i,t]$(sqTPotential['t27',es,i,t]) = vTI_max[es,i,t]+0.2;
 vTC['t27',es,i,t]$(sqTPotential['t27',es,i,t]) = vTI['t27',es,i,t]/10;
 
 ## ----------------------------------------------------------------------------------------

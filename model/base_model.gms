@@ -101,20 +101,43 @@ calibration.optfile=1;
 $IMPORT calibration.gms
 
 # ------------------------------------------------------------------------------
-# Integrate the abatement model
+# Run the abatement model alongside the CGE-model (no integration)
 # ------------------------------------------------------------------------------
 # We turn the abatement model on to integrate it with the CGE-model
 d1switch_abatement[t] = 1;
+d1switch_integrate_abatement[t] = 0;
 
-# 4.2 Supply Curve Visualization
+# Supply Curve Visualization
 $import premodel_abatement.gms
-$import Supply_curves_abatement.gms
+$import energy_price_partial.gms
+$import Supply_curves_abatement.gms;
 
 @add_exist_dummies_to_model(main);
 $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
 $IMPORT report_abatement.gms
 execute_unload 'calibration_abatement.gdx';
+
+# ------------------------------------------------------------------------------
+# Integrate the abatement model with the CGE-model
+# ------------------------------------------------------------------------------
+# We turn the abatement model on to integrate it with the CGE-model
+d1switch_abatement[t] = 1;
+d1switch_integrate_abatement[t] = 1;
+
+# Create baseline values for the abatement model (maybe not needed)
+$import create_baseline_values.gms;
+
+$FIX all_variables; $UNFIX main_endogenous;
+solve main using CNS;
+$IMPORT report_abatement.gms
+execute_unload 'calibration_abatement_integrated.gdx';
+
+# We switch jqESE and uREa when starting to shock the model (could be made more elegant)
+$GROUP main_endogenous
+  main_endogenous
+  uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
+;
 
 # ------------------------------------------------------------------------------
 # Tests
@@ -131,36 +154,36 @@ Solve main using CNS;
 @assert_no_difference(all_variables, 1e-6, .l, _saved, "Zero shock changed variables significantly.");
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
 
-# ------------------------------------------------------------------------------
-# Shock model
-# ------------------------------------------------------------------------------
-set_time_periods(2020, %terminal_year%);
+# # ------------------------------------------------------------------------------
+# # Shock model
+# # ------------------------------------------------------------------------------
+# set_time_periods(2020, %terminal_year%);
 
-# tY_i_d.l[i,re,t]$(t.val >= t1.val) = 0.01 + tY_i_d.l[i,re,t];
-tEmarg_duty.l['ener_tax',es,e,d,t]$(t.val > t1.val) = 2*tEmarg_duty.l['ener_tax',es,e,d,t]; #Doubling energy-taxes
+# # tY_i_d.l[i,re,t]$(t.val >= t1.val) = 0.01 + tY_i_d.l[i,re,t];
+# tEmarg_duty.l['ener_tax',es,e,d,t]$(t.val > t1.val) = 2*tEmarg_duty.l['ener_tax',es,e,d,t]; #Doubling energy-taxes
 
-$FIX all_variables;
-$UNFIX main_endogenous;
-Solve main using CNS;
-execute_unload 'shock.gdx';
-@import_from_modules("tests")
+# $FIX all_variables;
+# $UNFIX main_endogenous;
+# Solve main using CNS;
+# execute_unload 'shock.gdx';
+# @import_from_modules("tests")
 
-# ----------------------------------------------------------------------------------------------------------------------
-# 6. Simulation Scenarios In the Abatement Model
-# ----------------------------------------------------------------------------------------------------------------------
-# 6.1 Capital Cost Shock
-# Increase capital costs for technology t1 in heating sector
-vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
-  = vTI.l['t1','heating','10030',t] * 100;
+# # ----------------------------------------------------------------------------------------------------------------------
+# # 6. Simulation Scenarios In the Abatement Model
+# # ----------------------------------------------------------------------------------------------------------------------
+# # 6.1 Capital Cost Shock
+# # Increase capital costs for technology t1 in heating sector
+# vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
+#   = vTI.l['t1','heating','10030',t] * 100;
 
-$import Supply_curves_abatement.gms
+# $import Supply_curves_abatement.gms
 
-$FIX all_variables;
-$UNFIX main_endogenous;
-@Setbounds_abatement();
-Solve main using CNS;
-$IMPORT report_abatement.gms
-execute_unload 'shock_capital_cost.gdx';
+# $FIX all_variables;
+# $UNFIX main_endogenous;
+# @Setbounds_abatement();
+# Solve main using CNS;
+# $IMPORT report_abatement.gms
+# execute_unload 'shock_capital_cost.gdx';
 
 
 # 6.2 Carbon Tax Shock
