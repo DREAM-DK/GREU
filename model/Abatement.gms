@@ -199,32 +199,48 @@ $ENDIF # equations
 # ------------------------------------------------------------------------------
 $IF %stage% == "exogenous_values":
 
+# # 3.1 Data Loading
+# $GROUP abatement_data_variables
+#   sqTPotential[l,es,d,t]
+#   uTE_load[l,e]  "Auxiliary variable to load uTE"
+#   vTI[l,es,d,t]
+#   vTC[l,es,d,t]
+#   pTK[d,t]
+#   qES[es,d,t]
+
+# ;
+# @load(abatement_data_variables, "../data/Abatement_data/Abatement_dummy_data.gdx")
+# $GROUP+ data_covered_variables abatement_data_variables;
+
+# # Load LifeSpan from Abatement_dummy_data.gdx
+# execute_load "../data/Abatement_data/Abatement_dummy_data.gdx" LifeSpan=LifeSpan;
+
+
 # 3.1 Data Loading
 $GROUP abatement_data_variables
   sqTPotential[l,es,d,t]
-  uTE_load[l,e]  "Auxiliary variable to load uTE"
-  # uTKexp[l,es,d,t]
+  uTE[l,es,e,d,t]  
   vTI[l,es,d,t]
   vTC[l,es,d,t]
   pTK[d,t]
   qES[es,d,t]
 
 ;
-@load(abatement_data_variables, "../data/Abatement_data/Abatement_dummy_data.gdx")
+@load(abatement_data_variables, "../data/Abatement_data/calibrate_abatement_techs.gdx")
 $GROUP+ data_covered_variables abatement_data_variables;
 
 # Load LifeSpan from Abatement_dummy_data.gdx
-execute_load "../data/Abatement_data/Abatement_dummy_data.gdx" LifeSpan=LifeSpan;
+execute_load "../data/Abatement_data/calibrate_abatement_techs.gdx" LifeSpan=LifeSpan;
 
 # 3.2 Initial Values
 # Calculate initial prices
-uTE.l[l,es,e,d,t]$(sqTPotential.l[l,es,d,t] and uTE_load.l[l,e]) = uTE_load.l[l,e] ;
+# uTE.l[l,es,e,d,t]$(sqTPotential.l[l,es,d,t] and uTE_load.l[l,e]) = uTE_load.l[l,e] ;
 
 # Set discount rate
 DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
 
 # Set smoothing parameters
-eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.03;
+eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.01;
 
 # Set share parameter
 uES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
@@ -238,6 +254,8 @@ d1pTK[d,t] = yes$(sum((l,es), d1sqTPotential[l,es,d,t]));
 d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 d1qES[es,d,t] = yes$(qES.l[es,d,t]);
 d1switch_abatement[t] = 1;
+
+execute_unload "test.gdx";
 
 # 4.4 Starting values for Levelized Cost of Energy (LCOE)
 uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,es,d,t]) =

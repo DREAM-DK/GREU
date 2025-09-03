@@ -500,6 +500,9 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   #uTE[l,es,e,i,t] = uTE_load[l,es,i,e,t];
   #uTK[l,es,i,t] = sum(e, uTK_load[l,es,i,e,t]);
 
+  # Create calibrated abatement data that matches historical energy use
+  $import Abatement_data/calib_abatement_techs.gms
+
 
 ###  F) Unload gdx with data in parameters with same names as model-variables, to be read into model
 execute_unload 'data'

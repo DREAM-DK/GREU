@@ -1,4 +1,7 @@
-
+set exclude_energy(e) /
+  'waste'
+  'Heat pumps'
+  /;
 
 parameter
   d1pEpj_base_CGE[es,e,d,t]
@@ -27,8 +30,8 @@ d1pEpj_CGE[es,e,d,t]      = d1pEpj[es,e,d,t];
 # d1tCO2_ETS2_E_CGE[em,es,e,d,t] = d1tCO2_ETS2_E[em,es,e,d,t];
 
 
-d1pEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and not sameas[e,'waste']))            = yes;
-d1pEpj[es,e,d,t]$(d1pEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and not sameas[e,'waste']))                      = yes;
+d1pEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and not exclude_energy(e)))            = yes;
+d1pEpj[es,e,d,t]$(d1pEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and not exclude_energy(e)))                      = yes;
 # d1tCO2_ETS2_E[em,es,e,d,t]$(d1tCO2_ETS2_E[em,es,e,d,t] or (d1pEpj[es,e,d,t] and CO2ubio[em] and not in_ETS[es] and not sameas[e,'waste']))   = yes;
 d1pEpj_base_abatement[es,e,d,t]$(d1pEpj_base[es,e,d,t] and not d1pEpj_base_CGE[es,e,d,t]) = yes;
 d1pEpj_abatement[es,e,d,t]$(d1pEpj[es,e,d,t] and not d1pEpj_CGE[es,e,d,t]) = yes;
