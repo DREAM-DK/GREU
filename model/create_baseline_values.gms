@@ -3,6 +3,7 @@ $GROUP G_baseline # Variables that we want to be reported as baseline values (he
        
        qESE[es,e,d,t] ""
        qESK[es,d,t] ""
+       vESK[es,d,t] ""
 ;
 
 

@@ -47,7 +47,10 @@ $IF %stage% == "equations":
 			qREa&_inNest[es,e_a,i,t]$(d1pREa_inNest[es,e_a,i,t]).. 
 				qREa[es,e_a,i,t] =E= uREa[es,e_a,i,t] * (pREa[es,e_a,i,t]/pREes[es,i,t])**(-eREa[es,i]) * qREes[es,i,t];
 		
-			pREes[es,i,t]$(d1pEes[es,i,t]).. pREes[es,i,t]*qREes[es,i,t] =E= sum((e_a)$(d1pREa_inNest[es,e_a,i,t]), pREa[es,e_a,i,t] * qREa[es,e_a,i,t]);
+			# pREes[es,i,t]$(d1pEes[es,i,t]).. pREes[es,i,t]*(qREes[es,i,t] + Delta_qESK[es,i,t]$(d1qES[es,i,t])) 
+			pREes[es,i,t]$(d1pEes[es,i,t]).. pREes[es,i,t]*qREes[es,i,t] 
+																					=E= sum((e_a)$(d1pREa_inNest[es,e_a,i,t]), pREa[es,e_a,i,t] * qREa[es,e_a,i,t])
+																						+ (Delta_vESK[es,i,t])$(d1qES[es,i,t]);
 		
 		
 			qREes&_machine_energy[es,i,t]$(d1pEes[es,i,t] and not (heating[es] or transport[es]))..

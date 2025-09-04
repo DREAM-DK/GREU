@@ -62,6 +62,7 @@ $Group+ all_variables
   vTSupply[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Value (or costs) of energy service supplied by technology l "
   vES[es,d,t]$(sum(l, d1sqTPotential[l,es,d,t])) "Value of energy service" 
   pES[es,d,t]$(sum(l, d1sqTPotential[l,es,d,t])) "Energy service, price."
+  vESK[es,d,t]$(d1qES[es,d,t]) "Value of machinery capital"
 
   # 1.2.3.2 Input Quantities
   qESE[es,e,d,t]$(d1qES_e[es,e,d,t]) "Quantity of energy in energy services"
@@ -73,6 +74,8 @@ $Group+ all_variables
   jqESE[es,e,i,t]$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t]) "Share parameter linking energy input in the abatement model to energy input in the CGE-model"
   qESK_baseline[es,d,t]$(d1qES[es,d,t]) "Capital input in the abatement model (baseline)"
   Delta_qESK[es,d,t]$(d1qES[es,d,t]) "Difference between capital input in the abatement model (difference between shock and baseline)"
+  vESK_baseline[es,d,t]$(d1qES[es,d,t]) "Value of machinery capital (baseline)"
+  Delta_vESK[es,d,t]$(d1qES[es,d,t]) "Difference between value of machinery capital in the abatement model (difference between shock and baseline)"
 ;
 
 parameter
@@ -154,6 +157,9 @@ $BLOCK abatement_equations_output abatement_endogenous_output $(t1.val <= t.val 
   # Price of energy service
   .. pES[es,d,t] =E= vES[es,d,t] / qES[es,d,t];   
 
+  # Value of machinery capital
+  .. vESK[es,d,t] =E= qESK[es,d,t]*pTK[d,t];
+
 $ENDBLOCK
 
 $BLOCK abatement_equations_links abatement_endogenous_links $(t1.val <= t.val and t.val <= tEnd.val and d1switch_abatement[t] and d1switch_integrate_abatement[t])
@@ -171,7 +177,10 @@ $BLOCK abatement_equations_links abatement_endogenous_links $(t1.val <= t.val an
   jqESE[es,e,i,t].. qESE[es,e,i,t] + jqESE[es,e,i,t] =E= qREa[es,e,i,t];
 
   # Difference in capital use between the baseline and the shock
-  # .. Delta_qESK[es,d,t] =E= qESK[es,d,t] - qESK_baseline[es,d,t];
+  .. Delta_qESK[es,d,t] =E= qESK[es,d,t] - qESK_baseline[es,d,t];
+
+  # Difference in value of capital use between the baseline and the shock
+  .. Delta_vESK[es,d,t] =E= vESK[es,d,t] - vESK_baseline[es,d,t];
 
 $ENDBLOCK
 
