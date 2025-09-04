@@ -147,6 +147,7 @@ I add some records manually that are explicitly called in the model, but are not
 '''
 '''from the e column, construct a list of unique values which we can use later to populate the set we will call "e" '''
 e_vals=list(set(energy_and_emissions[['e']].values.flatten()))
+e_vals.extend(['Captured CO2'])
 out_vals=e_vals.copy()
 '''Similarly for out, only I also want to have "out_other" and "WholeAndRetailSaleMarginE" in the set in addition to those in the e-column.'''
 out_vals.extend(['out_other','WholeAndRetailSaleMarginE'])
