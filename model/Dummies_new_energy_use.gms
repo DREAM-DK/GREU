@@ -1,6 +1,7 @@
 set exclude_energy(e) /
   'waste'
   'Heat pumps'
+  'Captured CO2'
   /;
 
 parameter

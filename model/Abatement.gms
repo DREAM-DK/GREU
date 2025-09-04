@@ -76,6 +76,7 @@ $Group+ all_variables
   Delta_qESK[es,d,t]$(d1qES[es,d,t]) "Difference between capital input in the abatement model (difference between shock and baseline)"
   vESK_baseline[es,d,t]$(d1qES[es,d,t]) "Value of machinery capital (baseline)"
   Delta_vESK[es,d,t]$(d1qES[es,d,t]) "Difference between value of machinery capital in the abatement model (difference between shock and baseline)"
+  qEmmE_CCS[es,e,d,t]$(d1qES_e[es,e,d,t] and sameas(e,'Captured CO2')) "Quantity of CCS in energy services"
 ;
 
 parameter
@@ -181,6 +182,9 @@ $BLOCK abatement_equations_links abatement_endogenous_links $(t1.val <= t.val an
 
   # Difference in value of capital use between the baseline and the shock
   .. Delta_vESK[es,d,t] =E= vESK[es,d,t] - vESK_baseline[es,d,t];
+
+  # CCS in energy services
+  .. qEmmE_CCS[es,e,d,t] =E= qESE[es,e,d,t];
 
 $ENDBLOCK
 

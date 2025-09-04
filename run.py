@@ -18,7 +18,7 @@ os.chdir(fr"{root}/model")
 dt.gamY.run("../data/data_from_GR.gms")
 
 ## Create abatement_dummy_data.gdx based on excel-module
-from data.Abatement_data import Import_abatement_data
+from data.Abatement_data import Abatement_dummy_data
 
 ## Re-set working directory
 os.chdir(fr"{root}/model")

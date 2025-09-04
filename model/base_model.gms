@@ -107,6 +107,9 @@ $IMPORT calibration.gms
 d1switch_abatement[t] = 1;
 d1switch_integrate_abatement[t] = 0;
 
+# Import new dummy data for the abatement model
+$import Import_abatement_dummy_data.gms;
+
 # Supply Curve Visualization
 $import premodel_abatement.gms
 $import energy_price_partial.gms

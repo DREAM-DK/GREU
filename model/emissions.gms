@@ -68,7 +68,8 @@ $IF %stage% == "equations":
 
       #CO2e
       qEmmE_BU&_CO2e[em,es,e,d,t]$(CO2e[em])..
-        qEmmE_BU['CO2e',es,e,d,t] =E= sum(em_a$(not CO2e[em_a]), GWP[em_a] * qEmmE_BU[em_a,es,e,d,t]);
+        qEmmE_BU['CO2e',es,e,d,t] =E= sum(em_a$(not CO2e[em_a]), GWP[em_a] * qEmmE_BU[em_a,es,e,d,t])
+                                      + qEmmE_CCS[es,e,d,t];
 
 
   $ENDBLOCK 
