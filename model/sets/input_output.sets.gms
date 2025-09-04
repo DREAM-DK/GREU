@@ -48,7 +48,7 @@ Set i_gasdistribution[i] / 35B /;
 Set i_cardealers[i] / G45 /;
 Set i_wholesale[i] / G46 /;
 Set i_retail[i] / G47 /;
-Set i_energymargins[i]/G45,G46,G47/;
+Set i_energymargins[i]/G45/; #,G46,G47/;
 
 Set i_service_for_industries[i] / serv_to_business /;
 Set i_international_aviation[i] / H51 /;

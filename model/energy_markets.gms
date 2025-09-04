@@ -493,7 +493,8 @@ $IF %stage% == "calibration":
 
 
 			sSupply_d_e_i_adj&_calib_exists_imports[d_ene,e,i,t]$(t.val=t1.val and d1pY_CET[e,i,t] and d1Y_i_d[i,d_ene,t])..
-				sSupply_d_e_i_adj[d_ene,e,i,t] =E= min(sSupply_d_e_i_adj_inp[d_ene,e,i,t],1);
+				# sSupply_d_e_i_adj[d_ene,e,i,t] =E= min(sSupply_d_e_i_adj_inp[d_ene,e,i,t],1);
+				sSupply_d_e_i_adj[d_ene,e,i,t] =E= sSupply_d_e_i_adj_inp[d_ene,e,i,t];
 
 		#For chain-indices t0 valuese are set
 		pWMA&_t0[es,e,d,t]$(t1[t])..
