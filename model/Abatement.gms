@@ -64,15 +64,15 @@ $Group+ all_variables
   pES[es,d,t]$(sum(l, d1sqTPotential[l,es,d,t])) "Energy service, price."
 
   # 1.2.3.2 Input Quantities
-  qES_e[es,e,d,t]$(d1qES_e[es,e,d,t]) "Quantity of energy in energy services"
-  qES_k[d,t]$(d1pTK[d,t]) "Quantity of machinery capital in energy services"
   qESE[es,e,d,t]$(d1qES_e[es,e,d,t]) "Quantity of energy in energy services"
-  qESK[es,d,t]$(d1pTK[d,t]) "Quantity of machinery capital in energy services"
+  qESK[es,d,t]$(d1qES[es,d,t]) "Quantity of machinery capital in energy services"
 
   # Variables for integration with CGE-model
   qESE_baseline[es,e,d,t]$(d1qES_e[es,e,d,t]) "Energy input in the abatement model (baseline)"
   Delta_qESE[es,e,d,t]$(d1qES_e[es,e,d,t]) "Difference between energy input in the abatement model (difference between shock and baseline)"
   jqESE[es,e,i,t]$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t]) "Share parameter linking energy input in the abatement model to energy input in the CGE-model"
+  qESK_baseline[es,d,t]$(d1qES[es,d,t]) "Capital input in the abatement model (baseline)"
+  Delta_qESK[es,d,t]$(d1qES[es,d,t]) "Difference between capital input in the abatement model (difference between shock and baseline)"
 ;
 
 parameter
@@ -158,14 +158,20 @@ $ENDBLOCK
 
 $BLOCK abatement_equations_links abatement_endogenous_links $(t1.val <= t.val and t.val <= tEnd.val and d1switch_abatement[t] and d1switch_integrate_abatement[t])
 
+  # qES is determined by the CGE-model. uES (exogenous) is the difference between qES and qREes in the baseline
   .. qES[es,i,t] =E= uES[es,i,t]*qREes[es,i,t];
 
+  # pTK is determined by the CGE-model. jpTK (exogenous) is the relative difference between pTK and pK_k_i['iM',i,t] in the baseline
   .. pTK[i,t] =E= pK_k_i['iM',i,t]*jpTK[i,t];
 
+  # Lets see if we need this
   .. Delta_qESE[es,e,d,t] =E= qESE[es,e,d,t] - qESE_baseline[es,e,d,t];
 
   #jqESE is endogenous when calibrating the model. In shocks, jqESE is exogenous and uREa is endogenous
   jqESE[es,e,i,t].. qESE[es,e,i,t] + jqESE[es,e,i,t] =E= qREa[es,e,i,t];
+
+  # Difference in capital use between the baseline and the shock
+  .. Delta_qESK[es,d,t] =E= qESK[es,d,t] - qESK_baseline[es,d,t];
 
 $ENDBLOCK
 
@@ -306,8 +312,8 @@ $GROUP calibration_endogenous
 # 4.3 Flat Variables After Last Data Year
 $Group+ G_flat_after_last_data_year
   vES[es,d,t]
-  qES_e[es,e,d,t]
-  qES_k[d,t]
+  qESE[es,e,d,t]
+  qESK[d,t]
   vTSupply[l,es,d,t]
   uTKmarg[l,es,d,t]
   pESmarg[es,d,t]

@@ -29,7 +29,7 @@ dt.gamY.run("base_model.gms")
 ## Plotting of discrete and continous technical energy supply curves
 from plot_supply_curves import plot_supply_curve # Function to plot abatement supply curves
 plot_supply_curve("calibration_abatement.gdx")
-plot_supply_curve("shock_capital_cost.gdx")
+# plot_supply_curve("shock_capital_cost.gdx")
 plot_supply_curve("shock_carbon_tax.gdx")
 # plot_supply_curve("shock_CCS_subsidy.gdx")
 
