@@ -171,7 +171,7 @@ $BLOCK abatement_equations_links abatement_endogenous_links $(t1.val <= t.val an
   jqESE[es,e,i,t].. qESE[es,e,i,t] + jqESE[es,e,i,t] =E= qREa[es,e,i,t];
 
   # Difference in capital use between the baseline and the shock
-  .. Delta_qESK[es,d,t] =E= qESK[es,d,t] - qESK_baseline[es,d,t];
+  # .. Delta_qESK[es,d,t] =E= qESK[es,d,t] - qESK_baseline[es,d,t];
 
 $ENDBLOCK
 
