@@ -25,6 +25,24 @@ baseprice_no_avg[es,e,d,t] = yes$(pEpj_base.l[es,e,d,t] and not (sum(i, d1pY_CET
 Parameter avgprice_no_base[es,e,d,t];
 avgprice_no_base[es,e,d,t] = yes$(not pEpj_base.l[es,e,d,t] and (sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t])));
 
+# £ temporary for debugging: calculation of instances where vars vY_i_d_base and vEpj_base don't match.
+Parameter IObasevalue_no_EnEbasevalue[i,d,t];
+IObasevalue_no_EnEbasevalue[i,d,t] = yes$(d1Y_i_d[i,d,t] and not (sum((e,es,d_a),d1pEpj_base[es,e,d_a,t])));
+
+# £ temporary for debugging: calculation of instances where vars vY_i_d_base and sSupply_d_e_i_adj don't match.
+Parameter IObasevalue_no_adjsupply[i,d,t];
+IObasevalue_no_adjsupply[i,d,t] = yes$((d1Y_i_d[i,d,t] and d_ene[d]) and not
+(d1Y_i_d[i,d,t] and d_ene[d] and sum(e,d1pY_CET[e,i,t] and sum(es, sum(d_a, es_d2d(es,d_a,d) and d1pEpj_base[es,e,d_a,t])))));
+
+# £ temporary for debugging: calculation of instances where vars jfpY_i_d and sSupply_d_e_i_adj don't match.
+Parameter IObasevalue_no_adjsupply2[i,d,t];
+IObasevalue_no_adjsupply2[i,d,t] = yes$(jfpY_i_d.l[i,d,t] and not
+(d1Y_i_d[i,d,t] and d_ene[d] and sum(e,d1pY_CET[e,i,t] and sum(es, sum(d_a, es_d2d(es,d_a,d) and d1pEpj_base[es,e,d_a,t])))));
+
+# £ temporary for debugging: calculation of instances where vars vY_i_d_base and sSupply_d_e_i_adj don't match.
+Parameter IObasevalue_no_adjsupply3[e,d,t];
+IObasevalue_no_adjsupply3[e,d,t] = sum((d_a, es), yes$( es_d2d(es,d_a,d) and not d1pEpj_base[es,e,d_a,t]));
+
 
 $FIX all_variables; $UNFIX calibration_endogenous;
 

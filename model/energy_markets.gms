@@ -310,9 +310,10 @@
 
 			jfpY_i_d&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
 				vY_i_d_base[i,d,t]
-					=E= sum((e,es,d_a)$es_d2d(es,d_a,d), pRMA[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_retail[i])
-																							+ pCMA[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_cardealers[i])
-																							+ pWMA[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jvY_i_d_base[i,d,t];
+					=E= sum((e,es,d_a)$es_d2d(es,d_a,d),
+# 					pRMA[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_retail[i])
+# 																							+ pCMA[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_cardealers[i]) +
+																							pWMA[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jvY_i_d_base[i,d,t];
 
 									# No need to add an equation on imports for margins, as margins are produced domestically in data.
 			jfpM_i_d[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d])..
@@ -332,9 +333,10 @@
 
 
 			rYM&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
-				qY_i_d[i,d,t]*pY_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),  pRMA[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_retail[i])
-																																								+ pCMA[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_cardealers[i])
-																																								+ pWMA[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
+				qY_i_d[i,d,t]*pY_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),
+# 				                                                                            pRMA[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_retail[i])
+# 																																								+ pCMA[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_cardealers[i]) +
+																																								pWMA[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
 
 
 
@@ -369,16 +371,16 @@
 		model main / energy_demand_prices
 								energy_markets_clearing
 								energy_margins
-# 								energy_markets_clearing_link
-# 								energy_markets_IO_link
+								energy_markets_clearing_link
+								energy_markets_IO_link
 								/;
 
 		$Group+ main_endogenous 
 				energy_demand_prices_endogenous
 				energy_markets_clearing_endogenous
 				energy_margins_endogenous
-# 				energy_markets_clearing_link_endogenous
-# 				energy_markets_IO_link_endogenous
+				energy_markets_clearing_link_endogenous
+				energy_markets_IO_link_endogenous
 				;
 	$ENDIF 
 
@@ -515,9 +517,9 @@ $IF %stage% == "calibration":
 		energy_markets_clearing_calibration
 
 		energy_margins
-# 		energy_markets_clearing_link
-# 		energy_markets_IO_link
-# 		energy_markets_IO_link_calibration
+		energy_markets_clearing_link
+		energy_markets_IO_link
+		energy_markets_IO_link_calibration
 
 	/;
 
@@ -537,23 +539,23 @@ $IF %stage% == "calibration":
 # 		fpRMA[es,e,d,t1],    -vRMA[es,e,d,t1]
 # 		fpCMA[es,e,d,t1],    -vCMA[es,e,d,t1]
 
-# 		energy_markets_clearing_link_endogenous
-#
-# 		energy_markets_IO_link_endogenous
-#
-# 		#IO-prices
-# 		jvY_i_d_base[i,d_ene,t1]$(not i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(not i_energymargins[i])
-# 		jvY_i_d_base[i,d_ene,t1]$(i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(i_energymargins[i])
-# 		jvM_i_d_base[i,d_ene,t1], -jfpM_i_d[i,d_ene,t1]
-#
-#
-# 		#IO_quantities
-# 		jqM_i_d[i,d_ene,t1]
-# 		jqY_i_d[i,d_ene,t1]$(i_energymargins[i])
-# 		sSupply_d_e_i_adj_calib$(not i_energymargins[i] and sum(t1,sum(e,d1pY_CET[e,i,t1])) and sum(t1, sum(e,sum(i_a, d1pM_CET[e,i_a,t1]))) and d_ene[d])
-# 		-adj_sSupply_d_e_i_adj[e,i,t1], j_adj_sSupply_d_e_i_adj
-# 		energy_markets_IO_link_calibration_endogenous
-# 		pWMA[es,e,d,t0]
+		energy_markets_clearing_link_endogenous
+
+		energy_markets_IO_link_endogenous
+
+		#IO-prices
+		jvY_i_d_base[i,d_ene,t1]$(not i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(not i_energymargins[i])
+		jvY_i_d_base[i,d_ene,t1]$(i_energymargins[i]), -jfpY_i_d[i,d_ene,t1]$(i_energymargins[i])
+		jvM_i_d_base[i,d_ene,t1], -jfpM_i_d[i,d_ene,t1]
+
+
+		#IO_quantities
+		jqM_i_d[i,d_ene,t1]
+		jqY_i_d[i,d_ene,t1]$(i_energymargins[i])
+		sSupply_d_e_i_adj_calib$(not i_energymargins[i] and sum(t1,sum(e,d1pY_CET[e,i,t1])) and sum(t1, sum(e,sum(i_a, d1pM_CET[e,i_a,t1]))) and d_ene[d])
+		-adj_sSupply_d_e_i_adj[e,i,t1], j_adj_sSupply_d_e_i_adj
+		energy_markets_IO_link_calibration_endogenous
+		pWMA[es,e,d,t0]
 # 		pRMA[es,e,d,t0]
 # 		pCMA[es,e,d,t0]
 
@@ -562,15 +564,15 @@ $IF %stage% == "calibration":
 $ENDIF
 
 $IF %stage%=='tests':
-	
+
 	#Testing energy-use in industries
 	PARAMETER jvE_re_i[re,i,t] "Difference in top-down and BU-energy";
-	jvE_re_i[re,i,t] = vE_re_i.l[re,i,t] - sum((es,e)$es2re(es,re), vEpj.l[es,e,i,t]); 
+	jvE_re_i[re,i,t] = vE_re_i.l[re,i,t] - sum((es,e)$es2re(es,re), vEpj.l[es,e,i,t]);
 
 	#  ABORT$(abs(sum((re,i,tDataEnd), jvE_re_i[re,i,tDataEnd]))>1) 'Testing value of energy-use in data-year. Should ideally be zero';
 	ABORT$(abs(sum((re,i,t)$(t.val>t1.val and t.val<=tEnd.val), jvE_re_i[re,i,t]))>1e-6) 'Test in endogenous years, i.e test of model';
 
-	#Testing adjustment share 
+	#Testing adjustment share
 	LOOP((d_ene,e,i,t)$(t.val>=t1.val and t.val<=tEnd.val),
 		# ABORT$(sSupply_d_e_i_adj.l[d_ene,e,i,t]<0 or sSupply_d_e_i_adj.l[d_ene,e,i,t]>1) 'Y/M split on energy-coefficient needs to be between 1 and 0'; AKB:
 		);
@@ -588,7 +590,7 @@ $IF %stage%=='tests':
 
 
 	#Testing that supply and demand matches for energy, when comparing with input_output.gms
-	$PGROUP PG_test_energy_markets 
+	$PGROUP PG_test_energy_markets
 		vD_ene_IO[d,t] "Value of energy, base prices, in input_output.gms, excluding margins"
 		vD_ene_BU[d,t] "Value of energy, base prices, in energy_markets.gms, excluding margins"
 
@@ -600,12 +602,12 @@ $IF %stage%=='tests':
 	;
 
 	#Total demand in IO
-	vD_ene_IO[d,t]$(d_ene[d] and t.val>=t1.val and t.val<=tEnd.val) = sum(i$(not i_energymargins[i]), vY_i_d_base.l[i,d,t]) 
+	vD_ene_IO[d,t]$(d_ene[d] and t.val>=t1.val and t.val<=tEnd.val) = sum(i$(not i_energymargins[i]), vY_i_d_base.l[i,d,t])
 																	+ sum(i$(not i_energymargins[i]), vM_i_d_base.l[i,d,t]);
 
 	#Total supply in IO
-	vS_ene_IO_y[i,t]$(t.val>=t1.val and t.val<=tEnd.val and not i_energymargins[i]) = sum(d_ene, vY_i_d_base.l[i,d_ene,t]); 
-	vS_ene_IO_m[i,t]$(t.val>=t1.val and t.val<=tEnd.val and not i_energymargins[i]) = sum(d_ene, vM_i_d_base.l[i,d_ene,t]); 
+	vS_ene_IO_y[i,t]$(t.val>=t1.val and t.val<=tEnd.val and not i_energymargins[i]) = sum(d_ene, vY_i_d_base.l[i,d_ene,t]);
+	vS_ene_IO_m[i,t]$(t.val>=t1.val and t.val<=tEnd.val and not i_energymargins[i]) = sum(d_ene, vM_i_d_base.l[i,d_ene,t]);
 
 	#Total demand in energy-markets
 	vD_ene_BU[d,t] = sum((es,e,d_a)$es_d2d(es,d_a,d), vEpj_base.l[es,e,d_a,t]);
