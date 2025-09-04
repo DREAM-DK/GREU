@@ -42,7 +42,7 @@ $FUNCTION import_from_modules({stage_key}):
     ("production_CET.gms", 0),
     ("input_output.gms", 1),
     ("households.gms", 1),
-    ("government.gms", 1),
+    ("government.gms", 0),
     ("exports.gms", 1),
     ("factor_demand.gms", 0),
     ("ramsey_household.gms", 1),
