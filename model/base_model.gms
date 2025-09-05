@@ -120,6 +120,7 @@ $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
 $IMPORT report_abatement.gms
 execute_unload 'calibration_abatement.gdx';
+$exit
 
 # ------------------------------------------------------------------------------
 # Integrate the abatement model with the CGE-model

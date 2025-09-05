@@ -114,27 +114,27 @@ LifeSpan[l,es,i,t]$(sqTPotential[l,es,i,t]) = 5;
 ## ----------------------------------------------------------------------------------------
 
 set these_sectors(d) /
-  '10010'
+  # '10010'
   # '10020' # LBS: Works in calibration but not in shock
   '10030'
   # '10040' # LBS: Does not work at the moment
-  '10120' 
+  # '10120' 
   # '13150' # LBS: Does not work at the moment
   # '16000' # LBS: Does not work at the moment
-  '19000'
+  # '19000'
   # '20000' # LBS: Works in calibration but not in shock
   # '21000' # LBS: Works in calibration but not in shock
-  '23001'
+  # '23001'
   # '23002' # LBS: Does not work at the moment
   # '25000' # LBS: Does not work at the moment
   /;
 
 set these_eservices(es) /
   'heating'
-  'transport'
-  'process_normal'
-  'process_special'
-  'in_ETS'
+  # 'transport'
+  # 'process_normal'
+  # 'process_special'
+  # 'in_ETS'
   /;
 
 sqTPotential[l,es,d,t]$(not (these_sectors(d) and these_eservices(es))) = 0;
