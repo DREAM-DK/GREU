@@ -115,17 +115,17 @@ LifeSpan[l,es,i,t]$(sqTPotential[l,es,i,t]) = 5;
 
 set these_sectors(d) /
   '10010'
-  '10020'
+  # '10020' # LBS: Works in calibration but not in shock
   '10030'
   # '10040' # LBS: Does not work at the moment
-  '10120'
+  '10120' 
   # '13150' # LBS: Does not work at the moment
   # '16000' # LBS: Does not work at the moment
   '19000'
-  '20000'
-  '21000'
+  # '20000' # LBS: Works in calibration but not in shock
+  # '21000' # LBS: Works in calibration but not in shock
   '23001'
-  # '23002'
+  # '23002' # LBS: Does not work at the moment
   # '25000' # LBS: Does not work at the moment
   /;
 
