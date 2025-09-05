@@ -51,7 +51,7 @@ d1qEpj_abatement[es,e,d,t]$(d1qEpj[es,e,d,t] and not d1qEpj_CGE[es,e,d,t])      
 ## DUMMIES FOR EMISSIONS (ONLY ON NEW ENERGY USE IN THE ABATEMENT MODEL COMPARED TO CGE)
 d1EmmE_BU_CGE[em,es,e,d,t] = d1EmmE_BU[em,es,e,d,t];
 d1EmmE_BU[em,es,e,d,t]$((sameas[em,'CO2ubio'] or sameas[em,'CO2bio']) and d1pEpj_abatement[es,e,d,t] and sum((es_a,d_a,tt), d1EmmE_BU[em,es_a,e,d_a,tt]) and not sameas(e,'Captured CO2')) = yes;
-# d1EmmE_BU[em,es,e,d,t]$(sameas[em,'CO2ubio'] and d1pEpj_abatement[es,e,d,t] and sameas(e,'Captured CO2')) = yes; # LBS: Change to sameas[em,'CCS']
+d1EmmE_BU[em,es,e,d,t]$(sameas[em,'CO2ubio'] and d1pEpj_abatement[es,e,d,t] and sameas(e,'Captured CO2')) = yes; # LBS: Change to sameas[em,'CCS']
 d1EmmE_BU['CO2e',es,e,d,t]$(d1EmmE_BU['CO2ubio',es,e,d,t]) = yes; # LBS: Add "or d1EmmE_BU['CCS',es,e,d,t]"
 d1EmmE_BU_abatement[em,es,e,d,t]$(d1EmmE_BU[em,es,e,d,t] and not d1EmmE_BU_CGE[em,es,e,d,t]) = yes;
 
@@ -60,7 +60,7 @@ uEmmE_BU_CGE[em,es,e,d,t] = uEmmE_BU.l[em,es,e,d,t];
 uEmmE_BU.l[em,es,e,d,t]$(t.val>=t1.val and d1EmmE_BU_abatement[em,es,e,d,t] and not sameas[em,'CO2e'] and not sameas(e,'Captured CO2')) 
   = sum((es_a,d_a)$(d1EmmE_BU_CGE[em,es_a,e,d_a,t]), qEmmE_BU.l[em,es_a,e,d_a,t])
   / sum((es_a,d_a)$(d1EmmE_BU_CGE[em,es_a,e,d_a,t]), qEpj.l[es_a,e,d_a,t]);
-# uEmmE_BU.l[em,es,e,d,t]$(t.val>=t1.val and d1EmmE_BU_abatement[em,es,e,d,t] and not sameas[em,'CO2e'] and sameas(e,'Captured CO2')) = 1; 
+uEmmE_BU.l[em,es,e,d,t]$(t.val>=t1.val and d1EmmE_BU_abatement[em,es,e,d,t] and not sameas[em,'CO2e'] and sameas(e,'Captured CO2')) = 1; 
 uEmmE_BU_abatement[em,es,e,d,t]$(uEmmE_BU.l[em,es,e,d,t] and not uEmmE_BU_CGE[em,es,e,d,t]) = uEmmE_BU.l[em,es,e,d,t];
 
 ## DOMESTIC CARBON TAX
