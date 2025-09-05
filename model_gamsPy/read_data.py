@@ -573,6 +573,7 @@ k_records_fortot=k_records.copy()
 populate ebalitems, currently 'EAFG_tax is called explicitly in the model and is not present in data, so I add it manually to the set ebalitems and the subset etaxes.
 '''
 ebalitems_records=list(set(non_energy_emissions['ebalitems']).union(set(energy_and_emissions['ebalitems'])))
+ebalitems_records.extend(['CCS'])
 #etaxes records
 etaxes_records=[s for s in ebalitems_records if '_tax' in s]
 
@@ -619,7 +620,7 @@ a_rows_=gp.Set(m,'a_rows_',description='other rows in the input-output table',re
 k=gp.Set(m,name="k",description='capital types',records=k_records)
 '''ebalitems + subsets, some are manually populated since they lack a sufficiently universal identifier in the data'''
 ebalitems=gp.Set(m,'ebalitems',description='identifiers tax joules prices etc for energy components by demand components',records=ebalitems_records)
-em=gp.Set(m,name='em',domain=[ebalitems],description='emission types',records=['ch4','co2ubio','n2o','co2e','co2bio'])
+em=gp.Set(m,name='em',domain=[ebalitems],description='emission types',records=['ch4','co2ubio','n2o','co2e','co2bio','CCS'])
 etaxes=gp.Set(m,name='etaxes',domain=[ebalitems],description='taxes from ebalitems',records=etaxes_records)
 '''d + subsets of d'''
 d=gp.Set(m,'d',description='demand components',records=d_records)
