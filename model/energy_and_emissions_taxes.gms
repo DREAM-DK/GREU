@@ -139,9 +139,10 @@ $IF %stage% == "equations":
              +sum(em, tCO2_ETS2_pj[em,es,e,d,t]);
 
       tqE[es,e,d,t]..
-        tqE[es,e,d,t] =E= sum(etaxes,vtE_duty[etaxes,es,e,d,t]/qEpj[es,e,d,t]) 
-                        + sum(em, tCO2_ETS_pj[em,es,e,d,t])
-                        + sum(em, tCO2_ETS2_pj[em,es,e,d,t]);
+        tqE[es,e,d,t]*qEpj[es,e,d,t] =E= 
+          sum(etaxes,vtE_duty[etaxes,es,e,d,t]) 
+                        + sum(em, tCO2_ETS_pj[em,es,e,d,t])*qEpj[es,e,d,t]
+                        + sum(em, tCO2_ETS2_pj[em,es,e,d,t])*qEpj[es,e,d,t];
 
         #CO2-taxes based on emissions (currently only industries) 
           #Domestic CO2-tax                                                                                                                                                                                     #AKB: Depending on how EOP-abatement i modelled this should be adjusted for EOP

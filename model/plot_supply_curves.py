@@ -139,7 +139,7 @@ def plot_supply_curve(gdxname):
         plt.savefig('Supply_curve.svg')
 
         # Title settings
-        # plt.title("Energy supply, "+str(ss)+", "+str(p)+", "+str(yr),fontsize='12',weight='bold')
+        plt.title("Energy supply, "+str(ss)+", "+str(p)+", "+str(yr),fontsize='12',weight='bold')
 
 
     # Calling function for plotting discrete and smooth supply curve
