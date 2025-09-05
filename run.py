@@ -11,21 +11,16 @@ root = dt.find_root("LICENSE")
 sys.path.insert(0, root)
 os.environ["GAMS"] = "C:/GAMS/49/gams.exe"
 
+## Create abatement_dummy_data.gdx based on excel-module
+from data.Abatement_data import Abatement_dummy_data
+
 ## Set working directory
 os.chdir(fr"{root}/model")
-
-## Create calibrate_abatement_data_python.gdx based on energy use in baseline
-from data.Abatement_data import Calibrate_abatement_data
 
 ## Create data.gdx based on GreenREFORM-DK data 
 dt.gamY.run("../data/data_from_GR.gms")
 
-## Create abatement_dummy_data.gdx based on excel-module
-from data.Abatement_data import Abatement_dummy_data
-
-## Re-set working directory
-os.chdir(fr"{root}/model")
-
+## Run base_model
 dt.gamY.run("base_model.gms")
 
 
