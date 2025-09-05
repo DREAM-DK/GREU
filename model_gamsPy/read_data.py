@@ -573,6 +573,7 @@ k_records_fortot=k_records.copy()
 populate ebalitems, currently 'EAFG_tax is called explicitly in the model and is not present in data, so I add it manually to the set ebalitems and the subset etaxes.
 '''
 ebalitems_records=list(set(non_energy_emissions['ebalitems']).union(set(energy_and_emissions['ebalitems'])))
+ebalitems_records.extend(['CCS'])
 #etaxes records
 etaxes_records=[s for s in ebalitems_records if '_tax' in s]
 
@@ -619,7 +620,7 @@ a_rows_=gp.Set(m,'a_rows_',description='other rows in the input-output table',re
 k=gp.Set(m,name="k",description='capital types',records=k_records)
 '''ebalitems + subsets, some are manually populated since they lack a sufficiently universal identifier in the data'''
 ebalitems=gp.Set(m,'ebalitems',description='identifiers tax joules prices etc for energy components by demand components',records=ebalitems_records)
-em=gp.Set(m,name='em',domain=[ebalitems],description='emission types',records=['ch4','co2ubio','n2o','co2e','co2bio'])
+em=gp.Set(m,name='em',domain=[ebalitems],description='emission types',records=['ch4','co2ubio','n2o','co2e','co2bio','CCS'])
 etaxes=gp.Set(m,name='etaxes',domain=[ebalitems],description='taxes from ebalitems',records=etaxes_records)
 '''d + subsets of d'''
 d=gp.Set(m,'d',description='demand components',records=d_records)
@@ -880,6 +881,14 @@ emm_eq=tCO2_REmarg_df['emm_eq'].cat.categories.tolist()
 emm_eq_not_in_em=[str(y) for y in emm_eq if str(y).lower() not in [str(x).lower() for x in em_rec]]
 tCO2_REmarg_df = tCO2_REmarg_df[~tCO2_REmarg_df['emm_eq'].str.lower().isin([x.lower() for x in emm_eq_not_in_em])]
 
+
+#set all vals to 2020-val
+tCO2_REmarg_df_baseline = (tCO2_REmarg_df[tCO2_REmarg_df["t"] == '2020'].set_index(["purpose", "energy19", "r", "emm_eq"])["level"])
+tCO2_REmarg_df["level"] = tCO2_REmarg_df.set_index(["purpose", "energy19", "r", "emm_eq"]).index.map(tCO2_REmarg_df_baseline)
+tCO2_REmarg_df=tCO2_REmarg_df.dropna(subset=['level'])
+tEAFG_REmarg_df_baseline = (tEAFG_REmarg_df[tEAFG_REmarg_df["t"] == '2020'].set_index(["purpose", "energy19", "r"])["level"])
+tEAFG_REmarg_df["level"] = tEAFG_REmarg_df.set_index(["purpose", "energy19", "r"]).index.map(tEAFG_REmarg_df_baseline)
+tEAFG_REmarg_df=tEAFG_REmarg_df.dropna(subset=['level'])
 #add to container
 #tEAFG_REmarg=gp.Variable(m,'tEAFG_REmarg',domain=[es,e,d,t],records=tEAFG_REmarg_df)
 #tCO2_REmarg=gp.Variable(m,'tCO2_REmarg',domain=[es,e,d,t,em],records=tCO2_REmarg_df)
