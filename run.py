@@ -14,6 +14,9 @@ os.environ["GAMS"] = "C:/GAMS/49/gams.exe"
 ## Set working directory
 os.chdir(fr"{root}/model")
 
+## Create calibrate_abatement_data_python.gdx based on energy use in baseline
+from data.Abatement_data import Calibrate_abatement_data
+
 ## Create data.gdx based on GreenREFORM-DK data 
 dt.gamY.run("../data/data_from_GR.gms")
 
