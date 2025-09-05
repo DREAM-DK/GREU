@@ -881,6 +881,14 @@ emm_eq=tCO2_REmarg_df['emm_eq'].cat.categories.tolist()
 emm_eq_not_in_em=[str(y) for y in emm_eq if str(y).lower() not in [str(x).lower() for x in em_rec]]
 tCO2_REmarg_df = tCO2_REmarg_df[~tCO2_REmarg_df['emm_eq'].str.lower().isin([x.lower() for x in emm_eq_not_in_em])]
 
+
+#set all vals to 2020-val
+tCO2_REmarg_df_baseline = (tCO2_REmarg_df[tCO2_REmarg_df["t"] == '2020'].set_index(["purpose", "energy19", "r", "emm_eq"])["level"])
+tCO2_REmarg_df["level"] = tCO2_REmarg_df.set_index(["purpose", "energy19", "r", "emm_eq"]).index.map(tCO2_REmarg_df_baseline)
+tCO2_REmarg_df=tCO2_REmarg_df.dropna(subset=['level'])
+tEAFG_REmarg_df_baseline = (tEAFG_REmarg_df[tEAFG_REmarg_df["t"] == '2020'].set_index(["purpose", "energy19", "r"])["level"])
+tEAFG_REmarg_df["level"] = tEAFG_REmarg_df.set_index(["purpose", "energy19", "r"]).index.map(tEAFG_REmarg_df_baseline)
+tEAFG_REmarg_df=tEAFG_REmarg_df.dropna(subset=['level'])
 #add to container
 #tEAFG_REmarg=gp.Variable(m,'tEAFG_REmarg',domain=[es,e,d,t],records=tEAFG_REmarg_df)
 #tCO2_REmarg=gp.Variable(m,'tCO2_REmarg',domain=[es,e,d,t,em],records=tCO2_REmarg_df)
