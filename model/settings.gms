@@ -19,6 +19,8 @@ $SETLOCAL base_year 2020;
 parameter gp "Steady state rate of inflation." /0.02/;
 parameter gq "Steady state labor saving technical progress." /0.01/;
 
+parameter epsilon "Small number to avoid singularities" /1e-9/;
+
 # ======================================================================================================================
 # Solver options
 # ======================================================================================================================

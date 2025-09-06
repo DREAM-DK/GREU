@@ -91,7 +91,7 @@ $IF %stage% == "equations":
 
   $BLOCK energy_and_emissions_taxes energy_and_emissions_taxes_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
      #Total duties, net of bottom deductions
-     ..   vtE_duty[etaxes,es,e,d,t] =E= tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] - qEpj_duty_deductible[etaxes,es,e,d,t]) +  jvtE_duty[etaxes,es,e,d,t];
+     ..   vtE_duty[etaxes,es,e,d,t] =E= tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] + epsilon - qEpj_duty_deductible[etaxes,es,e,d,t]) +  jvtE_duty[etaxes,es,e,d,t];
 
     #Total VAT paid on energy
      ..   vtE_vat[es,e,d,t] =E= tE_vat[es,e,d,t] * (pEpj_base[es,e,d,t]*qEpj[es,e,d,t]
@@ -139,11 +139,11 @@ $IF %stage% == "equations":
              +sum(em, tCO2_ETS2_pj[em,es,e,d,t]);
 
       tqE[es,e,d,t]..
-        tqE[es,e,d,t]*qEpj[es,e,d,t] =E= 
+        tqE[es,e,d,t]*(qEpj[es,e,d,t]+epsilon) =E= 
           sum(etaxes,vtE_duty[etaxes,es,e,d,t]) 
-                        + sum(em, tCO2_ETS_pj[em,es,e,d,t])*qEpj[es,e,d,t]
-                        + sum(em, tCO2_ETS2_pj[em,es,e,d,t])*qEpj[es,e,d,t];
-
+                        + sum(em, tCO2_ETS_pj[em,es,e,d,t])*(qEpj[es,e,d,t]+epsilon)
+                        + sum(em, tCO2_ETS2_pj[em,es,e,d,t])*(qEpj[es,e,d,t]+epsilon);
+        
         #CO2-taxes based on emissions (currently only industries) 
           #Domestic CO2-tax                                                                                                                                                                                     #AKB: Depending on how EOP-abatement i modelled this should be adjusted for EOP
           tCO2_Emarg_pj&_notNatgas[em,es,e,i,t]$(not natgas[e]).. tCO2_Emarg_pj[em,es,e,i,t] =E= tCO2_Emarg[em,es,e,i,t] /10**6 * uEmmE_BU[em,es,e,i,t];

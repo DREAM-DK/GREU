@@ -16,7 +16,9 @@
 # ----------------------------------------------------------------------------------------------------------------------
 
 $FIX all_variables; $UNFIX energy_price_partial_endogenous;
+# execute_unload 'energy_price_partial_pre.gdx';
 Solve energy_price_partial using CNS;
+# execute_unload 'energy_price_partial_post.gdx';
 
 # ----------------------------------------------------------------------------------------------------------------------
 # 1. Initialize linking variables
