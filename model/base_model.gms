@@ -121,7 +121,7 @@ $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
 $IMPORT report_abatement.gms
 execute_unload 'calibration_abatement.gdx';
-$exit
+# $exit
 
 # ------------------------------------------------------------------------------
 # Integrate the abatement model with the CGE-model
@@ -143,6 +143,9 @@ $GROUP main_endogenous
   main_endogenous
   uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
 ;
+
+# qREa.l[es,e_a,i,t]$(sameas(e_a,'Captured CO2')) = qESE.l[es,e_a,i,t];
+# jqESE.l[es,e_a,i,t]$(sameas(e_a,'Captured CO2')) = 0;
 
 # ------------------------------------------------------------------------------
 # Tests
