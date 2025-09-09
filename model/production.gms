@@ -66,6 +66,7 @@ $IF %stage% == "equations":
                                             vtY_i_NetTaxSub[i,t]           #Net production taxes and subsidies, excluding ETS free allowances
                                            -vtBotded[i,t]                   #"Bottom deductions on energy-use"
                                           + vEnergycostsnotinnesting[i,t]   #Energy costs not in nesting tree
+                                          + vtCO2e_non_energy[i,t]          #Provenu from CO2e-taxation, non-energy use
                                           ;
   $ENDBLOCK
 

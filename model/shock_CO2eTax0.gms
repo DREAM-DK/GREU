@@ -14,7 +14,7 @@ execute_unload 'Output\baseline.gdx';
 # ------------------------------------------------------------------------------
 # Shock model
 # ------------------------------------------------------------------------------
-set_time_periods(2021, %terminal_year%);
+set_time_periods(2020, %terminal_year%);
 
 parameter fromkrperton2billper1000tons;
 fromkrperton2billper1000tons = 1000/1000000000;
@@ -25,7 +25,7 @@ parameter phaseInTax[t];
 display phaseInTax;
 
 tCO2e.l['energy_Corp',t]$(t.val ge 2025) = 750 * phaseInTax[t] * fromkrperton2billper1000tons;
-tCO2e.l['energy_Hh',t]$(t.val ge 2025)   = 750 * phaseInTax[t] * fromkrperton2billper1000tons;
+# tCO2e.l['energy_Hh',t]$(t.val ge 2025)   = 750 * phaseInTax[t] * fromkrperton2billper1000tons;
 tCO2e.l['non_energy',t]$(t.val ge 2025)  = 750 * phaseInTax[t] * fromkrperton2billper1000tons;
 
 
@@ -38,6 +38,24 @@ Solve main using CNS;
 
 @import_from_modules("report")
 execute_unload 'Output\CO2eTax.gdx';
+
+
+tCO2e.l['energy_Corp',t]$(t.val ge 2025) = 0 * phaseInTax[t] * fromkrperton2billper1000tons;
+# tCO2e.l['energy_Hh',t]$(t.val ge 2025)   = 0 * phaseInTax[t] * fromkrperton2billper1000tons;
+tCO2e.l['non_energy',t]$(t.val ge 2025)  = 0 * phaseInTax[t] * fromkrperton2billper1000tons;
+
+
+
+$FIX all_variables;
+$UNFIX main_endogenous, 
+vG2vGDP, -qG, 
+vLumpsum, -vGovPrimaryBalance
+;
+Solve main using CNS;
+
+
+@import_from_modules("report")
+execute_unload 'Output\CO2eTax0.gdx';
 
 jvY_i.l[i,t]$(t.val LE t1.val) = 0;
 @import_from_modules("tests")

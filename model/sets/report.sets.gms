@@ -1,9 +1,9 @@
-Set iagg "Aggregration of industries" /Agriculture, indu, forsyning, construction, service/;
+Set iagg "Aggregration of industries" /Agriculture, manufacturing, power_and_utility, construction, service/;
 
 set iagg2i(iagg,i) "Mapping from i to iagg"/
   Agriculture .('01011','01012','01020','01031','01032','01051','01052','01061','01062','01070','01080','02000','03000')
-  indu .('10010','10020','10030','10040','10120','13150','16000','20000','21000','23001','23002','25000')
-  forsyning .('0600a','19000','35011','35002','36000','37000','38391','38392','38393','38394','38395')
+  manufacturing .('10010','10020','10030','10040','10120','13150','16000','20000','21000','23001','23002','25000')
+  power_and_utility .('0600a','19000','35011','35002','36000','37000','38391','38392','38393','38394','38395')
   construction .('41430')
   service .('45000','46000','47000','49011','49012','49022','49024','49025','49031','49509','50001','51001','51009','52000','53000','55560','64000','68203','71000','off')
   /;
@@ -55,9 +55,47 @@ Set flow "Types of flows between sectors" /
   NetTaxSub  
   G
   Duties
+  Lumpsum
+  Test
   /;
 
 
+# set EV_set_incl_Weight "Types of equivalent variations" /
+#   Income_d
+#   Income_f
+#   Price_d
+#   Price_f
+#   Wealth_d
+#   Wealth_f
+#   r_fv
+#   Weight
+#   /;
+
+set EV_set "Types of equivalent variations" /
+  Income_d
+  Income_f
+  Price_d
+  Price_f
+  Wealth_d
+  Wealth_f
+  /;
+
+set Shadow_price_set "Components of shadow prices" /
+  EV
+  Emissions
+  Shadow_price
+  /;
 
 
+set income_set "Types of income" /
+  Wages
+  Lumpsum
+  Transfers
+  HhTaxes
+  /;
+
+set EVt_display_set "Types of equivalent variations for display" /
+  EV
+  Weight
+  /; 
 

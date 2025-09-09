@@ -5,6 +5,7 @@
 import sys
 import shutil
 import os
+sys.path.insert(0, r"P:\karnor\dream-tools")
 import dreamtools as dt
 dt.gamY.automatic_dummy_suffix = "_exists_dummy"
 dt.gamY.variable_equation_prefix = "E_"
@@ -34,6 +35,9 @@ dt.gamY.run("base_model.gms")
 
 # dt.gamY.run("shock_model.gms")
 dt.gamY.run("shock_CO2eTax.gms")
+dt.gamY.run("shock_CO2eTax2.gms")
+dt.gamY.run("shock_CO2eTax_steps.gms")
+dt.gamY.run("shock_CO2eTax0.gms")
 
 # ---------------
 # Setup for plotting and tables
@@ -41,14 +45,43 @@ dt.gamY.run("shock_CO2eTax.gms")
 
 exec(open('Report/report_settings.py').read())
 
+
+dt.REFERENCE_DATABASE = b = dt.Gdx("Output/baseline.gdx") # b for baseline
+s0 = dt.Gdx("Output/CO2eTax0.gdx") # s for shock
+s0 = dt.Gdx("Output/CO2eTax0base.gdx") # s for shock
+
+
+dt.plot([s0.pY_iagg], "m", layout={"title": "Price by aggregated industries"})
+test = s0.pY_iagg-b.pY_iagg
+display(test)
+pY = s0.pY_i-b.pY_i
+display(pY)
+pY2030 = pY[2030]
+pY.to_excel('pY.xlsx')
+
+
+
 # ---------------
 # Specify the baseline and shock scenarios
 # ---------------
 
 dt.REFERENCE_DATABASE = b = dt.Gdx("Output/baseline.gdx") # b for baseline
 # s = dt.Gdx("Output/shock.gdx") # s for shock
-s = dt.Gdx("Output/CO2eTax_Lumpsum2Hh.gdx") # s for shock
-s2 = dt.Gdx("Output/CO2eTax_Lumpsum2gov.gdx") # s for shock
+s = dt.Gdx("Output/CO2eTax.gdx") # s for shock
+s_steps = dt.Gdx("Output/CO2eTax_steps.gdx") # s for shock
+s2 = dt.Gdx("Output/CO2eTax2.gdx") # s for shock
+s0 = dt.Gdx("Output/CO2eTax0.gdx") # s for shock
+
+dt.REFERENCE_DATABASE = b = dt.Gdx("Output/CO2eTax.gdx") # b for baseline
+# s = dt.Gdx("Output/shock.gdx") # s for shock
+s = dt.Gdx("Output/CO2eTax2.gdx") # s for shock
+
+
+
+dt.REFERENCE_DATABASE = b = dt.Gdx("Output/baseline.gdx") # b for baseline
+# s = dt.Gdx("Output/shock.gdx") # s for shock
+s = dt.Gdx("Output/CO2eTax0.gdx") # s for shock
+
 
 
 dt.time(2020, 2050)
@@ -56,8 +89,18 @@ dt.time(2020, 2050)
 
 # løbende arbejde
 
+dt.plot([s0.pY_iagg], "m", layout={"title": "Price by aggregated industries"})
+test = s0.pY_iagg-b.pY_iagg
+display(test)
+
 dt.plot([s.pY_iagg], "m", layout={"title": "Price by aggregated industries"})
-dt.plot([s.qY_iagg], "pq", layout={"title": "Output by aggregated industries"})
+
+dt.plot([s.pY_iagg.loc[['power_and_utility']],s0.pY_iagg.loc[['power_and_utility']]], "m", layout={"title": "Price by aggregated industries"})
+
+dt.plot([s.qGDP, s0.qGDP], "m", layout={"title": "GDP"})
+
+
+dt.plot([s0.qY_iagg, s.qY_iagg], "pq", layout={"title": "Output by aggregated industries"})
 
 
 # ---------------
@@ -65,10 +108,22 @@ dt.plot([s.qY_iagg], "pq", layout={"title": "Output by aggregated industries"})
 # ---------------
 
 dt.plot([b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], names=["Total emissions"], layout={"title": "CO2e emissions, total"})
+
+dt.plot([b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']], b.qCO2e_taxgroup], layout={"title": "CO2e emissions, total"})
+dt.plot([b.qCO2e_taxgroup, b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], names=["Energy, Corp", "Energy, Hh", "Non-energy", "All emissions"], layout={"title": "CO2e emissions, total"})
+
+
 energyCorpPart = b.qCO2e_taxgroup.loc[['energy_Corp']]/b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]*100
 energyHhPart = b.qCO2e_taxgroup.loc[['energy_Hh']]/b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]*100
-dt.plot([energyCorpPart, energyHhPart], names=["Energy, Corp", "Energy, Hh"], layout={"title": "Tax categories part of total CO2e emissions (%)"})
-dt.plot([s.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']], s.qCO2e_taxgroup.loc[['energy_Corp']], s.qCO2e_taxgroup.loc[['energy_Hh']]], "m", names=["All emissions", "Energy, Corp", "Energy, Hh"], layout={"title": "Change in CO2e emissions"})
+nonEnergyPart = b.qCO2e_taxgroup.loc[['non_energy']]/b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]*100
+energyCorpPart = energyCorpPart.droplevel('em').droplevel('CO2etax').droplevel('em_accounts')
+energyHhPart = energyHhPart.droplevel('em').droplevel('CO2etax').droplevel('em_accounts')
+nonEnergyPart = nonEnergyPart.droplevel('em').droplevel('CO2etax').droplevel('em_accounts')
+NotPart = 100 - energyCorpPart - energyHhPart - nonEnergyPart
+
+dt.plot([energyCorpPart, energyHhPart, nonEnergyPart, NotPart], names=["Energy, Corp", "Energy, Hh", "Non-energy", "Not part of tax"], layout={"title": "Tax categories part of total CO2e emissions (%)"})
+dt.plot([s.qCO2e_taxgroup, s.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], "m", names=["Energy, Corp", "Energy, Hh", "Non-energy", "All emissions"], layout={"title": "Change in CO2e emissions"})
+dt.plot([s.qCO2e_taxgroup, s.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], "pq", names=["Energy, Corp", "Energy, Hh", "Non-energy", "All emissions"], layout={"title": "Change in CO2e emissions"})
 
 
 
@@ -94,6 +149,12 @@ dt.plot([s.pGDP, s.qGDP, s.pW], "pq", names=["GDP deflator", "Real GDP", "Wage l
     }
 )
 
+dt.plot([s2.pGDP, s2.qGDP, s2.pW], "pq", names=["GDP deflator", "Real GDP", "Wage level"], 
+    layout={
+        "title": "Main macroeconomic variables"
+    }
+)
+
 dt.plot([s.qC, s.qG, s.qI, s.qX, s.qM], "pq", names=["Consumption", "Government consumption", "Investments", "Exports", "Imports"], 
     layout={
         "title": "Main macroeconomic variables"
@@ -109,12 +170,7 @@ qM_Y = (s.qM/s.qGDP - b.qM/b.qGDP)*100
 dt.plot([qC_Y, qG_Y, qI_Y, qX_Y, qM_Y], names=["Consumption", "Government consumption", "Investments", "Exports", "Imports"], layout={"title": "Change in share of GDP (%)"})
 
 
-# Plot of main macroeconomic variables
-dt.plot([s2.pGDP, s2.qGDP, s2.pW, s2.qC], "pq", names=["GDP deflator", "Real GDP", "Wage level", "Consumption"], 
-    layout={
-        "title": "Main macroeconomic variables"
-    }
-)
+
 
 
 exec(open('Report/GDP_overview.py').read())
@@ -153,6 +209,7 @@ dt.plot(s.vGovPrimaryBalance,"m", layout={"title": "Primary balance"})
 
 print(s.vGovPrimaryBalance[2030],s.vGovPrimaryBalance[2025])
 
+
 exec(open('Report/Public_finances.py').read())
 
 gov_revenue_table.to_excel('gov_revenue_2040.xlsx')
@@ -161,11 +218,40 @@ gov_expenditure_table.to_excel('gov_expenditure_2040.xlsx')
 
 
 
+#--------------------------------
+# Reporting of welfare
+#--------------------------------
+
+dt.plot([s.EVt], names=["Income, domestic", "Price, domestic", "Price, foreign", "Wealth, domestic"], layout={"title": "Equivalent variations"})
+
+dt.plot([s.EVt], figsize=(5,5), layout={"title": "Equivalent variations"})
+
+dt.plot([s.EVt], layout={"title": "Equivalent variations"})
+
+dt.plot([s.EVt_display], layout={"title": "Equivalent variations"})
+
+dt.plot([s.EVt_Weight], layout={"title": "Equivalent variations"})
+display(s.EVt_Weight)
+
+dt.plot([s.EVt_income], layout={"title": "Equivalent variations"})
 
 
+display(s.vtCO2_ETS2)
+
+display(s.EV)
+display(s2.EV)
+
+display(s_steps.EV)
+
+display(s.Shadow_price)
+display(s_steps.Shadow_price)
 
 
+s.EVt.to_excel('EVt.xlsx')
+s.EVt_Weight.to_excel('EVt_Weight.xlsx')
 
+s.EV.to_excel('EV.xlsx')
+s.Shadow_price.to_excel('Shadow_price.xlsx')
 
 
 

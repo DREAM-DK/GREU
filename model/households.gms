@@ -41,7 +41,7 @@ $BLOCK households_equations households_endogenous $(t1.val <= t.val and t.val <=
 
 # When consumption is determined in other modules the j-terms becomes endogenous
   vC_WalrasLaw[t]$(not t1[t]).. vC[t] =E= vC_CMP[t] + jC_ramsey[t];
-
+  # vC_WalrasLaw[t].. vC[t] =E= vC_CMP[t] + jC_ramsey[t];
 
 
   # Marginal return is calculated ex-ante

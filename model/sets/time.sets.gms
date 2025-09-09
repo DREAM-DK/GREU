@@ -17,3 +17,4 @@ $MACRO set_time_periods(start, end) \
   t_dummies[t] = yes$(t.val>=&start and t.val<=&end);\
   t_endoyrs[t] = yes$(t.val>=&start and t.val<=&end);\
 
+alias(t,tt);

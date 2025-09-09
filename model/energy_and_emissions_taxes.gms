@@ -69,6 +69,7 @@ $IF %stage% == "variables":
     qCO2e_taxgroup[CO2etax,t] "Emissions taxed with the CO2e-tax, tax group level"
     # vtCO2e[CO2etax,d,t] "Provenu from CO2e-taxation"
     # vtCO2e[t] "Provenu from CO2e-taxation"
+    vtCO2e_non_energy[i,t] "Provenu from CO2e-taxation, non-energy use"
 
     tCO2e[CO2etax,t] "Marginal CO2e-tax in bill kr. per 1000 ton CO2e"
     tCO2e_pj[es,e,d,t]$(sum(CO2etax,d1tCO2e[CO2etax,es,e,d,t])) "Marginal CO2e-tax per PJ energy input"
@@ -101,40 +102,33 @@ $IF %stage% == "equations":
 
   $BLOCK energy_and_emissions_taxes energy_and_emissions_taxes_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
-    # ..  qCO2e_energy[es,e,i,t]   =E=  qemme_BU['CO2e',es,e,i,t]
-    #                                 - qemme_BU['CO2e',es,e,i,t]$MapBunkering['CO2e',es,e,i]
-    #                                 - qemme_BU['CO2e',es,e,i,t]$MapOtherDifferencesShips['CO2e',es,e,i]
-    #                                 - qemme_BU['CO2e',es,e,i,t]$MapInternationalAviation['CO2e',es,e,i]
-    #                                 ;
-
-
-    # ..  qCO2e_Hh[es,e,c,t] =E= qemme_BU['CO2e',es,e,c,t];
 
     ..  qCO2e_BU[energy_Corp,es,e,i,t]   =E=  qemme_BU['CO2e',es,e,i,t]
                                        - qemme_BU['CO2e',es,e,i,t]$MapBunkering['CO2e',es,e,i]
                                        - qemme_BU['CO2e',es,e,i,t]$MapOtherDifferencesShips['CO2e',es,e,i]
                                        - qemme_BU['CO2e',es,e,i,t]$MapInternationalAviation['CO2e',es,e,i]
+                                       - qemme_BU['CO2e',es,e,i,t]$NotThatOne[i]
+                                       
                                        ;
 
     ..  qCO2e_BU[energy_Hh,es,e,c,t] =E= qemme_BU['CO2e',es,e,c,t];
 
-    ..  qCO2e_d[CO2etax,d,t] =E= sum((es,e), qCO2e_BU[CO2etax,es,e,d,t]);
-    ..  qCO2e_taxgroup[energy_Corp,t] =E= sum((d), qCO2e_d[energy_Corp,d,t]);
-    ..  qCO2e_taxgroup[energy_Hh,t] =E= sum((d), qCO2e_d[energy_Hh,d,t]);
+    ..  qCO2e_d[energy,d,t] =E= sum((es,e), qCO2e_BU[energy,es,e,d,t]);
 
-    # ..  vtCO2e[CO2etax,d,t] =E= tCO2e[CO2etax,t] * qCO2e_d[CO2etax,d,t];
+    ..  qCO2e_d[non_energy,i,t] =E= qEmmxE['CO2e',i,t]
+                                  # - qEmmxE['CO2e',i,t]$NotThatOne[i]
+                                  ;
 
+    ..  qCO2e_taxgroup[CO2etax,t] =E= sum((d), qCO2e_d[CO2etax,d,t]);
 
+    ..  vtCO2e_non_energy[i,t] =E= sum(non_energy, tCO2e[non_energy,t] * qCO2e_d[non_energy,i,t]);
 
     ..   tCO2e_pj[es,e,d,t] =E= sum(CO2etax, tCO2e[CO2etax,t] * qCO2e_BU[CO2etax,es,e,d,t]/qEpj[es,e,d,t]);
-    # ..   tCO2e_pj[es,e,i,t] =E= tCO2e['energy_Corp',t] * qCO2e_energy[es,e,i,t]/qEpj[es,e,i,t];
-    # ..   tCO2e_pj[es,e,c,t] =E= tCO2e['Hh',t]     * qCO2e_Hh[es,e,c,t]/qEpj[es,e,c,t];
 
 
 
      #Total duties, net of bottom deductions
     #  ..   vtE_duty[etaxes,es,e,d,t] =E= tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] - qEpj_duty_deductible[etaxes,es,e,d,t]) +  jvtE_duty[etaxes,es,e,d,t];
-
      ..   vtE_duty[etaxes,es,e,d,t] =E= tE_duty[etaxes,es,e,d,t]*qEpj[es,e,d,t];
 
 
@@ -151,9 +145,7 @@ $IF %stage% == "equations":
       #Total taxes on energy, excluding ETS, i.e. how it is computed in Danish National Accounts
       ..   vtE_NAS[es,e,d,t] =E= vtE_vat[es,e,d,t] 
                             + sum(etaxes, vtE_duty[etaxes,es,e,d,t])
-                            # + tCO2e['energy_Corp',t] * qCO2e_energy[es,e,d,t]
-                            # + tCO2e['energy_Hh',t] * qCO2e_Hh[es,e,d,t]
-                            +sum(CO2etax, tCO2e[CO2etax,t] * qCO2e_BU[CO2etax,es,e,d,t]);
+                            + sum(CO2etax, tCO2e[CO2etax,t] * qCO2e_BU[CO2etax,es,e,d,t]);
 
                             ;
                             

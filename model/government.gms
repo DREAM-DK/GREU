@@ -37,7 +37,7 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
   .. vGovPrimaryBalance[t] =E= vGovRevenue[t] - vGovExpenditure[t];
 
 
-  .. vGovRevenue[t] =E=   vtY[t] + vtM[t] # Net duties, paid through R, E, I, C, G, and X
+  .. vGovRevenue[t] =E=   vtY[t] + vtM[t] + sum(i, vtCO2e_non_energy[i,t]) # Net duties, paid through R, E, I, C, G, and X
                         + vtY_Tax[t]  - vtCO2_ETS_tot[t] #Production taxes minus ETS-revenue
                         # + sum(i,vtCO2e[i,t])
                         + vHhTaxes[t] + vCorpTaxes[t]

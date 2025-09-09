@@ -31,8 +31,8 @@ $IF %stage% == "report":
   vIncomeFlow.l['CorpTaxes','Corp',t] = -vCorpTaxes.l[t];
   vIncomeFlow.l['CorpTaxes','Gov',t] = vCorpTaxes.l[t];
   vIncomeFlow.l['Y','Corp',t] = sum(i$i_private[i], vY_i.l[i,t] - vD.l[i,t] - vE_i.l[i,t]);
-  vIncomeFlow.l['NetTaxSub','Gov',t] =  vtY_NetTaxSub.l[t];
-  vIncomeFlow.l['NetTaxSub','Corp',t] = -vtY_NetTaxSub.l[t];
+  vIncomeFlow.l['NetTaxSub','Gov',t] =  vtY_NetTaxSub.l[t]+sum(i$i_private[i], vtCO2e_non_energy.l[i,t]);
+  vIncomeFlow.l['NetTaxSub','Corp',t] = -vtY_NetTaxSub.l[t]-sum(i$i_private[i], vtCO2e_non_energy.l[i,t]);
   vIncomeFlow.l['I','Corp',t] = -vI_private.l[t];
   vIncomeFlow.l['I','Gov',t] = -vI_public.l[t];
   vIncomeFlow.l['ETS','Gov',t] = -vtCO2_ETS_tot.l[t];
@@ -43,6 +43,11 @@ $IF %stage% == "report":
   vIncomeFlow.l['M','RoW',t] =  vM.l[t];
   vIncomeFlow.l['G','Gov',t] = -vG.l[t];
   vIncomeFlow.l['Duties','Gov',t] = vtY.l[t] + vtM.l[t];
+  vIncomeFlow.l['Lumpsum','Gov',t] = -vLumpsum.l[t];
+  vIncomeFlow.l['Lumpsum','Hh',t] = vLumpsum.l[t];
+
+  vIncomeFlow.l['Test',sector,t] = 0;
+  vIncomeFlow.l['Test',sector,t] = sum(flow, vIncomeFlow.l[flow,sector,t])-vIncomeFlow.l['CashFlow',sector,t]*2;
 
   
 
