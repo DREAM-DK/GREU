@@ -510,7 +510,22 @@ government_finances_cap_prodsubsidy=government_finances.loc[government_finances[
 vtCAP_prodsubsidy=government_finances_cap_prodsubsidy[['year','level']]
 #vtNetproductionRest
 government_finances_netproductionrest=government_finances.loc[government_finances['trans']=='tax_indirect_other_production']
-vtNetproductionRest=government_finances_netproductionrest[['year','level']]                                                       
+vtNetproductionRest=government_finances_netproductionrest[['year','level']]
+#vGovReceiveFirmsNonCap
+government_finances_receivefirmsnoncap=government_finances.loc[government_finances['trans']=='transfers_from_dom']
+vGovReceiveFirmsNonCap=government_finances_receivefirmsnoncap[['year','level']]
+#vtCap
+government_finances_receivecaptax=government_finances.loc[government_finances['trans']=='tax_capital']
+vtCap=government_finances_receivecaptax[['year','level']]
+#vtCapCons
+government_finances_fixcapcons=government_finances.loc[government_finances['trans']=='cons_capital']
+vtCapCons=government_finances_fixcapcons[['year','level']]
+#vGovRevQuasi
+government_finances_quasi=government_finances.loc[government_finances['trans']=='income_quasi_corp']
+vGovRevQuasi=government_finances_quasi[['year','level']]
+#vGovNonPAcq
+government_finances_acq=government_finances.loc[government_finances['trans']=='np_acquis']
+vGovNonPAcq=government_finances_acq[['year','level']]                                                       
 '''To split taxes on personal income, we use the disaggregated sheet from the same xlsx-file.
 Obviously one can just look at it and recognize the numbers in the aggregated sheet and load directly therefrom, but since
 they are indistinguishable - in all other ways than the value in the aggregated form, I read from the diaggregated sheet for inspectability.
@@ -706,6 +721,11 @@ vtCAP_prodsubsidy=gp.Parameter(m,name='vtCAP_prodsubsidy',domain=[t],description
 vtNetproductionRest=gp.Parameter(m,name='vtNetproductionRest',domain=[t],description='Revenue from net production taxes',records=vtNetproductionRest.values.tolist())
 vtDividends=gp.Parameter(m,name='vtDividends',domain=[t],description='Revenue from dividends',records=vtDividends.values.tolist())
 vtImport=gp.Parameter(m,name='vtImport',domain=[t],description='Revenue from import taxes',records=vtImport.values.tolist())
+vGovReceiveFirmsNonCap=gp.Parameter(m,name='vGovReceiveFirmsNonCap',domain=[t],description='current transfers from domestic sectors',records=vGovReceiveFirmsNonCap.values.tolist())
+vtCap=gp.Parameter(m,name='vtCap',domain=[t],description='Capital taxes',records=vtCap.values.tolist())
+vtCapCons=gp.Parameter(m,name='vtCapCons',domain=[t],description='Consumption of fixed capital',records=vtCapCons.values.tolist())
+vGovRevQuasi=gp.Parameter(m,name='vGovRevQuasi',domain=[t],description='Withdrawals from income of quasi corporations',records=vGovRevQuasi.values.tolist())
+vGovNonPAcq=gp.Parameter(m,name='vGovNonPAcq',domain=[t],description='Acquisitions less disposals of nonproduced non financial assets',records=vGovNonPAcq.values.tolist())
 '''institutional financial accounts'''
 
 vGovNetInterest=gp.Parameter(m,name='vGovNetInterest',domain=[t],description='The government net interests',records=vGovNetInterest.values.tolist())
