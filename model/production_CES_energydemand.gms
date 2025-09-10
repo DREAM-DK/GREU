@@ -17,7 +17,7 @@ $IF %stage% == "variables":
 		pREes[es,i,t]$(d1pEes[es,i,t]) 						"Price of nest of energy-activities, aggregated to energy-services, CES-price index."
 		pREmachine[i,t]$(d1pREmachine[i,t]) 			"Price of machine energy, CES-price index."
 		pProd[pf,i,t]$(d1Prod[pf,i,t]) 						"Production price of production function pf in sector i at time t" #Should be moved to production.gms when stages are implemented
-		qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 									 "Industries demand for energy activity (e_a). When abatement is turned off, the energy-activity is measured in PJ, and corresponds 1:1 to qEpj"		#Skal flyttes til industries_CES_energydemand.gms, når vi får stages
+		qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 		"Industries demand for energy activity (e_a). When abatement is turned off, the energy-activity is measured in PJ, and corresponds 1:1 to qEpj"		#Skal flyttes til industries_CES_energydemand.gms, når vi får stages
 		qREes[es,i,t]$(d1pEes[es,i,t]) 						"CES-Quantity of energy-services, measured in bio 2019-DKK"
 		qREmachine[i,t]$(d1pREmachine[i,t]) 			"CES-Quantity of machine energy, measured in bio 2019-DKK"
 		qProd[pf,i,t]$(d1Prod[pf,i,t]) 						"CES-quantity of production function pf in sector i at time t" #Should be moved to production.gms when stages are implemented
@@ -47,7 +47,10 @@ $IF %stage% == "equations":
 			qREa&_inNest[es,e_a,i,t]$(d1pREa_inNest[es,e_a,i,t]).. 
 				qREa[es,e_a,i,t] =E= uREa[es,e_a,i,t] * (pREa[es,e_a,i,t]/pREes[es,i,t])**(-eREa[es,i]) * qREes[es,i,t];
 		
-			pREes[es,i,t]$(d1pEes[es,i,t]).. pREes[es,i,t]*qREes[es,i,t] =E= sum((e_a)$(d1pREa_inNest[es,e_a,i,t]), pREa[es,e_a,i,t] * qREa[es,e_a,i,t]);
+			# pREes[es,i,t]$(d1pEes[es,i,t]).. pREes[es,i,t]*(qREes[es,i,t] + Delta_qESK[es,i,t]$(d1qES[es,i,t])) 
+			pREes[es,i,t]$(d1pEes[es,i,t]).. pREes[es,i,t]*qREes[es,i,t] 
+																					=E= sum((e_a)$(d1pREa_inNest[es,e_a,i,t]), pREa[es,e_a,i,t] * qREa[es,e_a,i,t])
+																						+ (Delta_vESK[es,i,t])$(d1qES[es,i,t]);
 		
 		
 			qREes&_machine_energy[es,i,t]$(d1pEes[es,i,t] and not (heating[es] or transport[es]))..
