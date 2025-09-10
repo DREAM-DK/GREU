@@ -90,7 +90,7 @@ $IF %stage% == "equations":
     qEmmE&_CO2e[em,d,t]$(CO2e[em])..
       qEmmE['CO2e',d,t] =E= sum(em_a$(not CO2e[em_a]), GWP[em_a] * qEmmE[em_a,d,t]); 
 
-    Non-energy related emissions
+    # Non-energy related emissions
     qEmmxE&_production[em,i,t]$(not CO2e[em])..
       qEmmxE[em,i,t] =E= uEmmxE[em,i,t] * sum(pf_top, qProd[pf_top,i,t]);
 
