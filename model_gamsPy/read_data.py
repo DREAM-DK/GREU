@@ -147,6 +147,7 @@ I add some records manually that are explicitly called in the model, but are not
 '''
 '''from the e column, construct a list of unique values which we can use later to populate the set we will call "e" '''
 e_vals=list(set(energy_and_emissions[['e']].values.flatten()))
+e_vals.extend(['Captured CO2'])
 out_vals=e_vals.copy()
 '''Similarly for out, only I also want to have "out_other" and "WholeAndRetailSaleMarginE" in the set in addition to those in the e-column.'''
 out_vals.extend(['out_other','WholeAndRetailSaleMarginE'])
@@ -509,7 +510,22 @@ government_finances_cap_prodsubsidy=government_finances.loc[government_finances[
 vtCAP_prodsubsidy=government_finances_cap_prodsubsidy[['year','level']]
 #vtNetproductionRest
 government_finances_netproductionrest=government_finances.loc[government_finances['trans']=='tax_indirect_other_production']
-vtNetproductionRest=government_finances_netproductionrest[['year','level']]                                                       
+vtNetproductionRest=government_finances_netproductionrest[['year','level']]
+#vGovReceiveFirmsNonCap
+government_finances_receivefirmsnoncap=government_finances.loc[government_finances['trans']=='transfers_from_dom']
+vGovReceiveFirmsNonCap=government_finances_receivefirmsnoncap[['year','level']]
+#vtCap
+government_finances_receivecaptax=government_finances.loc[government_finances['trans']=='tax_capital']
+vtCap=government_finances_receivecaptax[['year','level']]
+#vtCapCons
+government_finances_fixcapcons=government_finances.loc[government_finances['trans']=='cons_capital']
+vtCapCons=government_finances_fixcapcons[['year','level']]
+#vGovRevQuasi
+government_finances_quasi=government_finances.loc[government_finances['trans']=='income_quasi_corp']
+vGovRevQuasi=government_finances_quasi[['year','level']]
+#vGovNonPAcq
+government_finances_acq=government_finances.loc[government_finances['trans']=='np_acquis']
+vGovNonPAcq=government_finances_acq[['year','level']]                                                       
 '''To split taxes on personal income, we use the disaggregated sheet from the same xlsx-file.
 Obviously one can just look at it and recognize the numbers in the aggregated sheet and load directly therefrom, but since
 they are indistinguishable - in all other ways than the value in the aggregated form, I read from the diaggregated sheet for inspectability.
@@ -572,6 +588,7 @@ k_records_fortot=k_records.copy()
 populate ebalitems, currently 'EAFG_tax is called explicitly in the model and is not present in data, so I add it manually to the set ebalitems and the subset etaxes.
 '''
 ebalitems_records=list(set(non_energy_emissions['ebalitems']).union(set(energy_and_emissions['ebalitems'])))
+ebalitems_records.extend(['CCS'])
 #etaxes records
 etaxes_records=[s for s in ebalitems_records if '_tax' in s]
 
@@ -618,7 +635,7 @@ a_rows_=gp.Set(m,'a_rows_',description='other rows in the input-output table',re
 k=gp.Set(m,name="k",description='capital types',records=k_records)
 '''ebalitems + subsets, some are manually populated since they lack a sufficiently universal identifier in the data'''
 ebalitems=gp.Set(m,'ebalitems',description='identifiers tax joules prices etc for energy components by demand components',records=ebalitems_records)
-em=gp.Set(m,name='em',domain=[ebalitems],description='emission types',records=['ch4','co2ubio','n2o','co2e','co2bio'])
+em=gp.Set(m,name='em',domain=[ebalitems],description='emission types',records=['ch4','co2ubio','n2o','co2e','co2bio','CCS'])
 etaxes=gp.Set(m,name='etaxes',domain=[ebalitems],description='taxes from ebalitems',records=etaxes_records)
 '''d + subsets of d'''
 d=gp.Set(m,'d',description='demand components',records=d_records)
@@ -681,8 +698,8 @@ vGovReceiveF=gp.Parameter(m,name='vGovReceiveF',domain=[t],description='Payments
 vGovRent=gp.Parameter(m,name='vGovRent',domain=[t],description='Land rent',records=vGovRent.values.tolist())
 vGovInv=gp.Parameter(m,name='vGovInv',domain=[t],description='Government Investments',records=vGovInv.values.tolist())
 vGovSub=gp.Parameter(m,name='vGovSub',domain=[t],description='Government subsidies',records=vGovSub.values.tolist())
-vGov2Firms=gp.Parameter(m,name='vGov2Firms',domain=[t],description='payments to domestic firms',records=vGov2Firms.values.tolist())
-vGovReceiveFirms=gp.Parameter(m,name='vGovReceiveFirms',domain=[t],description='Payments from domestic firms',records=vGovReceiveFirms.values.tolist())
+vGov2Corp=gp.Parameter(m,name='vGov2Corp',domain=[t],description='payments to domestic firms',records=vGov2Firms.values.tolist())
+vGovReceiveCorp=gp.Parameter(m,name='vGovReceiveCorp',domain=[t],description='Payments from domestic firms',records=vGovReceiveFirms.values.tolist())
 vGovExp=gp.Parameter(m,name='vGovExp',domain=[t],description='Government expenditures except interest payments',records=vGovExp.values.tolist())
 vGovRev=gp.Parameter(m,name='vGovRev',domain=[t],description='Publiv revenue except interest payments and dividends',records=vGovRev.values.tolist())
 vtSource=gp.Parameter(m,name='vtSource',domain=[t],description='Revenue from income taxation (kildeskatter)',records=vtSource.values.tolist())
@@ -693,7 +710,7 @@ vtIndirect=gp.Parameter(m,name='vtIndirect',domain=[t],description='Revenue from
 vtDirect=gp.Parameter(m,name='vtDirect',domain=[t],description='Revenue from direct taxes',records=vtDirect.values.tolist())
 vGovRevRest=gp.Parameter(m,name='vGovRevRest',domain=[t],description='Other government revenues',records=vGovRevRest.values.tolist())
 vG=gp.Parameter(m,name='vG',domain=[t],description='Value of public consumption',records=vG.values.tolist())
-vTrans=gp.Parameter(m,name='vTrans',domain=[t],description='Government transfer payments',records=vTrans.values.tolist())
+vHhTransfers=gp.Parameter(m,name='vHhTransfers',domain=[t],description='Government transfer payments',records=vTrans.values.tolist())
 vCont=gp.Parameter(m,name='vCont',domain=[t],description='Contributions (bidrag til sociale ordninger)',records=vCont.values.tolist())
 vtCorp=gp.Parameter(m,name='vtCorp',domain=[t],description='Revenue from corporate taxation',records=vtCorp.values.tolist())
 vtPAL=gp.Parameter(m,name='vtPAL',domain=[t],description='PAL tax revenue',records=vtPAL.values.tolist())
@@ -704,6 +721,11 @@ vtCAP_prodsubsidy=gp.Parameter(m,name='vtCAP_prodsubsidy',domain=[t],description
 vtNetproductionRest=gp.Parameter(m,name='vtNetproductionRest',domain=[t],description='Revenue from net production taxes',records=vtNetproductionRest.values.tolist())
 vtDividends=gp.Parameter(m,name='vtDividends',domain=[t],description='Revenue from dividends',records=vtDividends.values.tolist())
 vtImport=gp.Parameter(m,name='vtImport',domain=[t],description='Revenue from import taxes',records=vtImport.values.tolist())
+vGovReceiveCorpNonCap=gp.Parameter(m,name='vGovReceiveCorpNonCap',domain=[t],description='current transfers from domestic sectors',records=vGovReceiveFirmsNonCap.values.tolist())
+vtCap=gp.Parameter(m,name='vtCap',domain=[t],description='Capital taxes',records=vtCap.values.tolist())
+vtGovDepr=gp.Parameter(m,name='vtGovDepr',domain=[t],description='Consumption of fixed capital',records=vtCapCons.values.tolist())
+vGovRevQuasi=gp.Parameter(m,name='vGovRevQuasi',domain=[t],description='Withdrawals from income of quasi corporations',records=vGovRevQuasi.values.tolist())
+vGovNetAcquisitions=gp.Parameter(m,name='vGovNetAcquisitions',domain=[t],description='Acquisitions less disposals of nonproduced non financial assets',records=vGovNonPAcq.values.tolist())
 '''institutional financial accounts'''
 
 vGovNetInterest=gp.Parameter(m,name='vGovNetInterest',domain=[t],description='The government net interests',records=vGovNetInterest.values.tolist())
@@ -879,6 +901,14 @@ emm_eq=tCO2_REmarg_df['emm_eq'].cat.categories.tolist()
 emm_eq_not_in_em=[str(y) for y in emm_eq if str(y).lower() not in [str(x).lower() for x in em_rec]]
 tCO2_REmarg_df = tCO2_REmarg_df[~tCO2_REmarg_df['emm_eq'].str.lower().isin([x.lower() for x in emm_eq_not_in_em])]
 
+
+#set all vals to 2020-val
+tCO2_REmarg_df_baseline = (tCO2_REmarg_df[tCO2_REmarg_df["t"] == '2020'].set_index(["purpose", "energy19", "r", "emm_eq"])["level"])
+tCO2_REmarg_df["level"] = tCO2_REmarg_df.set_index(["purpose", "energy19", "r", "emm_eq"]).index.map(tCO2_REmarg_df_baseline)
+tCO2_REmarg_df=tCO2_REmarg_df.dropna(subset=['level'])
+tEAFG_REmarg_df_baseline = (tEAFG_REmarg_df[tEAFG_REmarg_df["t"] == '2020'].set_index(["purpose", "energy19", "r"])["level"])
+tEAFG_REmarg_df["level"] = tEAFG_REmarg_df.set_index(["purpose", "energy19", "r"]).index.map(tEAFG_REmarg_df_baseline)
+tEAFG_REmarg_df=tEAFG_REmarg_df.dropna(subset=['level'])
 #add to container
 #tEAFG_REmarg=gp.Variable(m,'tEAFG_REmarg',domain=[es,e,d,t],records=tEAFG_REmarg_df)
 #tCO2_REmarg=gp.Variable(m,'tCO2_REmarg',domain=[es,e,d,t,em],records=tCO2_REmarg_df)
