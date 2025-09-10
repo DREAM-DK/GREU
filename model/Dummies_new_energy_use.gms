@@ -1,6 +1,12 @@
 set exclude_energy(e) /
-  'waste'
+  'Waste'
+  'Waste oil'
   'Heat pumps'
+  'Wood waste'
+  'Straw for energy purposes'
+  'Natural gas (Extraction)'
+  'Renewable energy'
+  'Liquid biofuels'
   # 'Captured CO2'
   /;
 

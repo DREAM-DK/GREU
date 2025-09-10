@@ -108,8 +108,9 @@ $IMPORT calibration.gms
 d1switch_abatement[t] = 1;
 d1switch_integrate_abatement[t] = 0;
 
-# Import new dummy data for the abatement model
-$import Import_abatement_dummy_data.gms;
+# Import new dummy data for the abatement model (For the moment it is just a CCS technology in 10030)
+# $import Import_abatement_dummy_data.gms;
+# execute_unload 'update_dummy.gdx';
 
 # Supply Curve Visualization
 $import premodel_abatement.gms
@@ -122,7 +123,6 @@ solve main using CNS;
 $IMPORT report_abatement.gms
 execute_unload 'calibration_abatement.gdx';
 # $exit
-
 # ------------------------------------------------------------------------------
 # Integrate the abatement model with the CGE-model
 # ------------------------------------------------------------------------------
@@ -197,6 +197,14 @@ Solve main using CNS;
 # 6. Carbon Tax Shock
 # ----------------------------------------------------------------------------------------------------------------------
 
+parameter
+  tCO2_abatement[em,es,e,i,t]
+  ;
+
+tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
+
+execute_unload 'pre_shock_carbon_tax.gdx';
+
 ## SHOCK TO EXOGENOUS VARIABLES
 
 # Reset capital costs to original values
@@ -204,7 +212,8 @@ vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t])
   = vTI_saved['t1','heating','10030',t];
 
 # Apply carbon tax to specific energy types
-tCO2_Emarg.l[em,es,e,i,t] = tCO2_Emarg.l[em,es,e,i,t]*10;
+# tCO2_Emarg.l[em,es,e,i,t]$(d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t] + 100;
+tCO2_Emarg.l[em,es,e,i,t]$(d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t] + 1000;
 
 ## RUN CGE MODEL WITHOUT ABATEMENT MODEL
 # We turn the abatement model on to integrate it with the CGE-model
@@ -218,6 +227,8 @@ $GROUP main_endogenous
 
 $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
+
+tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
 
 ## RUN CGE MODEL WITH ABATEMENT MODEL
 d1switch_abatement[t] = 1;

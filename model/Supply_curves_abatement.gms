@@ -75,8 +75,9 @@ uTKmargNobound_scen.l[l,es,d,t,scen]$(sqTPotential.l[l,es,d,t]) = uTKmarg_scen.l
 $FIX G_abatement_supply_curve_exo;
 $UNFIX G_abatement_supply_curve_endo;
 @Setbounds_abatement();
+# execute_unload 'pre_supply_curves.gdx';
 Solve M_abatement_supply_curve using CNS;
- 
+
 # ----------------------------------------------------------------------------------------------------------------------
 # 4. Main Model Initialization
 # ----------------------------------------------------------------------------------------------------------------------
@@ -92,7 +93,7 @@ pESmarg_eq[es,d,t] = smax(l, sum(e, uTE.l[l,es,e,d,t]*pEpj_marg.l[es,e,d,t]) + u
 uTKmarg.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg_eq[l,es,d,t]; 
 
 # For some reason, the model can't solve when given too good starting values for uTKmarg
-uTKmarg.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t] *1; 
+uTKmarg.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t] * 1; 
 
 # 4.3 Starting Values, Other Core Variables
 uTKmargNobound.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t];
