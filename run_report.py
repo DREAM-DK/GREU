@@ -9,14 +9,18 @@ exec(open('Report/report_settings.py').read())
 # ---------------
 dt.REFERENCE_DATABASE = b = dt.Gdx("Output/baseline.gdx") # b for baseline
 s = dt.Gdx("Output/shock_carbon_tax.gdx") # s for shock
+s_a = dt.Gdx("Output/shock_carbon_tax_abatement.gdx") # s for shock
 
-dt.time(2020, 2030)
+dt.time(2019, 2030)
 
 # ---------------
 # Reporting of emissions
 # ---------------
 
 dt.plot([b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], names=["Total emissions"], layout={"title": "CO2e emissions, total"})
+
+dt.plot([s.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']], s_a.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], "m", names=["Only CGE", "CGE with abatement"], layout={"title": "CO2e emissions, total"})
+
 
 # dt.plot([b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']], b.qCO2e_taxgroup], layout={"title": "CO2e emissions, total"})
 # dt.plot([b.qCO2e_taxgroup, b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], names=["Energy, Corp", "Energy, Hh", "Non-energy", "All emissions"], layout={"title": "CO2e emissions, total"})
