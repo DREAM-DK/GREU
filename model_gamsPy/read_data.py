@@ -910,13 +910,20 @@ tEAFG_REmarg_df_baseline = (tEAFG_REmarg_df[tEAFG_REmarg_df["t"] == '2020'].set_
 tEAFG_REmarg_df["level"] = tEAFG_REmarg_df.set_index(["purpose", "energy19", "r"]).index.map(tEAFG_REmarg_df_baseline)
 tEAFG_REmarg_df=tEAFG_REmarg_df.dropna(subset=['level'])
 #add to container
+tEAFG_REmarg_df=tEAFG_REmarg_df.rename(columns={'purpose':'es','energy19':'out','r':'d','level':'value'})
+tCO2_REmarg_df=tCO2_REmarg_df.rename(columns={'purpose':'es','energy19':'out','r':'d','emm_eq':'ebalitems','level':'value'})
 #tEAFG_REmarg=gp.Variable(m,'tEAFG_REmarg',domain=[es,e,d,t],records=tEAFG_REmarg_df)
 #tCO2_REmarg=gp.Variable(m,'tCO2_REmarg',domain=[es,e,d,t,em],records=tCO2_REmarg_df)
+
+#tCO2_REmarg_df.drop(columns=['marginal','scale','upper','lower'], inplace=True)
+
+#recast t - it is exactly the same as before, but apparently staleness can occur. If you read this and think: "that sounds fucking ridiculous" we have something in common.
+t=gp.Set(m,'t',description='year',records=t_list)
 tCO2_REmarg_df.drop(columns=['marginal','scale','upper','lower'], inplace=True)
-tCO2_REmarg_df=gp.Parameter(m,'tCO2_REmarg',domain=[es,e,d,t,ebalitems],description='EAFG marginal tax rates',records=tCO2_REmarg_df.values.tolist())
+tCO2_REmarg_df=gp.Parameter(m,'tCO2_REmarg',domain=[es,out,d,t,ebalitems],description='EAFG marginal tax rates',records=tCO2_REmarg_df)#.values.tolist())
 
 tEAFG_REmarg_df.drop(columns=['marginal','scale','upper','lower'], inplace=True)
-tEAFG_REmarg_df=gp.Parameter(m,'tEAFG_REmarg',domain=[es,e,d,t],description='EAFG marginal tax rates',records=tEAFG_REmarg_df.values.tolist(),domain_forwarding=True)
+tEAFG_REmarg_df=gp.Parameter(m,'tEAFG_REmarg',domain=[es,out,d,t],description='EAFG marginal tax rates',records=tEAFG_REmarg_df)#.values.tolist(),domain_forwarding=True)
 
 
 #Export
