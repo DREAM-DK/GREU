@@ -13,6 +13,7 @@ $IMPORT sets/emissions.sets.gms
 $IMPORT sets/energy_taxes_and_emissions.sets.gms
 $IMPORT sets/households.sets.gms
 $IMPORT sets/abatement.sets.gms
+$IMPORT sets/subsets.sets.gms
 
 set_time_periods(%first_data_year%, %terminal_year%);
 
@@ -51,6 +52,7 @@ $FUNCTION import_from_modules({stage_key}):
     ("consumption_disaggregated_energy.gms", 1), 
     ("exports_energy.gms", 1),
     ("abatement.gms", 1),
+    ("Report/All.Report.gms", 1),     
   ]:
     $IF {include} or {stage_key} not in ["equations", "calibration"]:
       $IMPORT {module}
@@ -102,54 +104,10 @@ calibration.optfile=1;
 $IMPORT calibration.gms
 
 # ------------------------------------------------------------------------------
-# Run the abatement model alongside the CGE-model (no integration)
-# ------------------------------------------------------------------------------
-# We turn the abatement model on to integrate it with the CGE-model
-d1switch_abatement[t] = 1;
-d1switch_integrate_abatement[t] = 0;
-
-# Import new dummy data for the abatement model (For the moment it is just a CCS technology in 10030)
-# $import Import_abatement_dummy_data.gms;
-# execute_unload 'update_dummy.gdx';
-
-# Supply Curve Visualization
-$import premodel_abatement.gms
-$import energy_price_partial.gms
-$import Supply_curves_abatement.gms;
-
-@add_exist_dummies_to_model(main);
-$FIX all_variables; $UNFIX main_endogenous;
-solve main using CNS;
-$IMPORT report_abatement.gms
-execute_unload 'calibration_abatement.gdx';
-# $exit
-# ------------------------------------------------------------------------------
-# Integrate the abatement model with the CGE-model
-# ------------------------------------------------------------------------------
-# We turn the abatement model on to integrate it with the CGE-model
-d1switch_abatement[t] = 1;
-d1switch_integrate_abatement[t] = 1;
-
-# Create baseline values for the abatement model (maybe not needed)
-$import create_baseline_values.gms;
-
-$FIX all_variables; $UNFIX main_endogenous;
-solve main using CNS;
-$IMPORT report_abatement.gms
-execute_unload 'calibration_abatement_integrated.gdx';
-
-# We switch jqESE and uREa when starting to shock the model (could be made more elegant)
-$GROUP main_endogenous
-  main_endogenous
-  uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
-;
-
-# qREa.l[es,e_a,i,t]$(sameas(e_a,'Captured CO2')) = qESE.l[es,e_a,i,t];
-# jqESE.l[es,e_a,i,t]$(sameas(e_a,'Captured CO2')) = 0;
-
-# ------------------------------------------------------------------------------
 # Tests
 # ------------------------------------------------------------------------------
+$IF %test_CGE%:
+
 @import_from_modules("tests")
 # Data check  -  Abort if any data covered variables have been changed by the calibration
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
@@ -157,119 +115,10 @@ $GROUP main_endogenous
 # Zero shock  -  Abort if a zero shock changes any variables significantly
 @set(all_variables, _saved, .l)
 $FIX all_variables; $UNFIX main_endogenous;
-execute_unload 'main_pre.gdx';
+execute_unload 'Output\main_pre.gdx';
 Solve main using CNS;
+execute_unload 'Output\main_CGE.gdx';
 @assert_no_difference(all_variables, 1e-6, .l, _saved, "Zero shock changed variables significantly.");
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
 
-# # ------------------------------------------------------------------------------
-# # Shock model
-# # ------------------------------------------------------------------------------
-# set_time_periods(2020, %terminal_year%);
-
-# # tY_i_d.l[i,re,t]$(t.val >= t1.val) = 0.01 + tY_i_d.l[i,re,t];
-# tEmarg_duty.l['ener_tax',es,e,d,t]$(t.val > t1.val) = 2*tEmarg_duty.l['ener_tax',es,e,d,t]; #Doubling energy-taxes
-
-# $FIX all_variables;
-# $UNFIX main_endogenous;
-# Solve main using CNS;
-# execute_unload 'shock.gdx';
-# @import_from_modules("tests")
-
-# # ----------------------------------------------------------------------------------------------------------------------
-# # 6. Simulation Scenarios In the Abatement Model
-# # ----------------------------------------------------------------------------------------------------------------------
-# # 6.1 Capital Cost Shock
-# # Increase capital costs for technology t1 in heating sector
-# vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
-#   = vTI.l['t1','heating','10030',t] * 100;
-
-# $import Supply_curves_abatement.gms
-
-# $FIX all_variables;
-# $UNFIX main_endogenous;
-# @Setbounds_abatement();
-# Solve main using CNS;
-# $IMPORT report_abatement.gms
-# execute_unload 'shock_capital_cost.gdx';
-
-# ----------------------------------------------------------------------------------------------------------------------
-# 6. Carbon Tax Shock
-# ----------------------------------------------------------------------------------------------------------------------
-
-parameter
-  tCO2_abatement[em,es,e,i,t]
-  ;
-
-tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
-
-execute_unload 'pre_shock_carbon_tax.gdx';
-
-## SHOCK TO EXOGENOUS VARIABLES
-
-# Reset capital costs to original values
-vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
-  = vTI_saved['t1','heating','10030',t];
-
-# Apply carbon tax to specific energy types
-# tCO2_Emarg.l[em,es,e,i,t]$(d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t] + 100;
-tCO2_Emarg.l[em,es,e,i,t]$(d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t] + 1000;
-
-## RUN CGE MODEL WITHOUT ABATEMENT MODEL
-# We turn the abatement model on to integrate it with the CGE-model
-d1switch_abatement[t] = 0;
-d1switch_integrate_abatement[t] = 0;
-
-$GROUP main_endogenous
-  main_endogenous
-  -uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
-;
-
-$FIX all_variables; $UNFIX main_endogenous;
-solve main using CNS;
-
-tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
-
-## RUN CGE MODEL WITH ABATEMENT MODEL
-d1switch_abatement[t] = 1;
-d1switch_integrate_abatement[t] = 1;
-
-$GROUP main_endogenous
-  main_endogenous
-  uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
-;
-
-# Set starting values for the abatement model
-$import Supply_curves_abatement.gms
-
-$FIX all_variables;
-$UNFIX main_endogenous;
-@Setbounds_abatement();
-Solve main using CNS;
-$IMPORT report_abatement.gms
-execute_unload 'shock_carbon_tax.gdx';
-
-# 6.3 Negative tax on captured CO2
-# Set negative tax on captured CO2
-# pTE_tax.l[es,e,d,t]$(sum(ee, pTE_tax.l[es,ee,d,t]) and sameas[e,'Captured CO2'])
-#     = 0.3;
-
-# # Update energy prices
-# pTE.l[es,e,d,t]$(pTE_base.l[es,e,d,t] or pTE_tax.l[es,e,d,t]) = pTE_base.l[es,e,d,t] + pTE_tax.l[es,e,d,t];
-
-# # Update dummy on energy prices
-# d1pTE[es,e,d,t]$(pTE.l[es,e,d,t]) = yes;
-
-# # Update exist dummies
-# @update_exist_dummies()
-
-# $import Supply_curves_abatement.gms
-
-# execute_unload 'pre_shock_CCS_subsidy.gdx';
-
-# $FIX all_variables;
-# $UNFIX main_endogenous;
-# @Setbounds_abatement();
-# Solve main using CNS;
-# $IMPORT report_abatement.gms
-# execute_unload 'shock_CCS_subsidy.gdx';
+$ENDIF # test_CGE
