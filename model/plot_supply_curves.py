@@ -1,5 +1,6 @@
-def plot_supply_curve(gdxname):
-
+def plot_supply_curve(gdxname,desired_sectors=None):
+    if desired_sectors:
+        desired_sectors=[str(x) for x in desired_sectors]
     # Define which years the supply curves should be plottet for
     year_list = [2020]
 
@@ -30,7 +31,8 @@ def plot_supply_curve(gdxname):
     # Prices and potentials in a joint dataframe (discrete)
     df_discrete_input = sqTPotential.reset_index().merge(pTPotential.reset_index(), how="left").set_index(sqTPotential.index.names)
     df_discrete_input = df_discrete_input[df_discrete_input.index.get_level_values("t")>2018]
-
+    if desired_sectors:
+        df_discrete_input=df_discrete_input[df_discrete_input.index.get_level_values('d').astype(str).isin(desired_sectors)]
     # Prices (smooth)
     pESmarg_scen = e["pESmarg_scen"].to_frame()
     pESmarg_scen = pESmarg_scen.reset_index()
