@@ -37,10 +37,6 @@ execute_unload 'pre_shock_carbon_tax.gdx';
 
 ## SHOCK TO EXOGENOUS VARIABLES
 
-# Reset capital costs to original values
-vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
-  = vTI_saved['t1','heating','10030',t];
-
 # Apply carbon tax to specific energy types
 # tCO2_Emarg.l[em,es,e,i,t]$(d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t] + 100;
 tCO2_Emarg.l[em,es,e,i,t]$(d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t] + 1000;
@@ -60,6 +56,7 @@ solve main using CNS;
 
 tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
 
+$IF %include_abatement% = 1:
 ## RUN CGE MODEL WITH ABATEMENT MODEL
 d1switch_abatement[t] = 1;
 d1switch_integrate_abatement[t] = 1;
@@ -77,8 +74,16 @@ $UNFIX main_endogenous;
 @Setbounds_abatement();
 Solve main using CNS;
 $IMPORT report_abatement.gms
+$ENDIF
+
 @import_from_modules("report")
 
+$IF %include_abatement% = 1:
+execute_unload 'Output\shock_carbon_tax_abatement.gdx';
+$ENDIF
+
+$IF %include_abatement% = 0:
 execute_unload 'Output\shock_carbon_tax.gdx';
+$ENDIF
 @import_from_modules("tests")
 
