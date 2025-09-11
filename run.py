@@ -20,35 +20,19 @@ os.chdir(fr"{root}/model")
 ## Create data.gdx based on GreenREFORM-DK data 
 dt.gamY.run("../data/data_from_GR.gms")
 
-## Run base_model
-dt.gamY.run("base_model.gms")
+## Run the base CGE model - creating main_CGE.gdx
+dt.gamY.run("base_model.gms", test_CGE="1")
+
+## Run the base model with abatement model - creating main_abatement.gdx
+dt.gamY.run("base_model_abatement.gms", test_CGE="0", test_abatement="1")
+
+## Run a simple shock model - creating shock.gdx
+dt.gamY.run("shock_model.gms", include_abatement="1")
 
 
-## Plotting of discrete and continous technical energy supply curves
-from plot_supply_curves import plot_supply_curve # Function to plot abatement supply curves
-plot_supply_curve("calibration_abatement.gdx")
-# plot_supply_curve("shock_capital_cost.gdx")
-plot_supply_curve("shock_carbon_tax.gdx")
-# plot_supply_curve("shock_CCS_subsidy.gdx")
-
-## Save calibration.gdx as previous_calibration.gdx
-# shutil.copy("calibration.gdx", "previous_calibration.gdx")
-
-# Plotting
-dt.YAXIS_TITLE_FROM_OPERATOR = {
-  "pq": "Pct. changes relative to baseline",
-	"m": "Difference from baseline",
-}
-dt.TIME_AXIS_TITLE = ""
+## Run a CO2 tax shock
+dt.gamY.run("shock_CO2_tax.gms", include_abatement="1")
 
 
-dt.REFERENCE_DATABASE = b = dt.Gdx("calibration.gdx") # b for baseline
-s = dt.Gdx("shock.gdx") # s for shock
-dt.time(2019, 2030)
-dt.plot([b.vNetFinAssets/b.vGDP], layout={"title": "Net Financial Assets to GDP"})
-dt.plot([s.qGDP, s.qC, s.qI, s.qG, s.qX, s.qM], "m", function=lambda x: x/b.vGDP, names=["GDP", "C", "I", "G", "X", "M"], layout={"yaxis_title": "Change relative to baseline GDP"})
-dt.plot(s, "m", lambda db: db.vNetFinAssets/db.vGDP, layout={"title": "Net Financial Assets to GDP"})
-
-## Running the partial abatement model
-# dt.gamY.run("abatement_model_partial.gms")
-
+## Open run_report.py to see all the reporting
+exec(open('../run_report.py').read())
