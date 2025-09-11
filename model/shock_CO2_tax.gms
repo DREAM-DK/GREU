@@ -79,6 +79,6 @@ Solve main using CNS;
 $IMPORT report_abatement.gms
 @import_from_modules("report")
 
-execute_unload 'Output\shock_carbon_tax_no_abatement.gdx';
+execute_unload 'Output\shock_carbon_tax.gdx';
 @import_from_modules("tests")
 

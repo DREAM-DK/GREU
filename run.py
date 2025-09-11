@@ -34,27 +34,5 @@ dt.gamY.run("shock_model.gms", include_abatement="1")
 dt.gamY.run("shock_CO2_tax.gms", include_abatement="1")
 
 
-# ---------------
-# Setup for plotting and tables
-# ---------------
-exec(open('Report/report_settings.py').read())
-
-
-# ---------------
-# Specify the baseline and shock scenarios
-# ---------------
-dt.REFERENCE_DATABASE = b = dt.Gdx("Output/baseline.gdx") # b for baseline
-s = dt.Gdx("Output/shock_carbon_tax.gdx") # s for shock
-
-
-
-
-
-
-## Plotting of discrete and continous technical energy supply curves
-from plot_supply_curves import plot_supply_curve # Function to plot abatement supply curves
-plot_supply_curve("calibration_abatement.gdx")
-# plot_supply_curve("shock_capital_cost.gdx")
-plot_supply_curve("shock_carbon_tax.gdx")
-# plot_supply_curve("shock_CCS_subsidy.gdx")
-
+## Open run_report.py to see all the reporting
+exec(open('../run_report.py').read())
