@@ -206,7 +206,7 @@ set these_sectors(d) /
   '45000'
   '46000'
   '47000'
-  '49011'
+  # '49011' # Unstable due to just one technology in heating
   # # '49012' # LBS: Very limited emissions
   # # '49022' # LBS: Very limited emissions
   '49024'
