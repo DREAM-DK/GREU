@@ -59,7 +59,7 @@ pTSupply.l[l,es,d,t]$(d1sqTPotential[l,es,d,t] and (sqT.l[l,es,d,t]*qES.l[es,d,t
     pTK.l[d,t]*uTK.l[l,es,d,t] + sum(e$(d1pEpj[es,e,d,t] and d1uTE[l,es,e,d,t]), pEpj_marg.l[es,e,d,t]*uTE.l[l,es,e,d,t]);
 
 # 2.4 Energy Input Demand Change
-qESE_MechCh.l[es,e,d,t]$(sum(l, d1sqTPotential[l,es,d,t]))
+qESE_MechCh.l[es,e,d,t]$(t.val >= t1.val and sum(l, d1sqTPotential[l,es,d,t]))
   = qES_baseline.l[es,d,t] * sum(l$(d1sqTPotential[l,es,d,t]), sqT.l[l,es,d,t] * uTE.l[l,es,e,d,t])
   - qESE_baseline.l[es,e,d,t];
 
