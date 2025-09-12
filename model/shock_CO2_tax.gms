@@ -33,13 +33,11 @@ parameter
 
 tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
 
-execute_unload 'pre_shock_carbon_tax.gdx';
-
 ## SHOCK TO EXOGENOUS VARIABLES
 
 # Apply carbon tax to specific energy types
 # tCO2_Emarg.l[em,es,e,i,t]$(d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t] + 100;
-tCO2_Emarg.l[em,es,e,i,t]$(d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t] + 1000;
+tCO2_Emarg.l[em,es,e,i,t]$(d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t] + 750;
 
 ## RUN CGE MODEL WITHOUT ABATEMENT MODEL
 # We turn the abatement model on to integrate it with the CGE-model
@@ -57,23 +55,35 @@ solve main using CNS;
 tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
 
 $IF %include_abatement% = 1:
-## RUN CGE MODEL WITH ABATEMENT MODEL
-d1switch_abatement[t] = 1;
-d1switch_integrate_abatement[t] = 1;
-
-$GROUP main_endogenous
-  main_endogenous
-  uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
-;
-
-# Set starting values for the abatement model
-$import Supply_curves_abatement.gms
-
-$FIX all_variables;
-$UNFIX main_endogenous;
-@Setbounds_abatement();
-Solve main using CNS;
-$IMPORT report_abatement.gms
+  ## RUN CGE MODEL WITH ABATEMENT MODEL
+  d1switch_abatement[t] = 1;
+  d1switch_integrate_abatement[t] = 1;
+  
+  $GROUP main_endogenous
+    main_endogenous
+    uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
+  ;
+  
+  # Set starting values for the abatement model
+  $import Supply_curves_abatement.gms
+  
+  $GROUP abatement_endogenous
+    abatement_endogenous
+    uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
+  ;
+  
+  # # Solve abatement model
+  # # @add_exist_dummies_to_model(abatement_equations);
+  # $FIX all_variables;
+  # $UNFIX abatement_endogenous;
+  # # @Setbounds_abatement();
+  # Solve abatement_equations using CNS;
+  # d1switch_integrate_abatement[t] = 1;
+  
+  $FIX all_variables;
+  $UNFIX main_endogenous;
+  @Setbounds_abatement();
+  Solve main using CNS;
 $ENDIF
 
 @import_from_modules("report")

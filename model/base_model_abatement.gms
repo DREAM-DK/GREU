@@ -2,7 +2,6 @@
 $IMPORT base_model.gms
 
 
-
 # ------------------------------------------------------------------------------
 # Run the abatement model alongside the CGE-model (no integration)
 # ------------------------------------------------------------------------------
@@ -14,15 +13,25 @@ d1switch_integrate_abatement[t] = 0;
 # $import Import_abatement_dummy_data.gms;
 # execute_unload 'update_dummy.gdx';
 
+# Set share parameters
+uES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
+jpTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pTK.l[i,t]/pK_k_i.l['iM',i,t];
+
 # Supply Curve Visualization
 $import premodel_abatement.gms
 $import energy_price_partial.gms
 $import Supply_curves_abatement.gms;
 
+# # Solve partial abatement model
+# @add_exist_dummies_to_model(abatement_equations);
+# $FIX all_variables;
+# $UNFIX abatement_endogenous;
+# # @Setbounds_abatement();
+# Solve abatement_equations using CNS;
+
 @add_exist_dummies_to_model(main);
 $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
-$IMPORT report_abatement.gms
 execute_unload 'Output\calibration_abatement.gdx';
 # $exit
 # ------------------------------------------------------------------------------
@@ -37,7 +46,6 @@ $import create_baseline_values.gms;
 
 $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
-$IMPORT report_abatement.gms
 execute_unload 'Output\calibration_abatement_integrated.gdx';
 
 # We switch jqESE and uREa when starting to shock the model (could be made more elegant)
