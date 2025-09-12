@@ -78,6 +78,39 @@ Parameters
   qEmmBorderTrade[em,t]                         "Border trade emissions data"
   Energybalance[ebalitems,transaction,d,es,e,t] "Main data input with regards to energy and energy-related emissions"
   NonEnergyEmissions[ebalitems,transaction,d,t] "Main data input with regards to non-energy related emissions"
+
+  vGov2Foreign[t] "payments to foreign countries"
+  vGovReceiveF[t] "payments from foreign countries"
+  vGovRent[t] "Land rent"
+  vGovInv[t] "Government investments"
+  vGovSub[t] "government subsidies"
+  vGov2Corp[t] "payments to domestic firms"
+  vGovReceiveCorp[t] "payments from domestic firms"
+  vGovExp[t] "Government expenditures except interest payments"
+  vGovRev[t] "public revenue except interest payments"
+  vtSource[t] "Revenue from income taxation (kildeskatter)"
+  vtVAT[t] "total revenue from VAT"
+  vtMedia[t] "Revenue from public media contribution"
+  vtCarWeight[t] "Revenue from taxation on paid weight charge"
+  vtIndirect[t] "revenue from indirect taxes"
+  vtDirect[t] "revenue from direct taxes"
+  vGovRevRest[t] "Other government revenues"
+  vG[t] "Value of public consumption"
+  vHhtransfers[t] "Government transfer payments"
+  vCont[t] "Contributions"
+  vtCorp[t] "revenue from corporate taxation"
+  vtPAL[t] "PAL tax revenue"
+  vtAM[t] "Revenue of taxation from payroll to labour market institutions"
+  vtPersIncRest[t] "Revenue from government taxation on other personal income"
+  vGovExpNetRest[t] "Revenue from net production taxes"
+  vtCAP_prodsubsidy[t] "Revenue from CAP production subsidies"
+  vtDividends[t] "revenue from dividends"
+  vtImport[t] "Revenue from import taxes"
+  vGovReceiveCorpNonCap[t] "Current transfer from domestic sectors"
+  vtCap[t] "Capital taxes"
+  vtGovDepr[t] "Consumption of fixed capital"
+  vGovRevQuasi[t] "Withdrawals from income of quasi-corporations"
+  vGovNetAcquisitions[t] "Acquisitions less disposals of non-produced non-financial assets"
 ;
 
 # £) 
@@ -88,6 +121,12 @@ $load vIO_y,vIO_m,vIO_a,vIOxE_y,vIOxE_m,vIOxE_a
 $load nEmployed,qL,qK,qI_k_i
 $load qEmmLULUCF,qEmmBorderTrade,qCO2_ETS_freeallowances
 $load Energybalance, NonEnergyEmissions
+$load vGov2Foreign,vGovReceiveF,vGovRent,vGovInv,vGovSub,vGov2Corp
+$load vGovReceiveCorp,vGovExp,vGovRev,vtSource,vtVAT,vtMedia,vtCarWeight
+$load vtIndirect,vtDirect,vGovRevRest,vG,vHhtransfers
+$load vCont,vtCorp,vtPAL,vtAM,vtPersIncRest,vGovExpNetRest
+$load vtCAP_prodsubsidy,vtDividends,vtImport,vGovReceiveCorpNonCap
+$load vtCap,vtGovDepr,vGovRevQuasi,vGovNetAcquisitions
 $gdxin
 #Creating auxiliary sets (These should be read from Python data)
 set demand_transaction_temp[transaction] /'input_in_production','household_consumption','inventory','export','transmission_losses'/; #AKB: In "demand_transaction" there is an error with "households" being the set-element for households
@@ -331,7 +370,7 @@ $PGROUP PG_GREU_data
   #uTK[l,es,i,t] "Capital use, technology."
 
   #Gov
-  vGov2Foreign[t] "Payments to foreign countries."
+  #vGov2Foreign[t] "Payments to foreign countries."
 ;
 
 #£)
@@ -499,6 +538,9 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   #theta[l,es,i,t] = sum(e, theta_load[l,es,i,e,t]);
   #uTE[l,es,e,i,t] = uTE_load[l,es,i,e,t];
   #uTK[l,es,i,t] = sum(e, uTK_load[l,es,i,e,t]);
+
+  # Create calibrated abatement data that matches historical energy use
+  $import Abatement_data/calib_abatement_techs.gms
 
 
 ###  F) Unload gdx with data in parameters with same names as model-variables, to be read into model

@@ -16,9 +16,9 @@
 				pEpj[es,e,d,t]$(d1pEpj[es,e,d,t])                      "Average price of energy"
 				fpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Sector average margin between average supplier price, and sector base price"
 
-				vEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t]) "Value of energy for demand sector d in base prices, measured in bio. kroner"
-				vEpj[es,e,d,t]$(d1pEpj[es,e,d,t]) "Value of energy for demand sector d, measured in bio. kroner"
-				vEpj_NAS[es,e,d,t]$(d1pEpj[es,e,d,t]) "Value of energy for demand sector d, excluding margins, measured in bio. kroner"
+				vEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t] and d1qEpj[es,e,d,t]) "Value of energy for demand sector d in base prices, measured in bio. kroner"
+				vEpj[es,e,d,t]$(d1pEpj[es,e,d,t] and d1qEpj[es,e,d,t]) "Value of energy for demand sector d, measured in bio. kroner"
+				vEpj_NAS[es,e,d,t]$(d1pEpj[es,e,d,t] and d1qEpj[es,e,d,t]) "Value of energy for demand sector d, excluding margins, measured in bio. kroner"
 			;
 
 
@@ -403,6 +403,14 @@
 		eDist.l[e] = 5;
 
 		pEpj.l[es,e,d,t]$(pEpj_base.l[es,e,d,t]) = fpt[t];
+
+		qEtot.l[e,t] = sum(i, qY_CET.l[e,i,t] + qM_CET.l[e,i,t]);
+
+		pE_avg.l[e,t]$(qEtot.l[e,t])
+			= (sum(i, pY_CET.l[e,i,t]*qY_CET.l[e,i,t]) 
+			 + sum(i, pM_CET.l[e,i,t]*qM_CET.l[e,i,t]))
+			 / qEtot.l[e,t];
+
 
 		# ------------------------------------------------------------------------------
 		# Dummies
