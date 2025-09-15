@@ -147,6 +147,7 @@ $BLOCK abatement_equations_output abatement_endogenous_output $(t1.val <= t.val 
     
   # Use of machinery capital for technologies
   .. qESK[es,d,t] =E= 
+    qES[es,d,t] * 
     sum(l$(d1sqTPotential[l,es,d,t]),
         sqTPotential[l,es,d,t]*@PartExpLogNorm(uTKmarg[l,es,d,t], uTKexp[l,es,d,t], eP[l,es,d,t]));
 
@@ -206,6 +207,19 @@ $MODEL abatement_equations
 # Add equation and endogenous variables to main model
 model main / abatement_equations /;
 $GROUP+ main_endogenous abatement_endogenous;
+
+# Create partial abatement model
+$GROUP abatement_partial_endogenous
+  abatement_LCOE_endogenous
+  abatement_endogenous_core
+  abatement_endogenous_output
+;
+
+$MODEL abatement_partial_equations  
+  abatement_LCOE_equations
+  abatement_equations_core
+  abatement_equations_output 
+;
 
 # 2.4 Solver Helper Function
 $FUNCTION Setbounds_abatement():
@@ -270,7 +284,7 @@ execute_load "../data/Abatement_data/calibrate_abatement_techs.gdx" LifeSpan=Lif
 DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
 
 # Set smoothing parameters
-eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.03;
+eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.05;
 
 # Set share parameter
 uES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];

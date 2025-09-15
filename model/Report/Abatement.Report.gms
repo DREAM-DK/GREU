@@ -13,6 +13,8 @@ $IF %stage% == "report_def":
 $Group+ report_variables "Report variables"
   sqTPotential_sum[es,d,t] "Sum of potentials for each energy service"
   sqTAdoption[l,es,d,t] "Adoption rate of technologies (between 0 and 1)"
+  sqTAdoption_Ch[l,es,d,t] "Change in adoption rates for each energy service"
+  sqTAdoption_baseline[l,es,d,t] "Adoption rate of technologies in baseline"
   pTSupply[l,es,d,t] "Average price of energy service supplied by technology l."
   uTK[l,es,d,t] "Average capital intensity of adopted variants of technology l"
   qESE_MechCh[es,e,d,t] "Change in energy input with baseline energy service demand"
@@ -46,8 +48,11 @@ sqTPotential_sum.l[es,d,t]$(sum(l, d1sqTPotential[l,es,d,t])) =
   sum(l, sqTPotential.l[l,es,d,t]);
 
 # 2.2 Technology Adoption Analysis
-sqTAdoption.l[l,es,d,t]$(d1sqTPotential[l,es,d,t]) = 
+sqTAdoption.l[l,es,d,t]$(t.val >= t1.val and d1sqTPotential[l,es,d,t]) = 
   sqT.l[l,es,d,t] / sqTPotential.l[l,es,d,t];
+
+sqTAdoption_Ch.l[l,es,d,t]$(t.val >= t1.val and d1sqTPotential[l,es,d,t]) = 
+  sqTAdoption.l[l,es,d,t] - sqTAdoption_baseline.l[l,es,d,t];
 
 # Calculate average capital intensity as conditional expectation
 # For technologies with adoption, calculate average capital intensity using conditional expectation formula

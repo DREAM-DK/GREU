@@ -68,18 +68,18 @@ $IF %include_abatement% = 1:
   # Set starting values for the abatement model
   $import Supply_curves_abatement.gms
 
-  $GROUP abatement_endogenous
-    abatement_endogenous
-    uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
-  ;
+  # $GROUP abatement_endogenous
+  #   abatement_endogenous
+  #   uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
+  # ;
 
-  # # Solve abatement model
-  # # @add_exist_dummies_to_model(abatement_equations);
-  # $FIX all_variables;
-  # $UNFIX abatement_endogenous;
-  # # @Setbounds_abatement();
-  # Solve abatement_equations using CNS;
-  # d1switch_integrate_abatement[t] = 1;
+  # Solve partial abatement model
+  $FIX all_variables;
+  $UNFIX abatement_partial_endogenous;
+  # @Setbounds_abatement();
+  Solve abatement_partial_equations using CNS;
+
+  execute_unload 'Output\shock_carbon_tax_abatement_partial.gdx';
 
   $FIX all_variables;
   $UNFIX main_endogenous;

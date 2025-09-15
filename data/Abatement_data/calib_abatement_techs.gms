@@ -181,16 +181,16 @@ set these_sectors(d) /
   '03000'
   '0600a'
   '10010' # LBS: Works with high prices on electrification technologies
-  '10020' 
+  # '10020' # Error in process_special when shocking tax on calibrated capital costs
   '10030' # LBS: Works with high prices on electrification technologies
-  '10040' 
+  # '10040' # Error in process_special when shocking tax on calibrated capital costs
   '10120' # LBS: Works with high prices on electrification technologies
   '13150' 
   # '16000' # LBS: Very limited emissions
   '19000' # LBS: Works with high prices on electrification technologies
-  '20000' 
-  '21000' 
-  '23001' # LBS: Works with high prices on electrification technologies
+  # '20000' # Error in process_special when shocking tax on calibrated capital costs
+  # '21000' # Error in process_special when shocking tax on calibrated capital costs
+  # '23001' # LBS: Works with high prices on electrification technologies
   '23002' 
   '25000' 
   '35011' 

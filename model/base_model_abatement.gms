@@ -22,12 +22,12 @@ $import premodel_abatement.gms
 $import energy_price_partial.gms
 $import Supply_curves_abatement.gms;
 
-# # Solve partial abatement model
-# @add_exist_dummies_to_model(abatement_equations);
+# Solve partial abatement model
+@add_exist_dummies_to_model(abatement_partial_equations);
 # $FIX all_variables;
-# $UNFIX abatement_endogenous;
+# $UNFIX abatement_partial_endogenous;
 # # @Setbounds_abatement();
-# Solve abatement_equations using CNS;
+# Solve abatement_partial_equations using CNS;
 
 @add_exist_dummies_to_model(main);
 $FIX all_variables; $UNFIX main_endogenous;
@@ -41,7 +41,7 @@ execute_unload 'Output\calibration_abatement.gdx';
 d1switch_abatement[t] = 1;
 d1switch_integrate_abatement[t] = 1;
 
-# Create baseline values for the abatement model (maybe not needed)
+# Create baseline values for the abatement model
 $import create_baseline_values.gms;
 
 $FIX all_variables; $UNFIX main_endogenous;
@@ -56,6 +56,47 @@ $GROUP main_endogenous
 
 # qREa.l[es,e_a,i,t]$(sameas(e_a,'Captured CO2')) = qESE.l[es,e_a,i,t];
 # jqESE.l[es,e_a,i,t]$(sameas(e_a,'Captured CO2')) = 0;
+
+# ------------------------------------------------------------------------------
+# Calibrate decreasing capital costs for electrification technologies
+# ------------------------------------------------------------------------------
+# Define the electrification technologies
+set electrification_techs[l] /
+  't26'
+  't27'
+  't28'
+  't29'
+  /;
+
+# Investment costs decrease by 1 pct. per year
+vTI.l[l,es,i,t]$(t.val > t1.val and t.val <= 2030 and d1sqTPotential[l,es,i,t] and electrification_techs[l])
+  = vTI.l[l,es,i,t] * 0.99**(t.val - t1.val);
+
+vTI.l[l,es,i,t]$(t.val > 2030 and d1sqTPotential[l,es,i,t] and electrification_techs[l])
+  = vTI.l[l,es,i,'2030'];
+
+# Operating costs decrease by 1 pct. per year
+vTC.l[l,es,i,t]$(t.val > t1.val and t.val <= 2030 and d1sqTPotential[l,es,i,t] and electrification_techs[l])
+  = vTC.l[l,es,i,t]  * 0.99**(t.val - t1.val);
+
+vTC.l[l,es,i,t]$(t.val > 2030 and d1sqTPotential[l,es,i,t] and electrification_techs[l])
+  = vTC.l[l,es,i,'2030'];
+
+# Supply Curve Visualization
+$import Supply_curves_abatement.gms;
+
+  # Solve partial abatement model
+  $FIX all_variables;
+  $UNFIX abatement_partial_endogenous;
+  # @Setbounds_abatement();
+  Solve abatement_partial_equations using CNS;
+
+  execute_unload 'Output\calibration_capital_costs_abatement_partial.gdx';
+
+# Solve model
+$FIX all_variables; $UNFIX main_endogenous;
+solve main using CNS;
+execute_unload 'Output\calibration_capital_costs.gdx';
 
 # ------------------------------------------------------------------------------
 # Tests
