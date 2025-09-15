@@ -15,6 +15,8 @@ $Group+ all_variables
   vGovPrimaryBalance[t] "Primary balance of government."
   vGovRevenue[t] "Revenue of government."
   vGovExpenditure[t] "Expenditure of government."
+
+  vNetGov2Corp_xIO[i,t] "Net transfers from goverment to corporations not covered in the input-output module"
 ;
 
 $ENDIF # variables
@@ -37,9 +39,25 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
   .. vGovRevenue[t] =E=     + sum(i$i_public[i], vEBITDA_i[i,t]) - vI_public[t]
                             + vtY[t] + vtM[t] # Net duties, paid through R, E, I, C, G, and X
                             + vtY_Tax[t]  - vtCO2_ETS_tot[t] #Production taxes minus ETS-revenue
-                            + vHhTaxes[t] + vCorpTaxes[t];
+                            + vHhTaxes[t] + vCorpTaxes[t]
+                            + sum(i, vtCO2_xE[i,t])
+                            ;
 
   .. vGovExpenditure[t] =E= vG[t] + vHhTransfers[t] + vtY_Sub[t];
+
+
+# Income flow to the other sectors
+
+ .. vNetGov2Corp_xIO[i,t] =E= - vtCO2_xE[i,t];
+
+  # .. vNetGov2Corp_xIO[i,t] =E=  sGovSub_Residual[t] * vtY_i_sub[i,t]
+  #                              +sGov2Corp[t] * vGVA_i[i,t]
+  #                              -vtCO2e_non_energy[i,t]
+  #                              -vtIndirect_other[i,t]
+  #                              ;
+
+
+  # .. vNetHh2Gov[t] =E= vtHhReturn[t] + vtHhWages[t] + vtDirect_other[t] - vHhTransfers[t] - vLumpsum[t];
 
 
 $ENDBLOCK

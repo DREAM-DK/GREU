@@ -28,3 +28,16 @@ sets
   CO2_tax[etaxes]/CO2_tax/
   ;
       
+set CO2etax "Categories of CO2e-taxation" /
+    "energy_Corp"
+    "energy_Hh"
+    "non_energy"/
+;
+
+set energy_Corp[CO2etax] "Energy used in industries" /"energy_Corp"/;
+set energy_Hh[CO2etax] "Household use of energy" /"energy_Hh"/;
+set non_energy[CO2etax] "Non-energy use" /"non_energy"/;
+set energy[CO2etax] "Energy use" /"energy_Corp", "energy_Hh"/;
+
+
+set c_co2_tax[d]  "Consumer demand that is taxed with the CO2-tax" /cCarEne, cHouEne/;

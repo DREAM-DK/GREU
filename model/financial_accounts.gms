@@ -65,7 +65,7 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
                             - vX[t]
                             + vtCO2_ETS_tot[t];
 
-  .. vEBITDA_i[i,t] =E= vY_i[i,t] - vWages_i[i,t] - vD[i,t] - vE_i[i,t] - vtY_i_NetTaxSub[i,t]; # Net duties should be subtracted here - AKB: What? They are contained in vD and vE_i
+  .. vEBITDA_i[i,t] =E= vY_i[i,t] - vWages_i[i,t] - vD[i,t] - vE_i[i,t] - vtY_i_NetTaxSub[i,t] + vNetGov2Corp_xIO[i,t]; # Net duties should be subtracted here - AKB: What? They are contained in vD and vE_i
 
   # For now, we assume that households own all domestic equity going forward
   .. vNetEquity[Gov,t] =E= 0;

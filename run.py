@@ -32,6 +32,7 @@ dt.gamY.run("shock_model.gms", include_abatement="1")
 ## Run a CO2 tax shock
 dt.gamY.run("shock_CO2_tax.gms", include_abatement="1")
 
+dt.gamY.run("shock_CO2_tax_steps.gms", include_abatement="0")
 
 ## Open run_report.py to see all the reporting
 exec(open('../run_report.py').read())

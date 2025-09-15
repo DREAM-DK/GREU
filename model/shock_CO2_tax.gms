@@ -33,11 +33,15 @@ parameter
 
 tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
 
+
 ## SHOCK TO EXOGENOUS VARIABLES
 
-# Apply carbon tax to specific energy types
-# tCO2_Emarg.l[em,es,e,i,t]$(d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t] + 100;
-tCO2_Emarg.l[em,es,e,i,t]$(d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t] + 750;
+# Apply carbon tax to specific energy types inkluding household use of energy
+tCO2_Emarg.l[em,es,e,d,t]$(d1tCO2_E[em,es,e,d,t]) = tCO2_Emarg.l[em,es,e,d,t] + 750;
+# Apply carbon tax to non-energy emissions
+tCO2_xEmarg.l[i,t]$(d1tCO2_xE[i,t]) = tCO2_xEmarg.l[i,t] + 750;
+
+
 
 ## RUN CGE MODEL WITHOUT ABATEMENT MODEL
 # We turn the abatement model on to integrate it with the CGE-model
@@ -47,6 +51,8 @@ d1switch_integrate_abatement[t] = 0;
 $GROUP main_endogenous
   main_endogenous
   -uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
+  vG2vGDP, -qG, 
+  # vLumpsum, -vGovPrimaryBalance  
 ;
 
 $FIX all_variables; $UNFIX main_endogenous;
@@ -54,6 +60,7 @@ $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
 
 tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
+
 
 $IF %include_abatement% = 1:
   ## RUN CGE MODEL WITH ABATEMENT MODEL
@@ -63,30 +70,28 @@ $IF %include_abatement% = 1:
   $GROUP main_endogenous
     main_endogenous
     uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
+    vG2vGDP, -qG, 
+    # vLumpsum, -vGovPrimaryBalance    
   ;
 
   # Set starting values for the abatement model
   $import Supply_curves_abatement.gms
 
-  # $GROUP abatement_endogenous
-  #   abatement_endogenous
-  #   uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
-  # ;
-
   # Solve partial abatement model
   $FIX all_variables;
   $UNFIX abatement_partial_endogenous;
-  # @Setbounds_abatement();
   Solve abatement_partial_equations using CNS;
-
   execute_unload 'Output\shock_carbon_tax_abatement_partial.gdx';
 
   $FIX all_variables;
   $UNFIX main_endogenous;
   # @Setbounds_abatement();
   Solve main using CNS;
+
 $ENDIF
 
+
+# Report results
 @import_from_modules("report")
 
 $IF %include_abatement% = 1:
