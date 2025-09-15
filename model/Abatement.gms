@@ -284,7 +284,7 @@ execute_load "../data/Abatement_data/calibrate_abatement_techs.gdx" LifeSpan=Lif
 DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
 
 # Set smoothing parameters
-eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.05;
+eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.03;
 
 # Set share parameter
 uES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
