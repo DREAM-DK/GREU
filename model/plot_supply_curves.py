@@ -2,7 +2,7 @@ def plot_supply_curve(gdxname,desired_sectors=None):
     if desired_sectors:
         desired_sectors=[str(x) for x in desired_sectors]
     # Define which years the supply curves should be plottet for
-    year_list = [2020]
+    year_list = [2050]
 
     # Import packages
     import dreamtools as dt

@@ -69,18 +69,18 @@ set electrification_techs[l] /
   /;
 
 # Investment costs decrease by 1 pct. per year
-vTI.l[l,es,i,t]$(t.val > t1.val and t.val <= 2030 and d1sqTPotential[l,es,i,t] and electrification_techs[l])
+vTI.l[l,es,i,t]$(t.val > t1.val and t.val <= 2050 and d1sqTPotential[l,es,i,t] and electrification_techs[l])
   = vTI.l[l,es,i,t] * 0.99**(t.val - t1.val);
 
-vTI.l[l,es,i,t]$(t.val > 2030 and d1sqTPotential[l,es,i,t] and electrification_techs[l])
-  = vTI.l[l,es,i,'2030'];
+# vTI.l[l,es,i,t]$(t.val > 2030 and d1sqTPotential[l,es,i,t] and electrification_techs[l])
+#   = vTI.l[l,es,i,'2030'];
 
 # Operating costs decrease by 1 pct. per year
-vTC.l[l,es,i,t]$(t.val > t1.val and t.val <= 2030 and d1sqTPotential[l,es,i,t] and electrification_techs[l])
+vTC.l[l,es,i,t]$(t.val > t1.val and t.val <= 2050 and d1sqTPotential[l,es,i,t] and electrification_techs[l])
   = vTC.l[l,es,i,t]  * 0.99**(t.val - t1.val);
 
-vTC.l[l,es,i,t]$(t.val > 2030 and d1sqTPotential[l,es,i,t] and electrification_techs[l])
-  = vTC.l[l,es,i,'2030'];
+# vTC.l[l,es,i,t]$(t.val > 2030 and d1sqTPotential[l,es,i,t] and electrification_techs[l])
+#   = vTC.l[l,es,i,'2030'];
 
 # Supply Curve Visualization
 $import Supply_curves_abatement.gms;
@@ -97,6 +97,10 @@ $import Supply_curves_abatement.gms;
 $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
 execute_unload 'Output\calibration_capital_costs.gdx';
+
+# Report variables
+@import_from_modules("report_def")
+@import_from_modules("report_baseline")
 
 # ------------------------------------------------------------------------------
 # Tests

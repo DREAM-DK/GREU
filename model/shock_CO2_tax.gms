@@ -83,7 +83,7 @@ $IF %include_abatement% = 1:
 
   $FIX all_variables;
   $UNFIX main_endogenous;
-  @Setbounds_abatement();
+  # @Setbounds_abatement();
   Solve main using CNS;
 $ENDIF
 

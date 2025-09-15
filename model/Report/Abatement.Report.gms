@@ -30,6 +30,8 @@ $ENDIF # report_def
 
 $IF %stage% == "report_baseline":
 
+  sqTAdoption_baseline.l[l,es,d,t] = sqTAdoption.l[l,es,d,t];
+
   qES_baseline.l[es,d,t] = qES.l[es,d,t];
 
   qESE_baseline.l[es,e,d,t] = qESE.l[es,e,d,t];
