@@ -98,10 +98,6 @@ $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
 execute_unload 'Output\calibration_capital_costs.gdx';
 
-# Report variables
-@import_from_modules("report_def")
-@import_from_modules("report_baseline")
-
 # ------------------------------------------------------------------------------
 # Tests
 # ------------------------------------------------------------------------------

@@ -11,15 +11,19 @@
 $IF %stage% == "report_def":
 
 $Group+ report_variables "Report variables"
+  # Baseline variables
+  sqT_baseline[l,es,d,t] "Supply by technology in baseline"
+  sqTPotential_baseline[l,es,d,t] "Potential supply by technology in baseline"
+  qES_baseline[es,d,t] "Energy service demand in baseline"
+  qESE_baseline[es,e,d,t] "Energy input in baseline"
+  # Reporting variables
   sqTPotential_sum[es,d,t] "Sum of potentials for each energy service"
   sqTAdoption[l,es,d,t] "Adoption rate of technologies (between 0 and 1)"
   sqTAdoption_Ch[l,es,d,t] "Change in adoption rates for each energy service"
-  sqTAdoption_baseline[l,es,d,t] "Adoption rate of technologies in baseline"
+  # sqTAdoption_baseline[l,es,d,t] "Adoption rate of technologies in baseline"
   pTSupply[l,es,d,t] "Average price of energy service supplied by technology l."
   uTK[l,es,d,t] "Average capital intensity of adopted variants of technology l"
   qESE_MechCh[es,e,d,t] "Change in energy input with baseline energy service demand"
-  qES_baseline[es,d,t] "Energy service demand in baseline"
-  qESE_baseline[es,e,d,t] "Energy input in baseline"
   ;
 
 $ENDIF # report_def
@@ -30,10 +34,11 @@ $ENDIF # report_def
 
 $IF %stage% == "report_baseline":
 
-  sqTAdoption_baseline.l[l,es,d,t] = sqTAdoption.l[l,es,d,t];
+  sqT_baseline.l[l,es,d,t] = sqT.l[l,es,d,t];
+  sqTPotential_baseline.l[l,es,d,t] = sqTPotential.l[l,es,d,t];
+  # sqTAdoption_baseline.l[l,es,d,t] = sqTAdoption.l[l,es,d,t];
 
   qES_baseline.l[es,d,t] = qES.l[es,d,t];
-
   qESE_baseline.l[es,e,d,t] = qESE.l[es,e,d,t];
 
 $ENDIF # report_baseline
@@ -54,7 +59,7 @@ sqTAdoption.l[l,es,d,t]$(t.val >= t1.val and d1sqTPotential[l,es,d,t]) =
   sqT.l[l,es,d,t] / sqTPotential.l[l,es,d,t];
 
 sqTAdoption_Ch.l[l,es,d,t]$(t.val >= t1.val and d1sqTPotential[l,es,d,t]) = 
-  sqTAdoption.l[l,es,d,t] - sqTAdoption_baseline.l[l,es,d,t];
+  sqTAdoption.l[l,es,d,t] - sqT_baseline.l[l,es,d,t] / sqTPotential_baseline.l[l,es,d,t];
 
 # Calculate average capital intensity as conditional expectation
 # For technologies with adoption, calculate average capital intensity using conditional expectation formula
