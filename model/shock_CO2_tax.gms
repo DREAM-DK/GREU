@@ -33,8 +33,6 @@ parameter
 
 tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
 
-execute_unload 'pre_shock_carbon_tax.gdx';
-
 
 ## SHOCK TO EXOGENOUS VARIABLES
 
@@ -82,7 +80,6 @@ $FIX all_variables;
 $UNFIX main_endogenous;
 @Setbounds_abatement();
 Solve main using CNS;
-$IMPORT report_abatement.gms
 $ENDIF
 
 
