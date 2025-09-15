@@ -10,6 +10,7 @@ exec(open('Report/report_settings.py').read())
 dt.REFERENCE_DATABASE = b = dt.Gdx("Output/baseline.gdx") # b for baseline
 s = dt.Gdx("Output/shock_carbon_tax.gdx") # s for shock
 s_a = dt.Gdx("Output/shock_carbon_tax_abatement.gdx") # s for shock
+s_steps = dt.Gdx("Output/shock_carbon_tax_steps.gdx") # s for shock
 
 dt.time(2019, 2030)
 
@@ -22,21 +23,21 @@ dt.plot([b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], names=["Total emissions"], 
 dt.plot([s.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']], s_a.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], "m", names=["Only CGE", "CGE with abatement"], layout={"title": "CO2e emissions, total"})
 
 
-# dt.plot([b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']], b.qCO2e_taxgroup], layout={"title": "CO2e emissions, total"})
-# dt.plot([b.qCO2e_taxgroup, b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], names=["Energy, Corp", "Energy, Hh", "Non-energy", "All emissions"], layout={"title": "CO2e emissions, total"})
+dt.plot([b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']], b.qCO2e_taxgroup], layout={"title": "CO2e emissions, total"})
+dt.plot([b.qCO2e_taxgroup, b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], names=["Energy, Corp", "Energy, Hh", "Non-energy", "All emissions"], layout={"title": "CO2e emissions, total"})
 
 
-# energyCorpPart = b.qCO2e_taxgroup.loc[['energy_Corp']]/b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]*100
-# energyHhPart = b.qCO2e_taxgroup.loc[['energy_Hh']]/b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]*100
-# nonEnergyPart = b.qCO2e_taxgroup.loc[['non_energy']]/b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]*100
-# energyCorpPart = energyCorpPart.droplevel('em').droplevel('CO2etax').droplevel('em_accounts')
-# energyHhPart = energyHhPart.droplevel('em').droplevel('CO2etax').droplevel('em_accounts')
-# nonEnergyPart = nonEnergyPart.droplevel('em').droplevel('CO2etax').droplevel('em_accounts')
-# NotPart = 100 - energyCorpPart - energyHhPart - nonEnergyPart
+energyCorpPart = b.qCO2e_taxgroup.loc[['energy_Corp']]/b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]*100
+energyHhPart = b.qCO2e_taxgroup.loc[['energy_Hh']]/b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]*100
+nonEnergyPart = b.qCO2e_taxgroup.loc[['non_energy']]/b.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]*100
+energyCorpPart = energyCorpPart.droplevel('em').droplevel('CO2etax').droplevel('em_accounts')
+energyHhPart = energyHhPart.droplevel('em').droplevel('CO2etax').droplevel('em_accounts')
+nonEnergyPart = nonEnergyPart.droplevel('em').droplevel('CO2etax').droplevel('em_accounts')
+NotPart = 100 - energyCorpPart - energyHhPart - nonEnergyPart
 
-# dt.plot([energyCorpPart, energyHhPart, nonEnergyPart, NotPart], names=["Energy, Corp", "Energy, Hh", "Non-energy", "Not part of tax"], layout={"title": "Tax categories part of total CO2e emissions (%)"})
-# dt.plot([s.qCO2e_taxgroup, s.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], "m", names=["Energy, Corp", "Energy, Hh", "Non-energy", "All emissions"], layout={"title": "Change in CO2e emissions"})
-# dt.plot([s.qCO2e_taxgroup, s.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], "pq", names=["Energy, Corp", "Energy, Hh", "Non-energy", "All emissions"], layout={"title": "Change in CO2e emissions"})
+dt.plot([energyCorpPart, energyHhPart, nonEnergyPart, NotPart], names=["Energy, Corp", "Energy, Hh", "Non-energy", "Not part of tax"], layout={"title": "Tax categories part of total CO2e emissions (%)"})
+dt.plot([s.qCO2e_taxgroup, s.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], "m", names=["Energy, Corp", "Energy, Hh", "Non-energy", "All emissions"], layout={"title": "Change in CO2e emissions"})
+dt.plot([s.qCO2e_taxgroup, s.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], "pq", names=["Energy, Corp", "Energy, Hh", "Non-energy", "All emissions"], layout={"title": "Change in CO2e emissions"})
 
 
 

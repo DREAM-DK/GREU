@@ -39,9 +39,9 @@ execute_unload 'pre_shock_carbon_tax.gdx';
 ## SHOCK TO EXOGENOUS VARIABLES
 
 # Apply carbon tax to specific energy types inkluding household use of energy
-tCO2_Emarg.l[em,es,e,d,t]$(d1tCO2_E[em,es,e,d,t]) = tCO2_Emarg.l[em,es,e,d,t] + 750;
+tCO2_Emarg.l[em,es,e,d,t]$(d1tCO2_E[em,es,e,d,t]) = tCO2_Emarg.l[em,es,e,d,t] + 750/2;
 # Apply carbon tax to non-energy emissions
-tCO2_xEmarg.l[i,t]$(d1tCO2_xE[i,t]) = tCO2_xEmarg.l[i,t] + 750;
+tCO2_xEmarg.l[i,t]$(d1tCO2_xE[i,t]) = tCO2_xEmarg.l[i,t] + 750/2;
 
 
 
@@ -54,7 +54,7 @@ $GROUP main_endogenous
   main_endogenous
   -uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
   vG2vGDP, -qG, 
-  # vLumpsum, -vGovPrimaryBalance  
+  # vLumpsum, -vGovPrimaryBalance
 ;
 
 $FIX all_variables; $UNFIX main_endogenous;
@@ -72,7 +72,7 @@ $GROUP main_endogenous
   main_endogenous
   uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
   vG2vGDP, -qG, 
-  # vLumpsum, -vGovPrimaryBalance    
+  # vLumpsum, -vGovPrimaryBalance
 ;
 
 # Set starting values for the abatement model
@@ -86,15 +86,72 @@ $IMPORT report_abatement.gms
 $ENDIF
 
 
+
+
+# step 2
+
+## SHOCK TO EXOGENOUS VARIABLES
+
+# Apply carbon tax to specific energy types inkluding household use of energy
+tCO2_Emarg.l[em,es,e,d,t]$(d1tCO2_E[em,es,e,d,t]) = tCO2_Emarg.l[em,es,e,d,t] + 750/2;
+# Apply carbon tax to non-energy emissions
+tCO2_xEmarg.l[i,t]$(d1tCO2_xE[i,t]) = tCO2_xEmarg.l[i,t] + 750/2;
+
+
+
+## RUN CGE MODEL WITHOUT ABATEMENT MODEL
+# We turn the abatement model on to integrate it with the CGE-model
+d1switch_abatement[t] = 0;
+d1switch_integrate_abatement[t] = 0;
+
+$GROUP main_endogenous
+  main_endogenous
+  uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
+  vG2vGDP, -qG, 
+  # vLumpsum, -vGovPrimaryBalance
+;
+$FIX all_variables; $UNFIX main_endogenous;
+solve main using CNS;
+
+tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
+
+
+$IF %include_abatement% = 1:
+## RUN CGE MODEL WITH ABATEMENT MODEL
+d1switch_abatement[t] = 1;
+d1switch_integrate_abatement[t] = 1;
+
+$GROUP main_endogenous
+  main_endogenous
+  uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
+  vG2vGDP, -qG, 
+  # vLumpsum, -vGovPrimaryBalance
+;
+
+# Set starting values for the abatement model
+$import Supply_curves_abatement.gms
+
+$FIX all_variables;
+$UNFIX main_endogenous;
+@Setbounds_abatement();
+Solve main using CNS;
+$IMPORT report_abatement.gms
+$ENDIF
+
+
+
+
+
+
 # Report results
 @import_from_modules("report")
 
 $IF %include_abatement% = 1:
-execute_unload 'Output\shock_carbon_tax_abatement.gdx';
+execute_unload 'Output\shock_carbon_tax_abatement_steps.gdx';
 $ENDIF
 
 $IF %include_abatement% = 0:
-execute_unload 'Output\shock_carbon_tax.gdx';
+execute_unload 'Output\shock_carbon_tax_steps.gdx';
 $ENDIF
 @import_from_modules("tests")
 
