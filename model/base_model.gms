@@ -68,6 +68,8 @@ $Group all_variables ; # All variables in the model
 $Group main_endogenous ;
 $Group data_covered_variables ; # Variables that are covered by data
 $Group G_flat_after_last_data_year ; # Variables that are extended with "flat forecast" after last data year
+$Group G_zero_after_last_data_year ; # Variables that are set to zero after last data year
+$Group G_zero_t1_after_static_calibration ; # Variables that are set to zero in t1 after static calibration
 $SetGroup SG_flat_after_last_data_year ; # Dummies that are extended with "flat forecast" after last data year
 @import_from_modules("variables")
 $IMPORT variable_groups.gms

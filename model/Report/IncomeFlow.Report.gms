@@ -28,8 +28,8 @@ $IF %stage% == "report":
   vIncomeFlow.l['HhTaxes','Hh',t] = -vHhTaxes.l[t];
   vIncomeFlow.l['HhTaxes','Gov',t] = vHhTaxes.l[t];
   vIncomeFlow.l['C','Hh',t] = -vC.l[t];
-  vIncomeFlow.l['CorpTaxes','Corp',t] = -vCorpTaxes.l[t];
-  vIncomeFlow.l['CorpTaxes','Gov',t] = vCorpTaxes.l[t];
+  # vIncomeFlow.l['CorpTaxes','Corp',t] = -vCorpTaxes.l[t];
+  # vIncomeFlow.l['CorpTaxes','Gov',t] = vCorpTaxes.l[t];
   vIncomeFlow.l['Y','Corp',t] = sum(i$i_private[i], vY_i.l[i,t] - vD.l[i,t] - vE_i.l[i,t]);
   # vIncomeFlow.l['NetTaxSub','Gov',t] =  vtY_NetTaxSub.l[t]+sum(i$i_private[i], vtCO2e_non_energy.l[i,t]);
   # vIncomeFlow.l['NetTaxSub','Corp',t] = -vtY_NetTaxSub.l[t]-sum(i$i_private[i], vtCO2e_non_energy.l[i,t]);

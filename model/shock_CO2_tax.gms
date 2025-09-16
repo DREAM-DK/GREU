@@ -52,7 +52,7 @@ $GROUP main_endogenous
   main_endogenous
   -uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
   vG2vGDP, -qG, 
-  # vLumpsum, -vGovPrimaryBalance  
+  vLumpsum, -vGovPrimaryBalance  
 ;
 
 $FIX all_variables; $UNFIX main_endogenous;
@@ -70,7 +70,7 @@ $GROUP main_endogenous
   main_endogenous
   uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
   vG2vGDP, -qG, 
-  # vLumpsum, -vGovPrimaryBalance    
+  vLumpsum, -vGovPrimaryBalance    
 ;
 
 # Set starting values for the abatement model

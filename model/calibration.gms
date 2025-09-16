@@ -53,6 +53,11 @@ $LOOP G_flat_after_last_data_year:
 	{name}.l{sets}$({conditions} and t.val > t1.val) = {name}.l{sets}{$}[<t>t1];
 $ENDLOOP
 
+$LOOP G_zero_t1_after_static_calibration:
+	{name}.l{sets}$({conditions} and t.val = t1.val) = 0;
+$ENDLOOP
+
+
 # Starting values to hot-start solver
 # $Group G_do_not_load ;
 # $Group G_load calibration_endogenous, - G_do_not_load;
