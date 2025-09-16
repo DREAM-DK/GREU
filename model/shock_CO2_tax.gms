@@ -23,7 +23,7 @@ execute_unload 'Output\baseline.gdx';
 # ------------------------------------------------------------------------------
 # Shock model
 # ------------------------------------------------------------------------------
-set_time_periods(2020, %terminal_year%);
+set_time_periods(2021, %terminal_year%);
 
 
 
@@ -56,15 +56,16 @@ $GROUP main_endogenous
 ;
 
 $FIX all_variables; $UNFIX main_endogenous;
+# execute_unload 'Output\pre_CO2_shock.gdx';
 solve main using CNS;
 
 tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
 
 
 $IF %include_abatement% = 1:
-## RUN CGE MODEL WITH ABATEMENT MODEL
-d1switch_abatement[t] = 1;
-d1switch_integrate_abatement[t] = 1;
+  ## RUN CGE MODEL WITH ABATEMENT MODEL
+  d1switch_abatement[t] = 1;
+  d1switch_integrate_abatement[t] = 1;
 
 $GROUP main_endogenous
   main_endogenous
@@ -73,13 +74,20 @@ $GROUP main_endogenous
   vLumpsum, -vGovPrimaryBalance    
 ;
 
-# Set starting values for the abatement model
-$import Supply_curves_abatement.gms
+  # Set starting values for the abatement model
+  $import Supply_curves_abatement.gms
 
-$FIX all_variables;
-$UNFIX main_endogenous;
-@Setbounds_abatement();
-Solve main using CNS;
+  # Solve partial abatement model
+  $FIX all_variables;
+  $UNFIX abatement_partial_endogenous;
+  Solve abatement_partial_equations using CNS;
+  execute_unload 'Output\shock_carbon_tax_abatement_partial.gdx';
+
+  $FIX all_variables;
+  $UNFIX main_endogenous;
+  # @Setbounds_abatement();
+  Solve main using CNS;
+
 $ENDIF
 
 
@@ -93,5 +101,7 @@ $ENDIF
 $IF %include_abatement% = 0:
 execute_unload 'Output\shock_carbon_tax.gdx';
 $ENDIF
+
+jvY_i.l[i,t]$(t.val LE t1.val) = 0;
 @import_from_modules("tests")
 
