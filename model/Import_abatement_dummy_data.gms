@@ -46,8 +46,6 @@ d1uTE[l,es,e,d,t] = yes$(uTE.l[l,es,e,d,t]);
 d1pTK[d,t] = yes$(sum((l,es), d1sqTPotential[l,es,d,t]));
 d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 d1qES[es,d,t] = yes$(qES.l[es,d,t]);
-d1switch_abatement[t] = 1;
-d1switch_integrate_abatement[t] = 0;
 
 # 4.4 Starting values for Levelized Cost of Energy (LCOE)
 uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,es,d,t]) =

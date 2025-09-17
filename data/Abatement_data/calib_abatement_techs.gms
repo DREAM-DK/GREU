@@ -109,7 +109,7 @@ loop(l$(sum((es,i,t), sqTPotential[l,es,i,t]) and not sameas(l, 't1')),
 );
 
 uTKexp[l,es,i,t]$(sqTPotential[l,es,i,t])
- = ((pTPotential[l,es,i,t]) # The electrification technology is 20 pct. more expensive than the most expensive baseline technology
+ = ((pTPotential[l,es,i,t]) 
    - sum(e, uTE[l,es,e,i,t]*pEpj_marg[es,e,i,t]))
  / pTK[i,t];
 
@@ -118,16 +118,6 @@ vTI[l,es,i,t]$(sqTPotential[l,es,i,t])
   / (1+0.1*@FiniteGeometricSeries({1}, {DiscountRate[l,es,i]}, {LifeSpan[l,es,i,t]}));
 
 vTC[l,es,i,t] = vTI[l,es,i,t]/10;
-
-
-# ----------------------------------------------------------------------------------------
-# Calculating technology costs
-# ----------------------------------------------------------------------------------------
-
-uTKexp[l,es,i,t]$(sqTPotential[l,es,i,t]) 
-  = (vTI[l,es,i,t]
-    + vTC[l,es,i,t]*@FiniteGeometricSeries({1}, {DiscountRate[l,es,i]}, {LifeSpan[l,es,i,t]}))
-  / @FiniteGeometricSeries({1}, {DiscountRate[l,es,i]}, {LifeSpan[l,es,i,t]});
 
 
 ## ----------------------------------------------------------------------------------------
@@ -186,17 +176,6 @@ vTI[l,es,i,t]$(sqTPotential[l,es,i,t] and electrification_techs[l])
 
 vTC[l,es,i,t] = vTI[l,es,i,t]/10;
 
-# 1.2 Starting values for Levelized Cost of Energy (LCOE)
-uTKexp[l,es,i,t]$(sqTPotential[l,es,i,t]) 
-  = (vTI[l,es,i,t]
-    + vTC[l,es,i,t]*@FiniteGeometricSeries({1}, {DiscountRate[l,es,i]}, {LifeSpan[l,es,i,t]}))
-  / @FiniteGeometricSeries({1}, {DiscountRate[l,es,i]}, {LifeSpan[l,es,i,t]});
-
-
-# 1.3 Technology Prices
-# Technology price for plotting the discrete supply curve
-pTPotential[l,es,d,t] = sum(e, uTE[l,es,e,d,t]*pEpj_marg[es,e,d,t])
-                        + uTKexp[l,es,d,t]*pTK[d,t];
 
 ## ----------------------------------------------------------------------------------------
 ## Updating dummies
