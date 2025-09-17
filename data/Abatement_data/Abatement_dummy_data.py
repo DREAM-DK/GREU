@@ -149,17 +149,15 @@ i=gp.Set(db_abatement,name='i',description='Industry',records=set_industry_list)
 t=gp.Set(db_abatement,name='t',description='Year',records=set_year_list)
 
 # Adding parameters to database
-sqTPotential=gp.Parameter(db_abatement,name='sqTPotential',domain=[l,es,i,t],description='Potential supply by technology l in ratio of energy service (share of qES)',records=df_sqTPotential.values.tolist())
-uTE=gp.Parameter(db_abatement,name='uTE_load',domain=[l,e],description='Input of energy in technology l per PJ output at full potential',records=df_uTE.values.tolist())
-vTI=gp.Parameter(db_abatement,name='vTI',domain=[l,es,i,t],description='Investment costs in technology l per PJ output at full potential',records=df_vTI.values.tolist())
-vTC=gp.Parameter(db_abatement,name='vTC',domain=[l,es,i,t],description='Variable capital costs in technology l per PJ output at full potential',records=df_vTC.values.tolist())
-LifeSpan=gp.Parameter(db_abatement,name='LifeSpan',domain=[l,es,i,t],description='Technical lifespan of technology l',records=df_LifeSpan.values.tolist())
-# pTE_base=gp.Parameter(db_abatement,name='pTE_base',domain=[es,e,i,t],description='Base price of energy input',records=df_energy_price.values.tolist())
-# pTE_tax=gp.Parameter(db_abatement,name='pTE_tax',domain=[es,e,i,t],description='Tax on energy input',records=df_energy_tax.values.tolist())
-# pTK=gp.Parameter(db_abatement,name='pTK',domain=[i,t],description='User cost of capital in technologies for energy services',records=df_capital_cost_index.values.tolist())
-# qES=gp.Parameter(db_abatement,name='qES',domain=[es,i,t],description='Energy service, quantity',records=df_energy_service.values.tolist())
+sqTPotential=gp.Parameter(db_abatement,name='sqTPotential',domain=[l,es,i,t],description='Potential supply by technology l in ratio of energy service (share of qES)',records=df_sqTPotential)
+uTE=gp.Parameter(db_abatement,name='uTE_load',domain=[l,e],description='Input of energy in technology l per PJ output at full potential',records=df_uTE)
+vTI=gp.Parameter(db_abatement,name='vTI',domain=[l,es,i,t],description='Investment costs in technology l per PJ output at full potential',records=df_vTI)
+vTC=gp.Parameter(db_abatement,name='vTC',domain=[l,es,i,t],description='Variable capital costs in technology l per PJ output at full potential',records=df_vTC)
+LifeSpan=gp.Parameter(db_abatement,name='LifeSpan',domain=[l,es,i,t],description='Technical lifespan of technology l',records=df_LifeSpan)
+pTE_base=gp.Parameter(db_abatement,name='pTE_base',domain=[es,e,i,t],description='Base price of energy input',records=df_energy_price)
+pTE_tax=gp.Parameter(db_abatement,name='pTE_tax',domain=[es,e,i,t],description='Tax on energy input',records=df_energy_tax)
+pTK=gp.Parameter(db_abatement,name='pTK',domain=[i,t],description='User cost of capital in technologies for energy services',records=df_capital_cost_index)
+qES=gp.Parameter(db_abatement,name='qES',domain=[es,i,t],description='Energy service, quantity',records=df_energy_service)
 
 # Export gdx-file with abatement data
 db_abatement.write('Abatement_dummy_data.gdx')
-
-# db_abatement.close()

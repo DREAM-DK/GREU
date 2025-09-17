@@ -82,12 +82,14 @@ uEmmE_BU_abatement[em,es,e,d,t]$(uEmmE_BU.l[em,es,e,d,t] and not uEmmE_BU_CGE[em
 ## DOMESTIC CARBON TAX
 d1tCO2_E_CGE[em,es,e,d,t]      = d1tCO2_E[em,es,e,d,t];
 d1tCO2_E[em,es,e,d,t]$(t.val>=t1.val and d1EmmE_BU_abatement[em,es,e,d,t] and not sameas[em,'CO2e'] and sum((ee), d1tCO2_E_CGE[em,es,ee,d,t])) = yes;
+d1tCO2_E[em,es,e,d,t]$(t.val>=t1.val and d1EmmE_BU_abatement[em,es,e,d,t] and not sameas[em,'CO2e'] and sameas(e,'Captured CO2')) = yes;
 d1tCO2_E_abatement[em,es,e,d,t]$(d1tCO2_E[em,es,e,d,t] and not d1tCO2_E_CGE[em,es,e,d,t]) = yes;
 
 tCO2_Emarg_CGE[em,es,e,i,t] = tCO2_Emarg.l[em,es,e,i,t];
-tCO2_Emarg.l[em,es,e,i,t]$(t.val>=t1.val and d1tCO2_E_abatement[em,es,e,i,t] and sum(ee$(d1pEpj_CGE[es,ee,i,t]), qEpj.l[es,ee,i,t])) 
+tCO2_Emarg.l[em,es,e,i,t]$(t.val>=t1.val and d1tCO2_E_abatement[em,es,e,i,t] and sum(ee, d1tCO2_E_CGE[em,es,ee,i,t]) and sum(ee$(d1pEpj_CGE[es,ee,i,t]), qEpj.l[es,ee,i,t])) 
   = sum(ee$(d1pEpj_CGE[es,ee,i,t] and sum(em_a, d1tCO2_E_CGE[em_a,es,ee,i,t])), tCO2_Emarg_CGE[em,es,ee,i,t]*qEpj.l[es,ee,i,t])
   / sum(ee$(d1pEpj_CGE[es,ee,i,t] and sum(em_a, d1tCO2_E_CGE[em_a,es,ee,i,t])), qEpj.l[es,ee,i,t]);
+tCO2_Emarg.l[em,es,e,i,t]$(t.val>=t1.val and d1tCO2_E_abatement[em,es,e,i,t] and not sum(ee, d1tCO2_E_CGE[em,es,ee,i,t]) and sameas(e,'Captured CO2')) = 0.01;
 tCO2_Emarg_abatement[em,es,e,i,t]$(tCO2_Emarg.l[em,es,e,i,t] and not tCO2_Emarg_CGE[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
 
 d1tE_duty_CGE[etaxes,es,e,d,t] = d1tE_duty[etaxes,es,e,d,t];

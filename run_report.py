@@ -173,10 +173,9 @@ display(tabel1)
 
 ## Plotting of discrete and continous technical energy supply curves
 from plot_supply_curves import plot_supply_curve # Function to plot abatement supply curves
-plot_supply_curve("Output/calibration_abatement.gdx",["49509"])
-# plot_supply_curve("shock_capital_cost.gdx")
-plot_supply_curve("Output/shock_carbon_tax_abatement_partial.gdx",["49509"])
-plot_supply_curve("Output/shock_carbon_tax.gdx")
+plot_supply_curve("Output/calibration_abatement.gdx",["23001"])
+plot_supply_curve("Output/pre_calibration_abatement.gdx",["23001"])
+plot_supply_curve("Output/shock_carbon_tax_abatement.gdx",["23001"])
 
 # plot_supply_curve("shock_CCS_subsidy.gdx")
 

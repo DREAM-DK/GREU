@@ -10,8 +10,7 @@ d1switch_abatement[t] = 1;
 d1switch_integrate_abatement[t] = 0;
 
 # Import new dummy data for the abatement model (For the moment it is just a CCS technology in 10030)
-# $import Import_abatement_dummy_data.gms;
-# execute_unload 'update_dummy.gdx';
+$import Import_abatement_dummy_data.gms;
 
 # Set share parameters
 uES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
@@ -20,17 +19,18 @@ jpTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pTK.l[i,t]/pK_k_i.l['iM',i,t];
 # Supply Curve Visualization
 $import premodel_abatement.gms
 $import energy_price_partial.gms
+# execute_unload 'Output\pre_energy_price_partial.gdx';
 $import Supply_curves_abatement.gms;
 
 # Solve partial abatement model
 @add_exist_dummies_to_model(abatement_partial_equations);
-# $FIX all_variables;
-# $UNFIX abatement_partial_endogenous;
-# # @Setbounds_abatement();
-# Solve abatement_partial_equations using CNS;
+$FIX all_variables;
+$UNFIX abatement_partial_endogenous;
+Solve abatement_partial_equations using CNS;
 
 @add_exist_dummies_to_model(main);
 $FIX all_variables; $UNFIX main_endogenous;
+# execute_unload 'Output\pre_calibration_abatement.gdx';
 solve main using CNS;
 execute_unload 'Output\calibration_abatement.gdx';
 # $exit
@@ -53,9 +53,6 @@ $GROUP main_endogenous
   main_endogenous
   uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
 ;
-
-# qREa.l[es,e_a,i,t]$(sameas(e_a,'Captured CO2')) = qESE.l[es,e_a,i,t];
-# jqESE.l[es,e_a,i,t]$(sameas(e_a,'Captured CO2')) = 0;
 
 # ------------------------------------------------------------------------------
 # Calibrate decreasing capital costs for electrification technologies
@@ -85,18 +82,49 @@ vTC.l[l,es,i,t]$(t.val > t1.val and t.val <= 2050 and d1sqTPotential[l,es,i,t] a
 # Supply Curve Visualization
 $import Supply_curves_abatement.gms;
 
-  # Solve partial abatement model
-  $FIX all_variables;
-  $UNFIX abatement_partial_endogenous;
-  # @Setbounds_abatement();
-  Solve abatement_partial_equations using CNS;
-
-  execute_unload 'Output\calibration_capital_costs_abatement_partial.gdx';
+# Solve partial abatement model
+# $FIX all_variables;
+# $UNFIX abatement_partial_endogenous;
+# Solve abatement_partial_equations using CNS;
+# execute_unload 'Output\calibration_capital_costs_abatement_partial.gdx';
 
 # Solve model
 $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
 execute_unload 'Output\calibration_capital_costs.gdx';
+
+# ------------------------------------------------------------------------------
+# Calibrate decreasing capital costs for CCS technologies
+# ------------------------------------------------------------------------------
+
+# Define the electrification technologies
+set CCS_techs[l] /
+  't30'
+  't31'
+  't32'
+  't33'
+  /;
+
+vTI.l[l,es,i,t]$(t.val > t1.val and t.val <= 2050 and d1sqTPotential[l,es,i,t] and CCS_techs[l])
+  = vTI.l[l,es,i,t] * 0.75; 
+
+vTC.l[l,es,i,t]$(t.val > t1.val and t.val <= 2050 and d1sqTPotential[l,es,i,t] and CCS_techs[l])
+  = vTC.l[l,es,i,t] * 0.75;
+
+# Supply Curve Visualization
+$import Supply_curves_abatement.gms;
+
+# # Solve partial abatement model
+# $FIX all_variables;
+# $UNFIX abatement_partial_endogenous;
+# Solve abatement_partial_equations using CNS;
+# execute_unload 'Output\calibration_CCS_abatement_partial.gdx';
+
+# Solve model
+$FIX all_variables; $UNFIX main_endogenous;
+solve main using CNS;
+execute_unload 'Output\calibration_CCS.gdx';
+
 
 # ------------------------------------------------------------------------------
 # Tests
