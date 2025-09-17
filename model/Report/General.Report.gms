@@ -7,8 +7,12 @@ $Group+ report_variables "Report variables"
   pY_iagg[iagg,t] "Price by aggregated industries"
   qDomesticDemand[t] "Domestic demand"
   vtE_vat_total[t] "Total VAT on energy"
-  vtE_duty_total[t] "Total duty on energy excl. CO2e-tax"
+  vtE_duty_xCO2[t] "Total duty on energy excl. CO2e-tax"
   vtCO2e_total[t] "Total CO2e-tax"
+  vtCO2_Corp[t] "Total CO2-tax paid by corporations"
+  vtCO2_Hh[t] "Total CO2-tax paid by households"
+  vtCO2_xE_tot[t] "Total emission tax from non-energy emissions"
+  vtIndirect_Rest[t] "Other indirect taxes"
   ;
 
 $ENDIF # report_def
@@ -24,9 +28,16 @@ $IF %stage% == "report":
   qDomesticDemand.l[t] = sum(tBase,pC.l[tBase]*qC.l[t]) + sum(tBase,pI.l[tBase]*qI.l[t]) + sum(tBase,pG.l[tBase]*qG.l[t]) + sum(tBase,pM.l[tBase]*qM.l[t]);
 
   vtE_vat_total.l[t] = sum(d, vtE_vat_tot.l[d,t]);
-  vtE_duty_total.l[t] = sum(d, vtE_duty_tot.l[d,t]);
+  vtE_duty_xCO2.l[t] = sum(d, vtE_duty_tot.l[d,t]) - sum((es,e,d), vtE_duty.l['co2_tax',es,e,d,t]);
   # vtCO2e_total.l[t] = sum((CO2etax), tCO2e.l[CO2etax,t] * qCO2e_taxgroup.l[CO2etax,t]);
 
+  vtCO2_Corp.l[t] = sum((es,e,i), vtE_duty.l['co2_tax',es,e,i,t]);
+  vtCO2_Hh.l[t] = sum((es,e,c), vtE_duty.l['co2_tax',es,e,c,t]) 
+                + sum((em,es,e,c), tCO2_Emarg_C_pj.l[em,es,e,c,t]*qEpj.l[es,e,c,t]);
+  vtCO2_xE_tot.l[t] = sum(i, vtCO2_xE.l[i,t]);
+
+  vtIndirect_Rest.l[t] = vtIndirect.l[t] - vtE_vat_total.l[t] - vtE_duty_xCO2.l[t]
+                       - vtCO2_Corp.l[t] - vtCO2_Hh.l[t] - vtCO2_xE_tot.l[t];
 
 $ENDIF # report
 

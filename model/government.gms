@@ -45,6 +45,7 @@ $Group+ all_variables
   tCap[t] "Capital tax rate"
 
   vHhTransfers[t] "Transfers to households and non-profits from government."
+  vGovExpOther[t] "Other government expenditures"
   vGov2Corp[t] "Transfers to corporations"
   sGov2Corp[t] "Share of gross value added transferred to corporations"
   vGovSub[t] "Government subsidies to corporations"
@@ -118,14 +119,15 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
 # Government expenditures
 
   .. vGovExpenditure[t] =E= vG[t] + vHhTransfers[t] + vI_public[t]
-                          + vGovSub[t] + vGov2Corp[t] + vGov2Foreign[t] + vGovNetAcquisitions[t] + vLumpsum[t];
+                            + vGovExpOther[t] + vLumpsum[t];
 
 
   rG_g[g,t]$(first(g)).. vG[t] =E= vG2vGDP[t] * vGDP[t];  # Government consumption expenditure to GDP ratio
   qD[g,t].. vD[g,t] =E= rG_g[g,t] * vG[t];
 
-
   .. vHhTransfers[t] =E= pW[t-3] * qPopTransfers[t]; 
+
+  .. vGovExpOther[t] =E= vGovSub[t] + vGov2Corp[t] + vGov2Foreign[t] + vGovNetAcquisitions[t];
 
   .. vGovSub[t] =E= vtY_Sub[t] + sGovSub_Residual[t] * sum(i,vGVA_i[i,t]);
 
