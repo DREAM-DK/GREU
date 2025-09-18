@@ -33,7 +33,7 @@ LifeSpan[l,es,d,t]$(d1sqTPotential_new[l,es,d,t]) = LifeSpan_new.l[l,es,d,t];
 DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
 
 # Set smoothing parameters
-eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.03;
+eP.l[l,es,d,t]$(d1sqTPotential_new[l,es,d,t]) = 0.03;
 
 # Set share parameter
 uES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];

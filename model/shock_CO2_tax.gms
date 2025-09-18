@@ -23,8 +23,9 @@ execute_unload 'Output\baseline.gdx';
 # ------------------------------------------------------------------------------
 # Calibrate electrification technologies and CCS
 # ------------------------------------------------------------------------------
-
-$import Abatement_exercise.gms;
+$IF %include_abatement% = 1:
+  $import Abatement_exercise.gms;
+$ENDIF # include_abatement
 
 # ------------------------------------------------------------------------------
 # Shock model

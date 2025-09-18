@@ -24,8 +24,8 @@ $import Supply_curves_abatement.gms;
 
 # Solve partial abatement model
 @add_exist_dummies_to_model(abatement_partial_equations);
-$FIX all_variables; $UNFIX abatement_partial_endogenous;
-Solve abatement_partial_equations using CNS;
+# $FIX all_variables; $UNFIX abatement_partial_endogenous;
+# Solve abatement_partial_equations using CNS;
 
 @add_exist_dummies_to_model(main);
 $FIX all_variables; $UNFIX main_endogenous;
