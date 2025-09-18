@@ -38,7 +38,7 @@ $IF %stage% == "report_baseline":
   qEmmTot_baseline.l[em,em_accounts,t] = qEmmTot.l[em,em_accounts,t];
   vNetInterests_baseline.l[sector,t] = vNetInterests.l[sector,t];
   vHhTransfers_baseline.l[t] = vHhTransfers.l[t];
-  vHhTaxes_baseline.l[t] = vHhTaxes.l[t];
+  # vHhTaxes_baseline.l[t] = vHhTaxes.l[t];
   # vLumpsum_baseline.l[t] = vLumpsum.l[t];
   vWages_baseline.l[t] = vWages.l[t];
   pY_i_baseline.l[i,t] = pY_i.l[i,t];
@@ -65,7 +65,7 @@ EVt.l['Wealth_f',t] = vNetDividends.l['RoW',t] - vNetDividends_baseline.l['RoW',
 EVt_income.l['Wages',t] = vWages.l[t] - vWages_baseline.l[t];
 # EVt_income.l['Lumpsum',t] = vLumpsum.l[t] - vLumpsum_baseline.l[t];
 EVt_income.l['Transfers',t] = vHhTransfers.l[t] - vHhTransfers_baseline.l[t];
-EVt_income.l['HhTaxes',t] = vHhTaxes.l[t] - vHhTaxes_baseline.l[t];
+# EVt_income.l['HhTaxes',t] = vHhTaxes.l[t] - vHhTaxes_baseline.l[t];
 
 
 EVt_r_fv.l[t] = (1+rInterests.l[t])/fv-1;
@@ -92,86 +92,6 @@ Shadow_price.l['Shadow_price']$(Shadow_price.l['Emissions'] ne 0) =  Shadow_pric
 
 pY_i_diff.l[i,t] = pY_i.l[i,t] - pY_i_baseline.l[i,t];
 
-    # E_Sdis[t]$(tEndo[t])..   Sdis[t]     =E= prod(tt $ (ord(t) ge ord(tt) and tt.val gt t0.val), 1/(1+rHH[tt]));  
-
-
-# EVt['vaegt',t] = 0;
-# EVt['vaegt',t]$(tx0[t]) = Sdis.l[t];
-# EVt['vaegt',t]$(tEnd[t])  = Sdis.l[t]/rHH.l[t];
-
-
-# EVti[set_EVti,s,t] = 0;
-# EVti['pris',s,t]$(tx0[t]) = -sum(c, (pC_ym.l[c,s,t]/pC_ym_baseline.l[c,s,t]-1)*qC_ym.l[c,s,t]);
-# EVti['PrisUdl',s,t]$(tx0[t]) = -((pX_y.l['xoth',s,t]/pX_y_baseline.l['xoth',s,t]-1)*qX_y.l['xoth',s,t]+(pX_y.l['xoth',s,t]/pX_y_baseline.l['xoth',s,t]-1)*(qX_y_baseline.l['xoth',s,t]-qX_y.l['xoth',s,t])/2);
-# EVti['Pris+',s,t] $(EVti['Pris',s,t] gt 0) = EVti['Pris',s,t];
-# EVti['Pris-',s,t] $(EVti['Pris',s,t] lt 0) = EVti['Pris',s,t];
-# EVti['PrisUdl+',s,t] $(EVti['PrisUdl',s,t] gt 0) = EVti['PrisUdl',s,t];
-# EVti['PrisUdl-',s,t] $(EVti['PrisUdl',s,t] lt 0) = EVti['PrisUdl',s,t];
-
-
-# EVt[set_EV_all,t] = 0;
-
-# EVt['Pris+',t] = sum(s, EVti['Pris+',s,t]);
-# EVt['Pris-',t] = sum(s, EVti['Pris-',s,t]);
-# EVt['PrisUdl+',t] = sum(s, EVti['PrisUdl+',s,t]);
-# EVt['PrisUdl-',t] = sum(s, EVti['PrisUdl-',s,t]);
-
-
-# Hwage.l[t]    = w.l[t] * Hours.l[t] * prod_a.l[t] * nEmployed.l[t];
-# Htrans.l[t]   = vTrans.l[t];
-# Hleisure.l[t] = - pCHH.l['cTot',t] * qDisUtility.l[t];
-# Hother.l[t]   = vLeisureAdjustedIncome.l[t]-Hwage.l[t]-Htrans.l[t]-Htax.l[t]-Hleisure.l[t];    
-# EVt['indk',t] = (vLeisureAdjustedIncome.l[t]-vLeisureAdjustedIncome_baseline.l[t]);
-# EVt['indk_w',t] = (Hwage.l[t]-Hwage_baseline.l[t]);
-# EVt['indk_trans',t] = (Htrans.l[t]-Htrans_baseline.l[t]);
-# EVt['indk_tax_xLump',t] = - (vtDirect.l[t]-vtCorp.l[t]-t_r.l[t]*rHHxAfk.l[t]*vWealth.l[t-1]/fv) -jvtIndirect.l[t]-vGovProfit.l[t]-vGovReceiveHH.l[t]-vtBequest.l[t]-vtChurch.l[t]-vCont.l[t]+vGov2HH.l[t]+vGovLand.l[t];
-# EVt['indk_lei',t] = (Hleisure.l[t]-Hleisure_baseline.l[t]);
-# EVt['indk_other',t] = (Hother.l[t]-Hother_baseline.l[t]);
-# EVt['indk_lumpsum',t] = -vLumpsum.l[t];
-
-
-# EVt['pris',t]$(tEndo[t]) = -vLeisureAdjustedIncome.l[t]*(pC.l['ctot',t]/pC_baseline.l['ctot',t]-1);
-# EVt['PrisUdl',t]  = sum(s, -((pX_y.l['xoth',s,t]-pX_y_baseline.l['xoth',s,t])*qX_y.l['xoth',s,t]
-# 	                             +(pX_y.l['xoth',s,t]-pX_y_baseline.l['xoth',s,t])*(qX_y_baseline.l['xoth',s,t]-qX_y.l['xoth',s,t])/2));
-# EVt['formue',t]    = sum(sp$(NOT s_DK[sp]),  sEquityDKownedEndo.l[t1] *vFCFE.l[sp,t]) + sum(s_DK,    sEquityDKownedExo.l[s_DK,t1] *vFCFE.l[s_DK,t]); 
-# EVt['formueUdl',t] = sum(sp, vFCFE.l[sp,t]) - EVt['formue',t]; 
-
-
-# EVt['vaegt',t] = 0;
-# EVt['vaegt',t]$(tx0[t]) = Sdis.l[t];
-# EVt['vaegt',t]$(tEnd[t])  = Sdis.l[t]/rHH.l[t];
-
-# EVt['vaegt_Investor',t] = 0;
-# EVt['vaegt_Investor',t]$(tx0[t]) = prod(tt $ (ord(t) ge ord(tt) and tt.val gt t0.val), fv/(1+rInvestor.l['49509',tt]));
-# EVt['vaegt_Investor',t]$(tEnd[t])  = EVt['vaegt_Investor',t]/(rInvestor.l['49509',t]/fv);
-
-
-# #  Nutidsværdien udregnes via diskontering af tidsserierne
-# EV[set_EV_all,'NPV'] = sum(t, EVt[set_EV_all,t]*EVt['vaegt',t]);  
-
-# #  Korrektioner ift. tidsserieudregningerne
-# #  omega[t]    =E= pU[t]**(1-eC_R)
-# EV['pris','NPV'] = sum(t$(t0[t]),  -(omega.l[t]**(1/(1-eC_R.l))/pU_baseline.l[t]-1)*(H.l[t]+(1-pDeath.l)*vWealth.l[t]))
-#             +sum(t$(tx0[t]), -(omega.l[t]**(1/(1-eC_R.l))/pU_baseline.l[t]-1)*EVt['vaegt',t]*pDeath.l*H.l[t])
-#             +sum(t$(tx0[t]), -(pC.l['ctot',t]/pC_baseline.l['ctot',t]-1)*EVt['vaegt',t]*(1-s_R.l[t])*vLeisureAdjustedIncome.l[t]);
-
-
-
-# EV['formue_old','NPV'] = sum(t$(t0[t]), vWealth_shockCorrection.l[t])*(1-pDeath.l);
-# EV['formueUdl_old','NPV'] = sum(t$(t0[t]), ((sum(sp,vEquity.l[sp,t])-sum(sp,vEquity_baseline.l[sp,t]))-vWealth_shockCorrection.l[t])*(1-pDeath.l));
-
-# EV['formue_rInv','NPV'] = sum(t, EVt['formue',t]*EVt['vaegt_Investor',t]);  
-# EV['formueUdl_rInv','NPV'] = sum(t, EVt['formueUdl',t]*EVt['vaegt_Investor',t]);  
-
-
-# #  Samlet EV
-# EV['EV_dk','NPV'] = EV['Indk','NPV']+EV['Pris','NPV']+EV['Formue','NPV'];
-# EV['EV_inklUdl','NPV'] = EV['EV_dk','NPV'] + EV['PrisUdl','NPV'] + EV['formueUdl','NPV'];
-
-# #  Omregning til 2023-niveau og årligt gennemsnit
-# EV[set_EV_all,'NPV'] = EV[set_EV_all,'NPV']/inf_growth_factor['2023'];
-# EV[set_EV_all,'yearly'] = EV[set_EV_all,'NPV']/sum(t, EVt['vaegt',t]);
-  
 
 
 $ENDIF # report

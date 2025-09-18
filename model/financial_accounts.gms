@@ -18,16 +18,10 @@ $Group+ all_variables
 
   vNetDividends[sector,t] "Net dividends received by sector."
   rDividends[t] "Dividends rate."
-
-  # vTransfers[from_sector,to_sector,t] "Transfers between sectors."
-  # vTransfersTo[sector,t] "Total transfers to sector."
-  # vTransfersFrom[sector,t] "Total transfers from sector."
+  rHh[t] "Return on household wealth."  
 
   # Will be moved to other modules:
   vEBITDA_i[i,t] "Earnings before interests, taxes, depreciation, and amortization by industry."
-  vHhTaxes[t] "Taxes on income and wealth of households and non-profits."
-  vHhTransfers[t] "Transfers to households and non-profits from government."
-  vCorpTaxes[t] "Taxes on corporations, excluding net duties paid through investments and intermediate goods purchases."
   vI_private[t] "Total capital investments in private sector."
   vI_public[t] "Total capital investments in public sector."
 ;
@@ -46,14 +40,14 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
   .. vNetFinAssets[Hh,t] =E= vNetFinAssets[Hh,t-1]/fv
                            + vNetInterests[Hh,t] + vNetDividends[hh,t] + vNetRevaluations[Hh,t]
                            + vWages[t]
-                           + vHhTransfers[t]
                            - vC[t]
-                           - vHhTaxes[t];
+                           - vNetHh2Gov[t]
+                           ;
 
   .. vNetFinAssets[Corp,t] =E= vNetFinAssets[Corp,t-1]/fv
                              + vNetInterests[Corp,t] + vNetDividends[corp,t] + vNetRevaluations[Corp,t]
                              + sum(i$i_private[i], vEBITDA_i[i,t]) - vI_private[t]
-                             - vCorpTaxes[t];
+                             ;
 
   .. vNetFinAssets[Gov,t] =E= vNetFinAssets[Gov,t-1]/fv
                             + vNetInterests[Gov,t] + vNetDividends[Gov,t] + vNetRevaluations[Gov,t]
@@ -63,9 +57,10 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
                             + vNetInterests[RoW,t] + vNetDividends[RoW,t] + vNetRevaluations[RoW,t]
                             + vM[t]
                             - vX[t]
-                            + vtCO2_ETS_tot[t];
+                            + vNetGov2Foreign[t];
 
-  .. vEBITDA_i[i,t] =E= vY_i[i,t] - vWages_i[i,t] - vD[i,t] - vE_i[i,t] - vtY_i_NetTaxSub[i,t] + vNetGov2Corp_xIO[i,t]; # Net duties should be subtracted here - AKB: What? They are contained in vD and vE_i
+  .. vEBITDA_i[i,t] =E= vY_i[i,t] - vWages_i[i,t] - vD[i,t] - vE_i[i,t]
+                                  - vtY_i_NetTaxSub[i,t] + vNetGov2Corp_xIO[i,t]; # Net duties should be subtracted here - AKB: What? They are contained in vD and vE_i
 
   # For now, we assume that households own all domestic equity going forward
   .. vNetEquity[Gov,t] =E= 0;
@@ -82,7 +77,7 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
   rDividends[t]..
     -vNetDividends['Corp',t] =E= sum(i$i_private[i], vEBITDA_i[i,t]) - vI_private[t]
                                + vNetInterests['Corp',t] # is negative
-                               - vCorpTaxes[t]
+                              #  - vCorpTaxes[t]
                                - (vNetDebtInstruments['Corp',t] - vNetDebtInstruments['Corp',t-1]/fv); # Purchasing securities or repaying debt (issuing debt or selling securities)
 
     # For now assume no non-domestic equities
@@ -92,6 +87,8 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
   .. vNetRevaluations[sector,t] =E= rRevaluations_s[sector,t] * vNetFinAssets[sector,t-1]/fv;
 
   .. rInterests_s[sector,t] =E= rInterests[t] + jrInterests_s[sector,t];
+
+  .. rHh[t] =E= (vNetInterests['Hh',t] + vNetDividends['Hh',t]) / vNetFinAssets['Hh',t-1]/fv;  
 
   # Interests of sectors sum to zero. Rest of World is residual.
   jrInterests_s[RoW,t].. sum(sector, vNetInterests[sector,t]) =E= 0; 

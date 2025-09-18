@@ -30,6 +30,7 @@ dt.gamY.run("base_model_abatement.gms", test_CGE="0", test_abatement="1")
 dt.gamY.run("shock_model.gms", include_abatement="1")
 
 ## Run a CO2 tax shock
+dt.gamY.run("shock_CO2_tax.gms", include_abatement="0")
 dt.gamY.run("shock_CO2_tax.gms", include_abatement="1")
 
 ## Run a CO2 tax shock with steps (For some reason this is not working with abatement)

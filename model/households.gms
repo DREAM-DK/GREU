@@ -32,8 +32,7 @@ $BLOCK households_equations households_endogenous $(t1.val <= t.val and t.val <=
   .. vC_CMP[t] =E= rMPC[t] * vHhIncome[t] + rMPCW[t] * vNetFinAssets['Hh',t-1]/fv;
 
   .. vHhIncome[t] =E= vWages[t]
-                    + vHhTransfers[t]
-                    - vHhTaxes[t]
+                    - vNetHh2Gov[t]
                     + vNetInterests['Hh',t] + vNetRevaluations['Hh',t];
 
 #  and a simple disaggregated consumption function with constant share of total consumption by purpose
