@@ -11,9 +11,6 @@ root = dt.find_root("LICENSE")
 sys.path.insert(0, root)
 os.environ["GAMS"] = "C:/GAMS/49/gams.exe"
 
-## Create abatement_dummy_data.gdx based on excel-module
-from data.Abatement_data import Abatement_dummy_data
-
 ## Set working directory
 os.chdir(fr"{root}/model")
 

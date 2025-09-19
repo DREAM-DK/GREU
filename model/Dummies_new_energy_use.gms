@@ -100,6 +100,7 @@ d1tE_duty_abatement[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t] and not d1tE_du
 
 @update_exist_dummies()
 
+# A random initial value for the new energy use
 pREa.l[es,e_a,i,t]$(d1pREa_abatement[es,e_a,i,t]) = 1;
 
 # vtE_duty.l[CO2_tax,es,'Captured CO2',d,t] = 0;

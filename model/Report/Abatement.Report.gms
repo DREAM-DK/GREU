@@ -59,7 +59,7 @@ sqTAdoption.l[l,es,d,t]$(t.val >= t1.val and d1sqTPotential[l,es,d,t]) =
   sqT.l[l,es,d,t] / sqTPotential.l[l,es,d,t];
 
 sqTAdoption_Ch.l[l,es,d,t]$(t.val >= t1.val and d1sqTPotential[l,es,d,t]) = 
-  sqTAdoption.l[l,es,d,t] - sqT_baseline.l[l,es,d,t] / sqTPotential_baseline.l[l,es,d,t];
+  sqTAdoption.l[l,es,d,t] - (sqT_baseline.l[l,es,d,t] / sqTPotential_baseline.l[l,es,d,t])$(sqTPotential_baseline.l[l,es,d,t]);
 
 # Calculate average capital intensity as conditional expectation
 # For technologies with adoption, calculate average capital intensity using conditional expectation formula

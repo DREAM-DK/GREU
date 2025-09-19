@@ -72,6 +72,7 @@ uTKmargNobound_scen.l[l,es,d,t,scen]$(sqTPotential.l[l,es,d,t]) = uTKmarg_scen.l
 # 3. Supply Curve Solution
 # ----------------------------------------------------------------------------------------------------------------------
 # 3.1 Pre-model Solution
+@update_exist_dummies()
 $FIX G_abatement_supply_curve_exo;
 $UNFIX G_abatement_supply_curve_endo;
 @Setbounds_abatement();
