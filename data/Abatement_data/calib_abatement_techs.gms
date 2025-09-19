@@ -1,4 +1,4 @@
-$IMPORT ..\model\functions.gms;
+$IMPORT ../model/functions.gms;
 
 ## ----------------------------------------------------------------------------------------
 ## Creating abatement technologies to match data
@@ -254,7 +254,7 @@ qES[es,d,t]$(not (these_sectors(d) and these_eservices(es))) = 0;
 # d1qES[es,d,t] = yes$(qES.l[es,d,t] and these_eservices(es) and these_sectors(d));
 
 # Unload gdx-file
-execute_unload 'Abatement_data\calibrate_abatement_techs.gdx'
+execute_unload 'Abatement_data/calibrate_abatement_techs.gdx'
               sqTPotential
               uTE
               vTI
