@@ -181,89 +181,42 @@ vTC[l,es,i,t] = vTI[l,es,i,t]/10;
 ## Updating dummies
 ## ----------------------------------------------------------------------------------------
 
-set these_sectors(d) /
-  '01011'
-  # '01012' # LBS: Very limited emissions
-  # '01020' # LBS: Very limited emissions
-  '01031'
-  # '01032' # LBS: Very limited emissions
-  '01051'
-  # '01052' # LBS: Very limited emissions
-  # '01061' # LBS: Very limited emissions
-  # '01062' # LBS: Very limited emissions
-  # '01070' # LBS: Very limited emissions
-  '01080'
-  '02000'
-  '03000'
-  '0600a'
-  '10010' # LBS: Works with high prices on electrification technologies
-  # '10020' 
-  '10030' # LBS: Works with high prices on electrification technologies
-  '10040' 
-  '10120' # LBS: Works with high prices on electrification technologies
-  '13150' 
-  # '16000' # LBS: Very limited emissions
-  '19000' # LBS: Works with high prices on electrification technologies
-  '20000' 
-  '21000' 
-  '23001' # LBS: Works with high prices on electrification technologies
-  '23002' 
-  '25000' 
-  '35011' 
-  # '35002' # LBS: Very limited emissions
-  # '36000' # LBS: Very limited emissions
-  # '37000' # LBS: Very limited emissions
-  # '38391' # LBS: Very limited emissions
-  # '38392' # LBS: Very limited emissions
-  '38393'
-  # '38394' # LBS: Very limited emissions
-  # '38395' # LBS: Very limited emissions
-  '41430'
-  '45000'
-  '46000'
-  '47000'
-  '49011'
-  # # '49012' # LBS: Very limited emissions
-  # # '49022' # LBS: Very limited emissions
-  '49024'
-  # # '49025' # LBS: Very limited emissions
-  '49031'
-  '49509'
-  '50001' 
-  # # '51001' # LBS: Very limited emissions
-  # '51009' # LBS: Can't solve
-  '52000'
-  # # '53000' # LBS: Very limited emissions
-  '55560'
-  # # '64000' # LBS: Very limited emissions
-  # # '68203' # LBS: Very limited emissions
-  '71000'
-  # 'off'
+set these_i_es(d,es) /
+  '01011'.'heating'
+  '01011'.'transport'
+  '01031'.'heating'
+  '01051'.'process_normal'
+  '01051'.'heating'
+  '01080'.'heating'
+  '10120'.'process_normal'
+  '13150'.'transport'
+  '23001'.'process_special'
+  '25000'.'transport'
+  '25000'.'process_normal'
+  '35011'.'process_special'
+  '41430'.'transport'
+  '41430'.'process_normal'
+  '45000'.'transport'
+  '46000'.'transport'
+  '47000'.'transport'
+  '49011'.'process_normal'
+  '49024'.'transport'
+  '49031'.'transport'
+  '52000'.'transport'
+  '53000'.'transport'
+  '55560'.'transport'
+  '55560'.'heating'
+  '71000'.'transport'
+  '71000'.'heating'
+  'off'.'transport'
+  'off'.'heating'
   /;
 
-set these_eservices(es) /
-  'heating'
-  'transport'
-  'process_normal'
-  'process_special'
-  'in_ETS'
-  /;
-
-sqTPotential[l,es,d,t]$(not (these_sectors(d) and these_eservices(es))) = 0;
-uTE[l,es,e,d,t]$(not (these_sectors(d) and these_eservices(es))) = 0;
-vTI[l,es,d,t]$(not (these_sectors(d) and these_eservices(es))) = 0;
-vTC[l,es,d,t]$(not (these_sectors(d) and these_eservices(es))) = 0;
-LifeSpan[l,es,d,t]$(not (these_sectors(d) and these_eservices(es))) = 0;
-pTK[d,t]$(not these_sectors(d)) = 0;
-qES[es,d,t]$(not (these_sectors(d) and these_eservices(es))) = 0;
-
-# Unload gdx-file
-execute_unload 'Abatement_data\calibrate_abatement_techs.gdx'
-              sqTPotential
-              uTE
-              vTI
-              vTC
-              LifeSpan
-              pTK
-              qES
-              ;
+# Delete technologies that are not in the list
+sqTPotential[l,es,d,t]$(not these_i_es(d,es)) = 0;
+uTE[l,es,e,d,t]$(not these_i_es(d,es)) = 0;
+vTI[l,es,d,t]$(not these_i_es(d,es)) = 0;
+vTC[l,es,d,t]$(not these_i_es(d,es)) = 0;
+LifeSpan[l,es,d,t]$(not these_i_es(d,es)) = 0;
+pTK[d,t]$(not sum(es, these_i_es(d,es))) = 0;
+qES[es,d,t]$(not these_i_es(d,es)) = 0;

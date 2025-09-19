@@ -107,6 +107,7 @@ $import Supply_curves_abatement.gms;
 # execute_unload 'Output\calibration_CCS_abatement_partial.gdx';
 
 # Solve model
+# @add_exist_dummies_to_model(main);
 $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
 execute_unload 'Output\calibration_CCS.gdx';

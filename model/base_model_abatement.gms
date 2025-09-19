@@ -9,9 +9,6 @@ $IMPORT base_model.gms
 d1switch_abatement[t] = 1;
 d1switch_integrate_abatement[t] = 0;
 
-# Import new dummy data for the abatement model (For the moment it is just a CCS technology in 10030)
-$import Import_abatement_dummy_data.gms;
-
 # Set share parameters
 uES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
 jpTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pTK.l[i,t]/pK_k_i.l['iM',i,t];
@@ -52,7 +49,6 @@ $GROUP main_endogenous
   main_endogenous
   uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
 ;
-
 
 # ------------------------------------------------------------------------------
 # Tests

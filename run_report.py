@@ -9,6 +9,8 @@ exec(open('Report/report_settings.py').read())
 # ---------------
 dt.REFERENCE_DATABASE = b = dt.Gdx("Output/baseline.gdx") # b for baseline
 s = dt.Gdx("Output/shock_carbon_tax.gdx") # s for shock
+s_a = dt.Gdx("Output/shock_carbon_tax_abatement.gdx") # s for shock
+
 
 dt.time(2020, 2050)
 
@@ -39,6 +41,9 @@ dt.plot([s.qCO2e_taxgroup, s.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], "m", name
 dt.plot([s.qCO2e_taxgroup, s.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], "pq", names=["Energy, Corp", "Energy, Hh", "Non-energy", "All emissions"], layout={"title": "Change in CO2e emissions"})
 
 
+dt.plot([s_a.qCO2e_taxgroup, s_a.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], "m", names=["Energy, Corp", "Energy, Hh", "Non-energy", "All emissions"], layout={"title": "Change in CO2e emissions"})
+dt.plot([s_a.qCO2e_taxgroup, s_a.qEmmTot.loc[['co2e'],['UNFCCC_lulucf']]], "pq", names=["Energy, Corp", "Energy, Hh", "Non-energy", "All emissions"], layout={"title": "Change in CO2e emissions"})
+
 exec(open('Report/qEmm2030-40-50.py').read())
 
 # # Reduction on industry level
@@ -56,8 +61,14 @@ exec(open('Report/qEmm2030-40-50.py').read())
 dt.plot([s.pGDP, s.qGDP, s.pW], "pq", names=["GDP deflator", "Real GDP", "Wage level"], 
         layout={"title": "Main macroeconomic variables"})
 
+dt.plot([s_a.pGDP, s_a.qGDP, s_a.pW], "pq", names=["GDP deflator", "Real GDP", "Wage level"], 
+        layout={"title": "Main macroeconomic variables"})
 
 dt.plot([s.qC, s.qG, s.qI, s.qX, s.qM], "pq", 
+        names=["Consumption", "Government consumption", "Investments", "Exports", "Imports"], 
+        layout={"title": "Main macroeconomic variables"})
+
+dt.plot([s_a.qC, s_a.qG, s_a.qI, s_a.qX, s_a.qM], "pq", 
         names=["Consumption", "Government consumption", "Investments", "Exports", "Imports"], 
         layout={"title": "Main macroeconomic variables"})
 
@@ -69,7 +80,6 @@ qX_Y = (s.qX/s.qGDP - b.qX/b.qGDP)*100
 qM_Y = (s.qM/s.qGDP - b.qM/b.qGDP)*100
 
 dt.plot([qC_Y, qG_Y, qI_Y, qX_Y, qM_Y], names=["Consumption", "Government consumption", "Investments", "Exports", "Imports"], layout={"title": "Change in share of GDP (%)"})
-
 
 exec(open('Report/GDP_overview.py').read())
 
@@ -147,9 +157,12 @@ dt.plot([s.EVt_income], layout={"title": "Equivalent variations"})
 # s.Shadow_price.to_excel('Shadow_price.xlsx')
 
 
+#--------------------------------
+# Reporting of energy demand
+#--------------------------------
 
-
-
+dt.plot([s_a.pREes.loc[:,[23001],:]], "pq", layout={"title": "Energy service, price"})
+dt.plot([s_a.pREa.loc[['process_special'],:,[23001],:]], "pq", layout={"title": "Energy input, price"})
 
 
 # ---------------
