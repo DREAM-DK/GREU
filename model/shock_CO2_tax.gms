@@ -37,7 +37,7 @@ $ENDIF
 # Calibrate CCS technologies
 # ------------------------------------------------------------------------------
 $IF %include_abatement% = 1:
-  $import Calib_CCS.gms;
+  $import calib_CCS_example.gms;
   # We recalculate baseline values with the new technologies
   @import_from_modules("report_baseline")
 $ENDIF # include_abatement

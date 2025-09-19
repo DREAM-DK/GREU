@@ -32,6 +32,19 @@ $Group energy_price_partial_endogenous
 
   ;
 
+# Set of energy types that are not included in the model
+set exclude_energy(e) /
+  'Waste'
+  'Waste oil'
+  'Heat pumps'
+  'Wood waste'
+  'Straw for energy purposes'
+  'Natural gas (Extraction)'
+  'Renewable energy'
+  'Liquid biofuels'
+  # 'Captured CO2'
+  /;
+
 $import Dummies_new_energy_use.gms;
 
 

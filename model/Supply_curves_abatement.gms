@@ -15,6 +15,8 @@
 # 1. Update energy dummies and prices
 # ----------------------------------------------------------------------------------------------------------------------
 
+$import Dummies_new_energy_use.gms;
+
 $FIX all_variables; $UNFIX energy_price_partial_endogenous;
 # execute_unload 'energy_price_partial_pre.gdx';
 Solve energy_price_partial using CNS;
@@ -25,7 +27,7 @@ Solve energy_price_partial using CNS;
 # ----------------------------------------------------------------------------------------------------------------------
 
 # Initialise linking variables
-qES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = uES.l[es,i,t]*qREes.l[es,i,t];
+qES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = jES.l[es,i,t]*qREes.l[es,i,t];
 pTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pK_k_i.l['iM',i,t]*jpTK.l[i,t];
 
 # ----------------------------------------------------------------------------------------------------------------------

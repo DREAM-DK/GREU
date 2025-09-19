@@ -1,15 +1,3 @@
-set exclude_energy(e) /
-  'Waste'
-  'Waste oil'
-  'Heat pumps'
-  'Wood waste'
-  'Straw for energy purposes'
-  'Natural gas (Extraction)'
-  'Renewable energy'
-  'Liquid biofuels'
-  # 'Captured CO2'
-  /;
-
 parameter
   d1pEpj_base_CGE[es,e,d,t]
   d1pEpj_CGE[es,e,d,t]
