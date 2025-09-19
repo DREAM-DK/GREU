@@ -1,9 +1,5 @@
 
-set l "Technology name.";
-
-$gdxIn ../data/Abatement_data/Abatement_dummy_data.gdx
-$load l
-$gdxIn
+set l "Technology name." / t1*t1000 /;
 
 alias(l,ll);
 alias(e,ee);

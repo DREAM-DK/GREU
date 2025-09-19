@@ -26,9 +26,10 @@ vTI.l['t33','process_special','23001',t]$(t.val > 2025) = 1.875;
 vTC.l[CCS_techs,'process_special','23001',t]$(t.val > 2025) = vTI.l[CCS_techs,'process_special','23001',t]/10;
 
 # Energy input
-uTE.l[CCS_techs,'process_special',e,'23001',t]$(t.val > 2025) = uTE.l[CCS_techs,'process_special',e,'23001',t];
+uTE.l[CCS_techs,'process_special',e,'23001',t]$(t.val > 2025) = uTE.l['t1','process_special',e,'23001',t];
 uTE.l[CCS_techs,'process_special','Electricity','23001',t]$(t.val > 2025) = 0.1;
-uTE.l[CCS_techs,'process_special','Captured CO2','23001',t]$(t.val > 2025) = -84.1;
+uTE.l[CCS_techs,'process_special','Captured CO2','23001',t]$(t.val > 2025) #= -84.1;
+  = -84.1;
 
 # Life span
 LifeSpan[CCS_techs,'process_special','23001',t]$(t.val > 2025) = 5;
