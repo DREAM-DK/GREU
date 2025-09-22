@@ -4,16 +4,15 @@ $IMPORT ../model/functions.gms;
 ## Creating abatement technologies to match data
 ## ----------------------------------------------------------------------------------------
 
-set l_input "Technology name for calibrated abatement data";
-set l "Technology name.";
+set l_input "Technology name for calibrated abatement data" /t1*t1000/;
+set l "Technologies" /t1*t1000/;
+#$gdxIn Abatement_data/calibrate_abatement_data_python.gdx
+#$load l_input
+#$gdxIn
 
-$gdxIn Abatement_data/calibrate_abatement_data_python.gdx
-$load l_input
-$gdxIn
-
-$gdxIn ../data/Abatement_data/Abatement_dummy_data.gdx
-$load l
-$gdxIn
+#$gdxIn ../data/Abatement_data/Abatement_dummy_data.gdx
+#$load l
+#$gdxIn
 
 alias(l,ll);
 
