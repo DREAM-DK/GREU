@@ -86,28 +86,14 @@ uTE[l+3,es,e,d,t]$(sum(ll, sqTPotential_large[ll,es,d,t]) and last_tech[l,es,d,t
 # ----------------------------------------------------------------------------------------
 # Defining capital costs for each technology
 # ----------------------------------------------------------------------------------------
-parameter
-  pTPotential[l,es,d,t] "Technology price"
-  ;
-
-set exceptions(es,d) /
-  'process_special'.'35002'
-  'process_normal'.'off'
-  'process_special'.'10120'
-  'transport'.'35011'
-/;
-
-pTPotential['t1',es,i,t]$(sqTPotential['t1',es,i,t] and not exceptions[es,i]) = 0.5;
-pTPotential['t1',es,i,t]$(sqTPotential['t1',es,i,t] and exceptions[es,i]) = 3;
-
-loop(l$(sum((es,i,t), sqTPotential[l,es,i,t]) and not sameas(l, 't1')),
-  pTPotential[l,es,i,t]$(sqTPotential[l,es,i,t]) = pTPotential[l-1,es,i,t]+0.02;
-);
 
 uTKexp[l,es,i,t]$(sqTPotential[l,es,i,t])
- = ((pTPotential[l,es,i,t]) 
-   - sum(e, uTE[l,es,e,i,t]*pEpj_marg[es,e,i,t]))
- / pTK[i,t];
+ = 0.1;
+
+## Assign uTK to the large technologies 
+uTKexp[l+1,es,d,t]$(sum(ll, sqTPotential_large[ll,es,d,t]) and last_tech[l,es,d,t]) = 0.1+0.05;
+uTKexp[l+2,es,d,t]$(sum(ll, sqTPotential_large[ll,es,d,t]) and last_tech[l,es,d,t]) = 0.1+0.1;
+uTKexp[l+3,es,d,t]$(sum(ll, sqTPotential_large[ll,es,d,t]) and last_tech[l,es,d,t]) = 0.1+0.15;
 
 vTI[l,es,i,t]$(sqTPotential[l,es,i,t]) 
   = uTKexp[l,es,i,t]*@FiniteGeometricSeries({1}, {DiscountRate[l,es,i]}, {LifeSpan[l,es,i,t]})
@@ -138,21 +124,19 @@ parameter
 
 set electrification_techs[l] /
   't26'
-  # 't27'
-  # 't28'
-  # 't29'
+  't27'
+
   /;
 
 cost_factor['t26'] = 1.02;
-# cost_factor['t27'] = 1.1;
-# cost_factor['t28'] = 1.2;
-# cost_factor['t29'] = 1.3;
+cost_factor['t27'] = 1.04;
+
 
 # Determining the most expensive technology (used in determining the range for the supply curve)
 pTPotential_max[es,d,t] = smax(l, sum(e, uTE[l,es,e,d,t]*pEpj_marg[es,e,d,t]) 
                                 + uTKexp[l,es,d,t]*pTK[d,t]);
 
-sqTPotential[l,es,i,t]$(sum(ll, sqTPotential[ll,es,i,t]) and electrification_techs[l]) = 0.2;
+sqTPotential[l,es,i,t]$(sum(ll, sqTPotential[ll,es,i,t]) and electrification_techs[l]) = 0.1;
 uTE[l,es,'Electricity',i,t]$(sqTPotential[l,es,i,t] and electrification_techs[l]) = 1;
 
 # Set LifeSpan, DiscountRate and pTK

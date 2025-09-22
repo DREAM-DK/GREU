@@ -264,7 +264,7 @@ execute_load "../data/data.gdx" LifeSpan=LifeSpan;
 DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
 
 # Set smoothing parameters
-eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.02;
+eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.025;
 
 # Set share parameter
 jES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];

@@ -27,10 +27,12 @@ $IF %include_abatement% = 0:
 $ENDIF
 
 # ------------------------------------------------------------------------------
-# Calibrate electrification technologies and CCS
+# Calibrate electrification technologies
 # ------------------------------------------------------------------------------
 # $IF %include_abatement% = 1:
-#   $import Abatement_exercise.gms;
+#   $import calib_electrification.gms;
+#   # We recalculate baseline values with the new technologies
+#   @import_from_modules("report_baseline")
 # $ENDIF # include_abatement
 
 # ------------------------------------------------------------------------------

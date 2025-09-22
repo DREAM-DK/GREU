@@ -1,17 +1,17 @@
 # ------------------------------------------------------------------------------
-# Calibrate decreasing capital costs for CCS technologies
+# Calibrate CCS technologies
 # ------------------------------------------------------------------------------
 
-# Define the electrification technologies
+# Define the CCS technologies
 set CCS_techs[l] /
   't30'
   /;
 
 # Technology potentials
-sqTPotential.l['t30','process_special','23001',t]$(t.val > 2025) = sqTPotential.l['t7','process_special','23001',t];
+sqTPotential.l[CCS_techs,'process_special','23001',t]$(t.val > 2025) = sqTPotential.l['t7','process_special','23001',t];
 
 # Investment costs
-vTI.l['t30','process_special','23001',t]$(t.val > 2025) = vTI.l['t7','process_special','23001',t] + 0.1;
+vTI.l[CCS_techs,'process_special','23001',t]$(t.val > 2025) = vTI.l['t7','process_special','23001',t] + 0.1;
 
 # Operating costs
 vTC.l[CCS_techs,'process_special','23001',t]$(t.val > 2025) = vTI.l[CCS_techs,'process_special','23001',t]/10;
@@ -19,7 +19,7 @@ vTC.l[CCS_techs,'process_special','23001',t]$(t.val > 2025) = vTI.l[CCS_techs,'p
 # Energy input
 uTE.l[CCS_techs,'process_special',e,'23001',t]$(t.val > 2025) = uTE.l['t7','process_special',e,'23001',t];
 uTE.l[CCS_techs,'process_special','Electricity','23001',t]$(t.val > 2025) = 0.1;
-uTE.l[CCS_techs,'process_special','Captured CO2','23001',t]$(t.val > 2025) #= -84.1;
+uTE.l[CCS_techs,'process_special','Captured CO2','23001',t]$(t.val > 2025)
   = sum((em,ee)$(sameas[em,'co2ubio'] or sameas[em,'co2bio']), 
       uTE.l[CCS_techs,'process_special',ee,'23001',t]*uEmmE_BU.l[em,'process_special',ee,'23001',t])
     * 0.9;
