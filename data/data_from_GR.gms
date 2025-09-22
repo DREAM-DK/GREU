@@ -22,7 +22,7 @@ $set data_path P:/akg/Til_EU_projekt
 ###
 
 ### A) Initilization of model sets
-set l "Technologies";
+#set l "Technologies" /t1*t1000/;
 Set t ;#time periods
 Set t1(t); #year 2020 
 Set es; #energy service

@@ -73,7 +73,7 @@ This means that subsection 2.5 is likely to undergo some transformation on the c
 '''
 #Initialize dictionaries
 '''dictionaries for mapping from raw data onto GR-set members'''
-metadata_dicte=pd.read_excel(r'data\metadata.xlsx',sheet_name='energy_products_pefa_map')
+metadata_dicte=pd.read_excel(r'data/metadata.xlsx',sheet_name='energy_products_pefa_map')
 dict_e = dict(zip(metadata_dicte['product_greu'], metadata_dicte['product_greu_txt']))
 
 dict_transaction={'transmis_loss':'transmission_losses','cons_inter':'input_in_production','cons_hh':'household_consumption','import':'imports','invent_change':'inventory'}
@@ -98,7 +98,7 @@ t_list=[i for i in range(1980, 2100)]
 #Data treatment
 
 # Non energy emissions
-non_energy_emissions=pd.read_excel(r'data\non_energy_emissions.xlsx',keep_default_na=True)
+non_energy_emissions=pd.read_excel(r'data/non_energy_emissions.xlsx',keep_default_na=True)
 non_energy_emissions.set_index(['year','bal','flow','indu'],inplace=True)
 #stack to obtain a column of emission-types
 non_energy_emissions=non_energy_emissions.stack().to_frame(name='level')
@@ -114,7 +114,7 @@ non_energy_emissions.replace({'transaction':dict_transaction,'ebalitems':dict_eb
 non_energy_emissions = non_energy_emissions[['ebalitems', 'transaction', 'd', 'year', 'level']]
 
 #Energy emissions
-energy_and_emissions=pd.read_excel(r'data\energy_and_emissions.xlsx',keep_default_na=True)
+energy_and_emissions=pd.read_excel(r'data/energy_and_emissions.xlsx',keep_default_na=True)
 
 '''rename coslumns for compatibility with data loading'''
 energy_and_emissions.rename(columns={'indu':'d','product':'e','purp':'es','flow':'transaction'},inplace=True)
@@ -175,12 +175,12 @@ I suspect will ultimately be more convenient for adapting this code to other dat
 highest possible degree of automization.
 '''
 #energy
-io_energy=pd.read_excel(r'data\io_energy_long_format.xlsx',keep_default_na=True)
+io_energy=pd.read_excel(r'data/io_energy_long_format.xlsx',keep_default_na=True)
 io_energy_forlater=io_energy.copy(deep=True)
 io_energy.rename(columns={'row_l2':'i','col_l1':'DELETE','col_l2':'d','value':'level'},inplace=True)
 
 #regular
-io=pd.read_excel(r'data\io_long_format.xlsx')
+io=pd.read_excel(r'data/io_long_format.xlsx')
 io_forlater=io.copy(deep=True)
 io.rename(columns={'row_l2':'i','col_l1':'DELETE','col_l2':'d','value':'level'},inplace=True)
 
@@ -287,7 +287,7 @@ io_ene_m_onlys['level']=io_ene_m_onlys['level']*(-1)
 io_ene_a_onlys['level']=io_ene_a_onlys['level']*(-1)
 
 #IO-investment
-io_inv=pd.read_excel(r'data\io_invest_long_format.xlsx',keep_default_na=True)
+io_inv=pd.read_excel(r'data/io_invest_long_format.xlsx',keep_default_na=True)
 io_inv.rename(columns={'col':'i','invest_group':'k','value':'level'},inplace=True)
 '''apply dict for GR-compatible codes'''
 io_inv['k']=io_inv['k'].replace(io_inv_dict)
@@ -318,7 +318,7 @@ wages_employed * hours_independents / hours_employed
 and add this to the existing wage sum.
 Below reads the data required to compute the expression above:
 '''
-employed_fullset=pd.read_excel(r'data\employed.xlsx',keep_default_na=True)
+employed_fullset=pd.read_excel(r'data/employed.xlsx',keep_default_na=True)
 employed_fullset.rename(columns={'indu':'i'},inplace=True)
 employed_employees=employed_fullset[employed_fullset['type']=='employees'][['year','i', 'hours']]
 employed_independent=employed_fullset[employed_fullset['type']=='self-employed'][['year','i', 'hours']]
@@ -349,7 +349,7 @@ nemployed_frame=employed_fullset[['year','employed']]
 nemployed_frame=nemployed_frame.groupby(['year'],as_index=False).agg({'employed':'sum'})
 
 #Capital, fixed assets
-fixed_assets=pd.read_excel(r'data\fixed_assets.xlsx',keep_default_na=True)
+fixed_assets=pd.read_excel(r'data/fixed_assets.xlsx',keep_default_na=True)
 '''map onto gr-codes'''
 fixed_assets.replace({'asset':fixed_assets_dict},inplace=True)
 
@@ -360,14 +360,14 @@ fixed_assets=fixed_assets[['k','i','year','level']]
 fixed_assets=fixed_assets.groupby(['k','i','year'],as_index=False).agg({'level':'sum'})
 
 #ets
-ets=pd.read_excel(r'data\ets.xlsx',keep_default_na=True)
+ets=pd.read_excel(r'data/ets.xlsx',keep_default_na=True)
 #reorder columns for free allowances and drop redundants
 qCO2_ETS_freeallowances=ets[['indu','year', 'free_allowances']]
 #ensure level-column is called level
 qCO2_ETS_freeallowances.rename(columns={'free_allowances':'level','indu':'i'},inplace=True)
 
 #emissions_bridge_items
-emissions_bridge_items=pd.read_excel(r'data\emissions_brigde_items.xlsx',keep_default_na=True)
+emissions_bridge_items=pd.read_excel(r'data/emissions_brigde_items.xlsx',keep_default_na=True)
 
 qEmmLULUCF = emissions_bridge_items.loc[emissions_bridge_items['item'] == 'lulucf', ['year','co2_eq']]
 
@@ -393,7 +393,7 @@ emissions_bridge_items_bordertrade=emissions_bridge_items_bordertrade.stack().to
 emissions_bridge_items_bordertrade=emissions_bridge_items_bordertrade[['level_1','year','level']]
 
 #sector data
-institutional_financial_accounts=pd.read_excel(r'data\institutional_financial_accounts.xlsx',keep_default_na=True)
+institutional_financial_accounts=pd.read_excel(r'data/institutional_financial_accounts.xlsx',keep_default_na=True)
 
 institutional_financial_accounts.set_index(['year','var','sector'],inplace=True)
 institutional_financial_accounts=institutional_financial_accounts.stack().to_frame(name='level').reset_index()
@@ -414,7 +414,7 @@ vNetDividends.drop(columns=['var'],inplace=True)
 vNetRevaluations.drop(columns=['var'],inplace=True)
 
 #government finances
-government_finances=pd.read_excel(r'data\government_finances.xlsx',keep_default_na=True)
+government_finances=pd.read_excel(r'data/government_finances.xlsx',keep_default_na=True)
 
 '''Note:
 In GR, these values come from MAKRO.
@@ -532,7 +532,7 @@ they are indistinguishable - in all other ways than the value in the aggregated 
 Here I am forced to use the trans_txt-column to distinguish between the personal income taxes since they are otherwise identically labelled
 '''
 #tax on labour
-government_finances_disagg=pd.read_excel(r'data\government_finances.xlsx',keep_default_na=True)
+government_finances_disagg=pd.read_excel(r'data/government_finances.xlsx',keep_default_na=True)
 government_finances_disagg.rename(columns={'value':'level'},inplace=True)
 government_finances_disagg['year']=government_finances_disagg['year'].astype('string')
 #revenue from contribution to labour market fund
@@ -543,7 +543,7 @@ government_finances_taxlaboroth=government_finances_disagg.loc[(government_finan
 vtPersIncRest=government_finances_taxlaboroth[['year','level']]
 
 #Institutional financial accounts
-institutional_financial_accounts=pd.read_excel(r'data\institutional_financial_accounts.xlsx',keep_default_na=True)
+institutional_financial_accounts=pd.read_excel(r'data/institutional_financial_accounts.xlsx',keep_default_na=True)
 #make sure year is string
 institutional_financial_accounts['year']=institutional_financial_accounts['year'].astype('string')
 
@@ -562,20 +562,20 @@ vInterestGovDebt.rename(columns={'as':'level'})
 #Metadata for sets + set_txt
 
 #populate c and add text
-metadata_cons_hh=pd.read_excel(r'data\metadata.xlsx',sheet_name='cons_hh',keep_default_na=True)
+metadata_cons_hh=pd.read_excel(r'data/metadata.xlsx',sheet_name='cons_hh',keep_default_na=True)
 c_records = list(metadata_cons_hh.itertuples(index=False, name=None))
 #populate i and re (with text)
-metadata_industries=pd.read_excel(r'data\metadata.xlsx',sheet_name='industries',keep_default_na=True)
+metadata_industries=pd.read_excel(r'data/metadata.xlsx',sheet_name='industries',keep_default_na=True)
 i_records = list(metadata_industries.itertuples(index=False, name=None))
 i_records_fortot=i_records.copy()
 re_records = [(str(x) + '_re', y) for x, y in i_records]
 #populate es (w. text)
-metadata_energy_purposes=pd.read_excel(r'data\metadata.xlsx',sheet_name='energy_purposes',keep_default_na=True)
+metadata_energy_purposes=pd.read_excel(r'data/metadata.xlsx',sheet_name='energy_purposes',keep_default_na=True)
 es_records = list(metadata_energy_purposes.itertuples(index=False, name=None))
 #include 'unspecified' - hardcoded
 es_records.extend([('unspecified','')])
 #ppulate a_rows_ (w. text)
-metadata_flows=pd.read_excel(r'data\metadata.xlsx',sheet_name='flows',keep_default_na=True)
+metadata_flows=pd.read_excel(r'data/metadata.xlsx',sheet_name='flows',keep_default_na=True)
 metadata_flows_a=metadata_flows[metadata_flows['flow_type']=='prim_input']
 metadata_flows_a['flow']=metadata_flows_a['flow'].replace(dict_a)
 a_records=list(metadata_flows_a[['flow','flow_txt']].itertuples(index=False, name=None))

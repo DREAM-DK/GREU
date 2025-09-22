@@ -115,9 +115,9 @@ $IF %test_CGE%:
 # Zero shock  -  Abort if a zero shock changes any variables significantly
 @set(all_variables, _saved, .l)
 $FIX all_variables; $UNFIX main_endogenous;
-execute_unload 'Output\main_pre.gdx';
+execute_unload 'Output/main_pre.gdx';
 Solve main using CNS;
-execute_unload 'Output\main_CGE.gdx';
+execute_unload 'Output/main_CGE.gdx';
 @assert_no_difference(all_variables, 1e-6, .l, _saved, "Zero shock changed variables significantly.");
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
 
