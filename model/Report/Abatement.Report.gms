@@ -24,6 +24,8 @@ $Group+ report_variables "Report variables"
   pTSupply[l,es,d,t] "Average price of energy service supplied by technology l."
   uTK[l,es,d,t] "Average capital intensity of adopted variants of technology l"
   qESE_MechCh[es,e,d,t] "Change in energy input with baseline energy service demand"
+  pY0_i_Change[i,t] "Change in output price by industry conditional on technologies"
+  pY0_i_baseline[i,t] "Baseline output price by industry"
   ;
 
 $ENDIF # report_def
@@ -36,10 +38,11 @@ $IF %stage% == "report_baseline":
 
   sqT_baseline.l[l,es,d,t] = sqT.l[l,es,d,t];
   sqTPotential_baseline.l[l,es,d,t] = sqTPotential.l[l,es,d,t];
-  # sqTAdoption_baseline.l[l,es,d,t] = sqTAdoption.l[l,es,d,t];
 
   qES_baseline.l[es,d,t] = qES.l[es,d,t];
   qESE_baseline.l[es,e,d,t] = qESE.l[es,e,d,t];
+
+  pY0_i_baseline.l[i,t] = pY0_i.l[i,t];
 
 $ENDIF # report_baseline
 
@@ -74,5 +77,14 @@ pTSupply.l[l,es,d,t]$(d1sqTPotential[l,es,d,t] and (sqT.l[l,es,d,t]*qES.l[es,d,t
 qESE_MechCh.l[es,e,d,t]$(t.val >= t1.val and sum(l, d1sqTPotential[l,es,d,t]))
   = qES_baseline.l[es,d,t] * sum(l$(d1sqTPotential[l,es,d,t]), sqT.l[l,es,d,t] * uTE.l[l,es,e,d,t])
   - qESE_baseline.l[es,e,d,t];
+
+pY0_i_Change.l[i,t]$(sum((l,es), d1sqTPotential[l,es,i,t]) and pY0_i_baseline.l[i,t]) 
+  = (pY0_i.l[i,t]/pY0_i_baseline.l[i,t]-1)*100;
+
+
+# LOOP(i,t)$(t.val >= t1.val and sum((l,es), d1sqTPotential[l,es,i,t])),
+#     tjek = pY0_i_Change.l[i,t] - ;
+#     ABORT$(tjek < 0) tjek, "Change in output price is negative";
+# );
 
 $ENDIF # report
