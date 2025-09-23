@@ -85,6 +85,43 @@ model calibration;
 @add_exist_dummies_to_model(main) # Limit the main model to only include elements that are not dummied out
 main.optfile=1;
 
+set these_e[out]/
+"Other oil products"
+"semi_refin_oil"
+"Bunkering of Danish operated planes on foreign territory"
+"Wood pellets"
+"Jet petroleum"
+"Natural gas (Extraction)"
+"Waste"
+"Gasoline for transport"
+"Bunkering of Danish operated vessels on foreign territory"
+"Waste oil"
+"Biogas"
+"Refinery gas"
+"District heat"
+"Renewable energy"
+"Firewood and woodchips"
+"Straw for energy purposes"
+"Crude oil"
+"Wood waste"
+"Heat pumps"
+"Bunkering of Danish operated trucks on foreign territory"
+"Coal and coke"
+"Diesel for transport"
+"Liquid biofuels"
+"Natural gas incl. biongas"
+"Electricity"
+# "Captured CO2"
+/;
+
+$IF %exogenous_supply_prices% == 1:
+  $GROUP+ main_endogenous 
+    -pE_avg[e,t]$(these_e[e] and sum(i,d1pY_CET[e,i,t]) and sum(i,d1pM_CET[e,i,t])) #Average energy price is exogenized if there is both production and imports of energy
+    #Mark-up is endogenized 
+    rMarkup_out_i[e,i,t]$(d1pY_CET[e,i,t]), -pY_CET[e,i,t]$(d1pY_CEt[e,i,t])
+    pM_CET[e,i,t]$(these_e[out] and d1pM_CET[e,i,t] and sum(i_a,d1pY_CET[e,i_a,t]))
+  ;
+$ENDIF 
 # ------------------------------------------------------------------------------
 # Import data and set parameters
 # ------------------------------------------------------------------------------

@@ -15,6 +15,7 @@ $SETLOCAL calibration_year 2020;
 $SETLOCAL terminal_year 2050;
 
 $SETLOCAL base_year 2020;
+$SETGLOBAL exogenous_supply_prices 1 #Can be used to set supply prices as exogeonus
 
 parameter gp "Steady state rate of inflation." /0.02/;
 parameter gq "Steady state labor saving technical progress." /0.01/;
