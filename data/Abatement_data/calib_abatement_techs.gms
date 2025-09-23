@@ -125,11 +125,14 @@ parameter
 set electrification_techs[l] /
   't26'
   't27'
-
+  't28'
+  't29'
   /;
 
 cost_factor['t26'] = 1.02;
 cost_factor['t27'] = 1.04;
+cost_factor['t28'] = 1.1;
+cost_factor['t29'] = 1.2;
 
 
 # Determining the most expensive technology (used in determining the range for the supply curve)
