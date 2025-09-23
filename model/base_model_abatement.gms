@@ -28,7 +28,7 @@ $import Supply_curves_abatement.gms;
 $FIX all_variables; $UNFIX main_endogenous;
 # execute_unload 'Output\pre_calibration_abatement.gdx';
 solve main using CNS;
-execute_unload 'Output\calibration_abatement.gdx';
+# execute_unload 'Output\calibration_abatement.gdx';
 
 # ------------------------------------------------------------------------------
 # Integrate the abatement model with the CGE-model
@@ -42,7 +42,7 @@ $import create_baseline_values.gms;
 
 $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
-execute_unload 'Output\calibration_abatement_integrated.gdx';
+# execute_unload 'Output\calibration_abatement_integrated.gdx';
 
 # We switch jqESE and uREa when starting to shock the model (could be made more elegant)
 $GROUP main_endogenous

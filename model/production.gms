@@ -69,7 +69,7 @@ $IF %stage% == "equations":
                                            -vtBotded[i,t]                   #"Bottom deductions on energy-use"
                                           + vEnergycostsnotinnesting[i,t]   #Energy costs not in nesting tree
                                           - vNetGov2Corp_xIO[i,t]
-                                          ;
+                                          + sum(es, Delta_vESK[es,i,t]);
 
     .. vGVA_i[i,t] =E= sum(pf_top, pProd[pf_top,i,t]*qProd[pf_top,i,t]) - pProd['RxE',i,t]*qProd['RxE',i,t]
                       -sum(pf_bottom_e, pProd[pf_bottom_e,i,t]*qProd[pf_bottom_e,i,t]);        
