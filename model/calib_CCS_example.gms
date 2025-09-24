@@ -20,7 +20,7 @@ vTC.l[CCS_techs,'process_special','23001',t]$(t.val > 2025) = vTI.l[CCS_techs,'p
 uTE.l[CCS_techs,'process_special',e,'23001',t]$(t.val > 2025) = uTE.l['t7','process_special',e,'23001',t];
 uTE.l[CCS_techs,'process_special','Electricity','23001',t]$(t.val > 2025) = 0.1;
 uTE.l[CCS_techs,'process_special','Captured CO2','23001',t]$(t.val > 2025)
-  = sum((em,ee)$(sameas[em,'co2ubio'] or sameas[em,'co2bio']), 
+  = -sum((em,ee)$(sameas[em,'co2ubio'] or sameas[em,'co2bio']), 
       uTE.l[CCS_techs,'process_special',ee,'23001',t]*uEmmE_BU.l[em,'process_special',ee,'23001',t])
     * 0.9;
 
@@ -50,5 +50,6 @@ $import Supply_curves_abatement.gms;
 # Solve model
 $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
+@import_from_modules("report_baseline") # We recalculate baseline values with the new technologies
 @import_from_modules("report")
 execute_unload 'Output\calibration_CCS.gdx';

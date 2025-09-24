@@ -50,7 +50,7 @@ $ENDIF
 set_time_periods(2021, %terminal_year%);
 
 parameter phaseInTax[t];
-  phaseInTax(t) = (t.val - 2024) / (2030 - 2024);
+  phaseInTax(t)$(t.val > 2024 and t.val < 2030) = (t.val - 2024) / (2030 - 2024);
   phaseInTax(t) $(t.val ge 2030) = 1;
 display phaseInTax;
 

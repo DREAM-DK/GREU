@@ -31,18 +31,15 @@ $ENDIF
 # ------------------------------------------------------------------------------
 # $IF %include_abatement% = 1:
 #   $import calib_electrification.gms;
-#   # We recalculate baseline values with the new technologies
-#   @import_from_modules("report_baseline")
+#   @import_from_modules("report_baseline") # We recalculate baseline values with the new technologies
 # $ENDIF # include_abatement
 
 # ------------------------------------------------------------------------------
 # Calibrate CCS technologies
 # ------------------------------------------------------------------------------
-# $IF %include_abatement% = 1:
-#   $import calib_CCS_example.gms;
-#   # We recalculate baseline values with the new technologies
-#   @import_from_modules("report_baseline")
-# $ENDIF # include_abatement
+$IF %include_abatement% = 1:
+  $import calib_CCS_example.gms;
+$ENDIF # include_abatement
 
 # ------------------------------------------------------------------------------
 # Shock model
@@ -50,7 +47,7 @@ $ENDIF
 set_time_periods(2021, %terminal_year%);
 
 parameter phaseInTax[t];
-  phaseInTax(t) = (t.val - 2024) / (2030 - 2024);
+  phaseInTax(t)$(t.val > 2024 and t.val < 2030) = (t.val - 2024) / (2030 - 2024);
   phaseInTax(t) $(t.val ge 2030) = 1;
 display phaseInTax;
 
@@ -125,7 +122,8 @@ $ENDIF
 @import_from_modules("report")
 
 $IF %include_abatement% = 1:
-execute_unload 'Output\shock_carbon_tax_abatement.gdx';
+# execute_unload 'Output\shock_carbon_tax_abatement.gdx';
+execute_unload 'Output\shock_carbon_tax_CCS.gdx';
 $ENDIF
 
 $IF %include_abatement% = 0:
