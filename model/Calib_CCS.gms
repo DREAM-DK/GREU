@@ -1,35 +1,25 @@
 # ------------------------------------------------------------------------------
-# Calibrate decreasing capital costs for CCS technologies
+# Calibrate CCS technologies
 # ------------------------------------------------------------------------------
 
-# Define the electrification technologies
+# Define the CCS technologies
 set CCS_techs[l] /
   't30'
-  't31'
-  't32'
-  't33'
   /;
 
 # Technology potentials
-sqTPotential.l['t30','process_special','23001',t]$(t.val > 2025) = sqTPotential.l['t1','process_special','23001',t];
-sqTPotential.l['t31','process_special','23001',t]$(t.val > 2025) = sqTPotential.l['t5','process_special','23001',t];
-sqTPotential.l['t32','process_special','23001',t]$(t.val > 2025) = sqTPotential.l['t6','process_special','23001',t];
-sqTPotential.l['t33','process_special','23001',t]$(t.val > 2025) = sqTPotential.l['t7','process_special','23001',t];
+sqTPotential.l[CCS_techs,'process_special','23001',t]$(t.val > 2025) = ;
 
 # Investment costs
-vTI.l['t30','process_special','23001',t]$(t.val > 2025) = 1.65;
-vTI.l['t31','process_special','23001',t]$(t.val > 2025) = 1.725;
-vTI.l['t32','process_special','23001',t]$(t.val > 2025) = 1.8;
-vTI.l['t33','process_special','23001',t]$(t.val > 2025) = 1.875;
+vTI.l[CCS_techs,'process_special','23001',t]$(t.val > 2025) = ;
 
 # Operating costs
-vTC.l[CCS_techs,'process_special','23001',t]$(t.val > 2025) = vTI.l[CCS_techs,'process_special','23001',t]/10;
+vTC.l[CCS_techs,'process_special','23001',t]$(t.val > 2025) = ;
 
 # Energy input
-uTE.l[CCS_techs,'process_special',e,'23001',t]$(t.val > 2025) = uTE.l['t1','process_special',e,'23001',t];
-uTE.l[CCS_techs,'process_special','Electricity','23001',t]$(t.val > 2025) = 0.1;
-uTE.l[CCS_techs,'process_special','Captured CO2','23001',t]$(t.val > 2025) #= -84.1;
-  = -84.1;
+uTE.l[CCS_techs,'process_special',e,'23001',t]$(t.val > 2025) = ;
+uTE.l[CCS_techs,'process_special','Electricity','23001',t]$(t.val > 2025) = ;
+uTE.l[CCS_techs,'process_special','Captured CO2','23001',t]$(t.val > 2025) = ;
 
 # Life span
 LifeSpan[CCS_techs,'process_special','23001',t]$(t.val > 2025) = 5;
@@ -47,12 +37,6 @@ d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 
 # Supply Curve Visualization
 $import Supply_curves_abatement.gms;
-
-# # Solve partial abatement model
-# $FIX all_variables;
-# $UNFIX abatement_partial_endogenous;
-# Solve abatement_partial_equations using CNS;
-# execute_unload 'Output\calibration_CCS_abatement_partial.gdx';
 
 # Solve model
 $FIX all_variables; $UNFIX main_endogenous;
