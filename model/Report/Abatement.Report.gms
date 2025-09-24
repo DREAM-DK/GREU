@@ -26,6 +26,9 @@ $Group+ report_variables "Report variables"
   qESE_MechCh[es,e,d,t] "Change in energy input with baseline energy service demand"
   pY0_i_Change[i,t] "Change in output price by industry conditional on technologies"
   pY0_i_baseline[i,t] "Baseline output price by industry"
+  tCO2_Emarg_pj_baseline[em,es,e,d,t] "Baseline marginal CO2-tax"
+  vESE_Mechanic_change[es,e,d,t] "Mechanic change in value of energy service"
+  pES_Mechanic_change[es,e,d,t] "Mechanic change in price of energy service"
   ;
 
 $ENDIF # report_def
@@ -43,6 +46,7 @@ $IF %stage% == "report_baseline":
   qESE_baseline.l[es,e,d,t] = qESE.l[es,e,d,t];
 
   pY0_i_baseline.l[i,t] = pY0_i.l[i,t];
+  tCO2_Emarg_pj_baseline.l[em,es,e,d,t] = tCO2_Emarg_pj.l[em,es,e,d,t];
 
 $ENDIF # report_baseline
 
@@ -78,9 +82,16 @@ qESE_MechCh.l[es,e,d,t]$(t.val >= t1.val and sum(l, d1sqTPotential[l,es,d,t]))
   = qES_baseline.l[es,d,t] * sum(l$(d1sqTPotential[l,es,d,t]), sqT.l[l,es,d,t] * uTE.l[l,es,e,d,t])
   - qESE_baseline.l[es,e,d,t];
 
+# 2.5 Change in output price by industry
 pY0_i_Change.l[i,t]$(sum((l,es), d1sqTPotential[l,es,i,t]) and pY0_i_baseline.l[i,t]) 
   = (pY0_i.l[i,t]/pY0_i_baseline.l[i,t]-1)*100;
 
+# Mechanic change in value of energy service
+vESE_Mechanic_change.l[es,e,d,t]$(t.val >= t1.val and sum(l, d1sqTPotential[l,es,d,t]))
+  = qESE_baseline.l[es,e,d,t] * sum(em$(d1tCO2_E[em,es,e,d,t]), tCO2_Emarg_pj.l[em,es,e,d,t] - tCO2_Emarg_pj_baseline.l[em,es,e,d,t]);
+
+pES_Mechanic_change.l[es,e,d,t]$(t.val >= t1.val and sum(l, d1sqTPotential[l,es,d,t]))
+  = vESE_Mechanic_change.l[es,e,d,t] / qES_baseline.l[es,d,t];
 
 # LOOP(i,t)$(t.val >= t1.val and sum((l,es), d1sqTPotential[l,es,i,t])),
 #     tjek = pY0_i_Change.l[i,t] - ;
