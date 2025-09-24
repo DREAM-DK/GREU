@@ -162,6 +162,7 @@ dt.plot([s.EVt_income], layout={"title": "Equivalent variations"})
 #--------------------------------
 
 dt.plot([s_a.pREes.loc[:,[23001],:]], "pq", layout={"title": "Energy service, price"})
+dt.plot([s_a.qREes.loc[:,[23001],:]], "pq", layout={"title": "Energy service, quantity"})
 dt.plot([s_a.pREa.loc[['process_special'],:,[23001],:]], "pq", layout={"title": "Energy input, price"})
 
 
@@ -171,9 +172,6 @@ dt.plot([s_a.pREa.loc[['process_special'],:,[23001],:]], "pq", layout={"title": 
 
 ## Plotting of discrete and continous technical energy supply curves
 from plot_supply_curves import plot_supply_curve # Function to plot abatement supply curves
-plot_supply_curve("Output/calibration_abatement.gdx",["23001"])
-plot_supply_curve("Output/pre_calibration_abatement.gdx",["23001"])
-plot_supply_curve("Output/shock_carbon_tax_abatement.gdx",["23001"])
-
-# plot_supply_curve("shock_CCS_subsidy.gdx")
+plot_supply_curve("Output/baseline_abatement.gdx",['01011'])    # Write a sector name to plot the supply curve for that sector
+plot_supply_curve("Output/baseline_abatement.gdx")              # Plot all sectors
 

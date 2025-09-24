@@ -113,7 +113,7 @@ parameter
 
 d1pEpj_abatement[es,'Electricity',i,t]$(sum((l,e), uTE[l,es,e,i,t]) and not pEpj_marg[es,'Electricity',i,t]) = yes;
 
-pEpj_marg[es,e,i,t]$(d1pEpj_abatement[es,e,i,t]) = 0.157988;
+pEpj_marg[es,e,i,t]$(d1pEpj_abatement[es,e,i,t]) = pEpj_marg['transport','Electricity','01011',t];
 
 ## Second step: Technology prices
 parameter

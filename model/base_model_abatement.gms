@@ -62,7 +62,7 @@ $IF %test_abatement%:
   # Zero shock  -  Abort if a zero shock changes any variables significantly
   @set(all_variables, _saved, .l)
   $FIX all_variables; $UNFIX main_endogenous;
-  execute_unload 'Output\main_pre.gdx';
+  # execute_unload 'Output\main_pre.gdx';
   Solve main using CNS;
   @assert_no_difference(all_variables, 1e-6, .l, _saved, "Zero shock changed variables significantly.");
   execute_unload 'Output\main_abatement.gdx';
