@@ -28,6 +28,8 @@ $IF %stage% == "variables":
 
     jqE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "J-term to be endogenized when energy module is turned on. Necessary, because bottom-up energy is partly in the top and partly in CES-nests"
     jpProd[pf,i,t]$(d1Prod[pf,i,t]) "J-term to be endogenized when energy module is turned on"
+
+    vGVA_i[i,t] "Approximation of gross value added on industry level"
   ;
  
 $ENDIF # variables
@@ -66,7 +68,12 @@ $IF %stage% == "equations":
                                             vtY_i_NetTaxSub[i,t]           #Net production taxes and subsidies, excluding ETS free allowances
                                            -vtBotded[i,t]                   #"Bottom deductions on energy-use"
                                           + vEnergycostsnotinnesting[i,t]   #Energy costs not in nesting tree
-                                          ;
+                                          - vNetGov2Corp_xIO[i,t]
+                                          + sum(es, Delta_vESK[es,i,t]);
+
+    .. vGVA_i[i,t] =E= sum(pf_top, pProd[pf_top,i,t]*qProd[pf_top,i,t]) - pProd['RxE',i,t]*qProd['RxE',i,t]
+                      -sum(pf_bottom_e, pProd[pf_bottom_e,i,t]*qProd[pf_bottom_e,i,t]);        
+
   $ENDBLOCK
 
   $BLOCK production_bottom_link_equations production_bottom_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)

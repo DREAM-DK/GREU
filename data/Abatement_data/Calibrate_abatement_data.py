@@ -16,7 +16,7 @@ gdx_output_dir = fr"{root}\data\Abatement_data"
 db = dt.GamsPandasDatabase()
 Par, Var, Set = db.create_parameter, db.create_variable, db.create_set
 
-data_in = dt.Gdx(f"{gdx_input_dir}\calibration.gdx")
+data_in = dt.Gdx(f"{gdx_input_dir}\output\calibration.gdx")
 
 qEpj = data_in['qEpj']
 

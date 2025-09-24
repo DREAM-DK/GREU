@@ -11,9 +11,6 @@ root = dt.find_root("LICENSE")
 sys.path.insert(0, root)
 os.environ["GAMS"] = "C:/GAMS/49/gams.exe"
 
-## Create abatement_dummy_data.gdx based on excel-module
-from data.Abatement_data import Abatement_dummy_data
-
 ## Set working directory
 os.chdir(fr"{root}/model")
 
@@ -29,10 +26,13 @@ dt.gamY.run("base_model_abatement.gms", test_CGE="0", test_abatement="1")
 ## Run a simple shock model - creating shock.gdx
 dt.gamY.run("shock_model.gms", include_abatement="1")
 
-
 ## Run a CO2 tax shock
 dt.gamY.run("shock_CO2_tax.gms", include_abatement="0")
+dt.gamY.run("shock_CO2_tax.gms", include_abatement="1")
 
+## Run a CO2 tax shock with steps
+dt.gamY.run("shock_CO2_tax_steps.gms", include_abatement="0")
+dt.gamY.run("shock_CO2_tax_steps.gms", include_abatement="1")
 
 ## Open run_report.py to see all the reporting
 exec(open('../run_report.py').read())

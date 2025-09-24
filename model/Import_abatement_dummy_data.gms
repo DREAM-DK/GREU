@@ -33,10 +33,10 @@ LifeSpan[l,es,d,t]$(d1sqTPotential_new[l,es,d,t]) = LifeSpan_new.l[l,es,d,t];
 DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
 
 # Set smoothing parameters
-eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.03;
+eP.l[l,es,d,t]$(d1sqTPotential_new[l,es,d,t]) = 0.03;
 
 # Set share parameter
-uES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
+jES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
 jpTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pTK.l[i,t]/pK_k_i.l['iM',i,t];
 
 # 3.3 Dummy Variable Setup
@@ -46,8 +46,6 @@ d1uTE[l,es,e,d,t] = yes$(uTE.l[l,es,e,d,t]);
 d1pTK[d,t] = yes$(sum((l,es), d1sqTPotential[l,es,d,t]));
 d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 d1qES[es,d,t] = yes$(qES.l[es,d,t]);
-d1switch_abatement[t] = 1;
-d1switch_integrate_abatement[t] = 0;
 
 # 4.4 Starting values for Levelized Cost of Energy (LCOE)
 uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,es,d,t]) =

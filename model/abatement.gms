@@ -30,7 +30,7 @@ $Group+ all_variables
 
   # 1.2.1.2 Exogenous Energy Service Demand
   qES[es,d,t]$(d1qES[es,d,t]) "Energy service, quantity."
-  uES[es,d,t]$(d1qES[es,d,t]) "Share parameter linking energy service in abatement model to energy service demand in CGE model"
+  jES[es,d,t]$(d1qES[es,d,t]) "Share parameter linking energy service in abatement model to energy service demand in CGE model"
   
   # 1.2.1.3 Exogenous Technology Parameters
   sqTPotential[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Potential supply by technology l in ratio of energy service (share of qES)"
@@ -147,6 +147,7 @@ $BLOCK abatement_equations_output abatement_endogenous_output $(t1.val <= t.val 
     
   # Use of machinery capital for technologies
   .. qESK[es,d,t] =E= 
+    qES[es,d,t] * 
     sum(l$(d1sqTPotential[l,es,d,t]),
         sqTPotential[l,es,d,t]*@PartExpLogNorm(uTKmarg[l,es,d,t], uTKexp[l,es,d,t], eP[l,es,d,t]));
 
@@ -165,8 +166,8 @@ $ENDBLOCK
 
 $BLOCK abatement_equations_links abatement_endogenous_links $(t1.val <= t.val and t.val <= tEnd.val and d1switch_abatement[t] and d1switch_integrate_abatement[t])
 
-  # qES is determined by the CGE-model. uES (exogenous) is the difference between qES and qREes in the baseline
-  .. qES[es,i,t] =E= uES[es,i,t]*qREes[es,i,t];
+  # qES is determined by the CGE-model. jES (exogenous) is the difference between qES and qREes in the baseline
+  .. qES[es,i,t] =E= jES[es,i,t]*qREes[es,i,t];
 
   # pTK is determined by the CGE-model. jpTK (exogenous) is the relative difference between pTK and pK_k_i['iM',i,t] in the baseline
   .. pTK[i,t] =E= pK_k_i['iM',i,t]*jpTK[i,t];
@@ -207,6 +208,19 @@ $MODEL abatement_equations
 model main / abatement_equations /;
 $GROUP+ main_endogenous abatement_endogenous;
 
+# Create partial abatement model
+$GROUP abatement_partial_endogenous
+  abatement_LCOE_endogenous
+  abatement_endogenous_core
+  abatement_endogenous_output
+;
+
+$MODEL abatement_partial_equations  
+  abatement_LCOE_equations
+  abatement_equations_core
+  abatement_equations_output 
+;
+
 # 2.4 Solver Helper Function
 $FUNCTION Setbounds_abatement():
   # Set bounds for uTKmarg
@@ -229,23 +243,6 @@ $ENDIF # equations
 # ------------------------------------------------------------------------------
 $IF %stage% == "exogenous_values":
 
-# # 3.1 Data Loading
-# $GROUP abatement_data_variables
-#   sqTPotential[l,es,d,t]
-#   uTE_load[l,e]  "Auxiliary variable to load uTE"
-#   vTI[l,es,d,t]
-#   vTC[l,es,d,t]
-#   pTK[d,t]
-#   qES[es,d,t]
-
-# ;
-# @load(abatement_data_variables, "../data/Abatement_data/Abatement_dummy_data.gdx")
-# $GROUP+ data_covered_variables abatement_data_variables;
-
-# # Load LifeSpan from Abatement_dummy_data.gdx
-# execute_load "../data/Abatement_data/Abatement_dummy_data.gdx" LifeSpan=LifeSpan;
-
-
 # 3.1 Data Loading
 $GROUP abatement_data_variables
   sqTPotential[l,es,d,t]
@@ -256,24 +253,22 @@ $GROUP abatement_data_variables
   qES[es,d,t]
 
 ;
-@load(abatement_data_variables, "../data/Abatement_data/calibrate_abatement_techs.gdx")
+@load(abatement_data_variables, "../data/data.gdx")
 $GROUP+ data_covered_variables abatement_data_variables;
 
 # Load LifeSpan from Abatement_dummy_data.gdx
-execute_load "../data/Abatement_data/calibrate_abatement_techs.gdx" LifeSpan=LifeSpan;
+execute_load "../data/data.gdx" LifeSpan=LifeSpan;
 
 # 3.2 Initial Values
-# Calculate initial prices
-# uTE.l[l,es,e,d,t]$(sqTPotential.l[l,es,d,t] and uTE_load.l[l,e]) = uTE_load.l[l,e] ;
-
 # Set discount rate
 DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
 
 # Set smoothing parameters
 eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.03;
+eP.l[l,es,'55560',t]$(sqTPotential.l[l,es,'55560',t]) = 0.05;
 
 # Set share parameter
-uES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
+jES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
 jpTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pTK.l[i,t]/pK_k_i.l['iM',i,t];
 
 # 3.3 Dummy Variable Setup
@@ -283,8 +278,6 @@ d1uTE[l,es,e,d,t] = yes$(uTE.l[l,es,e,d,t]);
 d1pTK[d,t] = yes$(sum((l,es), d1sqTPotential[l,es,d,t]));
 d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 d1qES[es,d,t] = yes$(qES.l[es,d,t]);
-d1switch_abatement[t] = 1;
-d1switch_integrate_abatement[t] = 0;
 
 # 4.4 Starting values for Levelized Cost of Energy (LCOE)
 uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,es,d,t]) =
