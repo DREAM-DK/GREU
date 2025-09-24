@@ -102,6 +102,7 @@ set income_set "Types of income" /
   Lumpsum
   Transfers
   HhTaxes
+  Rest
   /;
 
 set EVt_display_set "Types of equivalent variations for display" /
