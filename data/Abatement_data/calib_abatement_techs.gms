@@ -1,19 +1,18 @@
-$IMPORT ..\model\functions.gms;
+$IMPORT ../model/functions.gms;
 
 ## ----------------------------------------------------------------------------------------
 ## Creating abatement technologies to match data
 ## ----------------------------------------------------------------------------------------
 
-set l_input "Technology name for calibrated abatement data";
-set l "Technology name.";
+set l_input "Technology name for calibrated abatement data" /t1*t1000/;
+set l "Technologies" /t1*t1000/;
+#$gdxIn Abatement_data/calibrate_abatement_data_python.gdx
+#$load l_input
+#$gdxIn
 
-$gdxIn Abatement_data/calibrate_abatement_data_python.gdx
-$load l_input
-$gdxIn
-
-$gdxIn ../data/Abatement_data/Abatement_dummy_data.gdx
-$load l
-$gdxIn
+#$gdxIn ../data/Abatement_data/Abatement_dummy_data.gdx
+#$load l
+#$gdxIn
 
 alias(l,ll);
 
@@ -254,7 +253,7 @@ qES[es,d,t]$(not (these_sectors(d) and these_eservices(es))) = 0;
 # d1qES[es,d,t] = yes$(qES.l[es,d,t] and these_eservices(es) and these_sectors(d));
 
 # Unload gdx-file
-execute_unload 'Abatement_data\calibrate_abatement_techs.gdx'
+execute_unload 'Abatement_data/calibrate_abatement_techs.gdx'
               sqTPotential
               uTE
               vTI

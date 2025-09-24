@@ -23,7 +23,7 @@ $import Supply_curves_abatement.gms;
 $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
 $IMPORT report_abatement.gms
-execute_unload 'Output\calibration_abatement.gdx';
+execute_unload 'Output/calibration_abatement.gdx';
 # $exit
 # ------------------------------------------------------------------------------
 # Integrate the abatement model with the CGE-model
@@ -38,7 +38,7 @@ $import create_baseline_values.gms;
 $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
 $IMPORT report_abatement.gms
-execute_unload 'Output\calibration_abatement_integrated.gdx';
+execute_unload 'Output/calibration_abatement_integrated.gdx';
 
 # We switch jqESE and uREa when starting to shock the model (could be made more elegant)
 $GROUP main_endogenous
@@ -61,10 +61,10 @@ $IF %test_abatement%:
 # Zero shock  -  Abort if a zero shock changes any variables significantly
 @set(all_variables, _saved, .l)
 $FIX all_variables; $UNFIX main_endogenous;
-execute_unload 'Output\main_pre.gdx';
+execute_unload 'Output/main_pre.gdx';
 Solve main using CNS;
 @assert_no_difference(all_variables, 1e-6, .l, _saved, "Zero shock changed variables significantly.");
-execute_unload 'Output\main_abatement.gdx';
+execute_unload 'Output/main_abatement.gdx';
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
 
 $ENDIF # test_abatement
