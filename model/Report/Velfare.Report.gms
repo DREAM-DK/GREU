@@ -20,7 +20,7 @@ $Group+ report_variables "Report variables"
   EV_income[income_set]  "Equivalent variations effects on income weighted over all time periods"
   EVt_Weight[t]  "Weight for each time period"
   EVt_r_fv[t]  "Discount factor for each time period"
-  Shadow_price[Shadow_price_set]  "Shadow prices on emissions"
+  EV_Shadow_price[Shadow_price_set]  "Shadow prices on emissions"
   EVt_income[income_set,t]  "Equivalent variations effects on income over time"
   EVt_display[EVt_display_set,t]  "Equivalent variations effects over time for display"
 
@@ -92,12 +92,12 @@ EVt_display.l['Weight',t]$(tEnd[t]) = 0;
 EV.l[EV_set] = sum(t, EVt.l[EV_set,t]*EVt_Weight.l[t]) / sum(t, EVt_Weight.l[t]);
 EV_income.l[income_set] = sum(t, EVt_income.l[income_set,t]*EVt_Weight.l[t]) / sum(t, EVt_Weight.l[t]);
 
-Shadow_price.l['EV'] = sum(EV_set, EV.l[EV_set]);
-Shadow_price.l['Emissions'] =  sum(t, (qEmmTot.l['co2e','UNFCCC_LULUCF',t]-qEmmTot_baseline.l['co2e','UNFCCC_LULUCF',t])
+EV_Shadow_price.l['EV'] = sum(EV_set, EV.l[EV_set]);
+EV_Shadow_price.l['Emissions'] =  sum(t, (qEmmTot.l['co2e','UNFCCC_LULUCF',t]-qEmmTot_baseline.l['co2e','UNFCCC_LULUCF',t])
                                *EVt_Weight.l[t]) / sum(t, EVt_Weight.l[t]);
 # EV mulitplyed by 1000 to get in millions - emissions is in millions of tons
-Shadow_price.l['Shadow_price']$(Shadow_price.l['Emissions'] ne 0) =  Shadow_price.l['EV']*1000
-                                                                    /(Shadow_price.l['Emissions']/1000);
+EV_Shadow_price.l['Shadow_price']$(EV_Shadow_price.l['Emissions'] ne 0) =  EV_Shadow_price.l['EV']*1000
+                                                                    /(EV_Shadow_price.l['Emissions']/1000);
 
 
 

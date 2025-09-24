@@ -49,6 +49,10 @@ $ENDIF
 # ------------------------------------------------------------------------------
 set_time_periods(2021, %terminal_year%);
 
+parameter phaseInTax[t];
+  phaseInTax(t) = (t.val - 2024) / (2030 - 2024);
+  phaseInTax(t) $(t.val ge 2030) = 1;
+display phaseInTax;
 
 
 parameter
@@ -61,9 +65,11 @@ tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]
 ## SHOCK TO EXOGENOUS VARIABLES
 
 # Apply carbon tax to specific energy types inkluding household use of energy
-tCO2_Emarg.l[em,es,e,d,t]$(d1tCO2_E[em,es,e,d,t]) = tCO2_Emarg.l[em,es,e,d,t] + 750;
+tCO2_Emarg.l[em,es,e,d,t]$(d1tCO2_E[em,es,e,d,t]) = tCO2_Emarg.l[em,es,e,d,t] + 750 * phaseInTax[t];
+# tCO2_Emarg.l[em,es,e,i,t]$(d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t] + 750 * phaseInTax[t];
+
 # Apply carbon tax to non-energy emissions
-tCO2_xEmarg.l[i,t]$(d1tCO2_xE[i,t]) = tCO2_xEmarg.l[i,t] + 750;
+tCO2_xEmarg.l[i,t]$(d1tCO2_xE[i,t]) = tCO2_xEmarg.l[i,t] + 750 * phaseInTax[t];
 
 
 
