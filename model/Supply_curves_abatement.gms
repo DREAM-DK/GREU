@@ -15,6 +15,8 @@
 # 1. Update energy dummies and prices
 # ----------------------------------------------------------------------------------------------------------------------
 
+$import Dummies_new_energy_use.gms;
+
 $FIX all_variables; $UNFIX energy_price_partial_endogenous;
 # execute_unload 'energy_price_partial_pre.gdx';
 Solve energy_price_partial using CNS;
@@ -24,9 +26,9 @@ Solve energy_price_partial using CNS;
 # 1. Initialize linking variables
 # ----------------------------------------------------------------------------------------------------------------------
 
-# Set share parameters
-uES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
-jpTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pTK.l[i,t]/pK_k_i.l['iM',i,t];
+# Initialise linking variables
+qES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = jES.l[es,i,t]*qREes.l[es,i,t];
+pTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pK_k_i.l['iM',i,t]*jpTK.l[i,t];
 
 # ----------------------------------------------------------------------------------------------------------------------
 # 1. Price Initialization
@@ -72,6 +74,7 @@ uTKmargNobound_scen.l[l,es,d,t,scen]$(sqTPotential.l[l,es,d,t]) = uTKmarg_scen.l
 # 3. Supply Curve Solution
 # ----------------------------------------------------------------------------------------------------------------------
 # 3.1 Pre-model Solution
+@update_exist_dummies()
 $FIX G_abatement_supply_curve_exo;
 $UNFIX G_abatement_supply_curve_endo;
 @Setbounds_abatement();
@@ -101,4 +104,4 @@ sqT.l[l,es,d,t]$(sqTPotential.l[l,es,d,t] and uTKmarg_eq[l,es,d,t]) =
   sqTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_eq[l,es,d,t], uTKexp.l[l,es,d,t], eP.l[l,es,d,t]);
 pESmarg.l[es,d,t] = pESmarg_eq[es,d,t];
 
-execute_unload 'premodel_abatement.gdx';
+execute_unload 'output\supply_curves_abatement.gdx';

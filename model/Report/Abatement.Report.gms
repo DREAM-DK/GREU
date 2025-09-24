@@ -1,0 +1,101 @@
+# ======================================================================================================================
+# Abatement Model Reporting
+# ======================================================================================================================
+# This file generates reports and analysis of the abatement model results.
+# It calculates key metrics and indicators for model evaluation.
+
+# ----------------------------------------------------------------------------------------------------------------------
+# 1. Report Variables
+# ----------------------------------------------------------------------------------------------------------------------
+
+$IF %stage% == "report_def":
+
+$Group+ report_variables "Report variables"
+  # Baseline variables
+  sqT_baseline[l,es,d,t] "Supply by technology in baseline"
+  sqTPotential_baseline[l,es,d,t] "Potential supply by technology in baseline"
+  qES_baseline[es,d,t] "Energy service demand in baseline"
+  qESE_baseline[es,e,d,t] "Energy input in baseline"
+  # Reporting variables
+  sqTPotential_sum[es,d,t] "Sum of potentials for each energy service"
+  sqTAdoption[l,es,d,t] "Adoption rate of technologies (between 0 and 1)"
+  sqTAdoption_Ch[l,es,d,t] "Change in adoption rates for each energy service"
+  # sqTAdoption_baseline[l,es,d,t] "Adoption rate of technologies in baseline"
+  pTSupply[l,es,d,t] "Average price of energy service supplied by technology l."
+  uTK[l,es,d,t] "Average capital intensity of adopted variants of technology l"
+  qESE_MechCh[es,e,d,t] "Change in energy input with baseline energy service demand"
+  pY0_i_Change[i,t] "Change in output price by industry conditional on technologies"
+  pY0_i_baseline[i,t] "Baseline output price by industry"
+  tCO2_Emarg_pj_baseline[em,es,e,d,t] "Baseline marginal CO2-tax"
+  vESE_Mechanic_change[es,e,d,t] "Mechanic change in value of energy service"
+  pES_Mechanic_change[es,e,d,t] "Mechanic change in price of energy service"
+  ;
+
+$ENDIF # report_def
+
+# ----------------------------------------------------------------------------------------------------------------------
+# 2. Baseline values
+# ----------------------------------------------------------------------------------------------------------------------
+
+$IF %stage% == "report_baseline":
+
+  sqT_baseline.l[l,es,d,t] = sqT.l[l,es,d,t];
+  sqTPotential_baseline.l[l,es,d,t] = sqTPotential.l[l,es,d,t];
+
+  qES_baseline.l[es,d,t] = qES.l[es,d,t];
+  qESE_baseline.l[es,e,d,t] = qESE.l[es,e,d,t];
+
+  pY0_i_baseline.l[i,t] = pY0_i.l[i,t];
+  tCO2_Emarg_pj_baseline.l[em,es,e,d,t] = tCO2_Emarg_pj.l[em,es,e,d,t];
+
+$ENDIF # report_baseline
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# 3. Metric Calculations
+# ----------------------------------------------------------------------------------------------------------------------
+
+$IF %stage% == "report":
+
+# 2.1 Technology Potential Analysis
+sqTPotential_sum.l[es,d,t]$(sum(l, d1sqTPotential[l,es,d,t])) = 
+  sum(l, sqTPotential.l[l,es,d,t]);
+
+# 2.2 Technology Adoption Analysis
+sqTAdoption.l[l,es,d,t]$(t.val >= t1.val and d1sqTPotential[l,es,d,t]) = 
+  sqT.l[l,es,d,t] / sqTPotential.l[l,es,d,t];
+
+sqTAdoption_Ch.l[l,es,d,t]$(t.val >= t1.val and d1sqTPotential[l,es,d,t]) = 
+  sqTAdoption.l[l,es,d,t] - (sqT_baseline.l[l,es,d,t] / sqTPotential_baseline.l[l,es,d,t])$(sqTPotential_baseline.l[l,es,d,t]);
+
+# Calculate average capital intensity as conditional expectation
+# For technologies with adoption, calculate average capital intensity using conditional expectation formula
+uTK.l[l,es,d,t]$(d1sqTPotential[l,es,d,t] and sqT.l[l,es,d,t]>0.001)
+  = @CondExpLogNorm(uTKmarg.l[l,es,d,t], uTKexp.l[l,es,d,t], eP.l[l,es,d,t]) ;
+
+# 2.3 Price Analysis
+pTSupply.l[l,es,d,t]$(d1sqTPotential[l,es,d,t] and (sqT.l[l,es,d,t]*qES.l[es,d,t])) =
+    pTK.l[d,t]*uTK.l[l,es,d,t] + sum(e$(d1pEpj[es,e,d,t] and d1uTE[l,es,e,d,t]), pEpj_marg.l[es,e,d,t]*uTE.l[l,es,e,d,t]);
+
+# 2.4 Energy Input Demand Change
+qESE_MechCh.l[es,e,d,t]$(t.val >= t1.val and sum(l, d1sqTPotential[l,es,d,t]))
+  = qES_baseline.l[es,d,t] * sum(l$(d1sqTPotential[l,es,d,t]), sqT.l[l,es,d,t] * uTE.l[l,es,e,d,t])
+  - qESE_baseline.l[es,e,d,t];
+
+# 2.5 Change in output price by industry
+pY0_i_Change.l[i,t]$(sum((l,es), d1sqTPotential[l,es,i,t]) and pY0_i_baseline.l[i,t]) 
+  = (pY0_i.l[i,t]/pY0_i_baseline.l[i,t]-1)*100;
+
+# Mechanic change in value of energy service
+vESE_Mechanic_change.l[es,e,d,t]$(t.val >= t1.val and sum(l, d1sqTPotential[l,es,d,t]))
+  = qESE_baseline.l[es,e,d,t] * sum(em$(d1tCO2_E[em,es,e,d,t]), tCO2_Emarg_pj.l[em,es,e,d,t] - tCO2_Emarg_pj_baseline.l[em,es,e,d,t]);
+
+pES_Mechanic_change.l[es,e,d,t]$(t.val >= t1.val and sum(l, d1sqTPotential[l,es,d,t]))
+  = vESE_Mechanic_change.l[es,e,d,t] / qES_baseline.l[es,d,t];
+
+# LOOP(i,t)$(t.val >= t1.val and sum((l,es), d1sqTPotential[l,es,i,t])),
+#     tjek = pY0_i_Change.l[i,t] - ;
+#     ABORT$(tjek < 0) tjek, "Change in output price is negative";
+# );
+
+$ENDIF # report

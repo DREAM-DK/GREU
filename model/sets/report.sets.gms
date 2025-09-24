@@ -43,6 +43,9 @@ Set flow "Types of flows between sectors" /
   CashFlow
   Interests
   Wages
+  Hh2Gov
+  Gov2F
+  Gov2Corp
   Transfers
   HhTaxes
   CorpTaxes
@@ -59,6 +62,13 @@ Set flow "Types of flows between sectors" /
   Test
   /;
 
+Set flowAgg "Aggregated types of flows between sectors" /
+  Wages
+  Tax_transfers
+  Surply_YM
+  Demand_CGIX
+  Duties
+  /;
 
 # set EV_set_incl_Weight "Types of equivalent variations" /
 #   Income_d
@@ -92,6 +102,7 @@ set income_set "Types of income" /
   Lumpsum
   Transfers
   HhTaxes
+  Rest
   /;
 
 set EVt_display_set "Types of equivalent variations for display" /
