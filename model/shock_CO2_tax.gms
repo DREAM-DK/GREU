@@ -31,15 +31,14 @@ $ENDIF
 # ------------------------------------------------------------------------------
 # $IF %include_abatement% = 1:
 #   $import calib_electrification.gms;
-#   @import_from_modules("report_baseline") # We recalculate baseline values with the new technologies
 # $ENDIF # include_abatement
 
 # ------------------------------------------------------------------------------
 # Calibrate CCS technologies
 # ------------------------------------------------------------------------------
-$IF %include_abatement% = 1:
-  $import calib_CCS_example.gms;
-$ENDIF # include_abatement
+# $IF %include_abatement% = 1:
+#   $import calib_CCS_example.gms;
+# $ENDIF # include_abatement
 
 # ------------------------------------------------------------------------------
 # Shock model
@@ -122,8 +121,7 @@ $ENDIF
 @import_from_modules("report")
 
 $IF %include_abatement% = 1:
-# execute_unload 'Output\shock_carbon_tax_abatement.gdx';
-execute_unload 'Output\shock_carbon_tax_CCS.gdx';
+execute_unload 'Output\shock_carbon_tax_abatement.gdx';
 $ENDIF
 
 $IF %include_abatement% = 0:
