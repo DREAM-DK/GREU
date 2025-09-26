@@ -2,6 +2,7 @@
 $IF %stage% == "report_def":
 
 $Group+ report_variables "Report variables"
+  # Baseline variables
   pD_baseline[d,t]  "Prices in baseline"
   qD_baseline[d,t]  "Quantities in baseline"
   vHhIncome_baseline[t]  "Income in baseline"
@@ -15,6 +16,7 @@ $Group+ report_variables "Report variables"
   vWages_baseline[t]  "Wages in baseline"
   pY_i_baseline[i,t] "pY_i in baseline"
 
+  # Reporting variables
   EVt[EV_set,t]  "Equivalent variations effects over time"
   EV[EV_set]  "Equivalent variations effects weighted over all time periods"
   EV_income[income_set]  "Equivalent variations effects on income weighted over all time periods"
@@ -49,8 +51,12 @@ $ENDIF # report_baseline
 
 $IF %stage% == "report":
 
-EVt.l['Income_d',t] = vHhIncome.l[t]-vNetInterests.l['Hh',t] - (vHhIncome_baseline.l[t]-vNetInterests_baseline.l['Hh',t]); 
-EVt.l['Income_f',t] = vNetGov2Foreign.l[t] - vNetGov2Foreign_baseline.l[t]; 
+EVt.l['Income_d',t] = 
+     vHhIncome.l[t]-vNetInterests.l['Hh',t] 
+  - (vHhIncome_baseline.l[t]-vNetInterests_baseline.l['Hh',t]); 
+
+EVt.l['Income_f',t] = vNetGov2Foreign.l[t] 
+                    - vNetGov2Foreign_baseline.l[t]; 
 
 
 EVt.l['Price_d',t] = - sum(c, (pD.l[c,t]-pD_baseline.l[c,t])*qD.l[c,t]

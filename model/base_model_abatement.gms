@@ -16,7 +16,7 @@ jpTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pTK.l[i,t]/pK_k_i.l['iM',i,t];
 # Supply Curve Visualization
 $import premodel_abatement.gms
 $import energy_price_partial.gms
-# execute_unload 'Output\pre_energy_price_partial.gdx';
+# execute_unload 'Output/pre_energy_price_partial.gdx';
 $import Supply_curves_abatement.gms;
 
 # Solve partial abatement model
@@ -26,7 +26,7 @@ $import Supply_curves_abatement.gms;
 
 @add_exist_dummies_to_model(main);
 $FIX all_variables; $UNFIX main_endogenous;
-# execute_unload 'Output\pre_calibration_abatement.gdx';
+# execute_unload 'Output/pre_calibration_abatement.gdx';
 solve main using CNS;
 # execute_unload 'Output/calibration_abatement.gdx';
 
