@@ -25,11 +25,11 @@ $import Supply_curves_abatement.gms;
 # $FIX all_variables;
 # $UNFIX abatement_partial_endogenous;
 # Solve abatement_partial_equations using CNS;
-# execute_unload 'Output\calibration_electrification_abatement_partial.gdx';
+# execute_unload 'Output/calibration_electrification_abatement_partial.gdx';
 
 # Solve model
 $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
 @import_from_modules("report_baseline") # We recalculate baseline values with the new technologies
 @import_from_modules("report")
-execute_unload 'Output\calibration_electrification.gdx';
+execute_unload 'Output/calibration_electrification.gdx';

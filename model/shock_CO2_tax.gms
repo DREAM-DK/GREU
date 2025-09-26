@@ -11,19 +11,18 @@ $IF %include_abatement% = 1:
 $ENDIF # include_abatement
 
 
-$IMPORT sets/report.sets.gms # Has to be manually fittet to country specifik data
+$IMPORT sets/report.sets.gms # Has to be manually fittet to country specific data
 $Group Report_variables ;
 @import_from_modules("report_def")
 @import_from_modules("report_baseline")
-
 @import_from_modules("report")
 
 $IF %include_abatement% = 1:
-  execute_unload 'Output\baseline_abatement.gdx';
+  execute_unload 'Output/baseline_abatement.gdx';
 $ENDIF
 
 $IF %include_abatement% = 0:
-  execute_unload 'Output\baseline.gdx';
+  execute_unload 'Output/baseline.gdx';
 $ENDIF
 
 # ------------------------------------------------------------------------------
@@ -82,7 +81,7 @@ $GROUP main_endogenous
 ;
 
 $FIX all_variables; $UNFIX main_endogenous;
-# execute_unload 'Output\pre_CO2_shock.gdx';
+# execute_unload 'Output/pre_CO2_shock.gdx';
 solve main using CNS;
 
 tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
@@ -107,7 +106,7 @@ $GROUP main_endogenous
   $FIX all_variables;
   $UNFIX abatement_partial_endogenous;
   Solve abatement_partial_equations using CNS;
-  execute_unload 'Output\shock_carbon_tax_abatement_partial.gdx';
+  execute_unload 'Output/shock_carbon_tax_abatement_partial.gdx';
 
   $FIX all_variables;
   $UNFIX main_endogenous;
@@ -121,11 +120,11 @@ $ENDIF
 @import_from_modules("report")
 
 $IF %include_abatement% = 1:
-execute_unload 'Output\shock_carbon_tax_abatement.gdx';
+execute_unload 'Output/shock_carbon_tax_abatement.gdx';
 $ENDIF
 
 $IF %include_abatement% = 0:
-execute_unload 'Output\shock_carbon_tax.gdx';
+execute_unload 'Output/shock_carbon_tax.gdx';
 $ENDIF
 
 jvY_i.l[i,t]$(t.val LE t1.val) = 0;

@@ -42,4 +42,4 @@ $import Supply_curves_abatement.gms;
 $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
 @import_from_modules("report")
-execute_unload 'Output\calibration_CCS.gdx';
+execute_unload 'Output/calibration_CCS.gdx';
