@@ -36,7 +36,7 @@ $ENDIF
 # Calibrate CCS technologies
 # ------------------------------------------------------------------------------
 # $IF %include_abatement% = 1:
-#   $import calib_CCS_example.gms;
+#   $import calib_CCS.gms;
 # $ENDIF # include_abatement
 
 # ------------------------------------------------------------------------------
