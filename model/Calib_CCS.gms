@@ -7,6 +7,7 @@ set CCS_techs[l] /
   't30'
   /;
 
+
 # Technology potentials
 sqTPotential.l[CCS_techs,'process_special','23001',t]$(t.val > 2025) = ;
 
