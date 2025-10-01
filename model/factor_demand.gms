@@ -37,6 +37,8 @@ $Group+ all_variables
   qE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "Real energy inputs by industry."
   vE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "Energy inputs by industry and final purpose."
   vE_i[i,t]$(d1E_i[i,t]) "Energy inputs by industry"
+
+  vDepr_i[i,t] "Depreciation by industry."  
 ;
 
 $ENDIF # variables
@@ -86,6 +88,10 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
       pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t+1]) * pD[k,t+1]*fp + jpK_k_i[k,i,t];
     pK_k_i&_tEnd[k,i,t]$(tEnd[t])..
       pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t]) * pD[k,t]*fp + jpK_k_i[k,i,t];
+
+  # Depreciation on industry level
+  .. vDepr_i[i,t] =E= sum(k, pK_k_i[k,i,t] * rKDepr_k_i[k,i,t] * qK_k_i[k,i,t-1]/fq);
+   
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model

@@ -22,7 +22,7 @@ $set data_path P:/akg/Til_EU_projekt
 ###
 
 ### A) Initilization of model sets
-set l "Technologies";
+#set l "Technologies" /t1*t1000/;
 Set t ;#time periods
 Set t1(t); #year 2020 
 Set es; #energy service
@@ -535,10 +535,6 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   vtE_vat[es,e,d,t]          = sum(demand_transaction_temp, Energybalance['VAT',demand_transaction_temp,d,es,e,t]);
 
   # Abatement
-  #theta[l,es,i,t] = sum(e, theta_load[l,es,i,e,t]);
-  #uTE[l,es,e,i,t] = uTE_load[l,es,i,e,t];
-  #uTK[l,es,i,t] = sum(e, uTK_load[l,es,i,e,t]);
-
   # Create calibrated abatement data that matches historical energy use
   $import Abatement_data/calib_abatement_techs.gms
 

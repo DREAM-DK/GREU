@@ -18,9 +18,9 @@ $ENDLOOP
 
 $FIX all_variables; $UNFIX calibration_endogenous;
 
-execute_unload 'Output\static_calibration_pre.gdx';
+execute_unload 'Output/static_calibration_pre.gdx';
 solve calibration using CNS;
-execute_unload 'Output\static_calibration.gdx';
+execute_unload 'Output/static_calibration.gdx';
 
 # ------------------------------------------------------------------------------
 # Dynamic calibration
@@ -53,6 +53,11 @@ $LOOP G_flat_after_last_data_year:
 	{name}.l{sets}$({conditions} and t.val > t1.val) = {name}.l{sets}{$}[<t>t1];
 $ENDLOOP
 
+$LOOP G_zero_t1_after_static_calibration:
+	{name}.l{sets}$({conditions} and t.val = t1.val) = 0;
+$ENDLOOP
+
+
 # Starting values to hot-start solver
 # $Group G_do_not_load ;
 # $Group G_load calibration_endogenous, - G_do_not_load;
@@ -65,7 +70,7 @@ $LOOP calibration_endogenous:
 $ENDLOOP
 
 $FIX all_variables; $UNFIX calibration_endogenous;
-execute_unloaddi "Output\calibration_pre.gdx";
+execute_unloaddi "Output/calibration_pre.gdx";
 solve calibration using CNS;
 
 # @unload_previous_difference(data_covered_variables, _difference); # This one unloads the previous differences to previous_calibration.gdx file. Only do this if you are certain that differences are tolerable.
@@ -75,4 +80,4 @@ solve calibration using CNS;
 # @load_previous_difference(data_covered_variables, _difference);     #This one loads previous differences from the previous_calibration.gdx file
 # @assert_no_difference(data_covered_variables, 1e-6, _difference, _previous_difference, "data_covered_variables does not change more than previously done so by calibration.");
 # @assert_no_difference(data_covered_variables, 1e-6, _data,.l, "data_covered_variables does not change more than previously done so by calibration."); #Ideally this check should be done rather than "diff-in-diff" above
-execute_unloaddi "Output\calibration.gdx";
+execute_unloaddi "Output/calibration.gdx";

@@ -68,6 +68,8 @@ $Group all_variables ; # All variables in the model
 $Group main_endogenous ;
 $Group data_covered_variables ; # Variables that are covered by data
 $Group G_flat_after_last_data_year ; # Variables that are extended with "flat forecast" after last data year
+$Group G_zero_after_last_data_year ; # Variables that are set to zero after last data year
+$Group G_zero_t1_after_static_calibration ; # Variables that are set to zero in t1 after static calibration
 $SetGroup SG_flat_after_last_data_year ; # Dummies that are extended with "flat forecast" after last data year
 @import_from_modules("variables")
 $IMPORT variable_groups.gms
@@ -83,6 +85,43 @@ model calibration;
 @add_exist_dummies_to_model(main) # Limit the main model to only include elements that are not dummied out
 main.optfile=1;
 
+set these_e[out]/
+"Other oil products"
+"semi_refin_oil"
+"Bunkering of Danish operated planes on foreign territory"
+"Wood pellets"
+"Jet petroleum"
+"Natural gas (Extraction)"
+"Waste"
+"Gasoline for transport"
+"Bunkering of Danish operated vessels on foreign territory"
+"Waste oil"
+"Biogas"
+"Refinery gas"
+"District heat"
+"Renewable energy"
+"Firewood and woodchips"
+"Straw for energy purposes"
+"Crude oil"
+"Wood waste"
+"Heat pumps"
+"Bunkering of Danish operated trucks on foreign territory"
+"Coal and coke"
+"Diesel for transport"
+"Liquid biofuels"
+"Natural gas incl. biongas"
+"Electricity"
+# "Captured CO2"
+/;
+
+$IF %exogenous_supply_prices% == 1:
+  $GROUP+ main_endogenous 
+    -pE_avg[e,t]$(these_e[e] and sum(i,d1pY_CET[e,i,t]) and sum(i,d1pM_CET[e,i,t])) #Average energy price is exogenized if there is both production and imports of energy
+    #Mark-up is endogenized 
+    rMarkup_out_i[e,i,t]$(d1pY_CET[e,i,t]), -pY_CET[e,i,t]$(d1pY_CEt[e,i,t])
+    pM_CET[e,i,t]$(these_e[out] and d1pM_CET[e,i,t] and sum(i_a,d1pY_CET[e,i_a,t]))
+  ;
+$ENDIF 
 # ------------------------------------------------------------------------------
 # Import data and set parameters
 # ------------------------------------------------------------------------------
@@ -115,9 +154,9 @@ $IF %test_CGE%:
 # Zero shock  -  Abort if a zero shock changes any variables significantly
 @set(all_variables, _saved, .l)
 $FIX all_variables; $UNFIX main_endogenous;
-execute_unload 'Output\main_pre.gdx';
+execute_unload 'Output/main_pre.gdx';
 Solve main using CNS;
-execute_unload 'Output\main_CGE.gdx';
+execute_unload 'Output/main_CGE.gdx';
 @assert_no_difference(all_variables, 1e-6, .l, _saved, "Zero shock changed variables significantly.");
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
 

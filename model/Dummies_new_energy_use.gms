@@ -1,15 +1,3 @@
-set exclude_energy(e) /
-  'Waste'
-  'Waste oil'
-  'Heat pumps'
-  'Wood waste'
-  'Straw for energy purposes'
-  'Natural gas (Extraction)'
-  'Renewable energy'
-  'Liquid biofuels'
-  # 'Captured CO2'
-  /;
-
 parameter
   d1pEpj_base_CGE[es,e,d,t]
   d1pEpj_CGE[es,e,d,t]
@@ -52,7 +40,9 @@ d1qEpj_CGE[es,e,d,t]      = d1qEpj[es,e,d,t];
 d1pEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and not (exclude_energy(e) or sameas(e,'Captured CO2'))))            = yes;
 d1pEpj[es,e,d,t]$(d1pEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and not exclude_energy(e)))                            = yes;
 d1pREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t] or (sum(l, d1uTE[l,es,e_a,i,t]) and sameas(e_a,'Captured CO2')))                 = yes;
+d1pREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t] or (sum(l, d1uTE[l,es,e_a,i,t]) and not exclude_energy(e_a)))                    = yes;
 d1pREa_inNest[es,e_a,i,t]$(d1pREa_inNest[es,e_a,i,t] or (sum(l, d1uTE[l,es,e_a,i,t]) and sameas(e_a,'Captured CO2')))   = yes;
+d1pREa_inNest[es,e_a,i,t]$(d1pREa_inNest[es,e_a,i,t] or (sum(l, d1uTE[l,es,e_a,i,t]) and not exclude_energy(e_a)))      = yes;
 d1tqEpj[es,e,d,t]$(d1tqEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and sameas(e,'Captured CO2')))                       = yes;
 d1qEpj[es,e,d,t]$(d1qEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and sameas(e,'Captured CO2')))                         = yes;
 # d1tCO2_ETS2_E[em,es,e,d,t]$(d1tCO2_ETS2_E[em,es,e,d,t] or (d1pEpj[es,e,d,t] and CO2ubio[em] and not in_ETS[es] and not sameas[e,'waste']))   = yes;
@@ -82,12 +72,14 @@ uEmmE_BU_abatement[em,es,e,d,t]$(uEmmE_BU.l[em,es,e,d,t] and not uEmmE_BU_CGE[em
 ## DOMESTIC CARBON TAX
 d1tCO2_E_CGE[em,es,e,d,t]      = d1tCO2_E[em,es,e,d,t];
 d1tCO2_E[em,es,e,d,t]$(t.val>=t1.val and d1EmmE_BU_abatement[em,es,e,d,t] and not sameas[em,'CO2e'] and sum((ee), d1tCO2_E_CGE[em,es,ee,d,t])) = yes;
+d1tCO2_E[em,es,e,d,t]$(t.val>=t1.val and d1EmmE_BU_abatement[em,es,e,d,t] and not sameas[em,'CO2e'] and sameas(e,'Captured CO2')) = yes;
 d1tCO2_E_abatement[em,es,e,d,t]$(d1tCO2_E[em,es,e,d,t] and not d1tCO2_E_CGE[em,es,e,d,t]) = yes;
 
 tCO2_Emarg_CGE[em,es,e,i,t] = tCO2_Emarg.l[em,es,e,i,t];
-tCO2_Emarg.l[em,es,e,i,t]$(t.val>=t1.val and d1tCO2_E_abatement[em,es,e,i,t] and sum(ee$(d1pEpj_CGE[es,ee,i,t]), qEpj.l[es,ee,i,t])) 
+tCO2_Emarg.l[em,es,e,i,t]$(t.val>=t1.val and d1tCO2_E_abatement[em,es,e,i,t] and sum(ee, d1tCO2_E_CGE[em,es,ee,i,t]) and sum(ee$(d1pEpj_CGE[es,ee,i,t]), qEpj.l[es,ee,i,t])) 
   = sum(ee$(d1pEpj_CGE[es,ee,i,t] and sum(em_a, d1tCO2_E_CGE[em_a,es,ee,i,t])), tCO2_Emarg_CGE[em,es,ee,i,t]*qEpj.l[es,ee,i,t])
   / sum(ee$(d1pEpj_CGE[es,ee,i,t] and sum(em_a, d1tCO2_E_CGE[em_a,es,ee,i,t])), qEpj.l[es,ee,i,t]);
+tCO2_Emarg.l[em,es,e,i,t]$(t.val>=t1.val and d1tCO2_E_abatement[em,es,e,i,t] and not sum(ee, d1tCO2_E_CGE[em,es,ee,i,t]) and sameas(e,'Captured CO2')) = 0.01;
 tCO2_Emarg_abatement[em,es,e,i,t]$(tCO2_Emarg.l[em,es,e,i,t] and not tCO2_Emarg_CGE[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
 
 d1tE_duty_CGE[etaxes,es,e,d,t] = d1tE_duty[etaxes,es,e,d,t];
@@ -96,6 +88,7 @@ d1tE_duty_abatement[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t] and not d1tE_du
 
 @update_exist_dummies()
 
+# A random initial value for the new energy use
 pREa.l[es,e_a,i,t]$(d1pREa_abatement[es,e_a,i,t]) = 1;
 
 # vtE_duty.l[CO2_tax,es,'Captured CO2',d,t] = 0;

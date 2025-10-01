@@ -2,7 +2,7 @@ def plot_supply_curve(gdxname,desired_sectors=None):
     if desired_sectors:
         desired_sectors=[str(x) for x in desired_sectors]
     # Define which years the supply curves should be plottet for
-    year_list = [2020]
+    year_list = [2035]
 
     # Import packages
     import dreamtools as dt
@@ -125,7 +125,7 @@ def plot_supply_curve(gdxname,desired_sectors=None):
         plt.axvline(pct, color= 'k', linestyle='--',linewidth=1.5)
         # Limit axis
         plt.xlim(right = (list(df_MAC['theta_cumsum'].tail(1))[0]+ 0.1)*pct )
-        plt.ylim(bottom = (list(df['pTPotential'].head(1))[0] - 0.2))
+        plt.ylim(bottom = (list(df['pTPotential'].head(1))[0] - 0.05))
 
         # Legend
         plt.legend(loc='best', fontsize=12)

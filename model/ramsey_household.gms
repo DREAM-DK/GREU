@@ -32,11 +32,11 @@ $BLOCK ramsey_household_equations ramsey_household_endogenous $(t1.val <= t.val 
   .. qmuC[t] =E= (qCHhxRef[t]/qCHhxRef[tBase])**(-eCRRA);
 
   qC_ramsey[t]$(not tEnd[t])..
-    qmuC[t] =E= pC[t]/(pC[t+1]*fp) * (1+mrHhReturn[t+1]) # Real expected return on wealth
+    qmuC[t] =E= pC[t]/(pC[t+1]*fp) * (1+rHh[t+1]*(1-trHh[t+1])) # Real expected return on wealth
               * qmuC[t+1]*fq**(-eCRRA) # Expected marginal utility of consumption
               * rSurvival[t] / (1+rHhDiscount[t+1]); # Survival rate and discount rate
 
-  qC_ramsey&_tEnd[t]$(tEnd[t] and not t1[t]).. qC_ramsey[t] =E= qC_ramsey[t-1]; # Terminal condition - maybe not the best way to do it
+  qC_ramsey&_tEnd[t]$(tEnd[t] and not t1[t]).. vNetFinAssets['Hh',t] =E= vNetFinAssets['Hh',t-1]; # Terminal condition
  
 
 
