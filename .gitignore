@@ -8,3 +8,6 @@
 
 *.gdx
 !gamY_src/previous_baseline.gdx
+
+fin-data/*
+!fin-data/.data-instructions.txt
