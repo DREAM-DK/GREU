@@ -2,40 +2,37 @@ import sys
 import shutil
 import os
 import dreamtools as dt
+
 dt.gamY.automatic_dummy_suffix = "_exists_dummy"
 dt.gamY.variable_equation_prefix = "E_"
 
 ## Set local paths
 root = dt.find_root("LICENSE")
 sys.path.insert(0, root)
-# os.environ["GAMS"] = "C:/GAMS/46/gams.exe"
+os.environ["GAMS"] = "C:/GAMS/49/gams.exe"
 
 ## Set working directory
 os.chdir(fr"{root}/model")
 
 ## Create data.gdx based on GreenREFORM-DK data 
-# dt.gamY.run("../data/data_from_GR.gms")
+dt.gamY.run("../data/data_from_GR.gms")
 
-dt.gamY.run("base_model.gms")
+## Run the base CGE model - creating main_CGE.gdx
+dt.gamY.run("base_model.gms", s="saved/base_model", test_CGE="1")
 
-## Save calibration.gdx as previous_calibration.gdx
-# shutil.copy("calibration.gdx", "previous_calibration.gdx")
+## Run the base model with abatement model - creating main_abatement.gdx
+dt.gamY.run("base_model_abatement.gms", s="saved/base_model_abatement", test_CGE="0", test_abatement="1")
 
-# Plotting
-dt.YAXIS_TITLE_FROM_OPERATOR = {
-  "pq": "Pct. changes relative to baseline",
-	"m": "Difference from baseline",
-}
-dt.TIME_AXIS_TITLE = ""
+## Run a simple shock model - creating shock.gdx
+dt.gamY.run("shock_model.gms", include_abatement="1")
 
+## Run a CO2 tax shock
+dt.gamY.run("shock_CO2_tax.gms", r="saved/base_model", include_abatement="0")
+dt.gamY.run("shock_CO2_tax.gms", r="saved/base_model_abatement", include_abatement="1")
 
-dt.REFERENCE_DATABASE = b = dt.Gdx("calibration.gdx") # b for baseline
-s = dt.Gdx("shock.gdx") # s for shock
-dt.time(2019, 2030)
-dt.plot([b.vNetFinAssets/b.vGDP], layout={"title": "Net Financial Assets to GDP"})
-dt.plot([s.qGDP, s.qC, s.qI, s.qG, s.qX, s.qM], "m", function=lambda x: x/b.vGDP, names=["GDP", "C", "I", "G", "X", "M"], layout={"yaxis_title": "Change relative to baseline GDP"})
-dt.plot(s, "m", lambda db: db.vNetFinAssets/db.vGDP, layout={"title": "Net Financial Assets to GDP"})
+## Run a CO2 tax shock with steps
+dt.gamY.run("shock_CO2_tax_steps.gms", r="saved/base_model", include_abatement="0")
+dt.gamY.run("shock_CO2_tax_steps.gms", r="saved/base_model_abatement", include_abatement="1")
 
-## Running the partial abatement model
-# dt.gamY.run("abatement_model_partial.gms")
-
+## Open run_report.py to see all the reporting
+exec(open('../run_report.py').read())

@@ -85,6 +85,7 @@ $GROUP+ value_variables
 
 # For each variable, set a dummy that is 1 if the variable exists for the combination of set elements
 $FUNCTION update_exist_dummies():
+  $Group all_variables_except_scalars all_variables, -scalar_variables;
   $LOOP all_variables_except_scalars:
     {name}_exists_dummy{sets} = {conditions};
   $ENDLOOP
@@ -92,6 +93,7 @@ $ENDFUNCTION
 
 # Limit a model to only include elements that are not dummied out
 $FUNCTION add_exist_dummies_to_model({model}):
+  $Group all_variables_except_scalars all_variables, -scalar_variables;
   model {model} /
     $LOOP all_variables_except_scalars:
       {name}({name}_exists_dummy)

@@ -1,21 +1,6 @@
 
-set l "Technology name.";
-
-$gdxIn ../data/data.gdx
-$load l
-$gdxIn
-
-
-$onMulti
-
-set l /
-  set.l
-  t_Electricity_calib "t_Electricity_calib"
-  t_Electricity_calib_2 "t_Electricity_calib_2"
-  /;
-
-$OffMulti
-
+set l "Technology name." /t1*t1000/;
 
 alias(l,ll);
-
+alias(e,ee);
+alias(es,es_a);
