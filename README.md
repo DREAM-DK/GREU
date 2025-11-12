@@ -15,21 +15,23 @@ A useful technique for achieving modularity, is to start with simple aggregate r
 
 For example, we may write an expression for the usercost of labor as
 
-$$p^L = w + labor\_market\_frictions$$
+$$p^L_t = w_t + LaborMarketFrictions_t$$
 
-where $w$ is the wage and $labor\_market\_frictions$ is initially exogenous and set to zero. We can then switch on a submodule for a complicated search and matching model of the labor market, and endogenize the $labor\_market\_frictions$ term.
+where $w_t$ is the wage and $LaborMarketFrictions_t$ is initially exogenous and set to zero. We can then switch on a submodule for a complicated search and matching model of the labor market, and endogenize the $LaborMarketFrictions_t$ term.
 As another example, it is also useful to write a single sector production function for aggregate output, e.g.
 
-$$GrossValueAdded = A K^{\alpha} L^{1-\alpha}$$
+$$GrossValueAdded_t = A_t K_t^{\alpha} L_t^{1-\alpha}$$
 
-despite having a large multi-industry model of production using nested CES trees. In this case, $K$ is a somewhat arbitrary aggregate of all capital stocks across industries, $L$ an aggregate of labor, and $A$ a residual term which captures productivity as well differences stemming from the "real" production function being neither Cobb-Douglas nor single sector.
+despite having a large multi-industry model of production using nested CES trees. In this case, $K_t$ is a somewhat arbitrary aggregate of all capital stocks across industries, $L_t$ an aggregate of labor, and $A_t$ a residual term which captures productivity as well differences stemming from the "real" production function being neither Cobb-Douglas nor single sector.
 
 This sort of aggregate approximation is surprisingly useful for analyzing the model in addition to enabling modularity. In a model with rich heterogeneity in production or households, there may be many shocks for which the heterogeneity is not important for the aggregate behavior. When effects of heterogeneity can be summarized in one or few variables, users can quickly see whether heterogeneity matters for a particular shock of interest, or when it can be safely ignored in terms of understanding the aggregate response.
 
 ### Prefer explicit variables over inserting expressions
 In short model papers, we tend to insert derivatives used in optimizing behavior into the model equations, to see what the most compact form of a economic behavior relation looks like. In GREU, we prefer to use intermediate variables where meaningful rather than inserting expressions.
 For example, we prefer to write a simple expression for the user cost of capital with adjustment costs as
+
 $$ p^k_t = p^I_t - \beta (1-\delta) p^I_{t+1} + \frac{\partial AC_t}{\partial K_t} + \beta \frac{\partial AC_{t+1}}{\partial K_t} $$
+
 rather than inserting the derivatives into the equation.
 In the code, we write the derivatives as explicit variables, e.g. *dKAdjCosts2dK[t]* and *dKAdjCosts2dKlag[t]* (see [variable naming conventions](#variable-names---in-code-and-in-documentation) in a section below).
 This makes it much easier, both on paper and in the code, to change the functional form of the adjustment cost function, without having to meticulously track down all the places where the derivatives are used.
