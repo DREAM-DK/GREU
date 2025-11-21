@@ -58,8 +58,8 @@ main.optfile=1;
 @update_exist_dummies()
 
 # 4.2 Supply Curve Visualization
-$import premodel_abatement.gms
-$import Supply_curves_abatement.gms
+* $import premodel_abatement.gms
+* $import Supply_curves_abatement.gms
 
 # ----------------------------------------------------------------------------------------------------------------------
 # 5. Model Calibration
@@ -71,76 +71,3 @@ calibration.optfile=1;
 $IMPORT calibration.gms
 $IMPORT report_abatement.gms
 execute_unloaddi "calibration.gdx";
-
-# ----------------------------------------------------------------------------------------------------------------------
-# 6. Simulation Scenarios
-# ----------------------------------------------------------------------------------------------------------------------
-# 6.1 Capital Cost Shock
-# Increase capital costs for technology t1 in heating sector
-vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
-  = vTI.l['t1','heating','10030',t] * 100;
-
-$import Supply_curves_abatement.gms
-
-$FIX all_variables;
-$UNFIX main_endogenous;
-@Setbounds_abatement();
-Solve main using CNS;
-$IMPORT report_abatement.gms
-execute_unload 'shock_capital_cost.gdx';
-
-
-# 6.2 Carbon Tax Shock
-# Reset capital costs to original values
-vTI.l['t1','heating','10030',t]$(d1sqTPotential['t1','heating','10030',t]) 
-  = vTI_data['t1','heating','10030',t];
-
-# Apply carbon tax to specific energy types
-pTE_tax.l[es,e,d,t]$(sameas[e,'Gasoline for transport'] or 
-                     sameas[e,'Diesel for transport'] or 
-                     sameas[e,'Natural gas incl. biongas'] or 
-                     sameas[e,'Coal and coke'] or 
-                     sameas[e,'Waste'])
-    = pTE.l[es,e,d,t]*30;
-
-$import Supply_curves_abatement.gms
-
-$FIX all_variables;
-$UNFIX main_endogenous;
-@Setbounds_abatement();
-Solve main using CNS;
-$IMPORT report_abatement.gms
-execute_unload 'shock_carbon_tax.gdx';
-
-# 6.3 Negative tax on captured CO2
-# Set negative tax on captured CO2
-pTE_tax.l[es,e,d,t]$(sum(ee, pTE_tax.l[es,ee,d,t]) and sameas[e,'Captured CO2'])
-    = 0.3;
-
-# Update energy prices
-pTE.l[es,e,d,t]$(pTE_base.l[es,e,d,t] or pTE_tax.l[es,e,d,t]) = pTE_base.l[es,e,d,t] + pTE_tax.l[es,e,d,t];
-
-# Update dummy on energy prices
-d1pTE[es,e,d,t]$(pTE.l[es,e,d,t]) = yes;
-
-# Update exist dummies
-@update_exist_dummies()
-
-$import Supply_curves_abatement.gms
-
-execute_unload 'pre_shock_CCS_subsidy.gdx';
-
-$FIX all_variables;
-$UNFIX main_endogenous;
-@Setbounds_abatement();
-Solve main using CNS;
-$IMPORT report_abatement.gms
-execute_unload 'shock_CCS_subsidy.gdx';
-
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# 7. Additional Analysis
-# ----------------------------------------------------------------------------------------------------------------------
-# 7.1 Log-normal Distribution Visualization
-# $import cdf_log_norm.gms

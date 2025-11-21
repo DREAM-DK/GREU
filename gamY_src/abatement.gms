@@ -221,7 +221,7 @@ uTE.l[l,es,e,d,t]$(sqTPotential.l[l,es,d,t] and uTE_load.l[l,e]) = uTE_load.l[l,
 DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
 
 # Set smoothing parameters
-eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.03;
+eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.05;
 
 # 3.3 Dummy Variable Setup
 # Set dummy determining the existence of technology potentials
