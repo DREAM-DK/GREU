@@ -26,10 +26,10 @@ $ENDLOOP
 $FIX all_variables; 
 $UNFIX calibration_endogenous;
 
-execute_unload 'static_calibration_pre.gdx';
+#execute_unload 'static_calibration_pre.gdx';
 @Setbounds_abatement();
 solve calibration using CNS;
-execute_unload 'static_calibration.gdx';
+#execute_unload 'static_calibration.gdx';
 
 # ----------------------------------------------------------------------------------------------------------------------
 # 3. Dynamic Calibration
@@ -68,7 +68,7 @@ $ENDLOOP
 # 3.5 Dynamic Model Solution
 $FIX all_variables; 
 $UNFIX calibration_endogenous;
-execute_unloaddi "calibration_pre.gdx";
+#execute_unloaddi "calibration_pre.gdx";
 @Setbounds_abatement();
 solve calibration using CNS;
-# execute_unloaddi "calibration.gdx";
+ execute_unloaddi "calibration.gdx";

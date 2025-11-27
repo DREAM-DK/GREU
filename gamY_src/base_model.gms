@@ -57,10 +57,6 @@ main.optfile=1;
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
 @update_exist_dummies()
 
-# 4.2 Supply Curve Visualization
-* $import premodel_abatement.gms
-* $import Supply_curves_abatement.gms
-
 # ----------------------------------------------------------------------------------------------------------------------
 # 5. Model Calibration
 # ----------------------------------------------------------------------------------------------------------------------
@@ -69,5 +65,4 @@ $Group calibration_endogenous ;
 @import_from_modules("calibration")
 calibration.optfile=1;
 $IMPORT calibration.gms
-$IMPORT report_abatement.gms
-execute_unloaddi "calibration.gdx";
+#execute_unloaddi "calibration.gdx";

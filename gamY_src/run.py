@@ -25,6 +25,3 @@ from data.Abatement_data import Import_abatement_data
 os.chdir(fr"{root}/gamY_src")
 
 dt.gamY.run("base_model.gms")
-
-
-
