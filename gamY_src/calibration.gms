@@ -71,4 +71,4 @@ $UNFIX calibration_endogenous;
 #execute_unloaddi "calibration_pre.gdx";
 @Setbounds_abatement();
 solve calibration using CNS;
- execute_unloaddi "calibration.gdx";
+# execute_unloaddi "calibration.gdx";
