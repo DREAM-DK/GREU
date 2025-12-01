@@ -33,7 +33,6 @@ $Group+ all_variables
   
   # 1.2.1.3 Exogenous Technology Parameters
   sqTPotential[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Potential supply by technology l in ratio of energy service (share of qES)"
-  theta[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "jsk same sqTPotential. only used adhoc for loading data"
   eP[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Parameter governing efficiency of costs of technology l (smoothing parameter)"
   uTE[l,es,e,d,t]$(d1uTE[l,es,e,d,t]) "Input of energy in technology l per PJ output at full potential"
 
