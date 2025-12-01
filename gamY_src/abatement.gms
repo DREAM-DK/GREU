@@ -64,8 +64,6 @@ $Group+ all_variables
   pES[es,d,t]$(sum(l, d1sqTPotential[l,es,d,t])) "Energy service, price."
 
   # 1.2.3.2 Input Quantities
-  qES_e[es,e,d,t]$(d1qES_e[es,e,d,t]) "Quantity of energy in energy services"
-  qES_k[d,t]$(d1pTK[d,t]) "Quantity of machinery capital in energy services"
   qESE[es,e,d,t]$(d1qES_e[es,e,d,t]) "Quantity of energy in energy services"
   qESK[es,d,t]$(d1pTK[d,t]) "Quantity of machinery capital in energy services"
 ;
@@ -270,8 +268,6 @@ $GROUP calibration_endogenous
 # 4.3 Flat Variables After Last Data Year
 $Group+ G_flat_after_last_data_year
   vES[es,d,t]
-  qES_e[es,e,d,t]
-  qES_k[d,t]
   vTSupply[l,es,d,t]
   uTKmarg[l,es,d,t]
   pESmarg[es,d,t]
