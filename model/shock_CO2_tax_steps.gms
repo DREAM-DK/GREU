@@ -1,15 +1,14 @@
-$IF %include_abatement% = 0:
-  $SETGLOBAL test_CGE "1"
-  $SETGLOBAL test_abatement "0"
-  $IMPORT base_model.gms
-$ENDIF # include_abatement
-
-$IF %include_abatement% = 1:
-  $SETGLOBAL test_CGE "0"
-  $SETGLOBAL test_abatement "1"
-  $IMPORT base_model_abatement.gms 
-$ENDIF # include_abatement
-
+# $IF %include_abatement% = 0:
+#   $SETGLOBAL test_CGE "1"
+#   $SETGLOBAL test_abatement "0"
+#   $IMPORT base_model.gms
+# $ENDIF # include_abatement
+# 
+# $IF %include_abatement% = 1:
+#   $SETGLOBAL test_CGE "0"
+#   $SETGLOBAL test_abatement "1"
+#   $IMPORT base_model_abatement.gms 
+# $ENDIF # include_abatement
 
 $IMPORT sets/report.sets.gms # Has to be manually fittet to country specifik data
 $Group Report_variables ;
@@ -47,7 +46,7 @@ $ENDIF
 # ------------------------------------------------------------------------------
 # Shock model
 # ------------------------------------------------------------------------------
-set_time_periods(2021, %terminal_year%);
+set_time_periods(2021, 2050);
 
 parameter phaseInTax[t];
   phaseInTax(t)$(t.val > 2024 and t.val < 2030) = (t.val - 2024) / (2030 - 2024);
