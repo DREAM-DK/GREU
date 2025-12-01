@@ -16,6 +16,15 @@ $LOOP calibration_endogenous:
   {name}.l{sets}$({conditions} and {name}.l{sets} = 0) = 0.99;
 $ENDLOOP
 
+# For negative variables (specifically dInstCost2dKLag_k_i), they are reset to 0.99, so we manually fix this here
+dInstCost2dKLag_k_i.l[k,i,t]$(t1.val <= t.val and t.val <= tEnd.val and d1K_k_i[k,i,t]) = dInstCost2dKLag_k_i.l[k,i,t0];
+
+# If installation costs are disabled (if fInstCost_k_i is zero, installation costs are zero)
+# we manually set relevant installation cost variables to zero
+$LOOP instcost_variables:
+	{name}.l{sets}$({conditions} and fInstCost_k_i.l[k,i] = 0) = 0;
+$ENDLOOP
+
 $FIX all_variables; $UNFIX calibration_endogenous;
 
 execute_unload 'Output/static_calibration_pre.gdx';
@@ -67,6 +76,14 @@ $ENDLOOP
 $LOOP calibration_endogenous: 
 	{name}.l{sets}$({conditions} and {name}.l{sets} = 0) = {name}.l{sets}{$}[<t>t1];
 	{name}.l{sets}$({conditions} and {name}.l{sets} = 0) = 0.99;
+$ENDLOOP
+
+# For negative variables (specifically dInstCost2dKLag_k_i), they are reset to 0.99, so we manually fix this here
+dInstCost2dKLag_k_i.l[k,i,t]$(t1.val <= t.val and t.val <= tEnd.val and d1K_k_i[k,i,t]) = dInstCost2dKLag_k_i.l[k,i,t0];
+
+# Same procedure for the dynamic calibration
+$LOOP instcost_variables:
+	{name}.l{sets}$({conditions} and fInstCost_k_i.l[k,i] = 0) = 0;
 $ENDLOOP
 
 $FIX all_variables; $UNFIX calibration_endogenous;
