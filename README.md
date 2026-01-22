@@ -15,12 +15,16 @@ A useful technique for achieving modularity, is to start with simple aggregate r
 
 For example, we may write an expression for the usercost of labor as
 
-$$p^L_t = w_t + LaborMarketFrictions_t$$
+$$
+p^L_t = w_t + LaborMarketFrictions_t
+$$
 
 where $w_t$ is the wage and $LaborMarketFrictions_t$ is initially exogenous and set to zero. We can then switch on a submodule for a complicated search and matching model of the labor market, and endogenize the $LaborMarketFrictions_t$ term.
 As another example, it is also useful to write a single sector production function for aggregate output, e.g.
 
-$$GrossValueAdded_t = A_t K_t^{\alpha} L_t^{1-\alpha}$$
+$$
+GrossValueAdded_t = A_t K_t^{\alpha} L_t^{1-\alpha}
+$$
 
 despite having a large multi-industry model of production using nested CES trees. In this case, $K_t$ is a somewhat arbitrary aggregate of all capital stocks across industries, $L_t$ an aggregate of labor, and $A_t$ a residual term which captures productivity as well differences stemming from the "real" production function being neither Cobb-Douglas nor single sector.
 
@@ -30,7 +34,9 @@ This sort of aggregate approximation is surprisingly useful for analyzing the mo
 In short model papers, we tend to insert derivatives used in optimizing behavior into the model equations, to see what the most compact form of a economic behavior relation looks like. In GREU, we prefer to use intermediate variables where meaningful rather than inserting expressions.
 For example, we prefer to write a simple expression for the user cost of capital with adjustment costs as
 
-$$ p^k_t = p^I_t - \beta (1-\delta) p^I_{t+1} + \frac{\partial AC_t}{\partial K_t} + \beta \frac{\partial AC_{t+1}}{\partial K_t} $$
+$$
+p^k_t = p^I_t - \beta (1-\delta) p^I_{t+1} + \frac{\partial AC_t}{\partial K_t} + \beta \frac{\partial AC_{t+1}}{\partial K_t}
+$$
 
 rather than inserting the derivatives into the equation.
 In the code, we write the derivatives as explicit variables, e.g. *dKAdjCosts2dK[t]* and *dKAdjCosts2dKlag[t]* (see [variable naming conventions](#variable-names---in-code-and-in-documentation) in a section below).
@@ -157,31 +163,36 @@ To install pip and all the packages that we use, simply run the code in [install
 
 
 ## Variable names - in code and in documentation
-For naming variables, we try to strike a balance between short-hand notation that makes dense equations easier to read, and longer names that are explicit and self-explanatory (as is usually good practice in code).
-For short-hand notation, we defer to standard economic literature notation, e.g. Y is output, C is consumption, and so forth.
-In addition, to the roots of names, we use the following system of prefixes and suffixes:
+For naming variables, we try to strike a balance between short-hand notation that makes dense equations easier to read, and longer names that are explicit and self-explanatory (as is usually good practice in code). Note that Greek letters written with Latin characters are neither short nor self-explanatory!
 
-Prefix naming system:
+For short-hand notation, we defer to standard economic literature notation, e.g. Y is output, C is consumption, and so forth.
+Variables which are naturally described as fractions are written using the numeral 2 as divider between the numerator and denominator, e.g. qX2qGDP = $X/GDP$.
+In addition, to the roots of names, we use a system of prefixes and suffixes described in the subsections below.
+
+In the GAMS implementation, all variables are contained in a global namespace, which does not allow for using the same name for different variables in different modules. Using longer, self-explanatory names, helps avoid name collisions.
+While inconvenient for writing a single module, unique names improve the overall user experience.
+
+### Prefix naming system:
 - j - additive residual term
 - f - factor, unspecified multiplicative parameter or variable.
 - jf - multiplicative residual term (or equivalently, the combination of two prefixes, j and f = a residual added to a muliplicative factor)
 - E - Expectations operator, rarely used, as leaded variables are used implicitly as model consistent expectations
 - d - derivative, e.g. dY2dX = ∂Y/∂X
 - s - structural version of variable
-- m - marginal - used when marginal and average rates differ, e.g. mt = marginal tax rate
-- u - scale parameters (μ in documentation)
+- m - marginal - used when marginal and average rates differ, e.g. mt = marginal tax rate. Usually it is better to use an explicit derivative.
+- u - calibrated scale parameters (μ in documentation)
 - t - tax rate
 - r - unspecified rate or ratio
 - e - exponent, typically an elasticity
-- p - price, adjusted by steady state rate of inflation
-- q - quantity, adjusted by steady state rate of productivity growth
-- v - value (= p*q), adjusted by product of steady state rate of inflation and productivity growth
-- nv - present value (adjusted by product of steady state rate of inflation and productivity growth)
+- p - price, any variable adjusted by steady state rate of inflation (see [growth and inflation adjustment](#growth-and-inflation-adjustment))
+- q - quantity, any variable adjusted by steady state rate of productivity growth
+- v - value (= p*q), any variable adjusted by the product of steady state factors of inflation and productivity growth
+- nv - present value (also adjusted by product of steady state rate of inflation and productivity growth)
 - n - number of persons
 - h - hours
 
 ### Suffixes and aggregation
-To allow for varying levels of aggregation, depending on the number of submodules included, we start with the shortest names for them most aggregate variables and add suffixes denoting disaggregate versions of the same variable. E.g. pC[t] is the price index of aggregate private consumption in year $t$. In the documentation, this appears as $p^C_{t}$ The price index of a specific type of consumption, $c$, is written as pC_c[c,t] in the GAMS source code. In the documentation, this appears as $p^C_{c,t}$, as we ommit the suffix. qC_c[c,t] is the equivalent real quantity of consumption in the source code. In the documentation we ommit the $q$ prefix and simply write $C_{c,t}$.
+To allow for varying levels of aggregation, depending on the number of submodules included, we start with the shortest names for them most aggregate variables and add suffixes denoting dis-aggregate versions of the same variable. E.g. pC[t] is the price index of aggregate private consumption in year $t$. In the documentation, this appears as $p^C_{t}$ The price index of a specific type of consumption, $c$, is written as pC_c[c,t] in the source code. In the documentation, this appears as $p^C_{c,t}$, as we ommit the suffix. qC_c[c,t] is the equivalent real quantity of consumption in the source code. In the documentation we ommit the $q$ prefix and simply write $C_{c,t}$.
 
 Multi-word identifiers are written in CamelCase.
 
