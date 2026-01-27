@@ -12,6 +12,12 @@
 using JuMP
 using Ipopt
 using SquareModels
+using GAMS
+
+# ==============================================================================
+# Load data from GDX (thin layer, modules extract their own sets)
+# ==============================================================================
+include("Data.jl")
 
 # ==============================================================================
 # Global model container and time configuration
@@ -19,19 +25,20 @@ using SquareModels
 db = ModelDictionary(Model(Ipopt.Optimizer))
 set_silent(db.model)
 
-# Time configuration
-const t₀ = 2018    # Base year (data year)
-const max_T = 2100 # Maximum terminal year for variable definitions
-const t = t₀:max_T
+const first_data_year = 2015 # Base year (configurable)
+const calibration_year = 2020
+const max_terminal_year = 2050
+const t = first_data_year:max_terminal_year
 
-t₁::Int = 2019    # First endogenous year
-T::Int = 2030     # Terminal year
+
+t1::Int = calibration_year # First endogenous year (configurable)
+T::Int = max_terminal_year # Terminal year (configurable)
+
 
 # ==============================================================================
 # Growth and inflation adjustment
 # ==============================================================================
 include("GrowthInflationAdjustment.jl")
-using .GrowthInflationAdjustment
 
 # ==============================================================================
 # Include submodules
@@ -58,7 +65,7 @@ calibration_model() = sum(m.define_calibration() for m in submodels)
 baseline = solve(calibration_model(), db; replace_nothing=1.0)
 
 println("Calibration complete.")
-println("GDP: ", baseline[InputOutput.vGDP[t₁]])
+println("GDP: ", baseline[InputOutput.vGDP[InputOutput.t1]])
 
 # ==============================================================================
 # Tests

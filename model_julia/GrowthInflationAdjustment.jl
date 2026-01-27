@@ -43,3 +43,5 @@ module GrowthInflationAdjustment
 		end)
 	end
 end
+
+using .GrowthInflationAdjustment
