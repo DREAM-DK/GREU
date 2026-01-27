@@ -114,13 +114,6 @@ module InputOutput
 	# Data
 	# ==========================================================================
 	function set_data!(db)
-		# Initial values for final demand (base year)
-		db[vC] .= 1000.0
-		db[vG] .= 500.0
-		db[vI] .= 400.0
-		db[vX] .= 600.0
-		db[vM] .= 500.0
-
 		# Prices normalized to 1
 		db[pY_i] .= 1.0
 		db[pY] .= 1.0
@@ -130,18 +123,33 @@ module InputOutput
 		db[pI] .= 1.0
 		db[pX] .= 1.0
 
-		# GDP
+		# Industry output shares (sum to 1)
+		industry_shares = Dict(:agri => 0.08, :manuf => 0.32, :services => 0.48, :energy => 0.12)
+
+		# Final demand values
+		db[vC] .= 1000.0
+		db[vG] .= 500.0
+		db[vI] .= 400.0
+		db[vX] .= 600.0
+		db[vM] .= 500.0
+
+		# IO flows: each demand component is split across industries by their shares
+		# This ensures μIO coefficients will calibrate to sum to 1 for each demand component
+		demand_values = Dict(:C => 1000.0, :G => 500.0, :I => 400.0, :X => 600.0)
+		for d_elem in d
+			for i_elem in i
+				db[vIO[i_elem, d_elem, :]] .= industry_shares[i_elem] * demand_values[d_elem]
+			end
+		end
+
+		# Industry outputs = sum of deliveries to all demand components
+		for i_elem in i
+			db[vY_i[i_elem, :]] .= sum(db[vIO[i_elem, d_elem, t[1]]] for d_elem in d)
+		end
+
+		# GDP and total output
 		db[vGDP] .= 2000.0
-		db[vY] .= 2500.0
-
-		# Industry outputs (rough split)
-		db[vY_i[:agri, :]] .= 200.0
-		db[vY_i[:manuf, :]] .= 800.0
-		db[vY_i[:services, :]] .= 1200.0
-		db[vY_i[:energy, :]] .= 300.0
-
-		# IO flows (will be calibrated)
-		db[vIO] .= 100.0
+		db[vY] .= sum(db[vY_i[i_elem, t[1]]] for i_elem in i)
 
 		return nothing
 	end
@@ -156,5 +164,17 @@ module InputOutput
 			μIO, vIO[i, d, t₁]
 		end
 		return block
+	end
+
+	# ==========================================================================
+	# Tests
+	# ==========================================================================
+	function run_tests(db)
+		# IO coefficients should sum to 1 for each demand component
+		for d_elem in d
+			coef_sum = sum(db[μIO[i_elem, d_elem]] for i_elem in i)
+			abs(coef_sum - 1.0) <= 1e-6 || error("IO coefficients for $d_elem sum to $coef_sum, expected 1.0")
+		end
+		return nothing
 	end
 end

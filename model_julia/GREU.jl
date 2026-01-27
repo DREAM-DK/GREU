@@ -61,6 +61,18 @@ println("Calibration complete.")
 println("GDP: ", baseline[InputOutput.vGDP[t₁]])
 
 # ==============================================================================
+# Tests
+# ==============================================================================
+# Zero shock test: After calibration, solving the base model with no changes should give identical results
+zero_shock = solve(base_model(), baseline)
+assert_no_diff(baseline, zero_shock; atol=1e-6, msg="Zero shock test failed")
+
+# Module-specific tests
+for m in submodels
+	isdefined(m, :run_tests) && m.run_tests(baseline)
+end
+
+# ==============================================================================
 # Scenario example
 # ==============================================================================
 # scenario = copy(baseline)
