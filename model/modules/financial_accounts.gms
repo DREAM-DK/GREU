@@ -24,6 +24,10 @@ $Group+ all_variables
   vEBITDA_i[i,t] "Earnings before interests, taxes, depreciation, and amortization by industry."
   vI_private[t] "Total capital investments in private sector."
   vI_public[t] "Total capital investments in public sector."
+
+  # J-terms for energy-specific variables (endogenized by factor_demand module when energy is active)
+  jvInvt_ene_i[i,t] "Energy inventory investments (endogenized by factor_demand module when energy is active)."
+  jvE_i[i,t] "Energy inputs by industry (endogenized by factor_demand module when energy is active)."
 ;
 
 $ENDIF # variables
@@ -34,8 +38,8 @@ $ENDIF # variables
 $IF %stage% == "equations":
 
 $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-  .. vI_private[t] =E= sum(i$i_private[i], sum(k, vI_k_i[k,i,t]) + vInvt_i[i,t] + vInvt_ene_i[i,t]);
-  .. vI_public[t] =E= sum(i$i_public[i], sum(k, vI_k_i[k,i,t]) + vInvt_i[i,t] + vInvt_ene_i[i,t]);
+  .. vI_private[t] =E= sum(i$i_private[i], sum(k, vI_k_i[k,i,t]) + vInvt_i[i,t] + jvInvt_ene_i[i,t]);
+  .. vI_public[t] =E= sum(i$i_public[i], sum(k, vI_k_i[k,i,t]) + vInvt_i[i,t] + jvInvt_ene_i[i,t]);
 
   .. vNetFinAssets[Hh,t] =E= vNetFinAssets[Hh,t-1]/fv
                            + vNetInterests[Hh,t] + vNetDividends[hh,t] + vNetRevaluations[Hh,t]
@@ -59,7 +63,7 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
                             - vX[t]
                             + vNetGov2Foreign[t];
 
-  .. vEBITDA_i[i,t] =E= vY_i[i,t] - vWages_i[i,t] - vD[i,t] - vE_i[i,t]
+  .. vEBITDA_i[i,t] =E= vY_i[i,t] - vWages_i[i,t] - vD[i,t] - jvE_i[i,t]
                                   - vtY_i_NetTaxSub[i,t] + vNetGov2Corp_xIO[i,t]; # Net duties should be subtracted here - AKB: What? They are contained in vD and vE_i
 
   # For now, we assume that households own all domestic equity going forward
@@ -124,6 +128,10 @@ vNetEquity.l[sector,t] = vNetFinAssets.l[sector,t] - vNetDebtInstruments.l[secto
 # And set interests to 4% for all sectors, and revaluations to zero
 rInterests.l[t] = 0.04;
 vNetInterests.l[sector,t] = rInterests.l[t] * vNetDebtInstruments.l[sector,t-1];
+
+# Initialize J-terms for energy-specific variables to zero (allows partial equilibrium when energy modules are off)
+jvInvt_ene_i.l[i,t] = 0;
+jvE_i.l[i,t] = 0;
 
 # @load(financial_data_variables, "../data/data.gdx")
 $Group+ data_covered_variables financial_data_variables;

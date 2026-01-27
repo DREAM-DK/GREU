@@ -40,28 +40,34 @@ set_time_periods(%first_data_year%, %terminal_year%);
 $FUNCTION import_from_modules({stage_key}):
   $SET stage {stage_key};
   $FOR {module}, {include} in [
+    ## CORE MODULES
     ("modules/submodel_template.gms", 1),
-    ("modules/emissions.gms" , 1), #GREEN MODULE 
-    ("modules/financial_accounts.gms", 1),
-    ("modules/labor_market.gms", 1),
-    ("modules/energy_markets.gms" , 1), #GREEN MODULE  
-    ("modules/energy_and_emissions_taxes.gms" , 1), #GREEN MODULE  
-    ("modules/non_energy_markets.gms", 1), #GREEN MODULE  
-    ("modules/production_CES_energydemand.gms", 1), #GREEN MODULE  
-    ("modules/production.gms" , 1),
-    ("modules/pricing.gms" , 1),
-    ("modules/imports.gms", 1),
-    ("modules/production_CET.gms", 1), # GREEN MODULE 
     ("modules/input_output.gms", 1),
-    ("modules/households.gms", 1),
-    ("modules/government.gms", 1),
-    ("modules/exports.gms", 1),
+    ("modules/labor_market.gms", 1),
     ("modules/factor_demand.gms", 1),
+    ("modules/pricing.gms" , 1),
+    ("modules/households.gms", 1),
+    ("modules/financial_accounts.gms", 1),
+    ("modules/government.gms", 1),
+    ("modules/imports.gms", 1),
+    ("modules/exports.gms", 1),
+
     ("modules/ramsey_household.gms", 1), 
     ("modules/consumption_disaggregated.gms", 1), 
-    ("modules/consumption_disaggregated_energy.gms", 1), #GREEN MODULE 
-    ("modules/exports_energy.gms", 1), #GREEN MODULE 
-    ("modules/abatement.gms", 1), #GREEN MODULE 
+
+    ## GREEN TRANSITION MODULES
+    ("modules/emissions.gms" , 1),
+    ("modules/energy_markets.gms" , 1),
+    ("modules/energy_and_emissions_taxes.gms" , 1),
+    ("modules/non_energy_markets.gms", 1),
+    ("modules/production_CES_energydemand.gms", 1),
+    ("modules/production.gms" , 1),
+    ("modules/production_CET.gms", 1),
+    ("modules/consumption_disaggregated_energy.gms", 1),
+    ("modules/exports_energy.gms", 1),
+    ("modules/abatement.gms", 1),
+
+    ## REPORTING MODULES
     ("Report/All.Report.gms", 1),     
   ]:
     $IF {include} or {stage_key} in ["variables", "exogenous_values"]:
