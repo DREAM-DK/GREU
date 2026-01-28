@@ -45,7 +45,7 @@ $IF %stage% == "equations":
     .. qY0_i[i,t] =E= qPFtop2qY[i,t] * qY_i[i,t];
 
 
-    ..qProd[pf_top,i,t] =E= qY0_i[i,t]; #This is just a 1:1 further, further down the line qProd will have installation costs substracted 
+    .. qProd[pf_top,i,t] =E= qY0_i[i,t] + sum(k, qInstCost_k_i[k,i,t]); # qY0 is qProd net of installation costs 
 
     # Marginal cost. These are marginal cost of production from CES-production (pProd['TopPfunction']), net of any adjustment costs, and other costs not covered in the production function
     .. pY0_i[i,t] * qY0_i[i,t] =E= pProd['TopPfunction',i,t] * qProd['TopPfunction',i,t]

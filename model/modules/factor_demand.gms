@@ -19,9 +19,13 @@ $Group+ all_variables
   qInvt_i[i,t] "Net real inventory investments by industry."
   vInvt_i[i,t] "Net inventory investments by industry."
 
+  fInstCost_k_i[k,i] "Multiplicative factor of installation cost function"
+  qInstCost_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Real installation costs by capital type and industry"
+  dInstCost2dKLag_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Derivative of installation costs wrt. lagged capital"
+  dInstCost2dK_k_i[k,i,t]$(d1K_k_i[k,i,t])  "Derivative of installation costs wrt. current capital"
+
   qInvt_ene_i[i,t] "Net real inventory investments in energy by industry."
   vInvt_ene_i[i,t] "Net inventory investments in energy by industry."
-
 
   pK_k_i[k,i,t]$(d1K_k_i[k,i,t]) "User cost of capital by capital type and industry."
   rHurdleRate_i[i,t]$(d1Y_i[i,t]) "Corporations' hurdle rate of investments by industry."
@@ -83,11 +87,19 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   .. qD[k,t] =E= sum(i, qI_k_i[k,i,t]);
   .. vI_k_i[k,i,t] =E= pD[k,t] * qI_k_i[k,i,t];
 
+  # Installation costs for capital adjustments
+  .. qInstCost_k_i[k,i,t] =E= fInstCost_k_i[k,i] * sqr((qI_k_i[k,i,t] / qK_k_i[k,i,t-1])) * qK_k_i[k,i,t-1];
+ 
+  .. dInstCost2dKLag_k_i[k,i,t] =E= -fInstCost_k_i[k,i] * (2*(1 - rKDepr_k_i[k,i,t]) + ((qI_k_i[k,i,t+1]*fq) / (qK_k_i[k,i,t]))) * ((qI_k_i[k,i,t+1]*fq) / (qK_k_i[k,i,t]));
+  
+  .. dInstCost2dK_k_i[k,i,t] =E= fInstCost_k_i[k,i] * 2 * (qI_k_i[k,i,t] / (qK_k_i[k,i,t-1]/fq));
 
-    $(not tEnd[t])..
-      pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t+1]) * pD[k,t+1]*fp + jpK_k_i[k,i,t];
-    pK_k_i&_tEnd[k,i,t]$(tEnd[t])..
-      pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t]) * pD[k,t]*fp + jpK_k_i[k,i,t];
+  $(not tEnd[t])..
+    pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t+1]) * pD[k,t+1]*fp + pY_i[i,t] * dInstCost2dK_k_i[k,i,t]
+                      + dInstCost2dKLag_k_i[k,i,t] / (1 + rHurdleRate_i[i, t+1]) * pY_i[i,t+1]*fp + jpK_k_i[k,i,t];
+  pK_k_i&_tEnd[k,i,t]$(tEnd[t])..
+    pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t]) * pD[k,t]*fp + pY_i[i,t] * dInstCost2dK_k_i[k,i,t]
+                      + dInstCost2dKLag_k_i[k,i,t - 1] / (1 + rHurdleRate_i[i, t]) * pY_i[i,t]*fp + jpK_k_i[k,i,t];
 
   # Depreciation on industry level
   .. vDepr_i[i,t] =E= sum(k, pK_k_i[k,i,t] * rKDepr_k_i[k,i,t] * qK_k_i[k,i,t-1]/fq);
@@ -126,6 +138,15 @@ d1E_re_i[re,i,t] = abs(qE_re_i.l[re,i,t]) > 1e-9;
 d1E_i[i,t]       = yes$(sum(re, d1E_re_i[re,i,t]));
 
 rHurdleRate_i.l[i,t] = 0.2;
+
+fInstCost_k_i.fx[k,i] = 0.5;
+qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not t1[t]) = fInstCost_k_i.l[k,i] * sqr((qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t-1]/fq))) * (qK_k_i.l[k,i,t-1]/fq);
+dInstCost2dKLag_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not tEnd[t]) = -fInstCost_k_i.l[k,i] * (2*(1 - rKDepr_k_i.l[k,i,t]) + ((qI_k_i.l[k,i,t+1]*fq) / (qK_k_i.l[k,i,t]))) * ((qI_k_i.l[k,i,t+1]*fq) / (qK_k_i.l[k,i,t]));
+dInstCost2dK_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not t1[t]) = fInstCost_k_i.l[k,i] * 2 * (qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t-1]/fq));
+
+qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and t1[t]) = fInstCost_k_i.l[k,i] * sqr(qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t]/fq)) * qK_k_i.l[k,i,t]/fq;
+dInstCost2dKLag_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and tEnd[t]) = -fInstCost_k_i.l[k,i] * (2*(1 - rKDepr_k_i.l[k,i,t]) + ((qI_k_i.l[k,i,t]*fq) / (qK_k_i.l[k,i,t]))) * ((qI_k_i.l[k,i,t]*fq) / (qK_k_i.l[k,i,t]));
+dInstCost2dK_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and t1[t]) = fInstCost_k_i.l[k,i] * 2 * (qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t]/fq));
 
 pK_k_i.l[k,i,t]$d1K_k_i[k,i,t] = rHurdleRate_i.l[i,t]; 
 pE_re_i.l[re,i,t]$d1E_re_i[re,i,t] = fpt[t];
@@ -166,6 +187,15 @@ $Group+ G_flat_after_last_data_year
   qL2qY_i[i,t]
   qR2qY_i[i,t]
   rKDepr_k_i[k,i,t]
+;
+
+# There may be a smarter solution for this, but for now we add a specific installation cost variable group
+# to utilize during calibration. This allows us to catch when installation costs are turned off and set related
+# variables equal to zero to avoid pivot errors during calibration in that case
+$Group instcost_variables
+  qInstCost_k_i[k,i,t]$(d1K_k_i[k,i,t])
+  dInstCost2dKLag_k_i[k,i,t]$(d1K_k_i[k,i,t])
+  dInstCost2dK_k_i[k,i,t]$(d1K_k_i[k,i,t])
 ;
 
 $ENDIF # calibration
