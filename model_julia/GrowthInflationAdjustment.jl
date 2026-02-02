@@ -10,11 +10,10 @@
 # Where p̂, q̂, and v̂ are the unadjusted versions of the variables p, q, and v.
 
 module GrowthInflationAdjustment
-	using JuMP
+	using SquareModels: Tag
 
 	export gq, gp, fq, fp, fv
-	export growth_adjusted, inflation_adjusted
-	export @growth_adjusted, @inflation_adjusted
+	export GrowthAdjusted, InflationAdjusted
 
 	const gq = 0.02 # Long-run real growth rate
 	const gp = 0.02 # Long-run inflation rate
@@ -22,26 +21,9 @@ module GrowthInflationAdjustment
 	const fp = 1 + gp # Price growth factor
 	const fv = fq * fp # Value growth factor
 
-	# Sets to track which variables need growth/inflation adjustment
-	const growth_adjusted = Set{VariableRef}()
-	const inflation_adjusted = Set{VariableRef}()
-
-	# Macros to tag variables for adjustment
-	macro growth_adjusted(expr)
-		esc(quote
-			new_variables = $expr
-			union!(growth_adjusted, collect(Iterators.flatten(new_variables)))
-			new_variables
-		end)
-	end
-
-	macro inflation_adjusted(expr)
-		esc(quote
-			new_variables = $expr
-			union!(inflation_adjusted, collect(Iterators.flatten(new_variables)))
-			new_variables
-		end)
-	end
+	# Tags for growth/inflation adjustment (Holy trait pattern)
+	const GrowthAdjusted = Tag(:growth_adjusted)
+	const InflationAdjusted = Tag(:inflation_adjusted)
 end
 
 using .GrowthInflationAdjustment

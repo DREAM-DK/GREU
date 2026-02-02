@@ -5,7 +5,8 @@
 # Simplified version to establish working architecture.
 
 module InputOutput
-	using JuMP, SquareModels
+	import JuMP
+	using SquareModels
 	using ..GrowthInflationAdjustment
 	using ..Data: gdx, load_set, load_int_set
 	import ..db, ..t, ..t1, ..T
@@ -28,44 +29,44 @@ module InputOutput
 	i = industries
 
 	# Aggregate values (adjusted for both growth and inflation)
-	@growth_adjusted @inflation_adjusted @variables db.model begin
-		vGDP[t]       # Gross Domestic Product
-		vY[t]         # Total output
-		vC[t]         # Private consumption
-		vG[t]         # Public consumption
-		vI[t]         # Investments
-		vX[t]         # Exports
-		vM[t]         # Imports
-		vY_i[i,t]     # Output by industry
+	@variables db.model :: (GrowthAdjusted, InflationAdjusted) begin
+		vGDP[t], "Gross Domestic Product"
+		vY[t], "Total output"
+		vC[t], "Private consumption"
+		vG[t], "Public consumption"
+		vI[t], "Investments"
+		vX[t], "Exports"
+		vM[t], "Imports"
+		vY_i[i,t], "Output by industry"
 	end
 
 	# Prices (adjusted for inflation only)
-	@inflation_adjusted @variables db.model begin
-		pGDP[t]       # GDP deflator
-		pY[t]         # Output price deflator
-		pC[t]         # Consumer price index
-		pG[t]         # Government consumption deflator
-		pI[t]         # Investment deflator
-		pX[t]         # Export deflator
-		pM[t]         # Import deflator
-		pY_i[i,t]     # Price by industry
+	@variables db.model :: InflationAdjusted begin
+		pGDP[t], "GDP deflator"
+		pY[t], "Output price deflator"
+		pC[t], "Consumer price index"
+		pG[t], "Government consumption deflator"
+		pI[t], "Investment deflator"
+		pX[t], "Export deflator"
+		pM[t], "Import deflator"
+		pY_i[i,t], "Price by industry"
 	end
 
 	# Real quantities (adjusted for growth only)
-	@growth_adjusted @variables db.model begin
-		qGDP[t]       # Real GDP
-		qY[t]         # Real total output
-		qC[t]         # Real consumption
-		qG[t]         # Real government
-		qI[t]         # Real investments
-		qX[t]         # Real exports
-		qM[t]         # Real imports
-		qY_i[i,t]     # Real output by industry
+	@variables db.model :: GrowthAdjusted begin
+		qGDP[t], "Real GDP"
+		qY[t], "Real total output"
+		qC[t], "Real consumption"
+		qG[t], "Real government"
+		qI[t], "Real investments"
+		qX[t], "Real exports"
+		qM[t], "Real imports"
+		qY_i[i,t], "Real output by industry"
 	end
 
 	# Rates and shares (no adjustment)
 	@variables db.model begin
-		rY_i[i]       # Industry share of total output (calibrated)
+		rY_i[i], "Industry share of total output (calibrated)"
 	end
 
 	# ==========================================================================

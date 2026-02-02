@@ -5,7 +5,8 @@
 # See InputOutput.jl for a more complete example.
 
 module SubmodelTemplate
-	using JuMP, SquareModels
+	import JuMP
+	using SquareModels
 	# using ..GrowthInflationAdjustment  # Uncomment if using growth/inflation adjustment
 	# using ..Data: gdx, load_set        # Uncomment if loading sets from GDX
 	import ..db, ..t, ..t1, ..T

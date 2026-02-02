@@ -9,7 +9,8 @@
 # - Main file (this): Model container, time indices, submodel assembly
 # - Submodules: Each in separate files, following SquareModels patterns
 
-using JuMP
+import JuMP
+using JuMP: Model, set_silent
 using Ipopt
 using SquareModels
 using GAMS
