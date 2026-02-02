@@ -11,9 +11,9 @@ module InputOutput
 	import ..db, ..t, ..t1, ..T
 
 	# ==========================================================================
-	# Sets (owned by this module)
+	# Indices (owned by this module)
 	# ==========================================================================
-	# Industries - use the full set from GDX
+	# Industries - use the full  index from GDX
 	const industries = load_set(:i)
 
 	# Demand subsets
@@ -153,10 +153,7 @@ module InputOutput
 	function define_calibration()
 		block = define_equations()
 		@endo_exo! block begin
-			rY_i[:,t1], vY_i[:,t1]  # Calibrate industry shares to match observed outputs
-		end
-		@block db begin
-
+			rY_i[:], vY_i[:,t1]  # Calibrate industry shares to match observed outputs
 		end
 		return block
 	end
