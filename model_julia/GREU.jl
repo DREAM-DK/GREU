@@ -39,6 +39,9 @@ T::Int = max_terminal_year # Terminal year (configurable)
 # ==============================================================================
 include("GrowthInflationAdjustment.jl")
 
+# Tag for variables that should be forecast as constant in calibration
+const ForecastConstant = Tag(:forecast_constant)
+
 # ==============================================================================
 # Include submodules
 # ==============================================================================
@@ -74,10 +77,50 @@ function endo_exo_data_residuals!(block::Block, data::ModelDictionary)
 	end
 end
 
+"""
+Handle ForecastConstant-tagged variables for calibration.
+
+For endogenous variables at t > t1: create equations var[t] == var[t1]
+For exogenous variables at t > t1: copy the t1 value in the data.
+
+Returns a Block with forecast constraints (to be merged with the main block).
+"""
+function forecast_constants!(block::Block, data::ModelDictionary)
+	forecast_block = Block(block.model)
+
+	for var in filter(v -> has_tag(v, ForecastConstant), variables(block))
+		var_t1 = _get_t1_var(block.model, var)
+		var_t1 == var && continue  # Already at t1, no forecast needed
+
+		if is_endogenous(var_t1, block)
+			# var_t1 is endogenous: add forecast constraint var[t] == var[t1]
+			forecast_block = forecast_block + add_equation(block.model, var, var, var_t1)
+		else
+			# var_t1 is exogenous (calibrated from data): copy its value
+			data[var] = data[var_t1]
+		end
+	end
+
+	# Initialize residuals in data
+	for resid in residuals(forecast_block)
+		data[resid] = 0.0
+	end
+
+	return block + forecast_block
+end
+
+"""Get the t1 version of a variable by replacing the last index with t1."""
+function _get_t1_var(model, var)
+	var_name = JuMP.name(var)
+	t1_name = replace(var_name, r",(\d+)\]$" => ",$t1]", r"\[(\d+)\]$" => "[$t1]")
+	return JuMP.variable_by_name(model, t1_name)
+end
+
 function calibrate_model(db)
 	block = sum(m.define_calibration() for m in submodels)
+	block = forecast_constants!(block, db)
 	endo_exo_data_residuals!(block, db)
-  baseline = solve(block, db; replace_nothing=1.0)
+	baseline = solve(block, db; replace_nothing=1.0)
 	return baseline
 end
 

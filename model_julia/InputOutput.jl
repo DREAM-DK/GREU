@@ -9,7 +9,7 @@ module InputOutput
 	using SquareModels
 	using ..GrowthInflationAdjustment
 	using ..Data: gdx, load_set, load_int_set
-	import ..db, ..t, ..t1, ..T
+	import ..db, ..t, ..t1, ..T, ..ForecastConstant
 
 	# ==========================================================================
 	# Indices (owned by this module)
@@ -66,7 +66,7 @@ module InputOutput
 
 	# Rates and shares (no adjustment)
 	@variables db.model begin
-		rY_i[i], "Industry share of total output (calibrated)"
+		rY_i[i,t] :: ForecastConstant, "Industry share of total output (calibrated)"
 	end
 
 	# ==========================================================================
@@ -106,8 +106,8 @@ module InputOutput
 		# Equal industry shares initially
 		n_industries = length(i)
 		for i_elem in i
-			db[rY_i[i_elem]] = 1.0 / n_industries
 			for t_elem in t
+				db[rY_i[i_elem, t_elem]] = 1.0 / n_industries
 				db[vY_i[i_elem, t_elem]] = 2500.0 / n_industries
 				db[qY_i[i_elem, t_elem]] = 2500.0 / n_industries
 			end
@@ -137,7 +137,7 @@ module InputOutput
 
 			# Industry output (simple fixed share)
 			vY_i[i = industries, t = t1:T],
-			vY_i[i,t] == rY_i[i] * vY[t]
+			vY_i[i,t] == rY_i[i,t] * vY[t]
 
 			# Price-quantity identities
 			pC[t = t1:T], pC[t] * qC[t] == vC[t]
@@ -154,7 +154,7 @@ module InputOutput
 	function define_calibration()
 		block = define_equations()
 		@endo_exo! block begin
-			rY_i[:], vY_i[:,t1]  # Calibrate industry shares to match observed outputs
+			rY_i[:,t1], vY_i[:,t1]  # Calibrate industry shares to match observed outputs
 		end
 		return block
 	end
@@ -163,9 +163,11 @@ module InputOutput
 	# Tests
 	# ==========================================================================
 	function run_tests(db)
-		# Industry shares should sum to 1
-		share_sum = sum(db[rY_i[i_elem]] for i_elem in i)
-		abs(share_sum - 1.0) <= 1e-6 || error("Industry shares sum to $share_sum, expected 1.0")
+		# Industry shares should sum to 1 for all time periods
+		for t_elem in t
+			share_sum = sum(db[rY_i[i_elem, t_elem]] for i_elem in i)
+			abs(share_sum - 1.0) <= 1e-6 || error("Industry shares sum to $share_sum at t=$t_elem, expected 1.0")
+		end
 		return nothing
 	end
 end
