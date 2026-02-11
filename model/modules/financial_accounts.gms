@@ -20,6 +20,9 @@ $Group+ all_variables
   rDividends[t] "Dividends rate."
   rHh[t] "Return on household wealth."  
 
+  rCorpDebt2Equity[t] "Corporate debt to net equity ratio."
+  rHhEquity2FinAssets[t] "Household equity (shares) to net financial assets ratio."
+
   # Will be moved to other modules:
   vEBITDA_i[i,t] "Earnings before interests, taxes, depreciation, and amortization by industry."
   vI_private[t] "Total capital investments in private sector."
@@ -66,12 +69,17 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
   .. vEBITDA_i[i,t] =E= vY_i[i,t] - vWages_i[i,t] - vD[i,t] - jvE_i[i,t]
                                   - vtY_i_NetTaxSub[i,t] + vNetGov2Corp_xIO[i,t]; # Net duties should be subtracted here - AKB: What? They are contained in vD and vE_i
 
-  # For now, we assume that households own all domestic equity going forward
-  .. vNetEquity[Gov,t] =E= 0;
-  .. vNetEquity[RoW,t] =E= 0;
-  .. vNetEquity[Hh,t] =E= -vNetEquity['Corp',t];
-  # And we set corporate debt to zero
-  vNetEquity[Corp,t].. vNetDebtInstruments['Corp',t] =E= 0;
+  # Government maintains equity at a constant level
+  .. vNetEquity[Gov,t] =E= vNetEquity[Gov,t-1]/fv * fv; # Use equity price change instead of fv, when available
+
+  # Households allocate their net financial assets between shares (equity) and deposits (debt instruments) in fixed shares
+  .. vNetEquity[Hh,t] =E= rHhEquity2FinAssets[t] * vNetFinAssets[Hh,t];
+
+  # Corporate debt is a fraction of net equity
+  vNetEquity[Corp,t].. vNetDebtInstruments[Corp,t] =E= rCorpDebt2Equity[t] * vNetEquity[Corp,t];
+
+  # Rest of World is residual investor - net equity sum to zero across all sectors
+  .. vNetEquity[RoW,t] =E= -sum(sector$(not RoW[sector]), vNetEquity[sector,t]);
 
   # Debt instruments are residual given net financial assets and equity
   .. vNetDebtInstruments[sector,t] =E= vNetFinAssets[sector,t] - vNetEquity[sector,t];
@@ -110,18 +118,12 @@ $ENDIF # equations
 $IF %stage% == "exogenous_values":
 
 $Group financial_data_variables
+  vNetFinAssets[sector,t]
+  vNetDebtInstruments[sector,t]
 ;
+@load(financial_data_variables, "../data/data.gdx")
+$Group+ data_covered_variables financial_data_variables$(t.val <= %calibration_year%);
 
-# We use rough values for financial accounts based on MAKRO for now
-vNetDebtInstruments.l['Hh',t] = 670;
-vNetDebtInstruments.l['Corp',t] = 200;
-vNetDebtInstruments.l['Gov',t] = -440;
-vNetDebtInstruments.l['RoW',t] = -sum(sector, vNetDebtInstruments.l[sector,t]);
-
-vNetFinAssets.l['Hh',t] = 6690;
-vNetFinAssets.l['Corp',t] = -5570;
-vNetFinAssets.l['Gov',t] = 270;
-vNetFinAssets.l['RoW',t] = - sum(sector, vNetFinAssets.l[sector,t]);
 
 vNetEquity.l[sector,t] = vNetFinAssets.l[sector,t] - vNetDebtInstruments.l[sector,t];
 
@@ -132,9 +134,6 @@ vNetInterests.l[sector,t] = rInterests.l[t] * vNetDebtInstruments.l[sector,t-1];
 # Initialize J-terms for energy-specific variables to zero (allows partial equilibrium when energy modules are off)
 jvInvt_ene_i.l[i,t] = 0;
 jvE_i.l[i,t] = 0;
-
-# @load(financial_data_variables, "../data/data.gdx")
-$Group+ data_covered_variables financial_data_variables;
 
 $ENDIF # exogenous_values
 
@@ -157,8 +156,15 @@ $Group calibration_endogenous
   financial_calibration_endogenous
   -vNetInterests[sector,t1]$(not RoW[sector]), jrInterests_s[sector,t1]
   -vNetRevaluations[sector,t1], rRevaluations_s[sector,t1]
+  -vNetDebtInstruments['Corp',t1], rCorpDebt2Equity[t1]
+  -vNetEquity['Hh',t1], rHhEquity2FinAssets[t1]
 
   calibration_endogenous
+;
+
+$Group+ G_flat_after_last_data_year
+  rCorpDebt2Equity[t]
+  rHhEquity2FinAssets[t]
 ;
 
 $ENDIF # calibration
