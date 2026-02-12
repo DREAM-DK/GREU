@@ -28,16 +28,16 @@ $ENDIF
 # ------------------------------------------------------------------------------
 # Calibrate electrification technologies
 # ------------------------------------------------------------------------------
-# $IF %include_abatement% = 1:
-#   $import calib_electrification.gms;
-# $ENDIF # include_abatement
+$IF %include_abatement% = 1:
+  $import calib_electrification.gms;
+$ENDIF # include_abatement
 
 # ------------------------------------------------------------------------------
 # Calibrate CCS technologies
 # ------------------------------------------------------------------------------
-# $IF %include_abatement% = 1:
-#   $import Calib_CCS.gms;
-# $ENDIF # include_abatement
+$IF %include_abatement% = 1:
+  $import Calib_CCS.gms;
+$ENDIF # include_abatement
 
 # ------------------------------------------------------------------------------
 # Shock model
