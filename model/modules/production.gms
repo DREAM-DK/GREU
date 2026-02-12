@@ -29,6 +29,12 @@ $IF %stage% == "variables":
     jqE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "J-term to be endogenized when energy module is turned on. Necessary, because bottom-up energy is partly in the top and partly in CES-nests"
     jpProd[pf,i,t]$(d1Prod[pf,i,t]) "J-term to be endogenized when energy module is turned on"
 
+    # J-terms for GREEN module variables (endogenized by respective GREEN modules when active)
+    jvtBotded[i,t]$(d1Y_i[i,t]) "Value of bottom-up deductions (endogenized by energy_and_emissions_taxes module when active)."
+    jvtEmmRxE[i,t]$(d1Y_i[i,t]) "Taxes on non-energy related emissions (endogenized by energy_and_emissions_taxes module when active)."
+    jvEnergycostsnotinnesting[i,t]$(d1Y_i[i,t]) "Total cost of energy not in CES-nested production function (endogenized by production_CES_energydemand module when active)."
+    jDelta_vESK[i,t]$(d1Y_i[i,t]) "Difference in value of machinery capital from abatement model (endogenized by abatement module when active)."
+
     vGVA_i[i,t] "Approximation of gross value added on industry level"
   ;
  
@@ -66,10 +72,10 @@ $IF %stage% == "equations":
     # # Other production costs, not in nesting tree 
     .. vProdOtherProductionCosts[i,t] =E= 
                                             vtY_i_NetTaxSub[i,t]           #Net production taxes and subsidies, excluding ETS free allowances
-                                           -vtBotded[i,t]                   #"Bottom deductions on energy-use"
-                                          + vEnergycostsnotinnesting[i,t]   #Energy costs not in nesting tree
+                                           -jvtBotded[i,t]                   #"Bottom deductions on energy-use"
+                                          + jvEnergycostsnotinnesting[i,t]   #Energy costs not in nesting tree
                                           - vNetGov2Corp_xIO[i,t]
-                                          + sum(es, Delta_vESK[es,i,t]);
+                                          + jDelta_vESK[i,t];
 
     .. vGVA_i[i,t] =E= sum(pf_top, pProd[pf_top,i,t]*qProd[pf_top,i,t]) - pProd['RxE',i,t]*qProd['RxE',i,t]
                       -sum(pf_bottom_e, pProd[pf_bottom_e,i,t]*qProd[pf_bottom_e,i,t]);        
@@ -150,6 +156,12 @@ $IF %stage% == "exogenous_values":
   qY_i.l[i,t] = qProd.l['TopPfunction',i,t];
 
   vtBotded.l[i,tDataEnd] = 0.05;
+
+  # Initialize J-terms for GREEN module variables to zero (allows partial equilibrium when GREEN modules are off)
+  jvtBotded.l[i,t] = 0;
+  jvtEmmRxE.l[i,t] = 0;
+  jvEnergycostsnotinnesting.l[i,t] = 0;
+  jDelta_vESK.l[i,t] = 0;
 
   # ------------------------------------------------------------------------------
   # Dummies 

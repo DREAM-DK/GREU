@@ -30,6 +30,7 @@ $Group+ all_variables
   pK_k_i[k,i,t]$(d1K_k_i[k,i,t]) "User cost of capital by capital type and industry."
   rHurdleRate_i[i,t]$(d1Y_i[i,t]) "Corporations' hurdle rate of investments by industry."
   jpK_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Additive residual in user cost of capital."
+  jDelta_qESK[k,i,t]$(d1K_k_i[k,i,t] and sameas[k,'iM']) "Additional investments from abatement model (endogenized by abatement module)."
 
   qK2qY_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Capital to output ratio by capital type and industry."
   qL2qY_i[i,t] "Labor to output ratio by industry."
@@ -69,6 +70,11 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
 
   .. vE_i[i,t] =E= sum(re, vE_re_i[re,i,t]);
 
+  # Link energy inputs to financial_accounts module (aggregate approximation)
+  # This endogenizes the J-term defined in financial_accounts.gms
+  jvE_i[i,t]$(d1E_i[i,t])..
+    jvE_i[i,t] =E= vE_i[i,t];
+
   # Inventory investments
   .. qInvt_i[i,t] =E= qInvt2qY_i[i,t] * qY_i[i,t];
   .. qD[invt,t] =E= sum(i, qInvt_i[i,t]);
@@ -79,9 +85,14 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   .. qD[Invt_ene,t] =E= sum(i, qInvt_ene_i[i,t]);
   .. vInvt_ene_i[i,t] =E= pD['Invt_ene',t] * qInvt_ene_i[i,t];
 
+  # Link energy inventory investments to financial_accounts module (aggregate approximation)
+  # This endogenizes the J-term defined in financial_accounts.gms
+  jvInvt_ene_i[i,t]$(d1E_i[i,t])..
+    jvInvt_ene_i[i,t] =E= vInvt_ene_i[i,t];
+
   # Capital accumulation (firms demand capital directly, investments are residual from capital accumulation)
   .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq
-                      + sum(es$(d1qES[es,i,t]), Delta_qESK[es,i,t])$(sameas[k,'iM']); # Additional investments from the abatement model 
+                      + jDelta_qESK[k,i,t]; # Additional investments from the abatement model (endogenized by abatement module) 
 
   # Link demand for investments to input-output model
   .. qD[k,t] =E= sum(i, qI_k_i[k,i,t]);
@@ -138,6 +149,9 @@ d1E_re_i[re,i,t] = abs(qE_re_i.l[re,i,t]) > 1e-9;
 d1E_i[i,t]       = yes$(sum(re, d1E_re_i[re,i,t]));
 
 rHurdleRate_i.l[i,t] = 0.2;
+
+# Initialize J-term for abatement investments to zero (allows partial equilibrium when abatement module is off)
+jDelta_qESK.l[k,i,t] = 0;
 
 fInstCost_k_i.fx[k,i] = 0.5;
 qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not t1[t]) = fInstCost_k_i.l[k,i] * sqr((qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t-1]/fq))) * (qK_k_i.l[k,i,t-1]/fq);
