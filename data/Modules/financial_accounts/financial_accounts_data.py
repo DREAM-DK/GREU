@@ -67,8 +67,6 @@ def process_financial_data_minus_F11(df, na_items):
 # + F8  Other accounts receivable/payable
 # - F11 Monetary gold
 debt_instruments = process_financial_data_minus_F11(data_financial_accounts, ['F1', 'F2', 'F3', 'F4', 'F6', 'F7', 'F8']) # F11 is subtracted inside the function
-# Set Corp net value to -100
-debt_instruments.loc[debt_instruments['sector'] == 'Corp', 'level'] = -100
 
 # Financial assets (Subtracted F11 Monetary gold)
 financial_assets = process_financial_data_minus_F11(data_financial_accounts, ['F']) # F11 is subtracted inside the function
