@@ -221,6 +221,13 @@ $Group+ G_flat_after_last_data_year
   qPFtop2qY
 ;
 
+# These are excluded from default_starting_values in calibration.gms
+$Group non_default_starting_values
+;
+
+# Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
+$MACRO production_calibration_starting_values
+
 $ENDIF # calibration
 
 # ------------------------------------------------------------------------------

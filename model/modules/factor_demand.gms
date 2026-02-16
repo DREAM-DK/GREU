@@ -212,4 +212,14 @@ $Group instcost_variables
   dInstCost2dK_k_i[k,i,t]$(d1K_k_i[k,i,t])
 ;
 
+# Variables that require custom starting values rather than the default 0.99 assignment
+# These are excluded from default_starting_values in calibration.gms
+$Group non_default_starting_values
+  dInstCost2dKLag_k_i[k,i,t]
+;
+
+# Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
+$MACRO factor_demand_calibration_starting_values \
+  dInstCost2dKLag_k_i.l[k,i,t]$(t1.val <= t.val and t.val <= tEnd.val and d1K_k_i[k,i,t]) = dInstCost2dKLag_k_i.l[k,i,t0];
+
 $ENDIF # calibration

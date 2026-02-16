@@ -414,4 +414,12 @@ $IF %stage% == "calibration":
     
     calibration_endogenous
   ;
+
+# These are excluded from default_starting_values in calibration.gms
+$Group non_default_starting_values
+;
+
+# Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
+$MACRO energy_and_emissions_taxes_calibration_starting_values
+
 $ENDIF
