@@ -2,7 +2,9 @@
 import numpy as np
 import pandas as pd
 import gamspy as gp
-import eurostat 
+import eurostat
+import ecbdata
+from ecbdata import ecbdata
 import os
 
 ## SETTINGS
@@ -26,21 +28,7 @@ t1     = gp.Set(n,'t1',description='First data year',records=[str(year_start)])
 
 sector = gp.Set(n, 'sector', description='Sectors', records=data_sets['sector'])
 
-# Read data from Eurostat
-code_financial_accounts = 'nasa_10_f_bs'
-filter_pars_financial_accounts = {
-    'startPeriod': year_start, 
-    'endPeriod': year_end, 
-    'unit': 'MIO_NAC',
-    'geo': geo_list,
-    'sector': ['S11','S12','S13','S14','S15','S2'],
-    'na_item': ['F','F1','F11','F2','F3','F4','F5','F51','F6','F7','F8'],
-    'co_nco': 'CO'
-}
-data_financial_accounts = eurostat.get_data_df(code_financial_accounts, filter_pars=filter_pars_financial_accounts)
-data_financial_accounts = pd.melt(data_financial_accounts, id_vars=['sector','finpos','na_item'], value_vars=list(map(str, range(year_start, year_end + 1))), var_name='year', value_name='level')
-data_financial_accounts['level'] = data_financial_accounts['level']/1000
-
+## FUNCTIONS 
 # Helper function to process financial data (filter, aggregate, calculate net) and return only net values
 def process_financial_data(df, na_items):
     result = (df[df["na_item"].isin(na_items)].groupby(["sector", "finpos", "year"], as_index=False).agg(level=("level", "sum"))
@@ -56,6 +44,22 @@ def process_financial_data_minus_F11(df, na_items):
     base = process_financial_data(df, na_items)
     f11 = process_financial_data(df, ['F11'])
     return (base.merge(f11, on=['sector', 't'], suffixes=('_base', '_F11'), how='outer').fillna(0).assign(level=lambda x: x['level_base'] - x['level_F11'])[['sector', 't', 'level']])
+
+
+## READ DATA FROM EUROSTAT
+code_financial_accounts = 'nasa_10_f_bs'
+filter_pars_financial_accounts = {
+    'startPeriod': year_start, 
+    'endPeriod': year_end, 
+    'unit': 'MIO_NAC',
+    'geo': geo_list,
+    'sector': ['S11','S12','S13','S14','S15','S2'],
+    'na_item': ['F','F1','F11','F2','F3','F4','F5','F51','F6','F7','F8'],
+    'co_nco': 'CO'
+}
+data_financial_accounts = eurostat.get_data_df(code_financial_accounts, filter_pars=filter_pars_financial_accounts)
+data_financial_accounts = pd.melt(data_financial_accounts, id_vars=['sector','finpos','na_item'], value_vars=list(map(str, range(year_start, year_end + 1))), var_name='year', value_name='level')
+data_financial_accounts['level'] = data_financial_accounts['level']/1000
 
 # Debt instruments = 
 # + F1  Monetary gold and special drawing rights (SDRs)
@@ -109,6 +113,35 @@ if row_equity_list:
 vNetFinAssets = gp.Parameter(n, name='vNetFinAssets', domain=[sector, t], description='Net financial assets by sector', records=financial_assets[['sector', 't', 'level']].values.tolist())
 vNetDebtInstruments = gp.Parameter(n, name='vNetDebtInstruments', domain=[sector, t], description='Net debt instruments by sector', records=debt_instruments[['sector', 't', 'level']].values.tolist())
 vNetEquity = gp.Parameter(n, name='vNetEquity', domain=[sector, t], description='Net equity instruments by sector', records=equity_instruments[['sector', 't', 'level']].values.tolist())
+
+code_revaluations = 'nasa_10_f_gl'
+filter_pars_revaluations = {
+    'startPeriod': year_start, 
+    'endPeriod': year_end,
+    'unit': 'MIO_NAC',
+    'geo': geo_list,
+    'sector': ['S11','S12','S13','S14','S15','S2'],
+    'na_item': ['F','F11'],
+    'co_nco': 'CO'
+}
+data_revaluations = eurostat.get_data_df(code_revaluations, filter_pars=filter_pars_revaluations)
+data_revaluations = pd.melt(data_revaluations, id_vars=['sector','finpos','na_item'], value_vars=list(map(str, range(year_start, year_end + 1))), var_name='year', value_name='level')
+data_revaluations['level'] = data_revaluations['level']/1000
+
+vNetRevaluations = process_financial_data_minus_F11(data_revaluations, ['F'])
+
+vNetRevaluations = gp.Parameter(n, name='vNetRevaluations', domain=[sector, t], description='Net equity instruments by sector', records=vNetRevaluations[['sector', 't', 'level']].values.tolist())
+
+## READ DATA FROM ECB
+ECB_data = ecbdata.get_series('FM.A.U2.EUR.RT.MM.EURIBOR1YD_.HSTA',  
+                        start=year_start, end=year_end,
+                        detail='dataonly')
+
+ECB_data = ECB_data[['TIME_PERIOD', 'OBS_VALUE']].rename(columns={'TIME_PERIOD': 't', 'OBS_VALUE': 'level'})
+ECB_data['t'] = ECB_data['t'].astype(str)
+ECB_data['level'] = ECB_data['level']/100
+
+rInterests = gp.Parameter(n, name='rInterests', domain=[t], description='Interest rate', records=ECB_data[['t', 'level']].values.tolist())
 
 ## EXPORT DATA
 n.write('financial_accounts_data.gdx')
