@@ -63,6 +63,7 @@ $FUNCTION import_from_modules({stage_key}):
     ("modules/production_CES_energydemand.gms", 1),
     ("modules/production.gms" , 1),
     ("modules/production_CET.gms", 1),
+    ("modules/factor_demand_energy.gms", 1),
     ("modules/consumption_disaggregated_energy.gms", 1),
     ("modules/exports_energy.gms", 1),
     ("modules/abatement.gms", 1),
