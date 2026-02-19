@@ -186,4 +186,11 @@ $IF %stage% == "calibration":
 		uREes
 	;
 
+# These are excluded from default_starting_values in calibration.gms
+$Group non_default_starting_values
+;
+
+# Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
+$MACRO production_CES_energydemand_calibration_starting_values
+
 $ENDIF

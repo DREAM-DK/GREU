@@ -270,4 +270,11 @@ $Group+ G_zero_t1_after_static_calibration
   vLumpsum[t]
 ;
 
+# These are excluded from default_starting_values in calibration.gms
+$Group non_default_starting_values
+;
+
+# Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
+$MACRO government_calibration_starting_values
+
 $ENDIF # calibration
