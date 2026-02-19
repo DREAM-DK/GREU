@@ -14,10 +14,9 @@ year_end = 2020
 n = gp.Container()
 pd.set_option("mode.copy_on_write", True)
 
-# Get sets from metadata excel file
 data_sets = {}
-df = pd.read_excel('../metadata.xlsx', sheet_name='sector')
-data_sets['sector'] = df['value']
+# Sector set: Corp, Gov, Hh, RoW
+data_sets['sector'] = ['Corp', 'Gov', 'Hh', 'RoW']
 
 # Insert sets into container
 t_list = [year for year in range(1980, 2100)] # List of model years
