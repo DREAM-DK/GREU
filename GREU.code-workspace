@@ -39,7 +39,7 @@
 		"python.REPL.enableREPLSmartSend": false,
 		"python.REPL.sendToNativeREPL": false,
     "notebook.output.scrolling": true,
-		"python.defaultInterpreterPath": "C:/GAMS/49/GMSPython/python.exe",
+		"python.defaultInterpreterPath": "/usr/bin/python.exe",
 },
   "extensions": {
     "recommendations": [
