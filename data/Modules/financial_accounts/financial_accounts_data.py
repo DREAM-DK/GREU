@@ -109,7 +109,8 @@ vNetFinAssets = gp.Parameter(n, name='vNetFinAssets', domain=[sector, t], descri
 vNetDebtInstruments = gp.Parameter(n, name='vNetDebtInstruments', domain=[sector, t], description='Net debt instruments by sector', records=debt_instruments[['sector', 't', 'level']].values.tolist())
 vNetEquity = gp.Parameter(n, name='vNetEquity', domain=[sector, t], description='Net equity instruments by sector', records=equity_instruments[['sector', 't', 'level']].values.tolist())
 
-## EXPORT DATA
-n.write('financial_accounts_data.gdx')
+## EXPORT DATA (same folder as this script)
+_gdx_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'financial_accounts_data.gdx')
+n.write(_gdx_path)
 
 # %%
