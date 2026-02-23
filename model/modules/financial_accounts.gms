@@ -130,6 +130,8 @@ $IF %stage% == "exogenous_values":
 $Group financial_data_variables
   vNetFinAssets[sector,t]
   vNetDebtInstruments[sector,t]
+  rInterests[t]
+  # vNetRevaluations[sector,t]
 ;
 @load(financial_data_variables, "../data/data.gdx")
 $Group+ data_covered_variables financial_data_variables$(t.val <= %calibration_year%);
@@ -177,6 +179,7 @@ $Group+ G_flat_after_last_data_year
   rFinCorpDebt2Equity[t]
   rNonFinCorpDebt2Equity[t]
   rHhEquity2FinAssets[t]
+  # rRevaluations_s[sector,t]
 ;
 
 # These are excluded from default_starting_values in calibration.gms

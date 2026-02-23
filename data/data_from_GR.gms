@@ -115,6 +115,8 @@ Parameters
 
   vNetFinAssets[sector,t] "Net financial assets by sector"
   vNetDebtInstruments[sector,t] "Net debt instruments by sector"
+  rInterests[t] "Interest rate"
+  vNetRevaluations[sector,t] "Net revaluations by sector"
 ;
 
 # £) 
@@ -136,7 +138,7 @@ $gdxin
 # Load financial accounts data
 $gdxin Modules/financial_accounts/financial_accounts_data.gdx
 $load sector
-$load vNetFinAssets, vNetDebtInstruments
+$load vNetFinAssets, vNetDebtInstruments, rInterests, vNetRevaluations
 $gdxin
 
 #Creating auxiliary sets (These should be read from Python data)
