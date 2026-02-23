@@ -43,6 +43,10 @@ Set i_public[i] "Public industries." / off /;
 Set i_private[i] "Private industries.";
 i_private[i] = not i_public[i];
 
+Set i_private_fin[i] "Private financial industry (64000)." / 64000 /;
+Set i_private_nonfin[i] "Private non-financial industries.";
+i_private_nonfin[i] = i_private[i] and not i_private_fin[i];
+
 Set i_refineries[i] / 19000 /;
 Set i_gasdistribution[i] / 35002 /;
 Set i_cardealers[i] / 45000 /;

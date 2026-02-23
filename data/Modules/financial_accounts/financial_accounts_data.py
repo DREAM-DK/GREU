@@ -15,8 +15,8 @@ n = gp.Container()
 pd.set_option("mode.copy_on_write", True)
 
 data_sets = {}
-# Sector set: Corp, Gov, Hh, RoW
-data_sets['sector'] = ['Corp', 'Gov', 'Hh', 'RoW']
+# Sector set: FinCorp, NonFinCorp, Gov, Hh, RoW
+data_sets['sector'] = ['FinCorp', 'NonFinCorp', 'Gov', 'Hh', 'RoW']
 
 # Insert sets into container
 t_list = [year for year in range(1980, 2100)] # List of model years
@@ -43,7 +43,7 @@ data_financial_accounts['level'] = data_financial_accounts['level']/1000
 # Helper function to process financial data (filter, aggregate, calculate net) and return only net values
 def process_financial_data(df, na_items):
     result = (df[df["na_item"].isin(na_items)].groupby(["sector", "finpos", "year"], as_index=False).agg(level=("level", "sum"))
-              .replace({"sector": {"S11": "Corp", "S12": "Corp", "S13": "Gov", "S14": "Hh", "S15": "Hh", "S2": "RoW"},"finpos": {"ASS": "as", "LIAB": "li"}})
+              .replace({"sector": {"S11": "NonFinCorp", "S12": "FinCorp", "S13": "Gov", "S14": "Hh", "S15": "Hh", "S2": "RoW"},"finpos": {"ASS": "as", "LIAB": "li"}})
               .groupby(["sector", "finpos", "year"], as_index=False).agg({"level": "sum"}))
     
     return (result.pivot(index=["sector", "year"], columns="finpos", values="level")
@@ -79,7 +79,7 @@ financial_assets = financial_assets[financial_assets['sector'] != 'RoW'].copy()
 debt_instruments = debt_instruments[debt_instruments['sector'] != 'RoW'].copy()
 equity_instruments = equity_instruments[equity_instruments['sector'] != 'RoW'].copy()
 
-# For each time period, RoW = -sum(Hh, Corp, Gov)
+# For each time period, RoW = -sum(Hh, FinCorp, NonFinCorp, Gov)
 row_finassets_list = []
 row_debt_list = []
 row_equity_list = []
