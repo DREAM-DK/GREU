@@ -184,6 +184,16 @@ $BLOCK abatement_equations_links abatement_endogenous_links $(t1.val <= t.val an
   # Difference in value of capital use between the baseline and the shock
   .. Delta_vESK[es,d,t] =E= vESK[es,d,t] - vESK_baseline[es,d,t];
 
+  # Link abatement capital investments to factor demand module (aggregate approximation)
+  # This endogenizes the J-term defined in factor_demand.gms, aggregating abatement capital investments
+  jDelta_qESK[k,i,t]$(sameas[k,'iM'] and d1K_k_i[k,i,t])..
+    jDelta_qESK[k,i,t] =E= sum(es$(d1qES[es,i,t]), Delta_qESK[es,i,t]);
+
+  # Link abatement capital value differences to production module (aggregate approximation)
+  # J-term stands in for sum(es, Delta_vESK[es,i,t]) used in production.gms equation
+  jDelta_vESK[i,t]$(d1Y_i[i,t])..
+    jDelta_vESK[i,t] =E= sum(es$(d1qES[es,i,t]), Delta_vESK[es,i,t]);
+    
   # CCS in energy services
   .. qEmmE_CCS[es,e,d,t] =E= qESE[es,e,d,t];
 
@@ -326,5 +336,12 @@ $Group+ G_flat_after_last_data_year
   sqT[l,es,d,t]
   eP[l,es,d,t]
 ;
+
+# These are excluded from default_starting_values in calibration.gms
+$Group non_default_starting_values
+;
+
+# Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
+$MACRO abatement_calibration_starting_values
 
 $ENDIF # calibration

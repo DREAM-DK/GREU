@@ -9,4 +9,5 @@ subprocess.run([
     "nbformat",
     "gamspy==1.10.0",
     "matplotlib",
+    "eurostat",
 ], check=True)

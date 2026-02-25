@@ -75,6 +75,11 @@ $IF %stage% == "equations":
 		
 			vEnergycostsnotinnesting[i,t].. vEnergycostsnotinnesting[i,t] =E= sum((es,e_a)$(d1pREa_NotinNest[es,e_a,i,t]), pREa[es,e_a,i,t] * qREa[es,e_a,i,t]);
 
+			# Link energy costs not in nesting to production module (aggregate approximation)
+			# J-term stands in for vEnergycostsnotinnesting used in production.gms equation
+			jvEnergycostsnotinnesting[i,t]$(d1Y_i[i,t])..
+				jvEnergycostsnotinnesting[i,t] =E= vEnergycostsnotinnesting[i,t];
+
 			.. vREa[es,e_a,i,t] =E= pREa[es,e_a,i,t] * qREa[es,e_a,i,t]; #Value of energy-activity (e_a) in industry i, measured in bio 2019-DKK
 
 	$ENDBLOCK		
@@ -180,5 +185,12 @@ $IF %stage% == "calibration":
   	uREa$(d1pREa_inNest[es,e_a,i,t] or d1pREa_NotinNest[es,e_a,i,t])
 		uREes
 	;
+
+# These are excluded from default_starting_values in calibration.gms
+$Group non_default_starting_values
+;
+
+# Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
+$MACRO production_CES_energydemand_calibration_starting_values
 
 $ENDIF

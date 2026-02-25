@@ -54,7 +54,8 @@ Set out; #output types
 Set e(out); #energy outputs
 Set m(i);
 Set em_accounts; #set of accounts for emissions
-set land5
+set land5;
+set sector; #sectors for financial accounts
 
 ### B) Initialization of parameters to be read from Python treated data
 #$PGROUP PG_data_from_Python
@@ -111,6 +112,9 @@ Parameters
   vtGovDepr[t] "Consumption of fixed capital"
   vGovRevQuasi[t] "Withdrawals from income of quasi-corporations"
   vGovNetAcquisitions[t] "Acquisitions less disposals of non-produced non-financial assets"
+
+  vNetFinAssets[sector,t] "Net financial assets by sector"
+  vNetDebtInstruments[sector,t] "Net debt instruments by sector"
 ;
 
 # £) 
@@ -128,6 +132,13 @@ $load vCont,vtCorp,vtPAL,vtAM,vtPersIncRest,vGovExpNetRest
 $load vtCAP_prodsubsidy,vtDividends,vtImport,vGovReceiveCorpNonCap
 $load vtCap,vtGovDepr,vGovRevQuasi,vGovNetAcquisitions
 $gdxin
+
+# Load financial accounts data
+$gdxin Modules/financial_accounts/financial_accounts_data.gdx
+$load sector
+$load vNetFinAssets, vNetDebtInstruments
+$gdxin
+
 #Creating auxiliary sets (These should be read from Python data)
 set demand_transaction_temp[transaction] /'input_in_production','household_consumption','inventory','export','transmission_losses'/; #AKB: In "demand_transaction" there is an error with "households" being the set-element for households
 set ebalitems_totalprice[ebalitems]/'CO2_tax','pso_tax','ener_tax','eav','dav','cav','nox_tax','so2_tax','vat','base'/; #AKB: Auxiliary set 

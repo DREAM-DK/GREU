@@ -255,6 +255,23 @@ $IF %stage% == "equations":
       vtEmmRxE[i,t]$(d1Y_i[i,t])..
         vtEmmRxE[i,t] =E=  vtCO2_xE[i,t] + vtCO2_ETS_xE[i,t];
 
+    # Link energy and emissions tax variables to production module (aggregate approximation)
+    # J-terms stand in for variables used in production.gms equations
+    jvtBotded[i,t]$(d1Y_i[i,t])..
+      jvtBotded[i,t] =E= vtBotded[i,t];
+
+    jvtEmmRxE[i,t]$(d1Y_i[i,t])..
+      jvtEmmRxE[i,t] =E= vtEmmRxE[i,t];
+
+    # Link energy and emissions tax variables to government module (aggregate approximation)
+    # J-term stands in for vtCO2_ETS_tot[t] used in government.gms equation
+    jvtCO2_ETS_tot[t]..
+      jvtCO2_ETS_tot[t] =E= sum(d, vtCO2_ETS[d,t] + vtCO2_ETS2[d,t]);
+
+    # Non-energy related carbon tax revenue by industry
+    jvtCO2_xE[i,t]$(d1tCO2_xE[i,t])..
+      jvtCO2_xE[i,t] =E= vtCO2_xE[i,t];
+
 
     ..    vtE_duty_tot[d,t] =E= sum((etaxes,es,e), vtE_duty[etaxes,es,e,d,t]);
 
@@ -397,4 +414,12 @@ $IF %stage% == "calibration":
     
     calibration_endogenous
   ;
+
+# These are excluded from default_starting_values in calibration.gms
+$Group non_default_starting_values
+;
+
+# Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
+$MACRO energy_and_emissions_taxes_calibration_starting_values
+
 $ENDIF

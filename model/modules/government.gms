@@ -58,6 +58,10 @@ $Group+ all_variables
   vNetGov2Corp_xIO[i,t] "Net transfers from goverment to corporations not covered in the input-output module"
   vNetHh2Gov[t] "Net transfers from households to government"  
   vNetGov2Foreign[t] "Net transfers from government to foreign countries"
+
+  # J-terms for energy and emissions tax variables (endogenized by energy_and_emissions_taxes module when active)
+  jvtCO2_ETS_tot[t] "Total revenue from ETS1 and ETS2 (endogenized by energy_and_emissions_taxes module when active)."
+  jvtCO2_xE[i,t] "Tax revenue from national carbon tax, non-energy related emissions (endogenized by energy_and_emissions_taxes module when active)."
 ;
 
 $ENDIF # variables
@@ -79,8 +83,8 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
 
 
   .. vtIndirect[t] =E=    vtY[t] + vtM[t] # Net duties, paid through R, E, I, C, G, and X
-                        + vtY_Tax[t]  - vtCO2_ETS_tot[t] #Production taxes minus ETS-revenue
-                        + sum(i, vtCO2_xE[i,t])
+                        + vtY_Tax[t]  - jvtCO2_ETS_tot[t] #Production taxes minus ETS-revenue
+                        + sum(i, jvtCO2_xE[i,t])
                         + sum(i, vtIndirect_other[i,t])
                         ;
 
@@ -139,7 +143,7 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
 
  .. vNetGov2Corp_xIO[i,t] =E= (sGov2Corp[t] + sGovSub_Residual[t] - sGovReceiveCorp[t] - sGovReceiveCorpNonCap[t]) 
                                 * vGVA_i[i,t]
-                              - vtCO2_xE[i,t] 
+                              - jvtCO2_xE[i,t] 
                               - vtIndirect_other[i,t] 
                               - tCorp[t] * (vEBITDA_i[i,t]-vDepr_i[i,t]);
 
@@ -149,7 +153,7 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
                        - vHhTransfers[t] - vGovNetAcquisitions[t] - vLumpsum[t];
 
 
-  .. vNetGov2Foreign[t] =E= vGov2Foreign[t] + vtCO2_ETS_tot[t] - vGovReceiveF[t];
+  .. vNetGov2Foreign[t] =E= vGov2Foreign[t] + jvtCO2_ETS_tot[t] - vGovReceiveF[t];
 
 $ENDBLOCK
 
@@ -194,6 +198,10 @@ tW.l[t] = 0.4;
 
 vGovDepr.l[t] = vtGovDepr.l[t];
 vGovRevGovCorp.l[t] = vGovRevQuasi.l[t] + vGovRent.l[t];
+
+# Initialize J-terms for energy and emissions tax variables to zero (allows partial equilibrium when energy modules are off)
+jvtCO2_ETS_tot.l[t] = 0;
+jvtCO2_xE.l[i,t] = 0;
 
 $ENDIF # exogenous_values
 
@@ -261,5 +269,12 @@ $Group+ G_zero_after_last_data_year
 $Group+ G_zero_t1_after_static_calibration
   vLumpsum[t]
 ;
+
+# These are excluded from default_starting_values in calibration.gms
+$Group non_default_starting_values
+;
+
+# Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
+$MACRO government_calibration_starting_values
 
 $ENDIF # calibration
