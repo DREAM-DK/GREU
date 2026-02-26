@@ -60,7 +60,7 @@ set sector; #sectors for financial accounts
 ### B) Initialization of parameters to be read from Python treated data
 #$PGROUP PG_data_from_Python
 Parameters
-  vIO_y[i,d,t] "IO - data, domesticsupply"
+  vIO_y[i,d,t] "IO - data, domestic supply"
   vIO_m[i,d,t] "IO - data, imports"
   vIO_a[a_rows_,d,t] "IO -data, decomposition of GVA"
   vIOxE_y[i,d,t] "IO, excluding energy -data, domestic supply"
@@ -169,6 +169,43 @@ $FUNCTION test_data():
               + sum((d,es,e,transaction), Energybalance['DAV',transaction,d,es,e,t])$(sameas[i,'47000'])
               - sum(d, vIOE_y[i,d,t]);
   ABORT$(abs(sum((i,tData), testvY[i,tData]))>1) 'Test of energy-IO and energybalance failed! Value of production in industries do not match'; #Tolerance sat højt pga hack -> £
+#Testing if there are industries with production in energybalance, but no energy-IO 
+  testvY[i,t] = 1$((sum((es,e), Energybalance['base','production',i,es,e,t]) 
+                or sum((d,es,e,transaction), Energybalance['cav',transaction,d,es,e,t])$(sameas[i,'45000'])
+                or sum((d,es,e,transaction), Energybalance['eav',transaction,d,es,e,t])$(sameas[i,'46000'])
+                or sum((d,es,e,transaction), Energybalance['DAV',transaction,d,es,e,t])$(sameas[i,'47000'])) 
+                and not sum(d, vIOE_y[i,d,t]));
+
+#   #Removing any inconsistencies
+#   Energybalance['base','production',i,es,e,t]$(testvY[i,t]) = 0;
+#
+#   testvY[i,t] = 1$((sum((es,e), Energybalance['base','production',i,es,e,t])
+#                 or sum((d,es,e,transaction), Energybalance['Margins',transaction,d,es,e,t])$(sameas[i,'G45']))
+#                 and not sum(d, vIOE_y[i,d,t]));
+
+  LOOP(i, 
+    ABORT$(sum(tData,testvY[i,tData])<>0) 'Data contains industries with production in energybalance, but no energy-IO';
+    );
+
+  #Testing if there are industries with energy-IO, but no production in energybalance
+  testvY[i,t] = 1$(not (sum((es,e), Energybalance['base','production',i,es,e,t]) 
+                or sum((d,es,e,transaction), Energybalance['cav',transaction,d,es,e,t])$(sameas[i,'45000'])
+                or sum((d,es,e,transaction), Energybalance['eav',transaction,d,es,e,t])$(sameas[i,'46000'])
+                or sum((d,es,e,transaction), Energybalance['DAV',transaction,d,es,e,t])$(sameas[i,'47000'])) 
+                and sum(d, vIOE_y[i,d,t]));
+
+#   #Removing any inconsistencies
+#   vIOE_y[i,d,t]$(testvY[i,t]) = 0;
+#
+#   testvY[i,t] = 1$(not (sum((es,e), Energybalance['base','production',i,es,e,t])
+#                 or sum((d,es,e,transaction), Energybalance['Margins',transaction,d,es,e,t])$(sameas[i,'G45']))
+#                 and sum(d, vIOE_y[i,d,t]));
+
+execute_unload 'test.gdx';
+
+  LOOP(i, 
+    ABORT$(sum(tData,testvY[i,tData])<>0) 'Data contains industries in energy-IO, but no production in energybalance';
+    );
 
 
   testvM[i,t] =  sum((es,e), Energybalance['base','imports',i,es,e,t]) 
@@ -207,6 +244,60 @@ $FUNCTION test_data():
     LOOP((demand_transaction_temp,d,es,e,t)$(tData[t] and Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t] and not sameas[e,'district heat'] and not sameas[e,'liquid biofuels']),
     # ABORT$(1$Energybalance['co2_tax',demand_transaction_temp,d,es,e,t] - 1$Energybalance['CO2ubio',demand_transaction_temp,d,es,e,t] <> 0) 'CO2-revenues where no emissions are registrered.';
     );
+
+    PARAMETER testSupplyBalance[e,t], test_tolerance_PJ[e,t], test_tolerance_BASE[e,t];
+    $OffMulti
+
+    test_tolerance_BASE[e,t] = 1e-5;
+    test_tolerance_BASE['Firewood and woodchips',t] = 1e-3; #Slight difference in DK-data. Tolerated for now, AKB.
+
+    test_tolerance_PJ[e,t] = 1e-6;
+    test_tolerance_PJ['Other oil products',t] = 1e-4;
+    test_tolerance_PJ['Diesel for transport',t] = 1e-4;
+    test_tolerance_PJ['Natural gas incl. biongas',t] = 1e-4;
+    test_tolerance_PJ['Electricity',t] = 1; #AKB: Surprised this doesn't produce model issues for the Danish model
+ 
+    #Testing that the supply balance holds
+    loop(t$(tData[t]),
+    testSupplyBalance[e,t] = sum((d,es), Energybalance['PJ','imports',d,es,e,t] 
+                                       + Energybalance['PJ','Production',d,es,e,t] + Energybalance['PJ','other_supply',d,es,e,t]) 
+                            -  sum((d,es), Energybalance['PJ','household_consumption',d,es,e,t] 
+                                          + Energybalance['PJ','input_in_production',d,es,e,t] 
+                                          + Energybalance['PJ','inventory',d,es,e,t] 
+                                          + Energybalance['PJ','export',d,es,e,t]
+                                          + Energybalance['PJ','transmission_losses',d,es,e,t]);
+      LOOP(e,
+        ABORT$(abs(testSupplyBalance[e,t])>test_tolerance_PJ[e,t]) 'Supply balance, in PJ, in Energybalance does not hold.';
+        );
+    
+      testSupplyBalance[e,t] = sum((d,es), Energybalance['BASE','imports',d,es,e,t] + Energybalance['BASE','Production',d,es,e,t]) -  sum((d,es), Energybalance['BASE','household_consumption',d,es,e,t] + Energybalance['BASE','input_in_production',d,es,e,t] + Energybalance['BASE','inventory',d,es,e,t] + Energybalance['BASE','export',d,es,e,t]);     
+      execute_unload 'test.gdx';
+      LOOP(e,
+        ABORT$(abs(testSupplyBalance[e,t])>test_tolerance_BASE[e,t]) 'Supply balance, in base values, in Energybalance does not hold.';
+        );
+
+    );
+
+    #Testing for non-priced production
+    $OnMultiR
+      PARAMETER testSupplyBalanceApplicability[e,t];
+      set eExceptionsToApplicabilityTest[e]/'Liquid biofuels'/;
+
+    $OffMulti
+    LOOP((t,e,es,d)$(tData[t] and not eExceptionsToApplicabilityTest[e]),
+      testSupplyBalanceApplicability[e,t] = 1$Energybalance['PJ','production',d,es,e,t] - 1$Energybalance['BASE','production',d,es,e,t];
+      # execute_unload 'test.gdx';
+      ABORT$(testSupplyBalanceApplicability[e,t] <> 0) 'Energybalance contains non-priced energy production.';
+      );
+
+    #Testing for non-priced imports
+    $OnMultiR
+    set eExceptions_to_test_on_energybalance_imports[e]/'Waste'/; # /'Renewable waste','Non-renewable waste'/;
+    $OffMulti
+    LOOP((t,e,es,d)$(tData[t] and not eExceptions_to_test_on_energybalance_imports[e]),
+      ABORT$(1$Energybalance['PJ','imports',d,es,e,t] - 1$Energybalance['BASE','imports',d,es,e,t] <> 0) 'Energybalance contains non-priced energy imports.';
+      );
+    
     
 $ENDFUNCTION 
 
