@@ -1,12 +1,14 @@
 
 Set sector "Sectors of the economy as defined in national accounts." /
-  Corp "Financial and non-financial corporations including subsectors."
-  Gov "Geral government including subsectors."
+  FinCorp "Financial corporations."
+  NonFinCorp "Non-financial corporations."
+  Gov "General government including subsectors."
   Hh "Households and non-profit institutions serving households."
   RoW "Rest of the world including subsectors."
 /;
 
-Set Corp[sector] / Corp /;
+Set FinCorp[sector] / FinCorp /;
+Set NonFinCorp[sector] / NonFinCorp /;
 Set Gov[sector] / Gov /;
 Set Hh[sector] / Hh /;
 Set RoW[sector] / RoW /;
