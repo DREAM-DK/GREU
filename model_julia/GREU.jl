@@ -10,9 +10,18 @@
 # - Submodules: Each in separate files, following SquareModels patterns
 
 import JuMP
-using JuMP: Model, set_silent
-using Ipopt
+using JuMP: Model, set_optimizer_attribute
 using SquareModels
+
+# Temporary hardcoded GAMS location for gdxclib64 lookup.
+# GAMS is used to the Conopt optimizer, until JuMP supports it natively.
+# We also use GAMS to read the data from GDX files.
+if !contains(ENV["PATH"], "GAMS")
+  GAMS_DIR = raw"C:\GAMS\51"
+	ENV["GAMS_SYSDIR"] = GAMS_DIR
+	ENV["PATH"] = GAMS_DIR * ";" * ENV["PATH"]
+end
+
 using GAMS
 
 # ==============================================================================
@@ -23,8 +32,9 @@ include("Data.jl")
 # ==============================================================================
 # Global model container and time configuration
 # ==============================================================================
-db = ModelDictionary(Model(Ipopt.Optimizer))
-set_silent(db.model)
+db = ModelDictionary(Model(GAMS.Optimizer))
+set_optimizer_attribute(db.model, "NLP", "CONOPT")
+set_optimizer_attribute(db.model, "LogOption", 0)
 
 const first_data_year = 2015 # Base year (configurable)
 const calibration_year = 2020
@@ -144,6 +154,11 @@ end
 # ==============================================================================
 # Scenario example
 # ==============================================================================
-# scenario = copy(baseline)
-# # Apply shock here
-# solve!(base_model(), scenario)
+scenario = copy(baseline)
+scenario[SubmodelTemplate.test_forecast[2030:2035]] .+= π
+
+# Apply shock here
+solve!(base_model(), scenario)
+
+diff = scenario .- baseline
+println("Nonzero Differences: ", diff[diff .!= 0])
