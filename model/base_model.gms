@@ -116,7 +116,7 @@ main.optfile=1;
 # =============================================================================
 # CALIBRATION
 # =============================================================================
-d1switch_abatement[t] = 0; # We turn the abatement model off while calibrating the CGE-model
+d1switch_energy_technology[t] = 0; # We turn the energy technology model off while calibrating the CGE-model
 
 $Group calibration_endogenous ;
 @import_from_modules("calibration")

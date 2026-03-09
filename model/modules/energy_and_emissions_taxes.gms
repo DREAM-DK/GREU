@@ -179,7 +179,7 @@ $IF %stage% == "equations":
                         + sum(em, tCO2_Emarg_C_pj[em,es,e,d,t]);
         
         #CO2-taxes based on emissions (currently only industries) 
-          #Domestic CO2-tax                                                                                                                                                                                     #AKB: Depending on how EOP-abatement i modelled this should be adjusted for EOP
+          #Domestic CO2-tax                                                                                                                                                                                     #AKB: Depending on how EOP-energy technology is modelled this should be adjusted for EOP
           tCO2_Emarg_pj&_notNatgas[em,es,e,i,t]$(not natgas[e]).. tCO2_Emarg_pj[em,es,e,i,t] =E= tCO2_Emarg[em,es,e,i,t] /10**6 * uEmmE_BU[em,es,e,i,t];
 
           #Consider removing as emission coefficient is the same for ubio/bio

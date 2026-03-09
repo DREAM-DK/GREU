@@ -12,7 +12,7 @@ $Group+ all_variables
   qInvt_ene_i[i,t] "Net real inventory investments in energy by industry."
   vInvt_ene_i[i,t] "Net inventory investments in energy by industry."
 
-  jDelta_qESK[k,i,t]$(d1K_k_i[k,i,t] and sameas[k,'iM']) "Additional investments from abatement model (endogenized by abatement module)."
+  jDelta_qESK[k,i,t]$(d1K_k_i[k,i,t] and sameas[k,'iM']) "Additional investments from energy technology model (endogenized by energy technology module)."
 
   qInvt_ene2qY_i[i,t] "Inventory investment in energy to output ration by industry"
   qE2qY_re_i[re,i,t]$(d1E_re_i[re,i,t]) "Demand for intermediate energy inputs to output ratio by industry."

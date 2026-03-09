@@ -462,7 +462,7 @@ $PGROUP PG_GREU_data
   qProd[factors_of_production,i,t] "Factors of production, value"
   pProd[factors_of_production,i,t] "Factors of production, price"
 
-  # Abatement
+  # Energy technology
   #theta_load[l,es,i,e,t] "Potential, technology."
   #uTE_load[l,es,i,e,t] "Energy use, technology."
   #uTK_load[l,es,i,e,t] "Capital use, technology."
@@ -636,8 +636,8 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   vtE_duty[etaxes,es,e,d,t] = sum(demand_transaction_temp, Energybalance[etaxes,demand_transaction_temp,d,es,e,t]);
   vtE_vat[es,e,d,t]          = sum(demand_transaction_temp, Energybalance['VAT',demand_transaction_temp,d,es,e,t]);
 
-  # Abatement
-  # Create calibrated abatement data that matches historical energy use
+  # Energy technology
+  # Create calibrated energy technology data that matches historical energy use
   $import Energy_technology_data/calib_energy_technologies.gms
 
 

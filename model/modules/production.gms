@@ -33,7 +33,7 @@ $IF %stage% == "variables":
     jvtBotded[i,t]$(d1Y_i[i,t]) "Value of bottom-up deductions (endogenized by energy_and_emissions_taxes module when active)."
     jvtEmmRxE[i,t]$(d1Y_i[i,t]) "Taxes on non-energy related emissions (endogenized by energy_and_emissions_taxes module when active)."
     jvEnergycostsnotinnesting[i,t]$(d1Y_i[i,t]) "Total cost of energy not in CES-nested production function (endogenized by production_CES_energydemand module when active)."
-    jDelta_vESK[i,t]$(d1Y_i[i,t]) "Difference in value of machinery capital from abatement model (endogenized by abatement module when active)."
+    jDelta_vESK[i,t]$(d1Y_i[i,t]) "Difference in value of machinery capital from energy technology model (endogenized by energy technology module when active)."
 
     vGVA_i[i,t] "Approximation of gross value added on industry level"
   ;
@@ -92,8 +92,8 @@ $IF %stage% == "equations":
     #When energy is turned on the IO/factor-demand variables pE_re_i and qE_re_i =/= pProd[pf_bottom_e] and qProd[pf_bottom_e].
     #This is due to a) Not all energy being handled in CES-nest (some of the energy is Leontief in top of p-function), 
     #               b) The energy-prices in pProd, qProd are based on marginal tax-rates (i.e. before deductions).
-    #               c) When abatement is turned on pProd and qProd are further also comprised of abatement costs, which are the full abatement cost including technology and materials for a given technology
-    #To handle this a couple of J-terms are introduced. jpProd ensures that pProd[pf_bottom_e] is equal to the marginal price of energy (i.e. with marginal tax-rate applying and including abatement costs)
+    #               c) When energy technology model is turned on pProd and qProd are further also comprised of energy technology costs, which are the full cost including technology and materials for a given technology
+    #To handle this a couple of J-terms are introduced. jpProd ensures that pProd[pf_bottom_e] is equal to the marginal price of energy (i.e. with marginal tax-rate applying and including energy technology costs)
     #jqE_re_i ensures that the input_output system is balanced in values. jqE_re_i is computed so that total energy-costs, pE_re_i * qE_re_i matches bottom-up computation of total energy-costs (see energy_markerkets.gms for link)
     #AKB, to be investigated: Maybe qE_re_i, computed as a residual, become meaningless as a "quantity". 
     .. pProd[pf_bottom_e,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], pE_re_i[re,i,t]) + jpProd[pf_bottom_e,i,t];    

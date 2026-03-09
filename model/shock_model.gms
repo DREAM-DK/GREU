@@ -1,14 +1,14 @@
-$IF %include_abatement% = 0:
+$IF %include_energy_technology% = 0:
   $SETGLOBAL test_CGE "1"
-  $SETGLOBAL test_abatement "0"
+  $SETGLOBAL test_energy_technology "0"
   $IMPORT base_model.gms
-$ENDIF # include_abatement
+$ENDIF # include_energy_technology
 
-$IF %include_abatement% = 1:
+$IF %include_energy_technology% = 1:
   $SETGLOBAL test_CGE "0"
-  $SETGLOBAL test_abatement "1"
+  $SETGLOBAL test_energy_technology "1"
   $IMPORT base_model_energy_technology.gms
-$ENDIF # include_abatement
+$ENDIF # include_energy_technology
 
 
 $IMPORT sets/report.sets.gms # Has to be manually fittet to country specifik data

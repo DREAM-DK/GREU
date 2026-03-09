@@ -3,11 +3,11 @@ $IMPORT base_model.gms
 
 
 # ------------------------------------------------------------------------------
-# Run the abatement model alongside the CGE-model (no integration)
+# Run the energy technology choice model alongside the CGE-model (no integration)
 # ------------------------------------------------------------------------------
-# We turn the abatement model on to integrate it with the CGE-model
-d1switch_abatement[t] = 1;
-d1switch_integrate_abatement[t] = 0;
+# We turn the energy technology choice model running alongside the CGE-model (no integration)
+d1switch_energy_technology[t] = 1;
+d1switch_integrate_energy_technology[t] = 0;
 
 # Set share parameters
 jES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
@@ -19,30 +19,30 @@ $import energy_price_partial.gms
 # execute_unload 'Output/pre_energy_price_partial.gdx';
 $import Supply_curve_energy_technology.gms;
 
-# Solve partial abatement model
-@add_exist_dummies_to_model(abatement_partial_equations);
-# $FIX all_variables; $UNFIX abatement_partial_endogenous;
-# Solve abatement_partial_equations using CNS;
+# Solve partial energy technology model
+@add_exist_dummies_to_model(energy_technology_partial_equations);
+# $FIX all_variables; $UNFIX energy_technology_partial_endogenous;
+# Solve energy_technology_partial_equations using CNS;
 
 @add_exist_dummies_to_model(main);
 $FIX all_variables; $UNFIX main_endogenous;
-# execute_unload 'Output/pre_calibration_abatement.gdx';
+# execute_unload 'Output/pre_calibration_energy_technology.gdx';
 solve main using CNS;
-# execute_unload 'Output/calibration_abatement.gdx';
+# execute_unload 'Output/calibration_energy_technology.gdx';
 
 # ------------------------------------------------------------------------------
-# Integrate the abatement model with the CGE-model
+# Integrate the energy technology choice model with the CGE-model
 # ------------------------------------------------------------------------------
-# We turn the abatement model on to integrate it with the CGE-model
-d1switch_abatement[t] = 1;
-d1switch_integrate_abatement[t] = 1;
+# We turn the energy technology model on to integrate it with the CGE-model
+d1switch_energy_technology[t] = 1;
+d1switch_integrate_energy_technology[t] = 1;
 
-# Create baseline values for the abatement model
+# Create baseline values for the energy technology model
 $import create_baseline_values.gms;
 
 $FIX all_variables; $UNFIX main_endogenous;
 solve main using CNS;
-execute_unload 'Output/calibration_abatement_integrated.gdx';
+execute_unload 'Output/calibration_energy_technology_integrated.gdx';
 
 # We switch jqESE and uREa when starting to shock the model (could be made more elegant)
 $GROUP main_endogenous
@@ -53,7 +53,7 @@ $GROUP main_endogenous
 # ------------------------------------------------------------------------------
 # Tests
 # ------------------------------------------------------------------------------
-$IF %test_abatement%:
+$IF %test_energy_technology%:
 
 @import_from_modules("tests")
 # Data check  -  Abort if any data covered variables have been changed by the calibration
@@ -65,7 +65,7 @@ $FIX all_variables; $UNFIX main_endogenous;
 # execute_unload 'Output/main_pre.gdx';
 Solve main using CNS;
 @assert_no_difference(all_variables, 1e-6, .l, _saved, "Zero shock changed variables significantly.");
-execute_unload 'Output/main_abatement.gdx';
+execute_unload 'Output/main_energy_technology.gdx';
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
 
-$ENDIF # test_abatement
+$ENDIF # test_energy_technology

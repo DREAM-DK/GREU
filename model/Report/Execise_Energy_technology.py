@@ -1,9 +1,9 @@
-#### Execise Abatement ####
+#### Execise Energy Technology ####
 
 ## Exercise 1:
 
-dt.REFERENCE_DATABASE = b = dt.Gdx("Output/baseline_abatement.gdx") # b for baseline
-s = dt.Gdx("Output/shock_carbon_tax_abatement.gdx") # s for shock
+dt.REFERENCE_DATABASE = b = dt.Gdx("Output/baseline_energy_technology.gdx") # b for baseline
+s = dt.Gdx("Output/shock_carbon_tax_energy_technology.gdx") # s for shock
 dt.time(2020, 2050)
 
 # 1.B
@@ -15,8 +15,8 @@ dt.prt(b.qESE.loc[['transport'],:,['01011'],[2035]])
 dt.prt(b.qREa.loc[['transport'],:,['01011'],[2035]])
 
 # 1.D
-from plot_supply_curves import plot_supply_curve # Function to plot abatement supply curves
-plot_supply_curve("Output/baseline_abatement.gdx",['01011'])
+from plot_supply_curves import plot_supply_curve # Function to plot energy technology supply curves
+plot_supply_curve("Output/baseline_energy_technology.gdx",['01011'])
 
 # 1.E
 dt.prt(b.pTPotential.loc[:,['transport'],['01011'],[2035]])
@@ -39,7 +39,7 @@ display(s.Shadow_price)
 
 dt.REFERENCE_DATABASE = b = dt.Gdx("Output/calibration_CCS.gdx") # b for baseline
 s_CCS = dt.Gdx("Output/shock_carbon_tax_CCS.gdx") # s for shock
-b_abatement = dt.Gdx("Output/baseline_abatement.gdx")
+b_energy_technology = dt.Gdx("Output/baseline_energy_technology.gdx")
 dt.time(2020, 2050)
 
 # 2.D
@@ -56,20 +56,20 @@ dt.plot(s_CCS.qEpj.loc[['process_special'],['Captured CO2'],[23001],:],"m")
 # 2.G
 # Electricity
 dt.plot([s_CCS.qEpj.loc[['process_special'],['Electricity'],[23001],:]-b.qEpj.loc[['process_special'],['Electricity'],[23001],:],
-         s.qEpj.loc[['process_special'],['Electricity'],[23001],:]-b_abatement.qEpj.loc[['process_special'],['Electricity'],[23001],:]])
+         s.qEpj.loc[['process_special'],['Electricity'],[23001],:]-b_energy_technology.qEpj.loc[['process_special'],['Electricity'],[23001],:]])
 
 # Emissions
 dt.plot([s_CCS.qEmmE.loc[['co2ubio'],[23001],:]-b.qEmmE.loc[['co2ubio'],[23001],:],
-         s.qEmmE.loc[['co2ubio'],[23001],:]-b_abatement.qEmmE.loc[['co2ubio'],[23001],:]])
+         s.qEmmE.loc[['co2ubio'],[23001],:]-b_energy_technology.qEmmE.loc[['co2ubio'],[23001],:]])
 
 # 2.H
 # Price of energy service
 dt.plot([s_CCS.pES.loc[['process_special'],[23001],:]-b.pES.loc[['process_special'],[23001],:],
-         s.pES.loc[['process_special'],[23001],:]-b_abatement.pES.loc[['process_special'],[23001],:]])
+         s.pES.loc[['process_special'],[23001],:]-b_energy_technology.pES.loc[['process_special'],[23001],:]])
 
 # Quantity of energy service
 dt.plot([s_CCS.qES.loc[['process_special'],[23001],:]-b.qES.loc[['process_special'],[23001],:],
-         s.qES.loc[['process_special'],[23001],:]-b_abatement.qES.loc[['process_special'],[23001],:]])
+         s.qES.loc[['process_special'],[23001],:]-b_energy_technology.qES.loc[['process_special'],[23001],:]])
 
 ## Exercise 3:
 

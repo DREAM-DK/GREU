@@ -21,11 +21,11 @@ set electrification_techs[l] /
 # Supply Curve Visualization
 $import Supply_curve_energy_technology.gms;
 
-# # Solve partial abatement model
+# # Solve partial energy technology model
 # $FIX all_variables;
-# $UNFIX abatement_partial_endogenous;
-# Solve abatement_partial_equations using CNS;
-# execute_unload 'Output/calibration_electrification_abatement_partial.gdx';
+# $UNFIX energy_technology_partial_endogenous;
+# Solve energy_technology_partial_equations using CNS;
+# execute_unload 'Output/calibration_electrification_energy_technology_partial.gdx';
 
 # Solve model
 $FIX all_variables; $UNFIX main_endogenous;

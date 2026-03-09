@@ -49,11 +49,11 @@ d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 # Supply Curve Visualization
 $import Supply_curve_energy_technology.gms;
 
-# # Solve partial abatement model
+# # Solve partial energy technology model
 # $FIX all_variables;
-# $UNFIX abatement_partial_endogenous;
-# Solve abatement_partial_equations using CNS;
-# execute_unload 'Output\calibration_CCS_abatement_partial.gdx';
+# $UNFIX energy_technology_partial_endogenous;
+# Solve energy_technology_partial_equations using CNS;
+# execute_unload 'Output\calibration_CCS_energy_technology_partial.gdx';
 
 # Solve full model
 $FIX all_variables; $UNFIX main_endogenous;

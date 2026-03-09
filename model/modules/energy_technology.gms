@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Abatement Model
+# Energy Technology Choice Model
 # ------------------------------------------------------------------------------
 # This partial model implements the technology choice model for energy services
 # using a smooth transition approach with log-normal distributions.
@@ -10,14 +10,14 @@
 $IF %stage% == "variables":
 
 # 1.1 Dummy Variables
-$SetGroup SG_Abatement_dummies
+$SetGroup SG_Energy_technology_dummies
   d1sqTPotential[l,es,d,t] "Dummy determining the existence of technology potentials"
   d1pTK[d,t] "Dummy determining the existence of user costs for technologies"
   d1uTE[l,es,e,d,t] "Dummy determining the existence of energy input in technology"
   d1qES_e[es,e,d,t] "Dummy determining the existence of energy use (sum across technologies)"
   d1qES[es,d,t] "Dummy determining the existence of energy service, quantity"
-  d1switch_abatement[t] "Dummy to control whether the abatement is turned on (=1) or off (=0)"
-  d1switch_integrate_abatement[t] "Dummy to control whether the abatement is integrated with the CGE-model (=1) or not (=0)"
+  d1switch_energy_technology[t] "Dummy to control whether the energy technology model is turned on (=1) or off (=0)"
+  d1switch_integrate_energy_technology[t] "Dummy to control whether the energy technology model is integrated with the CGE-model (=1) or not (=0)"
 ;
 
 # 1.2 Main Variables
@@ -26,11 +26,11 @@ $Group+ all_variables
 
   # 1.2.1.1 Exogenous Input Prices
   pTK[d,t]$(d1pTK[d,t]) "User cost of capital in technologies for energy services"
-  jpTK[i,t] "Share parameter linking capital user cost in abatement model to CGE model"
+  jpTK[i,t] "Share parameter linking capital user cost in energy technology model to CGE model"
 
   # 1.2.1.2 Exogenous Energy Service Demand
   qES[es,d,t]$(d1qES[es,d,t]) "Energy service, quantity."
-  jES[es,d,t]$(d1qES[es,d,t]) "Share parameter linking energy service in abatement model to energy service demand in CGE model"
+  jES[es,d,t]$(d1qES[es,d,t]) "Share parameter linking energy service in energy technology model to energy service demand in CGE model"
   
   # 1.2.1.3 Exogenous Technology Parameters
   sqTPotential[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Potential supply by technology l in ratio of energy service (share of qES)"
@@ -69,13 +69,13 @@ $Group+ all_variables
   qESK[es,d,t]$(d1qES[es,d,t]) "Quantity of machinery capital in energy services"
 
   # Variables for integration with CGE-model
-  qESE_baseline[es,e,d,t]$(d1qES_e[es,e,d,t]) "Energy input in the abatement model (baseline)"
-  Delta_qESE[es,e,d,t]$(d1qES_e[es,e,d,t]) "Difference between energy input in the abatement model (difference between shock and baseline)"
-  jqESE[es,e,i,t]$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t]) "Share parameter linking energy input in the abatement model to energy input in the CGE-model"
-  qESK_baseline[es,d,t]$(d1qES[es,d,t]) "Capital input in the abatement model (baseline)"
-  Delta_qESK[es,d,t]$(d1qES[es,d,t]) "Difference between capital input in the abatement model (difference between shock and baseline)"
+  qESE_baseline[es,e,d,t]$(d1qES_e[es,e,d,t]) "Energy input in the energy technology model (baseline)"
+  Delta_qESE[es,e,d,t]$(d1qES_e[es,e,d,t]) "Difference between energy input in the energy technology model (difference between shock and baseline)"
+  jqESE[es,e,i,t]$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t]) "Share parameter linking energy input in the energy technology model to energy input in the CGE-model"
+  qESK_baseline[es,d,t]$(d1qES[es,d,t]) "Capital input in the energy technology model (baseline)"
+  Delta_qESK[es,d,t]$(d1qES[es,d,t]) "Difference between capital input in the energy technology model (difference between shock and baseline)"
   vESK_baseline[es,d,t]$(d1qES[es,d,t]) "Value of machinery capital (baseline)"
-  Delta_vESK[es,d,t]$(d1qES[es,d,t]) "Difference between value of machinery capital in the abatement model (difference between shock and baseline)"
+  Delta_vESK[es,d,t]$(d1qES[es,d,t]) "Difference between value of machinery capital in the energy technology model (difference between shock and baseline)"
   qEmmE_CCS[es,e,d,t]$(d1qES_e[es,e,d,t] and sameas(e,'Captured CO2')) "Quantity of CCS in energy services"
 ;
 
@@ -91,7 +91,7 @@ $ENDIF # variables
 # ------------------------------------------------------------------------------
 $IF %stage% == "equations":
 
-$BLOCK abatement_LCOE_equations abatement_LCOE_endogenous $(t1.val <= t.val and t.val <= tEnd.val and d1switch_abatement[t])
+$BLOCK energy_technology_LCOE_equations energy_technology_LCOE_endogenous $(t1.val <= t.val and t.val <= tEnd.val and d1switch_energy_technology[t])
 
   # Levelized cost of energy (LCOE) in technology l per PJ output at full potential
   $(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,es,d,t]).. 
@@ -115,7 +115,7 @@ $ENDBLOCK
 
 
 # 2.1 Core Model Equations
-$BLOCK abatement_equations_core abatement_endogenous_core $(t1.val <= t.val and t.val <= tEnd.val and d1switch_abatement[t]) 
+$BLOCK energy_technology_equations_core energy_technology_endogenous_core $(t1.val <= t.val and t.val <= tEnd.val and d1switch_energy_technology[t]) 
 
   # 2.1.2 Technology Choice Equations
   # Equality between marginal price of energy service and marginal price of technology 
@@ -139,7 +139,7 @@ $BLOCK abatement_equations_core abatement_endogenous_core $(t1.val <= t.val and 
 $ENDBLOCK
 
 # 2.2 Output Equations
-$BLOCK abatement_equations_output abatement_endogenous_output $(t1.val <= t.val and t.val <= tEnd.val and d1switch_abatement[t]) 
+$BLOCK energy_technology_equations_output energy_technology_endogenous_output $(t1.val <= t.val and t.val <= tEnd.val and d1switch_energy_technology[t]) 
   # 2.2.1 Energy and Capital Use
   # Use of energy in production of energy service
   .. qESE[es,e,d,t] =E= 
@@ -164,7 +164,7 @@ $BLOCK abatement_equations_output abatement_endogenous_output $(t1.val <= t.val 
 
 $ENDBLOCK
 
-$BLOCK abatement_equations_links abatement_endogenous_links $(t1.val <= t.val and t.val <= tEnd.val and d1switch_abatement[t] and d1switch_integrate_abatement[t])
+$BLOCK energy_technology_equations_links energy_technology_endogenous_links $(t1.val <= t.val and t.val <= tEnd.val and d1switch_energy_technology[t] and d1switch_integrate_energy_technology[t])
 
   # qES is determined by the CGE-model. jES (exogenous) is the difference between qES and qREes in the baseline
   .. qES[es,i,t] =E= jES[es,i,t]*qREes[es,i,t];
@@ -184,12 +184,12 @@ $BLOCK abatement_equations_links abatement_endogenous_links $(t1.val <= t.val an
   # Difference in value of capital use between the baseline and the shock
   .. Delta_vESK[es,d,t] =E= vESK[es,d,t] - vESK_baseline[es,d,t];
 
-  # Link abatement capital investments to factor demand module (aggregate approximation)
-  # This endogenizes the J-term defined in factor_demand.gms, aggregating abatement capital investments
+  # Link energy technology capital investments to factor demand module (aggregate approximation)
+  # This endogenizes the J-term defined in factor_demand.gms, aggregating energy technology capital investments
   jDelta_qESK[k,i,t]$(sameas[k,'iM'] and d1K_k_i[k,i,t])..
     jDelta_qESK[k,i,t] =E= sum(es$(d1qES[es,i,t]), Delta_qESK[es,i,t]);
 
-  # Link abatement capital value differences to production module (aggregate approximation)
+  # Link energy technology capital value differences to production module (aggregate approximation)
   # J-term stands in for sum(es, Delta_vESK[es,i,t]) used in production.gms equation
   jDelta_vESK[i,t]$(d1Y_i[i,t])..
     jDelta_vESK[i,t] =E= sum(es$(d1qES[es,i,t]), Delta_vESK[es,i,t]);
@@ -200,39 +200,39 @@ $BLOCK abatement_equations_links abatement_endogenous_links $(t1.val <= t.val an
 $ENDBLOCK
 
 # 2.3 Model Assembly
-$GROUP abatement_endogenous
-  abatement_LCOE_endogenous
-  abatement_endogenous_core
-  abatement_endogenous_output
-  abatement_endogenous_links
+$GROUP energy_technology_endogenous
+  energy_technology_LCOE_endogenous
+  energy_technology_endogenous_core
+  energy_technology_endogenous_output
+  energy_technology_endogenous_links
 ;
 
-$MODEL abatement_equations  
-  abatement_LCOE_equations
-  abatement_equations_core
-  abatement_equations_output 
-  abatement_equations_links
+$MODEL energy_technology_equations  
+  energy_technology_LCOE_equations
+  energy_technology_equations_core
+  energy_technology_equations_output 
+  energy_technology_equations_links
 ;
 
 # Add equation and endogenous variables to main model
-model main / abatement_equations /;
-$GROUP+ main_endogenous abatement_endogenous;
+model main / energy_technology_equations /;
+$GROUP+ main_endogenous energy_technology_endogenous;
 
-# Create partial abatement model
-$GROUP abatement_partial_endogenous
-  abatement_LCOE_endogenous
-  abatement_endogenous_core
-  abatement_endogenous_output
+# Create partial energy technology model
+$GROUP energy_technology_partial_endogenous
+  energy_technology_LCOE_endogenous
+  energy_technology_endogenous_core
+  energy_technology_endogenous_output
 ;
 
-$MODEL abatement_partial_equations  
-  abatement_LCOE_equations
-  abatement_equations_core
-  abatement_equations_output 
+$MODEL energy_technology_partial_equations  
+  energy_technology_LCOE_equations
+  energy_technology_equations_core
+  energy_technology_equations_output 
 ;
 
 # 2.4 Solver Helper Function
-$FUNCTION Setbounds_abatement():
+$FUNCTION Setbounds_energy_technology():
   # Set bounds for uTKmarg
   uTKmarg.lo[l,es,d,t]$(sqTPotential.l[l,es,d,t] and uTKmarg.lo[l,es,d,t] ne uTKmarg.up[l,es,d,t]) = 0.001*0.99;
   uTKmarg.up[l,es,d,t]$(sqTPotential.l[l,es,d,t] and uTKmarg.lo[l,es,d,t] ne uTKmarg.up[l,es,d,t]) = 
@@ -254,7 +254,7 @@ $ENDIF # equations
 $IF %stage% == "exogenous_values":
 
 # 3.1 Data Loading
-$GROUP abatement_data_variables
+$GROUP energy_technology_data_variables
   sqTPotential[l,es,d,t]
   uTE[l,es,e,d,t]  
   vTI[l,es,d,t]
@@ -263,10 +263,10 @@ $GROUP abatement_data_variables
   qES[es,d,t]
 
 ;
-@load(abatement_data_variables, "../data/data.gdx")
-$GROUP+ data_covered_variables abatement_data_variables;
+@load(energy_technology_data_variables, "../data/data.gdx")
+$GROUP+ data_covered_variables energy_technology_data_variables;
 
-# Load LifeSpan from Abatement_dummy_data.gdx
+# Load LifeSpan from data.gdx
 execute_load "../data/data.gdx" LifeSpan=LifeSpan;
 
 # 3.2 Initial Values
@@ -317,11 +317,11 @@ $ENDIF # exogenous_values
 $IF %stage% == "calibration":
 
 
-model calibration / abatement_equations /;
+model calibration / energy_technology_equations /;
 
 # 4.2 Calibration Variables
 $GROUP calibration_endogenous
-  abatement_endogenous
+  energy_technology_endogenous
   calibration_endogenous
 ;
 
@@ -342,6 +342,6 @@ $Group non_default_starting_values
 ;
 
 # Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
-$MACRO abatement_calibration_starting_values
+$MACRO energy_technology_calibration_starting_values
 
 $ENDIF # calibration
