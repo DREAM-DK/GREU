@@ -638,7 +638,7 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 
   # Abatement
   # Create calibrated abatement data that matches historical energy use
-  $import Abatement_data/calib_abatement_techs.gms
+  $import Energy_technology_data/calib_energy_technologies.gms
 
 
 ###  F) Unload gdx with data in parameters with same names as model-variables, to be read into model

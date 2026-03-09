@@ -15,7 +15,7 @@ $IMPORT sets/production.sets.gms
 $IMPORT sets/households.sets.gms
 $IMPORT sets/emissions.sets.gms
 $IMPORT sets/energy_taxes_and_emissions.sets.gms
-$IMPORT sets/abatement.sets.gms
+$IMPORT sets/energy_technology.sets.gms
 $IMPORT sets/subsets.sets.gms
 $IMPORT sets/energy_outputs.sets.gms
 
@@ -66,7 +66,7 @@ $FUNCTION import_from_modules({stage_key}):
     ("modules/factor_demand_energy.gms", 1),
     ("modules/consumption_disaggregated_energy.gms", 1),
     ("modules/exports_energy.gms", 1),
-    ("modules/abatement.gms", 1),
+    ("modules/energy_technology.gms", 1),
 
     ## REPORTING MODULES
     ("Report/All.Report.gms", 1),     

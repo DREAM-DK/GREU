@@ -47,7 +47,7 @@ d1uTE[l,es,e,d,t] = yes$(uTE.l[l,es,e,d,t]);
 d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 
 # Supply Curve Visualization
-$import Supply_curves_abatement.gms;
+$import Supply_curve_energy_technology.gms;
 
 # # Solve partial abatement model
 # $FIX all_variables;

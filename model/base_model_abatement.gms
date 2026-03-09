@@ -14,10 +14,10 @@ jES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t
 jpTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pTK.l[i,t]/pK_k_i.l['iM',i,t];
 
 # Supply Curve Visualization
-$import premodel_abatement.gms
+$import premodel_energy_technology.gms
 $import energy_price_partial.gms
 # execute_unload 'Output/pre_energy_price_partial.gdx';
-$import Supply_curves_abatement.gms;
+$import Supply_curve_energy_technology.gms;
 
 # Solve partial abatement model
 @add_exist_dummies_to_model(abatement_partial_equations);

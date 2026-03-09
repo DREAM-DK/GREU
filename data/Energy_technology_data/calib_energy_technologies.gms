@@ -7,7 +7,7 @@ $IMPORT ../model/functions.gms;
 set l_input "Technology name for calibrated abatement data";
 set l "Technology name." / t1*t1000 /;
 
-$gdxIn Abatement_data/calibrate_abatement_data_python.gdx
+$gdxIn Energy_technology_data/calibrate_Energy_technology_data_python.gdx
 $load l_input
 $gdxIn
 
@@ -33,10 +33,10 @@ parameter
 
 counter[es,d] = 0;
 
-execute_load "Abatement_data/calibrate_abatement_data_python.gdx" sqTPotential_input=sqTPotential_input.l;
-execute_load "Abatement_data/calibrate_abatement_data_python.gdx" uTE_input=uTE_input.l;
-execute_load "Abatement_data/calibrate_abatement_data_python.gdx" qES=qES.l;
-execute_load "Abatement_data/pEpj_marg.gdx" pEpj_marg=pEpj_marg.l;
+execute_load "Energy_technology_data/calibrate_Energy_technology_data_python.gdx" sqTPotential_input=sqTPotential_input.l;
+execute_load "Energy_technology_data/calibrate_Energy_technology_data_python.gdx" uTE_input=uTE_input.l;
+execute_load "Energy_technology_data/calibrate_Energy_technology_data_python.gdx" qES=qES.l;
+execute_load "Energy_technology_data/pEpj_marg.gdx" pEpj_marg=pEpj_marg.l;
 
 loop(l_input$(sum((es,i,t), sqTPotential_input[l_input,es,i,t])),
     counter[es,i]$(sum(t, sqTPotential_input[l_input,es,i,t])) = counter[es,i]+1;

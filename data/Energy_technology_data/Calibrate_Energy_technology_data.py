@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------------------------
 # Module to calibrate energy technologies from relative energy use in data.
-# The file calib_abatement_techs.gms makes the final calibration of the energy technologies
+# The file calib_energy_technologies.gms makes the final calibration of the energy technologies
 # based on the data in this file.
 # --------------------------------------------------------------------------------------------
 
@@ -11,10 +11,10 @@ import pandas as pd
 ## Set local paths
 root = dt.find_root("LICENSE")
 ## Set working directory
-os.chdir(fr"{root}/data/Abatement_data")
+os.chdir(fr"{root}/data/Energy_technology_data")
 
 gdx_input_dir = fr"{root}\model"
-gdx_output_dir = fr"{root}\data\Abatement_data"
+gdx_output_dir = fr"{root}\data\Energy_technology_data"
 
 
 #GAMS-Pandas settings
@@ -61,5 +61,5 @@ print(uTE_input)
 Var('uTE_input', data=uTE_input['uTE_input'], add_missing_domains=True)
 
 # Export data
-db.export('calibrate_abatement_data_python.gdx')
+db.export('calibrate_Energy_technology_data_python.gdx')
 

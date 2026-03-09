@@ -8,11 +8,11 @@ $GROUP abatement_data_variables_new
 ;
 
 # Load new data variables from Abatement_dummy_data.gdx
-execute_load "../data/Abatement_data/Abatement_dummy_data.gdx" sqTPotential_new.l=sqTPotential;
-execute_load "../data/Abatement_data/Abatement_dummy_data.gdx" uTE_load_new.l=uTE_load;
-execute_load "../data/Abatement_data/Abatement_dummy_data.gdx" vTI_new.l=vTI;
-execute_load "../data/Abatement_data/Abatement_dummy_data.gdx" vTC_new.l=vTC;
-execute_load "../data/Abatement_data/Abatement_dummy_data.gdx" LifeSpan_new.l=LifeSpan;
+execute_load "../data/Energy_technology_data/Abatement_dummy_data.gdx" sqTPotential_new.l=sqTPotential;
+execute_load "../data/Energy_technology_data/Abatement_dummy_data.gdx" uTE_load_new.l=uTE_load;
+execute_load "../data/Energy_technology_data/Abatement_dummy_data.gdx" vTI_new.l=vTI;
+execute_load "../data/Energy_technology_data/Abatement_dummy_data.gdx" vTC_new.l=vTC;
+execute_load "../data/Energy_technology_data/Abatement_dummy_data.gdx" LifeSpan_new.l=LifeSpan;
 
 # Create dummies for new data variables
 Parameter 

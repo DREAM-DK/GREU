@@ -100,7 +100,7 @@ $GROUP main_endogenous
 ;
 
   # Set starting values for the abatement model
-  $import Supply_curves_abatement.gms
+  $import Supply_curve_energy_technology.gms
 
   # Solve partial abatement model
   $FIX all_variables;

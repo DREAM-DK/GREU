@@ -19,7 +19,7 @@ set electrification_techs[l] /
 
 
 # Supply Curve Visualization
-$import Supply_curves_abatement.gms;
+$import Supply_curve_energy_technology.gms;
 
 # # Solve partial abatement model
 # $FIX all_variables;
