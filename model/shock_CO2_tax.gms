@@ -7,7 +7,7 @@
 # $IF %include_abatement% = 1:
 #   $SETGLOBAL test_CGE "0"
 #   $SETGLOBAL test_abatement "1"
-#   $IMPORT base_model_abatement.gms 
+#   $IMPORT base_model_energy_technology.gms 
 # $ENDIF # include_abatement
 
 
