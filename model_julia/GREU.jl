@@ -37,6 +37,7 @@ set_optimizer_attribute(db.model, "NLP", "CONOPT")
 set_optimizer_attribute(db.model, "LogOption", 0)
 
 const first_data_year = 2015 # Base year (configurable)
+const tBase = 2020 # Statistical index year where prices are set to 1
 const calibration_year = 2020
 const max_terminal_year = 2050
 const t = first_data_year:max_terminal_year
