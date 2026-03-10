@@ -36,7 +36,17 @@ module Data
 		)
 	end
 
-	export gdx, load_set, load_int_set, load_parameter
+	# Load a GDX parameter directly into a ModelDictionary for a given variable container.
+	# Iterates over the variable's own keys (respecting sparsity), so no manual filtering needed.
+	function load_parameter!(db, name::Symbol, var)
+		raw = load_parameter(name)
+		for key in keys(var)
+			v = get(raw, string.(Tuple(key)), nothing)
+			!isnothing(v) && (db[var[key...]] = v)
+		end
+	end
+
+	export gdx, load_set, load_int_set, load_parameter, load_parameter!
 end
 
 using .Data
