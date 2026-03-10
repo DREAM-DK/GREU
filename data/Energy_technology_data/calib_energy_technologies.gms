@@ -36,7 +36,7 @@ counter[es,d] = 0;
 execute_load "Energy_technology_data/calibrate_Energy_technology_data_python.gdx" sqTPotential_input=sqTPotential_input.l;
 execute_load "Energy_technology_data/calibrate_Energy_technology_data_python.gdx" uTE_input=uTE_input.l;
 execute_load "Energy_technology_data/calibrate_Energy_technology_data_python.gdx" qES=qES.l;
-execute_load "Energy_technology_data/pEpj_marg.gdx" pEpj_marg=pEpj_marg.l;
+execute_load "Energy_technology_data/calibrate_Energy_technology_data_python.gdx" pEpj_marg=pEpj_marg.l;
 
 loop(l_input$(sum((es,i,t), sqTPotential_input[l_input,es,i,t])),
     counter[es,i]$(sum(t, sqTPotential_input[l_input,es,i,t])) = counter[es,i]+1;
@@ -113,7 +113,7 @@ parameter
 
 d1pEpj_energy_technology[es,'Electricity',i,t]$(sum((l,e), uTE[l,es,e,i,t]) and not pEpj_marg[es,'Electricity',i,t]) = yes;
 
-pEpj_marg[es,e,i,t]$(d1pEpj_energy_technology[es,e,i,t]) = pEpj_marg['transport','Electricity','01011',t];
+pEpj_marg[es,e,i,t]$(d1pEpj_energy_technology[es,e,i,t]) = pEpj_marg['heating','Electricity','71000',t];
 
 ## Second step: Technology prices
 parameter
