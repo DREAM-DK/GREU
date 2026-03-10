@@ -10,7 +10,7 @@ module InputOutput
 	using SquareModels
 	using ..GrowthInflationAdjustment
 	using ..Data: gdx, load_set, load_parameter
-	import ..db, ..t, ..t1, ..T, ..tBase, ..ForecastConstant
+	import ..db, ..t, ..t1, ..T, ..tBase, ..ForecastConstant, ..∑
 
 	# ==========================================================================
 	# GDX data conversion helpers
@@ -271,12 +271,12 @@ module InputOutput
 			qGVA[t] * pGVA[t-1] == pY[t-1]*qY[t] - pR[t-1]*qR[t] - pE[t-1]*qE[t]
 
 			# -- Demand aggregates --
-			vR[t = t1:T], vR[t] == sum(vD[s, t] for s in rx)
-			vE[t = t1:T], vE[t] == sum(vD[s, t] for s in re)
-			vI[t = t1:T], vI[t] == sum(vD[s, t] for s in k) + vD[invt, t]
-			vC[t = t1:T], vC[t] == sum(vD[s, t] for s in c) + vC_WalrasLaw[t]
-			vG[t = t1:T], vG[t] == sum(vD[s, t] for s in g)
-			vX[t = t1:T], vX[t] == sum(vD[s, t] for s in x)
+			vR[t = t1:T], vR[t] == ∑(vD[s, t] for s in rx)
+			vE[t = t1:T], vE[t] == ∑(vD[s, t] for s in re)
+			vI[t = t1:T], vI[t] == ∑(vD[s, t] for s in k) + vD[invt, t]
+			vC[t = t1:T], vC[t] == ∑(vD[s, t] for s in c) + vC_WalrasLaw[t]
+			vG[t = t1:T], vG[t] == ∑(vD[s, t] for s in g)
+			vX[t = t1:T], vX[t] == ∑(vD[s, t] for s in x)
 
 			# -- Deflator identities --
 			pR[t = t1:T], pR[t] * qR[t] == vR[t]
@@ -288,55 +288,55 @@ module InputOutput
 
 			# -- Chain price indices for demand aggregates --
 			qR[t = t1:T],
-			qR[t] * pR[t-1] == sum(pD[s, t-1] * qD[s, t] for s in rx)
+			qR[t] * pR[t-1] == ∑(pD[s, t-1] * qD[s, t] for s in rx)
 
 			qE[t = t1:T],
-			qE[t] * pE[t-1] == sum(pD[s, t-1] * qD[s, t] for s in re)
+			qE[t] * pE[t-1] == ∑(pD[s, t-1] * qD[s, t] for s in re)
 
 			qI[t = t1:T],
-			qI[t] * pI[t-1] == sum(pD[s, t-1] * qD[s, t] for s in k) + pD[invt, t-1]*qD[invt, t] + pD[invt_ene, t-1]*qD[invt_ene, t]
+			qI[t] * pI[t-1] == ∑(pD[s, t-1] * qD[s, t] for s in k) + pD[invt, t-1]*qD[invt, t] + pD[invt_ene, t-1]*qD[invt_ene, t]
 
 			qC[t = t1:T],
-			qC[t] * pC[t-1] == sum(pD[s, t-1] * qD[s, t] for s in c)
+			qC[t] * pC[t-1] == ∑(pD[s, t-1] * qD[s, t] for s in c)
 
 			qG[t = t1:T],
-			qG[t] * pG[t-1] == sum(pD[s, t-1] * qD[s, t] for s in g)
+			qG[t] * pG[t-1] == ∑(pD[s, t-1] * qD[s, t] for s in g)
 
 			qX[t = t1:T],
-			qX[t] * pX[t-1] == sum(pD[s, t-1] * qD[s, t] for s in x)
+			qX[t] * pX[t-1] == ∑(pD[s, t-1] * qD[s, t] for s in x)
 
 			# -- Supply equilibrium --
 			vY_i[i_e = i, t = t1:T],
-			vY_i[i_e, t] + vtY_i[i_e, t] == sum(vY_i_d[(i_e, d_e), t] for d_e in d if (i_e, d_e) in keys_Y_set; init=0.0)
+			vY_i[i_e, t] + vtY_i[i_e, t] == ∑(vY_i_d[(i_e, d_e), t] for d_e in d if (i_e, d_e) in keys_Y_set)
 
-			vY[t = t1:T], vY[t] == sum(vY_i[s, t] for s in i)
+			vY[t = t1:T], vY[t] == ∑(vY_i[s, t] for s in i)
 			pY[t = t1:T], pY[t] * qY[t] == vY[t]
 
 			qY[t = t1:T],
-			qY[t] * pY[t-1] == sum(pY_i[s, t-1] * qY_i[s, t] for s in i)
+			qY[t] * pY[t-1] == ∑(pY_i[s, t-1] * qY_i[s, t] for s in i)
 
 			# -- Industry quantity aggregation (base-year tax correction) --
 			qY_i[i_e = i, t = t1:T],
-			qY_i[i_e, t] == sum(
+			qY_i[i_e, t] == ∑(
 				qY_i_d[(i_e, d_e), t] / (1 + tY_i_d[(i_e, d_e), tBase])
-				for d_e in d if (i_e, d_e) in keys_Y_set; init=0.0
+				for d_e in d if (i_e, d_e) in keys_Y_set
 			)
 
 			qM_i[m_e = m, t = t1:T],
-			qM_i[m_e, t] == sum(
+			qM_i[m_e, t] == ∑(
 				qM_i_d[(m_e, d_e), t] / (1 + tM_i_d[(m_e, d_e), tBase])
-				for d_e in d if (m_e, d_e) in keys_M_set; init=0.0
+				for d_e in d if (m_e, d_e) in keys_M_set
 			)
 
 			# -- Import aggregation --
 			vM_i[m_e = m, t = t1:T],
-			vM_i[m_e, t] + vtM_i[m_e, t] == sum(vM_i_d[(m_e, d_e), t] for d_e in d if (m_e, d_e) in keys_M_set; init=0.0)
+			vM_i[m_e, t] + vtM_i[m_e, t] == ∑(vM_i_d[(m_e, d_e), t] for d_e in d if (m_e, d_e) in keys_M_set)
 
-			vM[t = t1:T], vM[t] == sum(vM_i[s, t] for s in m)
+			vM[t = t1:T], vM[t] == ∑(vM_i[s, t] for s in m)
 			pM[t = t1:T], pM[t] * qM[t] == vM[t]
 
 			qM[t = t1:T],
-			qM[t] * pM[t-1] == sum(pM_i[s, t-1] * qM_i[s, t] for s in m)
+			qM[t] * pM[t-1] == ∑(pM_i[s, t-1] * qM_i[s, t] for s in m)
 
 			# -- Net duties --
 			vtY_i_d[id = keys_Y, t = t1:T],
@@ -346,13 +346,13 @@ module InputOutput
 			vtM_i_d[id, t] == tM_i_d[id, t] * vM_i_d_base[id, t]
 
 			vtY_i[i_e = i, t = t1:T],
-			vtY_i[i_e, t] == sum(vtY_i_d[(i_e, d_e), t] for d_e in d if (i_e, d_e) in keys_Y_set; init=0.0)
+			vtY_i[i_e, t] == ∑(vtY_i_d[(i_e, d_e), t] for d_e in d if (i_e, d_e) in keys_Y_set)
 
 			vtM_i[m_e = m, t = t1:T],
-			vtM_i[m_e, t] == sum(vtM_i_d[(m_e, d_e), t] for d_e in d if (m_e, d_e) in keys_M_set; init=0.0)
+			vtM_i[m_e, t] == ∑(vtM_i_d[(m_e, d_e), t] for d_e in d if (m_e, d_e) in keys_M_set)
 
-			vtY[t = t1:T], vtY[t] == sum(vtY_i[s, t] for s in i)
-			vtM[t = t1:T], vtM[t] == sum(vtM_i[s, t] for s in m)
+			vtY[t = t1:T], vtY[t] == ∑(vtY_i[s, t] for s in i)
+			vtM[t = t1:T], vtM[t] == ∑(vtM_i[s, t] for s in m)
 
 			# -- Production taxes and subsidies --
 			vtY_i_Sub[i_e = i, t = t1:T],
@@ -364,13 +364,13 @@ module InputOutput
 			vtY_i_NetTaxSub[i_e = i, t = t1:T],
 			vtY_i_NetTaxSub[i_e, t] == vtY_i_Tax[i_e, t] - vtY_i_Sub[i_e, t]
 
-			vtY_Tax[t = t1:T], vtY_Tax[t] == sum(vtY_i_Tax[s, t] for s in i)
-			vtY_Sub[t = t1:T], vtY_Sub[t] == sum(vtY_i_Sub[s, t] for s in i)
+			vtY_Tax[t = t1:T], vtY_Tax[t] == ∑(vtY_i_Tax[s, t] for s in i)
+			vtY_Sub[t = t1:T], vtY_Sub[t] == ∑(vtY_i_Sub[s, t] for s in i)
 
 			# -- Demand composition and deflator --
 			vD[d_e = d, t = t1:T],
-			vD[d_e, t] == sum(vY_i_d[(i_e, d_e), t] for i_e in i if (i_e, d_e) in keys_Y_set; init=0.0) +
-			              sum(vM_i_d[(i_e, d_e), t] for i_e in i if (i_e, d_e) in keys_M_set; init=0.0)
+			vD[d_e, t] == ∑(vY_i_d[(i_e, d_e), t] for i_e in i if (i_e, d_e) in keys_Y_set) +
+			              ∑(vM_i_d[(i_e, d_e), t] for i_e in i if (i_e, d_e) in keys_M_set)
 
 			pD[d_e = d, t = t1:T],
 			pD[d_e, t] * qD[d_e, t] == vD[d_e, t]

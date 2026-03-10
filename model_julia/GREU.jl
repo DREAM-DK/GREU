@@ -24,6 +24,8 @@ end
 
 using GAMS
 
+∑(args...; kwargs...) = sum(args...; init=0.0, kwargs...)
+
 # ==============================================================================
 # Load data from GDX (thin layer, modules extract their own sets)
 # ==============================================================================
