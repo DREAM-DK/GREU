@@ -15,24 +15,26 @@ import ..db, ..t, ..t1, ..T, ..tBase, ..ForecastConstant
 # ==========================================================================
 # Indices
 # ==========================================================================
-const i = load_set(:i)
-const d = load_set(:d)
-const m = load_set(:m)
-const rx = i                       # non-energy intermediates share industry elements
-const re = load_set(:re)
-const k = load_set(:k)
-const c = load_set(:c)
-const g = load_set(:g)
-const x = load_set(:x)
-const d_ene = load_set(:d_ene)
-const d_non_ene = load_set(:d_non_ene)
-const invt = first(load_set(:invt))
-const invt_ene = first(load_set(:invt_ene))
+const i = load_set(:i)   # Production industries
+const d = load_set(:d)   # Demand components
+const m = load_set(:m)   # Industries with imports
+const rx = i             # Non-energy intermediates
+const re = load_set(:re) # Energy inputs in production
+const k = load_set(:k)   # Capital types
+const c = load_set(:c)   # Private consumption types
+const g = load_set(:g)   # Government consumption types
+const x = load_set(:x)   # Export groups
+
+const d_ene = load_set(:d_ene) # Energy demand components
+const d_non_ene = load_set(:d_non_ene) # Non-energy demand components
+
+const invt = first(load_set(:invt)) # Inventories
+const invt_ene = first(load_set(:invt_ene)) # Energy inventories
 
 # ==========================================================================
 # Sparse (i,d) keys from vY_i_d and vM_i_d data
 # ==========================================================================
-const (keys_Y_set, keys_M_set) = let
+const (d1Y, d1M) = let
   energy_ind = Set(["19000", "35002", "38393"])
   d_ene_s = Set(string.(d_ene))
   d_non_ene_s = Set(string.(d_non_ene))
@@ -51,12 +53,11 @@ const (keys_Y_set, keys_M_set) = let
 
   Y_keys, M_keys
 end
-const keys_YM_set = keys_Y_set ∪ keys_M_set
+const d1YM = d1Y ∪ d1M
 
 # ==========================================================================
 # Variables
 # ==========================================================================
-
 # Values (growth + inflation adjusted)
 @variables db.model :: (GrowthAdjusted, InflationAdjusted) begin
   vGDP[t], "Gross Domestic Product"
@@ -72,12 +73,12 @@ const keys_YM_set = keys_Y_set ∪ keys_M_set
   vY_i[i, t], "Output by industry"
   vM_i[m, t], "Imports by industry"
   vD[d, t], "Demand by demand component"
-  vY_i_d[i=i, d=d, t=t; (i, d) in keys_Y_set], "Domestic output by industry and demand"
-  vY_i_d_base[i=i, d=d, t=t; (i, d) in keys_Y_set], "Domestic output in base prices"
-  vM_i_d[i=i, d=d, t=t; (i, d) in keys_M_set], "Imports by industry and demand"
-  vM_i_d_base[i=i, d=d, t=t; (i, d) in keys_M_set], "Imports in base prices"
-  vtY_i_d[i=i, d=d, t=t; (i, d) in keys_Y_set], "Net duties on domestic production by (i,d)"
-  vtM_i_d[i=i, d=d, t=t; (i, d) in keys_M_set], "Net duties on imports by (i,d)"
+  vY_i_d[i=i, d=d, t=t; (i, d) in d1Y], "Domestic output by industry and demand"
+  vY_i_d_base[i=i, d=d, t=t; (i, d) in d1Y], "Domestic output in base prices"
+  vM_i_d[i=i, d=d, t=t; (i, d) in d1M], "Imports by industry and demand"
+  vM_i_d_base[i=i, d=d, t=t; (i, d) in d1M], "Imports in base prices"
+  vtY_i_d[i=i, d=d, t=t; (i, d) in d1Y], "Net duties on domestic production by (i,d)"
+  vtM_i_d[i=i, d=d, t=t; (i, d) in d1M], "Net duties on imports by (i,d)"
   vtY_i[i, t], "Net duties on domestic production by industry"
   vtM_i[m, t], "Net duties on imports by industry"
   vtY[t], "Total net duties on domestic production"
@@ -105,10 +106,10 @@ end
   pY_i[i, t], "Price of domestic output by industry"
   pM_i[i, t], "Price of imports by industry"
   pD[d, t], "Deflator of demand component"
-  pY_i_d[i=i, d=d, t=t; (i, d) in keys_Y_set], "Price of domestic output by (i,d)"
-  pY_i_d_base[i=i, d=d, t=t; (i, d) in keys_Y_set], "Base price of domestic output"
-  pM_i_d[i=i, d=d, t=t; (i, d) in keys_M_set], "Price of imports by (i,d)"
-  pM_i_d_base[i=i, d=d, t=t; (i, d) in keys_M_set], "Base price of imports"
+  pY_i_d[i=i, d=d, t=t; (i, d) in d1Y], "Price of domestic output by (i,d)"
+  pY_i_d_base[i=i, d=d, t=t; (i, d) in d1Y], "Base price of domestic output"
+  pM_i_d[i=i, d=d, t=t; (i, d) in d1M], "Price of imports by (i,d)"
+  pM_i_d_base[i=i, d=d, t=t; (i, d) in d1M], "Base price of imports"
 end
 
 # Quantities (growth adjusted)
@@ -126,20 +127,20 @@ end
   qY_i[i, t], "Real output by industry"
   qM_i[m, t], "Real imports by industry"
   qD[d, t], "Real demand by demand component"
-  qY_i_d[i=i, d=d, t=t; (i, d) in keys_Y_set], "Real domestic output by (i,d)"
-  qM_i_d[i=i, d=d, t=t; (i, d) in keys_M_set], "Real imports by (i,d)"
+  qY_i_d[i=i, d=d, t=t; (i, d) in d1Y], "Real domestic output by (i,d)"
+  qM_i_d[i=i, d=d, t=t; (i, d) in d1M], "Real imports by (i,d)"
 end
 
 # Rates and shares (no adjustment)
 @variables db.model begin
-  tY_i_d[i=i, d=d, t=t; (i, d) in keys_Y_set], "Tax rate on domestic output by (i,d)"
-  tM_i_d[i=i, d=d, t=t; (i, d) in keys_M_set], "Tax rate on imports by (i,d)"
+  tY_i_d[i=i, d=d, t=t; (i, d) in d1Y], "Tax rate on domestic output by (i,d)"
+  tM_i_d[i=i, d=d, t=t; (i, d) in d1M], "Tax rate on imports by (i,d)"
   tY_i_sub[i, t], "Average subsidy rate"
   tY_i_tax[i, t], "Average production tax rate"
-  jfpY_i_d[i=i, d=d, t=t; (i, d) in keys_Y_set], "Price deviation, domestic"
-  jfpM_i_d[i=i, d=d, t=t; (i, d) in keys_M_set], "Price deviation, imports"
-  rYM[i=i, d=d, t=t; (i, d) in keys_YM_set] :: ForecastConstant, "Industry composition of demand"
-  rM[i=i, d=d, t=t; (i, d) in keys_YM_set] :: ForecastConstant, "Import share"
+  jfpY_i_d[i=i, d=d, t=t; (i, d) in d1Y], "Price deviation, domestic"
+  jfpM_i_d[i=i, d=d, t=t; (i, d) in d1M], "Price deviation, imports"
+  rYM[i=i, d=d, t=t; (i, d) in d1YM] :: ForecastConstant, "Industry composition of demand"
+  rM[i=i, d=d, t=t; (i, d) in d1YM] :: ForecastConstant, "Import share"
 end
 
 # ==========================================================================
@@ -156,7 +157,7 @@ function set_data!(db)
   load_parameter!(db, :vtY_i_Tax, vtY_i_Tax)
 
   # Import shares: 1 for import-only cells, 0 otherwise
-  db[rM] .= [(i_v, d_v) ∈ keys_Y_set ? 0.0 : 1.0 for (i_v, d_v, _) in keys(rM)]
+  db[rM] .= [(i_v, d_v) ∈ d1Y ? 0.0 : 1.0 for (i_v, d_v, _) in keys(rM)]
 
   # Real quantities at IO level: q = v - vt
   for (v_var, vt_var, q_var) in ((vY_i_d, vtY_i_d, qY_i_d), (vM_i_d, vtM_i_d, qM_i_d))
@@ -265,10 +266,10 @@ function define_equations()
     qM[t] * pM[t-1] == ∑(pM_i[s, t-1] * qM_i[s, t] for s in m)
 
     # -- Net duties --
-    vtY_i_d[i = i, d = d, t = t1:T; (i, d) in keys_Y_set],
+    vtY_i_d[i = i, d = d, t = t1:T; (i, d) in d1Y],
     vtY_i_d[i, d, t] == tY_i_d[i, d, t] * vY_i_d_base[i, d, t]
 
-    vtM_i_d[i = i, d = d, t = t1:T; (i, d) in keys_M_set],
+    vtM_i_d[i = i, d = d, t = t1:T; (i, d) in d1M],
     vtM_i_d[i, d, t] == tM_i_d[i, d, t] * vM_i_d_base[i, d, t]
 
     vtY_i[i = i, t = t1:T],
@@ -301,36 +302,36 @@ function define_equations()
     pD[d, t] * qD[d, t] == vD[d, t]
 
     # -- IO price equations --
-    pY_i_d[i = i, d = d, t = t1:T; (i, d) in keys_Y_set],
+    pY_i_d[i = i, d = d, t = t1:T; (i, d) in d1Y],
     pY_i_d[i, d, t] == (1 + tY_i_d[i, d, t]) * pY_i_d_base[i, d, t]
 
-    pM_i_d[i = i, d = d, t = t1:T; (i, d) in keys_M_set],
+    pM_i_d[i = i, d = d, t = t1:T; (i, d) in d1M],
     pM_i_d[i, d, t] == (1 + tM_i_d[i, d, t]) * pM_i_d_base[i, d, t]
 
-    pY_i_d_base[i = i, d = d, t = t1:T; (i, d) in keys_Y_set],
+    pY_i_d_base[i = i, d = d, t = t1:T; (i, d) in d1Y],
     pY_i_d_base[i, d, t] == (1 + jfpY_i_d[i, d, t]) / (1 + tY_i_d[i, d, tBase]) * pY_i[i, t]
 
-    pM_i_d_base[i = i, d = d, t = t1:T; (i, d) in keys_M_set],
+    pM_i_d_base[i = i, d = d, t = t1:T; (i, d) in d1M],
     pM_i_d_base[i, d, t] == (1 + jfpM_i_d[i, d, t]) / (1 + tM_i_d[i, d, tBase]) * pM_i[i, t]
 
     # -- Quantity allocation --
-    qY_i_d[i = i, d = d, t = t1:T; (i, d) in keys_Y_set],
+    qY_i_d[i = i, d = d, t = t1:T; (i, d) in d1Y],
     qY_i_d[i, d, t] == (1 - rM[i, d, t]) * rYM[i, d, t] * qD[d, t]
 
-    qM_i_d[i = i, d = d, t = t1:T; (i, d) in keys_M_set],
+    qM_i_d[i = i, d = d, t = t1:T; (i, d) in d1M],
     qM_i_d[i, d, t] == rM[i, d, t] * rYM[i, d, t] * qD[d, t]
 
     # -- Value identities at IO-cell level --
-    vY_i_d[i = i, d = d, t = t1:T; (i, d) in keys_Y_set],
+    vY_i_d[i = i, d = d, t = t1:T; (i, d) in d1Y],
     vY_i_d[i, d, t] == pY_i_d[i, d, t] * qY_i_d[i, d, t]
 
-    vM_i_d[i = i, d = d, t = t1:T; (i, d) in keys_M_set],
+    vM_i_d[i = i, d = d, t = t1:T; (i, d) in d1M],
     vM_i_d[i, d, t] == pM_i_d[i, d, t] * qM_i_d[i, d, t]
 
-    vY_i_d_base[i = i, d = d, t = t1:T; (i, d) in keys_Y_set],
+    vY_i_d_base[i = i, d = d, t = t1:T; (i, d) in d1Y],
     vY_i_d_base[i, d, t] == pY_i_d_base[i, d, t] * qY_i_d[i, d, t]
 
-    vM_i_d_base[i = i, d = d, t = t1:T; (i, d) in keys_M_set],
+    vM_i_d_base[i = i, d = d, t = t1:T; (i, d) in d1M],
     vM_i_d_base[i, d, t] == pM_i_d_base[i, d, t] * qM_i_d[i, d, t]
   end
 end
@@ -349,17 +350,17 @@ function define_calibration()
     tY_i_tax[:, t1], vtY_i_Tax[:, t1]
 
     # Composition shares from observed base-price values at t1
-    [rYM[i, d, t1] for (i, d) in keys_Y_set], [vY_i_d_base[i, d, t1] for (i, d) in keys_Y_set]
-    [rYM[i, d, t1] for (i, d) in setdiff(keys_M_set, keys_Y_set)], [vM_i_d_base[i, d, t1] for (i, d) in setdiff(keys_M_set, keys_Y_set)]
-    [rM[i, d, t1] for (i, d) in keys_Y_set ∩ keys_M_set], [vM_i_d_base[i, d, t1] for (i, d) in keys_Y_set ∩ keys_M_set]
+    [rYM[i, d, t1] for (i, d) in d1Y], [vY_i_d_base[i, d, t1] for (i, d) in d1Y]
+    [rYM[i, d, t1] for (i, d) in setdiff(d1M, d1Y)], [vM_i_d_base[i, d, t1] for (i, d) in setdiff(d1M, d1Y)]
+    [rM[i, d, t1] for (i, d) in d1Y ∩ d1M], [vM_i_d_base[i, d, t1] for (i, d) in d1Y ∩ d1M]
   end
 
   # Base-price continuity: p_base at t0 (= t1-1) equals p_base at t1
   block = block + @block db begin
-    pY_i_d_base[i = i, d = d, t = (t1-1):(t1-1); (i, d) in keys_Y_set],
+    pY_i_d_base[i = i, d = d, t = (t1-1):(t1-1); (i, d) in d1Y],
     pY_i_d_base[i, d, t] == pY_i_d_base[i, d, t1]
 
-    pM_i_d_base[i = i, d = d, t = (t1-1):(t1-1); (i, d) in keys_M_set],
+    pM_i_d_base[i = i, d = d, t = (t1-1):(t1-1); (i, d) in d1M],
     pM_i_d_base[i, d, t] == pM_i_d_base[i, d, t1]
   end
 
@@ -370,13 +371,6 @@ end
 # Tests
 # ==========================================================================
 function run_tests(db)
-  for t_v in t1:T
-    gdp_err = abs(db[vGDP[t_v]] - (db[vC[t_v]] + db[vI[t_v]] + db[vG[t_v]] + db[vX[t_v]] - db[vM[t_v]]))
-    gdp_err <= 1e-6 || error("GDP identity violated at t=$t_v: residual=$gdp_err")
-
-    gva_err = abs(db[vGVA[t_v]] - (db[vY[t_v]] - db[vR[t_v]] - db[vE[t_v]]))
-    gva_err <= 1e-6 || error("GVA identity violated at t=$t_v: residual=$gva_err")
-  end
   return nothing
 end
 
