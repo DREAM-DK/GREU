@@ -71,11 +71,11 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   .. dInstCost2dK_k_i[k,i,t] =E= fInstCost_k_i[k,i] * 2 * (qI_k_i[k,i,t] / (qK_k_i[k,i,t-1]/fq));
 
   $(not tEnd[t])..
-    pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t+1]) * pD[k,t+1]*fp + pY_i[i,t] * dInstCost2dK_k_i[k,i,t]
-                      + dInstCost2dKLag_k_i[k,i,t] / (1 + rHurdleRate_i[i, t+1]) * pY_i[i,t+1]*fp + jpK_k_i[k,i,t];
+    pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t+1]) * pD[k,t+1]*fp + pProd['TopPfunction',i,t] * dInstCost2dK_k_i[k,i,t]
+                      + dInstCost2dKLag_k_i[k,i,t] / (1 + rHurdleRate_i[i, t+1]) * pProd['TopPfunction',i,t+1]*fp + jpK_k_i[k,i,t];
   pK_k_i&_tEnd[k,i,t]$(tEnd[t])..
-    pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t]) * pD[k,t]*fp + pY_i[i,t] * dInstCost2dK_k_i[k,i,t]
-                      + dInstCost2dKLag_k_i[k,i,t - 1] / (1 + rHurdleRate_i[i, t]) * pY_i[i,t]*fp + jpK_k_i[k,i,t];
+    pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t]) * pD[k,t]*fp + pProd['TopPfunction',i,t] * dInstCost2dK_k_i[k,i,t]
+                      + dInstCost2dKLag_k_i[k,i,t - 1] / (1 + rHurdleRate_i[i, t]) * pProd['TopPfunction',i,t]*fp + jpK_k_i[k,i,t];
 
   # Depreciation on industry level
   .. vDepr_i[i,t] =E= sum(k, pK_k_i[k,i,t] * rKDepr_k_i[k,i,t] * qK_k_i[k,i,t-1]/fq);
