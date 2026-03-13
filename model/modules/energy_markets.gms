@@ -50,7 +50,7 @@
 						qEtot[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]))      "Total demand/supply of ergy in the models ergy-market"
 						qEpj[es,e,d,t]$(d1qEpj[es,e,d,t] or tl[d]) 					      	 "Sector demand for energy on end purpose (es), measured in PJ"				
 						qEpj_own[es,e,d,t]$(d1pEpj_own[es,e,d,t])                    "Consumption of own-production, not in NAS"
-						j_abatement_qREa[es,e,i,t]$(d1pEpj_base[es,e,i,t])       		 "J-term to be activated by abatement-module. When abatement is on qREa =/= qEpj, but is guided by abatement module, endogenizing this variable"
+						j_energy_technology_qREa[es,e,i,t]$(d1pEpj_base[es,e,i,t])       		 "J-term to be activated by energy technology module. When energy technology model is on qREa =/= qEpj, but is guided by energy technology module, endogenizing this variable"
 						vDistributionProfits[e,t] 																	 "With different margins between average supply price, and sector base price, there is scope for what we call distribution profits. They can be negative. Measured in bio. DKK"
 						sY_Dist[e,i,t]$(d1pY_CET[e,i,t]) 														 "For the purpose of clearing energy markets, a fictive agent, the energy-distributor, gathers a bundle of domestically and imported energy, before selling it to the end-sector. This is the energy-distibutors preference parameter for domestic energy"
 						sM_Dist[e,i,t]$(d1pM_CET[e,i,t]) 														 "For the purpose of clearing energy markets, a fictive agent, the energy-distributor, gathers a bundle of domestically and imported energy, before selling it to the end-sector. This is the energy-distibutors preference parameter for imported energy"
@@ -241,7 +241,7 @@
 		$BLOCK energy_markets_clearing_link energy_markets_clearing_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 			#Link til industries_CES_energydemand		
 			qEpj[es,e,i,t]$(d1pEpj[es,e,i,t])..
-			 qEpj[es,e,i,t] =E= qREa[es,e,i,t] + j_abatement_qREa[es,e,i,t];
+			 qEpj[es,e,i,t] =E= qREa[es,e,i,t] + j_energy_technology_qREa[es,e,i,t];
 		
 		$ENDBLOCK  
 

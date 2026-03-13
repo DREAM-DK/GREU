@@ -21,19 +21,19 @@ dt.gamY.run("../data/data_from_GR.gms")
 ## Run the base CGE model - creating main_CGE.gdx
 dt.gamY.run("base_model.gms", s="saved/base_model", test_CGE="1")
 
-## Run the base model with abatement model - creating main_abatement.gdx
-dt.gamY.run("base_model_abatement.gms", s="saved/base_model_abatement", test_CGE="0", test_abatement="1")
+## Run the base model with energy technology model - creating main_energy_technology.gdx
+dt.gamY.run("base_model_energy_technology.gms", s="saved/base_model_energy_technology", test_CGE="0", test_energy_technology="1")
 
 ## Run a simple shock model - creating shock.gdx
-dt.gamY.run("shock_model.gms", include_abatement="1")
+dt.gamY.run("shock_model.gms", include_energy_technology="1")
 
 ## Run a CO2 tax shock
-dt.gamY.run("shock_CO2_tax.gms", r="saved/base_model", include_abatement="0")
-dt.gamY.run("shock_CO2_tax.gms", r="saved/base_model_abatement", include_abatement="1")
+dt.gamY.run("shock_CO2_tax.gms", r="saved/base_model", include_energy_technology="0")
+dt.gamY.run("shock_CO2_tax.gms", r="saved/base_model_energy_technology", include_energy_technology="1")
 
 ## Run a CO2 tax shock with steps
-dt.gamY.run("shock_CO2_tax_steps.gms", r="saved/base_model", include_abatement="0")
-dt.gamY.run("shock_CO2_tax_steps.gms", r="saved/base_model_abatement", include_abatement="1")
+dt.gamY.run("shock_CO2_tax_steps.gms", r="saved/base_model", include_energy_technology="0")
+dt.gamY.run("shock_CO2_tax_steps.gms", r="saved/base_model_energy_technology", include_energy_technology="1")
 
 ## Open run_report.py to see all the reporting
 exec(open('../run_report.py').read())

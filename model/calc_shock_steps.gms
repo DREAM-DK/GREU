@@ -1,9 +1,9 @@
 
 parameter
-  tCO2_abatement[em,es,e,i,t]
+  tCO2_energy_technology[em,es,e,i,t]
   ;
 
-tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
+tCO2_energy_technology[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
 
 
 ## SHOCK TO EXOGENOUS VARIABLES
@@ -17,10 +17,10 @@ tCO2_xEmarg.l[i,t]$(d1tCO2_xE[i,t]) = tCO2_xEmarg.l[i,t] + 200 * phaseInTax[t];
 
 
 
-## RUN CGE MODEL WITHOUT ABATEMENT MODEL
-# We turn the abatement model on to integrate it with the CGE-model
-d1switch_abatement[t] = 0;
-d1switch_integrate_abatement[t] = 0;
+## RUN CGE MODEL WITHOUT ENERGY TECHNOLOGY MODEL
+# We turn the energy technology model off
+d1switch_energy_technology[t] = 0;
+d1switch_integrate_energy_technology[t] = 0;
 
 $GROUP main_endogenous
   main_endogenous
@@ -33,13 +33,13 @@ $FIX all_variables; $UNFIX main_endogenous;
 # execute_unload 'Output\pre_CO2_shock.gdx';
 solve main using CNS;
 
-tCO2_abatement[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
+tCO2_energy_technology[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
 
 
-$IF %include_abatement% = 1:
-  ## RUN CGE MODEL WITH ABATEMENT MODEL
-  d1switch_abatement[t] = 1;
-  d1switch_integrate_abatement[t] = 1;
+$IF %include_energy_technology% = 1:
+  ## RUN CGE MODEL WITH ENERGY TECHNOLOGY MODEL
+  d1switch_energy_technology[t] = 1;
+  d1switch_integrate_energy_technology[t] = 1;
 
 $GROUP main_endogenous
   main_endogenous
@@ -48,18 +48,18 @@ $GROUP main_endogenous
   vLumpsum, -vGovPrimaryBalance    
 ;
 
-  # Set starting values for the abatement model
-  $import Supply_curves_abatement.gms
+  # Set starting values for the energy technology model
+  $import Supply_curve_energy_technology.gms
 
-  # Solve partial abatement model
+  # Solve partial energy technology model
   $FIX all_variables;
-  $UNFIX abatement_partial_endogenous;
-  Solve abatement_partial_equations using CNS;
-  execute_unload 'Output\shock_carbon_tax_abatement_partial.gdx';
+  $UNFIX energy_technology_partial_endogenous;
+  Solve energy_technology_partial_equations using CNS;
+  execute_unload 'Output\shock_carbon_tax_energy_technology_partial.gdx';
 
   $FIX all_variables;
   $UNFIX main_endogenous;
-  # @Setbounds_abatement();
+  # @Setbounds_energy_technology();
   Solve main using CNS;
 
 $ENDIF

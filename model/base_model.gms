@@ -15,7 +15,7 @@ $IMPORT sets/production.sets.gms
 $IMPORT sets/households.sets.gms
 $IMPORT sets/emissions.sets.gms
 $IMPORT sets/energy_taxes_and_emissions.sets.gms
-$IMPORT sets/abatement.sets.gms
+$IMPORT sets/energy_technology.sets.gms
 $IMPORT sets/subsets.sets.gms
 $IMPORT sets/energy_outputs.sets.gms
 
@@ -58,15 +58,15 @@ $FUNCTION import_from_modules({stage_key}):
     ## GREEN TRANSITION MODULES
     ("modules/emissions.gms" , 1),
     ("modules/energy_markets.gms" , 1),
-    ("modules/energy_and_emissions_taxes.gms" , 1),
     ("modules/non_energy_markets.gms", 1),
     ("modules/production_CES_energydemand.gms", 1),
     ("modules/production.gms" , 1),
+    ("modules/energy_and_emissions_taxes.gms" , 1),
     ("modules/production_CET.gms", 1),
     ("modules/factor_demand_energy.gms", 1),
     ("modules/consumption_disaggregated_energy.gms", 1),
     ("modules/exports_energy.gms", 1),
-    ("modules/abatement.gms", 1),
+    ("modules/energy_technology.gms", 1),
 
     ## REPORTING MODULES
     ("Report/All.Report.gms", 1),     
@@ -116,7 +116,7 @@ main.optfile=1;
 # =============================================================================
 # CALIBRATION
 # =============================================================================
-d1switch_abatement[t] = 0; # We turn the abatement model off while calibrating the CGE-model
+d1switch_energy_technology[t] = 0; # We turn the energy technology model off while calibrating the CGE-model
 
 $Group calibration_endogenous ;
 @import_from_modules("calibration")

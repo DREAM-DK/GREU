@@ -57,7 +57,7 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
 
   # Capital accumulation (firms demand capital directly, investments are residual from capital accumulation)
   .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq
-                      + jDelta_qESK[k,i,t]; # Additional investments from the abatement model (endogenized by abatement module) 
+                      + jDelta_qESK[k,i,t]; # Additional investments from the energy technology model (endogenized by energy technology module) 
 
   # Link demand for investments to input-output model
   .. qD[k,t] =E= sum(i, qI_k_i[k,i,t]);
@@ -71,11 +71,11 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   .. dInstCost2dK_k_i[k,i,t] =E= fInstCost_k_i[k,i] * 2 * (qI_k_i[k,i,t] / (qK_k_i[k,i,t-1]/fq));
 
   $(not tEnd[t])..
-    pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t+1]) * pD[k,t+1]*fp + pY_i[i,t] * dInstCost2dK_k_i[k,i,t]
-                      + dInstCost2dKLag_k_i[k,i,t] / (1 + rHurdleRate_i[i, t+1]) * pY_i[i,t+1]*fp + jpK_k_i[k,i,t];
+    pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t+1]) * pD[k,t+1]*fp + pProd['TopPfunction',i,t] * dInstCost2dK_k_i[k,i,t]
+                      + dInstCost2dKLag_k_i[k,i,t] / (1 + rHurdleRate_i[i, t+1]) * pProd['TopPfunction',i,t+1]*fp + jpK_k_i[k,i,t];
   pK_k_i&_tEnd[k,i,t]$(tEnd[t])..
-    pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t]) * pD[k,t]*fp + pY_i[i,t] * dInstCost2dK_k_i[k,i,t]
-                      + dInstCost2dKLag_k_i[k,i,t - 1] / (1 + rHurdleRate_i[i, t]) * pY_i[i,t]*fp + jpK_k_i[k,i,t];
+    pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t]) * pD[k,t]*fp + pProd['TopPfunction',i,t] * dInstCost2dK_k_i[k,i,t]
+                      + dInstCost2dKLag_k_i[k,i,t - 1] / (1 + rHurdleRate_i[i, t]) * pProd['TopPfunction',i,t]*fp + jpK_k_i[k,i,t];
 
   # Depreciation on industry level
   .. vDepr_i[i,t] =E= sum(k, pK_k_i[k,i,t] * rKDepr_k_i[k,i,t] * qK_k_i[k,i,t-1]/fq);
@@ -109,7 +109,7 @@ d1K_k_i[k,i,t]    = abs(qK_k_i.l[k,i,t]) > 1e-9;
 
 rHurdleRate_i.l[i,t] = 0.2;
 
-# Initialize J-term for abatement investments to zero (allows partial equilibrium when abatement module is off)
+# Initialize J-term for energy technology investments to zero (allows partial equilibrium when energy technology module is off)
 jDelta_qESK.l[k,i,t] = 0;
 
 fInstCost_k_i.fx[k,i] = 0.5;
