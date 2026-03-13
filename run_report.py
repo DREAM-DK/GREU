@@ -55,7 +55,8 @@ tabelDiffAgg=table(s.vIncomeFlowAgg-b.vIncomeFlowAgg,target_values={'t':[2040]},
 display(tabelDiffAgg)
 
 dt.plot([s.vCashFlow], "m", layout={"title": "Cash flow between sectors"})
-dt.plot([s.vIncomeFlowAgg.loc[:,['Corp'],:]], "m", layout={"title": "Cash flow for corporations"})
+dt.plot([s.vIncomeFlowAgg.loc[:,['NonFinCorp'],:]], "m", layout={"title": "Cash flow for non-financial corporations"})
+dt.plot([s.vIncomeFlowAgg.loc[:,['FinCorp'],:]], "m", layout={"title": "Cash flow for financial corporations"})
 dt.plot([s.vIncomeFlowAgg.loc[:,['Hh'],:]], "m", layout={"title": "Cash flow for households"})
 
 

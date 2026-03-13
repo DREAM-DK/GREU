@@ -24,7 +24,7 @@ $IF %stage% == "variables":
 
     pProd2pNest[pf,pfNest,i,t]$(d1Prod[pf,i,t] and d1Prod[pfNest,i,t]) "Price ratio between production factor and its nest."
 
-    qPFtop2qY[i,t] "Ratio between qProd[pf_top] and qY_i in basis year where prices are set to 1."
+    qPFtop2qY[i,t]$(d1Y_i[i,t]) "Ratio between qProd[pf_top] and qY_i in basis year where prices are set to 1."
 
     jqE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "J-term to be endogenized when energy module is turned on. Necessary, because bottom-up energy is partly in the top and partly in CES-nests"
     jpProd[pf,i,t]$(d1Prod[pf,i,t]) "J-term to be endogenized when energy module is turned on"
@@ -35,7 +35,7 @@ $IF %stage% == "variables":
     jvEnergycostsnotinnesting[i,t]$(d1Y_i[i,t]) "Total cost of energy not in CES-nested production function (endogenized by production_CES_energydemand module when active)."
     jDelta_vESK[i,t]$(d1Y_i[i,t]) "Difference in value of machinery capital from energy technology model (endogenized by energy technology module when active)."
 
-    vGVA_i[i,t] "Approximation of gross value added on industry level"
+    vGVA_i[i,t]$(d1Y_i[i,t]) "Approximation of gross value added on industry level"
   ;
  
 $ENDIF # variables
