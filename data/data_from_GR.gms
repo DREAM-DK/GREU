@@ -638,7 +638,7 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 
   # Energy technology
   # Create calibrated energy technology data that matches historical energy use
-  $import Energy_technology_data/calib_energy_technologies.gms
+  $import Energy_technology_data/Generic_dummy_data/calib_energy_technologies.gms
 
 
 ###  F) Unload gdx with data in parameters with same names as model-variables, to be read into model
