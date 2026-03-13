@@ -578,6 +578,9 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 
   qEmmTot[em,em_accounts,t] = sum((es,e,d), qEmmE_BU[em,es,e,d,t]) + sum(d, qEmmxE[em,d,t]);
 
+  parameter test_qEmmCO2eData[t]; 
+  test_qEmmCO2eData[t]=qEmmTot['co2e','gna',t];
+
   qEmmBunkering[em,t] = sum((demand_transaction_temp,es,d,e)$(eBunkering[e]), Energybalance[em,demand_transaction_temp,d,es,e,t]);
 
 

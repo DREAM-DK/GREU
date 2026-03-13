@@ -163,15 +163,18 @@ $IF %stage% == "exogenous_values":
   GWP.l['CO2ubio'] = 1;
   GWP.l['CH4']     = 28;
   GWP.l['N2O']     = 265;
-  # GWP.l['HFC']     = 1; #HFC-gasses are already in CO2e in Danish data
-  # GWP.l['PFC']     = 1; #PFC-gasses are already in CO2e in Danish data
-  # GWP.l['SF6']     = 1; #SF6 is already measured in CO2e in Danish data
+  GWP.l['HFC']     = 1; #HFC-gasses are already in CO2e in Danish data
+  GWP.l['PFC']     = 1; #PFC-gasses are already in CO2e in Danish data
+  GWP.l['SF6']     = 1; #SF6 is already measured in CO2e in Danish data
 
   PARAMETER testDKemm2020[em_accounts] "MRO2 table from Statistics Denmarks website on emissions-totals for DK";
   testDKemm2020['unfccc'] = 42573;
   testDKemm2020['GNA'] = 81337;
   testDKemm2020['unfccc_lulucf'] = testDKemm2020['unfccc'] + 1292; 
   testDKemm2020['gna_lulucf'] = testDKemm2020['gna'] + 1292;
+  parameter test_qEmmCO2eData[t] "test co2e total";
+  $gdxin ../data/data.gdx
+  $load test_qEmmCO2eData
   
 
   $Group+ data_covered_variables G_emissions_data$(t.val <= %calibration_year%);
@@ -237,5 +240,9 @@ $ENDIF
 $IF %stage% =="tests":
   # LOOP(em_accounts,
   #  ABORT$(ABS(testDKemm2020[em_accounts] - qEmmTot.l['CO2e',em_accounts,'2020']) > 500) 'Emissions differ with more than 500 ktCO2e in data-year'; #AKB: GREU-DK data differ from Statistics Denmarks website by approx 500 ktCO2e, investigating the source..
-  # );
-$ENDIF 
+  # );  
+  LOOP((t)$(tDataEnd[t]),
+    ABORT$(abs(test_qEmmCO2eData[t] - qEmmTot.l['co2e','GNA',t]) > 0.1)
+          'emission total does not match in data year');
+
+$ENDIF

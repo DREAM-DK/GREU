@@ -635,7 +635,7 @@ a_rows_=gp.Set(m,'a_rows_',description='other rows in the input-output table',re
 k=gp.Set(m,name="k",description='capital types',records=k_records)
 '''ebalitems + subsets, some are manually populated since they lack a sufficiently universal identifier in the data'''
 ebalitems=gp.Set(m,'ebalitems',description='identifiers tax joules prices etc for energy components by demand components',records=ebalitems_records)
-em=gp.Set(m,name='em',domain=[ebalitems],description='emission types',records=['ch4','co2ubio','n2o','co2e','co2bio','CCS'])
+em=gp.Set(m,name='em',domain=[ebalitems],description='emission types',records=['ch4','co2ubio','n2o','co2e','co2bio','CCS','pfc','hfc','sf6'])
 etaxes=gp.Set(m,name='etaxes',domain=[ebalitems],description='taxes from ebalitems',records=etaxes_records)
 '''d + subsets of d'''
 d=gp.Set(m,'d',description='demand components',records=d_records)
