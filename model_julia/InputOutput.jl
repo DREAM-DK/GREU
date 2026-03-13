@@ -240,7 +240,7 @@ function define_equations()
 
     # -- Supply equilibrium --
     vY_i[i = i, t = t1:T],
-    vY_i[i, t] + vtY_i[i, t] == ∑(vY_i_d[i, d, t] for d in d)
+    vY_i[i, t] + vtY_i[i, t] == ∑(vY_i_d[i, d, t] for d in d if (i, d) in d1Y)
 
     vY[t = t1:T], vY[t] == ∑(vY_i[s, t] for s in i)
     pY[t = t1:T], pY[t] * qY[t] == vY[t]
@@ -250,14 +250,14 @@ function define_equations()
 
     # -- Industry quantity aggregation (base-year tax correction) --
     qY_i[i = i, t = t1:T],
-    qY_i[i, t] == ∑(qY_i_d[i, d, t] / (1 + tY_i_d[i, d, tBase]) for d in d)
+    qY_i[i, t] == ∑(qY_i_d[i, d, t] / (1 + tY_i_d[i, d, tBase]) for d in d if (i, d) in d1Y)
 
     qM_i[m = m, t = t1:T],
-    qM_i[m, t] == ∑(qM_i_d[m, d, t] / (1 + tM_i_d[m, d, tBase]) for d in d)
+    qM_i[m, t] == ∑(qM_i_d[m, d, t] / (1 + tM_i_d[m, d, tBase]) for d in d if (m, d) in d1M)
 
     # -- Import aggregation --
     vM_i[m = m, t = t1:T],
-    vM_i[m, t] + vtM_i[m, t] == ∑(vM_i_d[m, d, t] for d in d)
+    vM_i[m, t] + vtM_i[m, t] == ∑(vM_i_d[m, d, t] for d in d if (m, d) in d1M)
 
     vM[t = t1:T], vM[t] == ∑(vM_i[s, t] for s in m)
     pM[t = t1:T], pM[t] * qM[t] == vM[t]
@@ -273,10 +273,10 @@ function define_equations()
     vtM_i_d[i, d, t] == tM_i_d[i, d, t] * vM_i_d_base[i, d, t]
 
     vtY_i[i = i, t = t1:T],
-    vtY_i[i, t] == ∑(vtY_i_d[i, d, t] for d in d)
+    vtY_i[i, t] == ∑(vtY_i_d[i, d, t] for d in d if (i, d) in d1Y)
 
     vtM_i[m = m, t = t1:T],
-    vtM_i[m, t] == ∑(vtM_i_d[m, d, t] for d in d)
+    vtM_i[m, t] == ∑(vtM_i_d[m, d, t] for d in d if (m, d) in d1M)
 
     vtY[t = t1:T], vtY[t] == ∑(vtY_i[s, t] for s in i)
     vtM[t = t1:T], vtM[t] == ∑(vtM_i[s, t] for s in m)
@@ -296,7 +296,7 @@ function define_equations()
 
     # -- Demand composition and deflator --
     vD[d = d, t = t1:T],
-    vD[d, t] == ∑(vY_i_d[i, d, t] + vM_i_d[i, d, t] for i in i)
+    vD[d, t] == ∑(vY_i_d[i, d, t] for i in i if (i, d) in d1Y) + ∑(vM_i_d[i, d, t] for i in i if (i, d) in d1M)
 
     pD[d = d, t = t1:T],
     pD[d, t] * qD[d, t] == vD[d, t]

@@ -8,16 +8,23 @@
 # Structure:
 # - Main file (this): Model container, time indices, submodel assembly
 # - Submodules: Each in separate files, following SquareModels patterns
-
+using Pkg
+if lowercase(Base.active_project()) != lowercase(abspath(joinpath(@__DIR__, "..", "Project.toml")))
+    Pkg.activate(joinpath(@__DIR__, ".."))
+end
 import JuMP
 using JuMP: Model, set_optimizer_attribute
 using SquareModels
 
-# Temporary hardcoded GAMS location for gdxclib64 lookup.
+include("Logging.jl")
+using .Log: @log_time
+Log.setup!(file=joinpath(@__DIR__, "..", "greu.log"))
+
+# Temporary hardcoded GAMS location
 # GAMS is used to the Conopt optimizer, until JuMP supports it natively.
 # We also use GAMS to read the data from GDX files.
 if !contains(ENV["PATH"], "GAMS")
-  GAMS_DIR = raw"C:\GAMS\51"
+  GAMS_DIR = raw"C:\GAMS\52"
 	ENV["GAMS_SYSDIR"] = GAMS_DIR
 	ENV["PATH"] = GAMS_DIR * ";" * ENV["PATH"]
 end
@@ -27,19 +34,19 @@ using GAMS
 # ==============================================================================
 # Load data from GDX (thin layer, modules extract their own sets)
 # ==============================================================================
-include("Data.jl")
+@log_time include("Data.jl")
 
 # ==============================================================================
 # Global model container and time configuration
 # ==============================================================================
 db = ModelDictionary(Model(GAMS.Optimizer))
-set_optimizer_attribute(db.model, "NLP", "CONOPT")
-set_optimizer_attribute(db.model, "LogOption", 0)
+set_optimizer_attribute(db.model, GAMS.ModelType(), "CNS")
+set_optimizer_attribute(db.model, "CNS", "CONOPT")
 
 const first_data_year = 2015 # Base year (configurable)
 const tBase = 2020 # Statistical index year where prices are set to 1
 const calibration_year = 2020
-const max_terminal_year = 2050
+const max_terminal_year = 2035
 const t = first_data_year:max_terminal_year
 
 t1::Int = calibration_year # First endogenous year (configurable)
@@ -56,8 +63,8 @@ const ForecastConstant = Tag(:forecast_constant)
 # ==============================================================================
 # Include submodules
 # ==============================================================================
-include("InputOutput.jl")
-include("SubmodelTemplate.jl")
+@log_time include("InputOutput.jl")
+@log_time include("SubmodelTemplate.jl")
 
 # ==============================================================================
 # Model Assembly
@@ -68,10 +75,12 @@ submodels = [
 ]
 
 for m in submodels
-	m.set_data!(db)
+	@log_time m.set_data!(db)
 end
 
-base_model() = sum(m.define_equations() for m in submodels)
+function base_model()
+	@log_time sum(m.define_equations() for m in submodels)
+end
 
 """
 For calibration: exogenize endogenous variables that have data and endogenize their residuals.
@@ -128,24 +137,26 @@ function _get_t1_var(model, var)
 end
 
 function calibrate_model(db)
-	block = sum(m.define_calibration() for m in submodels)
-	block = forecast_constants!(block, db)
-	endo_exo_data_residuals!(block, db)
-	baseline = solve(block, db; replace_nothing=1.0)
-	return baseline
+	@info "Calibration:"
+	@log_time block = sum(m.define_calibration() for m in submodels)
+	@log_time block = forecast_constants!(block, db)
+	@log_time endo_exo_data_residuals!(block, db)
+	@log_time solve(block, db; replace_nothing=1.0)
 end
 
 # ==============================================================================
 # Solve calibration
 # ==============================================================================
-baseline = calibrate_model(db)
+@log_time baseline = calibrate_model(db)
 
 # ==============================================================================
 # Tests
 # ==============================================================================
 # Zero shock test: After calibration, solving the base model with no changes should give identical results
-zero_shock = solve(base_model(), baseline)
-assert_no_diff(baseline, zero_shock; atol=1e-6, msg="Zero shock test failed")
+@log_time begin
+	zero_shock = solve(base_model(), baseline)
+	assert_no_diff(baseline, zero_shock; atol=1e-6, msg="Zero shock test failed")
+end
 
 # Module-specific tests
 for m in submodels
@@ -156,10 +167,10 @@ end
 # Scenario example
 # ==============================================================================
 scenario = copy(baseline)
-scenario[SubmodelTemplate.test_forecast[2030:2035]] .+= π
+scenario[SubmodelTemplate.test_forecast[T-5:T]] .+= π
 
 # Apply shock here
-solve!(base_model(), scenario)
+@log_time solve!(base_model(), scenario)
 
 diff = scenario .- baseline
 println("Nonzero Differences: ", diff[diff .!= 0])
