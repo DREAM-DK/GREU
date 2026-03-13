@@ -11,7 +11,7 @@ import pandas as pd
 ## Set local paths
 root = dt.find_root("LICENSE")
 ## Set working directory
-os.chdir(f"{root}/data/Energy_technology_data")
+os.chdir(f"{root}/data/Energy_technology_data/Generic_dummy_data")
 
 gdx_input_dir = f"{root}/model"
 

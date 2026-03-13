@@ -256,18 +256,34 @@ $IF %stage% == "exogenous_values":
 # 3.1 Data Loading
 $GROUP energy_technology_data_variables
   sqTPotential[l,es,d,t]
-  uTE[l,es,e,d,t]  
+  # uTE[l,es,e,d,t]
+  uTE_load[l,e]  ""
   vTI[l,es,d,t]
   vTC[l,es,d,t]
   pTK[d,t]
   qES[es,d,t]
 
 ;
-@load(energy_technology_data_variables, "../data/data.gdx")
-$GROUP+ data_covered_variables energy_technology_data_variables;
 
-# Load LifeSpan from data.gdx
-execute_load "../data/data.gdx" LifeSpan=LifeSpan;
+# Load data from generic dummy data
+$IF1 %generic_energy_technology_data% == 1:
+  @load(energy_technology_data_variables, "../data/data.gdx")
+  $GROUP+ data_covered_variables energy_technology_data_variables;
+
+  # Load LifeSpan from data.gdx
+  execute_load "../data/data.gdx" LifeSpan=LifeSpan;
+$ENDIF1
+
+# Load data from excel-based data
+$IF1 %generic_energy_technology_data% == 0:
+  @load(energy_technology_data_variables, "../data/Energy_technology_data/Excel_data/Energy_technology_data.gdx")
+  $GROUP+ data_covered_variables energy_technology_data_variables;
+
+  uTE.l[l,es,e,d,t]$(sqTPotential.l[l,es,d,t] and uTE_load.l[l,e]) = uTE_load.l[l,e] ;
+
+  # Load LifeSpan from data.gdx
+  execute_load "../data/Energy_technology_data/Excel_data/Energy_technology_data.gdx" LifeSpan=LifeSpan;
+$ENDIF1
 
 # 3.2 Initial Values
 # Set discount rate
