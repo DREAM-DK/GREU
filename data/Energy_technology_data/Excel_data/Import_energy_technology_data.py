@@ -69,9 +69,14 @@ tech_params = {col: df_technologies[[col]].reset_index() for col in ['sqTPotenti
 
 # DATA FOR ENERGY INPUT
 # Reading data from excel
-df_uTE = pd.read_excel(file_path,sheet_name='Energy input')
+df_uTE_load = pd.read_excel(file_path,sheet_name='Energy input')
 # Rename and reorder columns to match model dimensions
-df_uTE = df_uTE.rename(columns=rename_col_list)[['l','e','uTE']]
+df_uTE_load = df_uTE_load.rename(columns=rename_col_list)[['l','e','uTE']]
+
+# Expand uTE from [l,e] to [l,es,e,i,t] using sqTPotential index,
+# so the GDX file contains uTE in its full model dimensions.
+df_sqTPotential_index = tech_params['sqTPotential'].query('sqTPotential != 0')[['l','es','i','t']]
+df_uTE = df_sqTPotential_index.merge(df_uTE_load, on='l', how='inner')[['l','es','e','i','t','uTE']]
 
 # DATA FOR CAPITAL COST INDEX
 # Reading data from excel
@@ -120,7 +125,7 @@ set_t=gp.Set(db_energy_tech,name='t',description='Year',records=set_year_list)
 
 # Adding parameters to database
 sqTPotential=gp.Parameter(db_energy_tech,name='sqTPotential',domain=[set_l,set_es,set_i,set_t],description='Potential supply by technology l in ratio of energy service (share of qES)',records=tech_params['sqTPotential'])
-uTE=gp.Parameter(db_energy_tech,name='uTE_load',domain=[set_l,set_e],description='Input of energy in technology l per PJ output at full potential',records=df_uTE)
+uTE=gp.Parameter(db_energy_tech,name='uTE',domain=[set_l,set_es,set_e,set_i,set_t],description='Input of energy in technology l per PJ output at full potential',records=df_uTE)
 vTI=gp.Parameter(db_energy_tech,name='vTI',domain=[set_l,set_es,set_i,set_t],description='Investment costs in technology l per PJ output at full potential',records=tech_params['vTI'])
 vTC=gp.Parameter(db_energy_tech,name='vTC',domain=[set_l,set_es,set_i,set_t],description='Variable capital costs in technology l per PJ output at full potential',records=tech_params['vTC'])
 LifeSpan=gp.Parameter(db_energy_tech,name='LifeSpan',domain=[set_l,set_es,set_i,set_t],description='Technical lifespan of technology l',records=tech_params['LifeSpan'])

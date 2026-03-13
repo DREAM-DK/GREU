@@ -25,19 +25,19 @@ $IF %include_energy_technology% = 0:
   execute_unload 'Output/baseline.gdx';
 $ENDIF
 
-# ------------------------------------------------------------------------------
-# Calibrate electrification technologies
-# ------------------------------------------------------------------------------
-$IF %include_energy_technology% = 1:
-  $import calib_electrification.gms;
-$ENDIF # include_energy_technology
+# # ------------------------------------------------------------------------------
+# # Calibrate electrification technologies
+# # ------------------------------------------------------------------------------
+# $IF %include_energy_technology% = 1:
+#   $import calib_electrification.gms;
+# $ENDIF # include_energy_technology
 
-# ------------------------------------------------------------------------------
-# Calibrate CCS technologies
-# ------------------------------------------------------------------------------
-$IF %include_energy_technology% = 1:
-  $import Calib_CCS.gms;
-$ENDIF # include_energy_technology
+# # ------------------------------------------------------------------------------
+# # Calibrate CCS technologies
+# # ------------------------------------------------------------------------------
+# $IF %include_energy_technology% = 1:
+#   $import Calib_CCS.gms;
+# $ENDIF # include_energy_technology
 
 # ------------------------------------------------------------------------------
 # Shock model
