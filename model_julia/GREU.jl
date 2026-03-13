@@ -108,13 +108,13 @@ Returns a Block with forecast constraints (to be merged with the main block).
 function forecast_constants!(block::Block, data::ModelDictionary)
 	forecast_block = Block(block.model)
 
-	for var in filter(v -> has_tag(v, ForecastConstant), variables(block))
+	for var in variables(block)
+		has_tag(var, ForecastConstant) || continue
 		var_t1 = _get_t1_var(block.model, var)
 		var_t1 == var && continue  # Already at t1, no forecast needed
 
 		if is_endogenous(var_t1, block)
-			# var_t1 is endogenous: add forecast constraint var[t] == var[t1]
-			forecast_block = forecast_block + add_equation(block.model, var, var, var_t1)
+			add_equation!(forecast_block, var, var, var_t1)
 		else
 			# var_t1 is exogenous (calibrated from data): copy its value
 			data[var] = data[var_t1]
@@ -133,7 +133,7 @@ end
 function _get_t1_var(model, var)
 	var_name = JuMP.name(var)
 	t1_name = replace(var_name, r",(\d+)\]$" => ",$t1]", r"\[(\d+)\]$" => "[$t1]")
-	return JuMP.variable_by_name(model, t1_name)
+	return SquareModels.variable_by_name(model, t1_name)
 end
 
 function calibrate_model(db)
