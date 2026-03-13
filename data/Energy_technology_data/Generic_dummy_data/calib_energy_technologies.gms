@@ -1,21 +1,21 @@
 $IMPORT ../model/functions.gms;
 
 ## ----------------------------------------------------------------------------------------
-## Creating abatement technologies to match data
+## Creating energy technologies to match data
 ## ----------------------------------------------------------------------------------------
 
-set l_input "Technology name for calibrated abatement data";
+set l_input "Name for calibrated energy technology data";
 set l "Technology name." / t1*t1000 /;
 
-$gdxIn Abatement_data/calibrate_abatement_data_python.gdx
+$gdxIn Energy_technology_data/Generic_dummy_data/calibrate_Energy_technology_data_python.gdx
 $load l_input
 $gdxIn
 
 alias(l,ll);
 
 parameter 
-  sqTPotential_input[l_input,es,d,t] "Technology potential for calibrated abatement data"
-  uTE_input[l_input,es,e,d,t] "Technology energy input for calibrated abatement data"
+  sqTPotential_input[l_input,es,d,t] "Potential for calibrated energy technology data"
+  uTE_input[l_input,es,e,d,t] "Energy input for calibrated energy technology data"
   counter[es,d] "Counter for technology potential"
   pEpj_marg[es,e,d,t]
 
@@ -33,10 +33,10 @@ parameter
 
 counter[es,d] = 0;
 
-execute_load "Abatement_data/calibrate_abatement_data_python.gdx" sqTPotential_input=sqTPotential_input.l;
-execute_load "Abatement_data/calibrate_abatement_data_python.gdx" uTE_input=uTE_input.l;
-execute_load "Abatement_data/calibrate_abatement_data_python.gdx" qES=qES.l;
-execute_load "Abatement_data/pEpj_marg.gdx" pEpj_marg=pEpj_marg.l;
+execute_load "Energy_technology_data/Generic_dummy_data/calibrate_Energy_technology_data_python.gdx" sqTPotential_input=sqTPotential_input.l;
+execute_load "Energy_technology_data/Generic_dummy_data/calibrate_Energy_technology_data_python.gdx" uTE_input=uTE_input.l;
+execute_load "Energy_technology_data/Generic_dummy_data/calibrate_Energy_technology_data_python.gdx" qES=qES.l;
+execute_load "Energy_technology_data/Generic_dummy_data/calibrate_Energy_technology_data_python.gdx" pEpj_marg=pEpj_marg.l;
 
 loop(l_input$(sum((es,i,t), sqTPotential_input[l_input,es,i,t])),
     counter[es,i]$(sum(t, sqTPotential_input[l_input,es,i,t])) = counter[es,i]+1;
@@ -108,12 +108,12 @@ vTC[l,es,i,t] = vTI[l,es,i,t]/10;
 
 ## First step: Electricity prices where they don't exist
 parameter 
-  d1pEpj_abatement[es,e,i,t] "Electricity prices for abatement technologies"
+  d1pEpj_energy_technology[es,e,i,t] "Electricity prices for energy technologies"
   ;
 
-d1pEpj_abatement[es,'Electricity',i,t]$(sum((l,e), uTE[l,es,e,i,t]) and not pEpj_marg[es,'Electricity',i,t]) = yes;
+d1pEpj_energy_technology[es,'Electricity',i,t]$(sum((l,e), uTE[l,es,e,i,t]) and not pEpj_marg[es,'Electricity',i,t]) = yes;
 
-pEpj_marg[es,e,i,t]$(d1pEpj_abatement[es,e,i,t]) = pEpj_marg['transport','Electricity','01011',t];
+pEpj_marg[es,e,i,t]$(d1pEpj_energy_technology[es,e,i,t]) = pEpj_marg['heating','Electricity','71000',t];
 
 ## Second step: Technology prices
 parameter

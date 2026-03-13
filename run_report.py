@@ -9,7 +9,7 @@ exec(open('Report/report_settings.py').read())
 # ---------------
 dt.REFERENCE_DATABASE = b = dt.Gdx("Output/baseline.gdx") # b for baseline
 s = dt.Gdx("Output/shock_carbon_tax.gdx") # s for shock
-#s_a = dt.Gdx("Output/shock_carbon_tax_abatement.gdx") # s for shock
+#s_a = dt.Gdx("Output/shock_carbon_tax_energy_technology.gdx") # s for shock
 
 
 dt.time(2020, 2050)
@@ -83,7 +83,7 @@ print(indirect_table)
 #--------------------------------
 
 display(s.EV)
-dt.plot([s.EVt], names=["Income, domestic", "Price, domestic", "Price, foreign", "Wealth, domestic"], layout={"title": "Equivalent variations"})
+dt.plot([s.EVt], names=["Income, domestic", "Income, foreign", "Price, domestic", "Price, foreign", "Wealth, domestic", "Wealth, foreign"], layout={"title": "Equivalent variations"})
 dt.plot([s.EVt_income], layout={"title": "Equivalent variations"})
 
 

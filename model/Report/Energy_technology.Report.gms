@@ -1,7 +1,7 @@
 # ======================================================================================================================
-# Abatement Model Reporting
+# Energy Technology Choice Model Reporting
 # ======================================================================================================================
-# This file generates reports and analysis of the abatement model results.
+# This file generates reports and analysis of the energy technology model results.
 # It calculates key metrics and indicators for model evaluation.
 
 # ----------------------------------------------------------------------------------------------------------------------

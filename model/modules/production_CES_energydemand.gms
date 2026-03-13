@@ -13,11 +13,11 @@ $IF %stage% == "variables":
 	;
 	
 	$Group+ all_variables 
-		pREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t])   	"Price of energy-activity (e_a), split on services (es) measured in DKK per peta Joule (when abatement is turned off)"
+		pREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t])   	"Price of energy-activity (e_a), split on services (es) measured in DKK per peta Joule (when energy technology model is turned off)"
 		pREes[es,i,t]$(d1pEes[es,i,t]) 						"Price of nest of energy-activities, aggregated to energy-services, CES-price index."
 		pREmachine[i,t]$(d1pREmachine[i,t]) 			"Price of machine energy, CES-price index."
 		pProd[pf,i,t]$(d1Prod[pf,i,t]) 						"Production price of production function pf in sector i at time t" #Should be moved to production.gms when stages are implemented
-		qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 		"Industries demand for energy activity (e_a). When abatement is turned off, the energy-activity is measured in PJ, and corresponds 1:1 to qEpj"		#Skal flyttes til industries_CES_energydemand.gms, når vi får stages
+		qREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t]) 		"Industries demand for energy activity (e_a). When energy technology model is turned off, the energy-activity is measured in PJ, and corresponds 1:1 to qEpj"		#Skal flyttes til industries_CES_energydemand.gms, når vi får stages
 		qREes[es,i,t]$(d1pEes[es,i,t]) 						"CES-Quantity of energy-services, measured in bio 2019-DKK"
 		qREmachine[i,t]$(d1pREmachine[i,t]) 			"CES-Quantity of machine energy, measured in bio 2019-DKK"
 		qProd[pf,i,t]$(d1Prod[pf,i,t]) 						"CES-quantity of production function pf in sector i at time t" #Should be moved to production.gms when stages are implemented
@@ -104,7 +104,7 @@ $IF %stage% == "equations":
 			jpProd&_heating_energy[pf_bottom_e,i,t]$(sameas[pf_bottom_e,'heating_energy'])..
 				pProd[pf_bottom_e,i,t] =E= pREes['heating',i,t];
 
-			#Should be linked in abatement-module when turned on
+			#Should be linked in energy technology module when turned on
 			.. pREa[es,e,i,t] =E= pEpj_marg[es,e,i,t];
 
 	$ENDBLOCK
