@@ -82,7 +82,7 @@ print(indirect_table)
 #--------------------------------
 
 display(s.EV)
-dt.plot([s.EVt], names=["Income, domestic", "Price, domestic", "Price, foreign", "Wealth, domestic"], layout={"title": "Equivalent variations"})
+dt.plot([s.EVt], names=["Income, domestic", "Income, foreign", "Price, domestic", "Price, foreign", "Wealth, domestic", "Wealth, foreign"], layout={"title": "Equivalent variations"})
 dt.plot([s.EVt_income], layout={"title": "Equivalent variations"})
 
 

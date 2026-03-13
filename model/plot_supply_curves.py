@@ -164,13 +164,13 @@ def plot_supply_curve(gdxname,desired_sectors=None,year_list=None):
         ax.plot(x_horiz, y_horiz, color='C0', linestyle=':', linewidth=1.5)
         ax.plot(x_vert, y_vert, color='C0', linestyle='-', linewidth=1.5)
         ax.plot([], [], color='C0', linestyle='-', linewidth=1.5, label='Discrete')
-        # Plot discrete pESmarg
+        # Plot horisontal line for discrete pESmarg
         # ax.axhline(pESmarg_discrete,color=colors[0], linestyle='--',linewidth=1)
 
         # Plot smooth curve
         df_smooth=_smooth_supply(df_smooth_input,pESmarg_eq,ss,p,yr)[0]
         ax.plot(pct*df_smooth['sqT_sum_scen'],df_smooth['pESmarg_scen'], color=colors[1], label='Continuous',linewidth=1.5)
-        # Plot smooth pESmarg
+        # Plot horisontal line for smooth pESmarg
         # pESmarg_smooth=_smooth_supply(df_smooth_input,pESmarg_eq,ss,p,yr)[1]
         # ax.axhline(pESmarg_smooth,color=colors[1], linestyle='--',linewidth=1)
 
