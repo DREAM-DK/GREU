@@ -172,7 +172,7 @@ $IF %stage% == "exogenous_values":
   testDKemm2020['GNA'] = 81337;
   testDKemm2020['unfccc_lulucf'] = testDKemm2020['unfccc'] + 1292; 
   testDKemm2020['gna_lulucf'] = testDKemm2020['gna'] + 1292;
-  parameter test_qEmmCO2eData[em_accounts,t] "test co2e total";
+  parameter test_qEmmCO2eData[t] "test co2e total";
   $gdxin ../data/data.gdx
   $load test_qEmmCO2eData
   
@@ -240,9 +240,9 @@ $ENDIF
 $IF %stage% =="tests":
   # LOOP(em_accounts,
   #  ABORT$(ABS(testDKemm2020[em_accounts] - qEmmTot.l['CO2e',em_accounts,'2020']) > 500) 'Emissions differ with more than 500 ktCO2e in data-year'; #AKB: GREU-DK data differ from Statistics Denmarks website by approx 500 ktCO2e, investigating the source..
-  # );
-  LOOP((em_accounts,t)$(tDataEnd[t]),
-    ABORT$(abs(test_qEmmCO2eData[em_accounts,t] - qEmmTot.l['co2e','GNA',t]) > 1)
-          'emissions off in data year');
+  # );  
+  LOOP((t)$(tDataEnd[t]),
+    ABORT$(abs(test_qEmmCO2eData[t] - qEmmTot.l['co2e','GNA',t]) > 0.1)
+          'emission total does not match in data year');
 
 $ENDIF
