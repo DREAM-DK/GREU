@@ -366,9 +366,6 @@ $IF %stage% == "exogenous_values":
 
 	  d1pEes[es,i,t] 			 				 = yes$(sum(e_a, d1pREa_inNest[es,e_a,i,t]));	
 	  d1pREmachine[i,t]            = yes$(sum(es$(not (heating[es] or transport[es])), d1pEes[es,i,t]));
-	  d1Prod[pf,i,t]               = yes$(pProd.l[pf,i,t]);
-
-
 
 $ENDIF
 # ------------------------------------------------------------------------------
