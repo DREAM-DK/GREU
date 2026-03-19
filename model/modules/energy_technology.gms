@@ -172,11 +172,10 @@ $BLOCK energy_technology_equations_links energy_technology_endogenous_links $(t1
   # pTK is determined by the CGE-model. jpTK (exogenous) is the relative difference between pTK and pK_k_i['iM',i,t] in the baseline
   .. pTK[i,t] =E= pK_k_i['iM',i,t]*jpTK[i,t];
 
-  # Lets see if we need this
-  .. Delta_qESE[es,e,d,t] =E= qESE[es,e,d,t] - qESE_baseline[es,e,d,t];
-
   #jqESE is endogenous when calibrating the model. In shocks, jqESE is exogenous and uREa is endogenous
+  # uREa[es,e,i,t].. qESE[es,e,i,t] + jqESE[es,e,i,t] =E= qREa[es,e,i,t];
   jqESE[es,e,i,t].. qESE[es,e,i,t] + jqESE[es,e,i,t] =E= qREa[es,e,i,t];
+
 
   # Difference in capital use between the baseline and the shock
   .. Delta_qESK[es,d,t] =E= qESK[es,d,t] - qESK_baseline[es,d,t];
@@ -334,8 +333,13 @@ model calibration / energy_technology_equations /;
 
 # 4.2 Calibration Variables
 $GROUP calibration_endogenous
-  energy_technology_endogenous
   calibration_endogenous
+  energy_technology_endogenous
+  -qES[es,i,t], jES[es,i,t]
+  # -pTK[i,t], jpTK[i,t]
+  # -uREa[es,e,i,t], jqESE[es,e,i,t]$(d1switch_integrate_energy_technology[t])
+  # -Delta_qESK[es,d,t], qESK_baseline[es,d,t]
+  # -Delta_vESK[es,d,t], vESK_baseline[es,d,t]
 ;
 
 # 4.3 Flat Variables After Last Data Year

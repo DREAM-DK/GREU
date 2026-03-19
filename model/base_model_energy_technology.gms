@@ -1,5 +1,5 @@
 # First the base model is included and executed
-$IMPORT base_model.gms
+# $IMPORT base_model.gms # LBS ONLY COMMENTED OUT FOR NOW TO SAVE TIME
 
 
 # ------------------------------------------------------------------------------
@@ -10,7 +10,7 @@ d1switch_energy_technology[t] = 1;
 d1switch_integrate_energy_technology[t] = 0;
 
 # Set share parameters (Kan dette kalibreres i kalibreringsligninger?)
-jES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
+# jES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
 jpTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pTK.l[i,t]/pK_k_i.l['iM',i,t];
 
 # Supply Curve Visualization
@@ -18,9 +18,6 @@ jpTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pTK.l[i,t]/pK_k_i.l['iM',i,t];
 # Kan denne laves i et separat modul - måske i energy_technology.gms?
 $import premodel_energy_technology.gms 
 
-# Laver en model med ligningerne fra energy_demand_prices og energy_and_emissions_taxes 
-# OG importerer dummies_new_energy_use.gms
-$import energy_price_partial.gms 
 # execute_unload 'Output/pre_energy_price_partial.gdx';
 $import Supply_curve_energy_technology.gms;
 
@@ -32,11 +29,10 @@ $import Supply_curve_energy_technology.gms;
 # $FIX all_variables; $UNFIX energy_technology_partial_endogenous;
 # Solve energy_technology_partial_equations using CNS;
 
-# Jeg er ikke sikker på, hvorfor dette er med...
-@add_exist_dummies_to_model(main); # Burde kunne fjernes
-$FIX all_variables; $UNFIX main_endogenous;
+# Solve the full calibration model
+$FIX all_variables; $UNFIX calibration_endogenous;
 # execute_unload 'Output/pre_calibration_energy_technology.gdx';
-solve main using CNS;
+solve calibration using CNS;
 # execute_unload 'Output/calibration_energy_technology.gdx';
 
 # ------------------------------------------------------------------------------
@@ -50,8 +46,8 @@ d1switch_integrate_energy_technology[t] = 1;
 # Lige nu er nogle af integrationsligningerne defineret som absolutte forskelle mellem shock og baseline.
 $import create_baseline_values.gms;
 
-$FIX all_variables; $UNFIX main_endogenous;
-solve main using CNS;
+$FIX all_variables; $UNFIX calibration_endogenous;
+solve calibration using CNS;
 execute_unload 'Output/calibration_energy_technology_integrated.gdx';
 
 # We switch jqESE and uREa when starting to shock the model (could be made more elegant)

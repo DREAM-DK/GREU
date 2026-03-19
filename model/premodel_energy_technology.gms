@@ -91,7 +91,7 @@ $GROUP G_energy_technology_supply_curve_exo
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Partial model for determining energy prices for the Energy Technology Choice Model
+# MODEL 2: Partial model for determining energy prices for the Energy Technology Choice Model
 # ----------------------------------------------------------------------------------------------------------------------
 # 1.1 Model Definition
 model energy_price_partial / 
