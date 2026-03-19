@@ -15,14 +15,6 @@ Solve energy_price_partial using CNS;
 # execute_unload 'energy_price_partial_post.gdx';
 
 # ----------------------------------------------------------------------------------------------------------------------
-# 1.B. Initialize linking variables (I think this is redundant)
-# ----------------------------------------------------------------------------------------------------------------------
-
-# Initialise linking variables
-# qES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = jES.l[es,i,t]*qREes.l[es,i,t];
-pTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pK_k_i.l['iM',i,t]*jpTK.l[i,t];
-
-# ----------------------------------------------------------------------------------------------------------------------
 # 2. Price Initialization
 # ----------------------------------------------------------------------------------------------------------------------
 # 2.1 Starting values for Levelized Cost of Energy (LCOE)

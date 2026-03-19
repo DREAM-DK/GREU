@@ -9,10 +9,6 @@
 d1switch_energy_technology[t] = 1;
 d1switch_integrate_energy_technology[t] = 0;
 
-# Set share parameters (Kan dette kalibreres i kalibreringsligninger?)
-# jES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
-jpTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pTK.l[i,t]/pK_k_i.l['iM',i,t];
-
 # Supply Curve Visualization
 # Laver en energy-technology model med udvidede dimensioner. 
 # Kan denne laves i et separat modul - måske i energy_technology.gms?

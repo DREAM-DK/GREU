@@ -336,7 +336,7 @@ $GROUP calibration_endogenous
   calibration_endogenous
   energy_technology_endogenous
   -qES[es,i,t], jES[es,i,t]
-  # -pTK[i,t], jpTK[i,t]
+  -pTK[i,t], jpTK[i,t]
   # -uREa[es,e,i,t], jqESE[es,e,i,t]$(d1switch_integrate_energy_technology[t])
   # -Delta_qESK[es,d,t], qESK_baseline[es,d,t]
   # -Delta_vESK[es,d,t], vESK_baseline[es,d,t]
