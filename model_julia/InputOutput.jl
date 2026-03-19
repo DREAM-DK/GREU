@@ -16,7 +16,7 @@ import ..db, ..t, ..t1, ..T, ..tBase, ..ForecastConstant
 # Indices
 # ==========================================================================
 const i = load_set(:i)   # Production industries
-const d = load_set(:d)   # Demand components
+const d_all = load_set(:d)   # All demand components (including stubs)
 const m = load_set(:m)   # Industries with imports
 const rx = i             # Non-energy intermediates
 const re = load_set(:re) # Energy inputs in production
@@ -54,6 +54,9 @@ const (d1Y, d1M) = let
   Y_keys, M_keys
 end
 const d1YM = d1Y ∪ d1M
+
+# Demand components with at least one supply pair (drops stubs like res, env, tl)
+const d = [d_v for d_v in d_all if any((i_v, d_v) in d1YM for i_v in i)]
 
 # ==========================================================================
 # Variables
@@ -133,10 +136,10 @@ end
 
 # Rates and shares (no adjustment)
 @variables db.model begin
-  tY_i_d[i=i, d=d, t=t; (i, d) in d1Y], "Tax rate on domestic output by (i,d)"
-  tM_i_d[i=i, d=d, t=t; (i, d) in d1M], "Tax rate on imports by (i,d)"
-  tY_i_sub[i, t], "Average subsidy rate"
-  tY_i_tax[i, t], "Average production tax rate"
+  tY_i_d[i=i, d=d, t=t; (i, d) in d1Y] :: ForecastConstant, "Tax rate on domestic output by (i,d)"
+  tM_i_d[i=i, d=d, t=t; (i, d) in d1M] :: ForecastConstant, "Tax rate on imports by (i,d)"
+  tY_i_sub[i, t] :: ForecastConstant, "Average subsidy rate"
+  tY_i_tax[i, t] :: ForecastConstant, "Average production tax rate"
   jfpY_i_d[i=i, d=d, t=t; (i, d) in d1Y], "Price deviation, domestic"
   jfpM_i_d[i=i, d=d, t=t; (i, d) in d1M], "Price deviation, imports"
   rYM[i=i, d=d, t=t; (i, d) in d1YM] :: ForecastConstant, "Industry composition of demand"
@@ -147,6 +150,17 @@ end
 # Data
 # ==========================================================================
 function set_data!(db)
+  db[vY_i_d] .= 0.0
+  db[vY_i_d_base] .= 0.0
+  db[vM_i_d] .= 0.0
+  db[vM_i_d_base] .= 0.0
+  db[vtY_i_d] .= 0.0
+  db[vtM_i_d] .= 0.0
+  db[vtY_i_Sub] .= 0.0
+  db[vtY_i_Tax] .= 0.0
+  db[jfpY_i_d] .= 0.0
+  db[jfpM_i_d] .= 0.0
+
   load_parameter!(db, :vY_i_d, vY_i_d)
   load_parameter!(db, :vY_i_d_base, vY_i_d_base)
   load_parameter!(db, :vtY_i_d, vtY_i_d)
@@ -156,19 +170,33 @@ function set_data!(db)
   load_parameter!(db, :vtY_i_Sub, vtY_i_Sub)
   load_parameter!(db, :vtY_i_Tax, vtY_i_Tax)
 
-  # Import shares: 1 for import-only cells, 0 otherwise
-  db[rM] .= [(i_v, d_v) ∈ d1Y ? 0.0 : 1.0 for (i_v, d_v, _) in keys(rM)]
+  # Import shares: 0 for domestic-only, 1 for import-only.
+  # Cells in d1Y ∩ d1M are calibrated — leave unset so endo_exo_data_residuals! doesn't re-exogenize.
+  for k in keys(rM)
+    i_v, d_v = k[1], k[2]
+    (i_v, d_v) ∈ d1Y && (i_v, d_v) ∈ d1M && continue
+    db[rM[k...]] = (i_v, d_v) ∈ d1Y ? 0.0 : 1.0
+  end
 
-  # Real quantities at IO level: q = v - vt
-  for (v_var, vt_var, q_var) in ((vY_i_d, vtY_i_d, qY_i_d), (vM_i_d, vtM_i_d, qM_i_d))
-    for k in keys(v_var)
-      v = db[v_var[k...]]
-      !isnothing(v) && v > 1e-6 && (db[q_var[k...]] = v - something(db[vt_var[k...]], 0.0))
+  # Real quantities: q = v_base (= v - vt)
+  db[qY_i_d] .= 0.0
+  db[qM_i_d] .= 0.0
+  for (v, vt, q) in ((vY_i_d, vtY_i_d, qY_i_d), (vM_i_d, vtM_i_d, qM_i_d))
+    for k in keys(v)
+      val = db[v[k...]]
+      !isnothing(val) && val > 1e-6 && (db[q[k...]] = val - something(db[vt[k...]], 0.0))
     end
   end
 
+  db[qD] .= 0.0
+  for q_id in (qY_i_d, qM_i_d), k in keys(q_id)
+    val = db[q_id[k...]]
+    !isnothing(val) && (db[qD[k[2], k[3]]] += val)
+  end
+
   # All prices = 1 (inflation adjustment via tags ≡ GAMS fpt[t])
-  for p in [pY_i, pM_i, pD, pR, pE, pI, pC, pG, pX, pM, pY, pGDP, pGVA, pY_i_d, pM_i_d]
+  for p in [pY_i, pM_i, pD, pR, pE, pI, pC, pG, pX, pM, pY, pGDP, pGVA,
+            pY_i_d, pM_i_d, pY_i_d_base, pM_i_d_base]
     db[p] .= 1.0
   end
 
@@ -176,6 +204,36 @@ function set_data!(db)
   db[vC_WalrasLaw] .= 0.0
 
   return nothing
+end
+
+# ==========================================================================
+# Starting values (solver hints, not exogenous data)
+# ==========================================================================
+function set_starting_values!(db)
+  db[tY_i_d] .= 0.0
+  db[tM_i_d] .= 0.0
+
+  # Import shares for cells with both domestic and import supply
+  for k in keys(rM)
+    i_v, d_v = k[1], k[2]
+    (i_v, d_v) ∈ d1Y && (i_v, d_v) ∈ d1M || continue
+    vY = something(db[vY_i_d_base[k...]], 0.0)
+    vM = something(db[vM_i_d_base[k...]], 0.0)
+    vY + vM > 1e-8 && (db[rM[k...]] = vM / (vY + vM))
+  end
+
+  # Composition shares: rYM = q_id / ((1-rM or rM) * qD)
+  for k in keys(rYM)
+    i_v, d_v, t_v = k
+    qD_val = something(db[qD[d_v, t_v]], 0.0)
+    abs(qD_val) < 1e-12 && continue
+    in_d1Y = (i_v, d_v) in d1Y
+    q = something(db[in_d1Y ? qY_i_d[k...] : qM_i_d[k...]], 0.0)
+    rM_val = something(db[rM[k...]], in_d1Y ? 0.0 : 1.0)
+    share = in_d1Y ? (1 - rM_val) : rM_val
+    denom = share * qD_val
+    db[rYM[k...]] = abs(denom) > 1e-12 ? q / denom : 0.0
+  end
 end
 
 # ==========================================================================
@@ -342,16 +400,16 @@ end
 function define_calibration()
   block = define_equations()
 
+  # Tax rates only for cells with non-zero base values (rate is indeterminate when base is zero)
+  tY_cal = [(i_v, d_v) for (i_v, d_v) in d1Y if something(db[vY_i_d_base[i_v, d_v, t1]], 0.0) > 1e-8]
+  tM_cal = [(i_v, d_v) for (i_v, d_v) in d1M if something(db[vM_i_d_base[i_v, d_v, t1]], 0.0) > 1e-8]
+
   @endo_exo! block begin
-    # Tax rates from observed duties at t1
-    tY_i_d[:, :, t1], vtY_i_d[:, :, t1]
-    tM_i_d[:, :, t1], vtM_i_d[:, :, t1]
+    [tY_i_d[i, d, t1] for (i, d) in tY_cal], [vtY_i_d[i, d, t1] for (i, d) in tY_cal]
+    [tM_i_d[i, d, t1] for (i, d) in tM_cal], [vtM_i_d[i, d, t1] for (i, d) in tM_cal]
     tY_i_sub[:, t1], vtY_i_Sub[:, t1]
     tY_i_tax[:, t1], vtY_i_Tax[:, t1]
-
-    # Composition shares from observed base-price values at t1
-    [rYM[i, d, t1] for (i, d) in d1Y], [vY_i_d_base[i, d, t1] for (i, d) in d1Y]
-    [rYM[i, d, t1] for (i, d) in setdiff(d1M, d1Y)], [vM_i_d_base[i, d, t1] for (i, d) in setdiff(d1M, d1Y)]
+    [rYM[i, d, t1] for (i, d) in d1YM], [((i, d) in d1Y ? qY_i_d[i, d, t1] : qM_i_d[i, d, t1]) for (i, d) in d1YM]
     [rM[i, d, t1] for (i, d) in d1Y ∩ d1M], [vM_i_d_base[i, d, t1] for (i, d) in d1Y ∩ d1M]
   end
 

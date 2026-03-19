@@ -91,10 +91,16 @@ The @block macro transforms each equation `endo[t] == RHS` into `(endo[t] + endo
 where `endo_J` is the residual. Swapping makes endo_J endogenous while endo stays at its data value.
 """
 function endo_exo_data_residuals!(block::Block, data::ModelDictionary)
+	new_endos = VariableRef[]
+	old_endos = VariableRef[]
 	for (endo, resid) in zip(endogenous(block), residuals(block))
-		has_data = !isnothing(data[endo])
-		has_data && @endo_exo!(block, resid, endo)
+		year = variable_year(endo)
+		if !isnothing(data[endo]) && (isnothing(year) || year <= t1)
+			push!(new_endos, resid)
+			push!(old_endos, endo)
+		end
 	end
+	SquareModels._endo_exo!(block, new_endos, old_endos, "endo_exo_data_residuals!")
 end
 
 """
@@ -110,7 +116,7 @@ function forecast_constants!(block::Block, data::ModelDictionary)
 
 	for var in variables(block)
 		has_tag(var, ForecastConstant) || continue
-		var_t1 = _get_t1_var(block.model, var)
+		var_t1 = at_year(var, t1)
 		var_t1 == var && continue  # Already at t1, no forecast needed
 
 		if is_endogenous(var_t1, block)
@@ -129,25 +135,76 @@ function forecast_constants!(block::Block, data::ModelDictionary)
 	return block + forecast_block
 end
 
-"""Get the t1 version of a variable by replacing the last index with t1."""
-function _get_t1_var(model, var)
+"""
+Return the same variable at a chosen year by replacing the last index.
+
+Examples:
+- `x[2025] -> x[2030]`
+- `x[i,2025] -> x[i,2030]`
+"""
+@inline at_year(var, year::Integer) = at_year(JuMP.owner_model(var), var, year)
+function at_year(model, var, year::Integer)
 	var_name = JuMP.name(var)
-	t1_name = replace(var_name, r",(\d+)\]$" => ",$t1]", r"\[(\d+)\]$" => "[$t1]")
-	return SquareModels.variable_by_name(model, t1_name)
+	open_bracket = findlast(==('['), var_name)
+	isnothing(open_bracket) && return var
+	last_comma = findlast(==(','), var_name)
+	year_name = isnothing(last_comma) || last_comma < open_bracket ?
+		string(SubString(var_name, 1, open_bracket), year, ']') :
+		string(SubString(var_name, 1, last_comma), year, ']')
+	return SquareModels.variable_by_name(model, year_name)
+end
+
+function variable_year(var)
+	var_name = JuMP.name(var)
+	open_bracket = findlast(==('['), var_name)
+	isnothing(open_bracket) && return nothing
+	last_comma = findlast(==(','), var_name)
+	year_txt = isnothing(last_comma) || last_comma < open_bracket ?
+		SubString(var_name, open_bracket + 1, lastindex(var_name) - 1) :
+		SubString(var_name, last_comma + 1, lastindex(var_name) - 1)
+	tryparse(Int, String(year_txt))
+end
+
+function exogenous_constant_forecast!(block::Block, data::ModelDictionary)
+	endo_set = Set(endogenous(block))
+	for var in variables(block)
+		var in endo_set && continue
+		year = variable_year(var)
+		isnothing(year) || year <= t1 && continue
+		isnothing(data[var]) || continue
+		var_t1 = at_year(var, t1)
+		v_t1 = data[var_t1]
+		if isnothing(v_t1)
+			data[var_t1] = 0.0
+			v_t1 = 0.0
+		end
+		data[var] = v_t1
+	end
+	return nothing
 end
 
 function calibrate_model(db)
-	@info "Calibration:"
+	@info "Calibration (T=$T):"
 	@log_time block = sum(m.define_calibration() for m in submodels)
 	@log_time block = forecast_constants!(block, db)
 	@log_time endo_exo_data_residuals!(block, db)
+	@log_time exogenous_constant_forecast!(block, db)
+	for m in submodels
+		isdefined(m, :set_starting_values!) && m.set_starting_values!(db)
+	end
 	@log_time solve(block, db; replace_nothing=1.0)
 end
 
 # ==============================================================================
-# Solve calibration
+# Solve calibration (static then dynamic)
 # ==============================================================================
-@log_time baseline = calibrate_model(db)
+# Static: single-period at t1 — calibrates residuals and parameters
+global T = calibration_year
+@log_time static_solution = calibrate_model(db)
+
+# Dynamic: full horizon — uses static solution as starting values
+global T = max_terminal_year
+@log_time baseline = calibrate_model(static_solution)
 
 # ==============================================================================
 # Tests
