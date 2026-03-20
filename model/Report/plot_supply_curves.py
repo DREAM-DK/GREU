@@ -17,7 +17,7 @@ comparing two representations of the supply side:
 For each combination of sector (d), energy service (es), and year (t), the module
 produces a single chart overlaying both curves with a vertical line at the point
 where cumulative supply equals demand (share = 1). All charts are collected into
-a multi-page PDF (Supply_curves.pdf).
+a multi-page PDF (Report/figures/Supply_curves.pdf).
 
 Entry point:
     plot_supply_curve(gdxname, desired_sectors=None, year_list=None)
@@ -26,6 +26,8 @@ Data source:
     A GAMS GDX file containing the parameters pTPotential, sqTPotential,
     pESmarg_scen, pESmarg_eq, and sqT_sum_scen.
 """
+
+from pathlib import Path
 
 import numpy as np
 import dreamtools as dt
@@ -105,8 +107,12 @@ def plot_supply_curve(gdxname,desired_sectors=None,year_list=None):
 
     For each combination of sector, energy service, and year, plots the discrete
     step-function and continuous supply curves side by side. Output is saved as
-    'Supply_curves.pdf' (all pages) and 'Supply_curve.svg' (last page only).
+    'Report/figures/Supply_curves.pdf' (all pages) and 'Report/figures/Supply_curve.svg' (last page only).
+    Expects the process working directory to be the model folder (as set by run.py).
     """
+    figures_dir = Path.cwd() / "Report" / "figures"
+    figures_dir.mkdir(parents=True, exist_ok=True)
+
     if desired_sectors:
         desired_sectors=[str(x) for x in desired_sectors]
     if year_list is None:
@@ -191,13 +197,13 @@ def plot_supply_curve(gdxname,desired_sectors=None,year_list=None):
         ax.set_title(f"Energy supply, {ss}, {p}, {yr}",fontsize='12',weight='bold')
 
         fig.tight_layout()
-        fig.savefig('Supply_curve.svg')
+        fig.savefig(figures_dir / 'Supply_curve.svg')
 
         return fig
 
 
     # Calling function for plotting discrete and smooth supply curve
-    with PdfPages('Supply_curves.pdf') as pdf:
+    with PdfPages(figures_dir / 'Supply_curves.pdf') as pdf:
         for yr in year_list:
             for ss in df_discrete_input.index.get_level_values('d').unique().tolist():
                 for p in sorted(df_discrete_input[df_discrete_input.index.get_level_values('d')==ss].index.get_level_values('es').unique().tolist()):
