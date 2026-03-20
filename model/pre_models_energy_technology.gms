@@ -1,5 +1,12 @@
 # ======================================================================================================================
-# Setup for determining supply curves and initial values for the Energy Technology Choice Model
+# Pre-models for the Energy Technology Choice Model
+# ======================================================================================================================
+# This module contains two pre-models:
+# 1. A model for determining supply curves and initial values for the Energy Technology Choice Model
+# 2. A model for determining energy prices for the Energy Technology Choice Model
+
+# ======================================================================================================================
+# MODEL 1: Setup for determining supply curves and initial values for the Energy Technology Choice Model
 # ======================================================================================================================
 # This module generates supply curves and sets initial values for the energy technology model.
 # It creates scenario-specific versions of the model for supply curve analysis.
@@ -90,9 +97,9 @@ $GROUP G_energy_technology_supply_curve_exo
 ;
 
 
-# ----------------------------------------------------------------------------------------------------------------------
+# ======================================================================================================================
 # MODEL 2: Partial model for determining energy prices for the Energy Technology Choice Model
-# ----------------------------------------------------------------------------------------------------------------------
+# ======================================================================================================================
 # 1.1 Model Definition
 model energy_price_partial / 
   energy_demand_prices

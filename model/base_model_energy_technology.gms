@@ -8,12 +8,8 @@ $IMPORT base_model.gms
 d1switch_energy_technology[t] = 1;
 d1switch_integrate_energy_technology[t] = 1;
 
-# Supply Curve Visualization
-# Laver en energy-technology model med udvidede dimensioner. 
-# Kan denne laves i et separat modul - måske i energy_technology.gms?
-$import premodel_energy_technology.gms 
-
 # Get starting values for the energy technology model
+$import pre_models_energy_technology.gms 
 $import initial_values_energy_technology.gms;
 
 # Solve partial energy technology model
