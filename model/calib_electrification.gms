@@ -19,7 +19,7 @@ set electrification_techs[l] /
 
 
 # Supply Curve Visualization
-$import Supply_curve_energy_technology.gms;
+$import initial_values_energy_technology.gms;
 
 # # Solve partial energy technology model
 # $FIX all_variables;

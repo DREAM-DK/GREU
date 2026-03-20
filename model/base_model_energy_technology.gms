@@ -14,7 +14,7 @@ d1switch_integrate_energy_technology[t] = 1;
 $import premodel_energy_technology.gms 
 
 # Get starting values for the energy technology model
-$import Supply_curve_energy_technology.gms;
+$import initial_values_energy_technology.gms;
 
 # Solve partial energy technology model
 # $FIX all_variables; $UNFIX energy_technology_partial_endogenous;
