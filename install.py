@@ -5,9 +5,9 @@ import subprocess
 subprocess.run([
     sys.executable, "-m", "pip", "install", "--upgrade",
     "dream-tools==3.0.0", 
-    "gamsapi[all]==49.5.0", 
+    "gamsapi[all]", 
     "nbformat",
-    "gamspy==1.10.0",
+    "gamspy==1.21.0",
     "matplotlib",
     "eurostat",
 ], check=True)
