@@ -26,7 +26,7 @@ $Group+ all_variables
 
   # 1.2.1.1 Exogenous Input Prices
   pTK[d,t]$(d1pTK[d,t]) "User cost of capital in technologies for energy services"
-  jpTK[i,t] "Share parameter linking capital user cost in energy technology model to CGE model"
+  jpTK[d,t]$(d1pTK[d,t]) "Share parameter linking capital user cost in energy technology model to CGE model"
 
   # 1.2.1.2 Exogenous Energy Service Demand
   qES[es,d,t]$(d1qES[es,d,t]) "Energy service, quantity."
@@ -69,8 +69,6 @@ $Group+ all_variables
   qESK[es,d,t]$(d1qES[es,d,t]) "Quantity of machinery capital in energy services"
 
   # Variables for integration with CGE-model
-  qESE_baseline[es,e,d,t]$(d1qES_e[es,e,d,t]) "Energy input in the energy technology model (baseline)"
-  Delta_qESE[es,e,d,t]$(d1qES_e[es,e,d,t]) "Difference between energy input in the energy technology model (difference between shock and baseline)"
   jqESE[es,e,i,t]$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t]) "Share parameter linking energy input in the energy technology model to energy input in the CGE-model"
   qESK_baseline[es,d,t]$(d1qES[es,d,t]) "Capital input in the energy technology model (baseline)"
   Delta_qESK[es,d,t]$(d1qES[es,d,t]) "Difference between capital input in the energy technology model (difference between shock and baseline)"
@@ -172,11 +170,9 @@ $BLOCK energy_technology_equations_links energy_technology_endogenous_links $(t1
   # pTK is determined by the CGE-model. jpTK (exogenous) is the relative difference between pTK and pK_k_i['iM',i,t] in the baseline
   .. pTK[i,t] =E= pK_k_i['iM',i,t]*jpTK[i,t];
 
-  # Lets see if we need this
-  .. Delta_qESE[es,e,d,t] =E= qESE[es,e,d,t] - qESE_baseline[es,e,d,t];
-
   #jqESE is endogenous when calibrating the model. In shocks, jqESE is exogenous and uREa is endogenous
-  jqESE[es,e,i,t].. qESE[es,e,i,t] + jqESE[es,e,i,t] =E= qREa[es,e,i,t];
+  # Note that when this equation is used in the calibration model, then it removes E_uREa_flat for these dimensions
+  uREa[es,e,i,t]$(d1qES_e[es,e,i,t]).. qESE[es,e,i,t] + jqESE[es,e,i,t] =E= qREa[es,e,i,t];
 
   # Difference in capital use between the baseline and the shock
   .. Delta_qESK[es,d,t] =E= qESK[es,d,t] - qESK_baseline[es,d,t];
@@ -230,6 +226,8 @@ $MODEL energy_technology_partial_equations
   energy_technology_equations_core
   energy_technology_equations_output 
 ;
+
+@add_exist_dummies_to_model(energy_technology_partial_equations);
 
 # 2.4 Solver Helper Function
 $FUNCTION Setbounds_energy_technology():
@@ -334,8 +332,13 @@ model calibration / energy_technology_equations /;
 
 # 4.2 Calibration Variables
 $GROUP calibration_endogenous
-  energy_technology_endogenous
   calibration_endogenous
+  energy_technology_endogenous
+  -qES[es,i,t], jES[es,i,t]
+  -pTK[i,t], jpTK[i,t]
+  -uREa$(t.val > t1.val), jqESE[es,e,i,t] # NB: The equation for uREa in the link equations remove the equation E_uREa_flat for these dimensions
+  -Delta_qESK[es,d,t], qESK_baseline[es,d,t]
+  -Delta_vESK[es,d,t], vESK_baseline[es,d,t]
 ;
 
 # 4.3 Flat Variables After Last Data Year

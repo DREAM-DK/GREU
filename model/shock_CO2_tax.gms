@@ -100,7 +100,7 @@ $GROUP main_endogenous
 ;
 
   # Set starting values for the energy technology model
-  $import Supply_curve_energy_technology.gms
+  $import initial_values_energy_technology.gms
 
   # Solve partial energy technology model
   $FIX all_variables;

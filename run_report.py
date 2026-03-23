@@ -94,3 +94,10 @@ display(s.EV_Shadow_price)
 
 # s.EVt.to_excel('EVt.xlsx')
 
+#--------------------------------
+# Reporting of energy technology
+#--------------------------------
+
+# import the function to plot the supply curves
+exec(open('Report/plot_supply_curves.py').read())
+plot_supply_curve("Output/calibration_energy_technology.gdx",['01011'])

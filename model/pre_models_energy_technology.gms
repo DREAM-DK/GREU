@@ -1,5 +1,12 @@
 # ======================================================================================================================
-# Pre-model Setup for Energy Technology Choice Model
+# Pre-models for the Energy Technology Choice Model
+# ======================================================================================================================
+# This module contains two pre-models:
+# 1. A model for determining supply curves and initial values for the Energy Technology Choice Model
+# 2. A model for determining energy prices for the Energy Technology Choice Model
+
+# ======================================================================================================================
+# MODEL 1: Setup for determining supply curves and initial values for the Energy Technology Choice Model
 # ======================================================================================================================
 # This module generates supply curves and sets initial values for the energy technology model.
 # It creates scenario-specific versions of the model for supply curve analysis.
@@ -58,7 +65,7 @@ $Group+ all_variables
 ;
 
 # 3.2 Supply Curve Equations
-$BLOCK energy_technology_equations_supply_curve energy_technology_endogenous_supply_curve $(t1.val <= t.val and t.val <= tEnd.val)  
+$BLOCK energy_technology_supply_curve_equations energy_technology_endogenous_supply_curve $(t1.val <= t.val and t.val <= tEnd.val)  
   .. sqT_sum_scen[es,d,t,scen] =E= sum(l$(d1sqTPotential[l,es,d,t]), sqT_scen[l,es,d,t,scen]);
 $ENDBLOCK
 
@@ -69,7 +76,7 @@ $ENDBLOCK
 $MODEL M_energy_technology_supply_curve
   B_scenarios
   -E_pESmarg_es_d_scen
-  energy_technology_equations_supply_curve
+  energy_technology_supply_curve_equations
   ;
   
 # 4.2 Dummy Variable Management
@@ -88,3 +95,35 @@ $GROUP G_energy_technology_supply_curve_exo
   all_variables
   G_scenarios
 ;
+
+
+# ======================================================================================================================
+# MODEL 2: Partial model for determining energy prices for the Energy Technology Choice Model
+# ======================================================================================================================
+# 1.1 Model Definition
+model energy_price_partial / 
+  energy_demand_prices
+  energy_and_emissions_taxes
+  /;
+
+# 1.2 Endogenous Variables
+$Group energy_price_partial_endogenous
+  energy_demand_prices_endogenous
+  energy_and_emissions_taxes_endogenous
+  ;
+
+# 1.3 Update dummies on energy types
+# Set of energy types that are not included in the model
+set exclude_energy(e) /
+  'Waste'
+  'Waste oil'
+  'Heat pumps'
+  'Wood waste'
+  'Straw for energy purposes'
+  'Natural gas (Extraction)'
+  'Renewable energy'
+  'Liquid biofuels'
+  /;
+
+# 1.4 Update exists-dummies in the model
+@add_exist_dummies_to_model(energy_price_partial);
