@@ -21,8 +21,7 @@ using .Log: @log_time
 Log.setup!(file=joinpath(@__DIR__, "..", "greu.log"))
 
 # Temporary hardcoded GAMS location
-# GAMS is used to the Conopt optimizer, until JuMP supports it natively.
-# We also use GAMS to read the data from GDX files.
+# GAMS is used for the Conopt optimizer, until JuMP supports it natively.
 if !contains(ENV["PATH"], "GAMS")
   GAMS_DIR = raw"C:\GAMS\52"
 	ENV["GAMS_SYSDIR"] = GAMS_DIR

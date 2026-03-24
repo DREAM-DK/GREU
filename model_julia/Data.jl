@@ -5,7 +5,7 @@
 # Modules extract their own sets and parameters from this.
 
 module Data
-	using GAMS
+	using GDXInterface
 
 	const gdx_path = joinpath(@__DIR__, "..", "data", "data.gdx")
 	const gdx = read_gdx(gdx_path)
@@ -21,7 +21,8 @@ module Data
 	function load_int_set(name::Symbol)
 		df = gdx[name]
 		col = first(names(df))
-		return parse.(Int, df[!, col])
+		vals = df[!, col]
+		return vals isa Vector{Int} ? vals : parse.(Int, vals)
 	end
 
 	# Helper to load parameter/variable-level data as Dict{Tuple, Float64}

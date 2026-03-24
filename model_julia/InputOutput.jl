@@ -9,7 +9,7 @@ module InputOutput
 import JuMP
 using SquareModels
 using ..GrowthInflationAdjustment
-using ..Data: gdx, load_set, load_parameter, load_parameter!
+using ..Data: load_set, load_parameter, load_parameter!
 import ..db, ..t, ..t1, ..T, ..tBase, ..ForecastConstant
 
 # ==========================================================================
