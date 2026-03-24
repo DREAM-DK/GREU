@@ -1,0 +1,125 @@
+---
+description: Primer for agents working on the Julia implementation of the GREU model
+globs: model_julia/**/*.jl
+alwaysApply: false
+---
+
+# GREU Julia Implementation — Agent Primer
+
+## What is GREU?
+
+**Green REFORM EU** — a modular dynamic general equilibrium (CGE) model for fiscal and environmental sustainability analysis, built by [DREAM](https://dreamgruppen.dk/). The canonical implementation is in GAMS (see `model/`). Our goal is to re-implement it in Julia using **JuMP** and **SquareModels**.
+
+## Architecture Overview
+
+The Julia code lives in `model_julia/`. Entry point is `GREU.jl`, which `include`s everything else. There is no `module GREU` — the top-level file runs as a script.
+
+```
+model_julia/
+  GREU.jl                       # Entry point: env setup, model container, calibration pipeline, tests
+  Data.jl                       # Reads data/data.gdx once; exports load_set, load_parameter, load_parameter!
+  GrowthInflationAdjustment.jl  # Stationarity tags (GrowthAdjusted, InflationAdjusted) and constants (gq, gp, fq, fp, fv)
+  Logging.jl                    # @log_time macro, file + console logger
+  InputOutput.jl                # Port of model/modules/input_output.gms (the first real submodel)
+  SubmodelTemplate.jl           # Copy-this-to-start template for new submodules
+```
+
+## Key Dependencies
+
+| Package | Role |
+|---------|------|
+| **JuMP** | Algebraic modeling language for optimization |
+| **GAMS.jl** | Optimizer backend (CONOPT via GAMS) + GDX reader. From `https://github.com/MartinBonde/gams.jl` |
+| **SquareModels** | Square-system layer on top of JuMP. Local sibling repo at `../SquareModels` |
+
+The model is solved as a **CNS** (Constrained Nonlinear System) — a square system with one equation per endogenous variable, no objective function.
+
+## SquareModels Concepts
+
+- **`ModelDictionary`**: Wraps a JuMP `Model`. A name-indexed dictionary holding numeric values for all variables (both exogenous data and solved endogenous values).
+- **`@block`**: Defines equations paired 1:1 with endogenous variables. Syntax: `endo[indices], endo[indices] == RHS`. Automatically creates a residual `endo_J[indices]` added to the endogenous variable.
+- **`Block`**: The object produced by `@block`. Supports `+` (merge), `-` (remove), `copy`.
+- **`@endo_exo!`**: Swaps which variables are endogenous vs exogenous in a block (same equations, different unknowns). Used for calibration.
+- **`@variables`**: Declares JuMP variables with optional `Tag`s (e.g., `ForecastConstant`, `GrowthAdjusted`) and descriptions.
+- **`solve` / `solve!`**: Builds a fresh JuMP model, substitutes exogenous values from the dictionary, solves for endogenous variables, writes results back.
+- **`SparseZeroArray` / `∑`**: Sparse containers where missing indices are zero. `∑` sums over them.
+
+## Submodule Contract
+
+Every submodule is a Julia `module` that must export/define:
+
+| Function | Purpose |
+|----------|---------|
+| `set_data!(db)` | **Required.** Load GDX data into `ModelDictionary`, set defaults |
+| `define_equations()` | **Required.** Return a `Block` with the submodel's equations |
+| `define_calibration()` | **Required.** Return a `Block` for calibration (often calls `define_equations()` + extra calibration equations + `@endo_exo!` swaps) |
+| `set_starting_values!(db)` | *Optional.* Provide solver hints |
+| `run_tests(db)` | *Optional.* Post-calibration consistency tests |
+
+Submodules import shared state from the parent scope:
+```julia
+import ..db, ..t, ..t1, ..T, ..tBase, ..ForecastConstant
+```
+
+They are registered in `GREU.jl`'s `submodels` array and called in sequence.
+
+## Calibration Pipeline (in GREU.jl)
+
+1. **`set_data!`** — each submodule loads its GDX parameters
+2. **`define_calibration()`** — returns Block with calibration-specific endo/exo swaps
+3. **`forecast_constants!`** — extends `ForecastConstant`-tagged variables beyond `t1`
+4. **`endo_exo_data_residuals!`** — for any endogenous variable that has data: exogenize it and endogenize its residual (residuals absorb data discrepancies)
+5. **`exogenous_constant_forecast!`** — forward-fills exogenous variables missing data for `t > t1`
+6. **`solve`** — run the square system
+
+This runs twice: first **static** (single year at `t1 = calibration_year`), then **dynamic** (full horizon to `max_terminal_year`). A **zero-shock test** verifies that solving `base_model()` on the calibrated solution reproduces it exactly.
+
+## Variable Naming Conventions
+
+Prefix system (matches the GAMS codebase and README):
+- `v` = value (growth + inflation adjusted), `p` = price (inflation adjusted), `q` = quantity (growth adjusted)
+- `t` = tax rate, `r` = rate/ratio, `j`/`jf` = residual (additive / multiplicative)
+- Suffixes add disaggregation: `vY` (aggregate output) → `vY_i` (by industry) → `vY_i_d` (by industry and demand)
+
+## Data Flow
+
+The Julia implementation depends on a pre-built `data/data.gdx` produced by the GAMS pipeline (`run.py` → `data/data_from_GR.gms`). `Data.jl` reads this file once and provides lookup helpers. Submodules call `load_set(:name)` for index sets and `load_parameter!` to populate variables.
+
+## GAMS Modules Still To Port
+
+`InputOutput.jl` mirrors `model/modules/input_output.gms`. The remaining ~22 GAMS modules in `model/modules/` are not yet ported:
+
+**Core / book-keeping:** pricing, production, factor_demand, labor_market, households, government, financial_accounts, imports, exports
+**Energy / green:** energy_markets, emissions, energy_and_emissions_taxes, abatement, exports_energy, factor_demand_energy, production_CES_energydemand, consumption_disaggregated_energy
+**Other:** consumption_disaggregated, non_energy_markets, production_CET, ramsey_household
+
+When porting a new module: copy `SubmodelTemplate.jl`, study the corresponding `.gms` file, and follow the contract above. Add the new module to the `submodels` list in `GREU.jl`.
+
+## Differences from the GAMS Implementation
+
+When porting a GAMS module, be aware of these structural differences. The Julia version is **not** a line-for-line transliteration — it rethinks the architecture where Julia's type system and module system offer cleaner alternatives.
+
+### Sets: module-local, not separate files
+GAMS defines all sets in `model/sets/*.gms` (one file per topic), imported globally before any module runs. In Julia, **each submodule loads its own sets** via `Data.load_set(:name)` and stores them as module-level `const`s. Derived sets (e.g. sparsity patterns like `d1Y`, `d1M`) are computed inline from the data. There is no `model_julia/sets/` directory — sets belong to the modules that use them.
+
+### No multi-pass phasing
+GAMS uses a gamY `import_from_modules` function that re-imports every module file **five times** with a `%stage%` flag (`variables`, `equations`, `exogenous_values`, `calibration`, `tests`). Each module uses `$IF %stage% == "..."` guards. In Julia, there is **no preprocessor** — each submodule is `include`d once and exposes distinct functions (`set_data!`, `define_equations`, `define_calibration`, etc.) called explicitly by `GREU.jl`.
+
+### Tags replace variable groups
+GAMS uses `$Group` collections (`all_variables`, `G_flat_after_last_data_year`, `price_variables`, etc.) to classify variables for cross-cutting operations. Julia replaces this with **`Tag`s** on `@variables` declarations — e.g. `:: ForecastConstant` replaces membership in `G_flat_after_last_data_year`, and `:: (GrowthAdjusted, InflationAdjusted)` replaces the prefix-based grouping in `variable_groups.gms`.
+
+### `@block` replaces `$BLOCK`
+GAMS `$BLOCK` names an equation collection and an endogenous group, with a global time condition. Julia `@block` pairs each equation directly with its endogenous variable on the line above it, and automatically creates a residual variable (`_J` suffix). The time range is written inline: `vGDP[t = t1:T]`.
+
+### Calibration: `@endo_exo!` replaces `$Group+` swaps
+GAMS builds `calibration_endogenous` by starting from `main_endogenous` and adding/removing symbols with `$Group+` and `-` prefixes. Julia uses **`@endo_exo!`** on a `Block` to swap specific variable pairs. An additional step, `endo_exo_data_residuals!` (in `GREU.jl`), automatically exogenizes any endogenous variable that has data and endogenizes its residual — this is a generic mechanism that replaces per-module data-fixing in GAMS.
+
+### Julia module namespaces vs GAMS global namespace
+GAMS puts everything in one global namespace — variable names must be globally unique. Julia submodules are proper `module`s with their own scope, but all variables live on a shared `db.model` (JuMP model), so JuMP variable **names** are still effectively global. The code itself (functions, constants, local sets) is properly namespaced.
+Variables have unique names, but can be given non-unique short-hand names for convenience within a limited scope, to improve readability of equations.
+
+### Sparsity / domain filtering
+GAMS uses `$()` conditions on variables and exist-dummies (`d1Y_i_d`, etc.) to control which (i,d) combinations are active. Julia uses **conditional `@variables`** syntax (`[i=i, d=d, t=t; (i, d) in d1Y]`) and filtered comprehensions in `@block` (`for d in d if (i, d) in d1Y`).
+
+## Practical Notes
+- The model uses **mutable globals** `t1` and `T` (declared in `GREU.jl`) to control the solve horizon. Submodules reference them via `import`.
