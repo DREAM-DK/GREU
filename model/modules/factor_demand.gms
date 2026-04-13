@@ -14,6 +14,7 @@ $Group+ all_variables
   qI_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Real investments by capital type and industry."
   vI_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Investments by capital type and industry."
   rKDepr_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Capital depreciation rate by capital type and industry."
+  jI_k_i[k,i] "J-term for investments by capital type and industry."
   qInvt_i[i,t] "Net real inventory investments by industry."
   vInvt_i[i,t] "Net inventory investments by industry."
 
@@ -56,7 +57,7 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   .. vInvt_i[i,t] =E= pD['invt',t] * qInvt_i[i,t];
 
   # Capital accumulation (firms demand capital directly, investments are residual from capital accumulation)
-  .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq
+  .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq - jI_k_i[k,i]$(tDataEnd[t])
                       + jDelta_qESK[k,i,t]; # Additional investments from the energy technology model (endogenized by energy technology module) 
 
   # Link demand for investments to input-output model
@@ -108,6 +109,9 @@ $Group+ data_covered_variables factor_demand_data_variables$(t.val <= %calibrati
 d1K_k_i[k,i,t]    = abs(qK_k_i.l[k,i,t]) > 1e-9;
 
 rHurdleRate_i.l[i,t] = 0.2;
+rKDepr_k_i.l['iB',i,t] = 0.04;
+rKDepr_k_i.l['iM',i,t] = 0.15;
+rKDepr_k_i.l['iT',i,t] = 0.15;
 
 # Initialize J-term for energy technology investments to zero (allows partial equilibrium when energy technology module is off)
 jDelta_qESK.l[k,i,t] = 0;
@@ -146,7 +150,7 @@ $Group calibration_endogenous
   -qK_k_i[k,i,t1], qK2qY_k_i[k,i,t1]
   -qL_i[i,t1], qL2qY_i[i,t1]
   -qD[i,t1], qR2qY_i[i,t1]
-  -qI_k_i[k,i,t1], rKDepr_k_i[k,i,t1]
+  -qI_k_i[k,i,t1], jI_k_i[k,i]
   -qInvt_i[i,t1], qInvt2qY_i[i,t1]
 
   calibration_endogenous
