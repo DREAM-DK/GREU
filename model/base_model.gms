@@ -109,6 +109,7 @@ main.optfile=1;
 # =============================================================================
 @import_from_modules("exogenous_values")
 @inf_growth_adjust()
+$GROUP data_covered_variables data_covered_variables$(tDataEnd[t]);
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
 
 @update_exist_dummies()

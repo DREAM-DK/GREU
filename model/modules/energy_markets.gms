@@ -422,6 +422,11 @@
 		d1qEpj[es,e,d,t]       = yes$(qEpj.l[es,e,d,t]);
 		d1pEpj_own[es,e,d,t] = yes$(pEpj_own.l[es,e,d,t]);
 
+		#HAND-HELD CORRECTION FOR DK
+		qM_CET.l['Other oil products','19000',tDataEnd]        = qM_CET.l['Other oil products','19000',tDataEnd]        - 0.000070;
+		qM_CET.l['Diesel for transport','19000',tDataEnd]      = qM_CET.l['Diesel for transport','19000',tDataEnd]      - 0.000031;
+		qM_CET.l['Natural gas incl. biongas','19000',tDataEnd] = qM_CET.l['Natural gas incl. biongas','19000',tDataEnd] - 0.000019;
+
 		
 		d1pY_CET[out,i,t] = yes$(pY_CET.l[out,i,t]);
 		d1qY_CET[out,i,t] = yes$(qY_CET.l[out,i,t]);
@@ -431,7 +436,7 @@
 
 		#Needs to come after d1pY_CET and d1pM_CET
 		d1OneSX[e,t] = yes;
-
+		d1OneSX[e,t]$(straw[e]) = no;
 		# d1OneSX[e,t]$(straw[e] or el[e] or distheat[e]) = no;
 
 		d1OneSX_y[e,t] = yes$(d1OneSX[e,t] and sum(i, d1pY_CET[e,i,t]));
@@ -575,6 +580,10 @@ $Group non_default_starting_values
 $MACRO energy_markets_calibration_starting_values
 
 $ENDIF
+
+# ------------------------------------------------------------------------------
+# Model and calibration tests
+# ------------------------------------------------------------------------------
 
 $IF %stage%=='tests':
 	
