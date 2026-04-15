@@ -58,7 +58,7 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
 
   # Capital accumulation (firms demand capital directly, investments are residual from capital accumulation)
   .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq - jI_k_i[k,i]$(tDataEnd[t])
-                      + jDelta_qESK[k,i,t]; # Additional investments from the energy technology model (endogenized by energy technology module) 
+                      + qI_k_i_energy_tech[k,i,t]; # Additional investments from the energy technology model (endogenized by energy technology module) 
 
   # Link demand for investments to input-output model
   .. qD[k,t] =E= sum(i, qI_k_i[k,i,t]);
@@ -114,7 +114,7 @@ rKDepr_k_i.l['iM',i,t] = 0.15;
 rKDepr_k_i.l['iT',i,t] = 0.15;
 
 # Initialize J-term for energy technology investments to zero (allows partial equilibrium when energy technology module is off)
-jDelta_qESK.l[k,i,t] = 0;
+qI_k_i_energy_tech.l[k,i,t] = 0;
 
 fInstCost_k_i.fx[k,i] = 0.5;
 qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not t1[t]) = fInstCost_k_i.l[k,i] * sqr((qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t-1]/fq))) * (qK_k_i.l[k,i,t-1]/fq);

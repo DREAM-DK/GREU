@@ -33,7 +33,6 @@ $IF %stage% == "variables":
     jvtBotded[i,t]$(d1Y_i[i,t]) "Value of bottom-up deductions (endogenized by energy_and_emissions_taxes module when active)."
     jvtEmmRxE[i,t]$(d1Y_i[i,t]) "Taxes on non-energy related emissions (endogenized by energy_and_emissions_taxes module when active)."
     jvEnergycostsnotinnesting[i,t]$(d1Y_i[i,t]) "Total cost of energy not in CES-nested production function (endogenized by production_CES_energydemand module when active)."
-    jDelta_vESK[i,t]$(d1Y_i[i,t]) "Difference in value of machinery capital from energy technology model (endogenized by energy technology module when active)."
 
     vGVA_i[i,t]$(d1Y_i[i,t]) "Approximation of gross value added on industry level"
   ;
@@ -74,8 +73,7 @@ $IF %stage% == "equations":
                                             vtY_i_NetTaxSub[i,t]           #Net production taxes and subsidies, excluding ETS free allowances
                                            -jvtBotded[i,t]                   #"Bottom deductions on energy-use"
                                           + jvEnergycostsnotinnesting[i,t]   #Energy costs not in nesting tree
-                                          - vNetGov2Corp_xIO[i,t]
-                                          + jDelta_vESK[i,t];
+                                          - vNetGov2Corp_xIO[i,t];
 
     .. vGVA_i[i,t] =E= sum(pf_top, pProd[pf_top,i,t]*qProd[pf_top,i,t]) - pProd['RxE',i,t]*qProd['RxE',i,t]
                       -sum(pf_bottom_e, pProd[pf_bottom_e,i,t]*qProd[pf_bottom_e,i,t]);        
@@ -161,7 +159,6 @@ $IF %stage% == "exogenous_values":
   jvtBotded.l[i,t] = 0;
   jvtEmmRxE.l[i,t] = 0;
   jvEnergycostsnotinnesting.l[i,t] = 0;
-  jDelta_vESK.l[i,t] = 0;
 
   # ------------------------------------------------------------------------------
   # Dummies 

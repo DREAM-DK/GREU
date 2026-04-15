@@ -1,5 +1,8 @@
 # First the base model is included and executed
-$IMPORT base_model.gms
+# $IMPORT base_model.gms
+
+qK_k_i_baseline.l[k,i,t] = qK_k_i.l[k,i,t];
+pK_k_i_baseline.l[k,i,t] = pK_k_i.l[k,i,t];
 
 # ------------------------------------------------------------------------------
 # Run the energy technology choice model integrated with the CGE-model
@@ -15,11 +18,26 @@ $import initial_values_energy_technology.gms;
 # Solve partial energy technology model
 # $FIX all_variables; $UNFIX energy_technology_partial_endogenous;
 # Solve energy_technology_partial_equations using CNS;
+# execute_unload 'Output/base_model_energy_technology_partial.gdx';
 
 # Solve full model
 $FIX all_variables; $UNFIX calibration_endogenous;
 # execute_unload 'Output/pre_calibration_energy_technology.gdx';
 solve calibration using CNS;
+
+vK_k_i[k,i,t]$(sameas[i,'01011']) = pK_k_i.l[k,i,t] * qK_k_i.l[k,i,t];
+vProd[pf,i,t]$(sameas[i,'01011']) = pProd.l[pf,i,t] * qProd.l[pf,i,t];
+
+parameter
+  tjek_vProd[pf,i,t]
+  tjek_qProd[pf,i,t]
+  ;
+
+tjek_vProd[pf,i,t]$(pProd_saved[pf,i,t]*qProd_saved[pf,i,t]) 
+  = (pProd.l[pf,i,t]*qProd.l[pf,i,t] / (pProd_saved[pf,i,t]*qProd_saved[pf,i,t]) -1) *100 ;
+tjek_qProd[pf,i,t]$(qProd_saved[pf,i,t]) 
+  = (qProd.l[pf,i,t] / qProd_saved[pf,i,t] - 1) *100;
+
 execute_unload 'Output/calibration_energy_technology.gdx';
 
 # ------------------------------------------------------------------------------
@@ -30,6 +48,15 @@ $IF %test_energy_technology%:
 @import_from_modules("tests")
 # Data check  -  Abort if any data covered variables have been changed by the calibration
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
+
+LOOP((pf,i,t)$(t1[t] and (sameas[pf,'BE'] or sameas[pf,'TE'] or sameas[pf,'KE'])),
+  ABORT$(abs((pProd.l[pf,i,t]*qProd.l[pf,i,t] / (pProd_saved[pf,i,t]*qProd_saved[pf,i,t]) - 1)*100) > 1e-7)
+        'Value of capital-energy nest has changed when integrating energy technology model');
+
+LOOP((pf,i,t)$(t1[t] and (sameas[pf,'BE'] or sameas[pf,'TE'] or sameas[pf,'KE'])),
+  ABORT$(abs((qProd.l[pf,i,t] / qProd_saved[pf,i,t] - 1)*100) > 1e-7)
+        'Quantity of capital-energy nest has changed when integrating energy technology model');
+
 
 # Zero shock  -  Abort if a zero shock changes any variables significantly
 @set(all_variables, _saved, .l)
