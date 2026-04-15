@@ -88,6 +88,7 @@ solve calibration using CNS;
 # @set_difference_parameters(data_covered_variables, _difference);    #This one sets the difference parameters to the difference between the current values and the values loaded from data
 # @load_previous_difference(data_covered_variables, _difference);     #This one loads previous differences from the previous_calibration.gdx file
 # @assert_no_difference(data_covered_variables, 1e-6, _difference, _previous_difference, "data_covered_variables does not change more than previously done so by calibration.");
+
 execute_unloaddi "Output/calibration.gdx";
 $GROUP G_test_data_covered_variables 
 	data_covered_variables, 
