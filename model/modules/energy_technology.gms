@@ -16,6 +16,7 @@ $SetGroup SG_Energy_technology_dummies
   d1uTE[l,es,e,d,t] "Dummy determining the existence of energy input in technology"
   d1qES_e[es,e,d,t] "Dummy determining the existence of energy use (sum across technologies)"
   d1qES[es,d,t] "Dummy determining the existence of energy service, quantity"
+  d1qI_k_i_energy_tech[k,i,t] "Dummy determining the existence of energy technology capital use"
   d1switch_energy_technology[t] "Dummy to control whether the energy technology model is turned on (=1) or off (=0)"
   d1switch_integrate_energy_technology[t] "Dummy to control whether the energy technology model is integrated with the CGE-model (=1) or not (=0)"
 ;
@@ -71,10 +72,16 @@ $Group+ all_variables
   # Variables for integration with CGE-model
   jqESE[es,e,i,t]$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t]) "Share parameter linking energy input in the energy technology model to energy input in the CGE-model"
   qESK_baseline[es,d,t]$(d1qES[es,d,t]) "Capital input in the energy technology model (baseline)"
+  
+  qI_k_i_energy_tech[k,i,t] ""
+  vI_k_i_energy_tech[k,i,t] ""
   Delta_qESK[es,d,t]$(d1qES[es,d,t]) "Difference between capital input in the energy technology model (difference between shock and baseline)"
   vESK_baseline[es,d,t]$(d1qES[es,d,t]) "Value of machinery capital (baseline)"
   Delta_vESK[es,d,t]$(d1qES[es,d,t]) "Difference between value of machinery capital in the energy technology model (difference between shock and baseline)"
   qEmmE_CCS[es,e,d,t]$(d1qES_e[es,e,d,t] and sameas(e,'Captured CO2')) "Quantity of CCS in energy services"
+
+  pK_k_i_baseline[k,i,t] "Baseline user cost of capital"
+  qK_k_i_baseline[k,i,t] "Baseline capital quantity"
 ;
 
 parameter
@@ -167,12 +174,19 @@ $BLOCK energy_technology_equations_links energy_technology_endogenous_links $(t1
   # qES is determined by the CGE-model. jES (exogenous) is the difference between qES and qREes in the baseline
   .. qES[es,i,t] =E= jES[es,i,t]*qREes[es,i,t];
 
-  # pTK is determined by the CGE-model. jpTK (exogenous) is the relative difference between pTK and pK_k_i['iM',i,t] in the baseline
-  .. pTK[i,t] =E= pK_k_i['iM',i,t]*jpTK[i,t];
+  # When integrating the energy technology model with the CGE-model, the change in pTK is determined by the CGE-model. 
+  # jpTK (exogenous) is the relative difference between pTK and pK_k_i['iM',i,t] in the baseline
+  .. pTK[i,t] =E= pD['iM',t]*jpTK[i,t];
 
-  #jqESE is endogenous when calibrating the model. In shocks, jqESE is exogenous and uREa is endogenous
+  # jqESE is endogenous when calibrating the model. In shocks, jqESE is exogenous and uREa is endogenous
   # Note that when this equation is used in the calibration model, then it removes E_uREa_flat for these dimensions
   uREa[es,e,i,t]$(d1qES_e[es,e,i,t]).. qESE[es,e,i,t] + jqESE[es,e,i,t] =E= qREa[es,e,i,t];
+
+  # Link energy technology capital use to factor demand module
+  .. qI_k_i_energy_tech[k,i,t] =E= sum(es$(es2k[es,k]), qESK[es,i,t]);
+
+  # Link energy technology capital value to factor demand module
+  .. vI_k_i_energy_tech[k,i,t] =E= sum(es$(es2k[es,k]), vESK[es,i,t]);
 
   # Difference in capital use between the baseline and the shock
   .. Delta_qESK[es,d,t] =E= qESK[es,d,t] - qESK_baseline[es,d,t];
@@ -182,16 +196,18 @@ $BLOCK energy_technology_equations_links energy_technology_endogenous_links $(t1
 
   # Link energy technology capital investments to factor demand module (aggregate approximation)
   # This endogenizes the J-term defined in factor_demand.gms, aggregating energy technology capital investments
-  jDelta_qESK[k,i,t]$(sameas[k,'iM'] and d1K_k_i[k,i,t])..
-    jDelta_qESK[k,i,t] =E= sum(es$(d1qES[es,i,t]), Delta_qESK[es,i,t]);
+  # jDelta_qESK[k,i,t]$(sameas[k,'iM'] and d1K_k_i[k,i,t])..
+  #   jDelta_qESK[k,i,t] =E= sum(es$(d1qES[es,i,t]), Delta_qESK[es,i,t]);
 
   # Link energy technology capital value differences to production module (aggregate approximation)
   # J-term stands in for sum(es, Delta_vESK[es,i,t]) used in production.gms equation
-  jDelta_vESK[i,t]$(d1Y_i[i,t])..
-    jDelta_vESK[i,t] =E= sum(es$(d1qES[es,i,t]), Delta_vESK[es,i,t]);
+  # jDelta_vESK[i,t]$(d1Y_i[i,t])..
+  #   jDelta_vESK[i,t] =E= sum(es$(d1qES[es,i,t]), Delta_vESK[es,i,t]);
     
   # CCS in energy services
   .. qEmmE_CCS[es,e,d,t] =E= qESE[es,e,d,t];
+
+
 
 $ENDBLOCK
 
@@ -280,6 +296,18 @@ $IF1 %generic_energy_technology_data% == 0:
   execute_load "../data/Energy_technology_data/Excel_data/Energy_technology_data.gdx" LifeSpan=LifeSpan;
 $ENDIF1
 
+# LBS Midlertidig sletning af data for at teste integration af energy technology model med CGE-model
+sqTPotential.l[l,es,d,t]$(not (sameas[es,'heating'] and sameas[d,'01011'])) = no;
+uTE.l[l,es,e,d,t]$(not (sameas[es,'heating'] and sameas[d,'01011'])) = no;
+vTI.l[l,es,d,t]$(not (sameas[es,'heating'] and sameas[d,'01011'])) = no;
+vTC.l[l,es,d,t]$(not (sameas[es,'heating'] and sameas[d,'01011'])) = no;
+pTK.l[d,t]$(not sameas[d,'01011']) = no;
+qES.l[es,d,t]$(not (sameas[es,'heating'] and sameas[d,'01011'])) = no;
+
+# LBS Midlertidig reduktion af investment costs for at teste integration af energy technology model med CGE-model
+vTI.l[l,es,d,t] = vTI.l[l,es,d,t] * 0.1;
+vTC.l[l,es,d,t] = vTC.l[l,es,d,t] * 0.1;
+
 # 3.2 Initial Values
 # Set discount rate
 DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
@@ -299,6 +327,7 @@ d1uTE[l,es,e,d,t] = yes$(uTE.l[l,es,e,d,t]);
 d1pTK[d,t] = yes$(sum((l,es), d1sqTPotential[l,es,d,t]));
 d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 d1qES[es,d,t] = yes$(qES.l[es,d,t]);
+d1qI_k_i_energy_tech[k,i,t] = yes$(sum((l,es)$(es2k[es,k]), d1sqTPotential[l,es,i,t]));
 
 # 4.4 Starting values for Levelized Cost of Energy (LCOE)
 uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,es,d,t]) =
@@ -327,18 +356,33 @@ $ENDIF # exogenous_values
 # ------------------------------------------------------------------------------
 $IF %stage% == "calibration":
 
+$BLOCK energy_technology_calibration energy_technology_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val and d1switch_energy_technology[t])
 
-model calibration / energy_technology_equations /;
+  qK_k_i&energy_tech[k,i,t]$(t1[t] and d1qI_k_i_energy_tech[k,i,t])..
+    pK_k_i[k,i,t]*qK_k_i[k,i,t] =E= pK_k_i_baseline[k,i,t]*qK_k_i_baseline[k,i,t] 
+                                  - vI_k_i_energy_tech[k,i,t];
+
+
+$ENDBLOCK
+
+model calibration / 
+  energy_technology_equations
+  energy_technology_calibration
+/;
 
 # 4.2 Calibration Variables
 $GROUP calibration_endogenous
   calibration_endogenous
   energy_technology_endogenous
+  energy_technology_calibration_endogenous
+  # -jI_k_i[k,i]$(sameas[k,'iB'] and sum(t, d1switch_energy_technology[t])), qK_k_i$(t0[t] and sameas[k,'iB'] and d1switch_energy_technology[t])
+  -jI_k_i[k,i]$(sum(t, d1qI_k_i_energy_tech[k,i,t]) and sum(t, d1switch_energy_technology[t])), qK_k_i$(t0[t] and sum(tt, d1qI_k_i_energy_tech[k,i,tt]) and d1switch_energy_technology[t])
   -qES[es,i,t], jES[es,i,t]
   -pTK[i,t], jpTK[i,t]
   -uREa$(t.val > t1.val), jqESE[es,e,i,t] # NB: The equation for uREa in the link equations remove the equation E_uREa_flat for these dimensions
   -Delta_qESK[es,d,t], qESK_baseline[es,d,t]
   -Delta_vESK[es,d,t], vESK_baseline[es,d,t]
+
 ;
 
 # 4.3 Flat Variables After Last Data Year
@@ -361,3 +405,16 @@ $Group non_default_starting_values
 $MACRO energy_technology_calibration_starting_values
 
 $ENDIF # calibration
+
+# ------------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------------
+$IF %stage% == "tests":
+
+# parameter pREes_mechanic_CGE[es,i,t];
+
+# pREes_mechanic_CGE[es,i,t]$(d1qES[es,d,t]) 
+#   = sum((e_a)$(d1pREa_inNest[es,e_a,i,t]), pREa.l[es,e_a,i,t] * qREa_saved[es,e_a,i,t])
+#   / qREes_saved[es,i,t];
+
+$ENDIF # tests
