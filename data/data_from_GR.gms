@@ -153,12 +153,9 @@ set tData[t]/2020/;
 #Start creating energy-IO and energybalance in values based on energybalance in quantities
 #===============================================================================
 
+$IF1 %auto_generate_energy_IO%:
 
-#Insert "data"
-
-
-
-
+#-----------0.1: All variables--------------
 $GROUP G_variables_for_IO 
   vD_[e,d,t]   "Final demand"
 
@@ -196,12 +193,13 @@ $GROUP G_variables_for_IO
   qD__[e,es,d,t]$(tAdj[t]) "Demand, from data, disaggregated on energy services"
 
 ;
-
+#--------------0.2: Dummies------------
 $LOOP G_variables_for_IO:
   PARAMETER d1{name}{sets};
   d1{name}{sets} = yes$({name}.l{sets});
 $ENDLOOP
 
+#--------------0.3: Endogenous and strictly positive variables for industry-section of IO-----------
 $GROUP G_adjust_endo 
 
   pS_y[e,i,t] "Domestic price of energy"
@@ -217,7 +215,7 @@ $GROUP G_adjust_endo
   obj "Minimizing this"
   
 ;
-
+#-----------------0.4: Exogenous variables relating to industry-section of IO------------
 $GROUP G_adjust_exo 
   vIOE0__y[i,d,t]$(vIO_y[i,d,t]) "Initial energy-IO"
   vIOE0__m[i,d,t]$(vIO_m[i,d,t]) "Initial energy-IO"
@@ -234,7 +232,7 @@ $GROUP G_adjust_exo
 
 
 ;
-
+#------------------0.5: Endogenous variables for GVA-section of IO-------------
 $GROUP G_adjust_a_endo 
   vIOxE__a[a_rows_,d,t]$(tAdj[t]) "Final non-energy-IO, a-rows, taxes"
   vIOE__a[a_rows_,d,t]$(tAdj[t]) "Final energy-IO, a-rows, taxes"
@@ -242,7 +240,7 @@ $GROUP G_adjust_a_endo
   tau_ts[e,es,d,t]$(tAdj[t]) "Tax on energy service"
   tau_moms[e,es,d,t]$(tAdj[t]) "VAT on energy service"
 ;
-
+#-------------------0.6: Exogenous variables for GVA-section of IO-------------
 $GROUP G_adjust_a_exo 
   vIOxE0__a[a_rows_,d,t]$(vIO_a[a_rows_,d,t] and tAdj[t]) "Initial non-energy-IO, a-rows, taxes"
   vIOE0__a[a_rows_,d,t]$(vIO_a[a_rows_,d,t] and tAdj[t]) "Initial energy-IO, a-rows, taxes"
@@ -250,9 +248,22 @@ $GROUP G_adjust_a_exo
   tau_ts0[e,es,d,t]$(tAdj[t]) "Initial tax on energy service"
   tau_moms0[e,es,d,t]$(tAdj[t]) "Initial VAT on energy service"
 ;
-
+#Data year
 set tAdj[t]/2020/;
+#-------------------1.1: Define function for punishing deviations-------------
+$FUNCTION penalty({balanced},{initial},{method}):
 
+$IF2 {method}=='RAS':
+                sqrt(sqr({balanced} * (log(sqrt(sqr((1e-12+{balanced})/{initial})))-1) ))
+$ENDIF2
+
+$IF3 {method}=='SQR':
+                sqr({balanced}/{initial}-1)
+$ENDIF3
+
+$ENDFUNCTION 
+
+#------------------1.2: Insert data for exogenous variables---------------
 #prepare energy quantities
 qD_.l[e,d,t] =sum((es,transaction)$(demand_transaction[transaction] and Energybalance['PJ',transaction,d,es,e,t]),Energybalance['PJ',transaction,d,es,e,t]);
 qD__.l[e,es,d,t] = sum((transaction)$(demand_transaction[transaction] and Energybalance['PJ',transaction,d,es,e,t]),Energybalance['PJ',transaction,d,es,e,t]);
@@ -273,13 +284,15 @@ vS0_y.l[e,i,t]$(tAdj[t]) = qS_y.l[e,i,t]*price_vector0.l[e,t];
 vS0_m.l[e,i,t]$(tAdj[t]) = qS_m.l[e,i,t]*price_vector0.l[e,t];
 vIOE0__y.l[i,d,t]$(tAdj[t])=sum(e$(qS_y.l[e,i,t]),vS0_Y.l[e,i,t]/sum(i_a$(qS_y.l[e,i_a,t]),vS0_y.l[e,i_a,t])*vD0.l[e,d,t]);
 vIOE0__m.l[i,d,t]$(tAdj[t])=sum(e$(qS_m.l[e,i,t]),vS0_M.l[e,i,t]/sum(i_a$(qS_m.l[e,i_a,t]),vS0_m.l[e,i_a,t])*vD0.l[e,d,t]);
-
+vIOxE0__y.l[i,d,t]$(tAdj[t])=vIO_y[i,d,t] - vIOE0__y.l[i,d,t];
+vIOxE0__m.l[i,d,t]$(tAdj[t])=vIO_m[i,d,t] - vIOE0__m.l[i,d,t];
 #Energy IO, GVA
 vIOxE0__a.l[a_rows_,d,t]$(tAdj[t] and vIO_a[a_rows_,d,t]) = vIO_a[a_rows_,d,t]/2;
 vIOE0__a.l[a_rows_,d,t]$(tAdj[t] and vIO_a[a_rows_,d,t]) = vIO_a[a_rows_,d,t]/2;
 tau_ts0.l[e,es,d,t]$(tAdj[t]) = 0.05;
 tau_moms0.l[e,es,d,t]$(tAdj[t]) = 0.15;
 
+#--------------------------2.1: Define model--------------------------------
 $BLOCK B_create_vDS_energy_and_energy_IO
 
 #We write up model-restrictions
@@ -306,23 +319,23 @@ $BLOCK B_create_vDS_energy_and_energy_IO
                   #Domestic supply and demand
                   #£KPN: If we can ensure non-negative initial values, we should probably just condition on >0, IMO the potential for negatives in xE's is quite high and culprits are likely to be quite distinct across different data sets.
                   #£KPN, we probably do want to count the potential negatives towards the objective, since they represent quantities that we want to fit into the IO-system.
-                  sum((t,i,d)$(tAdj[t] and vIO_y[i,d,t] and sum(e,qS_y.l[e,i,t]) and vIOxE0__y.l[i,d,t]<>0 and sum(e, qD_.l[e,d,t])), sqr((vIOxE__y[i,d,t] - vIOxE0__y[i,d,t])/vIOxE0__y[i,d,t])) 
-                  +
-                 sum((t,i,d)$(tAdj[t] and vIO_y[i,d,t] and vIOE0__y.l[i,d,t]<>0 and sum(e,qS_y.l[e,i,t]) and sum(e, qD_.l[e,d,t])), sqr((vIOE__y[i,d,t] - vIOE0__y[i,d,t])/vIOE0__y[i,d,t]))
-                  #Imports and demand
-                + sum((t,i,d)$(tAdj[t] and vIO_m[i,d,t] and sum(e,qS_m.l[e,i,t]) and vIOxE0__m.l[i,d,t]<>0 and sum(e, qD_.l[e,d,t])), sqr((vIOxE__m[i,d,t] - vIOxE0__m[i,d,t])/vIOxE0__m[i,d,t]))
-                + sum((t,i,d)$(tAdj[t] and vIO_m[i,d,t] and sum(e,qS_m.l[e,i,t]) and vIOE0__m.l[i,d,t]<>0 and sum(e, qD_.l[e,d,t])), sqr((vIOE__m[i,d,t] - vIOE0__m[i,d,t])/vIOE0__m[i,d,t]))
-                  #Energy-prices
-                + sum((t,i,e)$(tAdj[t] and qS_y.l[e,i,t]), sqr((pS_y[e,i,t]-price_vector0[e,t])/price_vector0[e,t]))
-                + sum((t,i,e)$(tAdj[t] and qS_m.l[e,i,t]), sqr((pS_m[e,i,t]-price_vector0[e,t])/price_vector0[e,t]))
-                + sum((t,d,e)$(tAdj[t] and qD_.l[e,d,t]),   sqr((pD_[e,d,t]-price_vector0[e,t])/price_vector0[e,t]))
+                  sum((t,i,d)$(tAdj[t] and vIO_y[i,d,t] and sum(e,qS_y.l[e,i,t]) and vIOxE0__y.l[i,d,t]<>0 and sum(e, qD_.l[e,d,t])), @penalty(vIOxE__y[i,d,t], vIOxE0__y.l[i,d,t], 'RAS'))
+                +sum((t,i,d)$(tAdj[t] and vIO_y[i,d,t] and sum(e,qS_y.l[e,i,t]) and vIOE0__y.l[i,d,t]<>0 and sum(e, qD_.l[e,d,t])), @penalty(vIOE__y[i,d,t], vIOE0__y.l[i,d,t], 'RAS'))
+                  
+                #Imports and demand
+                +sum((t,i,d)$(tAdj[t] and vIO_m[i,d,t] and sum(e,qS_m.l[e,i,t]) and vIOxE0__m.l[i,d,t]<>0 and sum(e, qD_.l[e,d,t])), @penalty(vIOxE__m[i,d,t], vIOxE0__m.l[i,d,t], 'RAS'))
+                +sum((t,i,d)$(tAdj[t] and vIO_m[i,d,t] and sum(e,qS_m.l[e,i,t]) and vIOE0__m.l[i,d,t]<>0 and sum(e, qD_.l[e,d,t])), @penalty(vIOE__m[i,d,t], vIOE0__m.l[i,d,t], 'RAS'))
                 
-                +sum((t,a_rows_,d)$(tAdj[t] and vIO_a[a_rows_,d,t] and vIOxE0__a.l[a_rows_,d,t]<>0), sqr((vIOxE__a[a_rows_,d,t] - vIOxE0__a[a_rows_,d,t])/vIOxE0__a[a_rows_,d,t]))
-                +sum((t,a_rows_,d)$(tAdj[t] and vIO_a[a_rows_,d,t] and vIOE0__a.l[a_rows_,d,t]<>0), sqr((vIOE__a[a_rows_,d,t] - vIOE0__a[a_rows_,d,t])/vIOE0__a[a_rows_,d,t]))
-                #a-row-split
-                +sum((e,es,d,t)$(tAdj[t] and qD__.l[e,es,d,t]), sqr((tau_ts0[e,es,d,t]-tau_ts[e,es,d,t])/tau_ts0[e,es,d,t]))
-                +sum((e,es,d,t)$(tAdj[t] and qD__.l[e,es,d,t]), sqr((tau_moms0[e,es,d,t]-tau_moms[e,es,d,t])/tau_moms0[e,es,d,t]))
+                #Energy-prices
+                +sum((t,i,e)$(tAdj[t] and qS_y.l[e,i,t]), @penalty(pS_y[e,i,t], price_vector0[e,t], 'RAS'))
+                +sum((t,i,e)$(tAdj[t] and qS_m.l[e,i,t]), @penalty(pS_m[e,i,t], price_vector0[e,t], 'RAS'))
+                +sum((t,d,e)$(tAdj[t] and qD_.l[e,d,t]), @penalty(pD_[e,d,t], price_vector0[e,t], 'RAS'))
 
+                +sum((t,a_rows_,d)$(tAdj[t] and vIO_a[a_rows_,d,t] and vIOxE0__a.l[a_rows_,d,t]<>0), @penalty(vIOxE__a[a_rows_,d,t], vIOxE0__a[a_rows_,d,t], 'RAS'))
+                +sum((t,a_rows_,d)$(tAdj[t] and vIO_a[a_rows_,d,t] and vIOE0__a.l[a_rows_,d,t]<>0), @penalty(vIOE__a[a_rows_,d,t], vIOE0__a[a_rows_,d,t], 'RAS'))
+                #a-row-split
+                +sum((e,es,d,t)$(tAdj[t] and qD__.l[e,es,d,t]), @penalty(tau_ts[e,es,d,t], tau_ts0[e,es,d,t], 'RAS'))
+                +sum((e,es,d,t)$(tAdj[t] and qD__.l[e,es,d,t]), @penalty(tau_moms[e,es,d,t], tau_moms0[e,es,d,t], 'RAS'))
     ;
                 ;
 $ENDBLOCK 
@@ -335,7 +348,7 @@ $MODEL M_create_vDS_energy_and_energy_IO
 vIO_y[i,'invt_ene',t]$(vIO_y[i,'invt',t] and sum(e,qS_y.l[e,i,t])) = 10-7;
 vIO_m[i,'invt_ene',t]$(vIO_m[i,'invt',t] and sum(e,qS_m.l[e,i,t])) = 10-7;
 
-
+#----------------------------2.2: Solve model-----------------------------------
 $FIX G_adjust_exo;
 $FIX G_adjust_a_exo;
 $UNFIX(0,inf) G_adjust_endo; #We generally want a positive solution
@@ -346,6 +359,7 @@ $UNFIX vIOE__y[i,'invt_ene',t]$(vIO_y[i,'invt_ene',t]), vIOE__m[i,'invt_ene',t]$
 
 Solve M_create_vDS_energy_and_energy_IO using NLP minimizing obj;
 
+$ENDIF1
 #===============================================================================
 #Start creating energy-IO and energybalance in values based on energybalance in quantities
 #===============================================================================
@@ -545,11 +559,11 @@ $ENDFUNCTION
 ### C) Tests of energy-IO and energybalance (pt 2.) 
 @test_data();
 
-
+$IF4 %auto_generate_energy_IO%:
 parameter checkrow_EIO__y[i,t],checkrow_actual_EIO__y[i,t];
 checkrow_EIO__y[i,t]=sum(d,vIOE__y.l[i,d,t])-sum(i_a,vIOE__y.l[i_a,i,t]);
 checkrow_actual_EIO__y[i,t]=sum(d,vIOE_y[i,d,t])-sum(i_a,vIOE_y[i_a,i,t]);
-
+$ENDIF4
 #£)
   #Inserting energy-inputs into IO
   vIO_y[i,'xENE',t]         = vIOE_y[i,'xENE',t]; 
@@ -848,12 +862,13 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
   $import Energy_technology_data/Generic_dummy_data/calib_energy_technologies.gms
 
 #tjek
+$IF5 %auto_generate_energy_IO%:
 Parameter test_vIOE__y[i,d,t], test_vIOE__m[i,d,t], test_vIOE__y_rel[i,d,t], test_vIOE__m_rel[i,d,t];
 test_vIOE__y[i,d,t] = vIOE__y.l[i,d,t]-vIOE_y[i,d,t];
 test_vIOE__m[i,d,t] = vIOE__m.l[i,d,t]-vIOE_m[i,d,t];
 test_vIOE__y_rel[i,d,t] = test_vIOE__y[i,d,t]/(vIOE_y[i,d,t] + 1e-12);
 test_vIOE__m_rel[i,d,t] = test_vIOE__m[i,d,t]/(vIOE_m[i,d,t] + 1e-12);
-
+$ENDIF5
 
 ###  F) Unload gdx with data in parameters with same names as model-variables, to be read into model
 execute_unload 'data'
