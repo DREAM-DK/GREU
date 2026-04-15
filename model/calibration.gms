@@ -88,5 +88,17 @@ solve calibration using CNS;
 # @set_difference_parameters(data_covered_variables, _difference);    #This one sets the difference parameters to the difference between the current values and the values loaded from data
 # @load_previous_difference(data_covered_variables, _difference);     #This one loads previous differences from the previous_calibration.gdx file
 # @assert_no_difference(data_covered_variables, 1e-6, _difference, _previous_difference, "data_covered_variables does not change more than previously done so by calibration.");
-# @assert_no_difference(data_covered_variables, 1e-6, _data,.l, "data_covered_variables does not change more than previously done so by calibration."); #Ideally this check should be done rather than "diff-in-diff" above
 execute_unloaddi "Output/calibration.gdx";
+$GROUP G_test_data_covered_variables 
+	data_covered_variables, 
+	-vtY_i_d[i,d_ene,t], #When energy is turned on the distribution (i x d_ene changes). The total is still tested in bottom of "energy_and_emissions.gms" 
+	-vtM_i_d[i,d_ene,t], #When energy is turned on the distribution (i x d_ene changes). The total is still tested in bottom of "energy_and_emissions.gms" 
+	-vY_i_d[i,d_ene,t],  #When energy is turned on the distribution (i x d_ene changes). The total is still tested in bottom of "energy_and_emissions.gms"
+	-vM_i_d[i,d_ene,t],  #When energy is turned on the distribution (i x d_ene changes). The total is still tested in bottom of "energy_and_emissions.gms"
+	-qD[d_ene,t], #Not data, but calibrated
+	-qD[k],  #Not data, but calibrated
+	-pProd #Not data, but calibrated
+	-vNetFinAssets #?
+	-vNetDebtInstruments
+; 
+@assert_no_difference(G_test_data_covered_variables, 1e-6, _data,.l, "data_covered_variables does not change more than previously done so by calibration."); #Ideally this check should be done rather than "diff-in-diff" above
