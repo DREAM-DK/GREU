@@ -88,12 +88,12 @@ uTE[l+3,es,e,d,t]$(sum(ll, sqTPotential_large[ll,es,d,t]) and last_tech[l,es,d,t
 # ----------------------------------------------------------------------------------------
 
 uTKexp[l,es,i,t]$(sqTPotential[l,es,i,t])
- = 0.1;
+ = 0.01;
 
 ## Assign uTK to the large technologies 
-uTKexp[l+1,es,d,t]$(sum(ll, sqTPotential_large[ll,es,d,t]) and last_tech[l,es,d,t]) = 0.1+0.05;
-uTKexp[l+2,es,d,t]$(sum(ll, sqTPotential_large[ll,es,d,t]) and last_tech[l,es,d,t]) = 0.1+0.1;
-uTKexp[l+3,es,d,t]$(sum(ll, sqTPotential_large[ll,es,d,t]) and last_tech[l,es,d,t]) = 0.1+0.15;
+uTKexp[l+1,es,d,t]$(sum(ll, sqTPotential_large[ll,es,d,t]) and last_tech[l,es,d,t]) = 0.01+0.005;
+uTKexp[l+2,es,d,t]$(sum(ll, sqTPotential_large[ll,es,d,t]) and last_tech[l,es,d,t]) = 0.01+0.01;
+uTKexp[l+3,es,d,t]$(sum(ll, sqTPotential_large[ll,es,d,t]) and last_tech[l,es,d,t]) = 0.01+0.015;
 
 vTI[l,es,i,t]$(sqTPotential[l,es,i,t]) 
   = uTKexp[l,es,i,t]*@FiniteGeometricSeries({1}, {DiscountRate[l,es,i]}, {LifeSpan[l,es,i,t]})

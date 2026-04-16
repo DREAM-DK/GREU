@@ -304,16 +304,12 @@ vTC.l[l,es,d,t]$(not (sameas[es,'heating'] and sameas[d,'01011'])) = no;
 pTK.l[d,t]$(not sameas[d,'01011']) = no;
 qES.l[es,d,t]$(not (sameas[es,'heating'] and sameas[d,'01011'])) = no;
 
-# LBS Midlertidig reduktion af investment costs for at teste integration af energy technology model med CGE-model
-vTI.l[l,es,d,t] = vTI.l[l,es,d,t] * 0.1;
-vTC.l[l,es,d,t] = vTC.l[l,es,d,t] * 0.1;
-
 # 3.2 Initial Values
 # Set discount rate
 DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
 
 # Set smoothing parameters
-eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.03;
+eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.1;
 eP.l[l,es,'55560',t]$(sqTPotential.l[l,es,'55560',t]) = 0.05;
 
 # Set share parameter
@@ -407,7 +403,7 @@ $MACRO energy_technology_calibration_starting_values
 $ENDIF # calibration
 
 # ------------------------------------------------------------------------------
-# Tests
+# Tests calibration
 # ------------------------------------------------------------------------------
 $IF %stage% == "tests":
 
@@ -416,5 +412,28 @@ $IF %stage% == "tests":
 # pREes_mechanic_CGE[es,i,t]$(d1qES[es,d,t]) 
 #   = sum((e_a)$(d1pREa_inNest[es,e_a,i,t]), pREa.l[es,e_a,i,t] * qREa_saved[es,e_a,i,t])
 #   / qREes_saved[es,i,t];
+
+$ENDIF # tests
+
+# ------------------------------------------------------------------------------
+# Tests shock
+# ------------------------------------------------------------------------------
+$IF %stage% == "tests_shock":
+
+parameter pREes_change_warning[es,i,t];
+
+LOOP((es,i,t)$(t1.val <= t.val and t.val <= tEnd.val and d1qES[es,i,t] and sum((em,e), tCO2_Emarg_pj.l[em,es,e,i,t]-tCO2_Emarg_pj_baseline.l[em,es,e,i,t])>0),
+  if (pREes_change.l[es,i,t] < 0,
+    put_utility 'log' / 'WARNING: Negative change in price of energy service in the CGE model (continuing run)';
+    pREes_change_warning[es,i,t] = pREes_change.l[es,i,t];
+  );
+);
+
+LOOP((es,i,t)$(t1.val <= t.val and t.val <= tEnd.val and d1qES[es,i,t] and sum((em,e), tCO2_Emarg_pj.l[em,es,e,i,t]-tCO2_Emarg_pj_baseline.l[em,es,e,i,t])>0),
+  if (pREes_change.l[es,i,t] > pREes_mechanic_change.l[es,i,t],
+    put_utility 'log' / "WARNING: Change in price of energy service in the CGE model exceed mechanical price change (continuing run)";
+    pREes_change_warning[es,i,t] = pREes_change.l[es,i,t];
+  );
+);
 
 $ENDIF # tests

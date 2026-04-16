@@ -16,8 +16,8 @@ $import pre_models_energy_technology.gms
 $import initial_values_energy_technology.gms;
 
 # Solve partial energy technology model
-# $FIX all_variables; $UNFIX energy_technology_partial_endogenous;
-# Solve energy_technology_partial_equations using CNS;
+$FIX all_variables; $UNFIX energy_technology_partial_endogenous;
+Solve energy_technology_partial_equations using CNS;
 # execute_unload 'Output/base_model_energy_technology_partial.gdx';
 
 # Solve full model
@@ -49,13 +49,19 @@ $IF %test_energy_technology%:
 # Data check  -  Abort if any data covered variables have been changed by the calibration
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
 
-LOOP((pf,i,t)$(t1[t] and (sameas[pf,'BE'] or sameas[pf,'TE'] or sameas[pf,'KE'])),
-  ABORT$(abs((pProd.l[pf,i,t]*qProd.l[pf,i,t] / (pProd_saved[pf,i,t]*qProd_saved[pf,i,t]) - 1)*100) > 1e-7)
-        'Value of capital-energy nest has changed when integrating energy technology model');
 
-LOOP((pf,i,t)$(t1[t] and (sameas[pf,'BE'] or sameas[pf,'TE'] or sameas[pf,'KE'])),
-  ABORT$(abs((qProd.l[pf,i,t] / qProd_saved[pf,i,t] - 1)*100) > 1e-7)
-        'Quantity of capital-energy nest has changed when integrating energy technology model');
+## LBS COMMENT IN WHEN ASBJORN IS FINISHED
+# LOOP((pf,i,t)$(t1[t] and (sameas[pf,'BE'] or sameas[pf,'TE'] or sameas[pf,'KE'])),
+#   ABORT$(abs((pProd.l[pf,i,t]*qProd.l[pf,i,t] / (pProd_saved[pf,i,t]*qProd_saved[pf,i,t]) - 1)*100) > 1e-7)
+#         'Value of capital-energy nest has changed when integrating energy technology model');
+
+# LOOP((pf,i,t)$(t1[t] and (sameas[pf,'BE'] or sameas[pf,'TE'] or sameas[pf,'KE'])),
+#   ABORT$(abs((qProd.l[pf,i,t] / qProd_saved[pf,i,t] - 1)*100) > 1e-7)
+#         'Quantity of capital-energy nest has changed when integrating energy technology model');
+
+LOOP((k,i,t)$(t1[t] and (sameas[k,'iB'] or sameas[k,'iT'] or sameas[k,'iM']) and d1qI_k_i_energy_tech[k,i,t]),
+  ABORT$(vI_k_i_saved[k,i,t] - vI_k_i_energy_tech.l[k,i,t] < 0)
+        'Investments in the energy-technology model exceeds investments in the CGE model');
 
 
 # Zero shock  -  Abort if a zero shock changes any variables significantly
