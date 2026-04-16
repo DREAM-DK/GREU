@@ -17,6 +17,9 @@ $SetGroup SG_Energy_technology_dummies
   d1qES_e[es,e,d,t] "Dummy determining the existence of energy use (sum across technologies)"
   d1qES[es,d,t] "Dummy determining the existence of energy service, quantity"
   d1qI_k_i_energy_tech[k,i,t] "Dummy determining the existence of energy technology capital use"
+;
+
+parameter
   d1switch_energy_technology "Dummy to control whether the energy technology model is turned on (=1) or off (=0)"
   d1switch_integrate_energy_technology "Dummy to control whether the energy technology model is integrated with the CGE-model (=1) or not (=0)"
 ;
@@ -306,6 +309,8 @@ d1pTK[d,t] = yes$(sum((l,es), d1sqTPotential[l,es,d,t]));
 d1qES_e[es,e,d,t] = yes$(sum(l, d1uTE[l,es,e,d,t]));
 d1qES[es,d,t] = yes$(qES.l[es,d,t]);
 d1qI_k_i_energy_tech[k,i,t] = yes$(sum((l,es)$(es2k[es,k]), d1sqTPotential[l,es,i,t]));
+d1switch_energy_technology = 1;
+d1switch_integrate_energy_technology = 1;
 
 # 4.4 Starting values for Levelized Cost of Energy (LCOE)
 uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,es,d,t]) =
