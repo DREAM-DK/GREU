@@ -12,8 +12,8 @@ vI_k_i_baseline.l[k,i,t] = vI_k_i.l[k,i,t];
 # Run the energy technology choice model integrated with the CGE-model
 # ------------------------------------------------------------------------------
 # We turn the energy technology model on to integrate it with the CGE-model
-d1switch_energy_technology[t] = 1;
-d1switch_integrate_energy_technology[t] = 1;
+d1switch_energy_technology = 1;
+d1switch_integrate_energy_technology = 1;
 
 # Get starting values for the energy technology model
 $import pre_models_energy_technology.gms 

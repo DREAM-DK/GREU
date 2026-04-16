@@ -117,7 +117,7 @@ $GROUP data_covered_variables data_covered_variables$(tDataEnd[t]);
 # =============================================================================
 # CALIBRATION
 # =============================================================================
-d1switch_energy_technology[t] = 0; # We turn the energy technology model off while calibrating the CGE-model
+d1switch_energy_technology = 0; # We turn the energy technology model off while calibrating the CGE-model
 
 $Group calibration_endogenous ;
 @import_from_modules("calibration")

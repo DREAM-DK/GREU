@@ -17,8 +17,8 @@ $SetGroup SG_Energy_technology_dummies
   d1qES_e[es,e,d,t] "Dummy determining the existence of energy use (sum across technologies)"
   d1qES[es,d,t] "Dummy determining the existence of energy service, quantity"
   d1qI_k_i_energy_tech[k,i,t] "Dummy determining the existence of energy technology capital use"
-  d1switch_energy_technology[t] "Dummy to control whether the energy technology model is turned on (=1) or off (=0)"
-  d1switch_integrate_energy_technology[t] "Dummy to control whether the energy technology model is integrated with the CGE-model (=1) or not (=0)"
+  d1switch_energy_technology "Dummy to control whether the energy technology model is turned on (=1) or off (=0)"
+  d1switch_integrate_energy_technology "Dummy to control whether the energy technology model is integrated with the CGE-model (=1) or not (=0)"
 ;
 
 # 1.2 Main Variables
@@ -94,7 +94,7 @@ $ENDIF # variables
 # ------------------------------------------------------------------------------
 $IF %stage% == "equations":
 
-$BLOCK energy_technology_LCOE_equations energy_technology_LCOE_endogenous $(t1.val <= t.val and t.val <= tEnd.val and d1switch_energy_technology[t])
+$BLOCK energy_technology_LCOE_equations energy_technology_LCOE_endogenous $(t1.val <= t.val and t.val <= tEnd.val and d1switch_energy_technology)
 
   # Levelized cost of energy (LCOE) in technology l per PJ output at full potential
   $(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,es,d,t]).. 
@@ -118,7 +118,7 @@ $ENDBLOCK
 
 
 # 2.1 Core Model Equations
-$BLOCK energy_technology_equations_core energy_technology_endogenous_core $(t1.val <= t.val and t.val <= tEnd.val and d1switch_energy_technology[t]) 
+$BLOCK energy_technology_equations_core energy_technology_endogenous_core $(t1.val <= t.val and t.val <= tEnd.val and d1switch_energy_technology) 
 
   # 2.1.2 Technology Choice Equations
   # Equality between marginal price of energy service and marginal price of technology 
@@ -142,7 +142,7 @@ $BLOCK energy_technology_equations_core energy_technology_endogenous_core $(t1.v
 $ENDBLOCK
 
 # 2.2 Output Equations
-$BLOCK energy_technology_equations_output energy_technology_endogenous_output $(t1.val <= t.val and t.val <= tEnd.val and d1switch_energy_technology[t]) 
+$BLOCK energy_technology_equations_output energy_technology_endogenous_output $(t1.val <= t.val and t.val <= tEnd.val and d1switch_energy_technology) 
   # 2.2.1 Energy and Capital Use
   # Use of energy in production of energy service
   .. qESE[es,e,d,t] =E= 
@@ -167,7 +167,7 @@ $BLOCK energy_technology_equations_output energy_technology_endogenous_output $(
 
 $ENDBLOCK
 
-$BLOCK energy_technology_equations_links energy_technology_endogenous_links $(t1.val <= t.val and t.val <= tEnd.val and d1switch_energy_technology[t] and d1switch_integrate_energy_technology[t])
+$BLOCK energy_technology_equations_links energy_technology_endogenous_links $(t1.val <= t.val and t.val <= tEnd.val and d1switch_energy_technology and d1switch_integrate_energy_technology)
 
   # qES is determined by the CGE-model. jES (exogenous) is the difference between qES and qREes in the baseline
   .. qES[es,i,t] =E= jES[es,i,t]*qREes[es,i,t];
@@ -334,7 +334,7 @@ $ENDIF # exogenous_values
 # ------------------------------------------------------------------------------
 $IF %stage% == "calibration":
 
-$BLOCK energy_technology_calibration energy_technology_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val and d1switch_energy_technology[t])
+$BLOCK energy_technology_calibration energy_technology_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val and d1switch_energy_technology)
 
   qK_k_i&energy_tech[k,i,t]$(t1[t] and d1qI_k_i_energy_tech[k,i,t])..
     pK_k_i[k,i,t]*qK_k_i[k,i,t] =E= pK_k_i_baseline[k,i,t]*qK_k_i_baseline[k,i,t] 
@@ -353,7 +353,7 @@ $GROUP calibration_endogenous
   calibration_endogenous
   energy_technology_endogenous
   energy_technology_calibration_endogenous
-  -jI_k_i[k,i]$(sum(t, d1qI_k_i_energy_tech[k,i,t]) and sum(t, d1switch_energy_technology[t])), qK_k_i$(t0[t] and sum(tt, d1qI_k_i_energy_tech[k,i,tt]) and d1switch_energy_technology[t])
+  -jI_k_i[k,i]$(sum(t, d1qI_k_i_energy_tech[k,i,t]) and d1switch_energy_technology), qK_k_i$(t0[t] and sum(tt, d1qI_k_i_energy_tech[k,i,tt]) and d1switch_energy_technology)
   -qES[es,i,t], jES[es,i,t]
   -pTK[i,t], jpTK[i,t]
   -uREa$(t.val > t1.val), jqESE[es,e,i,t] # NB: The equation for uREa in the link equations remove the equation E_uREa_flat for these dimensions
@@ -387,18 +387,18 @@ $IF %stage% == "tests":
 
 # Test that the value of capital-energy nest in CGE model does not change.
 # Tests only the dimensions where energy technologies exists
-LOOP((pfNest,i,t)$(tDataEnd[t] and sum(k$(sum(pf_bottom_capital$(sameas[pf_bottom_capital,k]), pf_mapping[pfNest,pf_bottom_capital,i])), d1qI_k_i_energy_tech[k,i,t]) and d1switch_energy_technology[t]),
+LOOP((pfNest,i,t)$(tDataEnd[t] and sum(k$(sum(pf_bottom_capital$(sameas[pf_bottom_capital,k]), pf_mapping[pfNest,pf_bottom_capital,i])), d1qI_k_i_energy_tech[k,i,t]) and d1switch_energy_technology),
   ABORT$(abs((pProd.l[pfNest,i,t]*qProd.l[pfNest,i,t] / (pProd_baseline.l[pfNest,i,t]*qProd_baseline.l[pfNest,i,t]) - 1)*100) > 1e-7)
         'Value of capital-energy nest has changed when integrating energy technology model');
 
 # Test that the quantity of capital-energy nest in CGE model does not change.
 # Tests only the dimensions where energy technologies exists
-LOOP((pfNest,i,t)$(tDataEnd[t] and sum(k$(sum(pf_bottom_capital$(sameas[pf_bottom_capital,k]), pf_mapping[pfNest,pf_bottom_capital,i])), d1qI_k_i_energy_tech[k,i,t]) and d1switch_energy_technology[t]),
+LOOP((pfNest,i,t)$(tDataEnd[t] and sum(k$(sum(pf_bottom_capital$(sameas[pf_bottom_capital,k]), pf_mapping[pfNest,pf_bottom_capital,i])), d1qI_k_i_energy_tech[k,i,t]) and d1switch_energy_technology),
   ABORT$(abs((qProd.l[pfNest,i,t] / qProd_baseline.l[pfNest,i,t] - 1)*100) > 1e-7)
         'Quantity of capital-energy nest has changed when integrating energy technology model');
 
 # Test that investments for energy technologies do not exceed investments in data
-LOOP((k,i,t)$(tDataEnd[t] and (sameas[k,'iB'] or sameas[k,'iT'] or sameas[k,'iM']) and d1qI_k_i_energy_tech[k,i,t] and d1switch_energy_technology[t]),
+LOOP((k,i,t)$(tDataEnd[t] and (sameas[k,'iB'] or sameas[k,'iT'] or sameas[k,'iM']) and d1qI_k_i_energy_tech[k,i,t] and d1switch_energy_technology),
   ABORT$(vI_k_i_baseline.l[k,i,t] - vI_k_i_energy_tech.l[k,i,t] < 0)
         'Investments in the energy-technology model exceeds investments in the CGE model');
 

@@ -11,8 +11,8 @@ tCO2_xEmarg.l[i,t]$(d1tCO2_xE[i,t]) = tCO2_xEmarg.l[i,t] + 200 * phaseInTax[t];
 
 ## RUN CGE MODEL WITHOUT ENERGY TECHNOLOGY MODEL
 # We turn the energy technology model off
-d1switch_energy_technology[t] = 0;
-d1switch_integrate_energy_technology[t] = 0;
+d1switch_energy_technology = 0;
+d1switch_integrate_energy_technology = 0;
 
 $GROUP main_endogenous
   main_endogenous
@@ -27,8 +27,8 @@ solve main using CNS;
 
 $IF %include_energy_technology% = 1:
   ## RUN CGE MODEL WITH ENERGY TECHNOLOGY MODEL
-  d1switch_energy_technology[t] = 1;
-  d1switch_integrate_energy_technology[t] = 1;
+  d1switch_energy_technology = 1;
+  d1switch_integrate_energy_technology = 1;
 
 $GROUP main_endogenous
   main_endogenous
