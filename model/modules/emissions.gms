@@ -152,7 +152,7 @@ $IF %stage% == "exogenous_values":
     sBioNatGas
     qEmmBorderTrade
     qEmmBunkering
-    qEmmTot
+    # qEmmTot
   ;
 
 
