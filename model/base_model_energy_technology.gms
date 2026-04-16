@@ -1,8 +1,12 @@
 # First the base model is included and executed
-# $IMPORT base_model.gms
+$IMPORT base_model.gms
 
+# Save baseline values from base_model.gms
 qK_k_i_baseline.l[k,i,t] = qK_k_i.l[k,i,t];
 pK_k_i_baseline.l[k,i,t] = pK_k_i.l[k,i,t];
+pProd_baseline.l[pf,i,t] = pProd.l[pf,i,t];
+qProd_baseline.l[pf,i,t] = qProd.l[pf,i,t];
+vI_k_i_baseline.l[k,i,t] = vI_k_i.l[k,i,t];
 
 # ------------------------------------------------------------------------------
 # Run the energy technology choice model integrated with the CGE-model
@@ -25,19 +29,6 @@ $FIX all_variables; $UNFIX calibration_endogenous;
 # execute_unload 'Output/pre_calibration_energy_technology.gdx';
 solve calibration using CNS;
 
-vK_k_i[k,i,t]$(sameas[i,'01011']) = pK_k_i.l[k,i,t] * qK_k_i.l[k,i,t];
-vProd[pf,i,t]$(sameas[i,'01011']) = pProd.l[pf,i,t] * qProd.l[pf,i,t];
-
-parameter
-  tjek_vProd[pf,i,t]
-  tjek_qProd[pf,i,t]
-  ;
-
-tjek_vProd[pf,i,t]$(pProd_saved[pf,i,t]*qProd_saved[pf,i,t]) 
-  = (pProd.l[pf,i,t]*qProd.l[pf,i,t] / (pProd_saved[pf,i,t]*qProd_saved[pf,i,t]) -1) *100 ;
-tjek_qProd[pf,i,t]$(qProd_saved[pf,i,t]) 
-  = (qProd.l[pf,i,t] / qProd_saved[pf,i,t] - 1) *100;
-
 execute_unload 'Output/calibration_energy_technology.gdx';
 
 # ------------------------------------------------------------------------------
@@ -47,24 +38,13 @@ $IF %test_energy_technology%:
 
 @import_from_modules("tests")
 # Data check  -  Abort if any data covered variables have been changed by the calibration
-# @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
+$GROUP G_test_data_covered_variables 
+	G_test_data_covered_variables, 
+  -qK_k_i[k,i,t]$(d1qI_k_i_energy_tech[k,i,t])
+; 
+@assert_no_difference(G_test_data_covered_variables, 1e-6, _data,.l, "data_covered_variables does not change more than previously done so by calibration."); #Ideally this check should be done rather than "diff-in-diff" above
 
-
-## LBS COMMENT IN WHEN ASBJORN IS FINISHED
-# LOOP((pf,i,t)$(t1[t] and (sameas[pf,'BE'] or sameas[pf,'TE'] or sameas[pf,'KE'])),
-#   ABORT$(abs((pProd.l[pf,i,t]*qProd.l[pf,i,t] / (pProd_saved[pf,i,t]*qProd_saved[pf,i,t]) - 1)*100) > 1e-7)
-#         'Value of capital-energy nest has changed when integrating energy technology model');
-
-# LOOP((pf,i,t)$(t1[t] and (sameas[pf,'BE'] or sameas[pf,'TE'] or sameas[pf,'KE'])),
-#   ABORT$(abs((qProd.l[pf,i,t] / qProd_saved[pf,i,t] - 1)*100) > 1e-7)
-#         'Quantity of capital-energy nest has changed when integrating energy technology model');
-
-LOOP((k,i,t)$(t1[t] and (sameas[k,'iB'] or sameas[k,'iT'] or sameas[k,'iM']) and d1qI_k_i_energy_tech[k,i,t]),
-  ABORT$(vI_k_i_saved[k,i,t] - vI_k_i_energy_tech.l[k,i,t] < 0)
-        'Investments in the energy-technology model exceeds investments in the CGE model');
-
-
-# Zero shock  -  Abort if a zero shock changes any variables significantly
+# Test zero shock  -  Abort if a zero shock changes any variables significantly
 @set(all_variables, _saved, .l)
 $FIX all_variables; $UNFIX main_endogenous;
 # execute_unload 'Output/main_pre.gdx';

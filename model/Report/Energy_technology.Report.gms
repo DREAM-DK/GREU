@@ -26,15 +26,11 @@ $Group+ report_variables "Report variables"
   sqTPotential_sum[es,d,t] "Sum of potentials for each energy service"
   sqTAdoption[l,es,d,t] "Adoption rate of technologies (between 0 and 1)"
   sqTAdoption_Ch[l,es,d,t] "Change in adoption rates for each energy service"
-  # sqTAdoption_baseline[l,es,d,t] "Adoption rate of technologies in baseline"
   pTSupply[l,es,d,t] "Average price of energy service supplied by technology l"
   uTK[l,es,d,t] "Average capital intensity of adopted variants of technology l"
-  qESE_MechCh[es,e,d,t] "Change in energy input with baseline energy service demand"
-  pY0_i_Change[i,t] "Change in output price by industry conditional on technologies"
-  pY0_i_baseline[i,t] "Baseline output price by industry"
-
-  vESE_Mechanic_change[es,e,d,t] "Mechanic change in value of energy service"
-  pES_Mechanic_change[es,e,d,t] "Mechanic change in price of energy service in the energy technology model"
+  qESE_mechanic_change[es,e,d,t] "Change in energy input with baseline energy service demand"
+  vESE_mechanic_change[es,e,d,t] "Mechanic change in value of energy service"
+  pES_mechanic_change[es,e,d,t] "Mechanic change in price of energy service in the energy technology model"
   pREes_mechanic_change[es,i,t] "Mechanic change in price of energy service in the CGE model (pct.)"
   pREes_change[es,i,t] "Equilibrium change in price of energy service in the CGE model (pct.)"
   ;
@@ -53,7 +49,6 @@ $IF %stage% == "report_baseline":
   qES_baseline.l[es,d,t] = qES.l[es,d,t];
   qESE_baseline.l[es,e,d,t] = qESE.l[es,e,d,t];
 
-  pY0_i_baseline.l[i,t] = pY0_i.l[i,t];
   tCO2_Emarg_pj_baseline.l[em,es,e,d,t] = tCO2_Emarg_pj.l[em,es,e,d,t];
 
   vESK_baseline.l[es,i,t]     = vESK.l[es,i,t];
@@ -92,33 +87,24 @@ pTSupply.l[l,es,d,t]$(d1sqTPotential[l,es,d,t] and (sqT.l[l,es,d,t]*qES.l[es,d,t
     pTK.l[d,t]*uTK.l[l,es,d,t] + sum(e$(d1pEpj[es,e,d,t] and d1uTE[l,es,e,d,t]), pEpj_marg.l[es,e,d,t]*uTE.l[l,es,e,d,t]);
 
 # 2.4 Energy Input Demand Change
-qESE_MechCh.l[es,e,d,t]$(t.val >= t1.val and sum(l, d1sqTPotential[l,es,d,t]))
+qESE_mechanic_change.l[es,e,d,t]$(t.val >= t1.val and sum(l, d1sqTPotential[l,es,d,t]))
   = qES_baseline.l[es,d,t] * sum(l$(d1sqTPotential[l,es,d,t]), sqT.l[l,es,d,t] * uTE.l[l,es,e,d,t])
   - qESE_baseline.l[es,e,d,t];
 
-# 2.5 Change in output price by industry
-pY0_i_Change.l[i,t]$(sum((l,es), d1sqTPotential[l,es,i,t]) and pY0_i_baseline.l[i,t]) 
-  = (pY0_i.l[i,t]/pY0_i_baseline.l[i,t]-1)*100;
-
-# Mechanic change in value of energy service
-vESE_Mechanic_change.l[es,e,d,t]$(t.val >= t1.val and sum(l, d1sqTPotential[l,es,d,t]))
-  = qESE_baseline.l[es,e,d,t] * sum(em$(d1tCO2_E[em,es,e,d,t]), tCO2_Emarg_pj.l[em,es,e,d,t] - tCO2_Emarg_pj_baseline.l[em,es,e,d,t]);
-
+# 2.5 Energy Service Price Change
+# Mechanic change in price of energy service
 pES_Mechanic_change.l[es,e,d,t]$(t.val >= t1.val and sum(l, d1sqTPotential[l,es,d,t]))
-  = vESE_Mechanic_change.l[es,e,d,t] / qES_baseline.l[es,d,t];
+  = qESE_baseline.l[es,e,d,t]*pEpj_marg.l[es,e,d,t] / qES_baseline.l[es,d,t];
 
+# Mechanic change in price of energy service in the CGE model (used for testing after a carbon tax shock)
 pREes_mechanic_change.l[es,i,t]$(d1qES[es,i,t]) 
   = (((sum((e_a)$(d1pREa_inNest[es,e_a,i,t]), pREa.l[es,e_a,i,t] * qREa_baseline.l[es,e_a,i,t])
       + vESK_baseline.l[es,i,t])
     / qREes_baseline.l[es,i,t]) 
   / pREes_baseline.l[es,i,t] - 1)*100;
 
+# Equilibrium change in price of energy service in the CGE model (used for testing after a carbon tax shock)
 pREes_change.l[es,i,t]$(d1qES[es,i,t])
   = (pREes.l[es,i,t] / pREes_baseline.l[es,i,t] - 1)*100;
-
-# LOOP(i,t)$(t.val >= t1.val and sum((l,es), d1sqTPotential[l,es,i,t])),
-#     tjek = pY0_i_Change.l[i,t] - ;
-#     ABORT$(tjek < 0) tjek, "Change in output price is negative";
-# );
 
 $ENDIF # report

@@ -69,19 +69,17 @@ $Group+ all_variables
   qESE[es,e,d,t]$(d1qES_e[es,e,d,t]) "Quantity of energy in energy services"
   qESK[es,d,t]$(d1qES[es,d,t]) "Quantity of machinery capital in energy services"
 
-  # Variables for integration with CGE-model
+  # 1.2.4 Variables for integration with CGE-model
   jqESE[es,e,i,t]$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t]) "Share parameter linking energy input in the energy technology model to energy input in the CGE-model"
-  qESK_baseline[es,d,t]$(d1qES[es,d,t]) "Capital input in the energy technology model (baseline)"
-  
-  qI_k_i_energy_tech[k,i,t] ""
-  vI_k_i_energy_tech[k,i,t] ""
-  Delta_qESK[es,d,t]$(d1qES[es,d,t]) "Difference between capital input in the energy technology model (difference between shock and baseline)"
-  vESK_baseline[es,d,t]$(d1qES[es,d,t]) "Value of machinery capital (baseline)"
-  Delta_vESK[es,d,t]$(d1qES[es,d,t]) "Difference between value of machinery capital in the energy technology model (difference between shock and baseline)"
+  qI_k_i_energy_tech[k,i,t] "Quantity of investments from the energy technology model"
+  vI_k_i_energy_tech[k,i,t] "Value of investments from the energy technology model"
   qEmmE_CCS[es,e,d,t]$(d1qES_e[es,e,d,t] and sameas(e,'Captured CO2')) "Quantity of CCS in energy services"
-
+  # 1.2.4.1 Baseline variables for integration and testing
   pK_k_i_baseline[k,i,t] "Baseline user cost of capital"
   qK_k_i_baseline[k,i,t] "Baseline capital quantity"
+  pProd_baseline[pf,i,t] "Price in production tree (baseline) - for testing"
+  qProd_baseline[pf,i,t] "Quantity in production tree (baseline) - for testing"
+  vI_k_i_baseline[k,i,t] "Value of investments (baseline) - for testing"
 ;
 
 parameter
@@ -188,22 +186,6 @@ $BLOCK energy_technology_equations_links energy_technology_endogenous_links $(t1
   # Link energy technology capital value to factor demand module
   .. vI_k_i_energy_tech[k,i,t] =E= sum(es$(es2k[es,k]), vESK[es,i,t]);
 
-  # Difference in capital use between the baseline and the shock
-  .. Delta_qESK[es,d,t] =E= qESK[es,d,t] - qESK_baseline[es,d,t];
-
-  # Difference in value of capital use between the baseline and the shock
-  .. Delta_vESK[es,d,t] =E= vESK[es,d,t] - vESK_baseline[es,d,t];
-
-  # Link energy technology capital investments to factor demand module (aggregate approximation)
-  # This endogenizes the J-term defined in factor_demand.gms, aggregating energy technology capital investments
-  # jDelta_qESK[k,i,t]$(sameas[k,'iM'] and d1K_k_i[k,i,t])..
-  #   jDelta_qESK[k,i,t] =E= sum(es$(d1qES[es,i,t]), Delta_qESK[es,i,t]);
-
-  # Link energy technology capital value differences to production module (aggregate approximation)
-  # J-term stands in for sum(es, Delta_vESK[es,i,t]) used in production.gms equation
-  # jDelta_vESK[i,t]$(d1Y_i[i,t])..
-  #   jDelta_vESK[i,t] =E= sum(es$(d1qES[es,i,t]), Delta_vESK[es,i,t]);
-    
   # CCS in energy services
   .. qEmmE_CCS[es,e,d,t] =E= qESE[es,e,d,t];
 
@@ -371,14 +353,10 @@ $GROUP calibration_endogenous
   calibration_endogenous
   energy_technology_endogenous
   energy_technology_calibration_endogenous
-  # -jI_k_i[k,i]$(sameas[k,'iB'] and sum(t, d1switch_energy_technology[t])), qK_k_i$(t0[t] and sameas[k,'iB'] and d1switch_energy_technology[t])
   -jI_k_i[k,i]$(sum(t, d1qI_k_i_energy_tech[k,i,t]) and sum(t, d1switch_energy_technology[t])), qK_k_i$(t0[t] and sum(tt, d1qI_k_i_energy_tech[k,i,tt]) and d1switch_energy_technology[t])
   -qES[es,i,t], jES[es,i,t]
   -pTK[i,t], jpTK[i,t]
   -uREa$(t.val > t1.val), jqESE[es,e,i,t] # NB: The equation for uREa in the link equations remove the equation E_uREa_flat for these dimensions
-  -Delta_qESK[es,d,t], qESK_baseline[es,d,t]
-  -Delta_vESK[es,d,t], vESK_baseline[es,d,t]
-
 ;
 
 # 4.3 Flat Variables After Last Data Year
@@ -407,11 +385,23 @@ $ENDIF # calibration
 # ------------------------------------------------------------------------------
 $IF %stage% == "tests":
 
-# parameter pREes_mechanic_CGE[es,i,t];
+# Test that the value of capital-energy nest in CGE model does not change.
+# Tests only the dimensions where energy technologies exists
+LOOP((pfNest,i,t)$(tDataEnd[t] and sum(k$(sum(pf_bottom_capital$(sameas[pf_bottom_capital,k]), pf_mapping[pfNest,pf_bottom_capital,i])), d1qI_k_i_energy_tech[k,i,t]) and d1switch_energy_technology[t]),
+  ABORT$(abs((pProd.l[pfNest,i,t]*qProd.l[pfNest,i,t] / (pProd_baseline.l[pfNest,i,t]*qProd_baseline.l[pfNest,i,t]) - 1)*100) > 1e-7)
+        'Value of capital-energy nest has changed when integrating energy technology model');
 
-# pREes_mechanic_CGE[es,i,t]$(d1qES[es,d,t]) 
-#   = sum((e_a)$(d1pREa_inNest[es,e_a,i,t]), pREa.l[es,e_a,i,t] * qREa_saved[es,e_a,i,t])
-#   / qREes_saved[es,i,t];
+# Test that the quantity of capital-energy nest in CGE model does not change.
+# Tests only the dimensions where energy technologies exists
+LOOP((pfNest,i,t)$(tDataEnd[t] and sum(k$(sum(pf_bottom_capital$(sameas[pf_bottom_capital,k]), pf_mapping[pfNest,pf_bottom_capital,i])), d1qI_k_i_energy_tech[k,i,t]) and d1switch_energy_technology[t]),
+  ABORT$(abs((qProd.l[pfNest,i,t] / qProd_baseline.l[pfNest,i,t] - 1)*100) > 1e-7)
+        'Quantity of capital-energy nest has changed when integrating energy technology model');
+
+# Test that investments for energy technologies do not exceed investments in data
+LOOP((k,i,t)$(tDataEnd[t] and (sameas[k,'iB'] or sameas[k,'iT'] or sameas[k,'iM']) and d1qI_k_i_energy_tech[k,i,t] and d1switch_energy_technology[t]),
+  ABORT$(vI_k_i_baseline.l[k,i,t] - vI_k_i_energy_tech.l[k,i,t] < 0)
+        'Investments in the energy-technology model exceeds investments in the CGE model');
+
 
 $ENDIF # tests
 
