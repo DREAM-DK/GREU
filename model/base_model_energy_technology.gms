@@ -41,6 +41,7 @@ $IF %test_energy_technology%:
 $GROUP G_test_data_covered_variables 
 	G_test_data_covered_variables, 
   -qK_k_i[k,i,t]$(d1qI_k_i_energy_tech[k,i,t])
+  -pEpj_base$(d1pEpj_base_energy_technology[es,e,d,t])
 ; 
 @assert_no_difference(G_test_data_covered_variables, 1e-6, _data,.l, "data_covered_variables does not change more than previously done so by calibration."); #Ideally this check should be done rather than "diff-in-diff" above
 

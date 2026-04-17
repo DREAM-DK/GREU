@@ -132,8 +132,7 @@ $BLOCK energy_technology_equations_core energy_technology_endogenous_core $(t1.v
 
   # A lower bound close to zero is set to avoid indeterminancy in cdfLognorm in sqTqES
   # uTKmargNoBound<=0 happen when a technology is very energy intensive (ineffecient)
-  .. uTKmarg[l,es,d,t] =E= 
-    @InInterval(0.001, uTKmargNoBound[l,es,d,t], uTKexp[l,es,d,t]*[1+5*eP[l,es,d,t]]);
+  .. uTKmarg[l,es,d,t] =E= max(0.0001, uTKmargNoBound[l,es,d,t]);
 
   # Supply of technology l in ratio of energy service demand qES
   .. sqT[l,es,d,t] =E= 
@@ -281,21 +280,13 @@ $IF1 %generic_energy_technology_data% == 0:
   execute_load "../data/Energy_technology_data/Excel_data/Energy_technology_data.gdx" LifeSpan=LifeSpan;
 $ENDIF1
 
-# LBS Midlertidig sletning af data for at teste integration af energy technology model med CGE-model
-sqTPotential.l[l,es,d,t]$(not (sameas[es,'heating'] and sameas[d,'01011'])) = no;
-uTE.l[l,es,e,d,t]$(not (sameas[es,'heating'] and sameas[d,'01011'])) = no;
-vTI.l[l,es,d,t]$(not (sameas[es,'heating'] and sameas[d,'01011'])) = no;
-vTC.l[l,es,d,t]$(not (sameas[es,'heating'] and sameas[d,'01011'])) = no;
-pTK.l[d,t]$(not sameas[d,'01011']) = no;
-qES.l[es,d,t]$(not (sameas[es,'heating'] and sameas[d,'01011'])) = no;
-
 # 3.2 Initial Values
 # Set discount rate
 DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
 
 # Set smoothing parameters
-eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.1;
-eP.l[l,es,'55560',t]$(sqTPotential.l[l,es,'55560',t]) = 0.05;
+eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.2;
+# eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 1;
 
 # Set share parameter
 jES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];

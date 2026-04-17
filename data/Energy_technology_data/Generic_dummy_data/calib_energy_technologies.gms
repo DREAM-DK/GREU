@@ -148,10 +148,13 @@ DiscountRate[l,es,d]$(sum(t, sqTPotential[l,es,d,t])) = 0.05;
 pTK[d,t]$(sum((l,es), sqTPotential[l,es,d,t])) = 1;
 
 # Calculate uTKexp, vTI and vTC for the electrification technologies
+# In order not to get negative uTKexp we set it as the maximum of 0.001 and the generic cost increase
 uTKexp[l,es,i,t]$(sqTPotential[l,es,i,t] and electrification_techs[l])
- = ((pTPotential_max[es,i,t]*cost_factor[l]) 
+ = max[0.001,
+ ((pTPotential_max[es,i,t]*cost_factor[l]) 
    - sum(e, uTE[l,es,e,i,t]*pEpj_marg[es,e,i,t]))
- / pTK[i,t];
+ / pTK[i,t]
+ ];
 
 vTI[l,es,i,t]$(sqTPotential[l,es,i,t] and electrification_techs[l]) 
   = uTKexp[l,es,i,t]*@FiniteGeometricSeries({1}, {DiscountRate[l,es,i]}, {LifeSpan[l,es,i,t]})
