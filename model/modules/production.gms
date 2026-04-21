@@ -26,7 +26,7 @@ $IF %stage% == "variables":
 
     qPFtop2qY[i,t]$(d1Y_i[i,t]) "Ratio between qProd[pf_top] and qY_i in basis year where prices are set to 1."
 
-    jqE_re_i[re,i,t]$(d1E_re_i[re,i,t]) "J-term to be endogenized when energy module is turned on. Necessary, because bottom-up energy is partly in the top and partly in CES-nests"
+    jqE_re_i[energy,i,t]$(d1E_re_i[energy,i,t]) "J-term to be endogenized when energy module is turned on. Necessary, because bottom-up energy is partly in the top and partly in CES-nests"
     jpProd[pf,i,t]$(d1Prod[pf,i,t]) "J-term to be endogenized when energy module is turned on"
 
     # J-terms for GREEN module variables (endogenized by respective GREEN modules when active)
@@ -96,10 +96,10 @@ $IF %stage% == "equations":
     #To handle this a couple of J-terms are introduced. jpProd ensures that pProd[pf_bottom_e] is equal to the marginal price of energy (i.e. with marginal tax-rate applying and including energy technology costs)
     #jqE_re_i ensures that the input_output system is balanced in values. jqE_re_i is computed so that total energy-costs, pE_re_i * qE_re_i matches bottom-up computation of total energy-costs (see energy_markerkets.gms for link)
     #AKB, to be investigated: Maybe qE_re_i, computed as a residual, become meaningless as a "quantity". 
-    .. pProd[pf_bottom_e,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], pE_re_i[re,i,t]) + jpProd[pf_bottom_e,i,t];    
+    .. pProd[pf_bottom_e,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,energy], pE_re_i[energy,i,t]) + jpProd[pf_bottom_e,i,t];    
     
-    qE2qY_re_i[re,i,t]..  
-      qE_re_i[re,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,re], qProd[pf_bottom_e,i,t]) + jqE_re_i[re,i,t]; 
+    qE2qY_re_i[energy,i,t].. 
+      qE_re_i[energy,i,t] =E= sum(pf_bottom_e2re[pf_bottom_e,energy], qProd[pf_bottom_e,i,t]) + jqE_re_i[energy,i,t]; 
 
     .. pProd[labor,i,t] =E= pL_i[i,t];
     qL2qY_i[i,t].. qL_i[i,t] =E= qProd['labor',i,t];
@@ -202,7 +202,7 @@ $Group calibration_endogenous
   qProd[RxE,i,t1]
   qProd[pf_bottom_capital,i,t1]
   # qProd[pf_bottom_e,i,t1]
-  jqE_re_i[re,i,t1] #£Temp, erstatter opvenstående 
+  jqE_re_i[energy,i,t1] #£Temp, erstatter opvenstående 
   qProd[labor,i,t1]
 
   # -qR2qY_i[i,t1], uProd[RxE,i,t1]

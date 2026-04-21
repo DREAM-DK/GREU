@@ -10,6 +10,9 @@ $Group+ all_variables
   rMPCW[t] "Marginal propensity to consume out of wealth."
   rC_c[c,t] "Share of total consumption expenditure by purpose."
 
+  jD_c[c,t] "Adjustment term for disaggregated consumption shares"
+  jC_ramsey[t] "Adjustment term for Ramsey consumption"
+
   vNetInterests[sector,t] "Interests by sector."
   vNetRevaluations[sector,t] "Revaluations by sector."
 

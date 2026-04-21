@@ -31,7 +31,9 @@ $Group+ all_variables
   qR2qY_i[i,t] "Intermediate input to output ratio by industry."
   qInvt2qY_i[i,t] "Inventory investment to output ratio by industry."
 
-  vDepr_i[i,t] "Depreciation by industry."  
+  vDepr_i[i,t] "Depreciation by industry."
+
+  jDelta_qESK[k,i,t]$(d1K_k_i[k,i,t] and sameas[k,'iM']) "Additional investments from energy technology model (endogenized by energy technology module)."  
 ;
 
 $ENDIF # variables

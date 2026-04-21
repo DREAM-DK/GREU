@@ -213,7 +213,7 @@ $IF %stage% == "calibration":
 # $BLOCK government_calibration_equations government_calibration_endogenous
 $BLOCK government_calibration_equations government_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
-  vLumpsum&_t1[t]$(t.val = tEnd.val).. vNetFinAssets['Gov',t] =E= vNetFinAssets['Gov',t-1];
+  # vLumpsum&_t1[t]$(t.val = tEnd.val).. vNetFinAssets['Gov',t] =E= vNetFinAssets['Gov',t-1];
   vLumpsum[t]$(t1.val < t.val and t.val < tEnd.val).. vLumpsum[t] =E= vLumpsum[t+1]*0.9;
 
 $ENDBLOCK
