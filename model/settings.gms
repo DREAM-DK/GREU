@@ -11,10 +11,10 @@ OPTION
 ;
 
 $SETLOCAL first_data_year 2019;
-$SETLOCAL calibration_year 2020;
+$SETLOCAL calibration_year 2022;
 $SETLOCAL terminal_year 2050;
 
-$SETLOCAL base_year 2020;
+$SETLOCAL base_year 2022;
 $SETGLOBAL exogenous_supply_prices 0 #Can be used to set supply prices as exogeonus
 $SETGLOBAL generic_energy_technology_data 1 #Can be used to switch between generic dummy data (=1) and excel-based data (=0)
 
