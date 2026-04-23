@@ -15,7 +15,8 @@
 # 1. Supply Curve Parameters
 # ----------------------------------------------------------------------------------------------------------------------
 # 1.1 Scenario Set Definition
-set scen / 1*100 /; # Number of steps for tracing the supply curve
+# LBS CONSIDER number of steps in scen
+set scen / 1*200 /; # Number of steps for tracing the supply curve
 
 # 1.2 Key Parameters
 parameter

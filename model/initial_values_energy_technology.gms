@@ -45,11 +45,16 @@ pTPotential.l[l,es,d,t] =
 # ----------------------------------------------------------------------------------------------------------------------
 # 3.1 Technology Range Determination
 # Determining the most expensive technology (used in determining the range for the supply curve)
-d1Expensive_tech_smooth_scen[es,d,t] = smax(l, pTPotential.l[l,es,d,t] * (1 + 4 * eP.l[l,es,d,t]));
+# LBS CONSIDER eP and number of steps in scen
+d1Expensive_tech_smooth_scen[es,d,t] 
+  = smax(l, 
+      sum(e$(d1pEpj[es,e,d,t] and d1uTE[l,es,e,d,t]), 
+        uTE.l[l,es,e,d,t]*pEpj_marg.l[es,e,d,t])
+      + uTKexp.l[l,es,d,t]*pTK.l[d,t]);# * (1 + 1 * eP.l[l,es,d,t]));
 
 # 3.2 Marginal Cost Setup
 # Defining marginal costs for each trace (goes from zero up to 4 standard deviations times the price of the most expensive technology)
-pESmarg_scen.l[es,d,t,scen]$(sum(l, d1sqTPotential[l,es,d,t])) = ord(scen)/100 * d1Expensive_tech_smooth_scen[es,d,t];
+pESmarg_scen.l[es,d,t,scen]$(sum(l, d1sqTPotential[l,es,d,t])) = ord(scen)/200 * d1Expensive_tech_smooth_scen[es,d,t];
 
 # 3.3 Initial Capital Costs
 # Random starting values for the marginal costs of capital
@@ -70,8 +75,12 @@ Solve M_energy_technology_supply_curve using CNS;
 # 5. Main Model Initialization
 # ----------------------------------------------------------------------------------------------------------------------
 # 5.1 Equilibrium Values
-# Determining uTKmarg and pESmarg in equilibrium
+# Determining uTKmarg, uTKmargNobound and pESmarg in equilibrium
 uTKmarg_eq[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 
+  sum(scen$(sqT_sum_scen.l[es,d,t,scen] >= 1 and sqT_sum_scen.l[es,d,t,scen-1] < 1), 
+    uTKmarg_scen.l[l,es,d,t,scen]);
+
+uTKmargNobound.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 
   sum(scen$(sqT_sum_scen.l[es,d,t,scen] >= 1 and sqT_sum_scen.l[es,d,t,scen-1] < 1), 
     uTKmarg_scen.l[l,es,d,t,scen]);
 
@@ -85,7 +94,6 @@ uTKmarg.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg_eq[l,es,d,t];
 uTKmarg.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t] * 1; 
 
 # 5.3 Starting Values, Other Core Variables
-uTKmargNobound.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t];
 sqT.l[l,es,d,t]$(sqTPotential.l[l,es,d,t] and uTKmarg_eq[l,es,d,t]) = 
   sqTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_eq[l,es,d,t], uTKexp.l[l,es,d,t], eP.l[l,es,d,t]);
 pESmarg.l[es,d,t] = pESmarg_eq[es,d,t];

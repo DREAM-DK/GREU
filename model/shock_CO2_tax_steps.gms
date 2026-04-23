@@ -25,23 +25,6 @@ $IF %include_energy_technology% = 0:
   execute_unload 'Output\baseline.gdx';
 $ENDIF
 
-# ------------------------------------------------------------------------------
-# Calibrate electrification technologies
-# ------------------------------------------------------------------------------
-$IF %include_energy_technology% = 1:
-  $import calib_electrification.gms;
-  # We recalculate baseline values with the new technologies
-  @import_from_modules("report_baseline")
-$ENDIF # include_energy_technology
-
-# ------------------------------------------------------------------------------
-# Calibrate CCS technologies
-# ------------------------------------------------------------------------------
-$IF %include_energy_technology% = 1:
-  $import calib_CCS.gms;
-  # We recalculate baseline values with the new technologies
-  @import_from_modules("report_baseline")
-$ENDIF # include_energy_technology
 
 # ------------------------------------------------------------------------------
 # Shock model
@@ -85,4 +68,4 @@ $ENDIF
 
 jvY_i.l[i,t]$(t.val LE t1.val) = 0;
 @import_from_modules("tests")
-
+@import_from_modules("tests_shock")
