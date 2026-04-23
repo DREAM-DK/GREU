@@ -33,7 +33,7 @@ $BLOCK households_equations households_endogenous $(t1.val <= t.val and t.val <=
 
   .. vHhIncome[t] =E= vWages[t]
                     - vNetHh2Gov[t]
-                    + vNetInterests['Hh',t] + vNetRevaluations['Hh',t];
+                    + vNetInterests['Hh',t] + vNetDividends['Hh',t];
 
 #  and a simple disaggregated consumption function with constant share of total consumption by purpose
   qD[c,t]$(not t1[t]).. vD[c,t]/vC[t] =E= vD[c,t-1]/vC[t-1] + jD_c[c,t];
