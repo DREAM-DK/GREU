@@ -79,11 +79,12 @@ $Group+ all_variables
   vI_k_i_energy_tech[k,i,t] "Value of investments from the energy technology model"
   qEmmE_CCS[es,e,d,t]$(d1qES_e[es,e,d,t] and sameas(e,'Captured CO2')) "Quantity of CCS in energy services"
   # 1.2.4.1 Baseline variables for integration and testing
-  pK_k_i_baseline[k,i,t] "Baseline user cost of capital"
-  qK_k_i_baseline[k,i,t] "Baseline capital quantity"
+  pK_k_i_baseline[k,i,t] "Baseline user cost of capital - for integration"
+  qK_k_i_baseline[k,i,t] "Baseline capital quantity - for integration"
   pProd_baseline[pf,i,t] "Price in production tree (baseline) - for testing"
   qProd_baseline[pf,i,t] "Quantity in production tree (baseline) - for testing"
   vI_k_i_baseline[k,i,t] "Value of investments (baseline) - for testing"
+  qEtot_baseline[e,t] "Total quantity of energy use (baseline) - for testing"
 ;
 
 parameter
@@ -410,7 +411,7 @@ LOOP((k,i,t)$(tDataEnd[t] and (sameas[k,'iB'] or sameas[k,'iT'] or sameas[k,'iM'
   ABORT$(vI_k_i_baseline.l[k,i,t] - vI_k_i_energy_tech.l[k,i,t] < 0)
         'Investments in the energy-technology model exceeds investments in the CGE model');
 
-LOOP((e,t)$(t1.val <= t.val and t.val <= tEnd.val and sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t])),
+LOOP((e,t)$(t1.val <= t.val and t.val <= tEnd.val and sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]) and d1switch_energy_technology),
   if (abs(qEtot.l[e,t] / qEtot_baseline.l[e,t] - 1) > 0.03,
     put_utility 'log' / 'WARNING: The total amount of energy use has changed more than 3% from the baseline';
   );
@@ -423,16 +424,21 @@ $ENDIF # tests
 # ------------------------------------------------------------------------------
 $IF %stage% == "tests_shock":
 
-LOOP((es,i,t)$(t1.val <= t.val and t.val <= tEnd.val and d1qES[es,i,t] and sum((em,e), tCO2_Emarg_pj.l[em,es,e,i,t]-tCO2_Emarg_pj_baseline.l[em,es,e,i,t])>0),
+LOOP((es,i,t)$(t1.val <= t.val and t.val <= tEnd.val and d1qES[es,i,t] and sum((em,e), tCO2_Emarg_pj.l[em,es,e,i,t]-tCO2_Emarg_pj_baseline.l[em,es,e,i,t])>0 and d1switch_energy_technology),
   if (pREes_change.l[es,i,t] < 0,
     put_utility 'log' / 'WARNING: Negative change in price of energy service in the CGE model (continuing run)';
   );
 );
 
-LOOP((es,i,t)$(t1.val <= t.val and t.val <= tEnd.val and d1qES[es,i,t] and sum((em,e), tCO2_Emarg_pj.l[em,es,e,i,t]-tCO2_Emarg_pj_baseline.l[em,es,e,i,t])>0),
+LOOP((es,i,t)$(t1.val <= t.val and t.val <= tEnd.val and d1qES[es,i,t] and sum((em,e), tCO2_Emarg_pj.l[em,es,e,i,t]-tCO2_Emarg_pj_baseline.l[em,es,e,i,t])>0 and d1switch_energy_technology),
   if (pREes_change.l[es,i,t] > pREes_mechanic_change.l[es,i,t],
     put_utility 'log' / "WARNING: Change in price of energy service in the CGE model exceed mechanical price change (continuing run)";
   );
 );
+
+# Test that price changes in the CGE model are the same as in the energy technology model
+LOOP((es,i,t)$(t1.val <= t.val and t.val <= tEnd.val and not jqESE_phaseout[t] and d1qES[es,i,t] and sum((em,e), tCO2_Emarg_pj.l[em,es,e,i,t]-tCO2_Emarg_pj_baseline.l[em,es,e,i,t])>0 and d1switch_energy_technology),
+  ABORT$(abs(pREes_change.l[es,i,t] - pES_change.l[es,i,t]) > 1e-7)
+        'Price change in the CGE model does not match price change in the energy technology model');
 
 $ENDIF # tests

@@ -7,15 +7,17 @@ pK_k_i_baseline.l[k,i,t] = pK_k_i.l[k,i,t];
 pProd_baseline.l[pf,i,t] = pProd.l[pf,i,t];
 qProd_baseline.l[pf,i,t] = qProd.l[pf,i,t];
 vI_k_i_baseline.l[k,i,t] = vI_k_i.l[k,i,t];
+qEtot_baseline.l[e,t]    = qEtot.l[e,t];
 
-
+# Create partial models to get starting values for the energy technology model
 $import pre_models_energy_technology.gms 
-$import Dummies_new_energy_use.gms;
 
+# Update energy dummies and run partial energy price model to get starting values for energy prices that do not exist in the CGE model
+$import Dummies_new_energy_use.gms;
 $FIX all_variables; $UNFIX energy_price_partial_endogenous;
-# execute_unload 'energy_price_partial_pre.gdx';
 Solve energy_price_partial using CNS;
 
+# Calculate discrete prices of technologies for setting smoothing parameters
 pTPotential.l[l,es,d,t] = 
   sum(e, uTE.l[l,es,e,d,t]*pEpj_marg.l[es,e,d,t]) + uTKexp.l[l,es,d,t]*pTK.l[d,t];
 
