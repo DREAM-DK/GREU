@@ -100,4 +100,4 @@ display(s.EV_Shadow_price)
 
 # import the function to plot the supply curves
 exec(open('Report/plot_supply_curves.py').read())
-plot_supply_curve("Output/calibration_energy_technology.gdx",['01011'])
+plot_supply_curve("Output/calibration_energy_technology.gdx",['41430'],[2030])

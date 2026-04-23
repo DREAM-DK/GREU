@@ -108,4 +108,3 @@ $ENDIF
 jvY_i.l[i,t]$(t.val LE t1.val) = 0;
 @import_from_modules("tests")
 @import_from_modules("tests_shock")
-

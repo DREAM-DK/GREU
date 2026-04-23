@@ -8,6 +8,20 @@ pProd_baseline.l[pf,i,t] = pProd.l[pf,i,t];
 qProd_baseline.l[pf,i,t] = qProd.l[pf,i,t];
 vI_k_i_baseline.l[k,i,t] = vI_k_i.l[k,i,t];
 
+
+$import pre_models_energy_technology.gms 
+$import Dummies_new_energy_use.gms;
+
+$FIX all_variables; $UNFIX energy_price_partial_endogenous;
+# execute_unload 'energy_price_partial_pre.gdx';
+Solve energy_price_partial using CNS;
+
+pTPotential.l[l,es,d,t] = 
+  sum(e, uTE.l[l,es,e,d,t]*pEpj_marg.l[es,e,d,t]) + uTKexp.l[l,es,d,t]*pTK.l[d,t];
+
+# Set smoothing parameters
+eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.05*pTPotential.l[l,es,d,t]/uTKexp.l[l,es,d,t];
+
 # ------------------------------------------------------------------------------
 # Run the energy technology choice model integrated with the CGE-model
 # ------------------------------------------------------------------------------
@@ -16,7 +30,6 @@ d1switch_energy_technology = 1;
 d1switch_integrate_energy_technology = 1;
 
 # Get starting values for the energy technology model
-$import pre_models_energy_technology.gms 
 $import initial_values_energy_technology.gms;
 
 # Solve partial energy technology model

@@ -22,6 +22,7 @@ $SetGroup SG_Energy_technology_dummies
 parameter
   d1switch_energy_technology "Dummy to control whether the energy technology model is turned on (=1) or off (=0)"
   d1switch_integrate_energy_technology "Dummy to control whether the energy technology model is integrated with the CGE-model (=1) or not (=0)"
+  jqESE_phaseout[t] "Parameter to phase out jqESE in the calibration model"
 ;
 
 # 1.2 Main Variables
@@ -148,7 +149,8 @@ $BLOCK energy_technology_equations_output energy_technology_endogenous_output $(
   # 2.2.1 Energy and Capital Use
   # Use of energy in production of energy service
   .. qESE[es,e,d,t] =E= 
-    qES[es,d,t] * sum(l$(d1sqTPotential[l,es,d,t]), sqT[l,es,d,t] * uTE[l,es,e,d,t]);
+        max[10**(-6),
+            qES[es,d,t] * sum(l$(d1sqTPotential[l,es,d,t]), sqT[l,es,d,t] * uTE[l,es,e,d,t])];
     
   # Use of machinery capital for technologies
   .. qESK[es,d,t] =E= 
@@ -284,10 +286,6 @@ $ENDIF1
 # Set discount rate
 DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
 
-# Set smoothing parameters
-eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.2;
-# eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 1;
-
 # Set share parameter
 jES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = qES.l[es,i,t]/qREes.l[es,i,t];
 jpTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pTK.l[i,t]/pK_k_i.l['iM',i,t];
@@ -322,6 +320,15 @@ uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,
 pTPotential.l[l,es,d,t] = 
   sum(e, uTE.l[l,es,e,d,t]*pEpj_marg.l[es,e,d,t]) + uTKexp.l[l,es,d,t]*pTK.l[d,t];
 
+# Set smoothing parameters (we recalculate this in base_model_energy_technology.gms because electricity prices are not present in some cases in the data)
+eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.05*pTPotential.l[l,es,d,t]/uTKexp.l[l,es,d,t];
+
+jqESE_phaseout[t]$(t.val = t1.val) = 1;
+jqESE_phaseout[t]$(t.val = t1.val+1) = 0.8;
+jqESE_phaseout[t]$(t.val = t1.val+2) = 0.6;
+jqESE_phaseout[t]$(t.val = t1.val+3) = 0.4;
+jqESE_phaseout[t]$(t.val = t1.val+4) = 0.2;
+jqESE_phaseout[t]$(t.val >= t1.val+5) = 0;
 
 $ENDIF # exogenous_values
 
@@ -336,6 +343,11 @@ $BLOCK energy_technology_calibration energy_technology_calibration_endogenous $(
     pK_k_i[k,i,t]*qK_k_i[k,i,t] =E= pK_k_i_baseline[k,i,t]*qK_k_i_baseline[k,i,t] 
                                   - vI_k_i_energy_tech[k,i,t];
 
+  jES[es,i,t]$(not t1[t] and d1qES[es,i,t1])..
+    jES[es,i,t] =E= jES[es,i,t1];
+
+  jqESE[es,e,i,t]$(not t1[t] and d1qES_e[es,e,i,t])..
+    jqESE[es,e,i,t] =E= jqESE[es,e,i,t1]*jqESE_phaseout[t];
 
 $ENDBLOCK
 
@@ -350,9 +362,9 @@ $GROUP calibration_endogenous
   energy_technology_endogenous
   energy_technology_calibration_endogenous
   -jI_k_i[k,i]$(sum(t, d1qI_k_i_energy_tech[k,i,t]) and d1switch_energy_technology), qK_k_i$(t0[t] and sum(tt, d1qI_k_i_energy_tech[k,i,tt]) and d1switch_energy_technology)
-  -qES[es,i,t], jES[es,i,t]
+  -qES[es,i,t1], jES[es,i,t]
   -pTK[i,t], jpTK[i,t]
-  -uREa$(t.val > t1.val), jqESE[es,e,i,t] # NB: The equation for uREa in the link equations remove the equation E_uREa_flat for these dimensions
+  jqESE[es,e,i,t]
 ;
 
 # 4.3 Flat Variables After Last Data Year
@@ -398,6 +410,11 @@ LOOP((k,i,t)$(tDataEnd[t] and (sameas[k,'iB'] or sameas[k,'iT'] or sameas[k,'iM'
   ABORT$(vI_k_i_baseline.l[k,i,t] - vI_k_i_energy_tech.l[k,i,t] < 0)
         'Investments in the energy-technology model exceeds investments in the CGE model');
 
+LOOP((e,t)$(t1.val <= t.val and t.val <= tEnd.val and sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t])),
+  if (abs(qEtot.l[e,t] / qEtot_baseline.l[e,t] - 1) > 0.03,
+    put_utility 'log' / 'WARNING: The total amount of energy use has changed more than 3% from the baseline';
+  );
+);
 
 $ENDIF # tests
 
@@ -406,19 +423,15 @@ $ENDIF # tests
 # ------------------------------------------------------------------------------
 $IF %stage% == "tests_shock":
 
-parameter pREes_change_warning[es,i,t];
-
 LOOP((es,i,t)$(t1.val <= t.val and t.val <= tEnd.val and d1qES[es,i,t] and sum((em,e), tCO2_Emarg_pj.l[em,es,e,i,t]-tCO2_Emarg_pj_baseline.l[em,es,e,i,t])>0),
   if (pREes_change.l[es,i,t] < 0,
     put_utility 'log' / 'WARNING: Negative change in price of energy service in the CGE model (continuing run)';
-    pREes_change_warning[es,i,t] = pREes_change.l[es,i,t];
   );
 );
 
 LOOP((es,i,t)$(t1.val <= t.val and t.val <= tEnd.val and d1qES[es,i,t] and sum((em,e), tCO2_Emarg_pj.l[em,es,e,i,t]-tCO2_Emarg_pj_baseline.l[em,es,e,i,t])>0),
   if (pREes_change.l[es,i,t] > pREes_mechanic_change.l[es,i,t],
     put_utility 'log' / "WARNING: Change in price of energy service in the CGE model exceed mechanical price change (continuing run)";
-    pREes_change_warning[es,i,t] = pREes_change.l[es,i,t];
   );
 );
 
