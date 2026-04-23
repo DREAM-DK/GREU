@@ -68,7 +68,6 @@ uTKmargNobound_scen.l[l,es,d,t,scen]$(sqTPotential.l[l,es,d,t]) = uTKmarg_scen.l
 $FIX G_energy_technology_supply_curve_exo;
 $UNFIX G_energy_technology_supply_curve_endo;
 @Setbounds_energy_technology();
-# execute_unload 'pre_supply_curves.gdx';
 Solve M_energy_technology_supply_curve using CNS;
 
 # ----------------------------------------------------------------------------------------------------------------------
