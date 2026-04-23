@@ -96,27 +96,27 @@ qESE_mechanic_change.l[es,e,d,t]$(t.val >= t1.val and sum(l, d1sqTPotential[l,es
 
 # 2.5 Energy Service Price Change
 # Mechanic change in price of energy service
-pES_Mechanic_change.l[es,i,t]$(t.val >= t1.val and d1qES[es,i,t])
+pES_Mechanic_change.l[es,i,t]$(t.val >= t1.val and d1qES[es,i,t] and d1switch_energy_technology)
   = sum(e, (pEpj_marg.l[es,e,i,t] - pEpj_marg_baseline.l[es,e,i,t])*qESE_baseline.l[es,e,i,t])
   / vES_baseline.l[es,i,t]*100;
 
 # Equilibrium change in price of energy service in the CGE model (used for testing after a carbon tax shock)
-pES_change.l[es,i,t]$(t.val >= t1.val and d1qES[es,i,t])
+pES_change.l[es,i,t]$(t.val >= t1.val and d1qES[es,i,t] and d1switch_energy_technology)
   = (pES.l[es,i,t] / pES_baseline.l[es,i,t] - 1)*100;
 
 # Mechanic change in price of energy service in the CGE model (used for testing after a carbon tax shock)
-pREes_mechanic_change.l[es,i,t]$(t.val >= t1.val and d1qES[es,i,t]) 
+pREes_mechanic_change.l[es,i,t]$(t.val >= t1.val and d1qES[es,i,t] and d1switch_energy_technology) 
   = sum((e_a)$(d1pREa_inNest[es,e_a,i,t]), (pREa.l[es,e_a,i,t] - pREa_baseline.l[es,e_a,i,t]) * qREa_baseline.l[es,e_a,i,t])
   / vREes_baseline.l[es,i,t]*100;
 
 # Equilibrium change in price of energy service in the CGE model (used for testing after a carbon tax shock)
-pREes_change.l[es,i,t]$(t.val >= t1.val and d1qES[es,i,t])
+pREes_change.l[es,i,t]$(t.val >= t1.val and d1qES[es,i,t] and d1switch_energy_technology)
   = (pREes.l[es,i,t] / pREes_baseline.l[es,i,t] - 1)*100;
 
-pREes_change_warning.l[es,i,t]$(t.val >= t1.val and pREes_change.l[es,i,t] < 0 and sum((em,e), tCO2_Emarg_pj.l[em,es,e,i,t]-tCO2_Emarg_pj_baseline.l[em,es,e,i,t])>0)
+pREes_change_warning.l[es,i,t]$(t.val >= t1.val and pREes_change.l[es,i,t] < 0 and sum((em,e), tCO2_Emarg_pj.l[em,es,e,i,t]-tCO2_Emarg_pj_baseline.l[em,es,e,i,t])>0 and d1switch_energy_technology)
   = pREes_change.l[es,i,t];
   
-pREes_change_warning.l[es,i,t]$(t.val >= t1.val and pREes_change.l[es,i,t] > pREes_mechanic_change.l[es,i,t] and sum((em,e), tCO2_Emarg_pj.l[em,es,e,i,t]-tCO2_Emarg_pj_baseline.l[em,es,e,i,t])>0)
+pREes_change_warning.l[es,i,t]$(t.val >= t1.val and pREes_change.l[es,i,t] > pREes_mechanic_change.l[es,i,t] and sum((em,e), tCO2_Emarg_pj.l[em,es,e,i,t]-tCO2_Emarg_pj_baseline.l[em,es,e,i,t])>0 and d1switch_energy_technology)
   = pREes_mechanic_change.l[es,i,t] - pREes_change.l[es,i,t];
 
 $ENDIF # report
