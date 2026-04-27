@@ -17,15 +17,6 @@ $LOOP default_starting_values:
   {name}.l{sets}$({conditions} and {name}.l{sets} = 0) = 0.99;
 $ENDLOOP
 
-# Module-specific starting values specified in the modules are loaded
-factor_demand_calibration_starting_values
-
-# If installation costs are disabled (if fInstCost_k_i is zero, installation costs are zero)
-# we manually set relevant installation cost variables to zero
-$LOOP instcost_variables:
-	{name}.l{sets}$({conditions} and fInstCost_k_i.l[k,i] = 0) = 0;
-$ENDLOOP
-
 $FIX all_variables; $UNFIX calibration_endogenous;
 
 execute_unload 'Output/static_calibration_pre.gdx';

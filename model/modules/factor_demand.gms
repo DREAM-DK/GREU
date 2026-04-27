@@ -129,6 +129,30 @@ pK_k_i.l[k,i,t]$d1K_k_i[k,i,t] = rHurdleRate_i.l[i,t];
 $ENDIF # exogenous_values
 
 # ------------------------------------------------------------------------------
+# Starting values
+# ------------------------------------------------------------------------------
+$IF %stage% == "starting_values":
+
+set_time_periods(%calibration_year%, %calibration_year%);
+
+# Variables that require custom starting values rather than the default 0.99 assignment
+# These are excluded from default_starting_values in calibration.gms
+$Group non_default_starting_values
+  dInstCost2dKLag_k_i[k,i,t]
+;
+
+# Set custom starting values for the variables in non_default_starting_values here
+dInstCost2dKLag_k_i.l[k,i,t]$(t1.val <= t.val and t.val <= tEnd.val and d1K_k_i[k,i,t]) = dInstCost2dKLag_k_i.l[k,i,t0];
+
+# If installation costs are disabled (if fInstCost_k_i is zero, installation costs are zero)
+# we manually set relevant installation cost variables to zero
+qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and fInstCost_k_i.l[k,i] = 0) = 0;
+dInstCost2dKLag_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and fInstCost_k_i.l[k,i] = 0) = 0;
+dInstCost2dK_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and fInstCost_k_i.l[k,i] = 0) = 0;
+
+$ENDIF # starting_values
+
+# ------------------------------------------------------------------------------
 # Calibration
 # ------------------------------------------------------------------------------
 $IF %stage% == "calibration":
@@ -163,23 +187,5 @@ $Group+ G_flat_after_last_data_year
   rKDepr_k_i[k,i,t]
 ;
 
-# There may be a smarter solution for this, but for now we add a specific installation cost variable group
-# to utilize during calibration. This allows us to catch when installation costs are turned off and set related
-# variables equal to zero to avoid pivot errors during calibration in that case
-$Group instcost_variables
-  qInstCost_k_i[k,i,t]$(d1K_k_i[k,i,t])
-  dInstCost2dKLag_k_i[k,i,t]$(d1K_k_i[k,i,t])
-  dInstCost2dK_k_i[k,i,t]$(d1K_k_i[k,i,t])
-;
-
-# Variables that require custom starting values rather than the default 0.99 assignment
-# These are excluded from default_starting_values in calibration.gms
-$Group non_default_starting_values
-  dInstCost2dKLag_k_i[k,i,t]
-;
-
-# Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
-$MACRO factor_demand_calibration_starting_values \
-  dInstCost2dKLag_k_i.l[k,i,t]$(t1.val <= t.val and t.val <= tEnd.val and d1K_k_i[k,i,t]) = dInstCost2dKLag_k_i.l[k,i,t0];
 
 $ENDIF # calibration

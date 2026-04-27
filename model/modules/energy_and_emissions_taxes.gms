@@ -353,6 +353,22 @@ $IF %stage% == "exogenous_values":
 	  d1pREmachine[i,t]            = yes$(sum(es$(not (heating[es] or transport[es])), d1pEes[es,i,t]));
 
 $ENDIF
+
+# ------------------------------------------------------------------------------
+# Starting values
+# ------------------------------------------------------------------------------
+$IF %stage% == "starting_values":
+
+set_time_periods(%calibration_year%, %calibration_year%);
+
+$Group non_default_starting_values
+  # Variables that require custom starting values
+;
+
+# Set custom starting values for the variables in non_default_starting_values here
+
+$ENDIF # starting_values
+
 # ------------------------------------------------------------------------------
 # Calibration
 # ------------------------------------------------------------------------------
@@ -397,12 +413,6 @@ $IF %stage% == "calibration":
     calibration_endogenous
   ;
 
-# These are excluded from default_starting_values in calibration.gms
-$Group non_default_starting_values
-;
-
-# Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
-$MACRO energy_and_emissions_taxes_calibration_starting_values
 
 $ENDIF
 
