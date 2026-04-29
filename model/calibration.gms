@@ -55,9 +55,6 @@ $ENDBLOCK
 model calibration / flat_after_last_data_year_equations /;
 $Group+ calibration_endogenous flat_after_last_data_year_endogenous;
 
-# For testing partial models only, we extend all data covered variables with "flat forecast" after last data year
-$Group+ G_flat_after_last_data_year all_variables_except_constants;
-
 # Extending variables with "flat forecast" after last data year
 $LOOP G_flat_after_last_data_year:
 	{name}.l{sets}$({conditions} and t.val > t1.val) = {name}.l{sets}{$}[<t>t1];
