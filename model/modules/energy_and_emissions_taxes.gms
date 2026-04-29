@@ -78,6 +78,11 @@ $IF %stage% == "variables":
 
   ;
 
+  $Group+ G_non_flat_after_last_data_year
+    tCO2_ETS 
+    tCO2_ETS2
+  ;
+
   $Group G_energy_taxes_data  
     vtE_duty
     vtE_vat 
@@ -309,8 +314,10 @@ $IF %stage% == "exogenous_values":
   # Initial values 
   # ------------------------------------------------------------------------------
 
-   tCO2_ETS.l[t] = 750;
+   tCO2_ETS.l[t] = 750; 
+   tCO2_ETS.l[t]$(t.val > %calibration_year%) = 750+50;
    tCO2_ETS2.l[t] = 375; 
+   tCO2_ETS2.l[t]$(t.val > %calibration_year%) = 375+50;
 
    tCO2_xEmarg.l['23001',t] = 125;
    tCO2_xEmarg.l['23002',t] = 125;
