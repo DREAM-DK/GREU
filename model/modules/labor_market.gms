@@ -91,6 +91,21 @@ rWageInflation.l[t] = fv-1;
 $ENDIF # exogenous_values
 
 # ------------------------------------------------------------------------------
+# Starting values
+# ------------------------------------------------------------------------------
+$IF %stage% == "starting_values":
+
+set_time_periods(%calibration_year%, %calibration_year%);
+
+$Group non_default_starting_values
+  # Variables that require custom starting values
+;
+
+# Set custom starting values for the variables in non_default_starting_values here
+
+$ENDIF # starting_values
+
+# ------------------------------------------------------------------------------
 # Calibration
 # ------------------------------------------------------------------------------
 $IF %stage% == "calibration":
@@ -119,11 +134,5 @@ $Group+ G_flat_after_last_data_year
   qProductivity[t]
 ;
 
-# These are excluded from default_starting_values in calibration.gms
-$Group non_default_starting_values
-;
-
-# Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
-$MACRO labor_market_calibration_starting_values
 
 $ENDIF # calibration

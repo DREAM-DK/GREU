@@ -4,6 +4,8 @@ import pandas as pd
 import gamspy as gp
 import eurostat 
 import os
+import time
+
 
 ## SETTINGS
 geo_list = ['DK']
@@ -36,7 +38,35 @@ filter_pars_financial_accounts = {
     'na_item': ['F','F1','F11','F2','F3','F4','F5','F51','F6','F7','F8'],
     'co_nco': 'CO'
 }
-data_financial_accounts = eurostat.get_data_df(code_financial_accounts, filter_pars=filter_pars_financial_accounts)
+#Get Eurostat from API or cache
+CACHE_DIR = "../data/Modules/financial_accounts/cache"
+os.makedirs(CACHE_DIR, exist_ok=True)
+MAX_AGE = 31 * 24 * 3600  # If data is older than one month, reobtain cache
+
+def get_eurostat_cached_safe(code, filters, cache_name):
+    cache_path = os.path.join(CACHE_DIR, f"{cache_name}.parquet")
+
+    # Try API first
+    try:
+        print("Trying Eurostat...")
+        df = eurostat.get_data_df(code, filter_pars=filters)
+        if not (os.path.exists(cache_path) and os.path.getmtime(cache_path) > time.time() - MAX_AGE):
+            print('Backup either does not exist or is deprecated, updating cache')
+            df.to_parquet(cache_path)
+        return df
+
+    except Exception as e:
+        print("API failed:", e)
+
+        # Fallback to cache
+        if os.path.exists(cache_path):
+            print("Falling back to cached data")
+            return pd.read_parquet(cache_path)
+
+        raise RuntimeError("No cache available and API failed")
+
+
+data_financial_accounts = get_eurostat_cached_safe(code_financial_accounts, filters=filter_pars_financial_accounts, cache_name='financial_accounts_data')
 data_financial_accounts = pd.melt(data_financial_accounts, id_vars=['sector','finpos','na_item'], value_vars=list(map(str, range(year_start, year_end + 1))), var_name='year', value_name='level')
 data_financial_accounts['level'] = data_financial_accounts['level']/1000
 
@@ -54,6 +84,8 @@ def process_financial_data_minus_F11(df, na_items):
     base = process_financial_data(df, na_items)
     f11 = process_financial_data(df, ['F11'])
     return (base.merge(f11, on=['sector', 't'], suffixes=('_base', '_F11'), how='outer').fillna(0).assign(level=lambda x: x['level_base'] - x['level_F11'])[['sector', 't', 'level']])
+
+
 
 # Debt instruments = 
 # + F1  Monetary gold and special drawing rights (SDRs)
