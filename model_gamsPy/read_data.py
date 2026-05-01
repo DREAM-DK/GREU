@@ -151,7 +151,7 @@ e_vals.extend(['Captured CO2'])
 out_vals=e_vals.copy()
 '''Similarly for out, only I also want to have "out_other" and "WholeAndRetailSaleMarginE" in the set in addition to those in the e-column.'''
 out_vals.extend(['out_other','WholeAndRetailSaleMarginE'])
-
+energy_and_emissions.fillna(0,inplace=True)
 #IO-data
 '''gampy does not support domain forwarding from set to set.
 To construct a superset of IO-sectors we must initially populate the superset, then provide it as domain for subsets, which we can then populate using the tried and tested domain_forwarding method.

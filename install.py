@@ -8,6 +8,7 @@ subprocess.run([
     "gamsapi[all]", 
     "nbformat",
     "gamspy==1.21.0",
+    "pyarrow",
     "matplotlib",
     "eurostat",
 ], check=True)
