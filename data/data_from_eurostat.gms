@@ -65,23 +65,38 @@ Parameters # Parameters read from data_eurostat.gdx
   vNetFinAssets[sector,t] "Net financial assets by sector."
   vNetDebtInstruments[sector,t] "Net debt instruments by sector."
   vNetEquity[sector,t] "Net equity instruments by sector."
+  vNetSectorFlows[sector,t] "Net sector flows."
   # --- Government ---
+  vGovBalance[t] "Government balance."
+  vGovRevenue[t] "Government revenue."
+  vGovExpenditure[t] "Government expenditure."
+
   vtIndirect[t] "Revenue from indirect taxes."
-  vtDirect[t] "Total direct taxes"
-  vtCorp[t] "Taxation of corporations"
-  vCont[t] "Contributions to social security"
-  vGovRevQuasi[t] "Revenue from quasi-corporations"
-  vGovRent[t] "Revenue from rent"
-  vtGovDepr[t] "Depreciation of public capital"
-  vGovReceiveCorp[t] "Capital transfers from corporations"
-  vGovReceiveCorpNonCap[t] "Other transfers from corporations"
-  vGovReceiveF[t] "Transfers from foreign countries"
-  vtCap[t] "Capital taxes"
-  vGov2Corp[t] "Transfers to corporations"
-  vGovSub[t] "Government subsidies to corporations"
-  vHhTransfers[t] "Transfers to households and non-profits from government."
-  vGov2Foreign[t] "Transfers from government to foreign countries"
-  vGovNetAcquisitions[t] "Net acquisitions of non-produced non-financial assets"
+  vtDirect[t] "Revenue from direct taxes."
+  vGovSalesRev[t] "Government sales revenue."
+  vGovOthSubRev[t] "Government other subsidies revenue."
+  vGovPropertyIncome[t] "Government property income revenue."
+  vGovSocialContRev[t] "Government social contributions revenue."
+  vGovOthCurrentTransRev[t] "Government other current transfers revenue."
+  vtCap[t] "Revenue from capital taxes."
+  vGovCapRev[t] "Government capital transfers revenue."
+
+  vtHhIncome[t] "Revenue from households income taxes."
+  vtCorp[t] "Revenue from corporate income taxes."
+  
+  vGovIntermediateCons[t] "Government intermediate consumption."
+  vGovCapInv[t] "Government capital investment."
+  vGovDepr[t] "Government depreciation."
+  vGovEmplComp[t] "Government employment compensation."
+  vGovOthProdTax[t] "Government other production taxes."
+  vGovSub[t] "Government subsidies."
+  vGovInterestPayments[t] "Government interest payments."
+  vGovSocBenefitExp[t] "Government social benefit expenditure."
+  vSocTransKind[t] "Social transfer kind."
+  vGovOthCurrentTransExp[t] "Government other current transfers expenditure."
+  vGovAdjExp[t] "Government adjustments."
+  vGovCapTransExp[t] "Government capital transfers expenditure."
+  vGovNetAcquisitions[t] "Government net acquisitions of non-produced non-financial assets."
 ;
 
 $gdxin data_eurostat.gdx
@@ -101,11 +116,11 @@ $load factors_of_production
 $load qK_k_i, qI_k_i  #, qInvt_i
 #  --- Financial accounts ---
 $load sector, i_public, i_private, i_private_fin, i_private_nonfin
-$load vNetFinAssets, vNetDebtInstruments, vNetEquity
+$load vNetFinAssets, vNetDebtInstruments, vNetEquity, vNetSectorFlows
 #  --- Government ---
-$load vtIndirect, vtDirect, vtCorp, vCont, vGovRevQuasi, vGovRent, vtGovDepr
-$load vGovReceiveCorp, vGovReceiveCorpNonCap, vGovReceiveF, vtCap
-$load vGov2Corp, vGovSub, vHhTransfers, vGov2Foreign, vGovNetAcquisitions
+$load vGovBalance, vGovRevenue, vGovExpenditure
+$load vtIndirect, vtDirect, vGovSalesRev, vGovOthSubRev, vGovPropertyIncome, vGovSocialContRev, vGovOthCurrentTransRev, vtCap, vGovCapRev, vtHhIncome, vtCorp,
+$load vGovIntermediateCons, vGovCapInv, vGovDepr, vGovEmplComp, vGovOthProdTax, vGovSub, vGovInterestPayments, vGovSocBenefitExp, vSocTransKind, vGovOthCurrentTransExp, vGovAdjExp, vGovCapTransExp, vGovNetAcquisitions
 $gdxin
 
 # =============================================================================

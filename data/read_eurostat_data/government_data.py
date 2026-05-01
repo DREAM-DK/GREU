@@ -1,54 +1,82 @@
-## THIS SCRIPT IS  PRELIMINARY UNTIL THE GOVERNMENTMODULE IS MODELLED USING EUROSTAT DATA.
 
 import gamspy as gp
-import os
-
-_SOURCE_YEAR = '2020'
-
-
-def _remap_government_time_index(records, year_start):
-    """data_DK.gdx government series are indexed at 2020; relabel to the model calibration year."""
-    if records is None or len(records) == 0:
-        return records
-    df = records.copy()
-    if 't' not in df.columns:
-        return df
-    df['t'] = df['t'].astype(str).replace({_SOURCE_YEAR: str(year_start)})
-    return df
-
+import eurostat
+import pandas as pd
 
 def load_data(n, t, country, currency, year_start, year_end, **kwargs):
-    g = n['g']
-    gdx_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data_DK.gdx')
+    # ========================================================================
+    #   Load raw data
+    # ========================================================================
+    dataset_code = 'gov_10a_main'
+    filter_pars = {
+        'startPeriod': year_start, 
+        'endPeriod': year_end, 
+        'cofog99': 'TOTAL',
+        'sector': 'S13',
+        'unit': 'MIO_NAC',
+        'geo': country,
+    }
+    raw_data = eurostat.get_data_df(dataset_code, filter_pars=filter_pars)
+    na_item_labels = dict(eurostat.get_dic('gov_10a_exp', 'na_item'))
 
-    # Load GDX file
-    gdx = gp.Container()
-    gdx.read(gdx_path)
+    # ========================================================================
+    #   Process data
+    # ========================================================================
+    na_item_list = ['B9', 'TR', 'TE', # Net lending/net borrowing identity
+                    'P11_P12_P131', 'D2REC', 'D39REC', 'D4REC', 'D5REC', 'D61REC', 'D7REC', 'D91REC', 'D92_D99REC', # Revenue components
+                    'D51A_C1REC', 'D51B_C2REC',
+                    'P2', 'P5', 'P51C', 'D1PAY', 'D29PAY', 'D3PAY', 'D4PAY', 'D62_D632PAY', 'D632PAY', 'D7PAY', 'D8', 'D9PAY', 'NP'] # Expenditure components
 
-    # Variables with domain [t] from government_data_variables
-    t_variables = {
-        'vtIndirect': 'Revenue from indirect taxes.',
-        'vtDirect': 'Total direct taxes',
-        'vtCorp': 'Taxation of corporations',
-        'vCont': 'Contributions to social security',
-        'vGovRevQuasi': 'Revenue from quasi-corporations',
-        'vGovRent': 'Revenue from rent',
-        'vtGovDepr': 'Depreciation of public capital',
-        'vGovReceiveCorp': 'Capital transfers from corporations',
-        'vGovReceiveCorpNonCap': 'Other transfers from corporations',
-        'vGovReceiveF': 'Transfers from foreign countries',
-        'vtCap': 'Capital taxes',
-        'vGov2Corp': 'Transfers to corporations',
-        'vGovSub': 'Government subsidies to corporations',
-        'vHhTransfers': 'Transfers to households and non-profits from government.',
-        'vGov2Foreign': 'Transfers from government to foreign countries',
-        'vGovNetAcquisitions': 'Net acquisitions of non-produced non-financial assets',
+    # Eurostat na_item code -> model parameter name
+    na_item_to_var = {
+        # Net lending/net borrowing identity
+        'B9': 'vGovBalance',
+        'TR': 'vGovRevenue',
+        'TE': 'vGovExpenditure',
+        # Revenue components
+        'P11_P12_P131': 'vGovSalesRev',
+        'D2REC': 'vtIndirect',
+        'D39REC': 'vGovOthSubRev',
+        'D4REC': 'vGovPropertyIncome',
+        'D5REC': 'vtDirect',
+        'D61REC': 'vGovSocialContRev',
+        'D7REC': 'vGovOthCurrentTransRev',
+        'D91REC': 'vtCap',
+        'D92_D99REC': 'vGovCapRev',
+
+        'D51A_C1REC': 'vtHhIncome',
+        'D51B_C2REC': 'vtCorp',
+        # Expenditure components
+        'P2': 'vGovIntermediateCons',
+        'P5': 'vGovCapInv',
+        'P51C': 'vGovDepr',
+        'D1PAY': 'vGovEmplComp',
+        'D29PAY': 'vGovOthProdTax',
+        'D3PAY': 'vGovSub',
+        'D4PAY': 'vGovInterestPayments',
+        'D62_D632PAY': 'vGovSocBenefitExp',
+        'D632PAY': 'vSocTransKind',
+        'D7PAY': 'vGovOthCurrentTransExp',
+        'D8': 'vGovAdjExp',
+        'D9PAY': 'vGovCapTransExp',
+        'NP': 'vGovNetAcquisitions',
     }
 
-    for var_name, description in t_variables.items():
-        rec = _remap_government_time_index(gdx[var_name].records, year_start)
-        gp.Parameter(n, name=var_name, domain=[t], description=description, records=rec)
+    # Transform to long format
+    raw_data = pd.melt(raw_data, id_vars=['na_item'],
+                       value_vars=list(map(str, range(year_start, year_end + 1))),
+                       var_name='year', value_name='level')
+    raw_data['level'] = raw_data['level'] / 1000
+    raw_data['variable'] = raw_data['na_item'].map(
+        lambda code: na_item_to_var.get(code) or f'v{code}'
+    )
 
-    # # qD[g,t] - Government consumption demand
-    # gp.Parameter(n, name='qD', domain=[g, t], description='Government consumption demand',
-    #              records=gdx['qD'].records)
+    # ========================================================================
+    #   Store parameters in container
+    # ========================================================================
+    for na_item in na_item_list:
+        var_name = na_item_to_var.get(na_item) or f'v{na_item}'
+        data = raw_data[raw_data['variable'] == var_name][['year', 'level']]
+        gp.Parameter(n, name=var_name, domain=[t],
+                     description=f'{na_item_labels[na_item]}',
+                     records=data[['year', 'level']].values.tolist())
