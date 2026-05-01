@@ -8,60 +8,62 @@ $Group+ all_variables
   rG_g[g,t] "Share of total government consumption expenditure by purpose."
   vG2vGDP[t] "Government consumption expenditure to GDP ratio."
 
-  vGovPrimaryBalance[t] "Primary balance of government."
+  vGovBalance[t] "Primary balance of government."
   vGovRevenue[t] "Revenue of government."
   vGovExpenditure[t] "Expenditure of government."
+  vGovPrimaryBalance[t] "Primary balance of government."
 
   vtIndirect[t] "Revenue from indirect taxes."
   vtIndirect_other[i,t] "Indirect taxes not directly linked to the input-output module"
   sIndirect_other[t]  "Other indirect taxes relative to GVA"
 
-  vtDirect[t] "Total direct taxes"
+  vtDirect[t] "Revenue from direct taxes."
+  vtHhIncome[t] "Revenue from households income taxes."
   vtHhReturn[t] "Taxation of households return on wealth"
   vtHhWages[t] "Taxation of households wages"
   trHh[t] "Marginal tax rate on households return on wealth"
   tW[t] "Marginal tax rate on households wages"
   vtCorp[t] "Taxation of corporations"
   tCorp[t] "Tax rate on corporations"
-  vtDirect_other[t] "Residual direct taxes"
-  sDirect_other[t] "Residual direct taxes relative to GVA"
+  vtDirect_other[t] "Residual direct taxes."
+  sDirect_other[t] "Residual direct taxes relative household and corporate taxes."
 
-  vGovRevOther[t] "Other government revenues"
-  vCont[t] "Contributions to social security"
-  vContExo[t] "Exogenous contributions to social security"
-  vGovRevGovCorp[t] "Revenue from public production"
-  vGovDepr[t] "Depreciation of public capital"
-  vGovRevGovCorpCorrection[t] "Correction to revenue from public production"
-  vGovDeprCorrection[t] "Correction to depreciation of public capital"
-  vGovRevQuasi[t] "Revenue from quasi-corporations"
-  vGovRent[t] "Revenue from rent"
-  vtGovDepr[t] "Depreciation of public capital"
-  vGovReceiveCorp[t] "Capital transfers from corporations"
-  vGovReceiveCorpNonCap[t] "Other transfers from corporations"
-  sGovReceiveCorp[t] "Share of capital transfers from corporations relative to GVA"
-  sGovReceiveCorpNonCap[t] "Share of other transfers from corporations relative to GVA"
-  vGovReceiveF[t] "Transfers from foreign countries"
-  vtCap[t] "Capital taxes"
-  tCap[t] "Capital tax rate"
-
-  vHhTransfers[t] "Transfers to households and non-profits from government."
-  vGovExpOther[t] "Other government expenditures"
-  vGov2Corp[t] "Transfers to corporations"
-  sGov2Corp[t] "Share of gross value added transferred to corporations"
-  vGovSub[t] "Government subsidies to corporations"
+  vGovRevOther[t] "Other revenue of government."
+  vGovSalesRev[t] "Revenue from sales."
+  vGovOthSubRev[t] "Revenue from other subsidies."
+  vGovPropertyIncome[t] "Revenue from property income."
+  vGovSocialContRev[t] "Revenue from social contributions."
+  vGovOthCurrentTransRev[t] "Revenue from other current transfers."
+  vtCap[t] "Revenue from capital taxes."
+  tCap[t] "Capital tax rate."
+  vGovCapRev[t] "Revenue from capital transfers."
+  sGovCapRev[t] "Share of capital transfers relative to GVA."
+  vGovIntermediateCons[t] "Intermediate consumption of government."
+  vGovCapInv[t] "Capital investment of government."
+  vGovDepr[t] "Depreciation of government capital."
+  vGovEmplComp[t] "Employment compensation of government."
+  vGovOthProdTax[t] "Other production taxes of government."
+  vGovSub[t] "Subsidies of government."
   sGovSub_Residual[t] "Residual government subsidies to corporations"
-  qPopTransfers[t] "Population receiving transfers"
-  vGov2Foreign[t] "Transfers form government to foreign countries"
-  vGovNetAcquisitions[t] "Net acquisitions of non-produced non-financial assets"
+  vGovInterestPayments[t] "Interest payments of government."
+  vGovSocBenefitExp[t] "Social benefit expenditure of government."
+  vSocTransKind[t] "Social transfer kind."
+  vGovOthCurrentTransExp[t] "Other current transfers expenditure of government."
+  sGovOthCurrentTransRev[t] "Share of other current transfers relative to GVA."
+  vGovAdjExp[t] "Adjustments of government."
+  vGovCapTransExp[t] "Capital transfers expenditure of government."
+  sGovCapTransExp[t] "Share of capital transfers expenditure relative to GVA."
+  vGovNetAcquisitions[t] "Net acquisitions of non-produced non-financial assets of government."
   vLumpsum[t] "Lumpsum transfers from government to households"
-
-  vNetGov2Corp_xIO[i,t] "Net transfers from goverment to corporations not covered in the input-output module"
-  vNetHh2Gov[t] "Net transfers from households to government"  
-  vNetGov2Foreign[t] "Net transfers from government to foreign countries"
 
   # J-terms for energy and emissions tax variables (endogenized by energy_and_emissions_taxes module when active)
   jvtCO2_ETS_tot[t] "Total revenue from ETS1 and ETS2 (endogenized by energy_and_emissions_taxes module when active)."
   jvtCO2_xE[i,t] "Tax revenue from national carbon tax, non-energy related emissions (endogenized by energy_and_emissions_taxes module when active)."
+
+  # Missing
+  vNetGov2Corp_xIO[i,t] "Net transfers from goverment to corporations not covered in the input-output module"
+  vNetHh2Gov[t] "Net transfers from households to government"  
+  vNetGov2Foreign[t] "Net transfers from government to foreign countries"
 ;
 
 $ENDIF # variables
@@ -73,7 +75,9 @@ $IF %stage% == "equations":
 
 $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
  
-  .. vGovPrimaryBalance[t] =E= vGovRevenue[t] - vGovExpenditure[t];
+ # Government balance
+  .. vGovBalance[t] =E= vGovRevenue[t] - vGovExpenditure[t];
+  .. vGovPrimaryBalance[t] =E= vGovBalance[t] - vGovInterestPayments[t];
 
 # Government revenues
   .. vGovRevenue[t] =E=     + vtIndirect[t]
@@ -81,79 +85,63 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
                             + vGovRevOther[t]
                             ;
 
-
-  .. vtIndirect[t] =E=    vtY[t] + vtM[t] # Net duties, paid through R, E, I, C, G, and X
-                        + vtY_Tax[t]  - jvtCO2_ETS_tot[t] #Production taxes minus ETS-revenue
-                        + sum(i, jvtCO2_xE[i,t])
-                        + sum(i, vtIndirect_other[i,t])
-                        ;
-
-  .. vtIndirect_other[i,t] =E= sIndirect_other[t] * vGVA_i[i,t];                      
-
-
-  .. vtDirect[t] =E= vtHhReturn[t] + vtHhWages[t] + vtCorp[t] + vtDirect_other[t];
-  .. vtHhReturn[t] =E= trHh[t] * rHh[t] * vNetFinAssets['Hh',t-1]/fv;
-  .. vtHhWages[t] =E= tW[t] * vWages[t];
-  .. vtCorp[t] =E= tCorp[t] * sum(i, vEBITDA_i[i,t]-vDepr_i[i,t]);
-  .. vtDirect_other[t] =E= sDirect_other[t] * (vtHhReturn[t] + vtHhWages[t]);
-
-
-  .. vGovRevOther[t] =E= 
-                            + vGovRevGovCorp[t]
-                            + vGovDepr[t]
-                            + vCont[t]
-                            + vGovReceiveCorp[t]
-                            + vGovReceiveCorpNonCap[t]
-                            + vGovReceiveF[t]
-                            + vtCap[t]
+  .. vtIndirect[t] =E=      + vtY[t] + vtM[t] # Net duties, paid through R, E, I, C, G, and X
+                            + vtY_Tax[t]  - jvtCO2_ETS_tot[t] #Production taxes minus ETS-revenue
+                            + sum(i, jvtCO2_xE[i,t])
+                            + sum(i, vtIndirect_other[i,t])
                             ;
+  .. vtIndirect_other[i,t] =E= sIndirect_other[t] * vGVA_i[i,t];
 
-  .. vCont[t] =E= pW[t] * vContExo[t];
+  .. vtDirect[t] =E=        + vtHhIncome[t]
+                            + vtCorp[t]
+                            + vtDirect_other[t]
+                            ;
+  .. vtHhIncome[t] =E=      + vtHhReturn[t]
+                            + vtHhWages[t]
+                            ; 
+  .. vtHhReturn[t] =E= trHh[t] * rHh[t] * vNetFinAssets['Hh',t-1]/fv; 
+  .. vtHhWages[t] =E= tW[t] * vWages[t];
 
-  ..vGovRevGovCorp[t] =E= sum(i$i_public[i], vEBITDA_i[i,t]-vDepr_i[i,t]) + vGovRevGovCorpCorrection[t];
+  .. vtCorp[t] =E= tCorp[t] * sum(i, vEBITDA_i[i,t]-vDepr_i[i,t]);
 
-  ..vGovDepr[t] =E= sum(i$i_public[i], vDepr_i[i,t]) + vGovDeprCorrection[t];
+  .. vtDirect_other[t] =E= sDirect_other[t] * vtHhIncome[t];
 
-  ..vGovReceiveCorp[t] =E= sGovReceiveCorp[t] * sum(i, vGVA_i[i,t]);
-  ..vGovReceiveCorpNonCap[t] =E= sGovReceiveCorpNonCap[t] * sum(i, vGVA_i[i,t]);
+  .. vGovRevOther[t] =E=    + vGovSalesRev[t] 
+                            + vGovOthSubRev[t] 
+                            + vGovPropertyIncome[t] 
+                            + vGovSocialContRev[t] 
+                            + vGovOthCurrentTransRev[t] 
+                            + vtCap[t]
+                            + vGovCapRev[t]
+                            ;
+  .. vGovOthCurrentTransRev[t] =E= sGovOthCurrentTransRev[t] * sum(i, vGVA_i[i,t]);
+  .. vtCap[t] =E= tCap[t] * vNetFinAssets['Hh',t];
+  .. vGovCapRev[t] =E= sGovCapRev[t] * sum(i, vGVA_i[i,t]);
 
-  ..vtCap[t] =E= tCap[t] * vNetFinAssets['Hh',t];
-
-
-# Government expenditures
-
-  .. vGovExpenditure[t] =E= vG[t] + vHhTransfers[t] + vI_public[t]
-                            + vGovExpOther[t] + vLumpsum[t];
-
-
-  rG_g[g,t]$(first(g)).. vG[t] =E= vG2vGDP[t] * vGDP[t];  # Government consumption expenditure to GDP ratio
-  qD[g,t].. vD[g,t] =E= rG_g[g,t] * vG[t];
-
-  .. vHhTransfers[t] =E= pW[t-3] * qPopTransfers[t]; 
-
-  .. vGovExpOther[t] =E= vGovSub[t] + vGov2Corp[t] + vGov2Foreign[t] + vGovNetAcquisitions[t];
-
+# Government expenditure
+  .. vGovExpenditure[t] =E= + vGovIntermediateCons[t]
+                            + vGovCapInv[t]
+                            + vGovEmplComp[t]
+                            + vGovOthProdTax[t] 
+                            + vGovSub[t]
+                            + vGovInterestPayments[t] 
+                            + vGovSocBenefitExp[t]
+                            + vGovOthCurrentTransExp[t]
+                            + vGovAdjExp[t]
+                            + vGovCapTransExp[t]
+                            + vGovNetAcquisitions[t]
+                            + vLumpsum[t]
+                            ;
+  
   .. vGovSub[t] =E= vtY_Sub[t] + sGovSub_Residual[t] * sum(i,vGVA_i[i,t]);
 
-  .. vGov2Corp[t] =E= sGov2Corp[t] * sum(i, vGVA_i[i,t]);
+  .. vGovCapTransExp[t] =E= sGovCapTransExp[t] * sum(i, vGVA_i[i,t]);
 
-
-
-# Income flow to the other sectors
-
- .. vNetGov2Corp_xIO[i,t] =E= (sGov2Corp[t] + sGovSub_Residual[t] - sGovReceiveCorp[t] - sGovReceiveCorpNonCap[t]) 
-                                * vGVA_i[i,t]
-                              - jvtCO2_xE[i,t] 
-                              - vtIndirect_other[i,t] 
-                              - tCorp[t] * (vEBITDA_i[i,t]-vDepr_i[i,t]);
-
-
-  .. vNetHh2Gov[t] =E= vtHhWages[t] + vtHhReturn[t] + vtDirect_other[t] 
-                       + vCont[t] + vGovRevGovCorpCorrection[t] + vGovDeprCorrection[t] + vtCap[t]  
-                       - vHhTransfers[t] - vGovNetAcquisitions[t] - vLumpsum[t];
-
-
-  .. vNetGov2Foreign[t] =E= vGov2Foreign[t] + jvtCO2_ETS_tot[t] - vGovReceiveF[t];
+  # .. vG[t] =E= vGovEmplComp[t] + vGovDepr[t] + vGovIntermediateCons[t] + vGovOthProdTax[t] + vSocTransKind[t]
+  #              - vGovSalesRev[t] - vGovOthSubRev[t];
+  
+  rG_g[g,t]$(first(g)).. vG[t] =E= vG2vGDP[t] * vGDP[t];  # Government consumption expenditure to GDP ratio
+  qD[g,t].. vD[g,t] =E= rG_g[g,t] * vG[t];
 
 $ENDBLOCK
 
@@ -171,23 +159,36 @@ $IF %stage% == "exogenous_values":
 $Group government_data_variables
   qD[g,t]
 
+  vGovBalance[t]
+  vGovRevenue[t]
+  vGovExpenditure[t]
+
   vtIndirect[t]
   vtDirect[t]
-  vtCorp[t]
-  vCont[t]
-  vGovRevQuasi[t]
-  vGovRent[t]
-  vtGovDepr[t]
-  vGovReceiveCorp[t]
-  vGovReceiveCorpNonCap[t]
-  vGovReceiveF[t]
+  vGovSalesRev[t]
+  vGovOthSubRev[t]
+  vGovPropertyIncome[t]
+  vGovSocialContRev[t]
+  vGovOthCurrentTransRev[t]
   vtCap[t]
+  vGovCapRev[t]
 
-  vGov2Corp[t]
+  vtHhIncome[t]
+  vtCorp[t]
+
+  vGovIntermediateCons[t]
+  vGovCapInv[t]
+  vGovDepr[t]
+  vGovEmplComp[t]
+  vGovOthProdTax[t]
   vGovSub[t]
-  vHhTransfers[t]
-  vGov2Foreign[t]
+  vGovInterestPayments[t]
+  vGovSocBenefitExp[t]
+  vGovOthCurrentTransExp[t]
+  vGovAdjExp[t]
+  vGovCapTransExp[t]
   vGovNetAcquisitions[t]
+  vSocTransKind[t]
 
 ;
 @load(government_data_variables, "../data/data.gdx")
@@ -195,9 +196,6 @@ $Group+ data_covered_variables government_data_variables$(t.val <= %calibration_
 
 trHh.l[t] = 0.25;
 tW.l[t] = 0.4;
-
-vGovDepr.l[t] = vtGovDepr.l[t];
-vGovRevGovCorp.l[t] = vGovRevQuasi.l[t] + vGovRent.l[t];
 
 # Initialize J-terms for energy and emissions tax variables to zero (allows partial equilibrium when energy modules are off)
 jvtCO2_ETS_tot.l[t] = 0;
@@ -213,7 +211,7 @@ $IF %stage% == "calibration":
 # $BLOCK government_calibration_equations government_calibration_endogenous
 $BLOCK government_calibration_equations government_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
-  # vLumpsum&_t1[t]$(t.val = tEnd.val).. vNetFinAssets['Gov',t] =E= vNetFinAssets['Gov',t-1];
+  vLumpsum&_t1[t]$(t.val = tEnd.val).. vNetFinAssets['Gov',t] =E= vNetFinAssets['Gov',t-1];
   vLumpsum[t]$(t1.val < t.val and t.val < tEnd.val).. vLumpsum[t] =E= vLumpsum[t+1]*0.9;
 
 $ENDBLOCK
@@ -221,49 +219,41 @@ $ENDBLOCK
 # Add equations and calibration equations to calibration model
 model calibration /
   government_equations
-  government_calibration_equations
+  # government_calibration_equations
 /;
 # Add endogenous variables to calibration model
 $Group calibration_endogenous
   government_endogenous
-  government_calibration_endogenous
-  -qD[g,t1], rG_g[g,t1], vG2vGDP[t1]
+  # government_calibration_endogenous
   -vtIndirect[t1], sIndirect_other[t1]
-  -vtCorp[t1], tCorp[t1]
+  -vtHhIncome[t1], trHh[t1] # Enten sættes trHh eller rHh. Den anden sættes i exogenous values stage. 
   -vtDirect[t1], sDirect_other[t1]
-  -vCont[t1], vContExo[t1]
-  -vGovRevGovCorp[t1], vGovRevGovCorpCorrection[t1]
-  -vGovDepr[t1], vGovDeprCorrection[t1]
-  -vGovReceiveCorp[t1], sGovReceiveCorp[t1]
-  -vGovReceiveCorpNonCap[t1], sGovReceiveCorpNonCap[t1]
+  -vGovOthCurrentTransRev[t1], sGovOthCurrentTransRev[t1]
+  -vtCorp[t1], tCorp[t1] 
   -vtCap[t1], tCap[t1]
-  -vGov2Corp[t1], sGov2Corp[t1]
-  -vGovSub[t1], sGovSub_Residual[t1]
-  -vHhTransfers[t1], qPopTransfers[t1]
+  -vGovCapRev[t1], sGovCapRev[t1]
 
+  -vGovSub[t1], sGovSub_Residual[t1]
+  -vGovCapTransExp[t1], sGovCapTransExp[t1]
+  -qD[g,t1], rG_g[g,t1], vG2vGDP[t1]
   calibration_endogenous
 ;
 
 $Group+ G_flat_after_last_data_year
+  sIndirect_other[t]
+  sDirect_other[t]
+  tCorp[t]
+  tCap[t]
+  sGovCapRev[t]
+  sGovCapTransExp[t]
+  sGovSub_Residual[t]
+
   vG2vGDP[t]
   rG_g[c,t]
-  sIndirect_other[t]
-  tCorp[t]
-  sDirect_other[t]  
-  sGov2Corp[t]
-  sGovSub_Residual[t]
-  qPopTransfers[t]
-  vGov2Foreign[t]
-  vGovNetAcquisitions[t]
-  vContExo[t]
-  sGovReceiveCorp[t]
-  sGovReceiveCorpNonCap[t]
-  tCap[t]
 ;
 
 $Group+ G_zero_after_last_data_year
-  vGovRevGovCorpCorrection[t]
-  vGovDeprCorrection[t]
+
 ;
 
 $Group+ G_zero_t1_after_static_calibration

@@ -8,6 +8,9 @@ $Group+ all_variables
   vNetDebtInstruments[sector,t] "Net debt instruments by sector."
   vNetEquity[sector,t] "Net equity instruments by sector."
 
+  vNetSectorFlows[sector,t] "Net sector flows."
+  sNetSectorFlows[sector,t] "Sector flows share parameter."
+
   vNetInterests[sector,t] "Net interests received by sector."
   rInterests[t] "Interest rate."
   rInterests_s[sector,t] "Interest rate by sector."
@@ -50,35 +53,44 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
   .. vI_public[t] =E= sum(i$i_public[i], sum(k, vI_k_i[k,i,t]) + vInvt_i[i,t] + jvInvt_ene_i[i,t]);
 
   .. vNetFinAssets[Hh,t] =E= vNetFinAssets[Hh,t-1]/fv
-                           + vNetInterests[Hh,t] + vNetDividends[Hh,t] + vNetRevaluations[Hh,t]
-                           + vWages[t]
-                           - vC[t]
-                           - vNetHh2Gov[t]
+                          #  + vNetInterests[Hh,t] + vNetDividends[Hh,t] + vNetRevaluations[Hh,t]
+                           + vNetSectorFlows[Hh,t]
+                          #  + vWages[t]
+                          #  - vC[t]
+                          #  - vNetHh2Gov[t]
                            ;
 
   .. vNetFinAssets[NonFinCorp,t] =E= vNetFinAssets[NonFinCorp,t-1]/fv
-                             + vNetInterests[NonFinCorp,t] + vNetDividends[NonFinCorp,t] + vNetRevaluations[NonFinCorp,t]
-                             + sum(i$i_private_nonfin[i], vEBITDA_i[i,t]) - vI_private_nonfin[t]
+                            #  + vNetInterests[NonFinCorp,t] + vNetDividends[NonFinCorp,t] + vNetRevaluations[NonFinCorp,t]
+                             + vNetSectorFlows[NonFinCorp,t]
+                            #  + sum(i$i_private_nonfin[i], vEBITDA_i[i,t]) - vI_private_nonfin[t]
                              ;
 
   .. vNetFinAssets[FinCorp,t] =E= vNetFinAssets[FinCorp,t-1]/fv
-                             + vNetInterests[FinCorp,t] + vNetDividends[FinCorp,t] + vNetRevaluations[FinCorp,t]
-                             + sum(i$i_private_fin[i], vEBITDA_i[i,t]) - vI_private_fin[t]
+                            #  + vNetInterests[FinCorp,t] + vNetDividends[FinCorp,t] + vNetRevaluations[FinCorp,t]
+                             + vNetSectorFlows[FinCorp,t]
+                            #  + sum(i$i_private_fin[i], vEBITDA_i[i,t]) - vI_private_fin[t]
                              ;
 
   .. vNetFinAssets[Gov,t] =E= vNetFinAssets[Gov,t-1]/fv
-                            + vNetInterests[Gov,t] + vNetDividends[Gov,t] + vNetRevaluations[Gov,t]
-                            + vGovPrimaryBalance[t];
+                            # + vNetInterests[Gov,t] + vNetDividends[Gov,t] + vNetRevaluations[Gov,t]
+                            + vNetSectorFlows[Gov,t]
+                            # + vGovPrimaryBalance[t]
+                            ;
 
   .. vNetFinAssets[RoW,t] =E= vNetFinAssets[RoW,t-1]/fv
-                            + vNetInterests[RoW,t] + vNetDividends[RoW,t] + vNetRevaluations[RoW,t]
-                            + vM[t]
-                            - vX[t]
-                            + vNetGov2Foreign[t];
+                            # + vNetInterests[RoW,t] + vNetDividends[RoW,t] + vNetRevaluations[RoW,t]
+                            + vNetSectorFlows[RoW,t]
+                            # + vM[t] 
+                            # + vNetGov2Foreign[t]
+                            ;
 
   .. vEBITDA_i[i,t] =E= vY_i[i,t] - vWages_i[i,t] - vD[i,t] - jvE_i[i,t]
                                   - vtY_i_NetTaxSub[i,t] + vNetGov2Corp_xIO[i,t]; # Net duties should be subtracted here - AKB: What? They are contained in vD and vE_i
 
+  
+  .. vNetSectorFlows[sector,t] =E= sNetSectorFlows[sector,t] * sum(i, vGVA_i[i,t]);
+  
   # Government maintains equity at a constant level
   .. vNetEquity[Gov,t] =E= vNetEquity[Gov,t-1]/fv * fv; # Use equity price change instead of fv, when available
 
@@ -131,6 +143,7 @@ $IF %stage% == "exogenous_values":
 $Group financial_data_variables
   vNetFinAssets[sector,t]
   vNetDebtInstruments[sector,t]
+  vNetSectorFlows[sector,t]
 ;
 @load(financial_data_variables, "../data/data.gdx")
 $Group+ data_covered_variables financial_data_variables$(t.val <= %calibration_year%);
@@ -165,6 +178,7 @@ model calibration /
 $Group calibration_endogenous
   financial_endogenous
   financial_calibration_endogenous
+  -vNetSectorFlows[sector,t1], sNetSectorFlows[sector,t1]
   -vNetInterests[sector,t1]$(not RoW[sector]), jrInterests_s[sector,t1]
   -vNetRevaluations[sector,t1], rRevaluations_s[sector,t1]
   -vNetDebtInstruments['FinCorp',t1], rFinCorpDebt2Equity[t1]
@@ -178,6 +192,7 @@ $Group+ G_flat_after_last_data_year
   rFinCorpDebt2Equity[t]
   rNonFinCorpDebt2Equity[t]
   rHhEquity2FinAssets[t]
+  sNetSectorFlows[sector,t]
 ;
 
 # These are excluded from default_starting_values in calibration.gms
