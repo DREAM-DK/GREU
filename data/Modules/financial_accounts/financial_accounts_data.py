@@ -5,6 +5,7 @@ import gamspy as gp
 import eurostat 
 import os
 import time
+import importlib.util
 
 
 ## SETTINGS
@@ -51,8 +52,9 @@ def get_eurostat_cached_safe(code, filters, cache_name):
         print("Trying Eurostat...")
         df = eurostat.get_data_df(code, filter_pars=filters)
         if not (os.path.exists(cache_path) and os.path.getmtime(cache_path) > time.time() - MAX_AGE):
-            print('Backup either does not exist or is deprecated, updating cache')
-            df.to_parquet(cache_path)
+            if importlib.util.find_spec("pyarrow") is not None:
+                print('Backup either does not exist or is deprecated, updating cache')
+                df.to_parquet(cache_path)
         return df
 
     except Exception as e:
