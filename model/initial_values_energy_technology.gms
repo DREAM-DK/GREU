@@ -1,7 +1,7 @@
 # ======================================================================================================================
-# Supply Curves for Abatement Model
+# Supply Curves for Energy Technology Choice Model
 # ======================================================================================================================
-# This module solves a pre-model in order to calculate supply curves for the main abatement model.
+# This module solves a pre-model in order to calculate supply curves for the main energy technology choice model.
 
 # ----------------------------------------------------------------------------------------------------------------------
 # 1. Update energy dummies and prices
@@ -13,14 +13,6 @@ $FIX all_variables; $UNFIX energy_price_partial_endogenous;
 # execute_unload 'energy_price_partial_pre.gdx';
 Solve energy_price_partial using CNS;
 # execute_unload 'energy_price_partial_post.gdx';
-
-# ----------------------------------------------------------------------------------------------------------------------
-# 1.B. Initialize linking variables (I think this is redundant)
-# ----------------------------------------------------------------------------------------------------------------------
-
-# Initialise linking variables
-qES.l[es,i,t]$(qES.l[es,i,t] and qREes.l[es,i,t]) = jES.l[es,i,t]*qREes.l[es,i,t];
-pTK.l[i,t]$(d1pTK[i,t] and d1K_k_i['iM',i,t]) = pK_k_i.l['iM',i,t]*jpTK.l[i,t];
 
 # ----------------------------------------------------------------------------------------------------------------------
 # 2. Price Initialization
@@ -68,11 +60,11 @@ uTKmargNobound_scen.l[l,es,d,t,scen]$(sqTPotential.l[l,es,d,t]) = uTKmarg_scen.l
 # 4. Supply Curve Solution
 # ----------------------------------------------------------------------------------------------------------------------
 @update_exist_dummies()
-$FIX G_abatement_supply_curve_exo;
-$UNFIX G_abatement_supply_curve_endo;
-@Setbounds_abatement();
+$FIX G_energy_technology_supply_curve_exo;
+$UNFIX G_energy_technology_supply_curve_endo;
+@Setbounds_energy_technology();
 # execute_unload 'pre_supply_curves.gdx';
-Solve M_abatement_supply_curve using CNS;
+Solve M_energy_technology_supply_curve using CNS;
 
 # ----------------------------------------------------------------------------------------------------------------------
 # 5. Main Model Initialization
@@ -97,5 +89,3 @@ uTKmargNobound.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = uTKmarg.l[l,es,d,t];
 sqT.l[l,es,d,t]$(sqTPotential.l[l,es,d,t] and uTKmarg_eq[l,es,d,t]) = 
   sqTPotential.l[l,es,d,t]*@cdfLogNorm(uTKmarg_eq[l,es,d,t], uTKexp.l[l,es,d,t], eP.l[l,es,d,t]);
 pESmarg.l[es,d,t] = pESmarg_eq[es,d,t];
-
-execute_unload 'output\supply_curves_abatement.gdx';

@@ -1,14 +1,14 @@
-# $IF %include_abatement% = 0:
+# $IF %include_energy_technology% = 0:
 #   $SETGLOBAL test_CGE "1"
-#   $SETGLOBAL test_abatement "0"
+#   $SETGLOBAL test_energy_technology "0"
 #   $IMPORT base_model.gms
-# $ENDIF # include_abatement
+# $ENDIF # include_energy_technology
 # 
-# $IF %include_abatement% = 1:
+# $IF %include_energy_technology% = 1:
 #   $SETGLOBAL test_CGE "0"
-#   $SETGLOBAL test_abatement "1"
-#   $IMPORT base_model_abatement.gms 
-# $ENDIF # include_abatement
+#   $SETGLOBAL test_energy_technology "1"
+#   $IMPORT base_model_energy_technology.gms 
+# $ENDIF # include_energy_technology
 
 $IMPORT sets/report.sets.gms # Has to be manually fittet to country specifik data
 $Group Report_variables ;
@@ -17,31 +17,31 @@ $Group Report_variables ;
 
 @import_from_modules("report")
 
-$IF %include_abatement% = 1:
-  execute_unload 'Output\baseline_abatement.gdx';
+$IF %include_energy_technology% = 1:
+  execute_unload 'Output\baseline_energy_technology.gdx';
 $ENDIF
 
-$IF %include_abatement% = 0:
+$IF %include_energy_technology% = 0:
   execute_unload 'Output\baseline.gdx';
 $ENDIF
 
 # ------------------------------------------------------------------------------
 # Calibrate electrification technologies
 # ------------------------------------------------------------------------------
-$IF %include_abatement% = 1:
+$IF %include_energy_technology% = 1:
   $import calib_electrification.gms;
   # We recalculate baseline values with the new technologies
   @import_from_modules("report_baseline")
-$ENDIF # include_abatement
+$ENDIF # include_energy_technology
 
 # ------------------------------------------------------------------------------
 # Calibrate CCS technologies
 # ------------------------------------------------------------------------------
-$IF %include_abatement% = 1:
+$IF %include_energy_technology% = 1:
   $import calib_CCS.gms;
   # We recalculate baseline values with the new technologies
   @import_from_modules("report_baseline")
-$ENDIF # include_abatement
+$ENDIF # include_energy_technology
 
 # ------------------------------------------------------------------------------
 # Shock model
@@ -75,11 +75,11 @@ $SETGLOBAL step step4
 $import calc_shock_steps.gms
 
 
-$IF %include_abatement% = 1:
-execute_unload 'Output\shock_carbon_tax_abatement_steps.gdx';
+$IF %include_energy_technology% = 1:
+execute_unload 'Output\shock_carbon_tax_energy_technology_steps.gdx';
 $ENDIF
 
-$IF %include_abatement% = 0:
+$IF %include_energy_technology% = 0:
 execute_unload 'Output\shock_carbon_tax_steps.gdx';
 $ENDIF
 

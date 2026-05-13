@@ -62,8 +62,7 @@ $IF %stage% == "report":
   # vtCO2e_total.l[t] = sum((CO2etax), tCO2e.l[CO2etax,t] * qCO2e_taxgroup.l[CO2etax,t]);
 
   vtCO2_Corp.l[t] = sum((es,e,i), vtE_duty.l['co2_tax',es,e,i,t]);
-  vtCO2_Hh.l[t] = sum((es,e,c), vtE_duty.l['co2_tax',es,e,c,t]) 
-                + sum((em,es,e,c), tCO2_Emarg_C_pj.l[em,es,e,c,t]*qEpj.l[es,e,c,t]);
+  vtCO2_Hh.l[t] = sum((es,e,c), vtE_duty.l['co2_tax',es,e,c,t]);
   vtCO2_xE_tot.l[t] = sum(i, vtCO2_xE.l[i,t]);
 
   vtIndirect_Rest.l[t] = vtIndirect.l[t] - vtE_vat_total.l[t] - vtE_duty_xCO2.l[t]

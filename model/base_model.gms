@@ -10,14 +10,14 @@ $IMPORT conditional_logic_config.gms
 $IMPORT sets/time.sets.gms
 $IMPORT sets/sectors.sets.gms
 $IMPORT sets/input_output.sets.gms
-$IMPORT sets/output.sets.gms
+# $IMPORT sets/output.sets.gms
 $IMPORT sets/production.sets.gms
-$IMPORT sets/households.sets.gms
-$IMPORT sets/emissions.sets.gms
-$IMPORT sets/energy_taxes_and_emissions.sets.gms
-$IMPORT sets/abatement.sets.gms
-$IMPORT sets/subsets.sets.gms
-$IMPORT sets/energy_outputs.sets.gms
+# $IMPORT sets/households.sets.gms
+# $IMPORT sets/emissions.sets.gms
+# $IMPORT sets/energy_taxes_and_emissions.sets.gms
+# $IMPORT sets/energy_technology.sets.gms
+# $IMPORT sets/subsets.sets.gms
+# $IMPORT sets/energy_outputs.sets.gms
 
 set_time_periods(%first_data_year%, %terminal_year%);
 
@@ -45,31 +45,31 @@ $FUNCTION import_from_modules({stage_key}):
     ("modules/input_output.gms", 1),
     ("modules/labor_market.gms", 1),
     ("modules/factor_demand.gms", 1),
+    ("modules/factor_demand_energy.gms", 1),
+    ("modules/production.gms" , 1),
     ("modules/pricing.gms" , 1),
     ("modules/households.gms", 1),
     ("modules/financial_accounts.gms", 1),
-    ("modules/government.gms", 1),
+    ("modules/government.gms",1),
     ("modules/imports.gms", 1),
     ("modules/exports.gms", 1),
 
-    ("modules/ramsey_household.gms", 1), 
-    ("modules/consumption_disaggregated.gms", 1), 
+    # ("modules/ramsey_household.gms", 1), 
+    # ("modules/consumption_disaggregated.gms", 1), 
 
-    ## GREEN TRANSITION MODULES
-    ("modules/emissions.gms" , 1),
-    ("modules/energy_markets.gms" , 1),
-    ("modules/energy_and_emissions_taxes.gms" , 1),
-    ("modules/non_energy_markets.gms", 1),
-    ("modules/production_CES_energydemand.gms", 1),
-    ("modules/production.gms" , 1),
-    ("modules/production_CET.gms", 1),
-    ("modules/factor_demand_energy.gms", 1),
-    ("modules/consumption_disaggregated_energy.gms", 1),
-    ("modules/exports_energy.gms", 1),
-    ("modules/abatement.gms", 1),
+    # ## GREEN TRANSITION MODULES
+    # ("modules/emissions.gms" , 1),
+    # ("modules/energy_markets.gms" , 1),
+    # ("modules/non_energy_markets.gms", 1),
+    # ("modules/production_CES_energydemand.gms", 1),
+    # ("modules/energy_and_emissions_taxes.gms" , 1),
+    # ("modules/production_CET.gms", 1),
+    # ("modules/consumption_disaggregated_energy.gms", 1),
+    # ("modules/exports_energy.gms", 1),
+    # ("modules/energy_technology.gms", 1),
 
-    ## REPORTING MODULES
-    ("Report/All.Report.gms", 1),     
+    # ## REPORTING MODULES
+    # ("Report/All.Report.gms", 1),     
   ]:
     $IF {include} or {stage_key} in ["variables", "exogenous_values"]:
       $IMPORT {module}
@@ -109,6 +109,7 @@ main.optfile=1;
 # =============================================================================
 @import_from_modules("exogenous_values")
 @inf_growth_adjust()
+$GROUP data_covered_variables data_covered_variables$(tDataEnd[t]);
 @set(data_covered_variables, _data, .l) # Save values of data covered variables prior to calibration
 
 @update_exist_dummies()
@@ -116,7 +117,7 @@ main.optfile=1;
 # =============================================================================
 # CALIBRATION
 # =============================================================================
-d1switch_abatement[t] = 0; # We turn the abatement model off while calibrating the CGE-model
+# d1switch_energy_technology[t] = 0; # We turn the energy technology model off while calibrating the CGE-model
 
 $Group calibration_endogenous ;
 @import_from_modules("calibration")

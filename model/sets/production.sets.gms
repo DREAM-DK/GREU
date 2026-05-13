@@ -6,13 +6,17 @@ $gdxin
 
 set production_nests /
   KE "machine capial and ergy for machine"
-  TE "Transport capital and ergy for transport"
-  BE "Structures capital and heating ergy"
-  KETE "Nest of KE and TE"
-  KETEL    
-  KETELBE  
+  KEL    
+  KELB  
   # KETELBER 
-  TopPfunction "The top nest of production function, currently KETELBER"
+  # KE "machine capial and ergy for machine"
+  # TE "Transport capital and ergy for transport"
+  # BE "Structures capital and heating ergy"
+  # KETE "Nest of KE and TE"
+  # KETEL    
+  # KETELBE  
+  # # KETELBER 
+  TopPfunction "The top nest of production function, currently KELBR/KETELBER"
 /;
 
 set pf "Factor inputs and their nests in production function" /
@@ -20,9 +24,9 @@ set pf "Factor inputs and their nests in production function" /
   set.production_nests
 /;
 
-set machine_energy[pf] /machine_energy/;
-set transport_energy[pf] /transport_energy/;
-set heating_energy[pf] /heating_energy/;
+# set machine_energy[pf] /machine_energy/;
+# set transport_energy[pf] /transport_energy/;
+# set heating_energy[pf] /heating_energy/;
 
 set labor[pf] /labor/;
 
@@ -33,9 +37,10 @@ set pfNest[pf] /set.production_nests/;
 set pf_top[pf] /TopPfunction/;
 
 set pf_bottom_e[pf]/
-  machine_energy
-  transport_energy
-  heating_energy
+  energy
+  # machine_energy
+  # transport_energy
+  # heating_energy
 /;
 
 set pf_bottom_capital[pf] /set.k/;
@@ -50,14 +55,19 @@ pf_bottom_note[pf] = not pf_bottom_e[pf];
 
 set pf_mapping[pfNest,pf,i] /
   #Standard sectors
-  KE . (im, machine_energy)      . set.i_standard
-  TE . (it, transport_energy)    . set.i_standard
-  BE . (ib, heating_energy)      . set.i_standard
+  KE . (im, energy)      . set.i_standard
+  KEL    . (KE    , labor)   . set.i_standard
+  KELB  . (KEL   , iB)      . set.i_standard
+  TopPfunction . (KELB , RxE) . set.i_standard
 
-  KETE     . (KE      , TE)      . set.i_standard
-  KETEL    . (KETE    , labor)   . set.i_standard
-  KETELBE  . (KETEL   , BE)      . set.i_standard
-  TopPfunction . (KETELBE , RxE) . set.i_standard
+  # KE . (im, machine_energy)      . set.i_standard
+  # TE . (it, transport_energy)    . set.i_standard
+  # BE . (ib, heating_energy)      . set.i_standard
+
+  # KETE     . (KE      , TE)      . set.i_standard
+  # KETEL    . (KETE    , labor)   . set.i_standard
+  # KETELBE  . (KETEL   , BE)      . set.i_standard
+  # TopPfunction . (KETELBE , RxE) . set.i_standard
 
 /;
 
@@ -67,9 +77,6 @@ set pf_mapping[pfNest,pf,i] /
 #     heating_energy .   heating_energy
 # /;
 
-#£Temp
-set pf_bottom_e2re[pf_bottom_e,re]/
-    machine_energy   .  energy
-    transport_energy .   energy
-    heating_energy .   energy
+set pf_bottom_e2re[pf_bottom_e,energy]/
+    energy   .  energy
 /;
