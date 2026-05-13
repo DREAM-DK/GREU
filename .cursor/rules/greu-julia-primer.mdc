@@ -10,6 +10,16 @@ alwaysApply: false
 
 **Green REFORM EU** — a modular dynamic general equilibrium (CGE) model for fiscal and environmental sustainability analysis, built by [DREAM](https://dreamgruppen.dk/). The canonical implementation is in GAMS (see `model/`). Our goal is to re-implement it in Julia using **JuMP** and **SquareModels**.
 
+## Current Direction
+
+The current focus is getting a core macroeconomic model running, without energy and emissions modules. The port should rely on Eurostat data via EurostatAPI.jl rather than data delivered directly from Statistics Denmark.
+
+SquareModels is a local package built for this port. It can be modified without concern for backwards compatibility when that makes the GREU port cleaner.
+
+GAMS.jl is currently used to solve with CONOPT, but direct Julia CONOPT bindings are expected later. Do not spend time optimizing around GAMS.jl-specific constraints.
+
+The Julia port does not need to be a verbatim translation of GAMS. Be critical about architectural decisions and prefer truly modular Julia code.
+
 ## Architecture Overview
 
 The Julia code lives in `model_julia/`. Entry point is `GREU.jl`, which `include`s everything else. There is no `module GREU` — the top-level file runs as a script.
@@ -17,11 +27,15 @@ The Julia code lives in `model_julia/`. Entry point is `GREU.jl`, which `include
 ```
 model_julia/
   GREU.jl                       # Entry point: env setup, model container, calibration pipeline, tests
-  Data.jl                       # Reads data/data.gdx once; exports load_set, load_parameter, load_parameter!
-  GrowthInflationAdjustment.jl  # Stationarity tags (GrowthAdjusted, InflationAdjusted) and constants (gq, gp, fq, fp, fv)
+  Settings.jl                   # Shared model/runtime settings
   Logging.jl                    # @log_time macro, file + console logger
-  InputOutput.jl                # Port of model/modules/input_output.gms (the first real submodel)
-  SubmodelTemplate.jl           # Copy-this-to-start template for new submodules
+  GrowthInflationAdjustment.jl  # Stationarity tags and growth/inflation constants
+  data/                         # Checked-in Julia runtime data
+  modules/
+    InputOutputDefinitions.jl   # Shared IO codes and parameter derivations
+    InputOutputData.jl          # Runtime loader and explicit Eurostat refresh entry point
+    InputOutput.jl              # Port of model/modules/input_output.gms (the first real submodel)
+    SubmodelTemplate.jl         # Copy-this-to-start template for new submodules
 ```
 
 ## Key Dependencies
@@ -50,7 +64,7 @@ Every submodule is a Julia `module` that must export/define:
 
 | Function | Purpose |
 |----------|---------|
-| `set_data!(db)` | **Required.** Load GDX data into `ModelDictionary`, set defaults |
+| `set_data!(db)` | **Required.** Load source data into `ModelDictionary`, set defaults |
 | `define_equations()` | **Required.** Return a `Block` with the submodel's equations |
 | `define_calibration()` | **Required.** Return a `Block` for calibration (often calls `define_equations()` + extra calibration equations + `@endo_exo!` swaps) |
 | `set_starting_values!(db)` | *Optional.* Provide solver hints |
@@ -65,7 +79,7 @@ They are registered in `GREU.jl`'s `submodels` array and called in sequence.
 
 ## Calibration Pipeline (in GREU.jl)
 
-1. **`set_data!`** — each submodule loads its GDX parameters
+1. **`set_data!`** — each submodule loads its parameters
 2. **`define_calibration()`** — returns Block with calibration-specific endo/exo swaps
 3. **`forecast_constants!`** — extends `ForecastConstant`-tagged variables beyond `t1`
 4. **`endo_exo_data_residuals!`** — for any endogenous variable that has data: exogenize it and endogenize its residual (residuals absorb data discrepancies)
@@ -83,7 +97,7 @@ Prefix system (matches the GAMS codebase and README):
 
 ## Data Flow
 
-The Julia implementation depends on a pre-built `data/data.gdx` produced by the GAMS pipeline (`run.py` → `data/data_from_GR.gms`). `Data.jl` reads this file once and provides lookup helpers. Submodules call `load_set(:name)` for index sets and `load_parameter!` to populate variables.
+The Julia implementation refreshes checked-in input-output data from Eurostat by running `model_julia/modules/InputOutputData.jl` directly. Runtime data lives in `model_julia/data/input_output.csv`; dataset, country, currency, and calibration year are configured in `model_julia/Settings.jl`. Submodules own their indices and parameter-loading logic.
 
 ## GAMS Modules Still To Port
 
@@ -93,14 +107,14 @@ The Julia implementation depends on a pre-built `data/data.gdx` produced by the 
 **Energy / green:** energy_markets, emissions, energy_and_emissions_taxes, abatement, exports_energy, factor_demand_energy, production_CES_energydemand, consumption_disaggregated_energy
 **Other:** consumption_disaggregated, non_energy_markets, production_CET, ramsey_household
 
-When porting a new module: copy `SubmodelTemplate.jl`, study the corresponding `.gms` file, and follow the contract above. Add the new module to the `submodels` list in `GREU.jl`.
+When porting a new module: copy `model_julia/modules/SubmodelTemplate.jl`, study the corresponding `.gms` file, and follow the contract above. Add the new module to the `submodels` list in `GREU.jl`.
 
 ## Differences from the GAMS Implementation
 
 When porting a GAMS module, be aware of these structural differences. The Julia version is **not** a line-for-line transliteration — it rethinks the architecture where Julia's type system and module system offer cleaner alternatives.
 
 ### Sets: module-local, not separate files
-GAMS defines all sets in `model/sets/*.gms` (one file per topic), imported globally before any module runs. In Julia, **each submodule loads its own sets** via `Data.load_set(:name)` and stores them as module-level `const`s. Derived sets (e.g. sparsity patterns like `d1Y`, `d1M`) are computed inline from the data. There is no `model_julia/sets/` directory — sets belong to the modules that use them.
+GAMS defines all sets in `model/sets/*.gms` (one file per topic), imported globally before any module runs. In Julia, **each submodule owns its own sets** and stores them as module-level `const`s. Derived sets (e.g., sparsity patterns like `d1Y`, `d1M`) are computed inline from source data. There is no `model_julia/sets/` directory — sets belong to the modules that use them.
 
 ### No multi-pass phasing
 GAMS uses a gamY `import_from_modules` function that re-imports every module file **five times** with a `%stage%` flag (`variables`, `equations`, `exogenous_values`, `calibration`, `tests`). Each module uses `$IF %stage% == "..."` guards. In Julia, there is **no preprocessor** — each submodule is `include`d once and exposes distinct functions (`set_data!`, `define_equations`, `define_calibration`, etc.) called explicitly by `GREU.jl`.
@@ -123,3 +137,12 @@ GAMS uses `$()` conditions on variables and exist-dummies (`d1Y_i_d`, etc.) to c
 
 ## Practical Notes
 - The model uses **mutable globals** `t1` and `T` (declared in `GREU.jl`) to control the solve horizon. Submodules reference them via `import`.
+
+## Coding Conventions
+
+- Use explicit imports. Do not export from GREU submodules.
+- Fail fast. Do not catch or suppress errors unless handling a specific expected condition is part of the model logic.
+- Prefer broadcasting auxiliary functions over loops across arrays.
+- Prefer comprehensions for data transformations.
+- Prefer multiple dispatch and recursion over `isa` checks or branching-heavy control flow.
+- Inline simple expressions and avoid unnecessary auxiliary variables.

@@ -16,36 +16,32 @@ import JuMP
 using JuMP: Model, set_optimizer_attribute
 using SquareModels
 
+include("Settings.jl")
+using .Settings: first_data_year, base_year, calibration_year, terminal_year
+using .Settings: enabled_modules, gams_dir, gams_solver
+
 include("Logging.jl")
 using .Log: @log_time
 Log.setup!(file=joinpath(@__DIR__, "..", "greu.log"))
 
 # Temporary hardcoded GAMS location
 # GAMS is used for the Conopt optimizer, until JuMP supports it natively.
-if !contains(ENV["PATH"], "GAMS")
-  GAMS_DIR = raw"C:\GAMS\52"
-	ENV["GAMS_SYSDIR"] = GAMS_DIR
-	ENV["PATH"] = GAMS_DIR * ";" * ENV["PATH"]
+ENV["GAMS_SYSDIR"] = gams_dir
+if !any(==(lowercase(gams_dir)), lowercase.(split(ENV["PATH"], ";")))
+	ENV["PATH"] = gams_dir * ";" * ENV["PATH"]
 end
 
 using GAMS
-
-# ==============================================================================
-# Load data from GDX (thin layer, modules extract their own sets)
-# ==============================================================================
-@log_time include("Data.jl")
 
 # ==============================================================================
 # Global model container and time configuration
 # ==============================================================================
 db = ModelDictionary(Model(GAMS.Optimizer))
 set_optimizer_attribute(db.model, GAMS.ModelType(), "CNS")
-set_optimizer_attribute(db.model, "CNS", "CONOPT")
+set_optimizer_attribute(db.model, "CNS", gams_solver)
 
-const first_data_year = 2015 # Base year (configurable)
-const tBase = 2020 # Statistical index year where prices are set to 1
-const calibration_year = 2020
-const max_terminal_year = 2035
+const tBase = base_year # Statistical index year where prices are set to 1
+const max_terminal_year = terminal_year
 const t = first_data_year:max_terminal_year
 
 t1::Int = calibration_year # First endogenous year (configurable)
@@ -62,16 +58,17 @@ const ForecastConstant = Tag(:forecast_constant)
 # ==============================================================================
 # Include submodules
 # ==============================================================================
-@log_time include("InputOutput.jl")
-@log_time include("SubmodelTemplate.jl")
+const submodels = Module[]
 
-# ==============================================================================
-# Model Assembly
-# ==============================================================================
-submodels = [
-	InputOutput,
-	SubmodelTemplate,
-]
+function load_submodel!(name::Symbol)
+  path = joinpath("modules", string(name) * ".jl")
+  isfile(joinpath(@__DIR__, path)) || error("Unknown Julia module file: $name")
+  submodel = @log_time include(path)
+  push!(submodels, submodel)
+  return nothing
+end
+
+foreach(load_submodel!, enabled_modules)
 
 for m in submodels
 	@log_time m.set_data!(db)
@@ -223,7 +220,9 @@ end
 # Scenario example
 # ==============================================================================
 scenario = copy(baseline)
-scenario[SubmodelTemplate.test_forecast[T-5:T]] .+= π
+if isdefined(@__MODULE__, :SubmodelTemplate)
+	scenario[SubmodelTemplate.test_forecast[T-5:T]] .+= π
+end
 
 # Apply shock here
 @log_time solve!(base_model(), scenario)
