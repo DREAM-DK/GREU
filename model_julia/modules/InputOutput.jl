@@ -5,36 +5,75 @@
 # consumption, and exports is allocated to imports and output from domestic
 # industries. Mirrors model/modules/input_output.gms.
 include("InputOutputDefinitions.jl")
-include("InputOutputData.jl")
 
 module InputOutput
 
 import JuMP
+using CSV
 using JuMP.Containers: DenseAxisArray
 using SquareModels
 using ..GrowthInflationAdjustment
-import ..InputOutputData as IOData
+using ..Settings: calibration_year
+import ..InputOutputDefinitions as IODef
 import ..db, ..t, ..t1, ..T, ..tBase, ..ForecastConstant
+
+# ==========================================================================
+# Checked-in data
+# ==========================================================================
+const DATA_PATH = joinpath(@__DIR__, "..", "data", "input_output.csv")
+
+function row_value(row, field)
+  value = getproperty(row, field)
+  return ismissing(value) ? "" : string(value)
+end
+
+function load_model_data(path)
+  values = Dict{Symbol,IODef.IOValues}()
+  for row in CSV.File(path; stringtype = String)
+    variable = Symbol(row.variable)
+    i = row_value(row, :i)
+    d = row_value(row, :d)
+    t = row_value(row, :t)
+    key = Tuple([part for part in (i, d, t) if !isempty(part)])
+    get!(values, variable, IODef.IOValues())[key] = Float64(row.value)
+  end
+  return values
+end
+
+function validate_data_years(data)
+  required_years = string.([calibration_year - 1, calibration_year])
+  available_years = Set(key[end] for values in values(data) for key in keys(values))
+  all(year -> year in available_years, required_years) || error("Input-output data must include years $required_years")
+  return nothing
+end
+
+const _data = load_model_data(DATA_PATH)
+validate_data_years(_data)
 
 # ==========================================================================
 # Indices
 # ==========================================================================
-const I = IOData.industries # Production industries
-const D_all = IOData.demand_categories # All demand components (including stubs)
-const M = IOData.import_industries # Industries with imports
+const I = Symbol.(IODef.industry_codes) # Production industries
+const D_all = Symbol.(IODef.demand_category_codes) # All demand components (including stubs)
+const M = Symbol.(IODef.imported_industry_codes(_data[:vM_i_d])) # Industries with imports
 const RX = I # Non-energy intermediates
-const RE = IOData.raw_energy_industries # Energy inputs in production
-const K = IOData.investment_categories # Capital types
-const C = IOData.household_consumption # Private consumption types
-const G = IOData.government_consumption # Government consumption types
-const X = IOData.other_exports # Export groups
+const RE = Symbol.(IODef.raw_energy_industry_codes) # Energy inputs in production
+const K = Symbol.(IODef.investment_category_codes) # Capital types
+const C = Symbol.(IODef.household_consumption_codes) # Private consumption types
+const G = Symbol.(IODef.government_consumption_codes) # Government consumption types
+const X = Symbol.(IODef.other_export_codes) # Export groups
 
 # ==========================================================================
 # Sparse (i,d) keys for non-zero vY_i_d and vM_i_d cells
 # ==========================================================================
 nonzero_io_keys(data) = Set((Symbol(i), Symbol(d)) for ((i, d), v) in data if abs(v) > 1e-6)
-const D1Y = nonzero_io_keys(IOData.vY_i_d)
-const D1M = nonzero_io_keys(IOData.vM_i_d)
+const vY_i_d_data = _data[:vY_i_d]
+const vtY_i_d_data = _data[:vtY_i_d]
+const vM_i_d_data = _data[:vM_i_d]
+const vtM_i_d_data = _data[:vtM_i_d]
+const qD_data = _data[:qD]
+const D1Y = nonzero_io_keys(vY_i_d_data)
+const D1M = nonzero_io_keys(vM_i_d_data)
 const D1YM = D1Y ∪ D1M
 
 const D = [d for d in D_all if any((i, d) in D1YM for i in I)]
@@ -144,12 +183,12 @@ function set_data!(db)
   db[jfpY_i_d] .= 0.0
   db[jfpM_i_d] .= 0.0
 
-  assign_data!(db, vY_i_d, IOData.vY_i_d)
-  assign_data!(db, vtY_i_d, IOData.vtY_i_d)
-  assign_data!(db, vM_i_d, IOData.vM_i_d)
-  assign_data!(db, vtM_i_d, IOData.vtM_i_d)
+  assign_data!(db, vY_i_d, vY_i_d_data)
+  assign_data!(db, vtY_i_d, vtY_i_d_data)
+  assign_data!(db, vM_i_d, vM_i_d_data)
+  assign_data!(db, vtM_i_d, vtM_i_d_data)
 
-  assign_data!(db, qD, IOData.qD)
+  assign_data!(db, qD, qD_data)
 
   # Import shares: 1 for import-only cells, 0 otherwise
   db[rM] .= [(i, d) ∈ D1Y ? 0.0 : 1.0 for (i, d, _) in keys(rM)]

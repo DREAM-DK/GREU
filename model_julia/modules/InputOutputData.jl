@@ -1,8 +1,3 @@
-# ==============================================================================
-# Input-Output Data
-# ==============================================================================
-# Runtime loader for checked-in input-output data, plus the explicit Eurostat
-# refresh path for that same CSV when this file is run directly.
 isdefined(@__MODULE__, :Settings) || include(joinpath(@__DIR__, "..", "Settings.jl"))
 isdefined(@__MODULE__, :InputOutputDefinitions) || include("InputOutputDefinitions.jl")
 
@@ -14,31 +9,6 @@ using ..Settings: calibration_year, country_code, currency_code, input_output_da
 import ..InputOutputDefinitions as IODef
 
 const DATA_PATH = joinpath(@__DIR__, "..", "data", "input_output.csv")
-
-function row_value(row, field)
-  value = getproperty(row, field)
-  return ismissing(value) ? "" : string(value)
-end
-
-function load_model_data(path)
-  values = Dict{Symbol,IODef.IOValues}()
-  for row in CSV.File(path; stringtype = String)
-    variable = Symbol(row.variable)
-    i = row_value(row, :i)
-    d = row_value(row, :d)
-    t = row_value(row, :t)
-    key = Tuple([part for part in (i, d, t) if !isempty(part)])
-    get!(values, variable, IODef.IOValues())[key] = Float64(row.value)
-  end
-  return values
-end
-
-function validate_data_years(data)
-  required_years = string.([calibration_year - 1, calibration_year])
-  available_years = Set(key[end] for values in values(data) for key in keys(values))
-  all(year -> year in available_years, required_years) || error("Input-output data must include years $required_years")
-  return nothing
-end
 
 """Fetch and add one year's Eurostat IO cells to the raw domestic, import, and accounting tables."""
 function add_raw_io_year!(vIO_y, vIO_m, vIO_a, year::Integer)
@@ -127,28 +97,6 @@ function refresh_input_output_data!(path = DATA_PATH; years = [calibration_year 
   CSV.write(path, csv_rows(parameters))
   return parameters
 end
-
-const _data = load_model_data(DATA_PATH)
-validate_data_years(_data)
-
-const industries = Symbol.(IODef.industry_codes)
-const import_industries = Symbol.(IODef.imported_industry_codes(_data[:vM_i_d]))
-const demand_categories = Symbol.(IODef.demand_category_codes)
-const raw_energy_industries = Symbol.(IODef.raw_energy_industry_codes)
-const investment_categories = Symbol.(IODef.investment_category_codes)
-const household_consumption = Symbol.(IODef.household_consumption_codes)
-const government_consumption = Symbol.(IODef.government_consumption_codes)
-const other_exports = Symbol.(IODef.other_export_codes)
-const energy_demand_categories = Symbol.(IODef.energy_demand_category_codes)
-const non_energy_demand_categories = Symbol.(IODef.non_energy_demand_category_codes)
-
-const vY_i_d = _data[:vY_i_d]
-const vtY_i_d = _data[:vtY_i_d]
-const vM_i_d = _data[:vM_i_d]
-const vtM_i_d = _data[:vtM_i_d]
-const vtY_i_Sub = get(_data, :vtY_i_Sub, IODef.IOValues())
-const vtY_i_Tax = _data[:vtY_i_Tax]
-const qD = _data[:qD]
 
 end # module
 
