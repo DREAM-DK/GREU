@@ -7,7 +7,7 @@
 # 1. Update energy dummies and prices
 # ----------------------------------------------------------------------------------------------------------------------
 
-$import Dummies_new_energy_use.gms;
+$import dummies_new_energy_use.gms;
 
 $FIX all_variables; $UNFIX energy_price_partial_endogenous;
 # execute_unload 'energy_price_partial_pre.gdx';
