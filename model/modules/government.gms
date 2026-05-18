@@ -226,7 +226,7 @@ $Group calibration_endogenous
   government_endogenous
   # government_calibration_endogenous
   -vtIndirect[t1], sIndirect_other[t1]
-  -vtHhIncome[t1], trHh[t1] # Enten sættes trHh eller rHh. Den anden sættes i exogenous values stage. 
+  -vtHhIncome[t1], trHh[t1]
   -vtDirect[t1], sDirect_other[t1]
   -vGovOthCurrentTransRev[t1], sGovOthCurrentTransRev[t1]
   -vtCorp[t1], tCorp[t1] 

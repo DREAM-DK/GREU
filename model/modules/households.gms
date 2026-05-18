@@ -14,7 +14,6 @@ $Group+ all_variables
   jC_ramsey[t] "Adjustment term for Ramsey consumption"
 
   vNetInterests[sector,t] "Interests by sector."
-  vNetRevaluations[sector,t] "Revaluations by sector."
 
   mrHhReturn[t] "Expected marginal after-tax return on household wealth."
   vC_WalrasLaw[t] "Equal to zero implying that Walras law regarding the sum of demand for private consumption equal to the sum of supply of private consumption is fulfilled."
@@ -36,7 +35,7 @@ $BLOCK households_equations households_endogenous $(t1.val <= t.val and t.val <=
 
   .. vHhIncome[t] =E= vWages[t]
                     - vNetHh2Gov[t]
-                    + vNetInterests['Hh',t] + vNetRevaluations['Hh',t];
+                    + vNetInterests['Hh',t];
 
 #  and a simple disaggregated consumption function with constant share of total consumption by purpose
   qD[c,t]$(not t1[t]).. vD[c,t]/vC[t] =E= vD[c,t-1]/vC[t-1] + jD_c[c,t];
