@@ -28,12 +28,12 @@ parameter
 
 
 ## DUMMIES FOR ENERGY PRICES
-d1pEpj_base_CGE[es,e,d,t] = d1pEpj_base[es,e,d,t];
-d1pEpj_CGE[es,e,d,t]      = d1pEpj[es,e,d,t];
-d1pREa_CGE[es,e_a,i,t]    = d1pREa[es,e_a,i,t];
+d1pEpj_base_CGE[es,e,d,t]     = d1pEpj_base[es,e,d,t];
+d1pEpj_CGE[es,e,d,t]          = d1pEpj[es,e,d,t];
+d1pREa_CGE[es,e_a,i,t]        = d1pREa[es,e_a,i,t];
 d1pREa_inNest_CGE[es,e_a,i,t] = d1pREa_inNest[es,e_a,i,t];
-d1tqEpj_CGE[es,e,d,t]     = d1tqEpj[es,e,d,t];
-d1qEpj_CGE[es,e,d,t]      = d1qEpj[es,e,d,t];
+d1tqEpj_CGE[es,e,d,t]         = d1tqEpj[es,e,d,t];
+d1qEpj_CGE[es,e,d,t]          = d1qEpj[es,e,d,t];
 # d1tCO2_ETS2_E_CGE[em,es,e,d,t] = d1tCO2_ETS2_E[em,es,e,d,t];
 
 
@@ -46,12 +46,12 @@ d1pREa_inNest[es,e_a,i,t]$(d1pREa_inNest[es,e_a,i,t] or (sum(l, d1uTE[l,es,e_a,i
 d1tqEpj[es,e,d,t]$(d1tqEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and sameas(e,'Captured CO2')))                       = yes;
 d1qEpj[es,e,d,t]$(d1qEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and sameas(e,'Captured CO2')))                         = yes;
 # d1tCO2_ETS2_E[em,es,e,d,t]$(d1tCO2_ETS2_E[em,es,e,d,t] or (d1pEpj[es,e,d,t] and CO2ubio[em] and not in_ETS[es] and not sameas[e,'waste']))   = yes;
-d1pEpj_base_energy_technology[es,e,d,t]$(d1pEpj_base[es,e,d,t] and not d1pEpj_base_CGE[es,e,d,t]) = yes;
-d1pEpj_energy_technology[es,e,d,t]$(d1pEpj[es,e,d,t] and not d1pEpj_CGE[es,e,d,t])                = yes;
-d1pREa_energy_technology[es,e_a,i,t]$(d1pREa[es,e_a,i,t] and not d1pREa_CGE[es,e_a,i,t])          = yes;
+d1pEpj_base_energy_technology[es,e,d,t]$(d1pEpj_base[es,e,d,t] and not d1pEpj_base_CGE[es,e,d,t])             = yes;
+d1pEpj_energy_technology[es,e,d,t]$(d1pEpj[es,e,d,t] and not d1pEpj_CGE[es,e,d,t])                            = yes;
+d1pREa_energy_technology[es,e_a,i,t]$(d1pREa[es,e_a,i,t] and not d1pREa_CGE[es,e_a,i,t])                      = yes;
 d1pREa_inNest_energy_technology[es,e_a,i,t]$(d1pREa_inNest[es,e_a,i,t] and not d1pREa_inNest_CGE[es,e_a,i,t]) = yes;
-d1tqEpj_energy_technology[es,e,d,t]$(d1tqEpj[es,e,d,t] and not d1tqEpj_CGE[es,e,d,t])             = yes;
-d1qEpj_energy_technology[es,e,d,t]$(d1qEpj[es,e,d,t] and not d1qEpj_CGE[es,e,d,t])             = yes;
+d1tqEpj_energy_technology[es,e,d,t]$(d1tqEpj[es,e,d,t] and not d1tqEpj_CGE[es,e,d,t])                         = yes;
+d1qEpj_energy_technology[es,e,d,t]$(d1qEpj[es,e,d,t] and not d1qEpj_CGE[es,e,d,t])                            = yes;
 # d1tCO2_ETS2_E_energy_technology[em,es,e,d,t]$(d1tCO2_ETS2_E[em,es,e,d,t] and not d1tCO2_ETS2_E_CGE[em,es,e,d,t]) = yes;
 
 ## DUMMIES FOR EMISSIONS (ONLY ON NEW ENERGY USE IN THE ENERGY TECHNOLOGY MODEL COMPARED TO CGE)

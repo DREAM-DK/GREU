@@ -7,8 +7,6 @@
 # 1. Update energy dummies and prices
 # ----------------------------------------------------------------------------------------------------------------------
 
-$import Dummies_new_energy_use.gms;
-
 $FIX all_variables; $UNFIX energy_price_partial_endogenous;
 # execute_unload 'energy_price_partial_pre.gdx';
 Solve energy_price_partial using CNS;
@@ -44,17 +42,31 @@ pTPotential.l[l,es,d,t] =
 # 3. Supply Curve Initialization
 # ----------------------------------------------------------------------------------------------------------------------
 # 3.1 Technology Range Determination
-# Determining the most expensive technology (used in determining the range for the supply curve)
-# LBS CONSIDER eP and number of steps in scen
-d1Expensive_tech_smooth_scen[es,d,t] 
-  = smax(l, 
-      sum(e$(d1pEpj[es,e,d,t] and d1uTE[l,es,e,d,t]), 
-        uTE.l[l,es,e,d,t]*pEpj_marg.l[es,e,d,t])
-      + uTKexp.l[l,es,d,t]*pTK.l[d,t]);# * (1 + 1 * eP.l[l,es,d,t]));
+# Determining the price of the marginal technology
+# Rank technologies by price at full potential (per es,d,t); break ties with ord(l)
+pTPotential_position[l,es,d,t]$(d1sqTPotential[l,es,d,t]) 
+  = sum(ll$(d1sqTPotential[ll,es,d,t] and pTPotential.l(ll,es,d,t) < pTPotential.l(l,es,d,t)), 1)
+  + sum(ll$(d1sqTPotential[ll,es,d,t]
+      and pTPotential.l(ll,es,d,t) = pTPotential.l(l,es,d,t) and ord(ll) < ord(l)), 1)
+  + 1;
+
+# Sort technologies by price at full potential
+pTPotential_sorted[l_ord,es,d,t]
+  = sum(l$(pTpotential_position[l,es,d,t] = ord(l_ord)), pTPotential.l[l,es,d,t]);
+sqTPotential_sorted[l_ord,es,d,t]
+  = sum(l$(pTpotential_position[l,es,d,t] = ord(l_ord)), sqTPotential.l[l,es,d,t]);
+sqTPotential_sorted_sum[l_ord,es,d,t]
+  = sum(ll_ord$(ord(ll_ord) <= ord(l_ord)), sqTPotential_sorted[ll_ord,es,d,t]);
+pTPotential_marginal[es,d,t]
+  = sum(l_ord$(sqTPotential_sorted_sum[l_ord,es,d,t] >= 1 and sqTPotential_sorted_sum[l_ord-1,es,d,t] < 1), 
+      pTPotential_sorted[l_ord,es,d,t]);
 
 # 3.2 Marginal Cost Setup
-# Defining marginal costs for each trace (goes from zero up to 4 standard deviations times the price of the most expensive technology)
-pESmarg_scen.l[es,d,t,scen]$(sum(l, d1sqTPotential[l,es,d,t])) = ord(scen)/200 * d1Expensive_tech_smooth_scen[es,d,t];
+# Defining marginal costs for each trace (100 steps in the interval +- 4 standard deviations from the marginal technology in the discrete case)
+pESmarg_scen.l[es,d,t,scen]$(sum(l, d1sqTPotential[l,es,d,t])) 
+  = pTPotential_marginal[es,d,t] 
+  * ((1 - 3 * smooth_factor)
+  +  6 * smooth_factor*ord(scen)/100);
 
 # 3.3 Initial Capital Costs
 # Random starting values for the marginal costs of capital
@@ -81,7 +93,7 @@ uTKmarg_eq[l,es,d,t]$(sqTPotential.l[l,es,d,t]) =
 
 uTKmargNobound.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 
   sum(scen$(sqT_sum_scen.l[es,d,t,scen] >= 1 and sqT_sum_scen.l[es,d,t,scen-1] < 1), 
-    uTKmarg_scen.l[l,es,d,t,scen]);
+    uTKmargNobound_scen.l[l,es,d,t,scen]);
 
 pESmarg_eq[es,d,t] = smax(l, sum(e, uTE.l[l,es,e,d,t]*pEpj_marg.l[es,e,d,t]) + uTKmarg_eq[l,es,d,t]*pTK.l[d,t]);
 

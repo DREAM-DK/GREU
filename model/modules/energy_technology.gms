@@ -23,6 +23,7 @@ parameter
   d1switch_energy_technology "Dummy to control whether the energy technology model is turned on (=1) or off (=0)"
   d1switch_integrate_energy_technology "Dummy to control whether the energy technology model is integrated with the CGE-model (=1) or not (=0)"
   jqESE_phaseout[t] "Parameter to phase out jqESE in the calibration model"
+  smooth_factor "Parameter governing smoothing of total energy technology costs (pTPotential). This is used for calculating the technology-specific smoothing parameter eP."
 ;
 
 # 1.2 Main Variables
@@ -321,8 +322,10 @@ uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,
 pTPotential.l[l,es,d,t] = 
   sum(e, uTE.l[l,es,e,d,t]*pEpj_marg.l[es,e,d,t]) + uTKexp.l[l,es,d,t]*pTK.l[d,t];
 
+smooth_factor = 0.03;
+
 # Set smoothing parameters (we recalculate this in base_model_energy_technology.gms because electricity prices are not present in some cases in the data)
-eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.05*pTPotential.l[l,es,d,t]/uTKexp.l[l,es,d,t];
+eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = smooth_factor*pTPotential.l[l,es,d,t]/uTKexp.l[l,es,d,t];
 
 jqESE_phaseout[t]$(t.val = t1.val) = 1;
 jqESE_phaseout[t]$(t.val = t1.val+1) = 0.8;
