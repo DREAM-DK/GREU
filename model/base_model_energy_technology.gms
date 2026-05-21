@@ -22,7 +22,7 @@ pTPotential.l[l,es,d,t] =
   sum(e, uTE.l[l,es,e,d,t]*pEpj_marg.l[es,e,d,t]) + uTKexp.l[l,es,d,t]*pTK.l[d,t];
 
 # Set smoothing parameters
-eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = 0.05*pTPotential.l[l,es,d,t]/uTKexp.l[l,es,d,t];
+eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = smooth_factor*pTPotential.l[l,es,d,t]/uTKexp.l[l,es,d,t];
 
 # ------------------------------------------------------------------------------
 # Run the energy technology choice model integrated with the CGE-model
