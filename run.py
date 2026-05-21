@@ -16,6 +16,7 @@ os.chdir(fr"{root}/model")
 
 ## Create data.gdx based on GreenREFORM-DK data 
 import data.Modules.financial_accounts.financial_accounts_data
+import data.preprocessing.read_data
 dt.gamY.run("../data/data_from_GR.gms")
 
 ## Run the base CGE model - creating main_CGE.gdx
