@@ -12,7 +12,10 @@
 {
 	"folders": [
 		{
-			"path": "." // Top directory
+			"path": "."
+		},
+		{
+			"path": "../SquareModels"
 		}
 	],
 	"settings": {
@@ -20,6 +23,7 @@
 		"editor.tabSize": 2,
 		"search.useIgnoreFiles": false,
 		"search.exclude": {
+			"examples/**": true,
 			"**/*.g00": true,
 			"**/*.svg": true,
 			"**/*.pkl": true,
