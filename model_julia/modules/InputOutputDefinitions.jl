@@ -29,7 +29,7 @@ const energy_demand_code = "energy"
 const demand_category_codes = [industry_codes; household_consumption_codes; government_consumption_codes; investment_category_codes; other_export_codes; energy_demand_code]
 const energy_demand_category_codes = [raw_energy_industry_codes; energy_demand_code]
 const non_energy_demand_category_codes = [d for d in demand_category_codes if !(d in energy_demand_category_codes)]
-const accounting_rows = ["vNetProductTax", "vNetOtherProductionTax", "CompEmpl", "OpSurplus"]
+const accounting_rows = ["vNetProductTax", "vtYOther_i", "vW_i", "vDepr_i", "vGrOpSurplus_i"]
 
 const industry_rename = Dict(code => string(first(code)) for code in raw_industry_codes)
 const demand_rename = Dict(
@@ -39,11 +39,18 @@ const demand_rename = Dict(
   "P52" => "iM",
   "P6" => "xOth",
 )
+# Eurostat ind_ava codes for the value-added block of the IO/use table:
+#   D21X31 — taxes less subsidies on products (product-level, allocated per (i,d) cell)
+#   D29X39 — other taxes less subsidies on production (industry-level)
+#   D1     — compensation of employees
+#   P51C   — consumption of fixed capital
+#   B2A3G  — gross operating surplus and mixed income (= net OS + P51C)
 const accounting_rename = Dict(
   "D21X31" => "vNetProductTax",
-  "D29X39" => "vNetOtherProductionTax",
-  "D1" => "CompEmpl",
-  "B2A3G" => "OpSurplus",
+  "D29X39" => "vtYOther_i",
+  "D1" => "vW_i",
+  "P51C" => "vDepr_i",
+  "B2A3G" => "vGrOpSurplus_i",
 )
 
 """Map Eurostat industry or accounting row codes to model row names."""
@@ -80,10 +87,22 @@ function derive_parameters(vIO_y, vIO_m, vIO_a, years)
     end
   end
 
-  vtY_tax = IOValues()
+  # Per-industry value-added block (D29X39, D1, P51C, B2A3G).
+  # vOpSurplus_i is the net operating surplus and mixed income: B2A3G − P51C.
+  vW_i = IOValues()
+  vtYOther_i = IOValues()
+  vDepr_i = IOValues()
+  vOpSurplus_i = IOValues()
   for year in years, industry in industry_codes
-    value = get(vIO_a, ("vNetOtherProductionTax", industry, year), 0.0)
-    value != 0.0 && (vtY_tax[(industry, year)] = value)
+    w = get(vIO_a, ("vW_i", industry, year), 0.0)
+    tax = get(vIO_a, ("vtYOther_i", industry, year), 0.0)
+    dep = get(vIO_a, ("vDepr_i", industry, year), 0.0)
+    gros = get(vIO_a, ("vGrOpSurplus_i", industry, year), 0.0)
+    w != 0.0 && (vW_i[(industry, year)] = w)
+    tax != 0.0 && (vtYOther_i[(industry, year)] = tax)
+    dep != 0.0 && (vDepr_i[(industry, year)] = dep)
+    net = gros - dep
+    net != 0.0 && (vOpSurplus_i[(industry, year)] = net)
   end
 
   qD = IOValues()
@@ -103,8 +122,10 @@ function derive_parameters(vIO_y, vIO_m, vIO_a, years)
     vtY_i_d = vtY,
     vM_i_d = vM,
     vtM_i_d = vtM,
-    vtY_i_Sub = IOValues(),
-    vtY_i_Tax = vtY_tax,
+    vW_i = vW_i,
+    vtYOther_i = vtYOther_i,
+    vDepr_i = vDepr_i,
+    vOpSurplus_i = vOpSurplus_i,
     qD = qD,
   )
 end

@@ -71,6 +71,10 @@ const vY_i_d_data = _data[:vY_i_d]
 const vtY_i_d_data = _data[:vtY_i_d]
 const vM_i_d_data = _data[:vM_i_d]
 const vtM_i_d_data = _data[:vtM_i_d]
+const vW_i_data = _data[:vW_i]
+const vtYOther_i_data = _data[:vtYOther_i]
+const vDepr_i_data = _data[:vDepr_i]
+const vOpSurplus_i_data = _data[:vOpSurplus_i]
 const qD_data = _data[:qD]
 const D1Y = nonzero_io_keys(vY_i_d_data)
 const D1M = nonzero_io_keys(vM_i_d_data)
@@ -95,21 +99,32 @@ const InputOutputTag = Tag(:InputOutput)
   vY[t], "Total output"
   vM[t], "Total imports"
   vY_i[I, t], "Output by industry"
+  vGVA_i[I, t], "Gross value added at basic prices by industry"
   vM_i[M, t], "Imports by industry"
   vD[D, t], "Demand by demand component at purchaser prices"
   vY_d[D, t], "Domestic output by demand component before net product taxes and subsidies"
   vM_d[D, t], "Imports by demand component before net product taxes and subsidies"
   vY_i_d[i=I, d=D, t=t; (i, d) in D1Y], "Domestic output by industry and demand before net product taxes and subsidies"
   vM_i_d[i=I, d=D, t=t; (i, d) in D1M], "Imports by industry and demand before net product taxes and subsidies"
-  vtY_i_d[i=I, d=D, t=t; (i, d) in D1Y], "Net duties on domestic production by (i,d)"
-  vtM_i_d[i=I, d=D, t=t; (i, d) in D1M], "Net duties on imports by (i,d)"
-  vtD[D, t], "Net duties by demand component"
-  vtY_d[D, t], "Net duties on domestic production by demand component"
-  vtM_d[D, t], "Net duties on imports by demand component"
-  vtY_i[I, t], "Net duties on domestic production by industry"
-  vtM_i[M, t], "Net duties on imports by industry"
-  vtY[t], "Total net duties on domestic production"
-  vtM[t], "Total net duties on imports"
+  vtY_i_d[i=I, d=D, t=t; (i, d) in D1Y], "Net taxes less subsidies on domestic produced products by (i,d)"
+  vtM_i_d[i=I, d=D, t=t; (i, d) in D1M], "Net taxes less subsidies on imported products by (i,d)"
+  vtD[D, t], "Net taxes less subsidies on products by demand component"
+  vtY_d[D, t], "Net taxes less subsidies on products on domestic production by demand component"
+  vtM_d[D, t], "Net taxes less subsidies on products on imports by demand component"
+  vtY_i[I, t], "Net taxes less subsidies on products on domestic production by industry"
+  vtM_i[M, t], "Net taxes less subsidies on products on imports by industry"
+  vtY[t], "Net taxes less subsidies on products (domestic)"
+  vtM[t], "Net taxes less subsidies on products (imports)"
+  # Per-industry primary inputs (ESA value-added block of the use table)
+  vW_i[I, t], "Compensation of employees by industry (ESA D.1)"
+  vtYOther_i[I, t], "Other taxes less subsidies on production by industry (ESA D.29 − D.39)"
+  vDepr_i[I, t], "Consumption of fixed capital by industry (ESA P.51c / K.1)"
+  vOpSurplus_i[I, t], "Net operating surplus and mixed income by industry (ESA B.2n + B.3n)"
+  # Economy-wide aggregates of the value-added block
+  vW[t], "Total compensation of employees"
+  vtYOther[t], "Total other taxes less subsidies on production"
+  vDepr[t], "Total consumption of fixed capital"
+  vOpSurplus[t], "Total net operating surplus and mixed income"
 end
 
 # Prices (inflation adjusted)
@@ -188,6 +203,15 @@ function set_data!(db)
   assign_data!(db, vM_i_d, vM_i_d_data)
   assign_data!(db, vtM_i_d, vtM_i_d_data)
 
+  db[vW_i] .= 0.0
+  db[vtYOther_i] .= 0.0
+  db[vDepr_i] .= 0.0
+  db[vOpSurplus_i] .= 0.0
+  assign_data!(db, vW_i, vW_i_data)
+  assign_data!(db, vtYOther_i, vtYOther_i_data)
+  assign_data!(db, vDepr_i, vDepr_i_data)
+  assign_data!(db, vOpSurplus_i, vOpSurplus_i_data)
+
   assign_data!(db, qD, qD_data)
 
   # Import shares: 1 for import-only cells, 0 otherwise
@@ -233,6 +257,16 @@ function define_equations()
     vGVA[t = t1:T], vGVA[t] == vY[t] - vR[t] - vE[t]
     pGVA[t = t1:T], pGVA[t] * qGVA[t] == vGVA[t]
     qGVA[t = t1:T], qGVA[t] == qY[t] - qR[t] - qE[t]
+
+    # -- Per-industry GVA at basic prices (ESA D.1 + (D.29-D.39) + P.51c + B.2n+B.3n) --
+    vGVA_i[i=I, t=t1:T],
+    vGVA_i[i,t] == vW_i[i,t] + vtYOther_i[i,t] + vDepr_i[i,t] + vOpSurplus_i[i,t]
+
+    # -- Economy-wide value-added aggregates --
+    vW[t=t1:T], vW[t] == ∑(vW_i[i,t] for i in I)
+    vtYOther[t=t1:T], vtYOther[t] == ∑(vtYOther_i[i,t] for i in I)
+    vDepr[t=t1:T], vDepr[t] == ∑(vDepr_i[i,t] for i in I)
+    vOpSurplus[t=t1:T], vOpSurplus[t] == ∑(vOpSurplus_i[i,t] for i in I)
 
     # -- Demand aggregates --
     vR[t = t1:T], vR[t] == ∑(vD[d,t] for d in RX)
@@ -292,12 +326,6 @@ function define_equations()
 
     vtY_i[i = I, t = t1:T],
     vtY_i[i, t] == ∑(vtY_i_d[i, d, t] for d in D if (i, d) in D1Y)
-
-    vtM_i[m = M, t = t1:T],
-    vtM_i[m, t] == ∑(vtM_i_d[m, d, t] for d in D if (m, d) in D1M)
-
-    vtY_d[d = D, t = t1:T],
-    vtY_d[d, t] == ∑(vtY_i_d[i, d, t] for i in I if (i, d) in D1Y)
 
     vtM_d[d = D, t = t1:T],
     vtM_d[d, t] == ∑(vtM_i_d[i, d, t] for i in I if (i, d) in D1M)

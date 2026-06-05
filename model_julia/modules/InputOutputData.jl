@@ -78,10 +78,13 @@ function fetch_raw_input_output(years)
   return (raw_domestic = raw_domestic, raw_imports = raw_imports, raw_accounting = raw_accounting)
 end
 
+# Industry-indexed (i, t) variables. All other 2-tuples are (d, t) on qD.
+const _industry_indexed = Set([:vW_i, :vtYOther_i, :vDepr_i, :vOpSurplus_i])
+
 csv_row(variable, key, value) = (
   variable = String(variable),
-  i = length(key) == 3 || variable != :qD ? key[1] : "",
-  d = length(key) == 3 ? key[2] : variable == :qD ? key[1] : "",
+  i = length(key) == 3 ? key[1] : variable in _industry_indexed ? key[1] : "",
+  d = length(key) == 3 ? key[2] : variable in _industry_indexed ? "" : key[1],
   t = key[end],
   value = value,
 )
