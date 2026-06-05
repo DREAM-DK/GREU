@@ -95,6 +95,10 @@ Prefix system (matches the GAMS codebase and README):
 - `t` = tax rate, `r` = rate/ratio, `j`/`jf` = residual (additive / multiplicative)
 - Suffixes add disaggregation: `vY` (aggregate output) → `vY_i` (by industry) → `vY_i_d` (by industry and demand)
 
+**The most aggregate variable gets the simplest name.** Disaggregations carry suffixes naming the index they add. For example, total imports are vM, the by-industry disaggregation is `vM_i[i,t]`, not the other way around. Avoid suffixes like `Total` or `Agg` on the aggregate variable.
+
+**Index shorthand letters must be unique across the model.** A new submodule introducing an index should pick a letter (or short string) not already used. Currently in use: `i` industries, `d` demand components, `k` capital types, `c` private consumption types, `g` government consumption types, `x` other exports, `f` financial instruments, `t` time.
+
 ## Data Flow
 
 The Julia implementation refreshes checked-in input-output data from Eurostat by running `model_julia/modules/InputOutputData.jl` directly. Runtime data lives in `model_julia/data/input_output.csv`; dataset, country, currency, and calibration year are configured in `model_julia/Settings.jl`. Submodules own their indices and parameter-loading logic.
@@ -146,3 +150,8 @@ GAMS uses `$()` conditions on variables and exist-dummies (`d1Y_i_d`, etc.) to c
 - Prefer comprehensions for data transformations.
 - Prefer multiple dispatch and recursion over `isa` checks or branching-heavy control flow.
 - Inline simple expressions and avoid unnecessary auxiliary variables.
+
+### Equation formatting
+
+- **No whitespace inside index brackets when used as shorthand.** Write `vX[s,t]`, `vX[s,f,t-1]`, not `vX[s, t]` or `vX[s, t - 1]`. The exception is `@variables` and `@block` headers where the indexing also assigns loop variables: `vX[s=sector, f=F, t=t1:T]` — there the spaces around `=` aid readability.
+- **No whitespace around `/fv`, `/fq`, `/fp`.** These deflators are part of the variable they trail, not a separate term. Write `vX[s,t-1]/fv`, not `vX[s,t-1] / fv`.
