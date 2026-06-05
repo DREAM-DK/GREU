@@ -132,7 +132,9 @@ $IMPORT calibration.gms
 # =============================================================================
 $IF %test_CGE%:
 
+@import_from_modules("tests_baseline")
 @import_from_modules("tests")
+
 # Data check  -  Abort if any data covered variables have been changed by the calibration
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
 
