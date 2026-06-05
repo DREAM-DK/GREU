@@ -72,47 +72,22 @@
 
 			#RETAIL AND WHOLESALE MARGINS ON ENERGY 
 			$SetGroup+ SG_flat_after_last_data_year 
-					d1pWMA[es,e,d,t] ""
-					d1pRMA[es,e,d,t] ""
-					d1pCMA[es,e,d,t] ""
+					d1E_margins[es,e,d,i,t] ""
+					d1E_margins_i[i,t] ""
 			;
 
 			$Group+ all_variables
-				pWMA[es,e,d,t]$(d1pWMA[es,e,d,t]) "Wholesale margin on energy-goods, measured in bio. DKK per PJ (or equivalently 1000 DKK per GJ)"
-				pRMA[es,e,d,t]$(d1pRMA[es,e,d,t]) "Retail margin on energy-goods, measured in bio. DKK per PJ (or equivalently 1000 DKK per GJ)"
-				pCMA[es,e,d,t]$(d1pCMA[es,e,d,t]) "Car dealerships margin on energy-goods, measured in bio. DKK per PJ (or equivalently 1000 DKK per GJ)"
-
-				vWMA[es,e,d,t]$(d1pWMA[es,e,d,t]) "Value of wholesale margin on energy-goods, measured in bio. DKK"
-				vRMA[es,e,d,t]$(d1pRMA[es,e,d,t]) "Value of retail margin on energy-goods, measured in bio. DKK"
-				vCMA[es,e,d,t]$(d1pCMA[es,e,d,t]) "Value of car dealerships margin on energy-goods, measured in bio. DKK"
-
-				vOtherDistributionProfits_WMA[t] "Total value of difference in supply and demand of  wholesale margins on energy-goods, measured in bio. DKK. Currently modelled to produce zero-profit"
-				vOtherDistributionProfits_RMA[t] "Total value of difference in supply and demand of  retail margins on energy-goods, measured in bio. DKK. Currently modelled to produce zero-profit"
-				vOtherDistributionProfits_CMA[t] "Total value of difference in supply and demand of  car dealerships margins on energy-goods, measured in bio. DKK. Currently modelled to produce zero-profit"
-
-				fpWMA[es,e,d,t]$(d1pWMA[es,e,d,t]) "Sector specific margin between average wholesale price and the sector specific margin"
-				fpRMA[es,e,d,t]$(d1pRMA[es,e,d,t]) "Sector specific margin between average retail price and the sector specific margin"
-				fpCMA[es,e,d,t]$(d1pCMA[es,e,d,t]) "Sector specific margin between average car dealership price and the sector specific margin"
-
-				pD_WMA[t] ""
-				pD_RMA[t] ""
-				pD_CMA[t] ""
-
-				qD_WMA[t] ""
-				qD_RMA[t] ""
-				qD_CMA[t] ""
-
-				vD_WMA[t] ""
-				vD_RMA[t] ""
-				vD_CMA[t] ""
-
-
+        pE_margins[es,e,d,i,t]$(d1E_margins[es,e,d,i,t]) "Price of retail and wholesale margins on energy-goods, measured in bio. DKK per PJ (or equivalently 1000 DKK per GJ)"		
+				vE_margins[es,e,d,i,t]$(d1E_margins[es,e,d,i,t]) "Value of retail and wholesale margins on energy-goods, measured in bio. DKK"	
+        vOtherDistributionProfits_E_margins[i,t]$(d1E_margins_i[i,t]) "Total value of difference in supply and demand of retail and wholesale margins on energy-goods, measured in bio. DKK. Currently modelled to produce zero-profit"
+				fpE_margins[es,e,d,i,t]$(d1E_margins[es,e,d,i,t]) "Sector specific margin between average price and the sector specific margin"
+			  pD_E_margins[i,t]$(d1E_margins_i[i,t]) "Price of difference in supply and demand of retail and wholesale margins on energy-goods, measured in bio. DKK per PJ (or equivalently 1000 DKK per GJ)"
+        qD_E_margins[i,t]$(d1E_margins_i[i,t]) "Quantity of difference in supply and demand of retail and wholesale margins on energy-goods, measured in PJ"
+				vD_E_margins[i,t]$(d1E_margins_i[i,t]) "Value of difference in supply and demand of retail and wholesale margins on energy-goods, measured in bio. DKK"
 			;
 
 			$Group G_energy_markets_margins_data 
-				vWMA 
-				vRMA 
-				vCMA
+				vE_margins 
 			;
 
 
@@ -191,9 +166,8 @@
 															 + vtE_NAS[es,e,d,t] #Total taxes, excluding ETS 
 															;
 
-			#Total value of energy-consumption in energy-balances is the value of energy in NAS including the three margin categories (RMA,WMA,CMA)
-			.. vEpj[es,e,d,t] =E= vEpj_NAS[es,e,d,t] + vRMA[es,e,d,t] + vWMA[es,e,d,t] + vCMA[es,e,d,t];
-
+			#Total value of energy-consumption in energy-balances is the value of energy in NAS including pE_margins
+			.. vEpj[es,e,d,t] =E= vEpj_NAS[es,e,d,t] + sum(i, vE_margins[es,e,d,i,t]);
 			
 		$ENDBLOCK
 
@@ -252,48 +226,19 @@
 
 		$BLOCK energy_margins energy_margins_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
 
-			.. pWMA[es,e,d,t] =E=  fpWMA[es,e,d,t] * pY_CET['out_other','46000',t]/pY_CET['out_other','46000',tBase];
+			.. vE_margins[es,e,d,i,t] =E=  pE_margins[es,e,d,i,t] * qEpj[es,e,d,t];
 
-			.. pRMA[es,e,d,t] =E= fpRMA[es,e,d,t] * pY_CET['out_other','47000',t]/pY_CET['out_other','47000',tBase];
+			.. pE_margins[es,e,d,i,t] =E= fpE_margins[es,e,d,i,t] * pY_CET['out_other',i,t]/pY_CET['out_other',i,tBase];
 
-			.. pCMA[es,e,d,t] =E= fpCMA[es,e,d,t] * pY_CET['out_other','45000',t]/pY_CET['out_other','45000',tBase];
+			.. vD_E_margins[i,t] =E= sum((es,e,d), vE_margins[es,e,d,i,t]);
 
-			.. vWMA[es,e,d,t] =E=  pWMA[es,e,d,t] * qEpj[es,e,d,t];
+		  qD_E_margins[i,t]..
+					vD_E_margins[i,t] =E= pD_E_margins[i,t] * qD_E_margins[i,t];
 
-			.. vRMA[es,e,d,t] =E= pRMA[es,e,d,t]  * qEpj[es,e,d,t];
+			.. pD_E_margins[i,t] =E= pY_CET['out_other',i,t];
 
-			.. vCMA[es,e,d,t] =E= pCMA[es,e,d,t]  * qEpj[es,e,d,t];
+			.. vOtherDistributionProfits_E_margins[i,t] =E= vD_E_margins[i,t] - pY_CET['out_other',i,t] * qD_E_margins[i,t];
 
-			.. vD_WMA[t] =E= sum((es,e,d), vWMA[es,e,d,t]); 
-			.. vD_RMA[t] =E= sum((es,e,d), vRMA[es,e,d,t]); 
-			.. vD_CMA[t] =E= sum((es,e,d), vCMA[es,e,d,t]);
-
-			qD_WMA[t]..
-					vD_WMA[t] =E= pD_WMA[t] * qD_WMA[t]; 
-			qD_RMA[t]..
-					vD_RMA[t] =E= pD_RMA[t] * qD_RMA[t]; 
-			qD_CMA[t]..
-					vD_CMA[t] =E= pD_CMA[t] * qD_CMA[t];
-
-			.. pD_WMA[t] =E= pY_CET['out_other','46000',t];
-			.. pD_RMA[t] =E= pY_CET['out_other','47000',t];
-			.. pD_CMA[t] =E= pY_CET['out_other','45000',t];
-
-
-
-			..  vOtherDistributionProfits_WMA[t] =E= vD_WMA[t]
-																						- pY_CET['out_other','46000',t]*qD_WMA[t]
-																						;
-
-			
-			..  vOtherDistributionProfits_RMA[t] =E= vD_RMA[t]
-																						- pY_CET['out_other','47000',t]*qD_RMA[t]
-																						;
-
-
-			..  vOtherDistributionProfits_CMA[t] =E= vD_CMA[t]
-																						- pY_CET['out_other','45000',t]*qD_CMA[t]
-																						;
 		$ENDBLOCK
 
 		$BLOCK energy_markets_IO_link energy_markets_IO_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val) 
@@ -310,9 +255,7 @@
 
 			jfpY_i_d&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
 				vY_i_d_base[i,d,t] 
-					=E= sum((e,es,d_a)$es_d2d(es,d_a,d), pRMA[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_retail[i]) 
-																							+ pCMA[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
-																							+ pWMA[es,e,d_a,t] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jvY_i_d_base[i,d,t]; 
+					=E= sum((e,es,d_a)$es_d2d(es,d_a,d), pE_margins[es,e,d_a,i,t] * qEpj[es,e,d_a,t]) + jvY_i_d_base[i,d,t]; 
 
 									# No need to add an equation on imports for margins, as margins are produced domestically in data.
 			jfpM_i_d[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d])..
@@ -332,9 +275,7 @@
 
 	
 			rYM&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
-				qY_i_d[i,d,t]*pY_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),  pRMA[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_retail[i]) 
-																																								+ pCMA[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_cardealers[i]) 
-																																								+ pWMA[es,e,d_a,t-1] * qEpj[es,e,d_a,t]$(i_wholesale[i])) + jqY_i_d[i,d,t];
+				qY_i_d[i,d,t]*pY_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),  pE_margins[es,e,d_a,i,t-1] * qEpj[es,e,d_a,t]) + jqY_i_d[i,d,t];
 
 
 
@@ -444,11 +385,9 @@
 		
 
 		#Margins 
-		d1pWMA[es,e,d,t]    = yes$(vWMA.l[es,e,d,t]); d1pWMA[es,e,d,'2019'] = d1pWMA[es,e,d,'2020'];
-		d1pRMA[es,e,d,t]    = yes$(vRMA.l[es,e,d,t]); d1pRMA[es,e,d,'2019'] = d1pRMA[es,e,d,'2020'];
-		d1pCMA[es,e,d,t]    = yes$(vCMA.l[es,e,d,t]); d1pCMA[es,e,d,'2019'] = d1pCMA[es,e,d,'2020'];
-
-
+		d1E_margins[es,e,d,i,t] = yes$(vE_margins.l[es,e,d,i,t]);
+		d1E_margins[es,e,d,i,'2019'] = d1E_margins[es,e,d,i,'2020'];
+		d1E_margins_i[i,t] = yes$(sum(es,sum(d,sum(e,d1E_margins[es,e,d,i,t])))); 
 
 
 	$ENDIF
@@ -522,14 +461,8 @@ $IF %stage% == "calibration":
 				sSupply_d_e_i_adj[d_ene,e,i,t] =E= min(sSupply_d_e_i_adj_inp[d_ene,e,i,t],1); 
 
 		#For chain-indices t0 valuese are set
-		pWMA&_t0[es,e,d,t]$(t1[t])..
-			pWMA[es,e,d,t0] =E= pWMA[es,e,d,t1];
-
-		pRMA&_t0[es,e,d,t]$(t1[t])..
-			pRMA[es,e,d,t0] =E= pRMA[es,e,d,t1];
-
-		pCMA&_t0[es,e,d,t]$(t1[t])..
-			pCMA[es,e,d,t0] =E= pCMA[es,e,d,t1];
+		pE_margins&_t0[es,e,d,i,t]$(t1[t])..
+			pE_margins[es,e,d,i,t0] =E= pE_margins[es,e,d,i,t1];
 
 	$ENDBLOCK
 
@@ -561,9 +494,7 @@ $IF %stage% == "calibration":
 		sM_Dist$(t1[t] and d1pM_CET[e,i,t] and not d1OneSX_m[e,t]),  -qM_CET$(t1[t] and d1pM_CET[out,i,t] and not d1OneSX_m[out,t] and e[out]) 
 
 		energy_margins_endogenous
-		fpWMA[es,e,d,t1],    -vWMA[es,e,d,t1]	
-		fpRMA[es,e,d,t1],    -vRMA[es,e,d,t1]
-		fpCMA[es,e,d,t1],    -vCMA[es,e,d,t1]
+		fpE_margins[es,e,d,i,t1], -vE_margins[es,e,d,i,t1]	
 
 		energy_markets_clearing_link_endogenous
 
@@ -581,9 +512,7 @@ $IF %stage% == "calibration":
 		sSupply_d_e_i_adj_calib$(not i_energymargins[i] and sum(t1,sum(e,d1pY_CET[e,i,t1])) and sum(t1, sum(e,sum(i_a, d1pM_CET[e,i_a,t1]))) and d_ene[d]) 
 		-adj_sSupply_d_e_i_adj[e,i,t1], j_adj_sSupply_d_e_i_adj
 		energy_markets_IO_link_calibration_endogenous
-		pWMA[es,e,d,t0]
-		pRMA[es,e,d,t0]
-		pCMA[es,e,d,t0]
+		pE_margins[es,e,d,i,t0]
 
 		calibration_endogenous
 	;
@@ -622,7 +551,7 @@ $IF %stage%=='tests':
 
 
 	#Testing that supply and demand matches for energy, when comparing with input_output.gms
-	$PGROUP PG_test_energy_markets 
+	PARAMETER
 		vD_ene_IO[d,t] "Value of energy, base prices, in input_output.gms, excluding margins"
 		vD_ene_BU[d,t] "Value of energy, base prices, in energy_markets.gms, excluding margins"
 
