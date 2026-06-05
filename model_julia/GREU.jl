@@ -54,6 +54,7 @@ include("GrowthInflationAdjustment.jl")
 
 # Tag for variables that should be forecast as constant in calibration
 const ForecastConstant = Tag(:forecast_constant)
+const ForecastZero = Tag(:forecast_zero)
 
 # ==============================================================================
 # Include submodules
