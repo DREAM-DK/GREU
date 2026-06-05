@@ -322,7 +322,7 @@ uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,
 pTPotential.l[l,es,d,t] = 
   sum(e, uTE.l[l,es,e,d,t]*pEpj_marg.l[es,e,d,t]) + uTKexp.l[l,es,d,t]*pTK.l[d,t];
 
-smooth_factor = 0.03;
+smooth_factor = 0.04;
 
 # Set smoothing parameters (we recalculate this in base_model_energy_technology.gms because electricity prices are not present in some cases in the data)
 eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = smooth_factor*pTPotential.l[l,es,d,t]/uTKexp.l[l,es,d,t];
@@ -404,7 +404,7 @@ $ENDIF # calibration
 # ------------------------------------------------------------------------------
 # Tests calibration
 # ------------------------------------------------------------------------------
-$IF %stage% == "tests":
+$IF %stage% == "tests_baseline":
 
 # Test that the value of capital-energy nest in CGE model does not change.
 # Tests only the dimensions where energy technologies exists

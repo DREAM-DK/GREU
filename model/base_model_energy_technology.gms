@@ -51,6 +51,7 @@ execute_unload 'Output/calibration_energy_technology.gdx';
 # ------------------------------------------------------------------------------
 $IF %test_energy_technology%:
 
+@import_from_modules("tests_baseline")
 @import_from_modules("tests")
 # Data check  -  Abort if any data covered variables have been changed by the calibration
 $GROUP G_test_data_covered_variables 
