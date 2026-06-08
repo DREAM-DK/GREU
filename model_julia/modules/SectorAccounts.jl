@@ -36,8 +36,10 @@ module SectorAccounts
 
 import JuMP
 using SquareModels
-using ..GrowthInflationAdjustment
-import ..db, ..t, ..t1, ..T, ..ForecastConstant
+import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
+import ..db
+import ..Time: t, t1, T
+import ..Tags: ForecastConstant
 
 # ==========================================================================
 # Indices

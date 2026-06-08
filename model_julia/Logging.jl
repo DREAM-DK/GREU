@@ -42,6 +42,6 @@ macro log_time(expr)
 	end
 end
 
-export @log_time
+setup!(file=joinpath(@__DIR__, "..", "greu.log"))
 
 end # module Log

@@ -8,8 +8,8 @@ module Government
 
 import JuMP
 using SquareModels
-using ..GrowthInflationAdjustment
-import ..db, ..t, ..t1, ..T, ..ForecastConstant
+import ..db
+import ..Time: t, t1, T
 import ..SectorAccounts: vPrimaryIncome, vNetTransfers, vFinalConsumption, vGrossCapitalFormation
 
 # ==========================================================================

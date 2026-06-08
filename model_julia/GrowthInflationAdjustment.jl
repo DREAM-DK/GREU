@@ -12,10 +12,7 @@
 module GrowthInflationAdjustment
 	using SquareModels: Tag
 
-	export gq, gp, fq, fp, fv
-	export GrowthAdjusted, InflationAdjusted
-
-	const gq = 0.02 # Long-run real growth rate
+	const gq = 0.01 # Long-run real growth rate
 	const gp = 0.02 # Long-run inflation rate
 	const fq = 1 + gq # Quantity growth factor
 	const fp = 1 + gp # Price growth factor
@@ -25,5 +22,3 @@ module GrowthInflationAdjustment
 	const GrowthAdjusted = Tag(:growth_adjusted)
 	const InflationAdjusted = Tag(:inflation_adjusted)
 end
-
-using .GrowthInflationAdjustment

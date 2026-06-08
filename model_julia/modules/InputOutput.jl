@@ -12,10 +12,12 @@ import JuMP
 using CSV
 using JuMP.Containers: DenseAxisArray
 using SquareModels
-using ..GrowthInflationAdjustment
-using ..Settings: calibration_year
+import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
+import ..Settings: calibration_year
 import ..InputOutputDefinitions as IODef
-import ..db, ..t, ..t1, ..T, ..tBase, ..ForecastConstant
+import ..db
+import ..Time: t, t1, T
+import ..Tags: ForecastConstant
 
 # ==========================================================================
 # Checked-in data

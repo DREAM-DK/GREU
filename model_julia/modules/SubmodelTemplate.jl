@@ -8,7 +8,9 @@ module SubmodelTemplate
 import JuMP
 using SquareModels
 # using ..GrowthInflationAdjustment  # Uncomment if using growth/inflation adjustment
-import ..db, ..t, ..t1, ..T, ..ForecastConstant
+import ..db
+import ..Time: t, t1, T
+import ..Tags: ForecastConstant
 
 # ==========================================================================
 # Indices (owned by this module)
