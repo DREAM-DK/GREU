@@ -8,39 +8,24 @@
 # Structure:
 # - Main file (this): Model container, time indices, submodel assembly
 # - Submodules: Each in separate files, following SquareModels patterns
-using Pkg
-if lowercase(Base.active_project()) != lowercase(abspath(joinpath(@__DIR__, "..", "Project.toml")))
-    Pkg.activate(joinpath(@__DIR__, ".."))
-end
 import JuMP
-using JuMP: Model, FEASIBILITY_SENSE, set_objective_sense, set_optimizer_attribute
 using SquareModels
 
 include("Settings.jl")
 using .Settings: first_data_year, base_year, calibration_year, terminal_year
-using .Settings: enabled_modules, conopt_lib_dir, conopt_lib
+using .Settings: enabled_modules
 
 include("Logging.jl")
 using .Log: @log_time
 Log.setup!(file=joinpath(@__DIR__, "..", "greu.log"))
 
-import CONOPT
-
-if !any(==(lowercase(conopt_lib_dir)), lowercase.(split(ENV["PATH"], ";")))
-	ENV["PATH"] = conopt_lib_dir * ";" * ENV["PATH"]
-end
-
-function configure_conopt!(model)
-	set_objective_sense(model, FEASIBILITY_SENSE)
-	set_optimizer_attribute(model, "lmmxsf", 1)
-	set_optimizer_attribute(model, "lim_pre_msg", 400)
-	return model
-end
+include("Solver.jl")
+using .Solver: SquareModel
 
 # ==============================================================================
 # Global model container and time configuration
 # ==============================================================================
-db = ModelDictionary(configure_conopt!(Model(CONOPT.Optimizer)))
+db = ModelDictionary(SquareModel())
 
 const tBase = base_year # Statistical index year where prices are set to 1
 const max_terminal_year = terminal_year

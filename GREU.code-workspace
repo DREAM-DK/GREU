@@ -14,11 +14,9 @@
 		{
 			"path": "."
 		},
-		{
-			"path": "../SquareModels"
-		}
 	],
 	"settings": {
+		"julia.environmentPath": "${workspaceFolder}",
 		"editor.codeActionsOnSave": {},
 		"editor.tabSize": 2,
 		"search.useIgnoreFiles": false,
@@ -47,6 +45,7 @@
 },
   "extensions": {
     "recommendations": [
+			"julialang.language-julia",
 			"jeppekinslev.gamY-syntax-highlighting", // gamY syntax highlighting
       "teabyii.ayu", // Color themes, inludes dark, light and mirage themes
 			"ms-toolsai.jupyter", // Jupyter notebook support

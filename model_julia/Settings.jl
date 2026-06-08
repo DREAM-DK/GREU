@@ -14,6 +14,8 @@ const enabled_modules = [
   # :InputOutput,
 ]
 
+const solver = :CONOPT # :CONOPT or :Ipopt
+
 const pkg_root = abspath(joinpath(@__DIR__, ".."))
 const conopt_lib_dir = joinpath(pkg_root, "conopt-win-x86_64", "lib")
 const conopt_lib = joinpath(conopt_lib_dir, "conopt4.dll")
