@@ -12,3 +12,5 @@
 /model/saved
 /.cursor/rules
 /Manifest.toml
+
+LocalPreferences.toml

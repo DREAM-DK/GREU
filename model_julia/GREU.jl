@@ -13,32 +13,34 @@ if lowercase(Base.active_project()) != lowercase(abspath(joinpath(@__DIR__, ".."
     Pkg.activate(joinpath(@__DIR__, ".."))
 end
 import JuMP
-using JuMP: Model, set_optimizer_attribute
+using JuMP: Model, FEASIBILITY_SENSE, set_objective_sense, set_optimizer_attribute
 using SquareModels
 
 include("Settings.jl")
 using .Settings: first_data_year, base_year, calibration_year, terminal_year
-using .Settings: enabled_modules, gams_dir, gams_solver
+using .Settings: enabled_modules, conopt_lib_dir, conopt_lib
 
 include("Logging.jl")
 using .Log: @log_time
 Log.setup!(file=joinpath(@__DIR__, "..", "greu.log"))
 
-# Temporary hardcoded GAMS location
-# GAMS is used for the Conopt optimizer, until JuMP supports it natively.
-ENV["GAMS_SYSDIR"] = gams_dir
-if !any(==(lowercase(gams_dir)), lowercase.(split(ENV["PATH"], ";")))
-	ENV["PATH"] = gams_dir * ";" * ENV["PATH"]
+import CONOPT
+
+if !any(==(lowercase(conopt_lib_dir)), lowercase.(split(ENV["PATH"], ";")))
+	ENV["PATH"] = conopt_lib_dir * ";" * ENV["PATH"]
 end
 
-using GAMS
+function configure_conopt!(model)
+	set_objective_sense(model, FEASIBILITY_SENSE)
+	set_optimizer_attribute(model, "lmmxsf", 1)
+	set_optimizer_attribute(model, "lim_pre_msg", 400)
+	return model
+end
 
 # ==============================================================================
 # Global model container and time configuration
 # ==============================================================================
-db = ModelDictionary(Model(GAMS.Optimizer))
-set_optimizer_attribute(db.model, GAMS.ModelType(), "CNS")
-set_optimizer_attribute(db.model, "CNS", gams_solver)
+db = ModelDictionary(configure_conopt!(Model(CONOPT.Optimizer)))
 
 const tBase = base_year # Statistical index year where prices are set to 1
 const max_terminal_year = terminal_year
