@@ -2,14 +2,13 @@
 import numpy as np
 import pandas as pd
 import gamspy as gp
-import eurostat
 import os
 import sys
 import importlib
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+sys.path.insert(0, os.path.join(os.getcwd(), '..'))
 
-_modules_dir = os.path.dirname(os.path.abspath(__file__))
+_modules_dir = os.getcwd()
 
 pd.set_option("mode.copy_on_write", True)
 n = gp.Container()
@@ -17,11 +16,11 @@ n = gp.Container()
 # ========================================================================
 #   Settings
 # ========================================================================
-country = ['DK']
+country = 'DK'
 currency = ['MIO_NAC'] # THIS DOES NOT APPLY TO ALL DATASETS, AS THEY HAVE DIFFERENT CURRENCY CODES
 
-year_start = 2022 # Lagged varibles are loaded when needed
-year_end = 2022
+year_start = 2019 # Lagged varibles are loaded when needed
+year_end = 2019
 
 # Each module must live in data/load_eurostat_data/ and provide:
 #   - {name}_data.py with a load_data(n, t, country, currency, year_start, year_end) function
@@ -29,7 +28,8 @@ modules = [
     'input_output',
     'labor_market',
     'factor_demand',
-    'financial_accounts',
+    'financial_accounts_balance',
+    'financial_accounts_flow',
     'government',
 ]
 
@@ -65,7 +65,7 @@ i_private_nonfin = gp.Set(n, 'i_private_nonfin', domain=i, description='Private 
 for module_name in modules:
     mod = importlib.import_module(f'{module_name}_data')
     importlib.reload(mod)
-    mod.load_data(n, t, country, currency, year_start, year_end, i_list=i_list, k_list=k_list, re_list=re_list, energy_list=energy_list)
+    mod.load_data(n, t, country, year_start, year_end, i_list=i_list, k_list=k_list, re_list=re_list, energy_list=energy_list)
 
 # ========================================================================
 #   Define sets based on data
@@ -82,3 +82,5 @@ gp.Set(n, 'm', domain=n['i'], description='Industries with imports', records=m_r
 gdx_path = os.path.join(_modules_dir, '../data_eurostat.gdx')
 n.write(gdx_path)
 
+
+# %%

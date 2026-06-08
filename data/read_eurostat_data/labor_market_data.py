@@ -3,7 +3,7 @@ import gamspy as gp
 import eurostat
 import pandas as pd
 
-def load_data(n, t, country, currency, year_start, year_end, **kwargs):
+def load_data(n, t, country, year_start, year_end, **kwargs):
     # ========================================================================
     #   Load raw data 
     # ========================================================================

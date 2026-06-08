@@ -4,7 +4,7 @@ import eurostat
 import pandas as pd
 # import modules.sets_data as sets_data
 
-def load_data(n, t, country, currency, year_start, year_end, i_list=None, k_list=None, **kwargs):
+def load_data(n, t, country, year_start, year_end, i_list=None, k_list=None, **kwargs):
     # ========================================================================
     #   Helper function - Price indices
     # ========================================================================
@@ -41,7 +41,7 @@ def load_data(n, t, country, currency, year_start, year_end, i_list=None, k_list
     filter_pars = {
         'startPeriod': year_start, # Loads data for previous year because of lagged values in model
         'endPeriod': year_end, 
-        'unit': ['CRC_MNAC', 'PYR_MNAC'],
+        'unit': ['CRC_MEUR', 'PYR_MEUR'],
         'asset10': ['N11G','N11KG','N11MG','N115G','N117G'],
         'geo': country,
     }
@@ -63,8 +63,8 @@ def load_data(n, t, country, currency, year_start, year_end, i_list=None, k_list
     raw_data = raw_data.groupby(['i', 'k', 'year', 'unit'], as_index=False)['level'].sum()
  
     # Deflate capital stock data
-    pK_k_i = price_indicies_by_unit(raw_data, 'CRC_MNAC', 'PYR_MNAC', ['i', 'k', 'year'], year_end)
-    qK_k_i_nominal = raw_data[raw_data['i'].isin(i_list) & raw_data['k'].isin(k_list) & (raw_data['unit'] == 'CRC_MNAC')]
+    pK_k_i = price_indicies_by_unit(raw_data, 'CRC_MEUR', 'PYR_MEUR', ['i', 'k', 'year'], year_end)
+    qK_k_i_nominal = raw_data[raw_data['i'].isin(i_list) & raw_data['k'].isin(k_list) & (raw_data['unit'] == 'CRC_MEUR')]
     qK_k_i = deflate_by_price_index(qK_k_i_nominal, pK_k_i, ['i', 'k', 'year'])
 
     # # Test data consistency
@@ -79,7 +79,7 @@ def load_data(n, t, country, currency, year_start, year_end, i_list=None, k_list
     filter_pars = {
         'startPeriod': year_start, # Loads data for previous year because of lagged values in model
         'endPeriod': year_end, 
-        'unit': ['CP_MNAC', 'PYP_MNAC'],
+        'unit': ['CP_MEUR', 'PYP_MEUR'],
         'asset10': ['N11G','N11KG','N11MG','N115G','N117G','N12G'],
         'na_item': ['P51G','P52'],
         'geo': country,
@@ -106,12 +106,12 @@ def load_data(n, t, country, currency, year_start, year_end, i_list=None, k_list
     vInvt_i = raw_data[raw_data['k'].isin(['N12G']) & raw_data['na_item'].isin(['P52'])]
 
     # Deflate investment data
-    pI_k_i = price_indicies_by_unit(vI_k_i, 'CP_MNAC', 'PYP_MNAC', ['i', 'k', 'year'], year_end)
-    qI_k_i_nominal = vI_k_i[vI_k_i['unit'] == 'CP_MNAC']
+    pI_k_i = price_indicies_by_unit(vI_k_i, 'CP_MEUR', 'PYP_MEUR', ['i', 'k', 'year'], year_end)
+    qI_k_i_nominal = vI_k_i[vI_k_i['unit'] == 'CP_MEUR']
     qI_k_i = deflate_by_price_index(qI_k_i_nominal, pI_k_i, ['i', 'k', 'year'])
     
-    pInvt_i = price_indicies_by_unit(vInvt_i, 'CP_MNAC', 'PYP_MNAC', ['i', 'year'], year_end)
-    qInvt_i_nominal = vInvt_i[vInvt_i['unit'] == 'CP_MNAC']
+    pInvt_i = price_indicies_by_unit(vInvt_i, 'CP_MEUR', 'PYP_MEUR', ['i', 'year'], year_end)
+    qInvt_i_nominal = vInvt_i[vInvt_i['unit'] == 'CP_MEUR']
     qInvt_i = deflate_by_price_index(qInvt_i_nominal, pInvt_i, ['i', 'year'])
 
     # Test data consistency

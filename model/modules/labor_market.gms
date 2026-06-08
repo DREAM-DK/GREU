@@ -8,6 +8,7 @@ $Group+ all_variables
 
   pL_i[i,t] "Usercost of labor, by industry."
   qL[t] "Labor in efficiency units."
+  qL_i[i,t] "Labor in efficiency units by industry."
 
   pLWedge_i[i,t] "Wedge between wage and usercost of labor (e.g. matching costs), by industry."
 

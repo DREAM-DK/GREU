@@ -40,6 +40,7 @@ Set m(i);
 
 # --- Financial accounts ---
 Set sector;
+Set finpos;
 Set i_public(i);
 Set i_private(i);
 Set i_private_fin(i);
@@ -62,10 +63,43 @@ Parameters # Parameters read from data_eurostat.gdx
   qI_k_i[k,i,t] "Capital investments by capital type and industry."
   # qInvt_i[i,t] "Inventory investments by industry." # Take a closer look at this...
   # --- Financial accounts ---
-  vNetFinAssets[sector,t] "Net financial assets by sector."
-  vNetDebtInstruments[sector,t] "Net debt instruments by sector."
-  vNetEquity[sector,t] "Net equity instruments by sector."
-  vNetSectorFlows[sector,t] "Net sector flows."
+  vFinAssets[sector, finpos,t] "Financial assets by sector and assets and liabilities."
+  vDebtInstruments[sector, finpos,t] "Debt instruments by sector and assets and liabilities."
+  vEquity[sector, finpos,t] "Equity instruments by sector and assets and liabilities."
+
+  vNetLending_s[sector,t] "Net lending by sector."
+  vGrossSavings_s[sector,t] "Gross savings by sector."
+  vNetCapTransfers_s[sector,t] "Net capital transfers by sector."
+  vGrossCapFormation_s[sector,t] "Gross capital formation by sector."
+  vNetAcquisitions_s[sector,t] "Net acquisitions by sector."
+  vGrossPrimIncome_s[sector,t] "Gross primary income by sector."
+  vGrossDispIncome_s[sector,t] "Gross disposable income by sector."
+  vConsExp_s[sector,t] "Consumption expenditure by sector."
+  vNetPensEntitlementAdj_s[sector,t] "Net pensions entitlement adjustments by sector."
+  vNetCurrentIncomeWealthTax_s[sector,t] "Net current income and wealth tax by sector."
+  vNetSocialContributions_s[sector,t] "Net social contributions by sector."
+  vNetOtherCurrentTrans_s[sector,t] "Net other current transactions by sector."
+  vNetSocialTransfersKind_s[sector,t] "Net social transfers in kind by sector."
+  vGrossOpSurplusMixedIncome_s[sector,t] "Operating surplus mixed income by sector, gross."
+  vWagesRec_s[sector,t] "Wages received by sector."
+  vProductionImportTaxRec_s[sector,t] "Production import tax received by sector."
+  vSubsidiesExp_s[sector,t] "Subsidies expenditure by sector."
+  vNetPropertyIncome_s[sector,t] "Net property income by sector."
+  vNetInterests_s[sector,t] "Net interests by sector."
+  vNetDividends_s[sector,t] "Net dividends by sector."
+  vNetReinvestedEarningsFDI_s[sector,t] "Net reinvested earnings on FDI by sector."
+  vNetOtherInvestmentIncome_s[sector,t] "Net other investment income by sector."
+  vNetRents_s[sector,t] "Net rents by sector."
+
+  vInterestsPaid_s[sector,t] "Net interests paid by sector."
+  vInterestsReceived_s[sector,t] "Net interests received by sector."
+  vDividendsPaid_s[sector,t] "Net dividends paid by sector."
+  vDividendsReceived_s[sector,t] "Net dividends received by sector."
+  vReinvestedEarningsFDIPaid_s[sector,t] "Net reinvested earnings on FDI paid by sector."
+  vReinvestedEarningsFDIReceived_s[sector,t] "Net reinvested earnings on FDI received by sector."
+  vOtherInvestmentIncomePaid_s[sector,t] "Net other investment income paid by sector."
+  vOtherInvestmentIncomeReceived_s[sector,t] "Net other investment income received by sector."
+
   # --- Government ---
   vGovBalance[t] "Government balance."
   vGovRevenue[t] "Government revenue."
@@ -115,9 +149,14 @@ $load nEmployed, hSalEmployed, hSelfEmployed
 $load factors_of_production
 $load qK_k_i, qI_k_i  #, qInvt_i
 #  --- Financial accounts ---
-$load sector, i_public, i_private, i_private_fin, i_private_nonfin
-$load vNetFinAssets, vNetDebtInstruments, vNetEquity, vNetSectorFlows
-#  --- Government ---
+$load sector, finpos, i_public, i_private, i_private_fin, i_private_nonfin
+$load vFinAssets, vDebtInstruments, vEquity
+$load vInterestsPaid_s, vInterestsReceived_s, vDividendsPaid_s, vDividendsReceived_s, vReinvestedEarningsFDIPaid_s, vReinvestedEarningsFDIReceived_s, vOtherInvestmentIncomePaid_s, vOtherInvestmentIncomeReceived_s
+$load vNetLending_s, vGrossSavings_s, vNetCapTransfers_s, vGrossCapFormation_s, vNetAcquisitions_s, vGrossPrimIncome_s, vGrossDispIncome_s,
+$load vConsExp_s, vNetPensEntitlementAdj_s, vNetCurrentIncomeWealthTax_s, vNetSocialContributions_s, vNetSocialTransfersKind_s, vNetOtherCurrentTrans_s, 
+$load vGrossOpSurplusMixedIncome_s, vWagesRec_s, vProductionImportTaxRec_s, vSubsidiesExp_s, vNetPropertyIncome_s, vNetInterests_s, 
+$load vNetDividends_s, vNetReinvestedEarningsFDI_s, vNetOtherInvestmentIncome_s, vNetRents_s
+# #  --- Government ---
 $load vGovBalance, vGovRevenue, vGovExpenditure
 $load vtIndirect, vtDirect, vGovSalesRev, vGovOthSubRev, vGovPropertyIncome, vGovSocialContRev, vGovOthCurrentTransRev, vtCap, vGovCapRev, vtHhIncome, vtCorp,
 $load vGovIntermediateCons, vGovCapInv, vGovDepr, vGovEmplComp, vGovOthProdTax, vGovSub, vGovInterestPayments, vGovSocBenefitExp, vSocTransKind, vGovOthCurrentTransExp, vGovAdjExp, vGovCapTransExp, vGovNetAcquisitions
@@ -153,6 +192,16 @@ $PGROUP PG_data # Initialize intermediate parameters for computations below
   qL_i[i,t] "Labor in efficiency units by industry."
   qProd[factors_of_production,i,t] "Factors of production, value"
   pProd[factors_of_production,i,t] "Factors of production, price"
+  # --- Financial accounts ---
+  vPaidInterests_s[sector,t] "Paid interests by sector and financial position."
+  vReceivedInterests_s[sector,t] "Received interests by sector and financial position."
+  vPaidDividends_s[sector,t] "Paid dividends by sector and financial position."
+  vReceivedDividends_s[sector,t] "Received dividends by sector and financial position."
+
+  vNetFinAssets[sector,t] "Net financial assets by sector."
+  vNetDebtInstruments[sector,t] "Net debt instruments by sector."
+  vNetEquity[sector,t] "Net equity instruments by sector."
+
 ;
 
 # -----------------------------------------------------------------------------
@@ -193,7 +242,7 @@ nL[t] = nEmployed[t];
 vW[t]$(nL[t]) = sum(i, vWages_i[i,t]) / nL[t];
 
 # --- Production ---
-qK_k_i[k,i,t] = qK_k_i[k,i,'2022']; # To avoid problems in capital accumulation equation.
+qK_k_i[k,i,t] = qK_k_i[k,i,'2019']; # To avoid problems in capital accumulation equation.
 
 qL_i[i,t] = vWages_i[i,t]*(1 + hSelfEmployed[t]/hSalEmployed[t]);
 
@@ -205,6 +254,19 @@ qProd['energy',i,t]    = sum(re,vY_i_d[re,i,t] + vM_i_d[re,i,t]);
 pProd[factors_of_production,i,t] = 1;
 
 qE_re_i[energy,i,t] = qProd['energy',i,t];
+
+# --- Financial accounts ---
+vNetSocialContributions_s[sector,t] = vNetSocialContributions_s[sector,t] - vNetSocialTransfersKind_s[sector,t];
+
+vPaidInterests_s[sector,t]      = vInterestsPaid_s[sector,t];
+vReceivedInterests_s[sector,t]  = vInterestsReceived_s[sector,t];
+vPaidDividends_s[sector,t]      = vDividendsPaid_s[sector,t] + vReinvestedEarningsFDIPaid_s[sector,t] + vOtherInvestmentIncomePaid_s[sector,t];
+vReceivedDividends_s[sector,t]  = vDividendsReceived_s[sector,t] + vReinvestedEarningsFDIReceived_s[sector,t] + vOtherInvestmentIncomeReceived_s[sector,t];
+
+vNetFinAssets[sector,t]         = vFinAssets[sector,'ASS',t] - vFinAssets[sector,'LIAB',t];
+vNetDebtInstruments[sector,t]   = vDebtInstruments[sector,'ASS',t] - vDebtInstruments[sector,'LIAB',t];
+vNetEquity[sector,t]            = vEquity[sector,'ASS',t] - vEquity[sector,'LIAB',t];
+
 
 # =============================================================================
 # 3) Export to GDX
