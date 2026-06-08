@@ -46,25 +46,13 @@ const ForecastZero = Tag(:forecast_zero)
 # ==============================================================================
 # Include submodules
 # ==============================================================================
-const submodels = Module[]
-
-function load_submodel!(name::Symbol)
-  path = joinpath("modules", string(name) * ".jl")
-  isfile(joinpath(@__DIR__, path)) || error("Unknown Julia module file: $name")
-  submodel = @log_time include(path)
-  push!(submodels, submodel)
-  return nothing
-end
-
-foreach(load_submodel!, enabled_modules)
+const submodels = [@log_time include(joinpath("modules", "$name.jl")) for name in enabled_modules]
 
 for m in submodels
 	@log_time m.set_data!(db)
 end
 
-function base_model()
-	@log_time sum(m.define_equations() for m in submodels)
-end
+base_model() = @log_time sum(m.define_equations() for m in submodels)
 
 """
 For calibration: exogenize endogenous variables that have data and endogenize their residuals.
