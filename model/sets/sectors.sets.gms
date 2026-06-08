@@ -1,4 +1,14 @@
 
+Set finpos "Financial position (assets or liabilities)." /
+  ASS "Assets held."
+  LIAB "Liabilities incurred."
+/;
+
+Parameter finpos_sign(finpos) "Sign for net stocks (assets minus liabilities)." /
+  ASS  1
+  LIAB -1
+/;
+
 Set sector "Sectors of the economy as defined in national accounts." /
   FinCorp "Financial corporations."
   NonFinCorp "Non-financial corporations."
