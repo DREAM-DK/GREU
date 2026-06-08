@@ -161,6 +161,10 @@ We recommend using the python installation that comes with your GAMS installatio
 For reporting, and other purposes, we make use of several python packages in addition to the ones listed above.
 To install pip and all the packages that we use, simply run the code in [install.py](install.py).
 
+## User specific settings and data 
+We aim for the separation of the data and code. In practice this means not modifying the code files to include API keys or user paths (e.g. gams.exe location) but store these to in the folder user-specific-configs. This facilitates collaboration across a large user base. 
+None of the files in the folder user-specific-configs are stored to git - except those have the word "template" in the name. User should copy the template, remove the template from file name and fill the specified fields.
+
 
 ## Variable names - in code and in documentation
 For naming variables, we try to strike a balance between short-hand notation that makes dense equations easier to read, and longer names that are explicit and self-explanatory (as is usually good practice in code). Note that Greek letters written with Latin characters are neither short nor self-explanatory!
