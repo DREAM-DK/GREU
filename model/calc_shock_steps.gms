@@ -1,11 +1,3 @@
-
-parameter
-  tCO2_energy_technology[em,es,e,i,t]
-  ;
-
-tCO2_energy_technology[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
-
-
 ## SHOCK TO EXOGENOUS VARIABLES
 
 # Apply carbon tax to specific energy types inkluding household use of energy
@@ -19,12 +11,11 @@ tCO2_xEmarg.l[i,t]$(d1tCO2_xE[i,t]) = tCO2_xEmarg.l[i,t] + 200 * phaseInTax[t];
 
 ## RUN CGE MODEL WITHOUT ENERGY TECHNOLOGY MODEL
 # We turn the energy technology model off
-d1switch_energy_technology[t] = 0;
-d1switch_integrate_energy_technology[t] = 0;
+d1switch_energy_technology = 0;
+d1switch_integrate_energy_technology = 0;
 
 $GROUP main_endogenous
   main_endogenous
-  -uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
   vG2vGDP, -qG, 
   vLumpsum, -vGovPrimaryBalance  
 ;
@@ -33,17 +24,14 @@ $FIX all_variables; $UNFIX main_endogenous;
 # execute_unload 'Output\pre_CO2_shock.gdx';
 solve main using CNS;
 
-tCO2_energy_technology[em,es,e,i,t]$(sum(l, d1uTE[l,es,e,i,t]) and d1tCO2_E[em,es,e,i,t]) = tCO2_Emarg.l[em,es,e,i,t];
-
 
 $IF %include_energy_technology% = 1:
   ## RUN CGE MODEL WITH ENERGY TECHNOLOGY MODEL
-  d1switch_energy_technology[t] = 1;
-  d1switch_integrate_energy_technology[t] = 1;
+  d1switch_energy_technology = 1;
+  d1switch_integrate_energy_technology = 1;
 
 $GROUP main_endogenous
   main_endogenous
-  uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
   vG2vGDP, -qG, 
   vLumpsum, -vGovPrimaryBalance    
 ;

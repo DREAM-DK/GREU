@@ -434,9 +434,7 @@ $PGROUP PG_GREU_data
   vtE_vat[es,e,d,t]  "VAT-revenue on energy by energy-service, energy-good and demand component"
   qEpj[es,e,d,t] "Energy consumption by energy-service, energy-good and demand component"
   qEpj_own[es,e,d,t] "Energy consumption from own-production by energy-service, energy-good and demand component"
-  vWMA[es,e,d,t] "Margins on wholesale of energy by energy-service, energy-good and demand component"
-  vCMA[es,e,d,t] "Margins on energy sold from car-dealerships, by energy-service, energy-good and demand component"
-  vRMA[es,e,d,t] "Margins on energy sold reatil, by energy-service, energy-good and demand component"
+  vE_margins[es,e,d,i,t] "Margins on energy sold by energy-service, energy-good, demand component and industry"
   qEmmE_BU[em,es,e,d,t] "Energy-related emissions by emission-type, energy-service, energy-good, and demand component"
   qEmmxE[em,d,t] "Non-energy related emissions by emission-type and demand component"
   tCO2_Emarg[em,es,e,d,t] "Marginal carbon taxes by emission-type, energy-service, energy-good, and demand component"  
@@ -527,10 +525,10 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 #Energy and emissions.
   pEpj_base[es,e,d,t]$(sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t])) = sum(demand_transaction_temp, Energybalance['BASE',demand_transaction_temp,d,es,e,t])/sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
   qEpj[es,e,d,t] = sum(demand_transaction_temp, Energybalance['PJ',demand_transaction_temp,d,es,e,t]);
-
-  vWMA[es,e,d,t] = sum(demand_transaction_temp, Energybalance['EAV',demand_transaction_temp,d,es,e,t]);
-  vCMA[es,e,d,t] = sum(demand_transaction_temp, Energybalance['CAV',demand_transaction_temp,d,es,e,t]);
-  vRMA[es,e,d,t] = sum(demand_transaction_temp, Energybalance['DAV',demand_transaction_temp,d,es,e,t]);
+ 
+  vE_margins[es,e,d,i,t]$(sameas[i,'46000']) = sum(demand_transaction_temp, Energybalance['EAV',demand_transaction_temp,d,es,e,t]); 
+  vE_margins[es,e,d,i,t]$(sameas[i,'45000']) = sum(demand_transaction_temp, Energybalance['CAV',demand_transaction_temp,d,es,e,t]); 
+  vE_margins[es,e,d,i,t]$(sameas[i,'47000']) = sum(demand_transaction_temp, Energybalance['DAV',demand_transaction_temp,d,es,e,t]); 
 
   #Own-consumption is handled relatively ad hoc
   qY_CETgross[e,i,t] = sum(es, Energybalance['PJ','production',i,es,e,t]);

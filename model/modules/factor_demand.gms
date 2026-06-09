@@ -14,6 +14,7 @@ $Group+ all_variables
   qI_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Real investments by capital type and industry."
   vI_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Investments by capital type and industry."
   rKDepr_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Capital depreciation rate by capital type and industry."
+  jI_k_i[k,i] "J-term for investments by capital type and industry."
   qInvt_i[i,t] "Net real inventory investments by industry."
   vInvt_i[i,t] "Net inventory investments by industry."
 
@@ -58,8 +59,8 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   .. vInvt_i[i,t] =E= pD['invt',t] * qInvt_i[i,t];
 
   # Capital accumulation (firms demand capital directly, investments are residual from capital accumulation)
-  .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq
-                      + jDelta_qESK[k,i,t]; # Additional investments from the energy technology model (endogenized by energy technology module) 
+  .. qI_k_i[k,i,t] =E= qK_k_i[k,i,t] - (1-rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq - jI_k_i[k,i]$(tDataEnd[t])
+                      + qI_k_i_energy_tech[k,i,t]; # Additional investments from the energy technology model (endogenized by energy technology module) 
 
   # Link demand for investments to input-output model
   .. qD[k,t] =E= sum(i, qI_k_i[k,i,t]);
@@ -110,9 +111,12 @@ $Group+ data_covered_variables factor_demand_data_variables$(t.val <= %calibrati
 d1K_k_i[k,i,t]    = abs(qK_k_i.l[k,i,t]) > 1e-9;
 
 rHurdleRate_i.l[i,t] = 0.2;
+rKDepr_k_i.l['iB',i,t] = 0.04;
+rKDepr_k_i.l['iM',i,t] = 0.15;
+rKDepr_k_i.l['iT',i,t] = 0.15;
 
 # Initialize J-term for energy technology investments to zero (allows partial equilibrium when energy technology module is off)
-jDelta_qESK.l[k,i,t] = 0;
+qI_k_i_energy_tech.l[k,i,t] = 0;
 
 fInstCost_k_i.fx[k,i] = 0.5;
 qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not t1[t]) = fInstCost_k_i.l[k,i] * sqr((qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t-1]/fq))) * (qK_k_i.l[k,i,t-1]/fq);
@@ -125,6 +129,30 @@ dInstCost2dK_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and t1[t]) = fInstCost_k_i.l[k,i] * 2 
 
 pK_k_i.l[k,i,t]$d1K_k_i[k,i,t] = rHurdleRate_i.l[i,t]; 
 $ENDIF # exogenous_values
+
+# ------------------------------------------------------------------------------
+# Starting values
+# ------------------------------------------------------------------------------
+$IF %stage% == "starting_values":
+
+set_time_periods(%calibration_year%, %calibration_year%);
+
+# Variables that require custom starting values rather than the default 0.99 assignment
+# These are excluded from default_starting_values in calibration.gms
+$Group non_default_starting_values
+  dInstCost2dKLag_k_i[k,i,t]
+;
+
+# Set custom starting values for the variables in non_default_starting_values here
+dInstCost2dKLag_k_i.l[k,i,t]$(t1.val <= t.val and t.val <= tEnd.val and d1K_k_i[k,i,t]) = dInstCost2dKLag_k_i.l[k,i,t0];
+
+# If installation costs are disabled (if fInstCost_k_i is zero, installation costs are zero)
+# we manually set relevant installation cost variables to zero
+qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and fInstCost_k_i.l[k,i] = 0) = 0;
+dInstCost2dKLag_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and fInstCost_k_i.l[k,i] = 0) = 0;
+dInstCost2dK_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and fInstCost_k_i.l[k,i] = 0) = 0;
+
+$ENDIF # starting_values
 
 # ------------------------------------------------------------------------------
 # Calibration
@@ -148,7 +176,7 @@ $Group calibration_endogenous
   -qK_k_i[k,i,t1], qK2qY_k_i[k,i,t1]
   -qL_i[i,t1], qL2qY_i[i,t1]
   -qD[i,t1], qR2qY_i[i,t1]
-  -qI_k_i[k,i,t1], rKDepr_k_i[k,i,t1]
+  -qI_k_i[k,i,t1], jI_k_i[k,i]
   -qInvt_i[i,t1], qInvt2qY_i[i,t1]
 
   calibration_endogenous
@@ -161,23 +189,5 @@ $Group+ G_flat_after_last_data_year
   rKDepr_k_i[k,i,t]
 ;
 
-# There may be a smarter solution for this, but for now we add a specific installation cost variable group
-# to utilize during calibration. This allows us to catch when installation costs are turned off and set related
-# variables equal to zero to avoid pivot errors during calibration in that case
-$Group instcost_variables
-  qInstCost_k_i[k,i,t]$(d1K_k_i[k,i,t])
-  dInstCost2dKLag_k_i[k,i,t]$(d1K_k_i[k,i,t])
-  dInstCost2dK_k_i[k,i,t]$(d1K_k_i[k,i,t])
-;
-
-# Variables that require custom starting values rather than the default 0.99 assignment
-# These are excluded from default_starting_values in calibration.gms
-$Group non_default_starting_values
-  dInstCost2dKLag_k_i[k,i,t]
-;
-
-# Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
-$MACRO factor_demand_calibration_starting_values \
-  dInstCost2dKLag_k_i.l[k,i,t]$(t1.val <= t.val and t.val <= tEnd.val and d1K_k_i[k,i,t]) = dInstCost2dKLag_k_i.l[k,i,t0];
 
 $ENDIF # calibration

@@ -15,11 +15,18 @@
 # 1. Supply Curve Parameters
 # ----------------------------------------------------------------------------------------------------------------------
 # 1.1 Scenario Set Definition
+# LBS CONSIDER number of steps in scen
 set scen / 1*100 /; # Number of steps for tracing the supply curve
+Set l_ord / 1*100 /; # Sorted technology positions
+Alias (l_ord, ll_ord); # Alias
 
 # 1.2 Key Parameters
 parameter
-  d1Expensive_tech_smooth_scen[es,d,t] "Most expensive technology"
+  pTPotential_position[l,es,d,t] "Position of technology l in ascending order of pTPotential"
+  pTPotential_sorted[l_ord,es,d,t] "Sorted technologies by price at full potential"
+  sqTPotential_sorted[l_ord,es,d,t] "Sorted technologies by supply at full potential"
+  sqTPotential_sorted_sum[l_ord,es,d,t] "Sum of sorted technologies by supply at full potential"
+  pTPotential_marginal[es,d,t] "Price of the marginal technology (at the point where supply meets demand)"
   uTKmarg_eq[l,es,d,t]  "The marginal cost of capital in equilibrium, ie. at the point where demand is satisified"
   pESmarg_eq[es,d,t]    "The marginal cost of energy service in equilibrium, ie. at the point where demand is satisified"
 ;

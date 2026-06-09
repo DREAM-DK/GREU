@@ -35,8 +35,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-pd.options.plotting.backend = 'matplotlib'
-
 # Function for reading parameters from gdx-file and setting desired index columns
 def _read_gdx_param(gdx, name, index_cols):
     return gdx[name].to_frame().reset_index().set_index(index_cols)

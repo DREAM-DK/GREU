@@ -125,9 +125,7 @@ $IF %stage% == "equations":
     #Total VAT paid on energy
      ..   vtE_vat[es,e,d,t] =E= tE_vat[es,e,d,t] * (pEpj_base[es,e,d,t]*qEpj[es,e,d,t]
                                                   + sum(etaxes, tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] - qEpj_duty_deductible[etaxes,es,e,d,t]))
-                                                  + pWMA[es,e,d,t]*qEpj[es,e,d,t]
-                                                  + pRMA[es,e,d,t]*qEpj[es,e,d,t]
-                                                  + pCMA[es,e,d,t]*qEpj[es,e,d,t]);
+                                                  + sum(i,pE_margins[es,e,d,i,t])*qEpj[es,e,d,t]);
 
       #Total taxes on energy, excluding ETS, i.e. how it is computed in Danish National Accounts
       ..   vtE_NAS[es,e,d,t] =E= vtE_vat[es,e,d,t] 
@@ -148,9 +146,7 @@ $IF %stage% == "equations":
         (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t] 
           =E= (1+tE_vat[es,e,d,t]) * (pEpj_base[es,e,d,t]
                                       + sum(etaxes, tEmarg_duty[etaxes,es,e,d,t]) #Marginal domestic CO2-tax is contained in tEmarg_duty
-                                      + pWMA[es,e,d,t]
-                                      + pRMA[es,e,d,t]
-                                      + pCMA[es,e,d,t]
+                                      + sum(i,pE_margins[es,e,d,i,t])
                                       + sum(em, tCO2_ETS_pj[em,es,e,d,t])
                                       + sum(em, tCO2_ETS2_pj[em,es,e,d,t]))
                                       ;     
@@ -353,6 +349,22 @@ $IF %stage% == "exogenous_values":
 	  d1pREmachine[i,t]            = yes$(sum(es$(not (heating[es] or transport[es])), d1pEes[es,i,t]));
 
 $ENDIF
+
+# ------------------------------------------------------------------------------
+# Starting values
+# ------------------------------------------------------------------------------
+$IF %stage% == "starting_values":
+
+set_time_periods(%calibration_year%, %calibration_year%);
+
+$Group non_default_starting_values
+  # Variables that require custom starting values
+;
+
+# Set custom starting values for the variables in non_default_starting_values here
+
+$ENDIF # starting_values
+
 # ------------------------------------------------------------------------------
 # Calibration
 # ------------------------------------------------------------------------------
@@ -397,12 +409,6 @@ $IF %stage% == "calibration":
     calibration_endogenous
   ;
 
-# These are excluded from default_starting_values in calibration.gms
-$Group non_default_starting_values
-;
-
-# Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
-$MACRO energy_and_emissions_taxes_calibration_starting_values
 
 $ENDIF
 

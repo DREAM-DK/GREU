@@ -26,17 +26,16 @@ parameter
   d1tE_duty_energy_technology[etaxes,es,e,d,t]
 ;
 
-
-## DUMMIES FOR ENERGY PRICES
-d1pEpj_base_CGE[es,e,d,t] = d1pEpj_base[es,e,d,t];
-d1pEpj_CGE[es,e,d,t]      = d1pEpj[es,e,d,t];
-d1pREa_CGE[es,e_a,i,t]    = d1pREa[es,e_a,i,t];
+# Save energy related dummies from the CGE model
+d1pEpj_base_CGE[es,e,d,t]     = d1pEpj_base[es,e,d,t];
+d1pEpj_CGE[es,e,d,t]          = d1pEpj[es,e,d,t];
+d1pREa_CGE[es,e_a,i,t]        = d1pREa[es,e_a,i,t];
 d1pREa_inNest_CGE[es,e_a,i,t] = d1pREa_inNest[es,e_a,i,t];
-d1tqEpj_CGE[es,e,d,t]     = d1tqEpj[es,e,d,t];
-d1qEpj_CGE[es,e,d,t]      = d1qEpj[es,e,d,t];
+d1tqEpj_CGE[es,e,d,t]         = d1tqEpj[es,e,d,t];
+d1qEpj_CGE[es,e,d,t]          = d1qEpj[es,e,d,t];
 # d1tCO2_ETS2_E_CGE[em,es,e,d,t] = d1tCO2_ETS2_E[em,es,e,d,t];
 
-
+# Update energy related dummies with potential new energy use in the technology model
 d1pEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and not (exclude_energy(e) or sameas(e,'Captured CO2'))))            = yes;
 d1pEpj[es,e,d,t]$(d1pEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and not exclude_energy(e)))                            = yes;
 d1pREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t] or (sum(l, d1uTE[l,es,e_a,i,t]) and sameas(e_a,'Captured CO2')))                 = yes;
@@ -46,19 +45,21 @@ d1pREa_inNest[es,e_a,i,t]$(d1pREa_inNest[es,e_a,i,t] or (sum(l, d1uTE[l,es,e_a,i
 d1tqEpj[es,e,d,t]$(d1tqEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and sameas(e,'Captured CO2')))                       = yes;
 d1qEpj[es,e,d,t]$(d1qEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and sameas(e,'Captured CO2')))                         = yes;
 # d1tCO2_ETS2_E[em,es,e,d,t]$(d1tCO2_ETS2_E[em,es,e,d,t] or (d1pEpj[es,e,d,t] and CO2ubio[em] and not in_ETS[es] and not sameas[e,'waste']))   = yes;
-d1pEpj_base_energy_technology[es,e,d,t]$(d1pEpj_base[es,e,d,t] and not d1pEpj_base_CGE[es,e,d,t]) = yes;
-d1pEpj_energy_technology[es,e,d,t]$(d1pEpj[es,e,d,t] and not d1pEpj_CGE[es,e,d,t])                = yes;
-d1pREa_energy_technology[es,e_a,i,t]$(d1pREa[es,e_a,i,t] and not d1pREa_CGE[es,e_a,i,t])          = yes;
+
+# Save dummies containing only the new energy use in the technology model
+d1pEpj_base_energy_technology[es,e,d,t]$(d1pEpj_base[es,e,d,t] and not d1pEpj_base_CGE[es,e,d,t])             = yes;
+d1pEpj_energy_technology[es,e,d,t]$(d1pEpj[es,e,d,t] and not d1pEpj_CGE[es,e,d,t])                            = yes;
+d1pREa_energy_technology[es,e_a,i,t]$(d1pREa[es,e_a,i,t] and not d1pREa_CGE[es,e_a,i,t])                      = yes;
 d1pREa_inNest_energy_technology[es,e_a,i,t]$(d1pREa_inNest[es,e_a,i,t] and not d1pREa_inNest_CGE[es,e_a,i,t]) = yes;
-d1tqEpj_energy_technology[es,e,d,t]$(d1tqEpj[es,e,d,t] and not d1tqEpj_CGE[es,e,d,t])             = yes;
-d1qEpj_energy_technology[es,e,d,t]$(d1qEpj[es,e,d,t] and not d1qEpj_CGE[es,e,d,t])             = yes;
+d1tqEpj_energy_technology[es,e,d,t]$(d1tqEpj[es,e,d,t] and not d1tqEpj_CGE[es,e,d,t])                         = yes;
+d1qEpj_energy_technology[es,e,d,t]$(d1qEpj[es,e,d,t] and not d1qEpj_CGE[es,e,d,t])                            = yes;
 # d1tCO2_ETS2_E_energy_technology[em,es,e,d,t]$(d1tCO2_ETS2_E[em,es,e,d,t] and not d1tCO2_ETS2_E_CGE[em,es,e,d,t]) = yes;
 
 ## DUMMIES FOR EMISSIONS (ONLY ON NEW ENERGY USE IN THE ENERGY TECHNOLOGY MODEL COMPARED TO CGE)
 d1EmmE_BU_CGE[em,es,e,d,t] = d1EmmE_BU[em,es,e,d,t];
-d1EmmE_BU[em,es,e,d,t]$((sameas[em,'CO2ubio'] or sameas[em,'CO2bio']) and d1pEpj_energy_technology[es,e,d,t] and sum((es_a,d_a,tt), d1EmmE_BU[em,es_a,e,d_a,tt]) and not sameas(e,'Captured CO2')) = yes;
-d1EmmE_BU[em,es,e,d,t]$(sameas[em,'CO2ubio'] and d1pEpj_energy_technology[es,e,d,t] and sameas(e,'Captured CO2')) = yes; # LBS: Change to sameas[em,'CCS']
-d1EmmE_BU['CO2e',es,e,d,t]$(d1EmmE_BU['CO2ubio',es,e,d,t]) = yes; # LBS: Add "or d1EmmE_BU['CCS',es,e,d,t]"
+d1EmmE_BU[em,es,e,d,t]$(t.val>t1.val and (sameas[em,'CO2ubio'] or sameas[em,'CO2bio']) and d1pEpj_energy_technology[es,e,d,t] and sum((es_a,d_a,tt), d1EmmE_BU[em,es_a,e,d_a,tt]) and not sameas(e,'Captured CO2')) = yes;
+d1EmmE_BU[em,es,e,d,t]$(t.val>t1.val and sameas[em,'CO2ubio'] and d1pEpj_energy_technology[es,e,d,t] and sameas(e,'Captured CO2')) = yes; # Consider changing to sameas[em,'CCS']
+d1EmmE_BU['CO2e',es,e,d,t]$(d1EmmE_BU['CO2ubio',es,e,d,t]) = yes; # Consider adding "or d1EmmE_BU['CCS',es,e,d,t]"
 d1EmmE_BU_energy_technology[em,es,e,d,t]$(d1EmmE_BU[em,es,e,d,t] and not d1EmmE_BU_CGE[em,es,e,d,t]) = yes;
 
 ## EMISSION COEFFICIENTS
