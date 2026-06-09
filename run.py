@@ -3,6 +3,7 @@ import shutil
 import os
 import dreamtools as dt
 
+dt.gamY.automatic_parameter_suffix = "res_"
 dt.gamY.automatic_dummy_suffix = "_exists_dummy"
 dt.gamY.variable_equation_prefix = "E_"
 

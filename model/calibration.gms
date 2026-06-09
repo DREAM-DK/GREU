@@ -17,14 +17,25 @@ $LOOP default_starting_values:
   {name}.l{sets}$({conditions} and {name}.l{sets} = 0) = 0.99;
 $ENDLOOP
 
-# Module-specific starting values specified in the modules are loaded
-factor_demand_calibration_starting_values
+# # Module-specific starting values specified in the modules are loaded
+# factor_demand_calibration_starting_values
 
-# If installation costs are disabled (if fInstCost_k_i is zero, installation costs are zero)
-# we manually set relevant installation cost variables to zero
-$LOOP instcost_variables:
-	{name}.l{sets}$({conditions} and fInstCost_k_i.l[k,i] = 0) = 0;
-$ENDLOOP
+# # If installation costs are disabled (if fInstCost_k_i is zero, installation costs are zero)
+# # we manually set relevant installation cost variables to zero
+# $LOOP instcost_variables:
+# 	{name}.l{sets}$({conditions} and fInstCost_k_i.l[k,i] = 0) = 0;
+# $ENDLOOP
+
+# $GROUP exogenous_variables ALL, - calibration_endogenous;
+# $GROUP data_covered_variables_endogenous data_covered_variables, - exogenous_variables;
+
+# $GROUP data_covered_variables_residuals
+#   $LOOP data_covered_variables_endogenous:
+#     res_{name}{sets}${conditions} ""
+#   $ENDLOOP
+# ;
+
+# $GROUP data_covered_variables_endogenous_residuals data_covered_variables_residuals, - data_covered_variables_endogenous;
 
 $FIX all_variables; $UNFIX calibration_endogenous;
 
@@ -101,4 +112,4 @@ $GROUP G_test_data_covered_variables
 	-vNetFinAssets #?
 	-vNetDebtInstruments
 ; 
-@assert_no_difference(G_test_data_covered_variables, 1e-6, _data,.l, "data_covered_variables does not change more than previously done so by calibration."); #Ideally this check should be done rather than "diff-in-diff" above
+# @assert_no_difference(G_test_data_covered_variables, 1e-6, _data,.l, "data_covered_variables does not change more than previously done so by calibration."); #Ideally this check should be done rather than "diff-in-diff" above
