@@ -32,9 +32,10 @@ model_julia/
   GrowthInflationAdjustment.jl  # Stationarity tags and growth/inflation constants
   data/                         # Checked-in Julia runtime data
   modules/
-    InputOutputDefinitions.jl   # Shared IO codes and parameter derivations
-    InputOutputData.jl          # Runtime loader and explicit Eurostat refresh entry point
+    InputOutputSettings.jl      # Refresh-only Eurostat rename maps (used by InputOutputData only)
+    InputOutputData.jl          # Refresh entry point; writes Parquet under data/input_output/
     InputOutput.jl              # Port of model/modules/input_output.gms (the first real submodel)
+  data/input_output/            # indices.parquet, vIO_y.parquet, vIO_m.parquet, vIO_a.parquet
     SubmodelTemplate.jl         # Copy-this-to-start template for new submodules
 ```
 
@@ -101,7 +102,7 @@ Prefix system (matches the GAMS codebase and README):
 
 ## Data Flow
 
-The Julia implementation refreshes checked-in input-output data from Eurostat by running `model_julia/modules/InputOutputData.jl` directly. Runtime data lives in `model_julia/data/input_output.csv`; dataset, country, currency, and calibration year are configured in `model_julia/Settings.jl`. Submodules own their indices and parameter-loading logic.
+The Julia implementation refreshes checked-in input-output data from Eurostat (`naio_10_fcp_ii3`) by running `model_julia/modules/InputOutputData.jl` directly. Runtime data lives in `model_julia/data/input_output/*.parquet`; Eurostat dataset and unit are configured in `InputOutputSettings.jl`, country and calibration year in `Settings.jl`. `InputOutput.jl` reads indices and raw `vIO_*` tables from Parquet (long set names such as `industries`, `demand_components`); `InputOutputSettings.jl` is not imported at runtime.
 
 ## GAMS Modules Still To Port
 

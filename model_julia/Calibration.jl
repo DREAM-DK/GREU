@@ -24,7 +24,7 @@ function endo_exo_data_residuals!(block::Block, data::ModelDictionary)
 			push!(old_endos, endo)
 		end
 	end
-	SquareModels._endo_exo!(block, new_endos, old_endos, "endo_exo_data_residuals!")
+	SquareModels._endo_exo_swap!(block, new_endos, old_endos, "endo_exo_data_residuals!")
 end
 
 """

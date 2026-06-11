@@ -4,90 +4,59 @@
 # Demand for energy, other intermediate inputs, investments, private and public
 # consumption, and exports is allocated to imports and output from domestic
 # industries. Mirrors model/modules/input_output.gms.
-include("InputOutputDefinitions.jl")
+include(joinpath(@__DIR__, "InputOutputSettings.jl"))
 
 module InputOutput
 
-import JuMP
-using CSV
-using JuMP.Containers: DenseAxisArray
 using SquareModels
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
+import ..InputOutputSettings:
+  all_demand_components,
+  capital_types,
+  energy_types,
+  export_types,
+  government_consumption_types,
+  input_output_data_dir,
+  private_consumption_types
 import ..Settings: calibration_year
-import ..InputOutputDefinitions as IODef
 import ..db
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
 
 # ==========================================================================
-# Checked-in data
-# ==========================================================================
-const DATA_PATH = joinpath(@__DIR__, "..", "data", "input_output.csv")
-
-function row_value(row, field)
-  value = getproperty(row, field)
-  return ismissing(value) ? "" : string(value)
-end
-
-function load_model_data(path)
-  values = Dict{Symbol,IODef.IOValues}()
-  for row in CSV.File(path; stringtype = String)
-    variable = Symbol(row.variable)
-    i = row_value(row, :i)
-    d = row_value(row, :d)
-    t = row_value(row, :t)
-    key = Tuple([part for part in (i, d, t) if !isempty(part)])
-    get!(values, variable, IODef.IOValues())[key] = Float64(row.value)
-  end
-  return values
-end
-
-function validate_data_years(data)
-  required_years = string.([calibration_year - 1, calibration_year])
-  available_years = Set(key[end] for values in values(data) for key in keys(values))
-  all(year -> year in available_years, required_years) || error("Input-output data must include years $required_years")
-  return nothing
-end
-
-const _data = load_model_data(DATA_PATH)
-validate_data_years(_data)
-
-# ==========================================================================
 # Indices
 # ==========================================================================
-const I = Symbol.(IODef.industry_codes) # Production industries
-const D_all = Symbol.(IODef.demand_category_codes) # All demand components (including stubs)
-const M = Symbol.(IODef.imported_industry_codes(_data[:vM_i_d])) # Industries with imports
-const RX = I # Non-energy intermediates
-const RE = Symbol.(IODef.raw_energy_industry_codes) # Energy inputs in production
-const K = Symbol.(IODef.investment_category_codes) # Capital types
-const C = Symbol.(IODef.household_consumption_codes) # Private consumption types
-const G = Symbol.(IODef.government_consumption_codes) # Government consumption types
-const X = Symbol.(IODef.other_export_codes) # Export groups
 
-# ==========================================================================
-# Sparse (i,d) keys for non-zero vY_i_d and vM_i_d cells
-# ==========================================================================
-nonzero_io_keys(data) = Set((Symbol(i), Symbol(d)) for ((i, d), v) in data if abs(v) > 1e-6)
-const vY_i_d_data = _data[:vY_i_d]
-const vtY_i_d_data = _data[:vtY_i_d]
-const vM_i_d_data = _data[:vM_i_d]
-const vtM_i_d_data = _data[:vtM_i_d]
-const vW_i_data = _data[:vW_i]
-const vtYOther_i_data = _data[:vtYOther_i]
-const vDepr_i_data = _data[:vDepr_i]
-const vOpSurplus_i_data = _data[:vOpSurplus_i]
-const qD_data = _data[:qD]
-const D1Y = nonzero_io_keys(vY_i_d_data)
-const D1M = nonzero_io_keys(vM_i_d_data)
+const industries_with_domestic = read_indices(joinpath(input_output_data_dir, "industries.csv"))
+const industries_with_imports = read_indices(joinpath(input_output_data_dir, "industries_with_imports.csv"))
+const industries = sort(union(industries_with_domestic, industries_with_imports))
+
+const I = industries
+const M = industries_with_imports
+const demand_components = all_demand_components(industries)
+const D_all = demand_components
+
+const vY_i_d_data = read_sparse_array(joinpath(input_output_data_dir, "vY_i_d.csv"))
+const vM_i_d_data = read_sparse_array(joinpath(input_output_data_dir, "vM_i_d.csv"))
+
+# Calibration-year cells define the sparse (industry, demand) variable masks.
+const D1Y = Set(eachindex(vY_i_d_data[:, :, calibration_year]))
+const D1M = Set(eachindex(vM_i_d_data[:, :, calibration_year]))
 const D1YM = D1Y ∪ D1M
-
 const D = [d for d in D_all if any((i, d) in D1YM for i in I)]
-const InputOutputTag = Tag(:InputOutput)
+
+const RX = industries
+const RE = energy_types
+const K = capital_types
+const C = private_consumption_types
+const G = government_consumption_types
+const X = export_types
 
 # ==========================================================================
 # Variables
 # ==========================================================================
+const InputOutputTag = Tag(:InputOutput)
+
 # Values (growth + inflation adjusted)
 @variables db.model :: (InputOutputTag, GrowthAdjusted, InflationAdjusted) begin
   vGDP[t], "Gross Domestic Product"
@@ -180,58 +149,25 @@ end
 # ==========================================================================
 # Data
 # ==========================================================================
-_var_keys(var) = keys(var)
-_var_keys(var::DenseAxisArray) = Iterators.product(axes(var)...)
-input_output_prices() = [getfield(@__MODULE__, var) for var in tagged(InputOutputTag) if has_tag(var, InflationAdjusted) && !has_tag(var, GrowthAdjusted)]
+function set_data!(db; dir = input_output_data_dir)
+  db[vY_i_d] .= read_variable(joinpath(dir, "vY_i_d.csv"), vY_i_d)
+  db[vM_i_d] .= read_variable(joinpath(dir, "vM_i_d.csv"), vM_i_d)
+  db[vtY_i_d] .= read_variable(joinpath(dir, "vtY_i_d.csv"), vtY_i_d; default=0.0)
+  db[vtM_i_d] .= read_variable(joinpath(dir, "vtM_i_d.csv"), vtM_i_d; default=0.0)
+  db[vW_i] .= read_variable(joinpath(dir, "vW_i.csv"), vW_i; default=0.0)
+  db[vtYOther_i] .= read_variable(joinpath(dir, "vtYOther_i.csv"), vtYOther_i; default=0.0)
+  db[vDepr_i] .= 0.0
+  db[vOpSurplus_i] .= read_variable(joinpath(dir, "vOpSurplus_i.csv"), vOpSurplus_i; default=0.0)
 
-function assign_data!(db, var, values)
-  for key in _var_keys(var)
-    value = get(values, Tuple(string.(key)), nothing)
-    value !== nothing && (db[var[key...]] = value)
-  end
-  return nothing
-end
-
-function set_data!(db)
-  db[vY_i_d] .= 0.0
-  db[vM_i_d] .= 0.0
-  db[vtY_i_d] .= 0.0
-  db[vtM_i_d] .= 0.0
   db[jfpY_i_d] .= 0.0
   db[jfpM_i_d] .= 0.0
-
-  assign_data!(db, vY_i_d, vY_i_d_data)
-  assign_data!(db, vtY_i_d, vtY_i_d_data)
-  assign_data!(db, vM_i_d, vM_i_d_data)
-  assign_data!(db, vtM_i_d, vtM_i_d_data)
-
-  db[vW_i] .= 0.0
-  db[vtYOther_i] .= 0.0
-  db[vDepr_i] .= 0.0
-  db[vOpSurplus_i] .= 0.0
-  assign_data!(db, vW_i, vW_i_data)
-  assign_data!(db, vtYOther_i, vtYOther_i_data)
-  assign_data!(db, vDepr_i, vDepr_i_data)
-  assign_data!(db, vOpSurplus_i, vOpSurplus_i_data)
-
-  assign_data!(db, qD, qD_data)
-
-  # Import shares: 1 for import-only cells, 0 otherwise
   db[rM] .= [(i, d) ∈ D1Y ? 0.0 : 1.0 for (i, d, _) in keys(rM)]
 
-  # Real quantities in the base year equal values before net product taxes and subsidies.
-  db[qY_i_d] .= 0.0
-  db[qM_i_d] .= 0.0
-  for (v, q) in ((vY_i_d, qY_i_d), (vM_i_d, qM_i_d))
-    for k in keys(v)
-      val = db[v[k...]]
-      !isnothing(val) && val > 1e-6 && (db[q[k...]] = val)
-    end
-  end
+  db[qD] .= read_variable(joinpath(dir, "vD.csv"), qD)
 
-  # Price variables use only the inflation adjustment tag.
-  for p in input_output_prices()
-    db[p] .= 1.0
+  # Set prices to 1.0 (inflation, but not growth-adjusted, variables)
+  for name in tagged(InputOutputTag)
+    has_tag(name, InflationAdjusted) && !has_tag(name, GrowthAdjusted) && (db[getfield(@__MODULE__, name)] .= 1.0)
   end
 
   return nothing
@@ -241,8 +177,6 @@ end
 # Starting values (solver hints, not exogenous data)
 # ==========================================================================
 function set_starting_values!(db)
-  db[tY_i_d] .= 0.0
-  db[tM_i_d] .= 0.0
 end
 
 # ==========================================================================
@@ -329,6 +263,12 @@ function define_equations()
     vtY_i[i = I, t = t1:T],
     vtY_i[i, t] == ∑(vtY_i_d[i, d, t] for d in D if (i, d) in D1Y)
 
+    vtY_d[d = D, t = t1:T],
+    vtY_d[d, t] == ∑(vtY_i_d[i, d, t] for i in I if (i, d) in D1Y)
+
+    vtM_i[m = M, t = t1:T],
+    vtM_i[m, t] == ∑(vtM_i_d[m, d, t] for d in D if (m, d) in D1M)
+
     vtM_d[d = D, t = t1:T],
     vtM_d[d, t] == ∑(vtM_i_d[i, d, t] for i in I if (i, d) in D1M)
 
@@ -380,10 +320,10 @@ end
 function define_calibration()
   block = define_equations()
 
-  @endo_exo! block begin
+  @endo_exo_swap! block begin
     tY_i_d[:, :, t1], vtY_i_d[:, :, t1]
     tM_i_d[:, :, t1], vtM_i_d[:, :, t1]
-    rYM[:, :, t1], [(i, d) in D1Y ? qY_i_d[i, d, t1] : qM_i_d[i, d, t1] for (i, d) in D1YM]
+    rYM[:, :, t1], [(i, d) in D1Y ? vY_i_d[i, d, t1] : vM_i_d[i, d, t1] for (i, d) in D1YM]
     [rM[i, d, t1] for (i, d) in D1Y ∩ D1M], [vM_i_d[i, d, t1] for (i, d) in D1Y ∩ D1M]
   end
 

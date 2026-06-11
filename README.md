@@ -138,14 +138,6 @@ After defining a submodel in the module with a matching group of endogenous vari
 ### Data and exogenous parameters
 <TODO: Add details about data and exogenous parameters>
 
-For the Julia input-output module, normal model runs read checked-in data from `model_julia/data/input_output.csv`. Eurostat dataset, country, currency, and calibration year are configured in `model_julia/Settings.jl`. To refresh the data from Eurostat explicitly, run:
-
-```powershell
-    julia --project=. model_julia/modules/InputOutputData.jl
-```
-
-Review the resulting data-file changes in Git before committing them.
-
 ### Calibration
 <TODO: Add details about calibration>
 
