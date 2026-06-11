@@ -36,8 +36,8 @@ const M = industries_with_imports
 const demand_components = all_demand_components(industries)
 const D_all = demand_components
 
-const vY_i_d_data = read_sparse_array(joinpath(input_output_data_dir, "vY_i_d.csv"))
-const vM_i_d_data = read_sparse_array(joinpath(input_output_data_dir, "vM_i_d.csv"))
+const vY_i_d_data = read_sparse_array(joinpath(input_output_data_dir, "input_output_cells.csv"); variable="vY_i_d")
+const vM_i_d_data = read_sparse_array(joinpath(input_output_data_dir, "input_output_cells.csv"); variable="vM_i_d")
 
 # Calibration-year cells define the sparse (industry, demand) variable masks.
 const D1Y = Set(eachindex(vY_i_d_data[:, :, calibration_year]))
@@ -150,20 +150,28 @@ end
 # Data
 # ==========================================================================
 function set_data!(db; dir = input_output_data_dir)
-  db[vY_i_d] .= read_variable(joinpath(dir, "vY_i_d.csv"), vY_i_d)
-  db[vM_i_d] .= read_variable(joinpath(dir, "vM_i_d.csv"), vM_i_d)
-  db[vtY_i_d] .= read_variable(joinpath(dir, "vtY_i_d.csv"), vtY_i_d; default=0.0)
-  db[vtM_i_d] .= read_variable(joinpath(dir, "vtM_i_d.csv"), vtM_i_d; default=0.0)
-  db[vW_i] .= read_variable(joinpath(dir, "vW_i.csv"), vW_i; default=0.0)
-  db[vtYOther_i] .= read_variable(joinpath(dir, "vtYOther_i.csv"), vtYOther_i; default=0.0)
+  cells_file = joinpath(dir, "input_output_cells.csv")
+  industries_file = joinpath(dir, "input_output_industries.csv")
+  demands_file = joinpath(dir, "input_output_demands.csv")
+  aggregates_file = joinpath(dir, "input_output_aggregates.csv")
+
+  db[vY_i_d] .= read_variable(cells_file, vY_i_d)
+  db[vM_i_d] .= read_variable(cells_file, vM_i_d)
+  db[vtY_i_d] .= read_variable(cells_file, vtY_i_d; default=0.0)
+  db[vtM_i_d] .= read_variable(cells_file, vtM_i_d; default=0.0)
+  db[vW_i] .= read_variable(industries_file, vW_i; default=0.0)
+  db[vtYOther_i] .= read_variable(industries_file, vtYOther_i; default=0.0)
   db[vDepr_i] .= 0.0
-  db[vOpSurplus_i] .= read_variable(joinpath(dir, "vOpSurplus_i.csv"), vOpSurplus_i; default=0.0)
+  db[vOpSurplus_i] .= read_variable(industries_file, vOpSurplus_i; default=0.0)
 
   db[jfpY_i_d] .= 0.0
   db[jfpM_i_d] .= 0.0
   db[rM] .= [(i, d) ∈ D1Y ? 0.0 : 1.0 for (i, d, _) in keys(rM)]
 
-  db[qD] .= read_variable(joinpath(dir, "vD.csv"), qD)
+  db[qD] .= read_variable(demands_file, qD)
+  db[vD] .= read_variable(demands_file, vD)
+  db[vGDP] .= read_variable(aggregates_file, vGDP)
+  db[vGVA] .= read_variable(aggregates_file, vGVA)
 
   # Set prices to 1.0 (inflation, but not growth-adjusted, variables)
   for name in tagged(InputOutputTag)
