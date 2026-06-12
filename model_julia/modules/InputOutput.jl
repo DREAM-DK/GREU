@@ -45,7 +45,8 @@ const D1M = Set(eachindex(vM_i_d_data[:, :, calibration_year]))
 const D1YM = D1Y ∪ D1M
 const D = [d for d in D_all if any((i, d) in D1YM for i in I)]
 
-const RX = industries
+# Industries with no intermediate consumption (e.g. T) have no demand component.
+const RX = [i for i in industries if i in D]
 const RE = energy_types
 const K = capital_types
 const C = private_consumption_types
