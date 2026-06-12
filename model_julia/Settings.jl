@@ -12,10 +12,11 @@ const enabled_modules = [
   :InputOutput,
 ]
 
-const solver = :Ipopt # :CONOPT or :Ipopt
+# Solver backend: :Ipopt, :CONOPT (CONOPT.jl), or :GAMS_CONOPT (CONOPT via GAMS)
+const solver = :GAMS_CONOPT
 
 const pkg_root = abspath(joinpath(@__DIR__, ".."))
-const conopt_lib_dir = joinpath(pkg_root, "conopt-win-x86_64", "lib")
-const conopt_lib = joinpath(conopt_lib_dir, "conopt4.dll")
+const conopt_lib = joinpath(pkg_root, "conopt-win-x86_64", "lib", "conopt4.dll")
+const gams_sysdir = dirname("C:/GAMS/53/gams.exe")
 
 end
