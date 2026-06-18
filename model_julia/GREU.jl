@@ -17,7 +17,7 @@ include("GrowthInflationAdjustment.jl")
 include("Tags.jl")
 
 include("Logging.jl")
-import .Log: @log_time
+import .Log: @log_time, @log_errors
 
 # ==============================================================================
 # Global model container
@@ -43,12 +43,12 @@ include("Calibration.jl")
 # Static: single-period at t1 — calibrates residuals and parameters
 Time.T = Settings.calibration_year
 @log_time static_solution = Calibration.calibrate_model(db, submodels)
-assert_residuals_small(baseline; atol=1e-1, msg="Large residuals after static calibration")
+@log_errors assert_residuals_small(static_solution; atol=1e-1, msg="Large residuals after static calibration")
 
 # Dynamic: full horizon — uses static solution as starting values
 Time.T = Time.max_terminal_year
 @log_time baseline = Calibration.calibrate_model(static_solution, submodels)
-assert_residuals_small(baseline; atol=1e-1, msg="Large residuals after dynamic calibration")
+@log_errors assert_residuals_small(baseline; atol=1e-1, msg="Large residuals after dynamic calibration")
 
 # ==============================================================================
 # Tests
