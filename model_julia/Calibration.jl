@@ -1,7 +1,6 @@
 module Calibration
 
 using SquareModels
-import JuMP
 import ..Log: @log_time
 import ..Time: at_year, variable_year, t1, T
 import ..Tags: ForecastConstant
@@ -15,16 +14,9 @@ The @block macro transforms each equation `endo[t] == RHS` into `(endo[t] + endo
 where `endo_J` is the residual. Swapping makes endo_J endogenous while endo stays at its data value.
 """
 function endo_exo_data_residuals!(block::Block, data::ModelDictionary)
-	new_endos = VariableRef[]
-	old_endos = VariableRef[]
-	for (endo, resid) in zip(endogenous(block), residuals(block))
-		year = variable_year(endo)
-		if !isnothing(data[endo]) && (isnothing(year) || year <= t1)
-			push!(new_endos, resid)
-			push!(old_endos, endo)
-		end
-	end
-	SquareModels._endo_exo_swap!(block, new_endos, old_endos, "endo_exo_data_residuals!")
+	has_data(endo) = !isnothing(data[endo]) && (isnothing(variable_year(endo)) || variable_year(endo) <= t1)
+	pairs = [(resid, endo) for (endo, resid) in zip(endogenous(block), residuals(block)) if has_data(endo)]
+	SquareModels._endo_exo_swap!(block, first.(pairs), last.(pairs), "endo_exo_data_residuals!")
 end
 
 """
