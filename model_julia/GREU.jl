@@ -8,7 +8,7 @@
 # Structure:
 # - Main file (this): Model container, time indices, submodel assembly
 # - Submodules: Each in separate files, following SquareModels patterns
-import SquareModels: ModelDictionary, solve, solve!, assert_no_diff
+import SquareModels: ModelDictionary, solve, solve!, assert_no_diff, assert_residuals_small
 
 include("Settings.jl")
 include("Time.jl")
@@ -43,10 +43,12 @@ include("Calibration.jl")
 # Static: single-period at t1 — calibrates residuals and parameters
 Time.T = Settings.calibration_year
 @log_time static_solution = Calibration.calibrate_model(db, submodels)
+assert_residuals_small(baseline; atol=1e-1, msg="Large residuals after static calibration")
 
 # Dynamic: full horizon — uses static solution as starting values
 Time.T = Time.max_terminal_year
 @log_time baseline = Calibration.calibrate_model(static_solution, submodels)
+assert_residuals_small(baseline; atol=1e-1, msg="Large residuals after dynamic calibration")
 
 # ==============================================================================
 # Tests
