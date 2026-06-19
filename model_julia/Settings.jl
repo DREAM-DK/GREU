@@ -1,5 +1,7 @@
 module Settings
 
+import SquareModels
+
 const country_code = "DK"
 
 const first_data_year = 2015
@@ -12,11 +14,12 @@ const enabled_modules = [
   :InputOutput,
 ]
 
-# Solver backend: :Ipopt, :CONOPT (CONOPT.jl), or :GAMS_CONOPT (CONOPT via GAMS)
-const solver = :GAMS_CONOPT
-
-const pkg_root = abspath(joinpath(@__DIR__, ".."))
-const conopt_lib = joinpath(pkg_root, "conopt-win-x86_64", "lib", "conopt4.dll")
-const gams_sysdir = dirname("C:/GAMS/53/gams.exe")
+# JuMP `Model` configured as a square nonlinear system for the selected backend.
+# Importing the backend package activates the matching SquareModels extension.
+import GAMS
+square_model() = SquareModels.square_model(; gamsdir="C:/GAMS/53")
+# Alternative backends:
+#   import Ipopt;  square_model() = SquareModels.square_model(Ipopt.Optimizer)
+#   import CONOPT; square_model() = SquareModels.square_model(CONOPT.Optimizer; lmmxsf=1)
 
 end

@@ -12,7 +12,6 @@ import SquareModels: ModelDictionary, solve, solve!, assert_no_diff, assert_resi
 
 include("Settings.jl")
 include("Time.jl")
-include("Solver.jl")
 include("GrowthInflationAdjustment.jl")
 include("Tags.jl")
 
@@ -22,7 +21,7 @@ import .Log: @log_time, @log_errors
 # ==============================================================================
 # Global model container
 # ==============================================================================
-db = ModelDictionary(Solver.SquareModel())
+db = ModelDictionary(Settings.square_model())
 
 # ==============================================================================
 # Include submodules
