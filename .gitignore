@@ -1,17 +1,48 @@
+*.txt
+*.pdf
+*.html
+*.png
+
+# Data
+*.csv
+*.parquet
+
+# GAMS
 *.g00
 *.lst
-*.gmy
-*.pkl
-*.lyx~
-*.pyc
 *.dat
+*/Model/225*
+gamsnext.cmd
 
 *.gdx
-!.gitkeep
-!gamY_src/previous_baseline.gdx
-/model/saved
-/.cursor/rules
-/Manifest.toml
 
+# Julia
+Manifest.toml
+*.jl.cov
+*.jl.*.cov
+*.jl.mem
 LocalPreferences.toml
+
+# Editor/IDE
+/.cursor/rules
+.vscode/
+*.swp
+*.swo
+*~
+
+# Conopt
 conopt*
+
+# Python
+*.pyc
+
+# gamY
+*.pkl
+*.gmy
+
+# LaTeX and LyX
+*.lyx~
+*.aux
+*.log
+*.out
+*.synctex.gz
