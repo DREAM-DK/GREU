@@ -195,10 +195,14 @@ $GROUP G_variables_for_IO
   qD__[e,es,d,t]$(tAdj[t]) "Demand, from data, disaggregated on energy services"
 
   Energybalance_ext[ebalitems,transaction,d,es,e,t]$(tAdj[t]) "Energybalance, generated"
-  Energybalance_exogenous[ebalitems,transaction,d,es,e,t]$(tAdj[t]) "Energybalance, exogenous part, generated"
+  #Energybalance_exogenous[ebalitems,transaction,d,es,e,t]$(tAdj[t]) "Energybalance, exogenous part, generated"
   emission_coefficients[i,em,t]$(tAdj[t]) "Emission coefficients, exogenous"
   trade_margin[e,t]$(tAdj[t]) "Trade margin on energygoods, exogenous"
-  productsplit_eurostat[e,d,t]$(tAdj[t]) "Product split of energy IO, this data is available in the eurostat tables"
+  productsplit_eurostat_supply0[e,i,t]$(tAdj[t]) "Product split of energy IO - supply side, this data is available in the eurostat tables"
+  productsplit_eurostat_demand0[e,d,t]$(tAdj[t]) "Product split of energy IO - demand side, this data is available in the eurostat tables"
+  productsplit_eurostat_supply[e,i,t]$(tAdj[t]) "Product split of energy IO - supply side, this data is available in the eurostat tables"
+  productsplit_eurostat_demand[e,d,t]$(tAdj[t]) "Product split of energy IO - demand side, this data is available in the eurostat tables"
+
 ;
 #--------------0.2: Dummies------------
 $LOOP G_variables_for_IO:
@@ -257,15 +261,18 @@ $GROUP G_adjust_a_exo
 #-------------------0.7: Exogenous variables for energybalance-------------
 $GROUP G_adjust_energybalance_exo
 purpose_vector[es,t]$(tAdj[t]) "Distribution of energy across purposes"
-Energybalance_exogenous[ebalitems,transaction,d,es,e,t]$(tAdj[t]) "Energybalance, exogenous part, generated"
+#Energybalance_exogenous[ebalitems,transaction,d,es,e,t]$(tAdj[t]) "Energybalance, exogenous part, generated"
 emission_coefficients[i,em,t]$(tAdj[t]) "Emission coefficients, exogenous"
 trade_margin[e,t]$(tAdj[t]) "Trade margin on energygoods, exogenous"
-productsplit_eurostat[e,d,t]$(tAdj[t]) "Product split of energy IO, this data is available in the eurostat tables"
+productsplit_eurostat_supply0[e,i,t]$(tAdj[t]) "Product split of energy IO - supply side, this data is available in the eurostat tables"
+productsplit_eurostat_demand0[e,d,t]$(tAdj[t]) "Product split of energy IO - demand side  , this data is available in the eurostat tables"
 ;
 #-------------------0.8: Endogenous variables for energybalance-------------
 $GROUP G_adjust_energybalance_endo
 Energybalance_ext[ebalitems,transaction,d,es,e,t]$(tAdj[t]) "Energybalance, generated"
 residual_energybalance "diff between IO and energybalance"
+productsplit_eurostat_supply[e,i,t]$(tAdj[t]) "Product split of energy IO - supply side, this data is available in the eurostat tables"
+productsplit_eurostat_demand[e,d,t]$(tAdj[t]) "Product split of energy IO - demand side, this data is available in the eurostat tables"
 ;
 #Data year
 set tAdj[t]/2020/;
@@ -288,7 +295,8 @@ purpose_vector.l[es,t]$(tAdj[t] and sum((transaction,d,e)$(demand_transaction[tr
 =sum((transaction,d,e)$(demand_transaction[transaction]), Energybalance['PJ',transaction,d,es,e,t])
 /sum((transaction,d_a,es_a,e_a)$(demand_transaction[transaction]), Energybalance['PJ',transaction,d_a,es_a,e_a,t]);
 
-productsplit_eurostat.l[e,d,t]$(tAdj[t])=1/card(e); #Even distribution
+productsplit_eurostat_supply0.l[e,i,t]$(tAdj[t])=1/card(e); #Even distribution
+productsplit_eurostat_demand0.l[e,d,t]$(tAdj[t])=1/card(e); #Even distribution
 
 #prepare energy quantities
 qD_.l[e,d,t] =sum((es,transaction)$(demand_transaction[transaction] and Energybalance['PJ',transaction,d,es,e,t]),Energybalance['PJ',transaction,d,es,e,t]);
@@ -394,26 +402,27 @@ $UNFIX vIOE__y[i,'iT',t]$(vIO_y[i,'iT',t]), vIOE__m[i,'iT',t]$(vIO_m[i,'iT',t]);
 
 Solve M_create_vDS_energy_and_energy_IO using NLP minimizing obj;
 
+#energybalance_ext.l[ebalitems,transaction,d,es,e,t]$(tAdj[t]) =0.1;
 #---------------------------2.3: From exogenously starting values and IO, create energybalance--------------------------------
 
 $BLOCK B_create_energybalance_ext
 #basic prices, supply: NB deduct margins from IO-side
   E_energybalance_ext_BASE_y[i,es,e,t]$(tAdj[t])..
     energybalance_ext.l['BASE','production',i,es,e,t] =E=
-    productsplit_eurostat[e,i,t] * purpose_vector.l[es,t]
+    productsplit_eurostat_supply.l[e,i,t] * purpose_vector.l[es,t]
     * sum((d_a), vIOE__y.l[i,d_a,t]) - (energybalance_ext.l['CAV','input_in_production',i,es,e,t])
     ;
   
   E_energybalance_ext_BASE_m[i,es,e,t]$(tAdj[t])..
     energybalance_ext.l['BASE','imports',i,es,e,t] =E=
-    productsplit_eurostat[e,i,t] * purpose_vector.l[es,t]
+    productsplit_eurostat_supply.l[e,i,t] * purpose_vector.l[es,t]
     * sum((d_a), vIOE__m.l[i,d_a,t]);
 
  #basic prices demand
  #inventories
   E_energybalance_ext_BASE_invt_ene[es,e,t]$(tAdj[t])..
     energybalance_ext.l['BASE','inventory','invt',es,e,t] =E=
-    purpose_vector.l[es,t]*productsplit_eurostat[e,'Invt_Ene',t]
+    purpose_vector.l[es,t]*productsplit_eurostat_demand.l[e,'Invt_Ene',t]
     * sum(i,vIOE__y.l[i,'Invt_Ene',t]);
 
   #input in production
@@ -421,7 +430,7 @@ $BLOCK B_create_energybalance_ext
     energybalance_ext.l['BASE','input_in_production',i,es,e,t]
     +energybalance_ext.l['CAV','input_in_production',i,es,e,t]
     =E=
-    productsplit_eurostat[e,i,t] * purpose_vector.l[es,t]
+    productsplit_eurostat_demand.l[e,i,t] * purpose_vector.l[es,t]
     * (sum(i_a, vIOE__y.l[i_a,i,t])+sum(i_a, vIOE__m.l[i_a,i,t]));
   
   #household consumption - match sheets!!!!
@@ -429,13 +438,13 @@ $BLOCK B_create_energybalance_ext
     energybalance_ext.l['BASE','household_consumption',c,es,e,t]
     +energybalance_ext.l['CAV','household_consumption',c,es,e,t]
      =E=
-     purpose_vector.l[es,t]*productsplit_eurostat[e,c,t]
+     purpose_vector.l[es,t]*productsplit_eurostat_demand.l[e,c,t]
     * sum(i, vIOE__y.l[i,c,t]+vIOE__m.l[i,c,t]);
   
   #exports
   E_energybalance_ext_BASE_exports[es,e,t]$(tAdj[t])..
     energybalance_ext.l['BASE','export','xOth',es,e,t] =E=
-    purpose_vector.l[es,t]*productsplit_eurostat[e,'xOth',t]
+    purpose_vector.l[es,t]*productsplit_eurostat_demand.l[e,'xOth',t]
     * sum(i, vIOE__y.l[i,'xOth',t]+vIOE__m.l[i,'xOth',t]);
 
   #E_energybalance_ext_BASE_balance[e,t]$(tAdj[t])..
@@ -449,12 +458,12 @@ $BLOCK B_create_energybalance_ext
   #vat
   E_energybalance_ext_vat_hh[c,es,e,t]$(tAdj[t])..
     energybalance_ext.l['VAT','household_consumption',c,es,e,t] =E=
-    purpose_vector.l[es,t]*productsplit_eurostat[e,c,t]
+    purpose_vector.l[es,t]*productsplit_eurostat_demand.l[e,c,t]
     * vIOE__a.l['Moms',c,t];
 
   E_energybalance_ext_vat_i[i,es,e,t]$(tAdj[t])..
     energybalance_ext.l['VAT','input_in_production',i,es,e,t] =E=
-    purpose_vector.l[es,t]*productsplit_eurostat[e,i,t]
+    purpose_vector.l[es,t]*productsplit_eurostat_demand.l[e,i,t]
     * vIOE__a.l['Moms',i,t];
   
   #emissions
@@ -462,12 +471,12 @@ $BLOCK B_create_energybalance_ext
   #taxes on emissions: Placeholder, use aggregate
   E_energybalance_etaxes_hh[c,es,e,t]$(tAdj[t])..
     energybalance_ext.l['ener_tax','household_consumption',c,es,e,t] =E=
-    purpose_vector.l[es,t]*productsplit_eurostat[e,c,t]
+    purpose_vector.l[es,t]*productsplit_eurostat_demand.l[e,c,t]
     * vIOE__a.l['TaxSub',c,t];
 
   E_energybalance_etaxes_firms[i,es,e,t]$(tAdj[t])..
     energybalance_ext.l['ener_tax','input_in_production',i,es,e,t] =E=
-    purpose_vector.l[es,t]*productsplit_eurostat[e,i,t]
+    purpose_vector.l[es,t]*productsplit_eurostat_demand.l[e,i,t]
     * vIOE__a.l['TaxSub',i,t];
 
   #purchasers prices: NB: Sum is (vIOE__y+vIOE__m+vioE__a)[column]
@@ -479,20 +488,25 @@ $BLOCK B_create_energybalance_ext
     +energybalance_ext.l['VAT',transaction,d,es,e,t];
 
   #Trade margins
-    E_energybalance_avancer_hh[]$(tAdj[t])..
+    E_energybalance_avancer_hh[c,es,e,t]$(tAdj[t])..
     energybalance_ext.l['CAV','household_consumption',c,es,e,t]=E=
     trade_margin.l[e,t]*energybalance_ext.l['BASE','household_consumption',c,es,e,t];
      
-    E_energybalance_avancer_firms[]$(tAdj[t])..
+    E_energybalance_avancer_firms[i,es,e,t]$(tAdj[t])..
     energybalance_ext.l['CAV','input_in_production',i,es,e,t]=E=
     trade_margin.l[e,t]*energybalance_ext.l['BASE','input_in_production',i,es,e,t];
+
+  #verify energyshares sum to 1
+  #E_supplyshares[i,t]$(tAdj[t])..sum(e,productsplit_eurostat_supply.l[e,i,t]) =E= 1;
+  #E_demandshares[d,t]$(tAdj[t])..sum(e,productsplit_eurostat_demand.l[e,d,t]) =E= 1;
 
   #Restriction: Margin producing secors should have total_trade_margins<=energy_output<=Total output
   #sum((i,es,e)energybalance_ext.l['CAV','input_in_production',i,es,e,t])+residual_margins =E= sum(d,vIOE__y.l[i_energymargins,d,t]);
   
   E_residual_energybalance.. residual_energybalance =E=
-    sqr( sum((ebalitems,d,es,e,t)$(tAdj[t]), energybalance_ext.l[ebalitems,'production',d,es,e,t]+energybalance_ext.l[ebalitems,'imports',d,es,e,t])-
-    sum((ebalitems,transaction,d,es,e,t)$(tAdj[t] and demand_transaction[transaction]), energybalance_ext.l[ebalitems,transaction,d,es,e,t]) );
+    sum((e,d,t)$(tAdj[t]), @penalty(productsplit_eurostat_demand[e,d,t],productsplit_eurostat_demand0.l[e,d,t],'SQR'))
+    +sum((e,i,t)$(tAdj[t]), @penalty(productsplit_eurostat_supply[e,i,t],productsplit_eurostat_supply0.l[e,i,t],'SQR'));
+
     ;
 
 $ENDBLOCK
@@ -501,9 +515,15 @@ $Model M_create_energybalance_ext
   B_create_energybalance_ext
 ;
 $FIX G_adjust_energybalance_exo;
+#$FIX G_adjust_exo;
+#$FIX G_adjust_a_exo;
+#$FIX G_adjust_endo;
+#$FIX G_adjust_a_endo;
+
 $UNFIX G_adjust_energybalance_endo;
 
-#solve M_create_energybalance_ext using NLP minimizing residual_energybalance;
+solve M_create_energybalance_ext using NLP minimizing residual_energybalance;
+
 #
 #overwrite - does not work as intended
 #vIOxE_y[i,d,t]$(tAdj[t]) = vIOxE__y.l[i,d,t]; #vIO_y[i,d,t]-vIOE__y.l[i,d,t];
