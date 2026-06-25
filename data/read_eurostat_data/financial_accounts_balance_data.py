@@ -8,24 +8,26 @@ def load_data(n, t, country, year_start, year_end, **kwargs):
     #   Module-specific sets
     # ========================================================================
     sector = gp.Set(n, 'sector', description='Sectors', records=['FinCorp', 'NonFinCorp', 'Gov', 'Hh', 'RoW'])
-    finpos = gp.Set(n, 'finpos', description='Financial positions', records=['ASS', 'LIAB'])
+    al = gp.Set(n, 'al', description='Financial positions', records=['ASS', 'LIAB'])
+    f = gp.Set(n, 'f', description='Financial instruments', records=['Debt', 'Equity'])
+
     sector_map = {"S11": "NonFinCorp", "S12": "FinCorp", "S13": "Gov", "S14": "Hh", "S15": "Hh", "S2": "RoW"}
     
     # ========================================================================
     #   Helper functions
     # ========================================================================
     def process_data(df, na_items):
-        """Filter and aggregate values by sector, finpos, and year."""
+        """Filter and aggregate values by sector, al, and year."""
         return (df[df["na_item"].isin(na_items)]
                 .groupby(["sector", "finpos", "year"], as_index=False).agg(level=("level", "sum"))
-                .rename(columns={'year': 't'})
-                .assign(t=lambda x: x['t'].astype(str))[['sector', 'finpos', 't', 'level']])
+                .rename(columns={'year': 't', 'finpos': 'al'})
+                .assign(t=lambda x: x['t'].astype(str))[['sector', 'al', 't', 'level']])
 
     def process_data_minus_F11(df, na_items):
         """Subtract F11 (Monetary gold)."""
         base = process_data(df, na_items)
         f11 = process_data(df, ['F11'])
-        return (base.merge(f11, on=['sector', 'finpos', 't'], suffixes=('_base', '_F11'), how='outer').fillna(0).assign(level=lambda x: x['level_base'] - x['level_F11'])[['sector', 'finpos', 't', 'level']])
+        return (base.merge(f11, on=['sector', 'al', 't'], suffixes=('_base', '_F11'), how='outer').fillna(0).assign(level=lambda x: x['level_base'] - x['level_F11'])[['sector', 'al', 't', 'level']])
 
     # ========================================================================
     #   Load raw data
@@ -64,37 +66,23 @@ def load_data(n, t, country, year_start, year_end, **kwargs):
     # F8   Other accounts receivable/payable                     # D41 Interests
 
     # Debt instruments = F1 + F2 + F3 + F4 + F52 + F6 + F7 + F8 - F11
-    vDebtInstruments = process_data_minus_F11(raw_data, ['F1', 'F2', 'F3', 'F4', 'F52', 'F6', 'F7', 'F8'])
+    Debt = process_data_minus_F11(raw_data, ['F1', 'F2', 'F3', 'F4', 'F52', 'F6', 'F7', 'F8']).assign(f='Debt')
 
     # Total financial assets (subtracted F11 Monetary gold)
-    vFinAssets = process_data_minus_F11(raw_data, ['F'])
+    FinAssets = process_data_minus_F11(raw_data, ['F']).assign(f='vFinAssets')
 
     # Equity instruments = F51 
-    vEquity = process_data(raw_data, ['F51'])
+    Equity = process_data(raw_data, ['F51']).assign(f='Equity')
 
     # # Combine into long format
-    # all_data = pd.concat([financial_assets, debt_instruments, equity_instruments], ignore_index=True)
-
-    # # Calculate RoW as residual to ensure data sums to zero across all sectors
-    # all_data = all_data[all_data['sector'] != 'RoW'].copy()
-    # row_residuals = (all_data.groupby(['variable', 'finpos', 't'], as_index=False)['level'].sum()
-    #                  .assign(level=lambda x: -x['level'], sector='RoW'))
-    # all_data = pd.concat([all_data, row_residuals], ignore_index=True)
+    vFinAL = pd.concat([Debt, Equity], ignore_index=True)
 
     # ========================================================================
     #   Store parameters in container
     # ========================================================================
-    gp.Parameter(n, name='vDebtInstruments', domain=[sector, finpos, t],
-                 description='Debt instruments by sector and assets and liabilities',
-                 records=vDebtInstruments[['sector', 'finpos', 't', 'level']].values.tolist())
-
-    gp.Parameter(n, name='vFinAssets', domain=[sector, finpos, t],
-                 description='Financial assets by sector and assets and liabilities',
-                 records=vFinAssets[['sector', 'finpos', 't', 'level']].values.tolist())
-
-    gp.Parameter(n, name='vEquity', domain=[sector, finpos, t],
-                 description='Equity instruments by sector and assets and liabilities',
-                 records=vEquity[['sector', 'finpos', 't', 'level']].values.tolist())
+    gp.Parameter(n, name='vFinAL', domain=[sector, f, al, t],
+                 description='Financial assets (ASS) or liabilities (LIAB) by sector and instrument.',
+                 records=vFinAL[['sector', 'f', 'al', 't', 'level']].values.tolist())
 
     
 

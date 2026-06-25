@@ -32,6 +32,7 @@ def load_data(n, t, country, year_start, year_end, i_list=None, k_list=None, **k
         out = nom.merge(idx, on=key_cols, how='inner')
         out['level'] = out['_nom'] / out['_idx']
         out = out.drop(columns=['_nom', '_idx'])
+        out = out.dropna()
         return out
 
     # ========================================================================

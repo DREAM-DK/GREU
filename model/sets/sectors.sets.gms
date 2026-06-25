@@ -1,13 +1,15 @@
 
-Set finpos "Financial position (assets or liabilities)." /
+Set f "Financial instrument categories (ESA F.*, aggregated)." /
+  Equity "Equity and investment fund shares/units."
+  Debt "Debt securities, loans, and other debt instruments."
+/;
+
+Set al "Financial position (assets or liabilities)." /
   ASS "Assets held."
   LIAB "Liabilities incurred."
 /;
 
-Parameter finpos_sign(finpos) "Sign for net stocks (assets minus liabilities)." /
-  ASS  1
-  LIAB -1
-/;
+
 
 Set sector "Sectors of the economy as defined in national accounts." /
   FinCorp "Financial corporations."

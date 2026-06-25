@@ -110,6 +110,5 @@ $GROUP G_test_data_covered_variables
 	-qD[k],  #Not data, but calibrated
 	-pProd #Not data, but calibrated
 	-vNetFinAssets #?
-	-vNetDebtInstruments
 ; 
 # @assert_no_difference(G_test_data_covered_variables, 1e-6, _data,.l, "data_covered_variables does not change more than previously done so by calibration."); #Ideally this check should be done rather than "diff-in-diff" above
