@@ -50,7 +50,6 @@
 						qEtot[e,t]$(sum(i, d1pY_CET[e,i,t] or d1pM_CET[e,i,t]))      "Total demand/supply of ergy in the models ergy-market"
 						qEpj[es,e,d,t]$(d1qEpj[es,e,d,t] or tl[d]) 					      	 "Sector demand for energy on end purpose (es), measured in PJ"				
 						qEpj_own[es,e,d,t]$(d1pEpj_own[es,e,d,t])                    "Consumption of own-production, not in NAS"
-						j_energy_technology_qREa[es,e,i,t]$(d1pEpj_base[es,e,i,t])       		 "J-term to be activated by energy technology module. When energy technology model is on qREa =/= qEpj, but is guided by energy technology module, endogenizing this variable"
 						vDistributionProfits[e,t] 																	 "With different margins between average supply price, and sector base price, there is scope for what we call distribution profits. They can be negative. Measured in bio. DKK"
 						sY_Dist[e,i,t]$(d1pY_CET[e,i,t]) 														 "For the purpose of clearing energy markets, a fictive agent, the energy-distributor, gathers a bundle of domestically and imported energy, before selling it to the end-sector. This is the energy-distibutors preference parameter for domestic energy"
 						sM_Dist[e,i,t]$(d1pM_CET[e,i,t]) 														 "For the purpose of clearing energy markets, a fictive agent, the energy-distributor, gathers a bundle of domestically and imported energy, before selling it to the end-sector. This is the energy-distibutors preference parameter for imported energy"
@@ -212,14 +211,6 @@
 		.. vM_CET[e,i,t] =E= pM_CET[e,i,t] * qM_CET[e,i,t];
     $ENDBLOCK 
 
-		$BLOCK energy_markets_clearing_link energy_markets_clearing_link_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-			#Link til industries_CES_energydemand		
-			qEpj[es,e,i,t]$(d1pEpj[es,e,i,t])..
-			 qEpj[es,e,i,t] =E= qREa[es,e,i,t] + j_energy_technology_qREa[es,e,i,t];
-		
-		$ENDBLOCK  
-
-
 	# ------------------------------------------------------------------------------
 	# Retail and wholesale margins on ergy
 	# ------------------------------------------------------------------------------
@@ -313,7 +304,6 @@
 		model main / energy_demand_prices  
 								energy_markets_clearing 
 								energy_margins
-								energy_markets_clearing_link
 								energy_markets_IO_link
 								/;
 
@@ -321,10 +311,14 @@
 				energy_demand_prices_endogenous 
 				energy_markets_clearing_endogenous 
 				energy_margins_endogenous
-				energy_markets_clearing_link_endogenous
 				energy_markets_IO_link_endogenous
 				;
 	$ENDIF 
+
+
+
+
+
 
 # ------------------------------------------------------------------------------
 # Data 
@@ -479,7 +473,6 @@ $IF %stage% == "calibration":
 		energy_markets_clearing_calibration
 
 		energy_margins
-		energy_markets_clearing_link
 		energy_markets_IO_link
 		energy_markets_IO_link_calibration
 
@@ -498,8 +491,6 @@ $IF %stage% == "calibration":
 
 		energy_margins_endogenous
 		fpE_margins[es,e,d,i,t1], -vE_margins[es,e,d,i,t1]	
-
-		energy_markets_clearing_link_endogenous
 
 		energy_markets_IO_link_endogenous
 
@@ -551,6 +542,7 @@ $IF %stage%=='tests':
 		ABORT$(qY_i_d.l[i,d_ene,t]<0) 'Splitting energy on IO-cells has produced a negative quantity in qY_i_d';
 		ABORT$(qM_i_d.l[i,d_ene,t]<0) 'Splitting energy on IO-cells has produced a negative quantity in qM_i_d';
 	);
+
 
 
 	#Testing that supply and demand matches for energy, when comparing with input_output.gms

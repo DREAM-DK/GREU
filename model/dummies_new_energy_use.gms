@@ -1,8 +1,8 @@
 parameter
   d1pEpj_base_CGE[es,e,d,t]
   d1pEpj_CGE[es,e,d,t]
-  d1pREa_CGE[es,e_a,i,t]
-  d1pREa_inNest_CGE[es,e_a,i,t]
+  d1pEpj_marg_CGE[es,e,i,t]
+  d1pEpj_marg_inNest_CGE[es,e,i,t]
   d1tqEpj_CGE[es,e,d,t]
   d1qEpj_CGE[es,e,d,t]
   # d1tCO2_ETS2_E_CGE[em,es,e,d,t]
@@ -14,8 +14,8 @@ parameter
 
   d1pEpj_base_energy_technology[es,e,d,t]
   d1pEpj_energy_technology[es,e,d,t]
-  d1pREa_energy_technology[es,e_a,i,t]
-  d1pREa_inNest_energy_technology[es,e_a,i,t]
+  d1pEpj_marg_energy_technology[es,e,i,t]
+  d1pEpj_marg_inNest_energy_technology[es,e,i,t]
   d1tqEpj_energy_technology[es,e,d,t]
   d1qEpj_energy_technology[es,e,d,t]
   # d1tCO2_ETS2_E_energy_technology[em,es,e,d,t]
@@ -26,33 +26,34 @@ parameter
   d1tE_duty_energy_technology[etaxes,es,e,d,t]
 ;
 
+
+## DUMMIES FOR ENERGY PRICES
 # Save energy related dummies from the CGE model
-d1pEpj_base_CGE[es,e,d,t]     = d1pEpj_base[es,e,d,t];
-d1pEpj_CGE[es,e,d,t]          = d1pEpj[es,e,d,t];
-d1pREa_CGE[es,e_a,i,t]        = d1pREa[es,e_a,i,t];
-d1pREa_inNest_CGE[es,e_a,i,t] = d1pREa_inNest[es,e_a,i,t];
-d1tqEpj_CGE[es,e,d,t]         = d1tqEpj[es,e,d,t];
-d1qEpj_CGE[es,e,d,t]          = d1qEpj[es,e,d,t];
+d1pEpj_base_CGE[es,e,d,t]        = d1pEpj_base[es,e,d,t];
+d1pEpj_CGE[es,e,d,t]             = d1pEpj[es,e,d,t];
+d1pEpj_marg_CGE[es,e,i,t]        = d1pEpj_marg[es,e,i,t];
+d1pEpj_marg_inNest_CGE[es,e,i,t] = d1pEpj_marg_inNest[es,e,i,t];
+d1tqEpj_CGE[es,e,d,t]            = d1tqEpj[es,e,d,t];
+d1qEpj_CGE[es,e,d,t]             = d1qEpj[es,e,d,t];
 # d1tCO2_ETS2_E_CGE[em,es,e,d,t] = d1tCO2_ETS2_E[em,es,e,d,t];
 
 # Update energy related dummies with potential new energy use in the technology model
 d1pEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and not (exclude_energy(e) or sameas(e,'Captured CO2'))))            = yes;
 d1pEpj[es,e,d,t]$(d1pEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and not exclude_energy(e)))                            = yes;
-d1pREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t] or (sum(l, d1uTE[l,es,e_a,i,t]) and sameas(e_a,'Captured CO2')))                 = yes;
-d1pREa[es,e_a,i,t]$(d1pREa[es,e_a,i,t] or (sum(l, d1uTE[l,es,e_a,i,t]) and not exclude_energy(e_a)))                    = yes;
-d1pREa_inNest[es,e_a,i,t]$(d1pREa_inNest[es,e_a,i,t] or (sum(l, d1uTE[l,es,e_a,i,t]) and sameas(e_a,'Captured CO2')))   = yes;
-d1pREa_inNest[es,e_a,i,t]$(d1pREa_inNest[es,e_a,i,t] or (sum(l, d1uTE[l,es,e_a,i,t]) and not exclude_energy(e_a)))      = yes;
+d1pEpj_marg[es,e,i,t]$(d1pEpj_marg[es,e,i,t] or (sum(l, d1uTE[l,es,e,i,t]) and sameas(e,'Captured CO2')))                 = yes;
+d1pEpj_marg[es,e,i,t]$(d1pEpj_marg[es,e,i,t] or (sum(l, d1uTE[l,es,e,i,t]) and not exclude_energy(e)))                    = yes;
+d1pEpj_marg_inNest[es,e,i,t]$(d1pEpj_marg_inNest[es,e,i,t] or (sum(l, d1uTE[l,es,e,i,t]) and sameas(e,'Captured CO2')))   = yes;
+d1pEpj_marg_inNest[es,e,i,t]$(d1pEpj_marg_inNest[es,e,i,t] or (sum(l, d1uTE[l,es,e,i,t]) and not exclude_energy(e)))      = yes;
 d1tqEpj[es,e,d,t]$(d1tqEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and sameas(e,'Captured CO2')))                       = yes;
 d1qEpj[es,e,d,t]$(d1qEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and sameas(e,'Captured CO2')))                         = yes;
 # d1tCO2_ETS2_E[em,es,e,d,t]$(d1tCO2_ETS2_E[em,es,e,d,t] or (d1pEpj[es,e,d,t] and CO2ubio[em] and not in_ETS[es] and not sameas[e,'waste']))   = yes;
-
 # Save dummies containing only the new energy use in the technology model
-d1pEpj_base_energy_technology[es,e,d,t]$(d1pEpj_base[es,e,d,t] and not d1pEpj_base_CGE[es,e,d,t])             = yes;
-d1pEpj_energy_technology[es,e,d,t]$(d1pEpj[es,e,d,t] and not d1pEpj_CGE[es,e,d,t])                            = yes;
-d1pREa_energy_technology[es,e_a,i,t]$(d1pREa[es,e_a,i,t] and not d1pREa_CGE[es,e_a,i,t])                      = yes;
-d1pREa_inNest_energy_technology[es,e_a,i,t]$(d1pREa_inNest[es,e_a,i,t] and not d1pREa_inNest_CGE[es,e_a,i,t]) = yes;
-d1tqEpj_energy_technology[es,e,d,t]$(d1tqEpj[es,e,d,t] and not d1tqEpj_CGE[es,e,d,t])                         = yes;
-d1qEpj_energy_technology[es,e,d,t]$(d1qEpj[es,e,d,t] and not d1qEpj_CGE[es,e,d,t])                            = yes;
+d1pEpj_base_energy_technology[es,e,d,t]$(d1pEpj_base[es,e,d,t] and not d1pEpj_base_CGE[es,e,d,t])                      = yes;
+d1pEpj_energy_technology[es,e,d,t]$(d1pEpj[es,e,d,t] and not d1pEpj_CGE[es,e,d,t])                                     = yes;
+d1pEpj_marg_energy_technology[es,e,i,t]$(d1pEpj_marg[es,e,i,t] and not d1pEpj_marg_CGE[es,e,i,t])                      = yes;
+d1pEpj_marg_inNest_energy_technology[es,e,i,t]$(d1pEpj_marg_inNest[es,e,i,t] and not d1pEpj_marg_inNest_CGE[es,e,i,t]) = yes;
+d1tqEpj_energy_technology[es,e,d,t]$(d1tqEpj[es,e,d,t] and not d1tqEpj_CGE[es,e,d,t])                                  = yes;
+d1qEpj_energy_technology[es,e,d,t]$(d1qEpj[es,e,d,t] and not d1qEpj_CGE[es,e,d,t])                                     = yes;
 # d1tCO2_ETS2_E_energy_technology[em,es,e,d,t]$(d1tCO2_ETS2_E[em,es,e,d,t] and not d1tCO2_ETS2_E_CGE[em,es,e,d,t]) = yes;
 
 ## DUMMIES FOR EMISSIONS (ONLY ON NEW ENERGY USE IN THE ENERGY TECHNOLOGY MODEL COMPARED TO CGE)
@@ -90,6 +91,6 @@ d1tE_duty_energy_technology[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t] and not
 @update_exist_dummies()
 
 # A random initial value for the new energy use
-pREa.l[es,e_a,i,t]$(d1pREa_energy_technology[es,e_a,i,t]) = 1;
+pEpj_marg.l[es,e,i,t]$(d1pEpj_marg_energy_technology[es,e,i,t]) = 1;
 
 # vtE_duty.l[CO2_tax,es,'Captured CO2',d,t] = 0;
