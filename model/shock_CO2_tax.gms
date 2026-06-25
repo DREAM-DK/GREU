@@ -55,7 +55,6 @@ d1switch_integrate_energy_technology = 0;
 
 $GROUP main_endogenous
   main_endogenous
-  # -uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
   vG2vGDP, -qG, 
   vLumpsum, -vGovPrimaryBalance  
 ;
@@ -72,7 +71,6 @@ $IF %include_energy_technology% = 1:
 
 $GROUP main_endogenous
   main_endogenous
-  # uREa$(d1qES_e[es,e_a,i,t] and d1pREa[es,e_a,i,t]), -jqESE$(d1qES_e[es,e,i,t] and d1pREa[es,e,i,t])
   vG2vGDP, -qG, 
   vLumpsum, -vGovPrimaryBalance    
 ;
