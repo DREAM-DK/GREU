@@ -255,7 +255,8 @@
 
 			jfpY_i_d&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
 				vY_i_d_base[i,d,t] 
-					=E= sum((e,es,d_a)$es_d2d(es,d_a,d), pE_margins[es,e,d_a,i,t] * qEpj[es,e,d_a,t]) + jvY_i_d_base[i,d,t]; 
+=E= sum((e,es,d_a)$es_d2d(es,d_a,d), sSupply_d_e_i_adj[d,e,i,t] * vEpj_base[es,e,d_a,t])
+					+ sum((e,es,d_a)$es_d2d(es,d_a,d), pE_margins[es,e,d_a,i,t] * qEpj[es,e,d_a,t]) + jvY_i_d_base[i,d,t]; 
 
 									# No need to add an equation on imports for margins, as margins are produced domestically in data.
 			jfpM_i_d[i,d,t]$(d1M_i_d[i,d,t] and d_ene[d])..
@@ -275,7 +276,9 @@
 
 	
 			rYM&_energymargins[i,d,t]$(d1Y_i_d[i,d,t] and i_energymargins[i] and d_ene[d])..
-				qY_i_d[i,d,t]*pY_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d),  pE_margins[es,e,d_a,i,t-1] * qEpj[es,e,d_a,t]) + jqY_i_d[i,d,t];
+		
+				qY_i_d[i,d,t]*pY_i_d_base[i,d,t-1]  =E= sum((e,es,d_a)$es_d2d(es,d_a,d), sSupply_d_e_i_adj[d,e,i,t] * pEpj_base[es,e,d_a,t-1] * qEpj[es,e,d_a,t])	
+	+ sum((e,es,d_a)$es_d2d(es,d_a,d),  pE_margins[es,e,d_a,i,t-1] * qEpj[es,e,d_a,t]) + jqY_i_d[i,d,t];
 
 
 
