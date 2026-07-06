@@ -83,4 +83,4 @@ scenario[SubmodelTemplate.test_forecast[T-5:T]] .+= π
 @log_time solve!(base_model(), scenario)
 
 diff = scenario .- baseline
-println("Nonzero Differences: ", diff[diff .!= 0])
+println("Nonzero Differences: ", diff[abs.(diff) .> 1e-9])

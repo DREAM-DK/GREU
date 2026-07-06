@@ -196,14 +196,9 @@ end
 # Residuals allowed to exceed the global tolerance
 # ==========================================================================
 function set_residual_tolerances!(tolerances)
-  tolerances[vD] = 40000
-  tolerances[vGDP] = 40000
+  tolerances[vD] = 0.2
+  tolerances[vGDP] = 3
   tolerances[vGVA] = 1
-  tolerances[pD] = 0.5
-  tolerances[pX] = 0.5
-  tolerances[pI] = 0.5
-  tolerances[pC] = 0.2
-  tolerances[pGDP] = 0.2
 end
 
 # ==========================================================================
