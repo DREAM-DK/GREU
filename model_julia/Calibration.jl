@@ -5,37 +5,13 @@ import ..Log: @log_time
 import ..Time: at_year, variable_year, t1, T
 import ..Tags: ForecastConstant
 
-"""
-Stopover: assert_residuals_small with per-residual tolerance overrides collected
-from the submodules. Each submodule may define an optional `residual_tolerances()`
-returning a Dict from variable (or base-name string) to its allowed residual
-magnitude; all other residuals must be below `atol`.
-"""
-function SquareModels.assert_residuals_small(data::ModelDictionary, submodels::AbstractVector{Module};
-		atol::Real=1e-6, msg::String="", exclude=())
-	as_residual_name(b) = endswith(b, RESIDUAL_SUFFIX) ? b : b * RESIDUAL_SUFFIX
-	normalize(k) = as_residual_name(k isa AbstractString ? String(k) : SquareModels.base_name(k))
-	atol_overrides = mapreduce(merge, submodels; init=Dict{Any, Float64}()) do m
-		isdefined(m, :residual_tolerances) ? m.residual_tolerances() : Dict{Any, Float64}()
+function residual_tolerances(data::ModelDictionary, submodels)
+	tolerances = ModelDictionary(data.model)
+	for m in submodels
+		isdefined(m, :set_residual_tolerances!) && m.set_residual_tolerances!(tolerances)
 	end
-	overrides = Dict{String, Float64}(normalize(k) => Float64(v) for (k, v) in atol_overrides)
-	excluded = Set(SquareModels._excluded_base_name(e) for e in exclude)
-
-	violations = Tuple{String, Float64}[]
-	for r in residuals(data.model)
-		b = SquareModels.base_name(r)
-		b in excluded && continue
-		v = data[r]
-		isnothing(v) && continue
-		tol = get(overrides, b, Float64(atol))
-		abs(v) > tol && push!(violations, (SquareModels.name(r), abs(v)))
-	end
-	isempty(violations) && return true
-	sort!(violations, by=x -> -x[2])
-	throw(ResidualError(violations, Float64(atol), msg))
+	return tolerances
 end
-
-
 
 """
 For calibration: exogenize endogenous variables that have data and endogenize their residuals.

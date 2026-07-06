@@ -195,16 +195,16 @@ end
 # ==========================================================================
 # Residuals allowed to exceed the global tolerance
 # ==========================================================================
-residual_tolerances() = Dict(
-	vD => 40000,
-  vGDP => 40000,
-  vGVA => 1,
-  pD => 0.5,
-  pX => 0.5,
-  pI => 0.5,
-  pC => 0.2,
-  pGDP => 0.2  
-)
+function set_residual_tolerances!(tolerances)
+  tolerances[vD] = 40000
+  tolerances[vGDP] = 40000
+  tolerances[vGVA] = 1
+  tolerances[pD] = 0.5
+  tolerances[pX] = 0.5
+  tolerances[pI] = 0.5
+  tolerances[pC] = 0.2
+  tolerances[pGDP] = 0.2
+end
 
 # ==========================================================================
 # Equations
