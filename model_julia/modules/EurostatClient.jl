@@ -12,7 +12,7 @@ function fetch_json(dataset::String, params::Pair{String,String}...)
   query = join(("$key=$value" for (key, value) in params), "&")
   url = "$API_BASE/$dataset?$query"
   @info "Requesting Eurostat data from $url"
-  response = HTTP.get(url, readtimeout=120, retries=2)
+  response = HTTP.get(url, read_idle_timeout=120, retries=2)
   response.status == 200 || error("HTTP error: status $(response.status) for $url")
   return JSON3.read(response.body)
 end

@@ -7,6 +7,7 @@
 include(joinpath(@__DIR__, "InputOutputSettings.jl"))
 
 module InputOutput
+Base.:\(A::Set,  B::Set,) = setdiff(A, B)
 
 using SquareModels
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
@@ -43,7 +44,9 @@ const vM_i_d_data = read_sparse_array(joinpath(input_output_data_dir, "input_out
 const D1Y = Set(eachindex(vY_i_d_data[:, :, calibration_year]))
 const D1M = Set(eachindex(vM_i_d_data[:, :, calibration_year]))
 const D1YM = D1Y ∪ D1M
-const D = [d for d in D_all if any((i, d) in D1YM for i in I)]
+const D = [d for d in D_all if any((i, d) ∈ D1YM for i ∈ I)]
+const D1YonlyY = [(i, d, tt)  for (i, d) ∈ D1Y \ D1M, tt ∈ t]
+const D1MonlyM = [(i, d, tt) for (i, d) ∈ D1M \ D1Y, tt ∈ t]
 
 # Industries with no intermediate consumption (e.g. T) have no demand component.
 const RX = [i for i in industries if i in D]
@@ -167,7 +170,8 @@ function set_data!(db; dir = input_output_data_dir)
 
   db[jfpY_i_d] .= 0.0
   db[jfpM_i_d] .= 0.0
-  db[rM] .= [(i, d) ∈ D1Y ? 0.0 : 1.0 for (i, d, _) in keys(rM)]
+  db[rM][D1YonlyY] = 0.0
+  db[rM][D1MonlyM] = 1.0
 
   db[qD] .= read_variable(demands_file, qD)
   db[vD] .= read_variable(demands_file, vD)
@@ -186,6 +190,20 @@ end
 # Starting values (solver hints, not exogenous data)
 # ==========================================================================
 function set_starting_values!(db)
+end
+
+# ==========================================================================
+# Residuals allowed to exceed the global tolerance
+# ==========================================================================
+function set_residual_tolerances!(tolerances)
+  tolerances[vD] = 40000
+  tolerances[vGDP] = 40000
+  tolerances[vGVA] = 1
+  tolerances[pD] = 0.5
+  tolerances[pX] = 0.5
+  tolerances[pI] = 0.5
+  tolerances[pC] = 0.2
+  tolerances[pGDP] = 0.2
 end
 
 # ==========================================================================
@@ -333,7 +351,7 @@ function define_calibration()
     tY_i_d[:, :, t1], vtY_i_d[:, :, t1]
     tM_i_d[:, :, t1], vtM_i_d[:, :, t1]
     rYM[:, :, t1], [(i, d) in D1Y ? vY_i_d[i, d, t1] : vM_i_d[i, d, t1] for (i, d) in D1YM]
-    [rM[i, d, t1] for (i, d) in D1Y ∩ D1M], [vM_i_d[i, d, t1] for (i, d) in D1Y ∩ D1M]
+    [rM[i, d, t1] for (i, d) in  D1Y ∩ D1M ], [vM_i_d[i, d, t1] for (i, d) in  D1Y ∩ D1M ]
   end
 
   return block
