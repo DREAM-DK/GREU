@@ -1,6 +1,7 @@
 include(joinpath(@__DIR__, "..", "Settings.jl"))
 include("InputOutputSettings.jl")
 include("EurostatClient.jl")
+include("DataRefreshUtils.jl")
 
 module InputOutputData
 
@@ -22,8 +23,7 @@ import ..InputOutputSettings:
   model_industries,
   national_accounts_dataset,
   national_accounts_unit
-
-sum_by(df, cols) = combine(groupby(df, cols), :value => sum => :value)
+import ..DataRefreshUtils: sum_by, long_format, write_index_set
 
 # ==========================================================================
 # Eurostat fetches
@@ -239,16 +239,6 @@ end
 # Output files
 # ==========================================================================
 
-"""Long-format (variable, indices, value) rows as read by SquareModels."""
-long_format(varname, df, index_cols) = DataFrame(
-  variable = string(varname),
-  indices = [join((string(row[col]) for col in index_cols), ",") for row in eachrow(df)],
-  value = df.value,
-)
-
-write_index_set(path, name, members) =
-  CSV.write(path, DataFrame(variable = name, indices = string.(members), value = 1.0))
-
 function write_indices(dir, io_table)
   rows = io_table[io_table.row .∈ Ref(model_industries), :]
   industries(supply) = sort(unique(rows.row[rows.supply .== supply]))
@@ -323,7 +313,3 @@ function refresh_input_output_data!(dir = input_output_data_dir)
 end
 
 end # module
-
-if abspath(PROGRAM_FILE) == abspath(@__FILE__)
-  InputOutputData.refresh_input_output_data!()
-end
