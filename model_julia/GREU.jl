@@ -68,10 +68,15 @@ Time.T = Time.max_terminal_year
 	assert_no_diff(baseline, zero_shock; atol=1e-6, msg="Zero shock test failed")
 end
 
-# Module-specific tests
+# Module-specific tests: collect failures from every module before raising, since a single
+# underlying bug often trips several checks at once (across one or more modules).
+test_errors = String[]
 for m in submodels
-	isdefined(m, :run_tests) && m.run_tests(baseline)
+	isdefined(m, :run_tests) && append!(test_errors, m.run_tests(baseline))
 end
+isempty(test_errors) || error(
+	"$(length(test_errors)) module test(s) failed:\n" * join(("  " * e for e in test_errors), "\n")
+)
 
 # ==============================================================================
 # Scenario example
@@ -83,4 +88,4 @@ scenario[SubmodelTemplate.test_forecast[T-5:T]] .+= π
 @log_time solve!(base_model(), scenario)
 
 diff = scenario .- baseline
-println("Nonzero Differences: ", diff[diff .!= 0])
+println("Nonzero Differences: ", diff[abs.(diff) .> 1e-9])
