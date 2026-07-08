@@ -163,10 +163,13 @@ function set_data!(db; dir = input_output_data_dir)
   db[vM_i_d] .= read_variable(cells_file, vM_i_d)
   db[vtY_i_d] .= read_variable(cells_file, vtY_i_d; default=0.0)
   db[vtM_i_d] .= read_variable(cells_file, vtM_i_d; default=0.0)
-  db[vW_i] .= read_variable(industries_file, vW_i; default=0.0)
-  db[vtYOther_i] .= read_variable(industries_file, vtYOther_i; default=0.0)
+  # No default: missing (industry, year) combos should stay `nothing` so
+  # `exogenous_constant_forecast!` forward-fills forecast years from t1, rather than
+  # being silently zeroed (the source file only has data for t1 and t1-1).
+  db[vW_i] .= read_variable(industries_file, vW_i)
+  db[vtYOther_i] .= read_variable(industries_file, vtYOther_i)
   db[vDepr_i] .= 0.0
-  db[vOpSurplus_i] .= read_variable(industries_file, vOpSurplus_i; default=0.0)
+  db[vOpSurplus_i] .= read_variable(industries_file, vOpSurplus_i)
 
   db[jfpY_i_d] .= 0.0
   db[jfpM_i_d] .= 0.0
@@ -356,7 +359,21 @@ end
 # Tests
 # ==========================================================================
 function run_tests(db)
-  return nothing
+  errors = String[]
+
+  # Expenditure-side GDP vs. production-side GVA plus net taxes on products. Not implied by
+  # any single equation: vGDP and vGVA are each calibrated independently against their own
+  # national-accounts data, so this checks that the two approaches are actually reconcilable.
+  all(isapprox.(db[vGDP[t1:T]], db[vGVA[t1:T]] .+ db[vtY[t1:T]] .+ db[vtM[t1:T]]; rtol=1e-3)) ||
+    push!(errors, "vGDP should equal vGVA + vtY + vtM (net taxes on products)")
+
+  # GVA from output minus intermediate consumption vs. GVA from primary inputs (income
+  # approach). These pull from different rows of the source data (output/use cells vs.
+  # compensation, other taxes and operating surplus), so agreement is a genuine data check.
+  all(isapprox.(db[vGVA[t1:T]], db[vW[t1:T]] .+ db[vtYOther[t1:T]] .+ db[vDepr[t1:T]] .+ db[vOpSurplus[t1:T]]; rtol=1e-3)) ||
+    push!(errors, "vGVA should equal vW + vtYOther + vDepr + vOpSurplus (income approach)")
+
+  return errors
 end
 
 end # module
