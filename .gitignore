@@ -7,6 +7,9 @@
 *.csv
 *.parquet
 
+# Calibration/scenario artifacts
+/model_julia/Output/
+
 # GAMS
 *.g00
 *.lst

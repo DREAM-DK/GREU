@@ -1,6 +1,8 @@
 [deps]
 CONOPT = "d9ad0738-0ae8-416d-b8ee-a56302d35586"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+DREAMMakieTheme = "c4e8f1a2-7b3d-4e91-9f6a-2d8c5b0e1a73"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 GAMS = "1ca51c6a-1b4d-4546-9ae1-53e0a243ab12"
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
@@ -11,7 +13,9 @@ SquareModels = "8f61fe60-8cc6-11ec-3043-2171a73045bd"
 
 [sources]
 CONOPT = {url = "https://github.com/GAMS-dev/CONOPT.jl"}
+DREAMMakieTheme = {url = "https://github.com/DREAM-DK/DREAMMakieTheme"}
 SquareModels = {url = "https://github.com/MartinBonde/SquareModels"}
 
 [compat]
+CairoMakie = "0.15"
 julia = "1.12"
