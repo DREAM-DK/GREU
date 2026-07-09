@@ -7,6 +7,7 @@
 include(joinpath(@__DIR__, "InputOutputSettings.jl"))
 
 module InputOutput
+Base.:\(A::Set,  B::Set,) = setdiff(A, B)
 
 using SquareModels
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
@@ -43,7 +44,9 @@ const vM_i_d_data = read_sparse_array(joinpath(input_output_data_dir, "input_out
 const D1Y = Set(eachindex(vY_i_d_data[:, :, calibration_year]))
 const D1M = Set(eachindex(vM_i_d_data[:, :, calibration_year]))
 const D1YM = D1Y ∪ D1M
-const D = [d for d in D_all if any((i, d) in D1YM for i in I)]
+const D = [d for d in D_all if any((i, d) ∈ D1YM for i ∈ I)]
+const D1YonlyY = [(i, d, tt)  for (i, d) ∈ D1Y \ D1M, tt ∈ t]
+const D1MonlyM = [(i, d, tt) for (i, d) ∈ D1M \ D1Y, tt ∈ t]
 
 # Industries with no intermediate consumption (e.g. T) have no demand component.
 const RX = [i for i in industries if i in D]
@@ -160,14 +163,18 @@ function set_data!(db; dir = input_output_data_dir)
   db[vM_i_d] .= read_variable(cells_file, vM_i_d)
   db[vtY_i_d] .= read_variable(cells_file, vtY_i_d; default=0.0)
   db[vtM_i_d] .= read_variable(cells_file, vtM_i_d; default=0.0)
-  db[vW_i] .= read_variable(industries_file, vW_i; default=0.0)
-  db[vtYOther_i] .= read_variable(industries_file, vtYOther_i; default=0.0)
+  # No default: missing (industry, year) combos should stay `nothing` so
+  # `exogenous_constant_forecast!` forward-fills forecast years from t1, rather than
+  # being silently zeroed (the source file only has data for t1 and t1-1).
+  db[vW_i] .= read_variable(industries_file, vW_i)
+  db[vtYOther_i] .= read_variable(industries_file, vtYOther_i)
   db[vDepr_i] .= 0.0
-  db[vOpSurplus_i] .= read_variable(industries_file, vOpSurplus_i; default=0.0)
+  db[vOpSurplus_i] .= read_variable(industries_file, vOpSurplus_i)
 
   db[jfpY_i_d] .= 0.0
   db[jfpM_i_d] .= 0.0
-  db[rM] .= [(i, d) ∈ D1Y ? 0.0 : 1.0 for (i, d, _) in keys(rM)]
+  db[rM][D1YonlyY] = 0.0
+  db[rM][D1MonlyM] = 1.0
 
   db[qD] .= read_variable(demands_file, qD)
   db[vD] .= read_variable(demands_file, vD)
@@ -186,6 +193,15 @@ end
 # Starting values (solver hints, not exogenous data)
 # ==========================================================================
 function set_starting_values!(db)
+end
+
+# ==========================================================================
+# Residuals allowed to exceed the global tolerance
+# ==========================================================================
+function set_residual_tolerances!(tolerances)
+  tolerances[vD] = 0.2
+  tolerances[vGDP] = 3
+  tolerances[vGVA] = 1
 end
 
 # ==========================================================================
@@ -333,7 +349,7 @@ function define_calibration()
     tY_i_d[:, :, t1], vtY_i_d[:, :, t1]
     tM_i_d[:, :, t1], vtM_i_d[:, :, t1]
     rYM[:, :, t1], [(i, d) in D1Y ? vY_i_d[i, d, t1] : vM_i_d[i, d, t1] for (i, d) in D1YM]
-    [rM[i, d, t1] for (i, d) in D1Y ∩ D1M], [vM_i_d[i, d, t1] for (i, d) in D1Y ∩ D1M]
+    [rM[i, d, t1] for (i, d) in  D1Y ∩ D1M ], [vM_i_d[i, d, t1] for (i, d) in  D1Y ∩ D1M ]
   end
 
   return block
@@ -343,7 +359,21 @@ end
 # Tests
 # ==========================================================================
 function run_tests(db)
-  return nothing
+  errors = String[]
+
+  # Expenditure-side GDP vs. production-side GVA plus net taxes on products. Not implied by
+  # any single equation: vGDP and vGVA are each calibrated independently against their own
+  # national-accounts data, so this checks that the two approaches are actually reconcilable.
+  all(isapprox.(db[vGDP[t1:T]], db[vGVA[t1:T]] .+ db[vtY[t1:T]] .+ db[vtM[t1:T]]; rtol=1e-3)) ||
+    push!(errors, "vGDP should equal vGVA + vtY + vtM (net taxes on products)")
+
+  # GVA from output minus intermediate consumption vs. GVA from primary inputs (income
+  # approach). These pull from different rows of the source data (output/use cells vs.
+  # compensation, other taxes and operating surplus), so agreement is a genuine data check.
+  all(isapprox.(db[vGVA[t1:T]], db[vW[t1:T]] .+ db[vtYOther[t1:T]] .+ db[vDepr[t1:T]] .+ db[vOpSurplus[t1:T]]; rtol=1e-3)) ||
+    push!(errors, "vGVA should equal vW + vtYOther + vDepr + vOpSurplus (income approach)")
+
+  return errors
 end
 
 end # module

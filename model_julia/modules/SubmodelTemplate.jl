@@ -70,8 +70,11 @@ end
 # Tests
 # ==========================================================================
 function run_tests(db)
+  errors = String[]
+
   # Test that ForecastConstant variable is constant across all time periods
-  all(db[test_forecast] .≈ db[test_forecast[t1]]) || error("test_forecast should be constant")
-  return nothing
+  all(db[test_forecast] .≈ db[test_forecast[t1]]) || push!(errors, "test_forecast should be constant")
+
+  return errors
 end
 end # module

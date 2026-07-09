@@ -1,6 +1,7 @@
 include(joinpath(@__DIR__, "..", "Settings.jl"))
 include("SectorAccountsSettings.jl")
 include("EurostatClient.jl")
+include("DataRefreshUtils.jl")
 
 module SectorAccountsData
 
@@ -32,6 +33,7 @@ import ..SectorAccountsSettings:
   sector_map
 
 sum_by(df, cols) = combine(groupby(df, cols), :value => (x -> sum(skipmissing(x); init=0.0)) => :value)
+import ..DataRefreshUtils: sum_by, long_format, write_index_set
 
 # ==========================================================================
 # Eurostat fetches
@@ -280,16 +282,6 @@ end
 # Output files
 # ==========================================================================
 
-"""Long-format (variable, indices, value) rows as read by SquareModels."""
-long_format(varname, df, index_cols) = DataFrame(
-  variable = string(varname),
-  indices  = [join((string(row[col]) for col in index_cols), ",") for row in eachrow(df)],
-  value    = df.value,
-)
-
-write_index_set(path, name, members) =
-  CSV.write(path, DataFrame(variable = name, indices = string.(members), value = 1.0))
-
 function write_indices(dir, params)
   fin = params.vFinIncome
   write_index_set(joinpath(dir, "sector_accounts_sectors.csv"),        "sectors",         sort(unique(fin.sector)))
@@ -333,7 +325,3 @@ function refresh_sector_accounts_data!(dir = sector_accounts_data_dir)
 end
 
 end # module
-
-if abspath(PROGRAM_FILE) == abspath(@__FILE__)
-  SectorAccountsData.refresh_sector_accounts_data!()
-end

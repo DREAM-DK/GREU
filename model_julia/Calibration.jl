@@ -5,6 +5,14 @@ import ..Log: @log_time
 import ..Time: at_year, variable_year, t1, T
 import ..Tags: ForecastConstant
 
+function residual_tolerances(data::ModelDictionary, submodels)
+	tolerances = ModelDictionary(data.model)
+	for m in submodels
+		isdefined(m, :set_residual_tolerances!) && m.set_residual_tolerances!(tolerances)
+	end
+	return tolerances
+end
+
 """
 For calibration: exogenize endogenous variables that have data and endogenize their residuals.
 This allows the residuals to absorb any discrepancy between the data and the model equations.
