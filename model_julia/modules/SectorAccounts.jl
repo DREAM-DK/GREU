@@ -86,8 +86,6 @@ const SectorAccountsTag = Tag(:SectorAccounts)
   vGovBalance[t], "Government net lending / borrowing (B.9 from the government accounts module)."
   vGovPrimaryBalance[t], "Government primary balance (government balance minus property income)."
   # Hh
-  vHhWages[t], "Compensation of employees received by households (ESA D.1). TODO: replace with vWages from IO-system."
-  vHhConsumption[t], "Household final consumption (ESA P.3). TODO: replace with vC from IO-system."
   vCorrectionNonFinCorp2Hh[t], "Adjustment redistributing retained earnings of NonFinCorp to Hh (ESA D.422/D.72)."
   # Corp
   vGrossOpSurplusMixedIncome[sector,t], "Gross operating surplus and mixed income (ESA B.2g+B.3g). TODO: replace with B2A3G from vIO_a."
@@ -113,15 +111,12 @@ function set_data!(db; dir = sector_accounts_data_dir)
 
   db[vFinIncome]                             .= read_variable(vars_file, vFinIncome, default = 0.0)
   db[vFinAL]                                 .= read_variable(vars_file, vFinAL; default = 0.0)
+  db[vFinAssets_al]                          .= read_variable(vars_file, vFinAssets; default = 0.0)
 
-  # Financial assets and liabilities by side, summed over instruments.
-  for s in sector, al in ass_liab, τ in t
-    db[vFinAssets_al][s,al,τ] = sum(db[vFinAL][s,f,al,τ] for f in fin_instrument)
-  end
-  # Net financial assets: assets minus liabilities by sector.
-  for s in sector, τ in t
-    db[vNetFinAssets][s,τ] = db[vFinAssets_al][s,:Assets,τ] - db[vFinAssets_al][s,:Liab,τ]
-  end
+# Net financial assets: assets minus liabilities by sector.
+for s in sector, τ in t
+  db[vNetFinAssets][s,τ] = db[vFinAssets_al][s,:Assets,τ] - db[vFinAssets_al][s,:Liab,τ]
+end
 
   db[vNetFinTransactions]                    .= read_variable(vars_file, vNetFinTransactions)
   db[vGrossCapitalFormation]                 .= read_variable(vars_file, vGrossCapitalFormation; default = 0.0)
@@ -130,8 +125,6 @@ function set_data!(db; dir = sector_accounts_data_dir)
   db[vImports]                               .= read_variable(vars_file, vImports)
   db[vRoWPrimaryIncomeCurrentBalanceOther]   .= read_variable(vars_file, vRoWPrimaryIncomeCurrentBalanceOther)
   db[vNonFinancialNonProducedAssets]         .= read_variable(vars_file, vNonFinancialNonProducedAssets)
-  db[vHhConsumption]                         .= read_variable(vars_file, vHhConsumption)
-  db[vHhWages]                               .= read_variable(vars_file, vHhWages)
   db[vCorrectionNonFinCorp2Hh]               .= read_variable(vars_file, vCorrectionNonFinCorp2Hh)
   db[vNetTransfers2sector]                   .= read_variable(vars_file, vNetTransfers2sector)
   db[vGrossOpSurplusMixedIncome]             .= read_variable(vars_file, vGrossOpSurplusMixedIncome)
@@ -157,7 +150,7 @@ end
 # Residuals allowed to exceed the global tolerance
 # ==========================================================================
 function set_residual_tolerances!(tolerances)
-  tolerances[vNetFinAssets] = 20000.0
+  tolerances[vNetFinAssets] = 500.0
   tolerances[vNetFinTransactions] = 3.0
 end
 
@@ -181,8 +174,8 @@ function define_equations()
     vNetFinTransactions[s=[:Hh], t=t1:T],
     vNetFinTransactions[s,t] == vNetFinIncome[s,t]
                          + vNetTransfers2sector[s,t]
-                         + vHhWages[t]                  # TO DO: replace with vWages from IO-system
-                         - vHhConsumption[t]             # TO DO: replace with vC from IO-system
+                         + vW[t]
+                         - vC[t]
                          + vCorrectionNonFinCorp2Hh[t]
                          - vGrossCapitalFormation[s,t]
                          - vNonFinancialNonProducedAssets[s,t]
