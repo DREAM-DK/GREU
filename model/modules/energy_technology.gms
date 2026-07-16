@@ -44,8 +44,8 @@ $Group+ all_variables
   eP[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Parameter governing efficiency of costs of technology l (smoothing parameter)"
   uTE[l,es,e,d,t]$(d1uTE[l,es,e,d,t]) "Input of energy in technology l per PJ output at full potential"
 
-  vTI[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Investment cost, billion EUR per PJ output at full potential"
-  vTC[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Variable capital costs, billion EUR per PJ output at full potential"
+  uTI[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Investment cost, billion EUR per PJ output at full potential"
+  uTC[l,es,d,t]$(d1sqTPotential[l,es,d,t]) "Variable capital costs, billion EUR per PJ output at full potential"
 
   # 1.2.2 Core Endogenous Variables
   # 1.2.2.1 Levelized Cost of Energy (LCOE) 
@@ -105,17 +105,17 @@ $BLOCK energy_technology_LCOE_equations energy_technology_LCOE_endogenous $(t1.v
   # Levelized cost of energy (LCOE) in technology l per PJ output at full potential
   $(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,es,d,t]).. 
     uTKexp[l,es,d,t] =E=
-     (vTI[l,es,d,t] # Investment costs
-      + @Discount2t(vTC[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d,t], d1sqTPotential[l,es,d,tt])) # Discounted variable costs
+     (uTI[l,es,d,t] # Investment costs
+      + @Discount2t(uTC[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d,t], d1sqTPotential[l,es,d,tt])) # Discounted variable costs
         / @Discount2t(1, DiscountRate[l,es,d], LifeSpan[l,es,d,t], d1sqTPotential[l,es,d,tt]) # Dicounted denominator
         ;
 
   # Levelized cost of energy (LCOE) in technology l per PJ output at full potential
   uTKexp&_tEnd[l,es,d,t]$(t.val > tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,es,d,t]).. 
     uTKexp[l,es,d,t] =E= 
-     (vTI[l,es,d,t] # Investment costs
-      + @Discount2t(vTC[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d,t], d1sqTPotential[l,es,d,tt]) # Discounted variable costs until tEnd
-      + (1/(1+DiscountRate[l,es,d]))**(1+tEnd.val-t.val)*@FiniteGeometricSeries({vTC[l,es,d,tEnd]}, {DiscountRate[l,es,d]}, {LifeSpan[l,es,d,t]-1+t.val-tEnd.val})) # Discounted variable costs after tEnd (Assuming constant costs after tEnd)
+     (uTI[l,es,d,t] # Investment costs
+      + @Discount2t(uTC[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d,t], d1sqTPotential[l,es,d,tt]) # Discounted variable costs until tEnd
+      + (1/(1+DiscountRate[l,es,d]))**(1+tEnd.val-t.val)*@FiniteGeometricSeries({uTC[l,es,d,tEnd]}, {DiscountRate[l,es,d]}, {LifeSpan[l,es,d,t]-1+t.val-tEnd.val})) # Discounted variable costs after tEnd (Assuming constant costs after tEnd)
       / (@Discount2t(1, DiscountRate[l,es,d], LifeSpan[l,es,d,t], d1sqTPotential[l,es,d,tt]) # Discount denominator until tEnd
        + (1/(1+DiscountRate[l,es,d]))**(1+tEnd.val-t.val)*@FiniteGeometricSeries({1}, {DiscountRate[l,es,d]}, {LifeSpan[l,es,d,t]-1+t.val-tEnd.val})) # Discounted denominator after tEnd
        ; 
@@ -259,8 +259,8 @@ $IF %stage% == "exogenous_values":
 $GROUP energy_technology_data_variables
   sqTPotential[l,es,d,t]
   uTE[l,es,e,d,t]
-  vTI[l,es,d,t]
-  vTC[l,es,d,t]
+  uTI[l,es,d,t]
+  uTC[l,es,d,t]
   pTK[d,t]
   qES[es,d,t]
 
@@ -305,16 +305,16 @@ d1switch_integrate_energy_technology = 1;
 
 # 4.4 Starting values for Levelized Cost of Energy (LCOE)
 uTKexp.l[l,es,d,t]$(t.val <= tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,es,d,t]) =
-   (vTI.l[l,es,d,t] # Investment costs
-    + @Discount2t(vTC.l[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d,t], d1sqTPotential[l,es,d,tt])) # Discounted variable costs
+   (uTI.l[l,es,d,t] # Investment costs
+    + @Discount2t(uTC.l[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d,t], d1sqTPotential[l,es,d,tt])) # Discounted variable costs
       / @Discount2t(1, DiscountRate[l,es,d], LifeSpan[l,es,d,t], d1sqTPotential[l,es,d,tt]) # Dicounted denominator
       ;
 
   # Levelized cost of energy (LCOE) in technology l per PJ output at full potential
   uTKexp.l[l,es,d,t]$(t.val > tend.val-LifeSpan[l,es,d,t]+1 and d1sqTPotential[l,es,d,t]) =
-     (vTI.l[l,es,d,t] # Investment costs
-      + @Discount2t(vTC.l[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d,t], d1sqTPotential[l,es,d,tt]) # Discounted variable costs until tEnd
-      + (1/(1+DiscountRate[l,es,d]))**(1+tEnd.val-t.val)*@FiniteGeometricSeries({vTC.l[l,es,d,tEnd]}, {DiscountRate[l,es,d]}, {LifeSpan[l,es,d,t]-1+t.val-tEnd.val})) # Discounted variable costs after tEnd (Assuming constant costs after tEnd)
+     (uTI.l[l,es,d,t] # Investment costs
+      + @Discount2t(uTC.l[l,es,d,tt], DiscountRate[l,es,d], LifeSpan[l,es,d,t], d1sqTPotential[l,es,d,tt]) # Discounted variable costs until tEnd
+      + (1/(1+DiscountRate[l,es,d]))**(1+tEnd.val-t.val)*@FiniteGeometricSeries({uTC.l[l,es,d,tEnd]}, {DiscountRate[l,es,d]}, {LifeSpan[l,es,d,t]-1+t.val-tEnd.val})) # Discounted variable costs after tEnd (Assuming constant costs after tEnd)
       / (@Discount2t(1, DiscountRate[l,es,d], LifeSpan[l,es,d,t], d1sqTPotential[l,es,d,tt]) # Discount denominator until tEnd
        + (1/(1+DiscountRate[l,es,d]))**(1+tEnd.val-t.val)*@FiniteGeometricSeries({1}, {DiscountRate[l,es,d]}, {LifeSpan[l,es,d,t]-1+t.val-tEnd.val})) # Discounted denominator after tEnd
        ; 
