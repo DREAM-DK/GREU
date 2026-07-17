@@ -7,6 +7,7 @@
 import dreamtools as dt
 import os
 import pandas as pd
+from pathlib import Path
 
 ## Set local paths
 root = dt.find_root("LICENSE")
@@ -62,3 +63,7 @@ Var('uTE_input', data=uTE_input['uTE_input'], add_missing_domains=True)
 # Export data
 db.export('calibrate_Energy_technology_data_python.gdx')
 
+#if model has calibrated w.o. energy technology, construct datafile for inf, growth adjusting
+#qES,pTK in energy_technology model, otherwise, revert to default (inf/growth from main-DK):
+if Path('../../../model/Output/calibration.gdx').exists():
+    import get_inf_growth

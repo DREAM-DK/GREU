@@ -161,8 +161,16 @@ uTI[l,es,i,t]$(sqTPotential[l,es,i,t] and electrification_techs[l])
   / (1+0.1*@FiniteGeometricSeries({1}, {DiscountRate[l,es,i]}, {LifeSpan[l,es,i,t]}));
 
 uTC[l,es,i,t] = uTI[l,es,i,t]/10;
+#inflation and growth adjust pTK, qES respectively
+parameter 
+fpt[t] "inf_factor"
+fqt[t] "growth factor"
+;
 
-
+execute_load "Energy_technology_data/Generic_dummy_data/inf_growth.gdx" fpt=fpt;
+execute_load "Energy_technology_data/Generic_dummy_data/inf_growth.gdx" fqt=fqt;
+pTK[i,t]=pTK[i,t]*fpt[t];
+qES[es,d,t]=qES[es,d,t]*fqt[t];
 ## ----------------------------------------------------------------------------------------
 ## Updating dummies
 ## ----------------------------------------------------------------------------------------
