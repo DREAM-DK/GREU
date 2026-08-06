@@ -1,0 +1,86 @@
+{
+  "dataset": "nama_10_a64_e",
+  "source": "Eurostat dissemination API (statistics/1.0, JSON-stat 2.0)",
+  "base_url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data",
+  "retrieval_date": "2026-07-31",
+  "purpose": "Pilot reconciliation of nama_10_a64_e against the Danish GREU input employed.xlsx (DK 2020), plus SE-2020 and EU-27 coverage probes. See docs/eu_data_mapping.md.",
+  "files": [
+    {
+      "file": "nama_10_a64_e_DK_2020.json",
+      "dataset": "nama_10_a64_e",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_a64_e",
+      "params": {
+        "geo": "DK",
+        "time": "2020",
+        "lang": "en"
+      },
+      "note": "Denmark 2020, all units/na_item/nace_r2 as delivered.",
+      "bytes": 23134,
+      "sha256": "cec5f24194be08e34684a22c921bc06e9f10ef8ce0c9a5a721e9251e14bff1f4",
+      "retrieval_date": "2026-07-31",
+      "n_observations": 1112
+    },
+    {
+      "file": "nama_10_a64_e_SE_2020.json",
+      "dataset": "nama_10_a64_e",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_a64_e",
+      "params": {
+        "geo": "SE",
+        "time": "2020",
+        "lang": "en"
+      },
+      "note": "Sweden 2020 availability probe (public-core pilot country).",
+      "bytes": 22951,
+      "sha256": "e929e742e62e13473b5c8c042d485bb3e07fcaefd4e81157e85931f71f5ba428",
+      "retrieval_date": "2026-07-31",
+      "n_observations": 1009
+    },
+    {
+      "file": "nama_10_a64_e_eu27_coverage_probe_2020.json",
+      "dataset": "nama_10_a64_e",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_a64_e",
+      "params": {
+        "geo": [
+          "AT",
+          "BE",
+          "BG",
+          "CY",
+          "CZ",
+          "DE",
+          "DK",
+          "EE",
+          "EL",
+          "ES",
+          "FI",
+          "FR",
+          "HR",
+          "HU",
+          "IE",
+          "IT",
+          "LT",
+          "LU",
+          "LV",
+          "MT",
+          "NL",
+          "PL",
+          "PT",
+          "RO",
+          "SE",
+          "SI",
+          "SK"
+        ],
+        "time": "2020",
+        "unit": [
+          "THS_PER",
+          "THS_HW"
+        ],
+        "lang": "en"
+      },
+      "note": "EU-27 coverage probe 2020: THS_PER + THS_HW, all na_item, all nace_r2.",
+      "bytes": 202575,
+      "sha256": "414e6b85a303ef1b0fe23510e2513eeb90a5c805cdebba1c24c7ec68fda64165",
+      "retrieval_date": "2026-07-31",
+      "n_observations": 14198
+    }
+  ]
+}

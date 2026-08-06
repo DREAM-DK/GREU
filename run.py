@@ -1,6 +1,7 @@
 import sys
 import shutil
 import os
+from pathlib import Path
 import dreamtools as dt
 
 dt.gamY.automatic_dummy_suffix = "_exists_dummy"
@@ -14,10 +15,18 @@ os.environ["GAMS"] = "C:/GAMS/51/gams.exe"
 ## Set working directory
 os.chdir(fr"{root}/model")
 
+## Resolve and validate the monetary-energy compatibility layer
+from data.Modules.energy_money import get_energy_money_config
+energy_money_config = get_energy_money_config()
+energy_money_config.prepare_output_directory()
+
 ## Create data.gdx based on GreenREFORM-DK data 
 import data.Modules.financial_accounts.financial_accounts_data
 import data.preprocessing.read_data
-dt.gamY.run("../data/data_from_GR.gms")
+dt.gamY.run(
+    "../data/data_from_GR.gms",
+    energy_money_gdx=energy_money_config.gams_input_path(Path.cwd()),
+)
 
 ## Run the base CGE model - creating main_CGE.gdx
 dt.gamY.run("base_model.gms", s="saved/base_model", test_CGE="1")

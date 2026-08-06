@@ -1,0 +1,22 @@
+{
+  "approved_method": "transparent calibrated public-core engine",
+  "country": "SE",
+  "duty_rule": "aggregate non-VAT SUT product-tax wedge encoded in ener_tax; co2_tax/so2_tax/nox_tax/pso_tax zero unless directly supported",
+  "forbidden_inputs": [
+    "Danish monetary allocation shares",
+    "Danish energy-purpose shares",
+    "Danish marginal-tax GDX values"
+  ],
+  "industry_rule": "connected components of public NACE A64 to GREU schema map; one representative GREU code labels each whole cluster; never split A64",
+  "margin_rule": "combined SUT OTTM encoded wholly in ws_marg/EAV; ret_marg and mvs_marg are zero compatibility fields",
+  "marginal_rule": "allocated average ener_tax per PJ is assumed marginal in tEAFG_REmarg; tCO2_REmarg is zero because no defensible separate CO2 rate is observed at product-user grain",
+  "physical_rule": "PEFA TJ is the account control; converted to PJ; reporting-detail and supply/use residuals remain explicit",
+  "policy_version": "public_core_v1.0",
+  "purchaser_rule": "derived exactly as component sum",
+  "purpose_rule": "industry=unspecified; PEFA HH_HEAT/HH_TRA/HH_OTH retained as heating/transport/appliances",
+  "reference_year": 2020,
+  "reporting_detail_redirect_rule": "if PEFA has no USE row at all for any NACE code in a GREU industry cluster, that cluster's naio_10_cp16 CPA control is pooled with indu=res (the same bucket already holding its PEFA reporting-detail physical residual) instead of being left as unmatched residual against a zero-weight industry; industries PEFA does detail (e.g. financial/business services) are never redirected",
+  "retrieval_date": "2026-07-30",
+  "valuation_rule": "national SUT purchaser/basic/margin/net-product-tax controls; public price families form initial weights; block calibration closes available SUT controls",
+  "vat_rule": "25% statutory Sweden rate; households non-recoverable, businesses recoverable, exports zero; estimate capped by the SUT product-tax wedge and the difference retained as a calibration residual"
+}

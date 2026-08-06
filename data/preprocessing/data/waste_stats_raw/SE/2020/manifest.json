@@ -1,0 +1,459 @@
+{
+  "country": "SE",
+  "eu27_coverage": {
+    "env_ac_egss2": {
+      "countries_tested": 27,
+      "countries_with_observations": 26,
+      "missing": [
+        "LU"
+      ],
+      "probe_series": {
+        "ceparema": "CEPA3",
+        "na_item": "P1",
+        "nace_r2": "E",
+        "ty": "MKT",
+        "unit": "MIO_EUR"
+      }
+    },
+    "env_ac_pepsgg1": {
+      "countries_tested": 27,
+      "countries_with_observations": 27,
+      "missing": [],
+      "probe_series": {
+        "ceparema": "CEPA3",
+        "env_econ": "EPS_P1",
+        "unit": "MIO_EUR"
+      }
+    },
+    "env_ac_pepssp1": {
+      "countries_tested": 27,
+      "countries_with_observations": 27,
+      "missing": [],
+      "probe_series": {
+        "ceparema": "CEPA3",
+        "env_econ": "EPS_P11",
+        "unit": "MIO_EUR"
+      }
+    },
+    "env_wastrt": {
+      "countries_tested": 27,
+      "countries_with_observations": 26,
+      "missing": [
+        "AT"
+      ],
+      "probe_series": {
+        "hazard": "HAZ_NHAZ",
+        "unit": "T",
+        "waste": "TOT_X_MIN",
+        "wst_oper": "RCV_E"
+      }
+    },
+    "nrg_bal_c": {
+      "countries_tested": 27,
+      "countries_with_observations": 27,
+      "missing": [],
+      "probe_series": {
+        "nrg_bal": "TI_EHG_E",
+        "siec": "W6210",
+        "unit": "TJ"
+      }
+    },
+    "sbs_na_ind_r2": {
+      "countries_tested": 27,
+      "countries_with_observations": 25,
+      "missing": [
+        "CY",
+        "IE"
+      ],
+      "probe_series": {
+        "indic_sb": "V12120",
+        "nace_r2": "E38"
+      }
+    }
+  },
+  "negative_probes": [
+    {
+      "dataset": "sbs_ovw_act",
+      "http_status": 200,
+      "observations": 0,
+      "retrieval_date": "2026-07-31",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/sbs_ovw_act?geo=SE&time=2020&lang=en",
+      "verdict": "new SBS series; exists but has no 2020 observations"
+    },
+    {
+      "dataset": "sbs_sc_ovw",
+      "http_status": 200,
+      "observations": 0,
+      "retrieval_date": "2026-07-31",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/sbs_sc_ovw?geo=SE&time=2020&lang=en",
+      "verdict": "new SBS series; exists but has no 2020 observations"
+    },
+    {
+      "dataset": "env_ac_epneec",
+      "http_status": 404,
+      "observations": 0,
+      "retrieval_date": "2026-07-31",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_epneec?geo=SE&time=2020&lang=en",
+      "verdict": "guessed EPEA code; HTTP 404 (does not exist)"
+    },
+    {
+      "dataset": "env_ac_pepsnsp1",
+      "http_status": 404,
+      "observations": 0,
+      "retrieval_date": "2026-07-31",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pepsnsp1?geo=SE&time=2020&lang=en",
+      "verdict": "EPEA ancillary output of non-specialist producers; HTTP 404 (not published as a dissemination dataset)"
+    }
+  ],
+  "purpose": "characterize NACE E37-E39 output composition for the CPA_E37-E39 monetary residual feasibility probe",
+  "raw_files": [
+    {
+      "bytes": 5711,
+      "dimensions": [
+        "freq",
+        "nace_r2",
+        "indic_sb",
+        "geo",
+        "time"
+      ],
+      "file": "sbs_na_ind_r2_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 121,
+      "query_filters": {
+        "extra": [
+          [
+            "nace_r2",
+            "E"
+          ],
+          [
+            "nace_r2",
+            "E36"
+          ],
+          [
+            "nace_r2",
+            "E360"
+          ],
+          [
+            "nace_r2",
+            "E3600"
+          ],
+          [
+            "nace_r2",
+            "E37"
+          ],
+          [
+            "nace_r2",
+            "E370"
+          ],
+          [
+            "nace_r2",
+            "E3700"
+          ],
+          [
+            "nace_r2",
+            "E38"
+          ],
+          [
+            "nace_r2",
+            "E381"
+          ],
+          [
+            "nace_r2",
+            "E3811"
+          ],
+          [
+            "nace_r2",
+            "E3812"
+          ],
+          [
+            "nace_r2",
+            "E382"
+          ],
+          [
+            "nace_r2",
+            "E3821"
+          ],
+          [
+            "nace_r2",
+            "E3822"
+          ],
+          [
+            "nace_r2",
+            "E383"
+          ],
+          [
+            "nace_r2",
+            "E3831"
+          ],
+          [
+            "nace_r2",
+            "E3832"
+          ],
+          [
+            "nace_r2",
+            "E39"
+          ],
+          [
+            "nace_r2",
+            "E390"
+          ],
+          [
+            "nace_r2",
+            "E3900"
+          ],
+          [
+            "indic_sb",
+            "V11110"
+          ],
+          [
+            "indic_sb",
+            "V12110"
+          ],
+          [
+            "indic_sb",
+            "V12120"
+          ],
+          [
+            "indic_sb",
+            "V12130"
+          ],
+          [
+            "indic_sb",
+            "V12150"
+          ],
+          [
+            "indic_sb",
+            "V16110"
+          ],
+          [
+            "indic_sb",
+            "V18110"
+          ],
+          [
+            "indic_sb",
+            "V20110"
+          ]
+        ],
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-31",
+      "sha256": "45c6d80317130dc49be73f8e23a5ced29b9b2c6f6fcd1ade2cc42864ca46c0ff",
+      "source": "sbs_na_ind_r2",
+      "source_status": "official_direct_observation",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/sbs_na_ind_r2?geo=SE&time=2020&lang=en&nace_r2=E&nace_r2=E36&nace_r2=E360&nace_r2=E3600&nace_r2=E37&nace_r2=E370&nace_r2=E3700&nace_r2=E38&nace_r2=E381&nace_r2=E3811&nace_r2=E3812&nace_r2=E382&nace_r2=E3821&nace_r2=E3822&nace_r2=E383&nace_r2=E3831&nace_r2=E3832&nace_r2=E39&nace_r2=E390&nace_r2=E3900&indic_sb=V11110&indic_sb=V12110&indic_sb=V12120&indic_sb=V12130&indic_sb=V12150&indic_sb=V16110&indic_sb=V18110&indic_sb=V20110"
+    },
+    {
+      "bytes": 5414,
+      "dimensions": [
+        "freq",
+        "unit",
+        "hazard",
+        "nace_r2",
+        "waste",
+        "geo",
+        "time"
+      ],
+      "file": "env_wasgen_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 39,
+      "query_filters": {
+        "extra": [
+          [
+            "unit",
+            "T"
+          ],
+          [
+            "hazard",
+            "HAZ_NHAZ"
+          ],
+          [
+            "waste",
+            "TOTAL"
+          ],
+          [
+            "waste",
+            "TOT_X_MIN"
+          ]
+        ],
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-31",
+      "sha256": "35f3ea7c2a8dde5ce23e698aebfefbc976955f596cf4ca602a455413fb9b3196",
+      "source": "env_wasgen",
+      "source_status": "official_direct_observation",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_wasgen?geo=SE&time=2020&lang=en&unit=T&hazard=HAZ_NHAZ&waste=TOTAL&waste=TOT_X_MIN"
+    },
+    {
+      "bytes": 3583,
+      "dimensions": [
+        "freq",
+        "unit",
+        "hazard",
+        "wst_oper",
+        "waste",
+        "geo",
+        "time"
+      ],
+      "file": "env_wastrt_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 18,
+      "query_filters": {
+        "extra": [
+          [
+            "unit",
+            "T"
+          ],
+          [
+            "hazard",
+            "HAZ_NHAZ"
+          ],
+          [
+            "waste",
+            "TOTAL"
+          ],
+          [
+            "waste",
+            "TOT_X_MIN"
+          ]
+        ],
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-31",
+      "sha256": "1dd52f86bb0874bb5b27f56531ebd5ae5995ff4357333a577f6c99f900ee9482",
+      "source": "env_wastrt",
+      "source_status": "official_direct_observation",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_wastrt?geo=SE&time=2020&lang=en&unit=T&hazard=HAZ_NHAZ&waste=TOTAL&waste=TOT_X_MIN"
+    },
+    {
+      "bytes": 5337,
+      "dimensions": [
+        "freq",
+        "ceparema",
+        "env_econ",
+        "unit",
+        "geo",
+        "time"
+      ],
+      "file": "env_ac_pepsgg1_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 112,
+      "query_filters": {
+        "extra": [],
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-31",
+      "sha256": "664c0d0be012c0938b31ff4889558d83670c2e1798123c9d265385575db49583",
+      "source": "env_ac_pepsgg1",
+      "source_status": "official_direct_observation",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pepsgg1?geo=SE&time=2020&lang=en"
+    },
+    {
+      "bytes": 4925,
+      "dimensions": [
+        "freq",
+        "ceparema",
+        "env_econ",
+        "unit",
+        "geo",
+        "time"
+      ],
+      "file": "env_ac_pepssp1_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 44,
+      "query_filters": {
+        "extra": [],
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-31",
+      "sha256": "4826404e8707b88e38a46eb481d87d5f15c3b1cb26aa2d84ad08948c596057ce",
+      "source": "env_ac_pepssp1",
+      "source_status": "official_direct_observation",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pepssp1?geo=SE&time=2020&lang=en"
+    },
+    {
+      "bytes": 63147,
+      "dimensions": [
+        "freq",
+        "nace_r2",
+        "ceparema",
+        "na_item",
+        "ty",
+        "unit",
+        "geo",
+        "time"
+      ],
+      "file": "env_ac_egss2_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 3209,
+      "query_filters": {
+        "extra": [],
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-31",
+      "sha256": "a38f05f5532fcbff3fedc7cd6d87d0cae76b41e6fdb69924b319700b43b5d414",
+      "source": "env_ac_egss2",
+      "source_status": "official_direct_observation",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_egss2?geo=SE&time=2020&lang=en"
+    },
+    {
+      "bytes": 21977,
+      "dimensions": [
+        "freq",
+        "nrg_bal",
+        "siec",
+        "unit",
+        "geo",
+        "time"
+      ],
+      "file": "nrg_bal_c_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 274,
+      "query_filters": {
+        "extra": [
+          [
+            "unit",
+            "TJ"
+          ],
+          [
+            "siec",
+            "W6100"
+          ],
+          [
+            "siec",
+            "W6210"
+          ],
+          [
+            "siec",
+            "W6220"
+          ],
+          [
+            "siec",
+            "W6100_6220"
+          ]
+        ],
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-31",
+      "sha256": "5f6e67a470aab4a6cb7865a3cd66eb482c7ee35e57a8c50c4b952cd25b0e0d54",
+      "source": "nrg_bal_c",
+      "source_status": "official_direct_observation",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_bal_c?geo=SE&time=2020&lang=en&unit=TJ&siec=W6100&siec=W6210&siec=W6220&siec=W6100_6220"
+    }
+  ],
+  "reference_year": 2020,
+  "retrieval_date": "2026-07-31"
+}

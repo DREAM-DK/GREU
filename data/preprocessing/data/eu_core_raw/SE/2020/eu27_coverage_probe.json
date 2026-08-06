@@ -1,0 +1,2432 @@
+[
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "AT",
+    "year": "2020",
+    "available": true,
+    "observations": 9832,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=AT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "BE",
+    "year": "2020",
+    "available": true,
+    "observations": 9943,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=BE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "BG",
+    "year": "2020",
+    "available": true,
+    "observations": 9885,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=BG&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "HR",
+    "year": "2020",
+    "available": true,
+    "observations": 9787,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=HR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "CY",
+    "year": "2020",
+    "available": true,
+    "observations": 9848,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=CY&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "CZ",
+    "year": "2020",
+    "available": true,
+    "observations": 9791,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=CZ&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "DK",
+    "year": "2020",
+    "available": true,
+    "observations": 9904,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=DK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "EE",
+    "year": "2020",
+    "available": true,
+    "observations": 9833,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=EE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "FI",
+    "year": "2020",
+    "available": true,
+    "observations": 9825,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=FI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "FR",
+    "year": "2020",
+    "available": true,
+    "observations": 9884,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=FR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "DE",
+    "year": "2020",
+    "available": true,
+    "observations": 9892,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=DE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "EL",
+    "year": "2020",
+    "available": true,
+    "observations": 9866,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=EL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "HU",
+    "year": "2020",
+    "available": true,
+    "observations": 10004,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=HU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "IE",
+    "year": "2020",
+    "available": true,
+    "observations": 9856,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=IE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "IT",
+    "year": "2020",
+    "available": true,
+    "observations": 9886,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=IT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "LV",
+    "year": "2020",
+    "available": true,
+    "observations": 9829,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=LV&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "LT",
+    "year": "2020",
+    "available": true,
+    "observations": 9725,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=LT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "LU",
+    "year": "2020",
+    "available": true,
+    "observations": 9688,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=LU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "MT",
+    "year": "2020",
+    "available": true,
+    "observations": 9810,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=MT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "NL",
+    "year": "2020",
+    "available": true,
+    "observations": 9711,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=NL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "PL",
+    "year": "2020",
+    "available": true,
+    "observations": 9936,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=PL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "PT",
+    "year": "2020",
+    "available": true,
+    "observations": 9849,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=PT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "RO",
+    "year": "2020",
+    "available": true,
+    "observations": 9866,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=RO&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "SK",
+    "year": "2020",
+    "available": true,
+    "observations": 9799,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=SK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "SI",
+    "year": "2020",
+    "available": true,
+    "observations": 9768,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=SI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "ES",
+    "year": "2020",
+    "available": true,
+    "observations": 9854,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=ES&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_ainah_r2",
+    "geo": "SE",
+    "year": "2020",
+    "available": true,
+    "observations": 9925,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=SE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "AT",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=AT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "BE",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=BE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "BG",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=BG&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "HR",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=HR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "CY",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=CY&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "CZ",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=CZ&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "DK",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=DK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "EE",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=EE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "FI",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=FI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "FR",
+    "year": "2020",
+    "available": true,
+    "observations": 12006,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=FR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "DE",
+    "year": "2020",
+    "available": true,
+    "observations": 12090,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=DE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "EL",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=EL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "HU",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=HU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "IE",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=IE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "IT",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=IT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "LV",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=LV&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "LT",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=LT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "LU",
+    "year": "2020",
+    "available": true,
+    "observations": 12116,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=LU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "MT",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=MT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "NL",
+    "year": "2020",
+    "available": true,
+    "observations": 7186,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=NL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "PL",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=PL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "PT",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=PT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "RO",
+    "year": "2020",
+    "available": true,
+    "observations": 7150,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=RO&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "SK",
+    "year": "2020",
+    "available": true,
+    "observations": 7186,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=SK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "SI",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=SI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "ES",
+    "year": "2020",
+    "available": true,
+    "observations": 12124,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=ES&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_pefasu",
+    "geo": "SE",
+    "year": "2020",
+    "available": true,
+    "observations": 8924,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=SE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "AT",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=AT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "BE",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=BE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "BG",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=BG&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "HR",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=HR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "CY",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=CY&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "CZ",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=CZ&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "DK",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=DK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "EE",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=EE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "FI",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=FI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "FR",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=FR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "DE",
+    "year": "2020",
+    "available": true,
+    "observations": 606,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=DE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "EL",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=EL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "HU",
+    "year": "2020",
+    "available": true,
+    "observations": 762,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=HU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "IE",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=IE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "IT",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=IT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "LV",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=LV&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "LT",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=LT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "LU",
+    "year": "2020",
+    "available": true,
+    "observations": 672,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=LU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "MT",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=MT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "NL",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=NL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "PL",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=PL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "PT",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=PT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "RO",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=RO&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "SK",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=SK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "SI",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=SI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "ES",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=ES&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "env_ac_taxind2",
+    "geo": "SE",
+    "year": "2020",
+    "available": true,
+    "observations": 888,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=SE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "AT",
+    "year": "2020",
+    "available": true,
+    "observations": 10474,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=AT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "BE",
+    "year": "2020",
+    "available": true,
+    "observations": 24590,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=BE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "BG",
+    "year": "2020",
+    "available": false,
+    "observations": 0,
+    "error": "no observations or unexpected dimensions",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=BG&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "HR",
+    "year": "2020",
+    "available": true,
+    "observations": 5954,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=HR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "CY",
+    "year": "2020",
+    "available": true,
+    "observations": 10158,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=CY&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "CZ",
+    "year": "2020",
+    "available": true,
+    "observations": 24316,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=CZ&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "DK",
+    "year": "2020",
+    "available": true,
+    "observations": 22486,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=DK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "EE",
+    "year": "2020",
+    "available": true,
+    "observations": 10206,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=EE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "FI",
+    "year": "2020",
+    "available": true,
+    "observations": 3402,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=FI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "FR",
+    "year": "2020",
+    "available": true,
+    "observations": 10198,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=FR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "DE",
+    "year": "2020",
+    "available": true,
+    "observations": 10194,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=DE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "EL",
+    "year": "2020",
+    "available": true,
+    "observations": 10218,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=EL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "HU",
+    "year": "2020",
+    "available": true,
+    "observations": 24394,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=HU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "IE",
+    "year": "2020",
+    "available": true,
+    "observations": 6346,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=IE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "IT",
+    "year": "2020",
+    "available": true,
+    "observations": 10474,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=IT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "LV",
+    "year": "2020",
+    "available": true,
+    "observations": 10334,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=LV&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "LT",
+    "year": "2020",
+    "available": true,
+    "observations": 4592,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=LT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "LU",
+    "year": "2020",
+    "available": true,
+    "observations": 4402,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=LU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "MT",
+    "year": "2020",
+    "available": true,
+    "observations": 9452,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=MT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "NL",
+    "year": "2020",
+    "available": true,
+    "observations": 10474,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=NL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "PL",
+    "year": "2020",
+    "available": true,
+    "observations": 8818,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=PL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "PT",
+    "year": "2020",
+    "available": true,
+    "observations": 10474,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=PT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "RO",
+    "year": "2020",
+    "available": true,
+    "observations": 24394,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=RO&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "SK",
+    "year": "2020",
+    "available": true,
+    "observations": 23082,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=SK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "SI",
+    "year": "2020",
+    "available": true,
+    "observations": 10474,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=SI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "ES",
+    "year": "2020",
+    "available": true,
+    "observations": 10198,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=ES&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp15",
+    "geo": "SE",
+    "year": "2020",
+    "available": true,
+    "observations": 10200,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=SE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "AT",
+    "year": "2020",
+    "available": true,
+    "observations": 12080,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=AT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "BE",
+    "year": "2020",
+    "available": true,
+    "observations": 27604,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=BE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "BG",
+    "year": "2020",
+    "available": false,
+    "observations": 0,
+    "error": "no observations or unexpected dimensions",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=BG&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "HR",
+    "year": "2020",
+    "available": true,
+    "observations": 16926,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=HR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "CY",
+    "year": "2020",
+    "available": true,
+    "observations": 12008,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=CY&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "CZ",
+    "year": "2020",
+    "available": true,
+    "observations": 27560,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=CZ&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "DK",
+    "year": "2020",
+    "available": true,
+    "observations": 25370,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=DK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "EE",
+    "year": "2020",
+    "available": true,
+    "observations": 12044,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=EE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "FI",
+    "year": "2020",
+    "available": true,
+    "observations": 9628,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=FI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "FR",
+    "year": "2020",
+    "available": true,
+    "observations": 11566,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=FR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "DE",
+    "year": "2020",
+    "available": true,
+    "observations": 11768,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=DE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "EL",
+    "year": "2020",
+    "available": true,
+    "observations": 12084,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=EL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "HU",
+    "year": "2020",
+    "available": true,
+    "observations": 27566,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=HU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "IE",
+    "year": "2020",
+    "available": true,
+    "observations": 7322,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=IE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "IT",
+    "year": "2020",
+    "available": true,
+    "observations": 12200,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=IT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "LV",
+    "year": "2020",
+    "available": true,
+    "observations": 12060,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=LV&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "LT",
+    "year": "2020",
+    "available": true,
+    "observations": 16668,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=LT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "LU",
+    "year": "2020",
+    "available": true,
+    "observations": 7320,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=LU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "MT",
+    "year": "2020",
+    "available": true,
+    "observations": 11002,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=MT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "NL",
+    "year": "2020",
+    "available": true,
+    "observations": 12212,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=NL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "PL",
+    "year": "2020",
+    "available": true,
+    "observations": 10426,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=PL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "PT",
+    "year": "2020",
+    "available": true,
+    "observations": 12212,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=PT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "RO",
+    "year": "2020",
+    "available": true,
+    "observations": 27354,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=RO&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "SK",
+    "year": "2020",
+    "available": true,
+    "observations": 25738,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=SK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "SI",
+    "year": "2020",
+    "available": true,
+    "observations": 12212,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=SI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "ES",
+    "year": "2020",
+    "available": true,
+    "observations": 11938,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=ES&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "naio_10_cp16",
+    "geo": "SE",
+    "year": "2020",
+    "available": true,
+    "observations": 12200,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=SE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "AT",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=AT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "BE",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=BE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "BG",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=BG&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "HR",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=HR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "CY",
+    "year": "2020",
+    "available": false,
+    "observations": 0,
+    "error": "no observations or unexpected dimensions",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=CY&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "CZ",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=CZ&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "DK",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=DK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "EE",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=EE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "FI",
+    "year": "2020",
+    "available": false,
+    "observations": 0,
+    "error": "no observations or unexpected dimensions",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=FI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "FR",
+    "year": "2020",
+    "available": true,
+    "observations": 156,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=FR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "DE",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=DE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "EL",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=EL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "HU",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=HU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "IE",
+    "year": "2020",
+    "available": true,
+    "observations": 252,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=IE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "IT",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=IT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "LV",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=LV&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "LT",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=LT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "LU",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=LU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "MT",
+    "year": "2020",
+    "available": false,
+    "observations": 0,
+    "error": "no observations or unexpected dimensions",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=MT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "NL",
+    "year": "2020",
+    "available": true,
+    "observations": 252,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=NL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "PL",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=PL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "PT",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=PT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "RO",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=RO&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "SK",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=SK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "SI",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=SI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "ES",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=ES&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_202_c",
+    "geo": "SE",
+    "year": "2020",
+    "available": true,
+    "observations": 150,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=SE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "AT",
+    "year": "2020",
+    "available": true,
+    "observations": 336,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=AT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "BE",
+    "year": "2020",
+    "available": true,
+    "observations": 336,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=BE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "BG",
+    "year": "2020",
+    "available": true,
+    "observations": 288,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=BG&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "HR",
+    "year": "2020",
+    "available": true,
+    "observations": 240,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=HR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "CY",
+    "year": "2020",
+    "available": false,
+    "observations": 0,
+    "error": "no observations or unexpected dimensions",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=CY&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "CZ",
+    "year": "2020",
+    "available": true,
+    "observations": 288,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=CZ&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "DK",
+    "year": "2020",
+    "available": true,
+    "observations": 288,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=DK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "EE",
+    "year": "2020",
+    "available": true,
+    "observations": 336,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=EE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "FI",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=FI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "FR",
+    "year": "2020",
+    "available": true,
+    "observations": 336,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=FR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "DE",
+    "year": "2020",
+    "available": true,
+    "observations": 336,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=DE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "EL",
+    "year": "2020",
+    "available": true,
+    "observations": 336,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=EL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "HU",
+    "year": "2020",
+    "available": true,
+    "observations": 336,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=HU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "IE",
+    "year": "2020",
+    "available": true,
+    "observations": 441,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=IE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "IT",
+    "year": "2020",
+    "available": true,
+    "observations": 336,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=IT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "LV",
+    "year": "2020",
+    "available": true,
+    "observations": 240,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=LV&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "LT",
+    "year": "2020",
+    "available": true,
+    "observations": 336,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=LT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "LU",
+    "year": "2020",
+    "available": true,
+    "observations": 192,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=LU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "MT",
+    "year": "2020",
+    "available": false,
+    "observations": 0,
+    "error": "no observations or unexpected dimensions",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=MT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "NL",
+    "year": "2020",
+    "available": true,
+    "observations": 441,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=NL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "PL",
+    "year": "2020",
+    "available": true,
+    "observations": 288,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=PL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "PT",
+    "year": "2020",
+    "available": true,
+    "observations": 288,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=PT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "RO",
+    "year": "2020",
+    "available": true,
+    "observations": 336,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=RO&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "SK",
+    "year": "2020",
+    "available": true,
+    "observations": 288,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=SK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "SI",
+    "year": "2020",
+    "available": true,
+    "observations": 240,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=SI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "ES",
+    "year": "2020",
+    "available": true,
+    "observations": 336,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=ES&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_203_c",
+    "geo": "SE",
+    "year": "2020",
+    "available": true,
+    "observations": 120,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=SE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "AT",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=AT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "BE",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=BE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "BG",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=BG&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "HR",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=HR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "CY",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=CY&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "CZ",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=CZ&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "DK",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=DK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "EE",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=EE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "FI",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=FI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "FR",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=FR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "DE",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=DE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "EL",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=EL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "HU",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=HU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "IE",
+    "year": "2020",
+    "available": true,
+    "observations": 147,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=IE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "IT",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=IT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "LV",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=LV&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "LT",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=LT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "LU",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=LU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "MT",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=MT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "NL",
+    "year": "2020",
+    "available": true,
+    "observations": 270,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=NL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "PL",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=PL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "PT",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=PT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "RO",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=RO&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "SK",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=SK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "SI",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=SI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "ES",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=ES&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_204_c",
+    "geo": "SE",
+    "year": "2020",
+    "available": true,
+    "observations": 132,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=SE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "AT",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=AT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "BE",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=BE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "BG",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=BG&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "HR",
+    "year": "2020",
+    "available": true,
+    "observations": 189,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=HR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "CY",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=CY&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "CZ",
+    "year": "2020",
+    "available": true,
+    "observations": 189,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=CZ&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "DK",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=DK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "EE",
+    "year": "2020",
+    "available": true,
+    "observations": 189,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=EE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "FI",
+    "year": "2020",
+    "available": true,
+    "observations": 189,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=FI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "FR",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=FR&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "DE",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=DE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "EL",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=EL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "HU",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=HU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "IE",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=IE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "IT",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=IT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "LV",
+    "year": "2020",
+    "available": true,
+    "observations": 189,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=LV&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "LT",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=LT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "LU",
+    "year": "2020",
+    "available": true,
+    "observations": 162,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=LU&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "MT",
+    "year": "2020",
+    "available": true,
+    "observations": 189,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=MT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "NL",
+    "year": "2020",
+    "available": true,
+    "observations": 342,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=NL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "PL",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=PL&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "PT",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=PT&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "RO",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=RO&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "SK",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=SK&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "SI",
+    "year": "2020",
+    "available": true,
+    "observations": 189,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=SI&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "ES",
+    "year": "2020",
+    "available": true,
+    "observations": 216,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=ES&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "dataset": "nrg_pc_205_c",
+    "geo": "SE",
+    "year": "2020",
+    "available": true,
+    "observations": 153,
+    "error": "",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=SE&time=2020&lang=en",
+    "retrieval_date": "2026-07-30"
+  }
+]

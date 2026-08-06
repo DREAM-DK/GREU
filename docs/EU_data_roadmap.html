@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GREU → EU Framework: Data Roadmap</title>
+<style>
+  @page { size: A4; margin: 14mm 13mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 9.3pt; line-height: 1.42; color: #1a2332;
+  }
+  h1 { font-size: 19pt; font-weight: 700; letter-spacing: -.3pt; }
+  .subtitle { font-size: 10pt; color: #5a6b80; margin-top: 2pt; }
+  .titlebar { border-bottom: 3px solid #1f4e79; padding-bottom: 8pt; margin-bottom: 10pt;
+              display: flex; justify-content: space-between; align-items: flex-end; }
+  .titlebar .date { font-size: 9pt; color: #5a6b80; text-align: right; }
+  h2 { font-size: 12pt; color: #1f4e79; margin: 13pt 0 5pt;
+       border-bottom: 1px solid #c9d4e0; padding-bottom: 2pt; }
+  h2 .num { display: inline-block; background: #1f4e79; color: #fff; border-radius: 3px;
+            width: 15pt; text-align: center; margin-right: 5pt; font-size: 10pt; }
+  h2 .hint { float: right; font-size: 8pt; font-weight: 400; color: #7a8798;
+             text-transform: uppercase; letter-spacing: .4pt; padding-top: 3pt; }
+  p { margin: 3pt 0; }
+  .lead { font-size: 9.8pt; }
+  .src { font-family: Consolas, monospace; font-size: 8.4pt; background: #eef2f7;
+         padding: 0 3pt; border-radius: 2px; white-space: nowrap; }
+  table { border-collapse: collapse; width: 100%; margin-top: 5pt; }
+  th { background: #1f4e79; color: #fff; font-size: 8.2pt; text-transform: uppercase;
+       letter-spacing: .4pt; padding: 3.5pt 5pt; text-align: left; }
+  td { border-bottom: 1px solid #dde4ec; padding: 3.5pt 5pt; vertical-align: top; font-size: 8.7pt; }
+  tr:nth-child(even) td { background: #f6f8fb; }
+  .verdict { font-weight: 700; font-size: 8pt; padding: 1pt 5pt; border-radius: 8px; white-space: nowrap; }
+  .ok      { background: #d9efd9; color: #1e6b1e; }
+  .coarser { background: #fdeeca; color: #8a6100; }
+  .gap     { background: #fadcd9; color: #a52a1c; }
+  .kept    { background: #e4e8ee; color: #4a5768; }
+  .caption { font-size: 7.9pt; color: #7a8798; margin-top: 4pt; font-style: italic; }
+  .cards { display: flex; gap: 7pt; margin-top: 6pt; }
+  .card { flex: 1; border: 1px solid #c9d4e0; border-top: 3px solid #a52a1c;
+          border-radius: 4px; padding: 6pt 7pt; background: #fdfdfe; }
+  .card h3 { font-size: 9.5pt; margin-bottom: 3pt; color: #a52a1c; }
+  .card p { font-size: 8.5pt; }
+  ul.clean { list-style: none; margin-top: 4pt; }
+  ul.clean li { margin: 3.5pt 0; padding-left: 0; }
+  .cb { display: inline-block; width: 9pt; height: 9pt; border: 1.4pt solid #1f4e79;
+        border-radius: 2px; margin-right: 6pt; vertical-align: -1pt; }
+  .cb.done { background: #1f4e79; position: relative; }
+  .cb.done::after { content: "✓"; color: #fff; font-size: 7.5pt; position: absolute; top: -1.5pt; left: 1pt; }
+  .done-txt { color: #5a6b80; }
+  .phase { font-weight: 700; color: #1f4e79; margin-top: 7pt; font-size: 9.5pt; }
+  .q { border-left: 3px solid #c9840a; background: #fdf6e3; padding: 5pt 8pt; margin: 5pt 0; border-radius: 0 4px 4px 0; }
+  .q b { color: #8a6100; }
+  .q .status { float: right; font-size: 8pt; color: #8a6100; }
+  .twocol { display: flex; gap: 12pt; }
+  .twocol > div { flex: 1; }
+  .footer { margin-top: 12pt; padding-top: 5pt; border-top: 1px solid #c9d4e0;
+            font-size: 7.8pt; color: #7a8798; display: flex; justify-content: space-between; }
+  .pagebreak { break-before: page; }
+  .card, .evidence, .q, .fstep, pre.pipe, .statgrid { break-inside: avoid; }
+  h2 { break-after: avoid; }
+  thead { display: table-header-group; }
+  .kbd { font-size: 8.3pt; color: #5a6b80; }
+  .statgrid { display: flex; gap: 7pt; margin-top: 6pt; }
+  .stat { flex: 1; border: 1px solid #c9d4e0; border-radius: 4px; padding: 5pt 8pt; text-align: center; }
+  .stat .big { font-size: 15pt; font-weight: 700; color: #1f4e79; }
+  .stat .lbl { font-size: 7.8pt; color: #5a6b80; text-transform: uppercase; letter-spacing: .3pt; }
+  pre.pipe { font-family: Consolas, monospace; font-size: 7.1pt; line-height: 1.5;
+             background: #f6f8fb; border: 1px solid #dde4ec; border-radius: 4px;
+             padding: 6pt 7pt; margin-top: 5pt; overflow: hidden; }
+  pre.pipe b { color: #1f4e79; }
+  .funnel { display: flex; gap: 5pt; margin-top: 6pt; align-items: stretch; }
+  .fstep { flex: 1; border: 1px solid #c9d4e0; border-radius: 4px; padding: 5pt 7pt; background: #fdfdfe; }
+  .fstep .n { font-size: 13pt; font-weight: 700; color: #1f4e79; }
+  .fstep .t { font-size: 7.9pt; color: #5a6b80; text-transform: uppercase; letter-spacing: .3pt; }
+  .fstep .d { font-size: 8.1pt; margin-top: 2pt; }
+  .arrow { align-self: center; color: #9aa8b8; font-size: 12pt; font-weight: 700; }
+  table.gloss td { font-size: 8.3pt; padding: 2.4pt 5pt; }
+  table.gloss td:first-child { font-weight: 700; color: #1f4e79; white-space: nowrap; width: 15%; }
+  .evidence { border: 1px solid #b9d4b9; background: #f2f9f2; border-radius: 4px;
+              padding: 6pt 8pt; margin-top: 6pt; }
+  .evidence h3 { font-size: 9.5pt; color: #1e6b1e; margin-bottom: 2pt; }
+  .evidence p { font-size: 8.5pt; }
+  .verified { border-left: 3px solid #2f7d32; background: #f2f9f2; padding: 5pt 8pt;
+              margin: 5pt 0; border-radius: 0 4px 4px 0; }
+  .open { border-left: 3px solid #c9840a; background: #fdf6e3; padding: 5pt 8pt;
+          margin: 5pt 0; border-radius: 0 4px 4px 0; }
+  .why { border: 1px solid #b8cce0; background: #f3f7fb; border-radius: 4px;
+         padding: 6pt 8pt; margin: 6pt 0; }
+  .tag { display: inline-block; font-size: 7.4pt; font-weight: 700; text-transform: uppercase;
+         letter-spacing: .35pt; padding: 1pt 5pt; border-radius: 7px; margin-right: 4pt; }
+  .tag.v { color: #1e6b1e; background: #d9efd9; }
+  .tag.o { color: #8a6100; background: #fdeeca; }
+</style>
+</head>
+<body>
+
+<div class="titlebar">
+  <div>
+    <h1>GREU → EU Framework</h1>
+    <div class="subtitle">Data roadmap &amp; progress tracker — replacing Statistics Denmark with EU-wide sources</div>
+  </div>
+  <div class="date">Status: 31 July 2026<br>DREAM · GREU</div>
+</div>
+
+<p class="lead"><b>Goal:</b> a version of GREU that any EU member state can run, using only data
+available for all EU countries — primarily <b>Eurostat</b> and <b>JRC FIGARO</b> — while staying as
+close as possible to the Danish model's structure and detail. The Danish input files define the
+target; the work is refilling them from EU sources.
+<b>New to this?</b> §§1–2 explain the model and specialist terms; §4 maps each input to an EU
+source; §6 gives the verified pilot evidence.</p>
+
+<div class="why"><b>What has been proven so far:</b> five Denmark-2020 pilots tested the economic,
+physical-energy, emissions, energy-purpose, and monetary-energy layers. FIGARO reproduces main national-account totals
+to within 0.1%; Eurostat PEFA reproduces comparable physical energy to within 0.61%; and JRC-IDEES
+reproduces the combined industrial process envelope to within 3.05%. The public Union Registry then
+reproduces GREU's ETS totals within 0.007% and reveals how its “bought allowances” were derived.
+The fifth pilot shows that public monetary sources are <b>controls, not a direct replacement</b>:
+0% of nonzero GREU monetary energy cells has every required component observed at the necessary grain.
+The approved calibrated method has now produced the first non-Danish package:
+<b>Sweden 2020 public_core passes its workbook/GDX contract</b> without Danish values or shares.
+It balances 4,611.0794 PJ and 610.583 bn SEK, while visibly retaining 1,765.088 PJ of
+reporting-detail residual and 118.844 bn SEK of unmatched broad SUT controls (narrowed from
+299.131 bn SEK on 31 July, plus a newly-disclosed 102.567 bn SEK supply-side residual —
+see §6). Two same-day evidence pilots (PRODCOM and waste statistics, 31 July) then showed the
+two largest residual pieces are <b>overwhelmingly non-energy money</b> — real spending on
+non-energy goods and services sharing a broad category with energy, not hidden energy value
+(§6). What remains is chiefly
+<i>classification and construction</i>: exact industry-purpose energy in PJ (including
+<span class="src">in_ETS</span>), narrower product controls, investment matrices, and conversion
+of the model's other still-Danish inputs. That conversion has now started: a sixth Denmark
+pilot (31 July) tested the smallest remaining input — <b>employment</b> — and Eurostat
+reproduces its load-bearing content essentially exactly (hours match to the rounding digit;
+see §6), confirming the first “OK” verdict of the new one-input-per-increment
+parameterization phase.</div>
+
+<div class="verified"><span class="tag v">Sweden package accepted · compatibility boundary only</span>
+The monetary-energy interface will use a <b>coarser public-EU core</b> with an
+<b>optional detailed country layer</b>. In plain language, every country gets the
+same public-data ceiling; a country may add better national detail, but that detail must
+be explicit, validated and reproducible. Denmark remains the default detailed layer, so
+the current run is unchanged. A public-core run fails if its generated country package is
+missing—there is no hidden fallback to Danish files or shares. Sweden's package validates
+workbook sheets, columns, unique keys and a complete marginal-rate GDX. Monetary cells are
+clearly labelled calibrated/modelled: 0 are direct and 117 nonzero use cells are modelled.
+This is <b>not a full Sweden model run</b>; unrelated IO, employment, assets, government,
+emissions and other inputs in the current preprocessing remain Danish.</div>
+
+<p class="caption"><span class="tag v">Verified</span> means downloaded and reconciled numerically.
+<span class="tag o">Open</span> means a decision, construction method, or source/vintage explanation
+is still needed. Technical audit tables and scripts remain in
+<span class="src">docs/eu_data_mapping.md</span> and the linked reconciliation workbooks.</p>
+
+<div class="statgrid">
+  <div class="stat"><div class="big">12</div><div class="lbl">Danish inputs to replace</div></div>
+  <div class="stat"><div class="big">4</div><div class="lbl">Direct EU counterpart (OK)</div></div>
+  <div class="stat"><div class="big">6</div><div class="lbl">Available but coarser</div></div>
+  <div class="stat"><div class="big">4</div><div class="lbl">Structural gaps to build</div></div>
+  <div class="stat"><div class="big">24</div><div class="lbl">Source codes confirmed</div></div>
+</div>
+<p class="caption"><b>24 source codes</b> = the previous 20 plus four annual gas/electricity
+price-component datasets. The monetary pilot also moved the national SUT and environmental-tax codes
+from existence-only to numerically tested controls. The 3 FIGARO codes were proven end-to-end on 29 Jul.
+The 31 Jul residual pilots additionally live-verified PRODCOM (<span class="src">DS-059358</span> on the
+Comext API) and five waste-statistics datasets as evidence sources; these are not counted in the 24.
+The 31 Jul employment pilot moved <span class="src">nama_10_a64_e</span> from existence-only to
+numerically tested.
+The OK / coarser / gap counts sum to <b>14</b>, not 12, because two input files split across
+several rows in §2 — their components come from different EU sources.
+Audit trail: §"Audit log" in <span class="src">docs/eu_data_mapping.md</span>.</p>
+
+<h2><span class="num">1</span>Orientation<span class="hint">read this first if the files are new to you</span></h2>
+
+<p>GREU is a GAMS model of the Danish economy and its energy use / emissions. It never reads Excel
+directly: a Python preprocessing step turns the input workbooks into
+<span class="src">data.gdx</span>, and the model reads <b>only</b> that file. Everything in this
+roadmap is about the left-hand end of that chain.</p>
+
+<pre class="pipe">  selected energy-money layer ──► <b>validate</b> ──► <b>read_data.py</b> ──► data_&lt;CC&gt;.gdx ──┐
+  (DK detail by default; public core fails closed)                                      ├──► <b>data_from_GR.gms</b> ──► <b>data.gdx</b> ──► GREU
+  Eurostat, live ──► financial_accounts_data.py ──► fin_acc.gdx ────────────────────────┘      same symbols + tests</pre>
+<p class="caption">Traced end-to-end 28 Jul. <span class="src">data_from_GR.gms</span> is the natural
+integration point for EU data. Implemented 30 Jul: only the two monetary-energy workbook paths, the
+complete marginal-rate GDX and generated country GDX are configurable; all unrelated transformations
+remain unchanged. The financial-accounts branch already pulls Eurostat live (PR #107) — it is out of
+scope as a work stream but is the in-repo <b>template</b> every replacement should copy.</p>
+
+<p style="margin-top:6pt"><b>How many input files, exactly?</b> The folder listing is misleading, so
+the count narrows in three steps:</p>
+
+<div class="funnel">
+  <div class="fstep"><div class="n">16</div><div class="t">Excel files in the folder</div>
+    <div class="d">as shipped, in <span class="src">data/preprocessing/data/</span></div></div>
+  <div class="arrow">−4</div>
+  <div class="fstep"><div class="n">13</div><div class="t">Inputs actually consumed</div>
+    <div class="d">12 .xlsx + <span class="src">EU_GR_data.gdx</span>. The 4 dropped are
+    <span class="src">*_matrix_format.xlsx</span> — pivot views of the corresponding
+    <span class="src">*_long_format</span> files, read by <b>no code in the repo</b>.</div></div>
+  <div class="arrow">−1</div>
+  <div class="fstep"><div class="n">12</div><div class="t">Need an EU source</div>
+    <div class="d">= 11 .xlsx + the .gdx. <span class="src">metadata.xlsx</span> is consumed but
+    <b>kept</b>: it is the concordance file, not Danish data.</div></div>
+</div>
+<p class="caption"><b>Careful:</b> two different "12"s appear in the older notes — <i>12 Excel files
+consumed</i> (includes metadata.xlsx) and <i>12 inputs to replace</i> (11 Excel + the gdx). Same
+number, different sets. — The 4 matrix views are excluded because they are derived from files already
+in scope; if any human workflow relies on them, the EU pipeline should <b>regenerate</b> them (it is
+just a pivot). Note <span class="src">io_invest_matrix_format</span> exists per year (2019, 2020)
+where the long format carries both, so the mirror is not lossless there.</p>
+
+<h2><span class="num">2</span>Vocabulary<span class="hint">the acronyms used throughout</span></h2>
+<table class="gloss">
+  <tr><td>NACE / A64</td><td>The EU industry classification. <b>A64</b> is the 64-industry breakdown Eurostat publishes — the effective ceiling on industry detail. GREU has 57 industries, some of which split a single A64 code further.</td></tr>
+  <tr><td>CPA</td><td>The product classification paired with NACE (what is produced, rather than who produces it).</td></tr>
+  <tr><td>COICOP</td><td>Classification of household consumption by purpose. GREU's 12 consumption groups map onto it.</td></tr>
+  <tr><td>ESA 2010</td><td>The EU national-accounts standard. Its transaction codes appear everywhere: <span class="src">P3</span> consumption, <span class="src">P51g</span> investment, <span class="src">D1</span> compensation of employees, <span class="src">D21</span> product taxes.</td></tr>
+  <tr><td>SUT / IOT</td><td>Supply-and-use tables / input-output table — who buys what from whom. GREU's IOT is <b>industry-by-industry</b>.</td></tr>
+  <tr><td>FIGARO</td><td>Eurostat/JRC inter-country input-output tables: every EU country on one consistent basis, 2010–2024, 64×64, all members + 18 partners + RoW. The backbone of the EU version.</td></tr>
+  <tr><td>PEFA</td><td>Physical Energy Flow Accounts — energy in physical units (PJ) by industry and product. The EU counterpart to the physical side of the Danish energy data.</td></tr>
+  <tr><td>Basic → purchaser price</td><td>The monetary “price ladder”. GREU starts from producer/basic value, adds three trade margins, five named energy taxes and VAT, and reaches what the user pays. The model sums those components itself; a final retail price alone is not enough.</td></tr>
+  <tr><td>Residence principle</td><td>Energy/emission accounts count <b>resident operators</b> wherever they are (so Danish ships abroad are in), unlike territorial UNFCCC inventories. The difference is the "bridge items".</td></tr>
+  <tr><td>EUTL / Union Registry</td><td>The European Commission's public registry of EU ETS installations, verified emissions, free allocation and surrendered units. It publishes anonymous daily bulk files. Its activity codes describe regulated processes; they are <b>not NACE industry codes</b>.</td></tr>
+  <tr><td>JRC-IDEES</td><td>JRC's open analytical energy end-use database. The current JRC-IDEES-2023 v1 covers every EU member state annually for 2000–2023. Its detailed processes are estimated while constrained to Eurostat energy-balance totals.</td></tr>
+  <tr><td>SDMX</td><td>The API through which Eurostat serves data; how our download scripts fetch it.</td></tr>
+  <tr><td>.gdx</td><td>GAMS's binary data format — the handover format between the Python preprocessing and the model.</td></tr>
+  <tr><td>GFCF</td><td><b>Gross Fixed Capital Formation</b> — the national-accounts term for investment spending (buying buildings, machinery, vehicles, etc. that will be used for years). It is the input needed to build GREU's investment matrices.</td></tr>
+  <tr><td>RAS</td><td>A standard matrix-balancing technique (named after its inventors) that adjusts a whole matrix of numbers just enough to match new row and column totals, while disturbing the original pattern as little as possible. Used to fit a starting matrix (e.g. Denmark's) to a different country's published totals.</td></tr>
+  <tr><td>DG TAXUD</td><td>The European Commission's Directorate-General for Taxation and Customs Union — the official source for EU VAT and excise-duty rate tables used to check Sweden's VAT rate.</td></tr>
+  <tr><td>CPA product codes<br><span class="kbd">(e.g. CPA_B05, CPA_C16, CPA_E37-E39)</span></td><td>Codes from the EU's product classification (paired with NACE, see above). <span class="src">CPA_B05</span>/<span class="src">B06</span> = coal and crude-oil extraction; <span class="src">CPA_C16</span> = wood products; <span class="src">CPA_E37-E39</span> = sewerage/waste/remediation services. These specific codes matter because Sweden's national accounts group energy products together with unrelated ones under them — see §5① and §7 Q7.</td></tr>
+</table>
+
+<h2><span class="num">3</span>What we start from</h2>
+<p>The team has already built concordances in <span class="src">metadata.xlsx</span>: GREU's 57 industries → NACE&nbsp;A64,
+12 consumption groups → 4-digit COICOP, 25 energy products → PEFA codes, flows/sectors/assets → ESA-2010.
+<b>The target structure is thus already expressed in EU vocabulary</b> — the work is sourcing EU data on the
+right-hand side of each map, not inventing the maps.
+The Danish energy data semantics are separately verified and documented in
+<span class="src">data/preprocessing/data/energy_data_notes.md</span>, and the official
+<span class="src">GREU data documentation.pdf</span> (9 pp., in the data folder) describes the Danish
+inputs as built — its §1.2.3 itself lists the Eurostat databases publishing the same aggregates,
+which is an endorsement of the route this roadmap takes.
+<b>Scope: the contents of <span class="src">data/preprocessing/data/</span> only.</b> Adjacent streams —
+the technology catalogue and the financial-accounts module — are out of scope.</p>
+
+<h2><span class="num">4</span>Source mapping — Danish input → EU source<span class="hint">the core table</span></h2>
+<table>
+  <tr><th style="width:22%">Danish input</th><th style="width:33%">EU source</th><th style="width:9%">Verdict</th><th>Main gap / note</th></tr>
+  <tr><td>Full IO table<br><span class="kbd">io_long_format</span></td>
+      <td>FIGARO ind×ind IO; national SUT <span class="src">naio_10_cp15/16/1750</span></td>
+      <td><span class="verdict coarser">COARSER</span></td>
+      <td>GREU industries that split one NACE code need splitting keys</td></tr>
+  <tr><td>Energy IO (money)<br><span class="kbd">io_energy_long_format</span></td>
+      <td>None — construct: PEFA physical flows × approved price/tax layer, calibrated to SUT and public price/tax controls</td>
+      <td><span class="verdict gap">GAP</span></td>
+      <td>Sweden public core built: 0 direct / 117 modelled use cells; 118.844 bn SEK explicit unmatched use-side SUT residual (narrowed from 299.131 bn SEK, 31 Jul), plus 102.567 bn SEK newly-disclosed supply-side residual. 31 Jul pilots: the two largest residual pieces are evidence-backed as ≥98.5% (wood products) and ≥85% (waste/sewerage) non-energy — see §6.</td></tr>
+  <tr><td>Energy &amp; emissions<br><span class="kbd">energy_and_emissions</span></td>
+      <td>PEFA <span class="src">env_ac_pefasu</span>, balances <span class="src">nrg_bal_c</span>, emissions <span class="src">env_ac_ainah_r2</span></td>
+      <td><span class="verdict coarser">COARSER</span></td>
+      <td>PEFA total −0.61%; IDEES process envelope +3.05%. Exact industry purposes still require rules; ETS status and own-account transport are not identified</td></tr>
+  <tr><td>Price decomposition<br><span class="kbd">margins, 5 taxes, VAT</span></td>
+      <td>National SUT <span class="src">cp15/cp16</span>; <span class="src">env_ac_taxind2</span>; electricity/gas components; EC Oil Bulletin; TAXUD rates</td>
+      <td><span class="verdict gap">GAP</span></td>
+      <td>SUT combines margins/net taxes; payer totals lack products; retail prices lack NACE/purpose; VAT lacks the taxable base. Allocation must be modelled explicitly.</td></tr>
+  <tr><td>Non-energy emissions<br><span class="kbd">non_energy_emissions</span></td>
+      <td><span class="src">env_ac_ainah_r2</span> (totals incl. F-gases)</td>
+      <td><span class="verdict coarser">COARSER</span></td>
+      <td>Energy/non-energy split derived: total − (fuel use × emission factors)</td></tr>
+  <tr><td>Emissions bridge items<br><span class="kbd">emissions_bridge_items</span></td>
+      <td><span class="src">env_ac_aibrid_r2</span> — exact concept match</td>
+      <td><span class="verdict ok">OK</span></td>
+      <td>Built for precisely this purpose</td></tr>
+  <tr><td>Employment &amp; hours<br><span class="kbd">employed</span></td>
+      <td><span class="src">nama_10_a64_e</span> (persons + hours, A64; self-employed published directly, total − employees only where suppressed)</td>
+      <td><span class="verdict ok">OK</span></td>
+      <td><b>Pilot done 31 Jul:</b> hours — the only per-industry content the model uses — reconcile essentially exactly (national total to the rounding digit; 24 of 28 clusters exact). Persons carry a uniform +3.52% concept gap affecting only one national scalar (Q8). Six countries publish hours at coarser industry detail (mild workaround, see §6); L↔68203 split still open.</td></tr>
+  <tr><td>Fixed assets<br><span class="kbd">fixed_assets</span></td>
+      <td><span class="src">nama_10_nfa_st</span> (stocks by industry × asset)</td>
+      <td><span class="verdict coarser">COARSER</span></td>
+      <td>A21 industries only; PIM estimation where countries lack data</td></tr>
+  <tr><td>Investment matrices<br><span class="kbd">io_invest_long_format</span></td>
+      <td>None — construct from GFCF × asset-product bridge</td>
+      <td><span class="verdict gap">GAP</span></td>
+      <td>RAS with Danish matrix as prior</td></tr>
+  <tr><td>ETS data<br><span class="kbd">ets</span></td>
+      <td>Commission Union Registry daily bulk + EEA EU ETS viewer</td>
+      <td><span class="verdict coarser">COARSER</span></td>
+      <td>Totals match within 0.007%. Emissions/allocation direct; “bought” is a derived shortfall; cost needs an EUA price. No authoritative current installation→NACE map.</td></tr>
+  <tr><td>Government finances<br><span class="kbd">government_finances</span></td>
+      <td><span class="src">gov_10a_main</span> (full ESA transactions)</td>
+      <td><span class="verdict ok">OK</span></td>
+      <td>Concept-match only — Danish values come from MAKRO, not raw DST</td></tr>
+  <tr><td>Financial accounts<br><span class="kbd">institutional_financial_accounts</span></td>
+      <td><span class="src">nasa_10_f_bs</span> + <span class="src">nasa_10_nf_tr</span></td>
+      <td><span class="verdict ok">OK</span></td>
+      <td>Replicate pension-asset reallocation (F6). A separate live Eurostat-pull module (<span class="kbd">data/Modules/financial_accounts/</span>) already fetches <span class="src">nasa_10_f_bs</span> and shows the pattern to follow, but it is Denmark-only, missing the interest/dividend/revaluation variables, has no pension-reallocation logic yet, and is not wired into <span class="kbd">read_data.py</span> — not yet done, just a proven template.</td></tr>
+  <tr><td>Marginal tax rates<br><span class="kbd">EU_GR_data.gdx</span></td>
+      <td>No direct source. Sweden package uses allocated average duty as an explicit average=marginal assumption.</td>
+      <td><span class="verdict gap">GAP</span></td>
+      <td>Compatible Sweden GDX built; separate CO₂ marginal rate remains unavailable/zero.</td></tr>
+  <tr><td>HH consumption detail<br><span class="kbd">cons_hh groups</span></td>
+      <td><span class="src">nama_10_co3_p3</span> (COICOP)</td>
+      <td><span class="verdict coarser">COARSER</span></td>
+      <td>3-digit vs Danish 4-digit; likely sufficient for 12 groups</td></tr>
+  <tr><td>Sets &amp; concordances<br><span class="kbd">metadata</span></td>
+      <td>Stays — becomes the master EU concordance file</td>
+      <td><span class="verdict kept">KEPT</span></td>
+      <td>Extend maps: PEFA products per country, EUTL activity→NACE, asset→product bridge</td></tr>
+</table>
+<p class="caption"><b>Reading the verdicts:</b> <span class="verdict ok">OK</span> the same concept
+exists in EU data — a plumbing job · <span class="verdict coarser">COARSER</span> it exists with less
+detail — usable, with a documented loss · <span class="verdict gap">GAP</span> nothing to download,
+it must be constructed · <span class="verdict kept">KEPT</span> not a Statistics Denmark dependency.
+14 rows carry a verdict (4 / 6 / 4) for 12 inputs, because <span class="kbd">io_long_format</span> and
+<span class="kbd">energy_and_emissions</span> each contribute an extra row.<br>
+<b>Scope note:</b> the target is "Eurostat + FIGARO only", and 9 of the 12 replaced inputs meet it.
+Three need auxiliary EU-wide sources: <b>ets</b> (EUTL/EEA registry), <b>energy_and_emissions</b>
+(JRC-IDEES for the purpose split), and the price/tax layer + marginal taxes (DG TAXUD excise tables).
+All are EU-wide and free, but they are not the two core databases — flagged for explicit sign-off.
+(Softener, found 29 Jul: the official documentation itself cites the EUTL/Union Registry as the source
+<b>ets.xlsx</b> was built from, so at least that auxiliary source matches the Danish method.)</p>
+
+<h2><span class="num">5</span>The four structural gaps<span class="hint">where the real work is</span></h2>
+<div class="cards">
+  <div class="card"><h3>① Energy IO in money</h3>
+    <p>Denmark gets monetary energy accounts from DST; no EU equivalent.
+    The audit found <b>0% direct cell coverage</b>: SUT, tax accounts and retail
+    prices constrain different margins and never meet at product×user×purpose.
+    <b>Sweden implementation:</b> the approved coarse calibration now passes, and its
+    unmatched monetary residual was narrowed from 299.131 to 118.844 bn SEK (31 Jul) by
+    fixing a PEFA reporting-granularity mismatch — its 1,765.088 PJ physical-detail
+    residual and remaining 118.844 (use) + 102.567 (supply) bn SEK residuals now reflect
+    genuinely non-energy CPA scope, not a data gap. Two 31 July evidence pilots confirm
+    this: PRODCOM shows the wood-products piece is ≥98.5% non-energy, and waste statistics
+    bound the waste/sewerage piece at ≥85% non-energy (§6) — closing the residual work
+    stream as a data question, pending colleague acceptance.</p></div>
+  <div class="card"><h3>② Purpose dimension</h3>
+    <p>IDEES supplies detailed industrial processes, but not GREU's five labels.
+    Heating is only a proxy; normal/special require a concordance; transport cannot be
+    assigned to user industries. EUTL identifies ETS installations and emissions but publishes
+    no fuel or PJ. PEFA already supplies broad household totals.
+    <b>Route:</b> IDEES process rules + PEFA controls + EUTL membership + a reviewed industry
+    bridge and fuel/emission-factor model for <span class="src">in_ETS</span>.</p></div>
+  <div class="card"><h3>③ Investment matrices</h3>
+    <p>Not published EU-wide. <b>Route:</b> GFCF by industry × asset type,
+    bridged to supplying products (buildings→construction, etc.);
+    RAS-balance with Danish matrix as prior.</p></div>
+  <div class="card"><h3>④ Marginal tax rates</h3>
+    <p>Imported from Danish GreenREFORM via <span class="src">EU_GR_data.gdx</span> —
+    a stopgap by the code's own admission. <b>Route:</b> derive from the gap-① excise/ETS
+    layer, or redesign so average rates suffice.</p></div>
+</div>
+<p class="caption"><b>Cross-cutting issue:</b> industry splits finer than NACE A64
+(organic/conventional farming, five waste industries, electricity 35011/35002) need country-specific
+splitting keys, or a decision to run other EU countries at the aggregated level — see Q3.</p>
+
+<h2><span class="num">6</span>Evidence so far — Denmark pilots and Sweden package<span class="hint">verified, not assumed</span></h2>
+<div class="evidence">
+  <h3>✓ Pilot 1 · The economic backbone works (FIGARO, 29 July)</h3>
+  <p>FIGARO DK 2020 (2026 edition, industry-by-industry, pulled via the Eurostat SDMX API and converted
+  at 7.4542 DKK/EUR) was reconciled cell-by-cell against the Danish <span class="src">io_long_format.xlsx</span>.
+  <b>Headline aggregates match to ≤0.1%</b> — total output 4055.4 bn DKK, compensation of employees 1210.4,
+  gross surplus 824.0, government consumption 576.1, GFCF 516.1 — and GDP lands within +0.1% of the
+  official Danish figure. Household-consumption identities reproduce exactly once FIGARO's adjustment
+  rows are used. This is expected: FIGARO is benchmarked on the same national accounts. It means the
+  EU route reproduces Denmark, which is the premise the whole project rests on.</p>
+  <p style="margin-top:4pt"><b>Known differences, all explainable:</b> ① Danish re-exports (239.8 bn) have
+  no equivalent in FIGARO's inter-country logic, so headline imports differ by −22% (−2.3% once
+  re-exports are excluded); ② import composition differs because FIGARO carries foreign margins as
+  separate service rows where Danish CIF goods imports embed them; ③ the NACE-L ↔ GREU 68203
+  real-estate mapping is not value-consistent (±95 bn) and needs a split key; ④ granularity is coarser
+  in 7 of 28 mapping clusters, covering 34 of 57 GREU industries. (Cluster count corrected 31 Jul:
+  the concordance's own artifact contains 28 mapped clusters, not the 24 quoted in earlier prose;
+  the 7 coarser clusters and industry coverage are unaffected.)
+  Full detail and re-runnable scripts: <span class="src">docs/eu_data_mapping.md</span> §Pilot results,
+  <span class="src">figaro_dk2020_reconciliation.xlsx</span>.</p>
+</div>
+
+<div class="evidence">
+  <h3>✓ First non-Danish package · Sweden 2020 monetary-energy public core (30 July)</h3>
+  <p><b>Why Sweden:</b> it has complete 2020 PEFA, SUT, environmental-tax and
+  electricity/gas price observations, a non-euro currency that tests exchange-rate handling,
+  and a different energy structure from Denmark. It is therefore a useful first proof that
+  the interface is country-generic rather than a disguised Danish reconstruction.</p>
+  <p style="margin-top:4pt"><b>What “calibrated allocation” means:</b> PEFA observes physical
+  quantities; SUT observes broad CPA totals; price series observe selected product families.
+  The builder uses those public observations as controls and explicit weights, then scales
+  modelled product/user cells to the published totals. It never treats those allocated cells
+  as source observations and never uses Danish monetary or purpose shares.</p>
+  <p style="margin-top:4pt"><b>Result:</b> supply and use both equal
+  <b>4,611.0794 PJ</b>; purchaser value is <b>610.583 bn SEK</b>. Maximum product,
+  component and SUT purchaser residuals are numerical noise (≤2.84×10⁻14 in their
+  respective units). The direct/modelled distinction is decisive: <b>0 monetary cells are
+  direct; 117 nonzero use cells are modelled</b>. Sweden's PEFA reporting leaves
+  <b>1,765.088 PJ</b> above the safe A64 allocation ceiling, and broad SUT controls leave
+  <b>118.844 bn SEK</b> without matched physical quantity on the use side, plus a
+  separately-tracked <b>102.567 bn SEK</b> on the supply/producer side. Both appear as
+  explicit residuals. Negative inventory values are retained and flagged.</p>
+  <p style="margin-top:4pt"><b>Compatibility verdict:</b> PASS for
+  <span class="src">public_core + SE</span>: both workbooks and the complete GDX validate,
+  deterministic table/GDX records reproduce, and 10 focused tests pass. Air-account totals
+  are not allocated because they mix energy and process emissions. The full GREU model is
+  intentionally not run: its non-energy inputs are still Danish.</p>
+  <p style="margin-top:4pt"><b>Found and fixed by a 31 July verification pass:</b> the
+  builder could not originally tell "the source publishes a real zero" apart from "the
+  source publishes no row at all" — both looked identical (0.0) and neither raised a
+  warning. This hid a real gap: Eurostat has <i>no</i> coal or crude-oil SUT breakdown for
+  Sweden at all, so <b>916.7847 PJ</b> (≈20% of Sweden's energy) had a silently unflagged
+  monetary value. It now raises an explicit anomaly instead. No other number on this page
+  changed — the fix only turns a hidden gap into a disclosed one.</p>
+  <p style="margin-top:4pt"><b>Unmatched SUT residual narrowed, same day (31 July):</b>
+  Sweden's PEFA reports energy use for whole NACE sections (manufacturing, agriculture,
+  water/waste, trade/transport) without ever breaking them into the finer divisions the
+  GREU concordance expects, while the national accounts publish their money at that finer
+  level. The energy was never missing — it was already sitting in the explicit
+  <span class="src">indu=res</span> reporting-detail residual — its money was the piece
+  wrongly booked as unmatched. Pooling that money into the same bucket as its physical
+  counterpart cut the use-side residual from 299.131 to <b>118.844 bn SEK</b> (180.287 bn SEK
+  reclassified, ~60%), with every identity still closing exactly. The same investigation
+  also found the headline metric never looked at the supply side at all (it only reads a
+  purchaser-price field that supply rows never populate), exposing a comparable
+  <b>102.567 bn SEK</b> producer-side residual that is now disclosed rather than invisible.
+  Industries Sweden's statistics <i>do</i> detail (e.g. financial services) were never
+  touched — what remains for them is genuinely non-energy spending inside a too-broad
+  product category, which is a different, harder problem than a reporting gap.</p>
+</div>
+
+<div class="evidence">
+  <h3>✓ Residual characterization · The two big residuals are non-energy money (PRODCOM + waste statistics, 31 July)</h3>
+  <p><b>The question:</b> after the narrowing above, Sweden's package still carries money in two
+  broad official categories with no matching physical energy — <b>42.763 bn SEK</b> of wood
+  products (<span class="src">CPA_C16</span>, 40.665 bn of it the export control) and
+  <b>60.156 bn SEK</b> of waste/sewerage services (<span class="src">CPA_E37-E39</span>, supply
+  side). Is that hidden energy money, or genuinely non-energy spending that merely shares a broad
+  category with energy products? Two parallel read-only pilots answered with public EU-wide data.</p>
+  <p style="margin-top:4pt"><b>PRODCOM pilot:</b> PRODCOM is Eurostat's product-level manufacturing
+  statistic — sold-production and export values per detailed (8-digit) product code, far finer than
+  the SUT's broad categories. It shows only <b>~1.15%</b> of Sweden's wood-products (NACE division
+  16) export value is energy-relevant products (wood chips, pellets/briquettes) — so only
+  <b>~0.5–0.6 bn SEK</b> of the 42.763 bn SEK residual is plausibly energy money. PRODCOM's
+  division-16 exports reconcile with the SUT export control (ratio 0.979), so it is a <b>viable
+  EU-wide splitting key</b> for this category. Access correction: the dataset code previously cited
+  in the project notes (<span class="src">prc_stapro</span>) does not exist; the working dataset is
+  <span class="src">DS-059358</span> on the Eurostat <b>Comext</b> dissemination API, with all
+  EU-27 present. Caveat: pellet <i>production</i> value is confidential in 5 of 27 countries
+  (including Sweden itself), so export-based shares are the robust route.</p>
+  <p style="margin-top:4pt"><b>Waste-statistics pilot:</b> at most <b>1.7%–14.8%</b> (central
+  estimate 1.0 bn SEK) of the 60.156 bn SEK waste/sewerage control is plausibly energy-relevant.
+  The key insight resolves an apparent paradox: Sweden burns 50% of its non-mineral waste for
+  energy (78.3 PJ), yet 100% of that fuel is burned in power/heat plants classified in the
+  <b>energy sector</b> (NACE D35) — so the energy revenue never appears in the waste sector's
+  accounts. The waste sector's money is collection fees, gate fees, materials-recovery trading and
+  sewerage services. Sources: SBS (<span class="src">sbs_na_ind_r2</span>), EPEA
+  (<span class="src">env_ac_pepsgg1</span>/<span class="src">env_ac_pepssp1</span>), EGSS
+  (<span class="src">env_ac_egss2</span>), <span class="src">env_wastrt</span> and
+  <span class="src">nrg_bal_c</span>, each covering 25–27 of the EU-27. None enables a
+  product-level split, so this residual is <b>characterizable but not narrowable</b> with public
+  EU-wide data.</p>
+  <p style="margin-top:4pt"><b>Consequence:</b> both residuals are now evidence-backed as
+  overwhelmingly non-energy money. The recommendation to colleagues is to accept them as permanent,
+  disclosed features of the coarse public-core method — that acceptance is the pending decision
+  (§7 Q7), now supported by evidence instead of assertion. The Sweden package itself was <b>not</b>
+  rebuilt: these pilots are read-only evidence and change no runtime artifact, code or test.
+  Detailed workbooks: <span class="src">prodcom_se2020_c16_reconciliation.xlsx</span>,
+  <span class="src">waste_stats_se2020_e37e39_feasibility.xlsx</span>; re-runnable scripts in
+  <span class="src">data/preprocessing/scripts/</span>, raw deliveries with provenance under
+  <span class="src">prodcom_raw/SE/2020/</span> and <span class="src">waste_stats_raw/SE/2020/</span>.</p>
+</div>
+
+<div class="evidence">
+  <h3>✓ Pilot 2 · The physical energy backbone works (PEFA + air accounts, 30 July)</h3>
+  <p><b>PEFA</b> is Eurostat's physical ledger of energy entering, moving through, and leaving the
+  economy. On a like-for-like boundary, Eurostat reports <b>2,237.794 PJ</b> versus GREU's
+  <b>2,251.550 PJ</b>: −13.756 PJ (−0.611%). Both datasets balance supply and use. Household energy
+  is almost exact: 253.760 versus 253.662 PJ (+0.039%); exports and inventories are also within 0.1%.
+  The raw PEFA headline of 3,702.820 PJ is <i>not</i> comparable because it also counts upstream
+  natural inputs and energy losses/dissipative heat.</p>
+  <p style="margin-top:4pt"><b>What detail is lost:</b> Eurostat stops at NACE A64 (coarser in 7
+  mapping clusters covering 36/57 GREU industries), has no industry split into GREU's six energy
+  purposes, and merges the three explicit bunker fuels into ordinary fuel products. It does retain
+  broad household heating/transport/other uses. The pilot also found four fixable concordance issues:
+  missing P18 gasoil, misclassified ambient heat, a <span class="src">semi_refin_oil</span> spelling
+  mismatch, and 0.555 PJ of unmapped derived gas.</p>
+  <p style="margin-top:4pt"><b>Air emissions:</b> Eurostat publishes total energy + non-energy
+  emissions, so both GREU emissions workbooks must be combined. Fossil CO₂ then matches within
+  −0.0069% and F-gases within 0.001 kt CO₂e. Total GHG is +1.111% in Eurostat
+  (82.241 vs 81.337 Mt CO₂e), driven mainly by +26.430 kt CH₄ and +0.636 kt N₂O,
+  especially agriculture. This is an <b>open source/vintage difference</b>, not rounding.</p>
+  <p style="margin-top:4pt"><b>Why it matters:</b> EU data can reproduce the physical totals needed
+  for modelling, while making the remaining construction problems explicit. Detailed workbook:
+  <span class="src">eurostat_energy_emissions_dk2020_reconciliation.xlsx</span>; methods and audit:
+  <span class="src">docs/eu_data_mapping.md</span>.</p>
+</div>
+
+<div class="evidence">
+  <h3>✓ Pilot 3 · IDEES narrows—but does not close—the purpose gap (30 July)</h3>
+  <p><b>What IDEES is:</b> JRC-IDEES-2023 v1 is an official, open (CC BY 4.0) analytical
+  database for all EU-27 countries, annual 2000–2023. Country ZIP files download directly without
+  login. It starts from Eurostat energy-balance totals and estimates a detailed split into 11
+  industrial sectors, 21 subsectors, named processes, cross-cutting uses, and energy carriers.
+  This makes it reproducible and EU-generic, but the fine end uses are <b>modelled estimates</b>,
+  not separately observed statistics.</p>
+  <p style="margin-top:4pt"><b>Boundary test:</b> for the industries that can be mapped safely,
+  IDEES reports 96.610 PJ versus GREU 129.636 PJ. The headline −25.48% is misleading because GREU
+  assigns 20.999 PJ of resident firms' own-account transport to user industries, while IDEES follows
+  territorial energy-balance sectors. Excluding that transport gives the closer comparison:
+  <b>96.610 versus 108.637 PJ (−11.07%)</b>.</p>
+  <p style="margin-top:4pt"><b>Purpose result:</b> the combined industrial process envelope is strong:
+  IDEES proxies total <b>93.116 PJ</b> versus GREU
+  <span class="src">process_normal + process_special + in_ETS</span> of <b>90.360 PJ</b>
+  (+3.05%). The exact labels do not transfer directly. IDEES low-enthalpy heat is only 3.494 PJ
+  versus GREU heating 18.277 PJ; the pilot special-process proxy is 26.489 PJ versus GREU 5.764 PJ,
+  so an owner-approved process concordance is essential. IDEES cannot allocate own-account transport
+  to user industries and has <b>no ETS-status field</b>. The next pilot tested EUTL directly.</p>
+  <p style="margin-top:4pt"><b>Households:</b> PEFA remains the account control. IDEES adds richer
+  residential detail and matches GREU's non-transport household subtotal closely:
+  179.040 versus 179.463 PJ (−0.236%). IDEES residential plus PEFA transport gives 253.597 PJ,
+  only −0.025% from GREU, but this must be documented as a hybrid construction.
+  Detailed workbook: <span class="src">jrc_idees_dk2020_purpose_reconciliation.xlsx</span>.</p>
+</div>
+
+<div class="evidence">
+  <h3>✓ Pilot 4 · Public Union Registry reproduces ETS totals—but not in_ETS energy (30 July)</h3>
+  <p><b>Access:</b> the European Commission Union Registry publishes anonymous daily GZIP-CSV files
+  for the operator master and annual installation compliance records. The 30 July 2026 snapshot contains
+  all EU-27 countries and years 2005–2025. The EEA July 2026 release adds documented aggregates and
+  national auction volumes under CC BY 4.0. Raw files, hashes, URLs and scripts are preserved.</p>
+  <p style="margin-top:4pt"><b>Denmark 2020:</b> current public data report verified emissions
+  <b>11,039.385</b> versus GREU <b>11,038.641 kt CO₂e</b> (+0.0067%); free allocation
+  <b>6,783.620</b> versus <b>6,783.462 thousand</b> (+0.0023%). GREU's
+  <span class="src">bought_allowances</span> is not an observed purchase: it reproduces as the
+  installation-level positive shortfall <span class="src">max(emissions − free allocation, 0)</span>,
+  5,348.399 versus 5,348.293 thousand (+0.0020%). GREU's 1.239901 bn DKK cost then implies a uniform
+  231.831 DKK/t price; the Registry itself has no price or tax field. EEA's 6,845.500 thousand
+  auction volume is a country total and is not the same concept.</p>
+  <p style="margin-top:4pt"><b>Industry bridge:</b> EUTL activity codes are regulatory activities,
+  not NACE. A current public secondary concordance derived from 2015/2020 carbon-leakage lists covers
+  356/375 DK records and 97.59% of emissions, but is historical, partial and non-authoritative.
+  It is suitable for a diagnostic A64/GREU cluster comparison, not an automatic production mapping.</p>
+  <p style="margin-top:4pt"><b>Why <span class="src">in_ETS</span> stays open:</b> EUTL reports
+  emissions and allowances, not PJ, fuels, heat content or GREU purposes. Constructing ETS-covered
+  energy requires a maintained installation→industry map, fuel-specific emission factors, separation
+  of process emissions, PEFA/IDEES controls and model rules preventing double counting.
+  Detailed workbook: <span class="src">eutl_dk2020_reconciliation.xlsx</span>.</p>
+</div>
+
+<div class="evidence">
+  <h3>✓ Pilot 5 · Public monetary sources constrain—but cannot directly build—the energy price layer (30 July)</h3>
+  <p><b>Why this layer matters:</b> physical PJ says how much energy moves; the monetary layer says
+  who pays how much and separates producer value from wholesale, retail and motor-vehicle margins,
+  five Danish-style energy taxes, VAT and purchaser value. GREU sums these components itself and
+  checks them against a separate energy-only IO table. A single average retail price therefore does
+  not satisfy the model interface.</p>
+  <p style="margin-top:4pt"><b>What was tested:</b> Eurostat national supply/use valuation tables,
+  environmental taxes by payer, annual electricity/gas price components, the Commission Weekly Oil
+  Bulletin, and TAXUD excise/VAT references. All are anonymously accessible. Electricity components
+  and environmental taxes have EU-27 2020 coverage; gas is 24/27 for households and 25/27 for
+  non-households. National SUT is 26/27 because Bulgaria is absent; none of those missing combinations
+  appears in a 2015–2024 live probe.</p>
+  <p style="margin-top:4pt"><b>Denmark result:</b> PEFA still directly covers
+  <b>2,237.794 / 2,251.550 PJ (99.389%)</b> on the comparable physical boundary, but
+  <b>0 of 862 nonzero monetary use rows (0%)</b> has all required valuation components directly
+  observed at product×user×purpose grain. Exact-family controls for electricity, road petrol and
+  road diesel cover 337.775 PJ (15.002%); adding mixed natural gas/biogas as a near-match reaches
+  481.430 PJ (21.382%). These are control envelopes, not populated cells.</p>
+  <p style="margin-top:4pt"><b>What is available versus missing:</b> SUT supplies broad CPA basic and
+  purchaser totals, one combined trade/transport margin and net product taxes; tax accounts supply
+  payer totals; retail data supply selected product/band averages. Missing are the cross-classified
+  cell, the three GREU margins, five-tax split, and VAT incidence. The Danish target identities and
+  energy-IO links were revalidated within source rounding, but no Danish shares were used to fill
+  public-data gaps.</p>
+  <p style="margin-top:4pt"><b>Readiness verdict at the feasibility stage:</b> no direct fill was
+  possible without modelling choices. The owner subsequently approved the transparent calibrated
+  engine used by the Sweden package above. That implementation resolves interface feasibility but
+  does not change the 0% direct-cell finding or remove the need to retain residuals.
+  Detailed evidence: <span class="src">energy_money_dk2020_feasibility_gap.xlsx</span>.</p>
+</div>
+
+<div class="evidence">
+  <h3>✓ Pilot 6 · Employment reconciles essentially exactly — the parameterization phase opens (nama_10_a64_e, 31 July)</h3>
+  <p><b>A new phase:</b> with the monetary-energy core proven, the work has moved to converting the
+  model's remaining Danish inputs to EU sources, one input per increment, smallest first. The first
+  is <span class="src">employed.xlsx</span> — employment and hours worked per industry, split into
+  employees and self-employed. Before comparing anything, the pilot inspected what the model
+  actually consumes, and the answer is surprisingly little: per industry it uses only the <b>ratio</b>
+  of hours worked by the self-employed to hours worked by employees (to impute a labour income for
+  the self-employed, who do not pay themselves a recorded wage), plus <b>one national total head
+  count</b>. Per-industry head counts are never used individually.</p>
+  <p style="margin-top:4pt"><b>Denmark 2020 result:</b> on the load-bearing hours content, Eurostat's
+  <span class="src">nama_10_a64_e</span> reproduces the Danish file essentially exactly — national
+  totals identical to the rounding digit (<b>3,982,709 thousand hours</b> on both sides), employee
+  and self-employed totals also exact, and <b>24 of 28</b> industry clusters exact. Person head
+  counts differ by a uniform <b>+3.52%</b>: a definitional difference in who counts as an
+  "employed person", not a data error — the exact hours match proves both sides rest on the same
+  underlying national accounts. It affects only the single national scalar, and is now a question
+  for the Danish colleagues (Q8). One known problem resurfaced for the third time: GREU industry
+  68203 covers dwellings only, but the concordance maps all of NACE section L (real estate) to it,
+  producing a +180% difference in that cluster. The split-key decision (Phase 1 task) is still open
+  and now also blocks employment.</p>
+  <p style="margin-top:4pt"><b>EU-wide coverage:</b> 16 of 27 member states publish everything
+  needed at the full 64-industry detail. Germany, France, Belgium, Bulgaria and Lithuania publish
+  hours only at a coarser industry level (Estonia coarser still); the documented workaround —
+  distributing aggregate hours across industries by each industry's share of persons — is mild,
+  because only the self-employed/employee hours <i>ratio</i> enters the model. Sweden suppresses
+  6 of 63 industry codes, but published parent aggregates allow partial recovery. Where countries
+  suppress the self-employed figure (HU, FI, LT, EE), it is recoverable as total employment minus
+  employees. <b>Verdict: the mapping table's "OK" is confirmed.</b>
+  Artifacts: <span class="src">download_employment_dk_2020.py</span> and
+  <span class="src">reconcile_employment_dk_2020.py</span> in
+  <span class="src">data/preprocessing/scripts/</span>, raw deliveries with provenance under
+  <span class="src">employment_raw/DK/2020/</span>, workbook
+  <span class="src">employment_dk2020_reconciliation.xlsx</span>.</p>
+</div>
+
+<div class="verified"><span class="tag v">Verified scope</span>
+Both GREU and Eurostat environmental accounts use the <b>residence principle</b>: Danish-resident
+ships and aircraft count even when operating abroad. GREU's bunker products are 497.799 PJ /
+39.138 Mt CO₂e; the official international-transport bridge is 39.022 Mt. Use that bridge to reach
+territorial/UNFCCC scope—do not subtract bunker rows ad hoc.</div>
+
+<h2><span class="num">7</span>Decisions and open questions<span class="hint">what blocks the next stage</span></h2>
+<div class="q"><span class="status">☑ EUTL tested &nbsp; ☐ construction and GREU meaning confirmed</span>
+  <b>Q1 · What does in_ETS cover exactly?</b><br>
+  Confirmed mutually exclusive with the other purposes, so purpose sums are safe — but what qualifies a
+  use as in_ETS, and how should ETS allowance costs enter (they are not among the tax columns)?
+  <b>Verified 30 Jul:</b> IDEES has no ETS status; EUTL identifies installations but has no PJ or fuel.
+  It therefore constrains rather than directly supplies this purpose. The GREU documentation omits in_ETS and defines
+  process_special as covering only <i>non</i>-ETS-covered input to electricity and district heating —
+  so in_ETS plausibly holds the ETS-covered counterpart. Confirm that reading and approve the required
+  installation→industry + fuel/emission-factor construction.</div>
+<div class="q"><span class="status">☑ concept verified 30 Jul &nbsp; ☐ model mechanics confirmed</span>
+  <b>Q2 · Bunkers &amp; emissions scope.</b><br>
+  <b>Verified:</b> both sources use the residence principle. GREU bunker products total
+  39.138 Mt CO₂e versus the international-transport bridge's 39.022 Mt; close, but not the same
+  construction. The bridge is the correct territorial conversion. <b>Remaining decision:</b> confirm
+  where model output applies it when comparing with official targets.</div>
+<div class="q"><span class="status">☐ asked &nbsp; ☐ answered</span>
+  <b>Q3 · Which GREU industry splits survive in the EU version?</b><br>
+  EU data stops at NACE A64; GREU splits further (organic/conventional agriculture, five waste
+  industries, electricity 35011/35002). Drop the splits, estimate country keys, or make optional?</div>
+<div class="q"><span class="status">☐ asked &nbsp; ☐ answered</span>
+  <b>Q4 · For Asbjørn: intended contents of vY_i_d / vM_i_d / vA_i_d?</b><br>
+  <span class="src">read_data.py:697-699</span> fills all three from <span class="src">io_ene_y_onlys</span>;
+  the import/prim-input frames are built (lines 289–295) but never used — looks like a copy-paste bug.
+  Confirm what the consumer expects before we fix (two-character change).</div>
+<div class="q"><span class="status">☐ owner review</span>
+  <b>Q5 · Approve the PEFA product-map corrections?</b><br>
+  The pilot found three clear corrections (P18 gasoil, ambient heat, spelling) and one small open
+  allocation (P10 derived gas, 0.555 PJ). Keep these as pilot overrides until the concordance owner
+  confirms the permanent changes.</div>
+<div class="q"><span class="status">☐ investigate vintage / national adjustment</span>
+  <b>Q6 · Why are Eurostat methane and N₂O higher?</b><br>
+  The comparable total differs by +26.430 kt CH₄ and +0.636 kt N₂O; agriculture explains most of the
+  resulting +0.904 Mt CO₂e GHG gap. Check source vintage and national adjustments before adopting the
+  Eurostat series as the new baseline.</div>
+<div class="q"><span class="status">☑ architecture &amp; Sweden method implemented &nbsp; ☑ residuals narrowed &amp; characterized &nbsp; ☐ colleague acceptance</span>
+  <b>Q7 · How should the monetary energy layer be redesigned?</b><br>
+  The audit proves that public controls do not directly supply any complete GREU monetary cell.
+  <b>Implemented decision:</b> Sweden uses a coarser public core, connected A64 clusters,
+  PEFA quantities, public price weights and SUT/tax calibration with visible residuals.
+  Combined margin is carried in EAV; aggregate non-VAT wedge in <span class="src">ener_tax</span>;
+  unavailable named fields are zero. <b>31 July update:</b> the broad-CPA residual was narrowed
+  from 299.131 to 118.844 bn SEK by fixing a PEFA reporting-granularity mismatch (see §6); a
+  further 102.567 bn SEK supply-side residual was found and disclosed. The same-day PRODCOM and
+  waste-statistics pilots then showed the two largest residual pieces are ≥98.5% and ≥85%
+  non-energy (see §6), closing the residual stream <b>as a data question</b>.
+  <b>Remaining decision:</b> accept the evidence-backed non-energy residuals
+  (CPA_C16, CPA_E37-E39) as permanent, disclosed features of the public-core method
+  (recommended) — optionally annotated with the PRODCOM export share and the ~1.0 bn SEK
+  documented energy ceiling, an annotation, not an allocation. Danish target
+  shares remain forbidden.</div>
+<div class="q"><span class="status">☐ asked &nbsp; ☐ answered</span>
+  <b>Q8 · What person concept does the Danish employed column use?</b><br>
+  Eurostat's national-accounts employment head count sits a uniform +3.52% above the Danish
+  <span class="src">employed</span> column, while the hours columns match exactly — so this is a
+  definitional difference in who counts as an "employed person" (e.g. annual average vs a
+  point-in-time or register concept), not a data error. Only one number in the model depends on
+  the answer: the national employment scalar. The per-industry wage imputation is unaffected.</div>
+
+<div class="pagebreak"></div>
+
+<h2><span class="num">8</span>Task list<span class="hint">where things stand</span></h2>
+
+<p class="phase">Phase 0 — Foundations</p>
+<ul class="clean">
+  <li><span class="cb done"></span><span class="done-txt">Agent + shared instructions set up (AGENTS.md, data-analyst agent)</span></li>
+  <li><span class="cb done"></span><span class="done-txt">Danish energy data semantics verified &amp; documented (energy_data_notes.md)</span></li>
+  <li><span class="cb done"></span><span class="done-txt">All 5 reconciliation principles between energy file and energy IO verified numerically</span></li>
+  <li><span class="cb done"></span><span class="done-txt">Requirements inventory: 13 in-scope inputs catalogued (12 xlsx + EU_GR_data.gdx); 12 need EU replacement; scope confirmed 28 Jul, file arithmetic clarified 29 Jul (16 → 13 → 12, see §1)</span></li>
+  <li><span class="cb done"></span><span class="done-txt">Mapping table built; 24 source codes confirmed after adding 4 annual energy-price-component datasets. FIGARO, PEFA/air, SUT valuation and environmental-tax controls are now numerically tested.</span></li>
+  <li><span class="cb done"></span><span class="done-txt">Inventory + doc audit 28 Jul: counts corrected, gdx gap found, caveats logged (eu_data_mapping.md §Audit log)</span></li>
+  <li><span class="cb done"></span><span class="done-txt">29 Jul: Official "GREU data documentation.pdf" read; key confirmations folded into eu_data_mapping.md &amp; energy_data_notes.md — bunker/scope question largely answered (bridge items), in_ETS lead found (ETS-covered el/heat input)</span></li>
+</ul>
+
+<p class="phase">Phase 1 — Pilot: rebuild Denmark from EU data — <b>five pilots complete</b></p>
+<ul class="clean">
+  <li><span class="cb done"></span><span class="done-txt">29 Jul: FIGARO DK 2020 supply/use/IO downloaded (2026 ed., Eurostat SDMX API); re-runnable scripts in data/preprocessing/scripts/, raw data + provenance in data/figaro_raw/</span></li>
+  <li><span class="cb done"></span><span class="done-txt">29 Jul: Reconciled FIGARO DK vs Danish io_long_format — aggregates match ≤0.1%; coarser in 7 of 28 clusters (34/57 industries; count corrected 31 Jul); re-exports, import composition &amp; NACE-L split flagged (see §6)</span></li>
+  <li><span class="cb done"></span><span class="done-txt">30 Jul: PEFA + air-emissions DK 2020 pulled and reconciled — comparable energy −0.61%, household +0.04%, fossil CO₂ −0.0069%; exact losses and anomalies documented (see §6)</span></li>
+  <li><span class="cb done"></span><span class="done-txt">30 Jul: JRC-IDEES-2023 v1 downloaded and reconciled — public EU-27 coverage for 2000–2023; combined process envelope +3.05%, exact purposes remain constructed</span></li>
+  <li><span class="cb done"></span><span class="done-txt">30 Jul: Union Registry/EEA installation pilot complete — ETS totals match within 0.007%; “bought” identified as derived shortfall; secondary NACE covers 97.59% of emissions; EUTL has no PJ, so in_ETS remains constructed</span></li>
+  <li><span class="cb done"></span><span class="done-txt">30 Jul: Monetary-energy feasibility audit complete — public controls verified, but 0/862 monetary use rows are directly source-complete; exact-family price controls cover 15.00% of PJ, not cells</span></li>
+  <li><span class="cb"></span>Decision with colleagues: industry splits (Q3)</li>
+  <li><span class="cb"></span>From the pilot: decide handling of re-exports and of the NACE-L ↔ 68203 real-estate split; add a note or split key to industries_naceA64_map — the split has now been hit by three pilots (most recently employment, 31 Jul) and also blocks that input</li>
+  <li><span class="cb"></span>Review PEFA product-map corrections (Q5) and investigate the agriculture CH₄/N₂O gap (Q6)</li>
+</ul>
+
+<p class="phase">Phase 2 — Close the gaps</p>
+<ul class="clean">
+  <li><span class="cb done"></span><span class="done-txt">Test monetary-energy source feasibility and DK identities — complete; direct cell construction rejected</span></li>
+  <li><span class="cb done"></span><span class="done-txt">30 Jul: architecture selected and first compatibility increment implemented — coarser public-EU core + optional detailed country layer; DK paths/output remain default; public mode fails closed</span></li>
+  <li><span class="cb done"></span><span class="done-txt">30 Jul: approved rules implemented for Sweden 2020; complete public-core workbooks/GDX validate with no Danish fallback; 0 direct / 177 modelled monetary cells and residuals audited</span></li>
+  <li><span class="cb done"></span><span class="done-txt">31 Jul: unmatched Sweden SUT residual narrowed — root-caused to a PEFA section-vs-division reporting-granularity mismatch (not a data gap); use-side residual cut 299.131 → 118.844 bn SEK (117 modelled cells); a previously-invisible 102.567 bn SEK supply-side residual found and disclosed</span></li>
+  <li><span class="cb done"></span><span class="done-txt">31 Jul: PRODCOM + waste-statistics residual pilots complete — CPA_C16 is ≥98.5% non-energy (PRODCOM DS-059358 on the Comext API is a viable EU-wide splitting key; the prc_stapro code previously cited does not exist), CPA_E37-E39 is ≥85% non-energy and not narrowable with public EU-wide data; the monetary-residual stream is closed as a data question (see §6)</span></li>
+  <li><span class="cb"></span>Decision with colleagues: accept the evidence-backed non-energy residuals (CPA_C16, CPA_E37-E39) as permanent disclosed features of the public-core method; optionally annotate with the PRODCOM export share / ~1.0 bn SEK energy ceiling (Q7)</li>
+  <li><span class="cb"></span>Agree IDEES process→GREU purpose concordance and specify the reviewed installation→industry + fuel/emission-factor method for in_ETS; retain PEFA controls</li>
+  <li><span class="cb"></span>Build investment-matrix method (GFCF × asset bridge + RAS), validate on DK</li>
+  <li><span class="cb"></span>Tax/margin price layer per product × user from excise schedules</li>
+  <li><span class="cb"></span>Replace EU_GR_data.gdx marginal-tax input (from excise/ETS layer, or model-side redesign)</li>
+</ul>
+
+<p class="phase">Phase 3 — Generalize</p>
+<ul class="clean">
+  <li><span class="cb done"></span><span class="done-txt">Parameterize the monetary-energy compatibility boundary by country code and mode, with schema/key tests and portable GAMS input macro</span></li>
+  <li><span class="cb done"></span><span class="done-txt">First non-Danish monetary-energy package: Sweden 2020 public core</span></li>
+  <li><span class="cb done"></span><span class="done-txt">31 Jul: parameterization phase started — first OK-verdict input piloted: employed.xlsx vs nama_10_a64_e (DK 2020). Hours — the only load-bearing per-industry content — reconcile essentially exactly; persons carry a uniform +3.52% concept gap (→ Q8); 16/27 countries complete at A64, with documented mild workarounds for the rest (see §6)</span></li>
+  <li><span class="cb"></span><b>▶ next session:</b> continue the OK-verdict pilots one input per increment — <span class="src">emissions_bridge_items.xlsx</span> vs <span class="src">env_ac_aibrid_r2</span> first (smallest, exact concept match by design), then <span class="src">government_finances.xlsx</span> vs <span class="src">gov_10a_main</span> (expect concept-not-number match; Danish values come from MAKRO), then <span class="src">institutional_financial_accounts.xlsx</span> reusing the financial-accounts module's <span class="src">nasa_10_f_bs</span> pull (replicate the pension-asset reallocation)</li>
+  <li><span class="cb"></span>Generalize the remaining non-energy inputs before any full Sweden run; only then choose a second country</li>
+  <li><span class="cb"></span>Hole-filling rules documented for countries with missing pieces</li>
+  <li><span class="cb"></span>Full EU-27 data build; model runs on EU-sourced data</li>
+</ul>
+
+<div class="footer">
+  <span>Canonical docs: docs/eu_data_mapping.md · data/preprocessing/data/energy_data_notes.md · AGENTS.md</span>
+  <span>Sources: Eurostat · JRC FIGARO/IDEES · Union Registry/EEA · EC Energy · DG TAXUD</span>
+</div>
+
+</body>
+</html>

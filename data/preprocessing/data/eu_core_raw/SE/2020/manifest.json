@@ -1,0 +1,467 @@
+{
+  "country": "SE",
+  "eu27_coverage": {
+    "env_ac_ainah_r2": {
+      "countries_tested": 27,
+      "countries_with_observations": 27,
+      "missing": []
+    },
+    "env_ac_pefasu": {
+      "countries_tested": 27,
+      "countries_with_observations": 27,
+      "missing": []
+    },
+    "env_ac_taxind2": {
+      "countries_tested": 27,
+      "countries_with_observations": 27,
+      "missing": []
+    },
+    "naio_10_cp15": {
+      "countries_tested": 27,
+      "countries_with_observations": 26,
+      "missing": [
+        "BG"
+      ]
+    },
+    "naio_10_cp16": {
+      "countries_tested": 27,
+      "countries_with_observations": 26,
+      "missing": [
+        "BG"
+      ]
+    },
+    "nrg_pc_202_c": {
+      "countries_tested": 27,
+      "countries_with_observations": 24,
+      "missing": [
+        "CY",
+        "FI",
+        "MT"
+      ]
+    },
+    "nrg_pc_203_c": {
+      "countries_tested": 27,
+      "countries_with_observations": 25,
+      "missing": [
+        "CY",
+        "MT"
+      ]
+    },
+    "nrg_pc_204_c": {
+      "countries_tested": 27,
+      "countries_with_observations": 27,
+      "missing": []
+    },
+    "nrg_pc_205_c": {
+      "countries_tested": 27,
+      "countries_with_observations": 27,
+      "missing": []
+    }
+  },
+  "figaro_coverage": "EU-27/27 plus partners; 46 areas",
+  "raw_files": [
+    {
+      "bytes": 191919,
+      "dimensions": [
+        "freq",
+        "stk_flow",
+        "nace_r2",
+        "prod_nrg",
+        "unit",
+        "geo",
+        "time"
+      ],
+      "file": "env_ac_pefasu_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 8924,
+      "query_filters": {
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-30",
+      "sha256": "cb6f58e46b32edee35dcde96b7e0ff479579faf7439a114d84a663c79f031333",
+      "source": "env_ac_pefasu",
+      "source_status": "official_direct_observation",
+      "units_present": [
+        "TJ"
+      ],
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_pefasu?geo=SE&time=2020&lang=en"
+    },
+    {
+      "bytes": 149337,
+      "dimensions": [
+        "freq",
+        "airpol",
+        "nace_r2",
+        "unit",
+        "geo",
+        "time"
+      ],
+      "file": "env_ac_ainah_r2_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 9925,
+      "query_filters": {
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-30",
+      "sha256": "fcb7b196df49a39eb07d09b1932272002ae6e13171a9edafe7a6aac247e37b2e",
+      "source": "env_ac_ainah_r2",
+      "source_status": "official_direct_observation",
+      "units_present": [
+        "G_HAB",
+        "KG_HAB",
+        "T",
+        "THS_T",
+        "I15"
+      ],
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_ainah_r2?geo=SE&time=2020&lang=en"
+    },
+    {
+      "bytes": 17980,
+      "dimensions": [
+        "freq",
+        "tax",
+        "unit",
+        "nace_r2",
+        "geo",
+        "time"
+      ],
+      "file": "env_ac_taxind2_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 888,
+      "query_filters": {
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-30",
+      "sha256": "6ddfe8f2977fe7367f96538f248f8c303ebe94cf06d95bd4bdb933e3ff9b773c",
+      "source": "env_ac_taxind2",
+      "source_status": "official_direct_observation",
+      "units_present": [
+        "MIO_EUR",
+        "MIO_NAC"
+      ],
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=SE&time=2020&lang=en"
+    },
+    {
+      "bytes": 5740,
+      "dimensions": [
+        "freq",
+        "nrg_prc",
+        "nrg_cons",
+        "currency",
+        "unit",
+        "geo",
+        "time"
+      ],
+      "file": "nrg_pc_202_c_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 150,
+      "query_filters": {
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-30",
+      "sha256": "024d1bf92a75ccff20c698f4d1d571e3a32daebaf23fde31880672521d0491ba",
+      "source": "nrg_pc_202_c",
+      "source_status": "official_direct_observation",
+      "units_present": [
+        "KWH",
+        "GJ_GCV"
+      ],
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=SE&time=2020&lang=en"
+    },
+    {
+      "bytes": 5765,
+      "dimensions": [
+        "freq",
+        "nrg_prc",
+        "nrg_cons",
+        "currency",
+        "unit",
+        "geo",
+        "time"
+      ],
+      "file": "nrg_pc_203_c_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 120,
+      "query_filters": {
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-30",
+      "sha256": "ce236582abf735f9d4434fcf842d44c69749664c5e24a513fc23f97d0e1f4822",
+      "source": "nrg_pc_203_c",
+      "source_status": "official_direct_observation",
+      "units_present": [
+        "KWH",
+        "GJ_GCV"
+      ],
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=SE&time=2020&lang=en"
+    },
+    {
+      "bytes": 5696,
+      "dimensions": [
+        "freq",
+        "nrg_cons",
+        "nrg_prc",
+        "currency",
+        "geo",
+        "time"
+      ],
+      "file": "nrg_pc_204_c_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 132,
+      "query_filters": {
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-30",
+      "sha256": "cf0c736938149dc9ec4ef2f47f62a08986744228363f35a32ef99203c854c4bd",
+      "source": "nrg_pc_204_c",
+      "source_status": "official_direct_observation",
+      "units_present": [],
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=SE&time=2020&lang=en"
+    },
+    {
+      "bytes": 6229,
+      "dimensions": [
+        "freq",
+        "nrg_prc",
+        "nrg_cons",
+        "currency",
+        "geo",
+        "time"
+      ],
+      "file": "nrg_pc_205_c_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 153,
+      "query_filters": {
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-30",
+      "sha256": "29d7c1db060aa5405eac6332911c3c5db29ca317214039c7374fd8296e84abe5",
+      "source": "nrg_pc_205_c",
+      "source_status": "official_direct_observation",
+      "units_present": [],
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=SE&time=2020&lang=en"
+    },
+    {
+      "bytes": 130206,
+      "dimensions": [
+        "freq",
+        "unit",
+        "stk_flow",
+        "ind_impv",
+        "prd_amo",
+        "geo",
+        "time"
+      ],
+      "file": "naio_10_cp15_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 10200,
+      "query_filters": {
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-30",
+      "sha256": "6ac56772eea25f94829db2be52bfb8b7463b1a23e1ec22de5a9f7b435780f594",
+      "source": "naio_10_cp15",
+      "source_status": "official_direct_observation",
+      "units_present": [
+        "MIO_EUR",
+        "MIO_NAC"
+      ],
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=SE&time=2020&lang=en"
+    },
+    {
+      "bytes": 167812,
+      "dimensions": [
+        "freq",
+        "unit",
+        "stk_flow",
+        "ind_use",
+        "prd_ava",
+        "geo",
+        "time"
+      ],
+      "file": "naio_10_cp16_SE_2020.json",
+      "licence_reuse": "Eurostat reuse policy",
+      "observations": 12200,
+      "query_filters": {
+        "geo": "SE",
+        "lang": "en",
+        "time": "2020"
+      },
+      "retrieval_date": "2026-07-30",
+      "sha256": "1cfc47b46764e9e110f5784dc0ccac4c4301e56cca08dc35f87002e4ea5ec6ed",
+      "source": "naio_10_cp16",
+      "source_status": "official_direct_observation",
+      "units_present": [
+        "MIO_EUR",
+        "MIO_NAC",
+        "HW"
+      ],
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=SE&time=2020&lang=en"
+    },
+    {
+      "bytes": 334994,
+      "eu_country_coverage": "EU-27/27 in FIGARO 2026 edition",
+      "file": "naio_10_fcp_s3_SE_2020.csv",
+      "licence_reuse": "Eurostat reuse policy",
+      "query_filters": {
+        "endPeriod": "2020",
+        "sdmx_key": "A....SE",
+        "startPeriod": "2020"
+      },
+      "retrieval_date": "2026-07-30",
+      "sha256": "15e61c25f4e3463adc4eee5b8d452767729008862ca6537db29f585d75f945ad",
+      "source": "naio_10_fcp_s3",
+      "source_status": "official_direct_observation",
+      "units_present": [
+        "MIO_EUR"
+      ],
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/naio_10_fcp_s3/A....SE?format=SDMX-CSV&startPeriod=2020&endPeriod=2020"
+    },
+    {
+      "bytes": 18779630,
+      "eu_country_coverage": "EU-27/27 in FIGARO 2026 edition",
+      "file": "naio_10_fcp_u3_SEdest_2020.csv",
+      "licence_reuse": "Eurostat reuse policy",
+      "query_filters": {
+        "endPeriod": "2020",
+        "sdmx_key": "A...SE..",
+        "startPeriod": "2020"
+      },
+      "retrieval_date": "2026-07-30",
+      "sha256": "1c8b03bd8e12888899a5bc2f88d510278bcd0c235d025c416ed27abe0771fbe0",
+      "source": "naio_10_fcp_u3",
+      "source_status": "official_direct_observation",
+      "units_present": [
+        "MIO_EUR"
+      ],
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/naio_10_fcp_u3/A...SE..?format=SDMX-CSV&startPeriod=2020&endPeriod=2020"
+    },
+    {
+      "bytes": 18747785,
+      "eu_country_coverage": "EU-27/27 in FIGARO 2026 edition",
+      "file": "naio_10_fcp_u3_SEorig_2020.csv",
+      "licence_reuse": "Eurostat reuse policy",
+      "query_filters": {
+        "endPeriod": "2020",
+        "sdmx_key": "A.....SE",
+        "startPeriod": "2020"
+      },
+      "retrieval_date": "2026-07-30",
+      "sha256": "6adba52b205f5b78765594f56b6f47a70c7b0b1dc92b3733a23cb4bb17734562",
+      "source": "naio_10_fcp_u3",
+      "source_status": "official_direct_observation",
+      "units_present": [
+        "MIO_EUR"
+      ],
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/naio_10_fcp_u3/A.....SE?format=SDMX-CSV&startPeriod=2020&endPeriod=2020"
+    },
+    {
+      "bytes": 18270963,
+      "eu_country_coverage": "EU-27/27 in FIGARO 2026 edition",
+      "file": "naio_10_fcp_ii3_SEdest_2020.csv",
+      "licence_reuse": "Eurostat reuse policy",
+      "query_filters": {
+        "endPeriod": "2020",
+        "sdmx_key": "A...SE..",
+        "startPeriod": "2020"
+      },
+      "retrieval_date": "2026-07-30",
+      "sha256": "19981aaa6b11f44ace09dfc45106e362e8cdbbfa1dde963fb50866af798828ff",
+      "source": "naio_10_fcp_ii3",
+      "source_status": "official_direct_observation",
+      "units_present": [
+        "MIO_EUR"
+      ],
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/naio_10_fcp_ii3/A...SE..?format=SDMX-CSV&startPeriod=2020&endPeriod=2020"
+    },
+    {
+      "bytes": 18325608,
+      "eu_country_coverage": "EU-27/27 in FIGARO 2026 edition",
+      "file": "naio_10_fcp_ii3_SEorig_2020.csv",
+      "licence_reuse": "Eurostat reuse policy",
+      "query_filters": {
+        "endPeriod": "2020",
+        "sdmx_key": "A.....SE",
+        "startPeriod": "2020"
+      },
+      "retrieval_date": "2026-07-30",
+      "sha256": "e548e0b334d3978b07352098222c39a2b891259079bc513f5bac2cccb85b18f1",
+      "source": "naio_10_fcp_ii3",
+      "source_status": "official_direct_observation",
+      "units_present": [
+        "MIO_EUR"
+      ],
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/naio_10_fcp_ii3/A.....SE?format=SDMX-CSV&startPeriod=2020&endPeriod=2020"
+    },
+    {
+      "bytes": 166,
+      "eu_country_coverage": "EU-27/27 in FIGARO 2026 edition",
+      "file": "ert_bil_eur_a_SEK_2020.csv",
+      "licence_reuse": "Eurostat reuse policy",
+      "query_filters": {
+        "endPeriod": "2020",
+        "sdmx_key": "A.AVG.NAC.SEK",
+        "startPeriod": "2020"
+      },
+      "retrieval_date": "2026-07-30",
+      "sha256": "3fd53897c4266154cb0a412d15130a0323d4da04383d74531bd7cbf9601f1939",
+      "source": "ert_bil_eur_a",
+      "source_status": "official_direct_observation",
+      "units_present": [
+        "national currency per EUR"
+      ],
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/ert_bil_eur_a/A.AVG.NAC.SEK?format=SDMX-CSV&startPeriod=2020&endPeriod=2020"
+    },
+    {
+      "bytes": 4436105,
+      "file": "Weekly_Oil_Bulletin_Prices_History_2026-07-30.xlsx",
+      "licence_reuse": "European Commission legal notice/reuse policy",
+      "query_filters": {},
+      "retrieval_date": "2026-07-30",
+      "sha256": "e34c6d4d824e403523ead99f3c3a1048b082bd500e12bd3bac0a80f8cf3919c6",
+      "source": "Weekly_Oil_Bulletin_Prices_History_2026-07-30.xlsx",
+      "source_status": "official_weekly_observations",
+      "url": "https://energy.ec.europa.eu/document/download/906e60ca-8b6a-44e7-8589-652854d2fd3f_en?filename=Weekly_Oil_Bulletin_Prices_History_maticni_4web.xlsx"
+    },
+    {
+      "bytes": 2781832,
+      "file": "excise_duties_energy_products_rates_2021-07-01.pdf",
+      "licence_reuse": "European Commission legal notice/reuse policy",
+      "query_filters": {},
+      "retrieval_date": "2026-07-30",
+      "sha256": "a08b090ad06e83fd7b943fceedd0d26f6aa4e1472ab891b943c4e7f39472939e",
+      "source": "excise_duties_energy_products_rates_2021-07-01.pdf",
+      "source_status": "official_nearest_reference",
+      "url": "https://taxation-customs.ec.europa.eu/system/files/2021-09/excise_duties-part_ii_energy_products_en.pdf"
+    },
+    {
+      "bytes": 2698187,
+      "file": "vat_rates_2020-01-01.pdf",
+      "licence_reuse": "European Commission legal notice/reuse policy",
+      "query_filters": {},
+      "retrieval_date": "2026-07-30",
+      "sha256": "7d33d1ee32c46dbc922ad81d1ca59fcd491d29d67715e23420e201871fe565e2",
+      "source": "vat_rates_2020-01-01.pdf",
+      "source_status": "official_exact_2020_reference",
+      "url": "https://taxation-customs.ec.europa.eu/document/download/82a38bdb-d724-472d-8e02-325b271e0d88_en?filename=vat_rates_en.pdf"
+    }
+  ],
+  "reference_year": 2020,
+  "retrieval_date": "2026-07-30"
+}

@@ -1,0 +1,155 @@
+[
+  {
+    "source": "env_ac_taxind2",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_taxind2?geo=DK&time=2020&lang=en",
+    "file": "env_ac_taxind2_DK_2020.json",
+    "bytes": 18249,
+    "sha256": "91eb7963703eb51c5a1177129434b06564d4f35036341229846346a9f47cd7a7",
+    "observations": 888,
+    "dimensions": [
+      "freq",
+      "tax",
+      "unit",
+      "nace_r2",
+      "geo",
+      "time"
+    ],
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "source": "nrg_pc_202_c",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_202_c?geo=DK&time=2020&lang=en",
+    "file": "nrg_pc_202_c_DK_2020.json",
+    "bytes": 6273,
+    "sha256": "dd71cd38062c971993566b0053b52224ba95ea1ee93ea2b0df094f39a0432e9e",
+    "observations": 192,
+    "dimensions": [
+      "freq",
+      "nrg_prc",
+      "nrg_cons",
+      "currency",
+      "unit",
+      "geo",
+      "time"
+    ],
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "source": "nrg_pc_203_c",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_203_c?geo=DK&time=2020&lang=en",
+    "file": "nrg_pc_203_c_DK_2020.json",
+    "bytes": 7949,
+    "sha256": "34e9c8a7ff2d4a25c4aef33151372602b60c7fba14ef5061c1ee9cf735a81fa1",
+    "observations": 288,
+    "dimensions": [
+      "freq",
+      "nrg_prc",
+      "nrg_cons",
+      "currency",
+      "unit",
+      "geo",
+      "time"
+    ],
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "source": "nrg_pc_204_c",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_204_c?geo=DK&time=2020&lang=en",
+    "file": "nrg_pc_204_c_DK_2020.json",
+    "bytes": 6110,
+    "sha256": "8b3a2c3fb90f7b198647c191f431be4a0461db35fa745d3ea6d0f6d66aad02cd",
+    "observations": 162,
+    "dimensions": [
+      "freq",
+      "nrg_cons",
+      "nrg_prc",
+      "currency",
+      "geo",
+      "time"
+    ],
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "source": "nrg_pc_205_c",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nrg_pc_205_c?geo=DK&time=2020&lang=en",
+    "file": "nrg_pc_205_c_DK_2020.json",
+    "bytes": 7049,
+    "sha256": "afd6c21e61bd9334ac561750a28e8f62bbe6867a66edf617b54d36ba4472dcf5",
+    "observations": 216,
+    "dimensions": [
+      "freq",
+      "nrg_prc",
+      "nrg_cons",
+      "currency",
+      "geo",
+      "time"
+    ],
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "source": "naio_10_cp15",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp15?geo=DK&time=2020&lang=en",
+    "file": "naio_10_cp15_DK_2020.json",
+    "bytes": 256387,
+    "sha256": "b83633e4abf59bacc52972feda7687c172e8df14867d65a7db407d096d77fcba",
+    "observations": 22486,
+    "dimensions": [
+      "freq",
+      "unit",
+      "stk_flow",
+      "ind_impv",
+      "prd_amo",
+      "geo",
+      "time"
+    ],
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "source": "naio_10_cp16",
+    "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/naio_10_cp16?geo=DK&time=2020&lang=en",
+    "file": "naio_10_cp16_DK_2020.json",
+    "bytes": 342708,
+    "sha256": "0884b70255801c45a4a9e54d6a1fab043e505d85a60b07e230af6ed5d702b0a1",
+    "observations": 25370,
+    "dimensions": [
+      "freq",
+      "unit",
+      "stk_flow",
+      "ind_use",
+      "prd_ava",
+      "geo",
+      "time"
+    ],
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "source": "Weekly_Oil_Bulletin_Prices_History_2026-07-30.xlsx",
+    "url": "https://energy.ec.europa.eu/document/download/906e60ca-8b6a-44e7-8589-652854d2fd3f_en?filename=Weekly_Oil_Bulletin_Prices_History_maticni_4web.xlsx",
+    "file": "Weekly_Oil_Bulletin_Prices_History_2026-07-30.xlsx",
+    "bytes": 4436105,
+    "sha256": "e34c6d4d824e403523ead99f3c3a1048b082bd500e12bd3bac0a80f8cf3919c6",
+    "observations": null,
+    "dimensions": null,
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "source": "excise_duties_energy_products_rates_2021-07-01.pdf",
+    "url": "https://taxation-customs.ec.europa.eu/system/files/2021-09/excise_duties-part_ii_energy_products_en.pdf",
+    "file": "excise_duties_energy_products_rates_2021-07-01.pdf",
+    "bytes": 2781832,
+    "sha256": "a08b090ad06e83fd7b943fceedd0d26f6aa4e1472ab891b943c4e7f39472939e",
+    "observations": null,
+    "dimensions": null,
+    "retrieval_date": "2026-07-30"
+  },
+  {
+    "source": "vat_rates_2020-01-01.pdf",
+    "url": "https://taxation-customs.ec.europa.eu/document/download/82a38bdb-d724-472d-8e02-325b271e0d88_en?filename=vat_rates_en.pdf",
+    "file": "vat_rates_2020-01-01.pdf",
+    "bytes": 2698187,
+    "sha256": "7d33d1ee32c46dbc922ad81d1ca59fcd491d29d67715e23420e201871fe565e2",
+    "observations": null,
+    "dimensions": null,
+    "retrieval_date": "2026-07-30"
+  }
+]

@@ -1,6 +1,7 @@
 
 #£)
 $set data_path P:/akg/Til_EU_projekt
+$if not set energy_money_gdx $set energy_money_gdx data_DK.gdx
 
 ###Overview 
 #
@@ -118,7 +119,7 @@ Parameters
 ;
 
 # £) 
-$gdxin data_DK.gdx
+$gdxin "%energy_money_gdx%"
 $load d, d_non_ene, d_ene, i,c,x,g,rx,re,invt,invt_ene,tl,out,e,t,t1,em_accounts,i_,k_,land5
 $load factors_of_production, k, ebalitems, em,etaxes,a_rows_,transaction,demand_transaction,es
 $load vIO_y,vIO_m,vIO_a,vIOxE_y,vIOxE_m,vIOxE_a
@@ -611,7 +612,7 @@ pM_CET['out_other',i,t]$qM_CET['out_other',i,t] = 1;
 #Taxes 
   #£)
   PARAMETER tCO2_REmarg[es,e,d,t,em], tEAFG_REmarg[es,e,d,t]; #Marginal Danish tax-rates directly from GR-DK
-  execute_load 'data_DK.gdx' tCO2_REmarg = tCO2_REmarg, tEAFG_REmarg = tEAFG_REmarg;
+  execute_load '%energy_money_gdx%' tCO2_REmarg = tCO2_REmarg, tEAFG_REmarg = tEAFG_REmarg;
 
   tCO2_REmarg[es,'district heat',d,t,em]$tCO2_REmarg[es,'district heat',d,t,em] = 0;
 

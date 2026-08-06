@@ -9,4 +9,17 @@
 *.gdx
 !.gitkeep
 !gamY_src/previous_baseline.gdx
+!data/preprocessing/data/eu_core/**/*.gdx
 /model/saved
+
+# EU raw downloads are reproducible via data/preprocessing/scripts/download_*.py.
+# Keep only provenance: README, manifest and coverage probes.
+data/preprocessing/data/*_raw/**
+!data/preprocessing/data/*_raw/**/
+!data/preprocessing/data/*_raw/**/README.md
+!data/preprocessing/data/*_raw/**/manifest.json
+!data/preprocessing/data/*_raw/**/*probe*.json
+!data/preprocessing/data/*_raw/**/*probe*.csv
+
+# Generated energy-money GDX output
+data/generated/

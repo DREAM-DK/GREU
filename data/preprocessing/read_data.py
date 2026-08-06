@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 #import sys
 import gamspy as gp
+from data.Modules.energy_money import get_energy_money_config
 #import gams.core.numpy
 '''
 This script reads raw data from the excel sheets in the data-folder and produces a .gdx-file called data_DK.gdx.
@@ -37,6 +38,7 @@ and the sets are accurate representations of what they are intended as (i.e. "As
 #Initialize container
 m=gp.Container()
 pd.set_option("mode.copy_on_write", True)
+energy_money_config = get_energy_money_config()
 
 '''
 "Clean version". No experimentation or debugging here
@@ -114,7 +116,7 @@ non_energy_emissions.replace({'transaction':dict_transaction,'ebalitems':dict_eb
 non_energy_emissions = non_energy_emissions[['ebalitems', 'transaction', 'd', 'year', 'level']]
 
 #Energy emissions
-energy_and_emissions=pd.read_excel(r'../data/preprocessing/data/energy_and_emissions.xlsx',keep_default_na=True)
+energy_and_emissions=pd.read_excel(energy_money_config.energy_workbook,keep_default_na=True)
 
 '''rename coslumns for compatibility with data loading'''
 energy_and_emissions.rename(columns={'indu':'d','product':'e','purp':'es','flow':'transaction'},inplace=True)
@@ -183,7 +185,7 @@ I suspect will ultimately be more convenient for adapting this code to other dat
 highest possible degree of automization.
 '''
 #energy
-io_energy=pd.read_excel(r'../data/preprocessing/data/io_energy_long_format.xlsx',keep_default_na=True)
+io_energy=pd.read_excel(energy_money_config.energy_io_workbook,keep_default_na=True)
 io_energy_forlater=io_energy.copy(deep=True)
 io_energy.rename(columns={'row_l2':'i','col_l1':'DELETE','col_l2':'d','value':'level'},inplace=True)
 
@@ -763,15 +765,23 @@ k_=gp.Set(m,name='k_',description='capital types including total, excluding inve
 
 #DANISH FIX: Marginal taxes from gdx
 '''receive data from gdx'''
-r=gp.Container('../data/preprocessing/data/EU_GR_data.gdx')
+r=gp.Container(str(energy_money_config.marginal_rate_gdx))
 tEAFG_REmarg_df=r['tEAFG_REmarg'].records
 tCO2_REmarg_df=r['tCO2_REmarg'].records
+is_public_core = energy_money_config.mode.value == "public_core"
 '''because of inconsistencies in set definitions we have to do some manual labor here...'''
 
 #Check uniformity of disaggregated food producing sectors
 r=tCO2_REmarg_df['r'].unique().tolist()
-r_not_in_i=[str(y) for y in r if str(y) not in [str(x[0]) for x in i_records_fortot]]
-i_not_in_r=[str(y[0]) for y in i_records_fortot if str(y[0]) not in r]
+if is_public_core:
+    # Public-core GDX domains are already the complete coarse country contract.
+    # Do not collapse household/residual users into a Danish industry or create
+    # finer Danish sectors from a coarse public NACE cluster.
+    r_not_in_i = []
+    i_not_in_r = ['10010', 'tot']
+else:
+    r_not_in_i=[str(y) for y in r if str(y) not in [str(x[0]) for x in i_records_fortot]]
+    i_not_in_r=[str(y[0]) for y in i_records_fortot if str(y[0]) not in r]
 
 group_cols=['t','energy19','purpose','emm_eq']
 '''check that r_not_in_i agrees on superfluous sectors'''
@@ -827,22 +837,22 @@ i_not_in_r.remove('tot')
 '''add new rows - fortuneately, the "missing" sectors fall neatly into categories (waste treatment + transport) with uniform marginal tax rates'''
 
 # EAFG
-tEAFG_REmarg_df38394 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '38393'].copy()
+tEAFG_REmarg_df38394 = tEAFG_REmarg_df.loc[(tEAFG_REmarg_df['r'] == '38393') & (not is_public_core)].copy()
 tEAFG_REmarg_df38394['r'] = tEAFG_REmarg_df38394['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '38394' if c == '38393' else c)
 
-tEAFG_REmarg_df38395 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '38393'].copy()
+tEAFG_REmarg_df38395 = tEAFG_REmarg_df.loc[(tEAFG_REmarg_df['r'] == '38393') & (not is_public_core)].copy()
 tEAFG_REmarg_df38395['r'] = tEAFG_REmarg_df38395['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '38395' if c == '38393' else c)
 
-tEAFG_REmarg_df49012 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '49011'].copy()
+tEAFG_REmarg_df49012 = tEAFG_REmarg_df.loc[(tEAFG_REmarg_df['r'] == '49011') & (not is_public_core)].copy()
 tEAFG_REmarg_df49012['r'] = tEAFG_REmarg_df49012['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49012' if c == '49011' else c)
 
-tEAFG_REmarg_df49025 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '49024'].copy()
+tEAFG_REmarg_df49025 = tEAFG_REmarg_df.loc[(tEAFG_REmarg_df['r'] == '49024') & (not is_public_core)].copy()
 tEAFG_REmarg_df49025['r'] = tEAFG_REmarg_df49025['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49025' if c == '49024' else c)
 
-tEAFG_REmarg_df49022 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '49024'].copy()
+tEAFG_REmarg_df49022 = tEAFG_REmarg_df.loc[(tEAFG_REmarg_df['r'] == '49024') & (not is_public_core)].copy()
 tEAFG_REmarg_df49022['r'] = tEAFG_REmarg_df49022['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49022' if c == '49024' else c)
 
-tEAFG_REmarg_df52000 = tEAFG_REmarg_df.loc[tEAFG_REmarg_df['r'] == '53000'].copy()
+tEAFG_REmarg_df52000 = tEAFG_REmarg_df.loc[(tEAFG_REmarg_df['r'] == '53000') & (not is_public_core)].copy()
 tEAFG_REmarg_df52000['r'] = tEAFG_REmarg_df52000['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '52000' if c == '53000' else c)
 
 tEAFG_REmarg_df = pd.concat(
@@ -859,22 +869,22 @@ tEAFG_REmarg_df = pd.concat(
 )
 
 # CO2
-tCO2_REmarg_df38394 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '38393'].copy()
+tCO2_REmarg_df38394 = tCO2_REmarg_df.loc[(tCO2_REmarg_df['r'] == '38393') & (not is_public_core)].copy()
 tCO2_REmarg_df38394['r'] = tCO2_REmarg_df38394['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '38394' if c == '38393' else c)
 
-tCO2_REmarg_df38395 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '38393'].copy()
+tCO2_REmarg_df38395 = tCO2_REmarg_df.loc[(tCO2_REmarg_df['r'] == '38393') & (not is_public_core)].copy()
 tCO2_REmarg_df38395['r'] = tCO2_REmarg_df38395['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '38395' if c == '38393' else c)
 
-tCO2_REmarg_df49012 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '49011'].copy()
+tCO2_REmarg_df49012 = tCO2_REmarg_df.loc[(tCO2_REmarg_df['r'] == '49011') & (not is_public_core)].copy()
 tCO2_REmarg_df49012['r'] = tCO2_REmarg_df49012['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49012' if c == '49011' else c)
 
-tCO2_REmarg_df49025 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '49024'].copy()
+tCO2_REmarg_df49025 = tCO2_REmarg_df.loc[(tCO2_REmarg_df['r'] == '49024') & (not is_public_core)].copy()
 tCO2_REmarg_df49025['r'] = tCO2_REmarg_df49025['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49025' if c == '49024' else c)
 
-tCO2_REmarg_df49022 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '49024'].copy()
+tCO2_REmarg_df49022 = tCO2_REmarg_df.loc[(tCO2_REmarg_df['r'] == '49024') & (not is_public_core)].copy()
 tCO2_REmarg_df49022['r'] = tCO2_REmarg_df49022['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '49022' if c == '49024' else c)
 
-tCO2_REmarg_df52000 = tCO2_REmarg_df.loc[tCO2_REmarg_df['r'] == '53000'].copy()
+tCO2_REmarg_df52000 = tCO2_REmarg_df.loc[(tCO2_REmarg_df['r'] == '53000') & (not is_public_core)].copy()
 tCO2_REmarg_df52000['r'] = tCO2_REmarg_df52000['r'].cat.remove_unused_categories().cat.rename_categories(lambda c: '52000' if c == '53000' else c)
 tCO2_REmarg_df = pd.concat([
     tCO2_REmarg_df,
@@ -950,4 +960,5 @@ If energy is not counted, the former of the two interpretations does indeed give
 g_=gp.Set(m,'g_',description='hard coded',records=['g','gTot'])
 m_=gp.Set(m,name='m',domain=[i],description='industries with imports',records=io_combined_m['i'].unique().tolist())
 
-m.write('../data_DK.gdx')
+energy_money_config.prepare_output_directory()
+m.write(str(energy_money_config.generated_country_gdx))

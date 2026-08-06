@@ -1,0 +1,9 @@
+# European Union Emissions Trading System (EU ETS) data from the Union Registry, July 2026
+
+This is the metadata for the EU Emission Trading System (EU ETS). EU ETS aims to reduce greenhouse gas emissions cost-effectively by setting a cap on the total amount of emissions from covered sectors. These sectors include power and heat generation, energy-intensive industries aviation and shipping within the European Economic Area. Under the system, companies receive or purchase emission allowances, each permitting the release of one tonne of CO₂ or equivalent gases. Businesses can trade these allowances, creating a financial incentive to reduce emissions. If a company emits less than its allowance, it can sell the surplus; if it exceeds the cap, it must buy more or face penalties. The cap is reduced annually, ensuring a steady decline in emissions over time. The system has gone through several phases, with the current Phase 4 running from 2021 to 2030. It also supports innovation and investment in low-carbon technologies through dedicated funds. Overall, the EU ETS plays a key role in helping the EU reach its climate neutrality goal by 2050.
+
+Data about the EU emission trading system (ETS). The EU ETS data viewer provides aggregated data on emissions and allowances, by country, sector and year. The data mainly comes from the Union Registry. Additional information on auctioning and scope corrections is included.https://sdi.eea.europa.eu/catalogue/srv/api/records/a94a5d68-9973-4e2c-9a7a-fd7690ec3473?language=all
+
+
+[More information](https://sdi.eea.europa.eu/catalogue/srv/api/records/a94a5d68-9973-4e2c-9a7a-fd7690ec3473)
+    

@@ -1,0 +1,70 @@
+{
+  "artifacts": {
+    "EU_GR_data.gdx": {
+      "sha256": "d980dca6102dc36bb5809567ece063e28696c4b1a2f0f5ac48bcafaf1dab9864"
+    },
+    "energy_and_emissions.xlsx": {
+      "rows": 235,
+      "sha256": "80da0f44ceab61c3a3b6b827c90b4f21f5a6cd0c70ec9bf15a7c01e33c555964"
+    },
+    "io_energy_long_format.xlsx": {
+      "rows": 281,
+      "sha256": "ebd8c052e7f27da5d68c15ce26d8d72f230da34bf18162d66c869cf9ec1cdab2"
+    }
+  },
+  "audit_sha256": "907ad78fe14f6feedcad41e6ace68b459fccf10fc1b7cbfaee72d9910371a532",
+  "audit_workbook": "data\\preprocessing\\data\\energy_money_se2020_public_core_reconciliation.xlsx",
+  "country": "SE",
+  "currency": "bn SEK",
+  "danish_inputs": "none; metadata.xlsx classifications only",
+  "hard_truth": "No monetary cell is directly observed at product\u00d7user\u00d7purpose; all monetary allocations are calibrated and residuals are explicit.",
+  "policy": {
+    "path": "data\\preprocessing\\data\\eu_core\\public_core_v1.0_policy.json",
+    "sha256": "b54407f3af5f5f9d91b43dd28f4575d9471d16304c685729d8d89a9b1fbb3b89"
+  },
+  "policy_version": "public_core_v1.0",
+  "quantitative_results": {
+    "allocated_nonVAT_wedge_bn_SEK": 15.592829494499597,
+    "direct_monetary_cells": 0,
+    "explicit_monetary_residual_bn_SEK": 118.844,
+    "explicit_physical_residual_PJ": 1765.088,
+    "explicit_supply_side_monetary_residual_bn_SEK": 102.56700000000001,
+    "explicit_supply_side_monetary_residual_note": "use-side residuals are measured on `purch`; supply-side residuals live in `basic` because supply rows never carry a purchaser price. This field makes that separate, otherwise invisible, producer-side unmatched-control total explicit rather than silently absent from the headline use-side residual figure.",
+    "max_SUT_purchaser_residual_bn_SEK": 2.842170943040401e-14,
+    "max_component_identity_residual_bn_SEK": 7.105427357601002e-15,
+    "max_product_balance_residual_PJ": 5.684341886080802e-14,
+    "modelled_monetary_cells": 117,
+    "negative_basic_rows": 6,
+    "negative_basic_total_bn_SEK": -3.1147635266554996,
+    "physical_supply_PJ": 4611.0794000000005,
+    "physical_use_PJ": 4611.0794000000005,
+    "purchaser_value_bn_SEK": 610.583,
+    "reporting_detail_redirected_note": "SUT money for industry clusters where PEFA has no USE row at GREU's expected NACE detail is pooled with the indu=res reporting-detail residual (same physical bucket) instead of becoming unmatched residual; see reporting_detail_redirects audit sheet. Not a new allocation rule, only a relabelling of which explicit bucket already-disclosed money/quantity sit in.",
+    "reporting_detail_redirected_to_res_bn_SEK": 180.287,
+    "tax_account_control_bn_SEK": 38.06255004799999,
+    "tax_control_residual_bn_SEK": -22.469720553500405,
+    "unobserved_no_source_breakdown_cpas": [
+      "CPA_B05",
+      "CPA_B06"
+    ],
+    "unobserved_no_source_breakdown_supply_PJ": 916.7846999999999,
+    "unobserved_no_source_breakdown_use_PJ": 916.7846999999999,
+    "vat_calibrated_bn_SEK": 28.393040318558217,
+    "vat_control_residual_bn_SEK": 1.374959681441782,
+    "vat_legal_estimate_bn_SEK": 29.767999999999997
+  },
+  "raw_manifest": "data\\preprocessing\\data\\eu_core_raw\\SE\\2020\\manifest.json",
+  "raw_manifest_sha256": "2ea0ebb230f532e4270c9f502c8ba037a6cfd37b01c35e846c737b4803f770b7",
+  "reference_year": 2020,
+  "retrieval_date": "2026-07-30",
+  "scripts": {
+    "builder": {
+      "path": "data/preprocessing/scripts/build_energy_money_public_core.py",
+      "sha256": "6a6e9443f0550f5c83c034d36d60837c3be0c396fc7ab4fd128879019b382685"
+    },
+    "downloader": {
+      "path": "data/preprocessing/scripts/download_energy_money_public_core.py",
+      "sha256": "2878550b4cec64ca0071c4eb62d0a44b26e3b7eec7f50ed9e92edfe57038df5c"
+    }
+  }
+}

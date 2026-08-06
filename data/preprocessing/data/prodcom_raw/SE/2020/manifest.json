@@ -1,0 +1,35 @@
+{
+  "dataflow": "ESTAT:DS-059358(1.0) Sold production, exports and imports",
+  "endpoint_finding": "prc_stapro (doc claim) and legacy ds-056120 both return HTTP 404 on the dissemination API; PRODCOM is served as DS-059358 on https://ec.europa.eu/eurostat/api/comext/dissemination/ (verified live 2026-07-31).",
+  "files": {
+    "cxt_indicators_codelist.xml": {
+      "bytes": 13899,
+      "note": "Indicator labels for the DS-059358 indicators dimension.",
+      "sha256": "5b418ab2b91f800ca30dd100349c06efadfca8b39f68f5f7206ab24d5e342a75",
+      "url": "https://ec.europa.eu/eurostat/api/comext/dissemination/sdmx/2.1/codelist/ESTAT/CXT_INDICATORS"
+    },
+    "cxt_prodcom2_sold_codelist.xml": {
+      "bytes": 2471665,
+      "note": "Code labels for the DS-059358 product dimension.",
+      "sha256": "6dcd0f14ef97fdf443e62678b2ec6abddb6bd950793ac3eac0f799b448b39e5a",
+      "url": "https://ec.europa.eu/eurostat/api/comext/dissemination/sdmx/2.1/codelist/ESTAT/CXT_PRODCOM2_SOLD"
+    },
+    "ds-059358_SE_2020_all_products.csv": {
+      "bytes": 1698985,
+      "note": "Sold production, exports and imports; reporter SE, year 2020, all PRODCOM codes, all indicators (PRODVAL/EXPVAL/IMPVAL, quantities, flags, rounding bases, QNTUNIT).",
+      "sha256": "6997461768c9f5d9a244ad9b8e3790cc7588944a65feb997324d981570c48658",
+      "url": "https://ec.europa.eu/eurostat/api/comext/dissemination/sdmx/2.1/data/DS-059358/A.SE../?format=SDMX-CSV&startPeriod=2020&endPeriod=2020"
+    },
+    "ds-059358_eu_coverage_probe_2020.csv": {
+      "bytes": 16212,
+      "note": "Coverage probe: all reporters, year 2020, products 16291500 (wood pellets/briquettes) and 16101033 (coniferous sawnwood), all indicators. Used to check EU-27 availability.",
+      "sha256": "1397de5164728b13c4255aace28676aa7e5853cd82f82a92f310c9edec879246",
+      "url": "https://ec.europa.eu/eurostat/api/comext/dissemination/sdmx/2.1/data/DS-059358/A..16291500+16101033./?format=SDMX-CSV&startPeriod=2020&endPeriod=2020"
+    }
+  },
+  "licence": "Eurostat re-use policy / CC BY 4.0",
+  "reference_year": 2020,
+  "reporter": "SE (plus all-reporter coverage probe)",
+  "retrieval_date": "2026-07-31",
+  "source": "Eurostat Comext dissemination API"
+}
