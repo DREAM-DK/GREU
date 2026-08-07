@@ -56,4 +56,11 @@ Set i_energymargins[i]/45000,46000,47000/;
 
 Set i_service_for_industries[i] / 71000 /;
 Set i_international_aviation[i] / 51009 /;
+Set d_refineries[d] "Refineries as demand components";
+Set d_gasdistribution[d] "Gas distribution as demand components";
+Set d_service_for_industries[d] "Service for industries as demand components";
+
+d_refineries[d] = yes$(sum(i_refineries, sameas[d,i_refineries]));
+d_gasdistribution[d] = yes$(sum(i_gasdistribution, sameas[d,i_gasdistribution]));
+d_service_for_industries[d] = yes$(sum(i_service_for_industries, sameas[d,i_service_for_industries]));
 SEt i_control[i]/set.i/;

@@ -46,6 +46,7 @@ $FUNCTION import_from_modules({stage_key}):
     ("modules/input_output.gms", 1),
     ("modules/labor_market.gms", 1),
     ("modules/factor_demand.gms", 1),
+    ("modules/factor_demand_energy.gms", 1),
     ("modules/pricing.gms" , 1),
     ("modules/households.gms", 1),
     ("modules/financial_accounts.gms", 1),
@@ -53,6 +54,8 @@ $FUNCTION import_from_modules({stage_key}):
     ("modules/imports.gms", 1),
     ("modules/exports.gms", 1),
 
+    ## MODULES WITH FOC-BASED BEHAVIOR
+    ("modules/production.gms" , 1),
     ("modules/ramsey_household.gms", 1), 
     ("modules/consumption_disaggregated.gms", 1), 
 
@@ -61,10 +64,8 @@ $FUNCTION import_from_modules({stage_key}):
     ("modules/energy_markets.gms" , 1),
     ("modules/non_energy_markets.gms", 1),
     ("modules/production_CES_energydemand.gms", 1),
-    ("modules/production.gms" , 1),
     ("modules/energy_and_emissions_taxes.gms" , 1),
     ("modules/production_CET.gms", 1),
-    ("modules/factor_demand_energy.gms", 1),
     ("modules/consumption_disaggregated_energy.gms", 1),
     ("modules/exports_energy.gms", 1),
     ("modules/energy_technology.gms", 1),
@@ -132,7 +133,9 @@ $IMPORT calibration.gms
 # =============================================================================
 $IF %test_CGE%:
 
+@import_from_modules("tests_baseline")
 @import_from_modules("tests")
+
 # Data check  -  Abort if any data covered variables have been changed by the calibration
 # @assert_no_difference(data_covered_variables, 1e-6, _data, .l, "data_covered_variables was changed by calibration.");
 

@@ -1,5 +1,5 @@
 set out "All product types produced by industries, including ergy and margins";
-set e[out] "ergy products produced by industries"; alias(e,e_a);
+set e[out] "ergy products produced by industries";
 set es "End-purpose of ergy";
 set eBunkering[e] "Bunkering energy types";
 

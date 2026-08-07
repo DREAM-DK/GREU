@@ -140,11 +140,19 @@ energy_and_emissions['d'] = energy_and_emissions.apply(lambda row: 'xOth' if pd.
 '''apply dict_e'''
 energy_and_emissions['e']=energy_and_emissions['e'].replace(dict_e)
 
+
+
+
+
 # set column order
 energy_and_emissions = energy_and_emissions[['ebalitems', 'transaction', 'd', 'es', 'e', 'year', 'level']]
 '''retrieve unique values from the e-column to populate e and its superset out.
 I add some records manually that are explicitly called in the model, but are not present in data.
 '''
+energy_and_emissions.fillna(0,inplace=True)
+
+
+
 '''from the e column, construct a list of unique values which we can use later to populate the set we will call "e" '''
 e_vals=list(set(energy_and_emissions[['e']].values.flatten()))
 e_vals.extend(['Captured CO2'])

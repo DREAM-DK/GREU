@@ -21,7 +21,7 @@
     $BLOCK non_energy_markets_clearing non_energy_markets_clearing_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
 				#Total demand is linked to CET-supply from the top of production function (see production_CET.gms). Energy-clearing with CET-production is handled in "energy_markets.gms"
-				 ..qY_CET[out_other,i,t] =E= sum(d_non_ene,qY_i_d[i,d_non_ene,t]/ (1+tY_i_d[i,d_non_ene,tBase])) + qD_WMA[t]$(i_wholesale[i]) + qD_CMA[t]$(i_cardealers[i]) + qD_RMA[t]$(i_retail[i]) + jqY_CET_tDataEnd[out_other,i]$(tDataEnd[t]);
+				 ..qY_CET[out_other,i,t] =E= sum(d_non_ene,qY_i_d[i,d_non_ene,t]/ (1+tY_i_d[i,d_non_ene,tBase])) + qD_E_margins[i,t] + jqY_CET_tDataEnd[out_other,i]$(tDataEnd[t]);
 
 				 ..qM_CET[out_other,i,t] =E= sum(d_non_ene,qM_i_d[i,d_non_ene,t]/ (1+tM_i_d[i,d_non_ene,tBase])) + jqM_CET_tDataEnd[out_other,i]$(tDataEnd[t]);
 

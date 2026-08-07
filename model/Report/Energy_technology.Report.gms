@@ -19,8 +19,7 @@ $Group+ report_variables "Report variables"
   pES_baseline[es,d,t] "Price of energy service in baseline"
   qESE_baseline[es,e,d,t] "Energy input in baseline"
   pEpj_marg_baseline[es,e,d,t] "Marginal price of energy input in baseline"
-  qREa_baseline[es,e_a,i,t] "Industry demand for energy activity in baseline"
-  pREa_baseline[es,e_a,i,t] "Price of energy activity in baseline"
+  qEpj_baseline_energy_activity[es,e,i,t] "Industry demand for energy activity in baseline"
   pREes_baseline[es,i,t] "Price of energy service in baseline"
   tCO2_Emarg_pj_baseline[em,es,e,d,t] "Baseline marginal CO2-tax"
   vREes_baseline[es,i,t] "Value of energy service in the CGE model"
@@ -55,8 +54,7 @@ $IF %stage% == "report_baseline":
   qESE_baseline.l[es,e,d,t]             = qESE.l[es,e,d,t];
   pEpj_marg_baseline.l[es,e,d,t]        = pEpj_marg.l[es,e,d,t];
   tCO2_Emarg_pj_baseline.l[em,es,e,d,t] = tCO2_Emarg_pj.l[em,es,e,d,t];
-  qREa_baseline.l[es,e_a,i,t]           = qREa.l[es,e_a,i,t];
-  pREa_baseline.l[es,e_a,i,t]           = pREa.l[es,e_a,i,t];
+  qEpj_baseline_energy_activity.l[es,e,i,t] = qEpj.l[es,e,i,t];
   vREes_baseline.l[es,i,t]              = pREes.l[es,i,t]*qREes.l[es,i,t];
   pREes_baseline.l[es,i,t]              = pREes.l[es,i,t];
 
@@ -106,7 +104,7 @@ pES_change.l[es,i,t]$(t.val >= t1.val and d1qES[es,i,t] and d1switch_energy_tech
 
 # Mechanic change in price of energy service in the CGE model (used for testing after a carbon tax shock)
 pREes_mechanic_change.l[es,i,t]$(t.val >= t1.val and d1qES[es,i,t] and d1switch_energy_technology) 
-  = sum((e_a)$(d1pREa_inNest[es,e_a,i,t]), (pREa.l[es,e_a,i,t] - pREa_baseline.l[es,e_a,i,t]) * qREa_baseline.l[es,e_a,i,t])
+  = sum((e)$(d1pEpj_marg_inNest[es,e,i,t]), (pEpj_marg.l[es,e,i,t] - pEpj_marg_baseline.l[es,e,i,t]) * qEpj_baseline_energy_activity.l[es,e,i,t])
   / vREes_baseline.l[es,i,t]*100;
 
 # Equilibrium change in price of energy service in the CGE model (used for testing after a carbon tax shock)
