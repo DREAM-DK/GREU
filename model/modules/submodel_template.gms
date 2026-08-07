@@ -5,6 +5,7 @@ $IF %stage% == "variables":
 
 $Group+ all_variables
   submodel_template_test_variable[t] "Test variable from submodel template."
+  submodel_template_test_variable_flat_forecast[t] "Test variable from submodel template."
   test_scalar "Test variable with no indices."
   test_constant[i] "Test variable with no time index."
 ;
@@ -77,6 +78,7 @@ $Group calibration_endogenous
 ;
 
 $GROUP+ G_flat_after_last_data_year
+submodel_template_test_variable_flat_forecast
 ;
 
 $ENDIF # calibration
