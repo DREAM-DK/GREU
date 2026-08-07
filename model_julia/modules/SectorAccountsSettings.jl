@@ -4,10 +4,14 @@ module SectorAccountsSettings
 const sector_accounts_data_dir = joinpath(@__DIR__, "..", "data", "sector_accounts")
 
 # Eurostat dataset identifiers and units for the two source datasets.
-const fin_transactions_dataset_code = "nasa_10_nf_tr"
-const fin_transactions_unit         = "CP_MEUR"
-const fin_bal_dataset_code          = "nasa_10_f_bs"
-const fin_bal_unit                  = "MIO_EUR"
+const fin_transactions_dataset_code   = "nasa_10_nf_tr"
+const fin_transactions_unit           = "CP_MEUR"
+const fin_other_changes_dataset_code  = "nasa_10_f_oc"
+const fin_other_changes_unit          = "MIO_EUR"
+const fin_revaluation_dataset_code    = "nasa_10_f_gl"
+const fin_revaluation_unit            = "MIO_EUR"
+const fin_bal_dataset_code            = "nasa_10_f_bs"
+const fin_bal_unit                    = "MIO_EUR"
 
 # ESA 2010 institutional sectors to download. S14 and S15 (non-profit institutions serving households)
 # are later merged into a single Households aggregate 
