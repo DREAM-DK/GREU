@@ -47,8 +47,8 @@ rename_col_list = {'TechID':"l",
                    'Year':"t",
                    'Potential (Share of energy demand)':"sqTPotential",
                    'Energy intensity (PJ in per PJ out)':"uTE",
-                   'Investment costs (billion EUR per PJ out)':"vTI",
-                   'Variable capital costs (billion EUR per PJ out)':"vTC",
+                   'Investment costs (billion EUR per PJ out)':"uTI",
+                   'Variable capital costs (billion EUR per PJ out)':"uTC",
                    'Capital cost index':"pTK",
                    'Energy service (PJ out)':"qES",
                    'Technical lifespan (years)':"LifeSpan"
@@ -65,7 +65,7 @@ df_technologies = df_technologies.rename(columns=rename_col_list)
 df_technologies = df_technologies.set_index(['l','es','i','t'])
 
 # Extract individual parameter DataFrames with index columns restored
-tech_params = {col: df_technologies[[col]].reset_index() for col in ['sqTPotential', 'vTI', 'vTC', 'LifeSpan']}
+tech_params = {col: df_technologies[[col]].reset_index() for col in ['sqTPotential', 'uTI', 'uTC', 'LifeSpan']}
 
 # DATA FOR ENERGY INPUT
 # Reading data from excel
@@ -126,8 +126,8 @@ set_t=gp.Set(db_energy_tech,name='t',description='Year',records=set_year_list)
 # Adding parameters to database
 sqTPotential=gp.Parameter(db_energy_tech,name='sqTPotential',domain=[set_l,set_es,set_i,set_t],description='Potential supply by technology l in ratio of energy service (share of qES)',records=tech_params['sqTPotential'])
 uTE=gp.Parameter(db_energy_tech,name='uTE',domain=[set_l,set_es,set_e,set_i,set_t],description='Input of energy in technology l per PJ output at full potential',records=df_uTE)
-vTI=gp.Parameter(db_energy_tech,name='vTI',domain=[set_l,set_es,set_i,set_t],description='Investment costs in technology l per PJ output at full potential',records=tech_params['vTI'])
-vTC=gp.Parameter(db_energy_tech,name='vTC',domain=[set_l,set_es,set_i,set_t],description='Variable capital costs in technology l per PJ output at full potential',records=tech_params['vTC'])
+uTI=gp.Parameter(db_energy_tech,name='uTI',domain=[set_l,set_es,set_i,set_t],description='Investment costs in technology l per PJ output at full potential',records=tech_params['uTI'])
+uTC=gp.Parameter(db_energy_tech,name='uTC',domain=[set_l,set_es,set_i,set_t],description='Variable capital costs in technology l per PJ output at full potential',records=tech_params['uTC'])
 LifeSpan=gp.Parameter(db_energy_tech,name='LifeSpan',domain=[set_l,set_es,set_i,set_t],description='Technical lifespan of technology l',records=tech_params['LifeSpan'])
 pTK=gp.Parameter(db_energy_tech,name='pTK',domain=[set_i,set_t],description='User cost of capital in technologies for energy services',records=df_capital_cost_index)
 qES=gp.Parameter(db_energy_tech,name='qES',domain=[set_es,set_i,set_t],description='Energy service, quantity',records=df_energy_service)

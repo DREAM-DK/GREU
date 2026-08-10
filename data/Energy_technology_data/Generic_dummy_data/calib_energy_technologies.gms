@@ -21,8 +21,8 @@ parameter
 
   sqTPotential[l,es,d,t]
   uTE[l,es,e,d,t]
-  vTI[l,es,d,t]
-  vTC[l,es,d,t]
+  uTI[l,es,d,t]
+  uTC[l,es,d,t]
   qES[es,d,t]
   LifeSpan[l,es,d,t]
   pTK[d,t]
@@ -95,11 +95,11 @@ uTKexp[l+1,es,d,t]$(sum(ll, sqTPotential_large[ll,es,d,t]) and last_tech[l,es,d,
 uTKexp[l+2,es,d,t]$(sum(ll, sqTPotential_large[ll,es,d,t]) and last_tech[l,es,d,t]) = 0.01+0.01;
 uTKexp[l+3,es,d,t]$(sum(ll, sqTPotential_large[ll,es,d,t]) and last_tech[l,es,d,t]) = 0.01+0.015;
 
-vTI[l,es,i,t]$(sqTPotential[l,es,i,t]) 
+uTI[l,es,i,t]$(sqTPotential[l,es,i,t]) 
   = uTKexp[l,es,i,t]*@FiniteGeometricSeries({1}, {DiscountRate[l,es,i]}, {LifeSpan[l,es,i,t]})
   / (1+0.1*@FiniteGeometricSeries({1}, {DiscountRate[l,es,i]}, {LifeSpan[l,es,i,t]}));
 
-vTC[l,es,i,t] = vTI[l,es,i,t]/10;
+uTC[l,es,i,t] = uTI[l,es,i,t]/10;
 
 
 ## ----------------------------------------------------------------------------------------
@@ -119,7 +119,7 @@ pEpj_marg[es,e,i,t]$(d1pEpj_energy_technology[es,e,i,t]) = pEpj_marg['heating','
 parameter
   pTPotential_max[es,d,t] "Maximum technology price for each energy service"
   cost_factor[l] "Factor determining how much more expensive electrification technologies are compared to baseline technologies"
-  vTI_max[es,d,t] "Maximum investment costs for each energy service"
+  uTI_max[es,d,t] "Maximum investment costs for each energy service"
   ;
 
 set electrification_techs[l] /
@@ -147,7 +147,7 @@ LifeSpan[l,es,i,t]$(sqTPotential[l,es,i,t]) = 5;
 DiscountRate[l,es,d]$(sum(t, sqTPotential[l,es,d,t])) = 0.05;
 pTK[d,t]$(sum((l,es), sqTPotential[l,es,d,t])) = 1;
 
-# Calculate uTKexp, vTI and vTC for the electrification technologies
+# Calculate uTKexp, uTI and uTC for the electrification technologies
 # In order not to get negative uTKexp we set it as the maximum of 0.001 and the generic cost increase
 uTKexp[l,es,i,t]$(sqTPotential[l,es,i,t] and electrification_techs[l])
  = max[0.001,
@@ -156,13 +156,21 @@ uTKexp[l,es,i,t]$(sqTPotential[l,es,i,t] and electrification_techs[l])
  / pTK[i,t]
  ];
 
-vTI[l,es,i,t]$(sqTPotential[l,es,i,t] and electrification_techs[l]) 
+uTI[l,es,i,t]$(sqTPotential[l,es,i,t] and electrification_techs[l]) 
   = uTKexp[l,es,i,t]*@FiniteGeometricSeries({1}, {DiscountRate[l,es,i]}, {LifeSpan[l,es,i,t]})
   / (1+0.1*@FiniteGeometricSeries({1}, {DiscountRate[l,es,i]}, {LifeSpan[l,es,i,t]}));
 
-vTC[l,es,i,t] = vTI[l,es,i,t]/10;
+uTC[l,es,i,t] = uTI[l,es,i,t]/10;
+#inflation and growth adjust pTK, qES respectively
+parameter 
+fpt[t] "inf_factor"
+fqt[t] "growth factor"
+;
 
-
+execute_load "Energy_technology_data/Generic_dummy_data/inf_growth.gdx" fpt=fpt;
+execute_load "Energy_technology_data/Generic_dummy_data/inf_growth.gdx" fqt=fqt;
+pTK[i,t]=pTK[i,t]*fpt[t];
+qES[es,d,t]=qES[es,d,t]*fqt[t];
 ## ----------------------------------------------------------------------------------------
 ## Updating dummies
 ## ----------------------------------------------------------------------------------------
@@ -202,8 +210,8 @@ set these_i_es(d,es) /
 # Delete technologies that are not in the list
 sqTPotential[l,es,d,t]$(not these_i_es(d,es)) = 0;
 uTE[l,es,e,d,t]$(not these_i_es(d,es)) = 0;
-vTI[l,es,d,t]$(not these_i_es(d,es)) = 0;
-vTC[l,es,d,t]$(not these_i_es(d,es)) = 0;
+uTI[l,es,d,t]$(not these_i_es(d,es)) = 0;
+uTC[l,es,d,t]$(not these_i_es(d,es)) = 0;
 LifeSpan[l,es,d,t]$(not these_i_es(d,es)) = 0;
 pTK[d,t]$(not sum(es, these_i_es(d,es))) = 0;
 qES[es,d,t]$(not these_i_es(d,es)) = 0;
