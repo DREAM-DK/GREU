@@ -1,5 +1,5 @@
-#LyX 2.4 created this file. For more info see https://www.lyx.org/
-\lyxformat 620
+#LyX 2.5 created this file. For more info see https://www.lyx.org/
+\lyxformat 643
 \begin_document
 \begin_header
 \save_transient_properties true
@@ -16,6 +16,7 @@
 \definecolor{TemplateFrontPageShape}{HTML}{B3E1F3}
 \newcommand{\TemplateModelLogo}{i:/Skabeloner/Icons/Modellogo_GREEN_REFORM_100mm_RGB.pdf}
 \newcommand{\TemplateDocumentType}{Working paper}
+
 \input{i:/Skabeloner/Latex/DREAM_template_preamble.tex}
 \TemplateFrontPagetrue
 \subtitle{}
@@ -79,10 +80,18 @@
 \paperorientation portrait
 \suppress_date false
 \justification false
-\use_refstyle 1
+\crossref_package refstyle
 \use_formatted_ref 0
 \use_minted 0
 \use_lineno 0
+\backgroundcolor none
+\fontcolor none
+\notefontcolor lightgray
+\boxbgcolor red
+\table_border_color default
+\table_odd_row_color default
+\table_even_row_color default
+\table_alt_row_colors_start 1
 \branch product_rows_columns
 \selected 0
 \filename_suffix 0
@@ -113,6 +122,7 @@
 \html_be_strict false
 \docbook_table_output 0
 \docbook_mathml_prefix 1
+\docbook_mathml_version 0
 \end_header
 
 \begin_body
@@ -188,7 +198,11 @@ The macroeconomic core provides a New Keynesian model of demand for private cons
 \end_layout
 
 \begin_layout Standard
-The Green transition core adds <Berg>
+The Green transition core adds a model of production of energy,
+ energy-markets,
+ emissions inventory,
+ and energy-taxation.
+ <Berg - AKB har indsat)
 \end_layout
 
 \begin_layout Standard
@@ -258,7 +272,9 @@ Green transition core
 \end_layout
 
 \begin_layout Standard
-<Berg>
+<Berg> AKB:
+ Enig i listen.
+ 
 \end_layout
 
 \begin_layout Itemize
@@ -306,7 +322,10 @@ Planned green transition satellites
 \end_layout
 
 \begin_layout Standard
-<Berg>
+<Berg AKB:
+ Tror ikke der er mere fast planlagt.
+ Men der er en masse bolde i luften jf.
+ JSK>
 \end_layout
 
 \begin_layout Itemize
@@ -479,12 +498,233 @@ CET split
 <Berg>
 \end_layout
 
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Y_{i,p}=\mu^{CET}_{i,p}\left(\frac{MC_{i,p}}{MC_{i}}\right)^{eCET_{i}}Y_{i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $Y_{i}$
+\end_inset
+
+ is the production aggregate produced by industry 
+\begin_inset Formula $i$
+\end_inset
+
+.
+ The production aggregate is assumed to be CET-transformable.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\sum_{p}MC_{i,p}Y_{i,p}=MC_{i}Y_{i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A possible product specific mark-up 
+\begin_inset Formula $(\theta_{i,p})$
+\end_inset
+
+ can be added
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P_{i,p}=\theta_{i,p}MC_{i,p}
+\]
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Paragraph
 Energy markets
 \end_layout
 
 \begin_layout Standard
-<Berg>
+The energy-goods market is quantity-preserving.
+ Total demand for energy good 
+\begin_inset Formula $e$
+\end_inset
+
+ is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+qD_{e}=\sum_{u}qD_{u,e}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It is split on domestic suppliers (
+\begin_inset Formula $Y_{e,i})$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Y_{e,i}=\frac{\mu_{e,i}pY^{-E}_{e,i}}{\sum_{i}\mu_{e,i}pY^{-E}_{e,i}+\sum_{i}\mu_{e,i}pM^{-E}_{e,i}}\cdot qD_{e}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+And imports
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+M_{e,i}=\frac{\mu_{e,i}pM^{-E}_{e,i}}{\sum_{i}\mu_{e,i}pY^{-E}_{e,i}+\sum_{i}\mu_{e,i}pM^{-E}_{e,i}}\cdot qD_{e}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Average price of energy
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+pD_{e}=\frac{\sum_{i}pY_{e,i}Y_{e,i}+\sum_{i}pM_{e,i}M_{e,i}}{qD_{e}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Final price for end-use 
+\begin_inset Formula $u$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+pD_{u,e}=\theta_{u,e}pD_{e}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Distributor profits
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\pi^{dist}_{e}=\sum_{u,e}pD_{u,e}E_{u,e}-\sum_{i}pY_{e,i}Y_{e,i}-\sum_{i}pM_{e,i}M_{e,i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The distributor profit is then split between suppliers relative to supply size.
+\end_layout
+
+\begin_layout Standard
+Link to documentation of energy-markets:
+ 
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+\backslash
+url{https://cdn.dreamgruppen.dk/dream/media/9051/energy-good-markets-in-greenreform.pdf}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+AKB new:
+ Impose a fixed average distributor profit
+\series default
+ 
+\series bold
+(natural default is zero)
+\series default
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\pi^{dist}_{e}=\pi^{dist-struc}_{e}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Enforced by adjusting margins 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\theta_{u,e}=\theta^{calib}_{u,e}+k^{\pi}_{e}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Reason and implication:
+ When demand shifts for instance towards lower margin energy,
+ the distributor profit turns into distributor-losses.
+ These losses are not internalized by the energy producers but are simply incurred on their balance sheet.
+ The above is a simple mechanism (though not FOC-based economic behaviour) that imposes average distributor losses/gains remain at a certain level,
+ with the natural default level being zero.
 \end_layout
 
 \begin_layout Subsection
@@ -569,7 +809,7 @@ To introduce import-substitution with a satellite model,
 \begin_layout Standard
 \begin_inset Formula 
 \[
-D_{p,u,o}=\hat{\mu}_{p,u,o}\left(\frac{P_{p,u,o}^{D}}{P_{p,u}^{D}}\right)^{-E_{p}}D_{p,u}
+D_{p,u,o}=\hat{\mu}_{p,u,o}\left(\frac{P^{D}_{p,u,o}}{P^{D}_{p,u}}\right)^{-E_{p}}D_{p,u}
 \]
 
 \end_inset
@@ -713,7 +953,7 @@ E.g.
 \begin_layout Standard
 \begin_inset Formula 
 \[
-P_{k}^{f}=P_{k}^{I}+\frac{\partial T^{\text{Corp}}}{\partial K_{k}}-\frac{1-\delta_{k,t+1}}{1+r_{t+1}}\left(P_{k,t+1}^{I}-\frac{\partial T_{t+1}^{\text{Corp}}}{\partial K_{k}}\right)+\text{marginal capital adjustment cost}
+P^{f}_{k}=P^{I}_{k}+\frac{\partial T^{\text{Corp}}}{\partial K_{k}}-\frac{1-\delta_{k,t+1}}{1+r_{t+1}}\left(P^{I}_{k,t+1}-\frac{\partial T^{\text{Corp}}_{t+1}}{\partial K_{k}}\right)+\text{marginal capital adjustment cost}
 \]
 
 \end_inset
@@ -809,7 +1049,7 @@ Usercosts are behavior,
  not neutral accounting.
  The sector account of firms records actual payments instead:
  revenue 
-\begin_inset Formula $P_{i}^{Y}Y_{i}$
+\begin_inset Formula $P^{Y}_{i}Y_{i}$
 \end_inset
 
  less labor compensation,
@@ -998,7 +1238,7 @@ The basic price of a product is
 \begin_layout Standard
 \begin_inset Formula 
 \[
-P_{p,u}^{Y}=\theta_{p,u}\text{MC}_{p}
+P^{Y}_{p,u}=\theta_{p,u}\text{MC}_{p}
 \]
 
 \end_inset
@@ -1024,7 +1264,7 @@ Basic prices by product and industry are given by
 \begin_layout Standard
 \begin_inset Formula 
 \[
-P_{p}^{Y}Y_{p}=\sum_{u}P_{p,u}^{Y}Y_{p,u}
+P^{Y}_{p}Y_{p}=\sum_{u}P^{Y}_{p,u}Y_{p,u}
 \]
 
 \end_inset
@@ -1035,7 +1275,7 @@ P_{p}^{Y}Y_{p}=\sum_{u}P_{p,u}^{Y}Y_{p,u}
 \begin_layout Standard
 \begin_inset Formula 
 \[
-P_{i}^{Y}Y_{i}=\sum_{p}P_{p}^{Y}Y_{p,i}
+P^{Y}_{i}Y_{i}=\sum_{p}P^{Y}_{p}Y_{p,i}
 \]
 
 \end_inset
@@ -1045,7 +1285,7 @@ P_{i}^{Y}Y_{i}=\sum_{p}P_{p}^{Y}Y_{p,i}
 
 \begin_layout Standard
 This is also what determines profits by industry (
-\begin_inset Formula $\left[P_{i}^{Y}-\text{\emph{MC}}_{i}\right]Y_{i}$
+\begin_inset Formula $\left[P^{Y}_{i}-\text{\emph{MC}}_{i}\right]Y_{i}$
 \end_inset
 
  at the margin).
@@ -1074,7 +1314,7 @@ Let
 \begin_layout Standard
 \begin_inset Formula 
 \[
-P_{u}^{M}=\sum_{s,o}\mu_{s,u}^{M}\mu_{s,u,o}P_{s,u,o}
+P^{M}_{u}=\sum_{s,o}\mu^{M}_{s,u}\mu_{s,u,o}P_{s,u,o}
 \]
 
 \end_inset
@@ -1098,7 +1338,7 @@ Let
 \begin_layout Standard
 \begin_inset Formula 
 \[
-M_{u}=\sum_{p}m_{p,u}D_{p,u},\qquad M_{s,u,o}=\mu_{s,u}^{M}\mu_{s,u,o}M_{u},\qquad M_{p,u,o}=0\quad\forall p\notin s.
+M_{u}=\sum_{p}m_{p,u}D_{p,u},\qquad M_{s,u,o}=\mu^{M}_{s,u}\mu_{s,u,o}M_{u},\qquad M_{p,u,o}=0\quad\forall p\notin s.
 \]
 
 \end_inset
@@ -1113,7 +1353,7 @@ Let
 
  be the domestic basic price or import border price,
  with
-\begin_inset Formula $P_{p,u,\text{domestic}}=P_{p,u}^{Y}$
+\begin_inset Formula $P_{p,u,\text{domestic}}=P^{Y}_{p,u}$
 \end_inset
 
 .
@@ -1123,7 +1363,7 @@ Let
 \begin_layout Standard
 \begin_inset Formula 
 \[
-P_{p,u,o}^{D}=\left(P_{p,u,o}+t_{p,u,o}+m_{p,u}P_{u}^{M}\right)\left(1+t_{p,u,o}^{\text{VAT}}\right)
+P^{D}_{p,u,o}=\left(P_{p,u,o}+t_{p,u,o}+m_{p,u}P^{M}_{u}\right)\left(1+t^{\text{VAT}}_{p,u,o}\right)
 \]
 
 \end_inset
@@ -1138,7 +1378,7 @@ This is the price that enters into any substitution decision and the direct-dema
 \begin_layout Standard
 \begin_inset Formula 
 \[
-P_{u}^{D}D_{u}=\sum_{p,o}P_{p,u,o}^{D}D_{p,u,o}.
+P^{D}_{u}D_{u}=\sum_{p,o}P^{D}_{p,u,o}D_{p,u,o}.
 \]
 
 \end_inset
@@ -1169,7 +1409,7 @@ Margin demand enters the product balance but not
 .
  Its value is already in the purchaser price of direct demand,
  so do not add
-\begin_inset Formula $P_{u}^{M}M_{u}$
+\begin_inset Formula $P^{M}_{u}M_{u}$
 \end_inset
 
  to the user budget.
@@ -1256,7 +1496,7 @@ We model export demand directly for domestic production of each product,
 
 ,
  using the final purchaser price 
-\begin_inset Formula $P_{p,X,\text{domestic}}^{D}$
+\begin_inset Formula $P^{D}_{p,X,\text{domestic}}$
 \end_inset
 
 .
