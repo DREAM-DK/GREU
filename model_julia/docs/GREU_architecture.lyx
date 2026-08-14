@@ -157,14 +157,15 @@ We omit time indices,
  except where there is a lead or lag.
  We reuse variable names,
  where indices in subscripts can be used to distinguish.
- Aggregates are equal to the sum of the same variables with an additional index,
- e.g.
+ Accounting aggregates are equal to the sum of the same variables with an additional index,
+ unless a CES or CET equation defines a quantity aggregate.
+ E.g.,
  
 \begin_inset Formula $Y=\sum_{i}Y_{i}$
 \end_inset
 
  —
- we leave out the simple aggregates for brevity.
+ we leave out simple accounting aggregates for brevity.
 \end_layout
 
 \begin_layout Standard
@@ -202,7 +203,6 @@ The Green transition core adds a model of production of energy,
  energy-markets,
  emissions inventory,
  and energy-taxation.
- <Berg - AKB har indsat)
 \end_layout
 
 \begin_layout Standard
@@ -271,12 +271,6 @@ Labor market
 Green transition core
 \end_layout
 
-\begin_layout Standard
-<Berg> AKB:
- Enig i listen.
- 
-\end_layout
-
 \begin_layout Itemize
 CET production
 \end_layout
@@ -319,13 +313,6 @@ Endogenous migration (Faroe Islands takes lead)
 
 \begin_layout Subsection
 Planned green transition satellites
-\end_layout
-
-\begin_layout Standard
-<Berg AKB:
- Tror ikke der er mere fast planlagt.
- Men der er en masse bolde i luften jf.
- JSK>
 \end_layout
 
 \begin_layout Itemize
@@ -495,13 +482,24 @@ CET split
 \end_layout
 
 \begin_layout Standard
-<Berg>
+When industry shares are endogenous,
+ perfect transformation determines
+\begin_inset Formula $\mu_{p,i}$
+\end_inset
+
+ and sets
+\begin_inset Formula $MC_{p,i}=MC_{i}$
+\end_inset
+
+.
+ For selected cells,
+ CET replaces this closure with
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \[
-Y_{i,p}=\mu^{CET}_{i,p}\left(\frac{MC_{i,p}}{MC_{i}}\right)^{eCET_{i}}Y_{i}
+Y_{p,i}=\hat{\mu}^{CET}_{p,i}\left(\frac{MC_{p,i}}{MC_{i}}\right)^{E^{CET}_{i}}Y_{i}
 \]
 
 \end_inset
@@ -513,18 +511,37 @@ Y_{i,p}=\mu^{CET}_{i,p}\left(\frac{MC_{i,p}}{MC_{i}}\right)^{eCET_{i}}Y_{i}
 \begin_inset Formula $Y_{i}$
 \end_inset
 
- is the production aggregate produced by industry 
-\begin_inset Formula $i$
+ is the CET aggregate.
+ CET keeps
+\begin_inset Formula $\hat{\mu}^{CET}_{p,i}$
 \end_inset
 
-.
- The production aggregate is assumed to be CET-transformable.
+ and
+\begin_inset Formula $E^{CET}_{i}$
+\end_inset
+
+ fixed and determines
+\begin_inset Formula $\mu_{p,i}$
+\end_inset
+
+ through the output allocation.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $MC_{i}$
+\end_inset
+
+ is marginal cost before the product split.
+\begin_inset Formula $MC_{p,i}$
+\end_inset
+
+ includes product-specific production taxes or subsidies:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\sum_{p}MC_{i,p}Y_{i,p}=MC_{i}Y_{i}
+MC_{p,i}=MC^{\text{resource}}_{p,i}+\frac{\partial T^{\text{production}}_{i}}{\partial Y_{p,i}}
 \]
 
 \end_inset
@@ -533,41 +550,21 @@ Y_{i,p}=\mu^{CET}_{i,p}\left(\frac{MC_{i,p}}{MC_{i}}\right)^{eCET_{i}}Y_{i}
 \end_layout
 
 \begin_layout Standard
-A possible product specific mark-up 
-\begin_inset Formula $(\theta_{i,p})$
+User taxes,
+ VAT,
+ purchaser-price product taxes,
+ and trade margins do not enter
+\begin_inset Formula $MC_{p,i}$
 \end_inset
 
- can be added
+;
+ they enter the purchaser price.
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \[
-P_{i,p}=\theta_{i,p}MC_{i,p}
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Paragraph
-Energy markets
-\end_layout
-
-\begin_layout Standard
-The energy-goods market is quantity-preserving.
- Total demand for energy good 
-\begin_inset Formula $e$
-\end_inset
-
- is
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-qD_{e}=\sum_{u}qD_{u,e}
+\sum_{p}MC_{p,i}Y_{p,i}=MC_{i}Y_{i}
 \]
 
 \end_inset
@@ -576,155 +573,12 @@ qD_{e}=\sum_{u}qD_{u,e}
 \end_layout
 
 \begin_layout Standard
-It is split on domestic suppliers (
-\begin_inset Formula $Y_{e,i})$
+Pricing uses
+\begin_inset Formula $MC_{p,i}$
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-Y_{e,i}=\frac{\mu_{e,i}pY^{-E}_{e,i}}{\sum_{i}\mu_{e,i}pY^{-E}_{e,i}+\sum_{i}\mu_{e,i}pM^{-E}_{e,i}}\cdot qD_{e}
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-And imports
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-M_{e,i}=\frac{\mu_{e,i}pM^{-E}_{e,i}}{\sum_{i}\mu_{e,i}pY^{-E}_{e,i}+\sum_{i}\mu_{e,i}pM^{-E}_{e,i}}\cdot qD_{e}
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Average price of energy
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-pD_{e}=\frac{\sum_{i}pY_{e,i}Y_{e,i}+\sum_{i}pM_{e,i}M_{e,i}}{qD_{e}}
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Final price for end-use 
-\begin_inset Formula $u$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-pD_{u,e}=\theta_{u,e}pD_{e}
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Distributor profits
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-\pi^{dist}_{e}=\sum_{u,e}pD_{u,e}E_{u,e}-\sum_{i}pY_{e,i}Y_{e,i}-\sum_{i}pM_{e,i}M_{e,i}
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The distributor profit is then split between suppliers relative to supply size.
-\end_layout
-
-\begin_layout Standard
-Link to documentation of energy-markets:
- 
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-\backslash
-url{https://cdn.dreamgruppen.dk/dream/media/9051/energy-good-markets-in-greenreform.pdf}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-AKB new:
- Impose a fixed average distributor profit
-\series default
- 
-\series bold
-(natural default is zero)
-\series default
-.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-\pi^{dist}_{e}=\pi^{dist-struc}_{e}
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Enforced by adjusting margins 
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-\theta_{u,e}=\theta^{calib}_{u,e}+k^{\pi}_{e}
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Reason and implication:
- When demand shifts for instance towards lower margin energy,
- the distributor profit turns into distributor-losses.
- These losses are not internalized by the energy producers but are simply incurred on their balance sheet.
- The above is a simple mechanism (though not FOC-based economic behaviour) that imposes average distributor losses/gains remain at a certain level,
- with the natural default level being zero.
+;
+ CET adds no markup.
 \end_layout
 
 \begin_layout Subsection
@@ -748,6 +602,8 @@ D_{p,u}=\mu_{p,u}D_{u}
 
 \begin_layout Standard
 The shares can be endogenized by other modules to allow substitution.
+ For private consumption,
+ the consumption-type split below replaces this use-level mapping.
 \end_layout
 
 \begin_layout Subsection
@@ -815,6 +671,226 @@ D_{p,u,o}=\hat{\mu}_{p,u,o}\left(\frac{P^{D}_{p,u,o}}{P^{D}_{p,u}}\right)^{-E_{p
 \end_inset
 
 
+\end_layout
+
+\begin_layout Subsubsection
+Physical energy markets
+\end_layout
+
+\begin_layout Standard
+Let
+\begin_inset Formula $e\in\mathcal{E}\subset p$
+\end_inset
+
+ denote an energy product.
+ For a homogeneous energy product,
+ use the origin choice above.
+ Replace
+\begin_inset Formula $\hat{\mu}_{e,u,o}$
+\end_inset
+
+ with
+\begin_inset Formula $\lambda_{e,u}\hat{\mu}_{e,u,o}$
+\end_inset
+
+ and let physical market clearing determine
+\begin_inset Formula $\lambda_{e,u}$
+\end_inset
+
+ for each use.
+ CET or an energy-technology module allocates domestic output across industries through
+\begin_inset Formula $\mu_{e,i}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Paragraph
+National-account and physical units
+\end_layout
+
+\begin_layout Standard
+The national-account quantities
+\begin_inset Formula $D_{e,u,o}$
+\end_inset
+
+ and
+\begin_inset Formula $Y_{e,i}$
+\end_inset
+
+ do not measure physical energy.
+ Map them to PJ:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Q^{D}_{e,u,o}=\kappa^{D}_{e,u,o}D_{e,u,o}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Q^{D}_{e,u}=\kappa^{D}_{e,u}D_{e,u}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Q^{Y}_{e,i}=\kappa^{Y}_{e,i}Y_{e,i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Keep 
+\begin_inset Formula $\kappa$
+\end_inset
+
+ fixed unless technology changes physical unit content.
+ Budgets still use price times national-account quantity.
+\end_layout
+
+\begin_layout Standard
+Total physical demand is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Q^{D}_{e}=\sum_{u}Q^{D}_{e,u}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Quantity-preserving origin demand
+\end_layout
+
+\begin_layout Standard
+For energy,
+ the physical balance for each use is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\sum_{o}\kappa^{D}_{e,u,o}D_{e,u,o}=\kappa^{D}_{e,u}D_{e,u}=Q^{D}_{e,u}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It determines
+\begin_inset Formula $\lambda_{e,u}$
+\end_inset
+
+ in the origin-demand equation above.
+ With fixed 
+\begin_inset Formula $\kappa$
+\end_inset
+
+,
+ using prices per PJ only rescales the calibrated CES weights.
+\end_layout
+
+\begin_layout Paragraph
+Source balance
+\end_layout
+
+\begin_layout Standard
+Supply by origin is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Q^{S}_{e,o}=\sum_{u}Q^{D}_{e,u,o}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Thus,
+ the aggregate physical balance is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\sum_{o}Q^{S}_{e,o}=Q^{D}_{e}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Domestic supply is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Q^{S}_{e,\text{domestic}}=\sum_{i}Q^{Y}_{e,i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A energy-technology module can endogenize the domestic industry mix,
+ but needs to ensure that the supply mix does not break the physical balance.
+ A network module can specify losses that need to be added to the balances above.
+\end_layout
+
+\begin_layout Standard
+Use-price differences per PJ come from
+\begin_inset Formula $\kappa^{D}_{e,u,o}$
+\end_inset
+
+,
+ taxes,
+ margin services,
+ and VAT.
+\end_layout
+
+\begin_layout Standard
+An energy tax
+\begin_inset Formula $\tau^{E}_{e,u,o}$
+\end_inset
+
+ per PJ maps to
+\begin_inset Formula $t^{E}_{e,u,o}=\tau^{E}_{e,u,o}\kappa^{D}_{e,u,o}$
+\end_inset
+
+.
+ Emissions use physical fuel at combustion or conversion.
 \end_layout
 
 \begin_layout Section
@@ -1150,7 +1226,7 @@ We can split use in production into different types of intermediate inputs
 \begin_layout Standard
 \begin_inset Formula 
 \[
-D_{p,i}=\sum_{r}\mu_{p,r,i}R_{r,i}
+D_{p,i}=\sum_{m}\mu_{p,m,i}M_{m,i}
 \]
 
 \end_inset
@@ -1165,7 +1241,7 @@ where for example
 \begin_layout Standard
 \begin_inset Formula 
 \[
-r=\left\{ \text{transport energy},\text{heating},\text{processing energy},\text{other intermediates}\right\} 
+m=\left\{ \text{transport energy},\text{heating},\text{processing energy},\text{other intermediates}\right\} 
 \]
 
 \end_inset
@@ -1175,7 +1251,7 @@ r=\left\{ \text{transport energy},\text{heating},\text{processing energy},\text{
 
 \begin_layout Standard
 and 
-\begin_inset Formula $R_{r,i}$
+\begin_inset Formula $M_{m,i}$
 \end_inset
 
  is given by cost-minimizing a production function.
@@ -1194,77 +1270,42 @@ Markups in basic prices
 \end_layout
 
 \begin_layout Standard
-We replace our standard model of monopolistic competition with fixed markups by industry with a model of fixed markups by 
-\begin_inset Formula $\text{product}\times\text{use}$
+We use one fixed markup for each industry:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P^{Y}_{p,i}=\theta_{i}\text{MC}_{p,i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The markup is the same for all products from industry
+\begin_inset Formula $i$
 \end_inset
 
 .
-\begin_inset Foot
-status open
-
-\begin_layout Plain Layout
-I am on the fence about whether this is a good idea.
- Please comment!
-\end_layout
-
+ Under the default product split,
+\begin_inset Formula $MC_{p,i}=MC_{i}$
 \end_inset
 
-
+.
+ The CET module can give product-specific marginal costs.
 \end_layout
 
 \begin_layout Standard
-Our fundamental assumption is that the marginal cost of producing a product is independent of how the product is used.
-\end_layout
-
-\begin_layout Standard
-The marginal cost of producing a product is
+Basic-price values sum by product and industry:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\text{MC}_{p}Y_{p}=\sum_{i}\text{MC}_{i}Y_{p,i}
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The basic price of a product is
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-P^{Y}_{p,u}=\theta_{p,u}\text{MC}_{p}
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-where 
-\begin_inset Formula $\theta_{p,u}$
-\end_inset
-
- is the markup parameter.
- It results from monopolistic competition between a continuum of otherwise identical firms;
- the firm-level demand elasticity behind the markup is disconnected from the macro substitution elasticities.
- It can be endogenized to model price rigidity.
-\end_layout
-
-\begin_layout Standard
-Basic prices by product and industry are given by
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-P^{Y}_{p}Y_{p}=\sum_{u}P^{Y}_{p,u}Y_{p,u}
+P^{Y}_{p}Y_{p}=\sum_{i}P^{Y}_{p,i}Y_{p,i}
 \]
 
 \end_inset
@@ -1275,7 +1316,7 @@ P^{Y}_{p}Y_{p}=\sum_{u}P^{Y}_{p,u}Y_{p,u}
 \begin_layout Standard
 \begin_inset Formula 
 \[
-P^{Y}_{i}Y_{i}=\sum_{p}P^{Y}_{p}Y_{p,i}
+P^{Y}_{i}Y_{i}=\sum_{p}P^{Y}_{p,i}Y_{p,i}
 \]
 
 \end_inset
@@ -1284,11 +1325,9 @@ P^{Y}_{i}Y_{i}=\sum_{p}P^{Y}_{p}Y_{p,i}
 \end_layout
 
 \begin_layout Standard
-This is also what determines profits by industry (
-\begin_inset Formula $\left[P^{Y}_{i}-\text{\emph{MC}}_{i}\right]Y_{i}$
-\end_inset
-
- at the margin).
+Base-year prices equal one,
+ so measured volumes equal values.
+ Product-by-use cells therefore do not identify price gaps or markup levels.
 \end_layout
 
 \begin_layout Subsection
@@ -1314,7 +1353,7 @@ Let
 \begin_layout Standard
 \begin_inset Formula 
 \[
-P^{M}_{u}=\sum_{s,o}\mu^{M}_{s,u}\mu_{s,u,o}P_{s,u,o}
+P^{S}_{u}=\sum_{s,o}\mu^{S}_{s,u}\mu_{s,u,o}P_{s,u,o}
 \]
 
 \end_inset
@@ -1329,7 +1368,7 @@ Let
 
  be direct use.
  Each unit needs 
-\begin_inset Formula $m_{p,u}$
+\begin_inset Formula $a^{S}_{p,u}$
 \end_inset
 
  units of the margin service bundle:
@@ -1338,7 +1377,29 @@ Let
 \begin_layout Standard
 \begin_inset Formula 
 \[
-M_{u}=\sum_{p}m_{p,u}D_{p,u},\qquad M_{s,u,o}=\mu^{M}_{s,u}\mu_{s,u,o}M_{u},\qquad M_{p,u,o}=0\quad\forall p\notin s.
+S_{u}=\sum_{p}a^{S}_{p,u}D_{p,u}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+S_{s,u,o}=\mu^{S}_{s,u}\mu_{s,u,o}S_{u}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+S_{p,u,o}=0\quad\forall p\notin s
 \]
 
 \end_inset
@@ -1353,7 +1414,7 @@ Let
 
  be the domestic basic price or import border price,
  with
-\begin_inset Formula $P_{p,u,\text{domestic}}=P^{Y}_{p,u}$
+\begin_inset Formula $P_{p,u,\text{domestic}}=P^{Y}_{p}$
 \end_inset
 
 .
@@ -1363,7 +1424,7 @@ Let
 \begin_layout Standard
 \begin_inset Formula 
 \[
-P^{D}_{p,u,o}=\left(P_{p,u,o}+t_{p,u,o}+m_{p,u}P^{M}_{u}\right)\left(1+t^{\text{VAT}}_{p,u,o}\right)
+P^{D}_{p,u,o}=\left(P_{p,u,o}+t_{p,u,o}+a^{S}_{p,u}P^{S}_{u}\right)\left(1+t^{\text{VAT}}_{p,u,o}\right)
 \]
 
 \end_inset
@@ -1393,7 +1454,7 @@ The product balance is
 \begin_layout Standard
 \begin_inset Formula 
 \[
-Y_{p,u}=D_{p,u,\text{domestic}}+M_{p,u,\text{domestic}}.
+Y_{p,u}=D_{p,u,\text{domestic}}+S_{p,u,\text{domestic}}.
 \]
 
 \end_inset
@@ -1409,7 +1470,7 @@ Margin demand enters the product balance but not
 .
  Its value is already in the purchaser price of direct demand,
  so do not add
-\begin_inset Formula $P^{M}_{u}M_{u}$
+\begin_inset Formula $P^{S}_{u}S_{u}$
 \end_inset
 
  to the user budget.
@@ -1428,9 +1489,104 @@ Consumption savings decision
 \end_layout
 
 \begin_layout Standard
-Our default model is a household maximizing CRRA utility with habits,
- a hand-to-mouth consumption share of income,
- and utility of wealth.
+Our default has one forward-looking household.
+ It chooses total consumption
+\begin_inset Formula $C_{t}$
+\end_inset
+
+ and end-of-period real wealth
+\begin_inset Formula $W_{t}$
+\end_inset
+
+.
+ A fixed share of current real disposable income follows a hand-to-mouth rule:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+C^{\mathrm{HtM}}_{t}=\lambda_{\mathrm{HtM}}Y^{d}_{t},\qquad0\leq\lambda_{\mathrm{HtM}}\leq1.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Thus,
+\begin_inset Formula $\lambda_{\mathrm{HtM}}$
+\end_inset
+
+ is a share of income,
+ not a share of households.
+ The household takes the external habit
+\begin_inset Formula $H_{t}=h\bar{C}_{t-1}$
+\end_inset
+
+ as given.
+ Define consumption in excess of the reference level as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+C^{\mathrm{xRef}}_{t}=C_{t}-H_{t}-C^{\mathrm{HtM}}_{t}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The household solves
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\max_{\{C_{s},W_{s}\}^{\infty}_{s=t}}\sum^{\infty}_{s=t}\beta^{s-t}\left[\frac{(C^{\mathrm{xRef}}_{s})^{1-\sigma}}{1-\sigma}+\omega\frac{W^{1-\nu}_{s}}{1-\nu}\right].
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Use the simple budget constraint
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+W_{t}=(1+r_{t})W_{t-1}+Y^{d}_{t}-C_{t},
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where
+\begin_inset Formula $r_{t}$
+\end_inset
+
+ is the real interest rate.
+ The first-order condition for saving gives the Euler equation
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+(C^{\mathrm{xRef}}_{t})^{-\sigma}=\omega W^{-\nu}_{t}+\beta(1+r_{t+1})(C^{\mathrm{xRef}}_{t+1})^{-\sigma}.
+\]
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -1438,14 +1594,41 @@ Private consumption types
 \end_layout
 
 \begin_layout Standard
-We place all products with direct household demand in a CES nest tree.
+We split private consumption into types 
+\begin_inset Formula $c\in\mathcal{C}$
+\end_inset
+
+.
+ The same product can enter more than one type,
+ such as electricity for heating and transport.
+ For each type,
+ the default has fixed product shares:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+D_{p,C}=\sum_{c\in\mathcal{C}}\mu_{p,c}C_{c}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A type-specific module can replace the fixed product shares with technology choices.
+\end_layout
+
+\begin_layout Standard
+Consumption types are the leaves of a CES tree.
  Let
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \[
-c=\text{products}\cup\text{consumption nests}.
+a=\mathcal{C}\cup\text{consumption nests}.
 \]
 
 \end_inset
@@ -1456,7 +1639,7 @@ c=\text{products}\cup\text{consumption nests}.
 \begin_layout Standard
 \begin_inset Formula 
 \[
-C_{c}=\mu_{c}C_{N}\left(\frac{P_{c}}{P_{N}}\right)^{-E_{N}}\quad\forall c\in N,
+C_{a}=\mu_{a}C_{N}\left(\frac{P_{a}}{P_{N}}\right)^{-E_{N}}\quad\forall a\in N,
 \]
 
 \end_inset
@@ -1467,7 +1650,7 @@ C_{c}=\mu_{c}C_{N}\left(\frac{P_{c}}{P_{N}}\right)^{-E_{N}}\quad\forall c\in N,
 \begin_layout Standard
 \begin_inset Formula 
 \[
-P_{N}C_{N}=\sum_{c\in N}P_{c}C_{c}.
+P_{N}C_{N}=\sum_{a\in N}P_{a}C_{a}.
 \]
 
 \end_inset
@@ -1476,12 +1659,18 @@ P_{N}C_{N}=\sum_{c\in N}P_{c}C_{c}.
 \end_layout
 
 \begin_layout Standard
-When 
-\begin_inset Formula $E_{N}=0$
+At the root,
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+C_{N=\mathrm{TopNest}}=C.
+\]
+
 \end_inset
 
-,
- the children have fixed quantity shares.
+
 \end_layout
 
 \begin_layout Section
