@@ -3,7 +3,8 @@
 Generates a three-sheet workbook (README, Summary, Detail) summarizing, for
 every Danish input the GREU model consumes, where the EU-wide replacement
 lives and how well it matches. All content is transcribed from the verified
-findings in docs/eu_data_mapping.md and the six pilot reconciliation
+findings in docs/eu_data_mapping.md (status and verdicts) and
+docs/eu_data_pilots.md (pilot evidence), plus the pilot reconciliation
 workbooks under data/preprocessing/data/ — this script performs no new
 analysis and computes no new numbers.
 
@@ -23,7 +24,7 @@ from openpyxl.utils import get_column_letter
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 OUTPUT_PATH = REPO_ROOT / "docs" / "EU_data_overview.xlsx"
-SOURCE_DOC = "docs/eu_data_mapping.md"
+SOURCE_DOC = "docs/eu_data_mapping.md and docs/eu_data_pilots.md"
 
 # Status vocabulary (traffic light). Every Status cell must use one of these.
 STATUS_FILLS = {
@@ -157,14 +158,18 @@ SUMMARY_ROWS = [
     ),
     (
         "io_invest_long_format.xlsx",
-        "Investment matrices: which industry produces the investment goods "
-        "each industry buys",
-        "None — investment matrices are not published EU-wide. Build from "
-        "investment by industry × asset type plus an asset→product bridge",
+        "Investment split: how much of each industry's investment is buildings, "
+        "vehicles or machinery, and which industries supply those goods",
+        "Two partial sources, no single one: FIGARO's investment column by "
+        "product (supply side) and nama_10_nfa_st by asset and industry group "
+        "(use side)",
         "GAP",
-        "No EU-wide source exists (verified)",
-        "Construction method needed: GFCF × asset bridge, balanced with the Danish "
-        "matrix as prior (RAS) — the prior choice is a method decision for colleagues",
+        "Rescoped 2026-08-07: the model uses two separate breakdowns, not the "
+        "full matrix previously assumed — verified in read_data.py and the GAMS "
+        "model. This makes the gap materially smaller than first recorded",
+        "Supply side is mainly a classification job (construction → buildings, "
+        "etc.). Use side must be split from 21 industry groups to GREU's 57, "
+        "using Denmark as a starting pattern — a method decision for colleagues",
     ),
     (
         "ets.xlsx",
@@ -543,15 +548,33 @@ DETAIL_ROWS = [
     # ------------------------------------------------------ io_invest_long_format
     (
         "io_invest_long_format.xlsx",
-        "Investment matrices (buildings / transport / other)",
-        "Which industry produces the investment goods each industry buys",
-        "None published EU-wide; GFCF by industry × asset exists "
-        "(nama_10_nfa_st flows, FIGARO GFCF column)",
+        "Supply margin: investment goods by supplying industry × asset type",
+        "Which industries produce the buildings, vehicles and machinery that "
+        "get invested",
+        "FIGARO P51G column (by supplying product); split into three asset "
+        "types via a concordance",
+        "COARSER",
+        "FIGARO P51G total verified against the Danish investment columns: "
+        "516.1 bn DKK, ≤0.1% (DK 2020)",
+        "figaro_dk2020_reconciliation.xlsx",
+        "Mostly a classification job: construction products → buildings, "
+        "CPA C29-C30 → transport, machinery/ICT/IP → other. Only ambiguous "
+        "products need estimating",
+    ),
+    (
+        "io_invest_long_format.xlsx",
+        "Use margin: investment by investing industry × asset type",
+        "How much of each industry's investment is buildings, vehicles or "
+        "machinery",
+        "nama_10_nfa_st (asset × industry, 21 industry groups)",
         "GAP",
-        "No EU-wide investment matrices exist (verified)",
+        "Not piloted. The real underdetermined part: 21 industry groups must be "
+        "split to GREU's 57 industries",
         "—",
-        "Build from GFCF × asset→product bridge, balanced with the Danish matrix "
-        "as prior (RAS) — the prior is a method decision for colleagues",
+        "Denmark as starting pattern; identifiable per industry group only where "
+        "enough years exist (roughly one year per GREU industry in the group), so "
+        "large groups such as manufacturing stay assumption-driven. Recommended "
+        "first step is a Denmark back-test against its known answer",
     ),
     # ----------------------------------------------------------------------- ets
     (

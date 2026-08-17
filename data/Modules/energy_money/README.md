@@ -100,50 +100,21 @@ Policy `public_core_v1.0` is stored at
   assumption in `tEAFG_REmarg`; `tCO2_REmarg` is complete but zero because no
   separate defensible CO2 rate exists at product×user grain.
 
-The generated account balances at **4,611.0794 PJ** on both sides. Purchaser
-value is **610.583 bn SEK**. Maximum product balance, component-identity and
-SUT purchaser residuals are respectively `5.68e-14 PJ`, `7.11e-15 bn SEK`
-and `2.84e-14 bn SEK`. These numerical closures do not make the underlying
-cells observed: **0 monetary cells are direct and 117 nonzero use cells are
-modelled/calibrated**. The audit exposes **1,765.088 PJ** of PEFA
-reporting-detail residual and **118.844 bn SEK** of SUT controls lacking a
-matched physical allocation on the use side (plus a separately-tracked
-**102.567 bn SEK** on the supply/producer side — see below). Negative
-inventory values are retained and flagged, not hidden.
+The generated account balances at **4,611.0794 PJ** on both sides, with a
+purchaser value of **610.583 bn SEK**; all three closure residuals (product
+balance, component identity, SUT purchaser control) are at floating-point
+precision. Those closures do not make the cells observed: **0 monetary cells
+are direct and 117 nonzero use cells are modelled/calibrated.** The audit
+exposes **1,765.088 PJ** of PEFA reporting-detail residual, **118.844 bn SEK**
+of unmatched SUT control on the use side and **102.567 bn SEK** on the
+supply side. Negative inventory values are retained and flagged, not hidden.
 
-**Found and fixed 2026-07-31:** the builder could not originally tell "source
-reports a genuine zero" apart from "source has no row at all for this CPA" —
-both produced an unflagged `0.0`. This hid **916.7847 PJ** (`CPA_B05`/`CPA_B06`
-— coal and crude oil, ≈19.9% of Sweden's total energy), for which
-`naio_10_cp15`/`naio_10_cp16` publish no Sweden observations whatsoever. The
-builder now checks per-CPA source-row existence explicitly and raises 4
-`ERROR` anomalies instead of a silent pass; see `cp15_has_source_rows`/
-`cp16_has_source_rows` in the audit workbook's `valuation_controls` sheet.
-
-**Unmatched-SUT-residual narrowed 2026-07-31 (same day, follow-up task):**
-Sweden's PEFA reports USE-side energy consumption for whole NACE sections
-(manufacturing `C`, agriculture `A`, water/waste `E`, trade/transport `G`/`H`)
-without ever breaking them into the finer divisions (`C16`, `C19`, `E37-E39`,
-...) the GREU concordance expects. That physical energy already sits in the
-explicit `indu=res` reporting-detail residual — but `naio_10_cp16`'s
-division-level money for the very same industries had no matching physical
-row and was being booked as pure unmatched residual instead of being
-recognised as the monetary counterpart of a bucket the audit already
-disclosed. The builder now pools that money with the same `res` bucket
-(`policy.reporting_detail_redirect_rule`; see the `reporting_detail_redirects`
-audit sheet), which **cut the use-side unmatched SUT residual from
-299.131 to 118.844 bn SEK** (180.287 bn SEK reclassified) with all identities
-still closing to floating-point precision. Industries PEFA *does* detail
-(e.g. financial/business services) are never redirected, so what remains is
-genuinely non-energy spending inside a too-broad CPA (e.g. office furniture
-within `CPA_C16` wood products) or national-accounts catch-all categories
-(`export`, `other_final_use`) — not a reporting gap. The same investigation
-also found that the headline residual metric only ever looked at `purch`,
-which is always `0` on the supply side by construction, silently hiding a
-comparable **102.567 bn SEK** producer-side (`basic`-value) unmatched
-control — now exposed as `explicit_supply_side_monetary_residual_bn_SEK` and
-an `INFO` anomaly rather than being invisible. See the mapping doc's Sweden
-section for the full breakdown and remaining-gap interpretation.
+Two builder defects found and fixed on 2026-07-31 — a silent zero for CPAs
+Eurostat does not publish at all (916.7847 PJ of Swedish coal/crude), and a
+headline residual metric that only read `purch` and so hid the entire
+supply-side residual — are described with their evidence in
+`docs/eu_data_pilots.md`. **Do not restate the numbers above elsewhere;** they
+are maintained in that one file and linked from here.
 
 Full provenance, hashes and findings are in
 `data/preprocessing/data/eu_core/SE/energy_money_manifest.json` and

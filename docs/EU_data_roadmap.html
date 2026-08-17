@@ -101,7 +101,7 @@
     <h1>GREU → EU Framework</h1>
     <div class="subtitle">Data roadmap &amp; progress tracker — replacing Statistics Denmark with EU-wide sources</div>
   </div>
-  <div class="date">Status: 31 July 2026<br>DREAM · GREU</div>
+  <div class="date">Status: 7 August 2026<br>DREAM · GREU</div>
 </div>
 
 <p class="lead"><b>Goal:</b> a version of GREU that any EU member state can run, using only data
@@ -128,7 +128,7 @@ two largest residual pieces are <b>overwhelmingly non-energy money</b> — real 
 non-energy goods and services sharing a broad category with energy, not hidden energy value
 (§6). What remains is chiefly
 <i>classification and construction</i>: exact industry-purpose energy in PJ (including
-<span class="src">in_ETS</span>), narrower product controls, investment matrices, and conversion
+<span class="src">in_ETS</span>), narrower product controls, the investment split, and conversion
 of the model's other still-Danish inputs. That conversion has now started: a sixth Denmark
 pilot (31 July) tested the smallest remaining input — <b>employment</b> — and Eurostat
 reproduces its load-bearing content essentially exactly (hours match to the rounding digit;
@@ -149,8 +149,9 @@ emissions and other inputs in the current preprocessing remain Danish.</div>
 
 <p class="caption"><span class="tag v">Verified</span> means downloaded and reconciled numerically.
 <span class="tag o">Open</span> means a decision, construction method, or source/vintage explanation
-is still needed. Technical audit tables and scripts remain in
-<span class="src">docs/eu_data_mapping.md</span> and the linked reconciliation workbooks.</p>
+is still needed. Current status and verdicts live in
+<span class="src">docs/eu_data_mapping.md</span>; pilot evidence and every reconciliation number
+in <span class="src">docs/eu_data_pilots.md</span> and the linked workbooks.</p>
 
 <div class="statgrid">
   <div class="stat"><div class="big">12</div><div class="lbl">Danish inputs to replace</div></div>
@@ -224,7 +225,7 @@ where the long format carries both, so the mirror is not lossless there.</p>
   <tr><td>JRC-IDEES</td><td>JRC's open analytical energy end-use database. The current JRC-IDEES-2023 v1 covers every EU member state annually for 2000–2023. Its detailed processes are estimated while constrained to Eurostat energy-balance totals.</td></tr>
   <tr><td>SDMX</td><td>The API through which Eurostat serves data; how our download scripts fetch it.</td></tr>
   <tr><td>.gdx</td><td>GAMS's binary data format — the handover format between the Python preprocessing and the model.</td></tr>
-  <tr><td>GFCF</td><td><b>Gross Fixed Capital Formation</b> — the national-accounts term for investment spending (buying buildings, machinery, vehicles, etc. that will be used for years). It is the input needed to build GREU's investment matrices.</td></tr>
+  <tr><td>GFCF</td><td><b>Gross Fixed Capital Formation</b> — the national-accounts term for investment spending (buying buildings, machinery, vehicles, etc. that will be used for years). It is the input needed to build GREU's investment split (§5③).</td></tr>
   <tr><td>RAS</td><td>A standard matrix-balancing technique (named after its inventors) that adjusts a whole matrix of numbers just enough to match new row and column totals, while disturbing the original pattern as little as possible. Used to fit a starting matrix (e.g. Denmark's) to a different country's published totals.</td></tr>
   <tr><td>DG TAXUD</td><td>The European Commission's Directorate-General for Taxation and Customs Union — the official source for EU VAT and excise-duty rate tables used to check Sweden's VAT rate.</td></tr>
   <tr><td>CPA product codes<br><span class="kbd">(e.g. CPA_B05, CPA_C16, CPA_E37-E39)</span></td><td>Codes from the EU's product classification (paired with NACE, see above). <span class="src">CPA_B05</span>/<span class="src">B06</span> = coal and crude-oil extraction; <span class="src">CPA_C16</span> = wood products; <span class="src">CPA_E37-E39</span> = sewerage/waste/remediation services. These specific codes matter because Sweden's national accounts group energy products together with unrelated ones under them — see §5① and §7 Q7.</td></tr>
@@ -278,10 +279,10 @@ the technology catalogue and the financial-accounts module — are out of scope.
       <td><span class="src">nama_10_nfa_st</span> (stocks by industry × asset)</td>
       <td><span class="verdict coarser">COARSER</span></td>
       <td>A21 industries only; PIM estimation where countries lack data</td></tr>
-  <tr><td>Investment matrices<br><span class="kbd">io_invest_long_format</span></td>
-      <td>None — construct from GFCF × asset-product bridge</td>
+  <tr><td>Investment split<br><span class="kbd">io_invest_long_format</span></td>
+      <td>Two partial sources: FIGARO's investment column by product (supply side) and <span class="src">nama_10_nfa_st</span> by asset × industry group (use side)</td>
       <td><span class="verdict gap">GAP</span></td>
-      <td>RAS with Danish matrix as prior</td></tr>
+      <td><b>Rescoped 7 Aug:</b> the model needs two separate breakdowns, not the full matrix previously assumed (§6). Supply side is largely a classification job; the use side must be split from 21 industry groups to GREU's 57, using Denmark as the starting pattern.</td></tr>
   <tr><td>ETS data<br><span class="kbd">ets</span></td>
       <td>Commission Union Registry daily bulk + EEA EU ETS viewer</td>
       <td><span class="verdict coarser">COARSER</span></td>
@@ -341,10 +342,14 @@ All are EU-wide and free, but they are not the two core databases — flagged fo
     no fuel or PJ. PEFA already supplies broad household totals.
     <b>Route:</b> IDEES process rules + PEFA controls + EUTL membership + a reviewed industry
     bridge and fuel/emission-factor model for <span class="src">in_ETS</span>.</p></div>
-  <div class="card"><h3>③ Investment matrices</h3>
-    <p>Not published EU-wide. <b>Route:</b> GFCF by industry × asset type,
-    bridged to supplying products (buildings→construction, etc.);
-    RAS-balance with Danish matrix as prior.</p></div>
+  <div class="card"><h3>③ Investment split</h3>
+    <p>Denmark can see how much of each industry's investment is buildings, vehicles or
+    machinery, and who supplies those goods. EU data cannot. <b>Rescoped 7 Aug:</b> a
+    code audit showed the model never uses the full matrix, only two simpler breakdowns
+    (§6) — so this gap is smaller than previously recorded.
+    <b>Route:</b> the supply side is largely a classification job; the use side means
+    splitting 21 industry groups into GREU's 57, using Denmark's pattern as a starting
+    point. First step is a Denmark back-test against its own known answer.</p></div>
   <div class="card"><h3>④ Marginal tax rates</h3>
     <p>Imported from Danish GreenREFORM via <span class="src">EU_GR_data.gdx</span> —
     a stopgap by the code's own admission. <b>Route:</b> derive from the gap-① excise/ETS
@@ -372,7 +377,7 @@ splitting keys, or a decision to run other EU countries at the aggregated level 
   in 7 of 28 mapping clusters, covering 34 of 57 GREU industries. (Cluster count corrected 31 Jul:
   the concordance's own artifact contains 28 mapped clusters, not the 24 quoted in earlier prose;
   the 7 coarser clusters and industry coverage are unaffected.)
-  Full detail and re-runnable scripts: <span class="src">docs/eu_data_mapping.md</span> §Pilot results,
+  Full detail and re-runnable scripts: <span class="src">docs/eu_data_pilots.md</span>,
   <span class="src">figaro_dk2020_reconciliation.xlsx</span>.</p>
 </div>
 
@@ -489,7 +494,7 @@ splitting keys, or a decision to run other EU countries at the aggregated level 
   <p style="margin-top:4pt"><b>Why it matters:</b> EU data can reproduce the physical totals needed
   for modelling, while making the remaining construction problems explicit. Detailed workbook:
   <span class="src">eurostat_energy_emissions_dk2020_reconciliation.xlsx</span>; methods and audit:
-  <span class="src">docs/eu_data_mapping.md</span>.</p>
+  <span class="src">docs/eu_data_pilots.md</span>.</p>
 </div>
 
 <div class="evidence">
@@ -612,6 +617,38 @@ splitting keys, or a decision to run other EU countries at the aggregated level 
   <span class="src">employment_dk2020_reconciliation.xlsx</span>.</p>
 </div>
 
+<div class="evidence">
+  <h3>✓ Scope audit · The investment gap is smaller than recorded (code verification, 7 August)</h3>
+  <p><b>What was assumed:</b> Denmark's statistics office publishes a detailed investment table —
+  for every pair of industries, how much investment equipment one sells to the other, split into
+  buildings, vehicles and other machinery. No EU country publishes anything like it, and the
+  project had recorded this whole table as something that would have to be rebuilt from scratch.</p>
+  <p style="margin-top:4pt"><b>What the audit found:</b> the model never reads that table. The
+  preprocessing code discards the "who supplied it" dimension immediately — an existing comment in
+  <span class="src">read_data.py</span> says so in as many words — and keeps only <i>how much of
+  each type of capital each industry buys</i>. The supply side re-enters much later, through the
+  ordinary input-output machinery, using the investment columns that are already part of the main
+  table. So the model needs <b>two simple breakdowns, not one big matrix</b>.</p>
+  <p style="margin-top:4pt"><b>Why this matters:</b> the two breakdowns are in much better shape
+  than the matrix was. The supply side — which industries make investment goods — is essentially a
+  classification exercise, since construction firms supply buildings and vehicle manufacturers
+  supply vehicles; FIGARO already publishes the total to within 0.1% of the Danish figure. Only the
+  use side is genuinely missing detail: Eurostat publishes it for 21 industry groups where GREU
+  needs 57.</p>
+  <p style="margin-top:4pt"><b>The catch, and the honest limit:</b> the original idea was that
+  using several years of data would let the finer split be estimated rather than assumed. Working
+  through the arithmetic shows this works <i>per industry group</i>, and roughly needs as many
+  years of data as there are GREU industries inside that group. Small groups will be pinned down
+  by the data; large ones — manufacturing above all — will not, and there the Danish pattern will
+  still be doing the work. That is a limitation to disclose, not to hide, and the estimator should
+  say group by group which is which. <b>Recommended first step:</b> a Denmark back-test — hide
+  Denmark's detailed table, rebuild it from only the coarse figures an ordinary member state would
+  have, and see how close the reconstruction gets. It needs no new data and it tests the whole
+  method, including whether Denmark's own pattern is stable enough over time to serve as anyone
+  else's starting point. Full technical record, including the code references and the
+  identification arithmetic, is in <span class="src">docs/eu_data_mapping.md</span>.</p>
+</div>
+
 <div class="verified"><span class="tag v">Verified scope</span>
 Both GREU and Eurostat environmental accounts use the <b>residence principle</b>: Danish-resident
 ships and aircraft count even when operating abroad. GREU's bunker products are 497.799 PJ /
@@ -714,7 +751,7 @@ territorial/UNFCCC scope—do not subtract bunker rows ad hoc.</div>
   <li><span class="cb done"></span><span class="done-txt">31 Jul: PRODCOM + waste-statistics residual pilots complete — CPA_C16 is ≥98.5% non-energy (PRODCOM DS-059358 on the Comext API is a viable EU-wide splitting key; the prc_stapro code previously cited does not exist), CPA_E37-E39 is ≥85% non-energy and not narrowable with public EU-wide data; the monetary-residual stream is closed as a data question (see §6)</span></li>
   <li><span class="cb"></span>Decision with colleagues: accept the evidence-backed non-energy residuals (CPA_C16, CPA_E37-E39) as permanent disclosed features of the public-core method; optionally annotate with the PRODCOM export share / ~1.0 bn SEK energy ceiling (Q7)</li>
   <li><span class="cb"></span>Agree IDEES process→GREU purpose concordance and specify the reviewed installation→industry + fuel/emission-factor method for in_ETS; retain PEFA controls</li>
-  <li><span class="cb"></span>Build investment-matrix method (GFCF × asset bridge + RAS), validate on DK</li>
+  <li><span class="cb"></span>Investment split (rescoped 7 Aug, §5③/§6): first map the 21 Eurostat industry groups onto GREU's 57 to see which groups are estimable at all, then run the Denmark back-test before building anything</li>
   <li><span class="cb"></span>Tax/margin price layer per product × user from excise schedules</li>
   <li><span class="cb"></span>Replace EU_GR_data.gdx marginal-tax input (from excise/ETS layer, or model-side redesign)</li>
 </ul>
@@ -731,7 +768,7 @@ territorial/UNFCCC scope—do not subtract bunker rows ad hoc.</div>
 </ul>
 
 <div class="footer">
-  <span>Canonical docs: docs/eu_data_mapping.md · data/preprocessing/data/energy_data_notes.md · AGENTS.md</span>
+  <span>Canonical docs: docs/eu_data_mapping.md (status) · docs/eu_data_pilots.md (evidence) · data/preprocessing/data/energy_data_notes.md · AGENTS.md</span>
   <span>Sources: Eurostat · JRC FIGARO/IDEES · Union Registry/EEA · EC Energy · DG TAXUD</span>
 </div>
 

@@ -33,14 +33,53 @@ Primary data sources for the EU version:
   (IO tables, energy and emissions, government finances, fixed assets, etc.).
 - `data/Energy_technology_data/Excel_data/` — energy technology data.
 - `data/preprocessing/` — preprocessing scripts that consume these files.
-- `data/preprocessing/data/energy_data_notes.md` — **read this before touching
-  the energy data**: column semantics and verified reconciliation principles
-  linking `energy_and_emissions.xlsx` to `io_energy_matrix_format.xlsx`.
-- `docs/eu_data_mapping.md` — the Danish-input → Eurostat/FIGARO mapping table
-  steering the EU data work: verified dataset codes, coverage verdicts, and the
-  three structural gaps.
 - Put one-off helper scripts for a data task in `data/preprocessing/scripts/`
   (create it if needed) so they can be re-run and reviewed later.
+
+## Documentation map — which file answers which question
+
+**Start at `docs/eu_data_mapping.md`.** It is the live working document: current
+status, one verdict row per Danish input, the four structural gaps, open items,
+and the "Handoff" section at the end, which is the project's working memory.
+Read the Handoff first when picking up work, and record new findings and task
+handoffs there so the next session can resume cold.
+
+| Question | File |
+|---|---|
+| What is the status? What should I do next? | `docs/eu_data_mapping.md` (Handoff) |
+| Which EU source replaces input X, and how good is it? | `docs/eu_data_mapping.md` (Mapping table) |
+| What exactly did pilot Y find? Which numbers? | `docs/eu_data_pilots.md` |
+| What do the Danish energy columns mean? | `data/preprocessing/data/energy_data_notes.md` |
+| How do I run a non-Danish country? | `data/Modules/energy_money/README.md` |
+| Where did a raw download come from? | the `README.md` inside that `*_raw/` directory |
+| Management traffic-light view | `docs/EU_data_overview.xlsx` (generated) |
+| Explaining the project to an outsider | `docs/EU_data_roadmap.pdf` (generated) |
+
+Read `energy_data_notes.md` before touching the energy data: it holds the
+column semantics and verified reconciliation principles linking
+`energy_and_emissions.xlsx` to `io_energy_matrix_format.xlsx`, and nothing else
+in the repo records them.
+
+## Documentation discipline
+
+These rules exist because the same Sweden figures were once maintained in three
+files and drifted, and because reading a long document end to end is the single
+largest avoidable token cost in this repo.
+
+- **Search, don't slurp.** `eu_data_mapping.md` and `eu_data_pilots.md` are
+  reference documents, not narratives. Grep for the input name, dataset code or
+  number you need. Only read a whole file when you are about to restructure it.
+- **One source of truth per number.** Pilot results and Sweden package figures
+  live in `docs/eu_data_pilots.md` only. Everywhere else links to it. If you
+  catch yourself pasting a reconciliation figure into a second file, link
+  instead.
+- **Live versus archive.** `eu_data_mapping.md` holds only what is currently
+  true and currently actionable. When a task finishes, move its narrative into
+  `docs/eu_data_pilots.md` and leave a one-line result plus link behind. Do not
+  let the live document accumulate a changelog.
+- **Keep the working document small.** It is currently ~10k tokens and should
+  stay near that. If it grows past roughly 15k, archive the completed material
+  again rather than letting every agent pay to read it.
 
 ## Working with Excel files
 
@@ -88,7 +127,17 @@ Primary data sources for the EU version:
   `.md` files whenever findings, assumptions, source coverage, open questions, or
   next steps change. If the EU data roadmap changes, update both
   `docs/EU_data_roadmap.html` and `docs/EU_data_roadmap.pdf` in the same task;
-  never leave the PDF behind the Markdown/HTML status.
+  never leave the PDF behind the Markdown/HTML status. Regenerate the PDF from
+  the HTML with headless Chrome (no Python HTML-to-PDF library is installed):
+
+  ```powershell
+  & "C:\Program Files\Google\Chrome\Application\chrome.exe" --headless --disable-gpu `
+    --no-pdf-header-footer --print-to-pdf="C:\GREU\docs\EU_data_roadmap.pdf" `
+    "file:///C:/GREU/docs/EU_data_roadmap.html"
+  ```
+
+  Chrome prints GCM/registration errors to stderr that are harmless; confirm
+  success by checking the page count and extracting text with `pypdf`.
 - If any verdict, pilot result, or source in `docs/eu_data_mapping.md` changes,
   also update the row content in
   `data/preprocessing/scripts/build_eu_data_overview_xlsx.py` and re-run it to
@@ -102,3 +151,10 @@ Primary data sources for the EU version:
   the status without first reading the repository's technical notes.
 - Report clearly at the end: what was produced, where files were written, data
   sources used, and anything that looked suspicious in the data.
+
+## Git commits
+
+- Never add a "Co-authored-by: Cursor", "Made-with: Cursor", or similar agent
+  attribution trailer to commit messages or PR descriptions. Commits are
+  authored solely by the human contributor whose `git config user.name` /
+  `user.email` is set locally.
