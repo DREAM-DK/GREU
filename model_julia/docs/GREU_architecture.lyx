@@ -423,7 +423,7 @@ p=\text{products}
 \begin_layout Standard
 \begin_inset Formula 
 \[
-u=\text{uses}=i\cup\left\{ C,G,X,K\right\} 
+u=\text{uses}=i\cup\left\{ C,G,X,K,\mathrm{INV}\right\} 
 \]
 
 \end_inset
@@ -446,12 +446,17 @@ Where
 \begin_inset Formula $X$
 \end_inset
 
- are exports,
+ is export demand,
  and 
 \begin_inset Formula $K$
 \end_inset
 
- are investments in fixed assets or inventories.
+ is fixed investment,
+ while
+\begin_inset Formula $\mathrm{INV}$
+\end_inset
+
+ is the change in inventories.
 \end_layout
 
 \begin_layout Subsection
@@ -604,6 +609,7 @@ D_{p,u}=\mu_{p,u}D_{u}
 The shares can be endogenized by other modules to allow substitution.
  For private consumption,
  the consumption-type split below replaces this use-level mapping.
+ Inventories are the exception below.
 \end_layout
 
 \begin_layout Subsection
@@ -643,6 +649,21 @@ o=\left\{ \text{domestic},\text{import}\right\}
 \begin_layout Standard
 Using an index for origin makes it easy to split imports later,
  for example into Euro-zone vs rest-of-the-world.
+\end_layout
+
+\begin_layout Subsubsection
+Inventories
+\end_layout
+
+\begin_layout Standard
+Inventory demand by product and origin,
+\begin_inset Formula $D_{p,\mathrm{INV},o}$
+\end_inset
+
+,
+ is exogenous and can be positive or negative.
+ It is zero after the calibration year.
+ The fixed product and origin shares above do not apply.
 \end_layout
 
 \begin_layout Subsubsection
@@ -1212,7 +1233,6 @@ I_{p,k}=\mu_{p,k}I_{k}
 \end_inset
 
  is given by cost-minimizing a production function subject to capital accumulation laws of motion.
- Changes in inventory are lumped with equipment capital investments.
 \end_layout
 
 \begin_layout Subsection
@@ -1707,13 +1727,6 @@ Imports for re-export,
 
 ,
  is endogenized.
- Alternatively,
- we can split the use column 
-\begin_inset Formula $X$
-\end_inset
-
- into two:
- direct exports vs re-exports.
 \end_layout
 
 \begin_layout Section

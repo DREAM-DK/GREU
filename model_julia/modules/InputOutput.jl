@@ -1,377 +1,543 @@
-# ==============================================================================
-# Input-Output Module
-# ==============================================================================
-# Demand for energy, other intermediate inputs, investments, private and public
-# consumption, and exports is allocated to imports and output from domestic
-# industries. Mirrors model/modules/input_output.gms.
+# Product, use, origin, margin, and supply accounts.
 include(joinpath(@__DIR__, "InputOutputSettings.jl"))
 
 module InputOutput
-Base.:\(A::Set,  B::Set,) = setdiff(A, B)
 
 using SquareModels
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutputSettings:
-  all_demand_components,
-  capital_types,
-  energy_types,
-  export_types,
-  government_consumption_types,
+  C,
+  G,
+  I,
+  INV,
+  K,
+  O,
+  P,
+  S,
+  U,
+  X,
+  cell_tolerance,
   input_output_data_dir,
-  private_consumption_types
+  margin_rate_reference,
+  ordinary_uses
 import ..Settings: calibration_year
 import ..db
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
 
-# ==========================================================================
-# Indices
-# ==========================================================================
+const domestic = :domestic
+const import_origin = :import
 
-const industries_with_domestic = read_indices(joinpath(input_output_data_dir, "industries.csv"))
-const industries_with_imports = read_indices(joinpath(input_output_data_dir, "industries_with_imports.csv"))
-const industries = sort(union(industries_with_domestic, industries_with_imports))
+# ============================================================================
+# Checked-in benchmark data
+# ============================================================================
 
-const I = industries
-const M = industries_with_imports
-const demand_components = all_demand_components(industries)
-const D_all = demand_components
+const supply_file = joinpath(input_output_data_dir, "input_output_supply.csv")
+const direct_file = joinpath(input_output_data_dir, "input_output_direct_use.csv")
+const margin_file = joinpath(input_output_data_dir, "input_output_margins.csv")
+const adjustment_file = joinpath(input_output_data_dir, "input_output_price_adjustments.csv")
+const check_file = joinpath(input_output_data_dir, "input_output_checks.csv")
 
-const vY_i_d_data = read_sparse_array(joinpath(input_output_data_dir, "input_output_cells.csv"); variable="vY_i_d")
-const vM_i_d_data = read_sparse_array(joinpath(input_output_data_dir, "input_output_cells.csv"); variable="vM_i_d")
+"""Read one variable from a checked-in file into a dictionary keyed by index tuple."""
+function read_cells(file, variable)
+  data = read_sparse_array(file; variable)
+  cells = Dict(key => data[key...] for key in eachindex(data))
+  @assert all(isfinite, values(cells)) "$variable in $file must be finite"
+  return cells
+end
 
-# Calibration-year cells define the sparse (industry, demand) variable masks.
-const D1Y = Set(eachindex(vY_i_d_data[:, :, calibration_year]))
-const D1M = Set(eachindex(vM_i_d_data[:, :, calibration_year]))
-const D1YM = D1Y ∪ D1M
-const D = [d for d in D_all if any((i, d) ∈ D1YM for i ∈ I)]
-const D1YonlyY = [(i, d, tt)  for (i, d) ∈ D1Y \ D1M, tt ∈ t]
-const D1MonlyM = [(i, d, tt) for (i, d) ∈ D1M \ D1Y, tt ∈ t]
+"""Benchmark-year value of one cell. Cells the source does not report are zero."""
+benchmark(cells, index...) = get(cells, (index..., calibration_year), 0.0)
 
-# Industries with no intermediate consumption (e.g. T) have no demand component.
-const RX = [i for i in industries if i in D]
-const RE = energy_types
-const K = capital_types
-const C = private_consumption_types
-const G = government_consumption_types
-const X = export_types
+const qY_p_i_data = read_cells(supply_file, "qY_p_i_reported")
+const qS_s_u_o_data = read_cells(margin_file, "qS_s_u_o_reclassified")
+const vProductTax_u_data = read_cells(adjustment_file, "vProductTax_u_reported")
+# The source keeps reported, estimated, and reclassified direct use apart.
+const qD_p_u_o_data = mergewith(
+  +,
+  (
+    read_cells(direct_file, variable)
+    for variable in
+    ("qD_p_u_o_reported", "qD_p_u_o_estimated", "qD_p_u_o_reclassified")
+  )...,
+)
 
-# ==========================================================================
+# ============================================================================
+# Cell masks
+# ============================================================================
+# Each mask is named after the indices it holds. Cells outside a mask have no
+# variable and no equation, so a mask change needs a model rebuild.
+
+"""Cells with a non-negligible benchmark value. The last index is the year."""
+active_cells(cells) = Set(
+  key[1:(end - 1)]
+  for (key, value) in cells
+  if key[end] == calibration_year && abs(value) > cell_tolerance
+)
+
+const supply_p_i = active_cells(qY_p_i_data)
+const direct_p_u_o = active_cells(qD_p_u_o_data)
+const margin_s_u_o = active_cells(qS_s_u_o_data)
+const product_tax_u = Set(u for (u,) in active_cells(vProductTax_u_data))
+
+const supply_p = Set(p for (p, _) in supply_p_i)
+const supply_i = Set(i for (_, i) in supply_p_i)
+const direct_p_u = Set((p, u) for (p, u, _) in direct_p_u_o)
+const direct_u = Set(u for (_, u) in direct_p_u)
+const margin_s_u = Set((s, u) for (s, u, _) in margin_s_u_o)
+const margin_u = Set(u for (_, u) in margin_s_u)
+
+# A product reaches a use as direct demand or as a derived margin service.
+const delivery_p_u_o = direct_p_u_o ∪ margin_s_u_o
+const domestic_p_u = Set((p, u) for (p, u, o) in delivery_p_u_o if o == domestic)
+const import_p_u = Set((p, u) for (p, u, o) in delivery_p_u_o if o == import_origin)
+const domestic_u = Set(u for (_, u) in domestic_p_u)
+const import_p = Set(p for (p, _) in import_p_u)
+const import_u = Set(u for (_, u) in import_p_u)
+
+# Fixed product and origin shares cover ordinary uses only. Inventory cells are
+# exogenous and keep their reported sign.
+const ordinary_p_u_o = Set((p, u, o) for (p, u, o) in direct_p_u_o if u in ordinary_uses)
+const ordinary_p_u = Set((p, u) for (p, u, _) in ordinary_p_u_o)
+const inventory_p_u_o = setdiff(direct_p_u_o, ordinary_p_u_o)
+const origin_share_p_u_o = ordinary_p_u_o ∪ margin_s_u_o
+# Direct demand in a use with margin services carries a margin bundle.
+const carried_p_u = Set((p, u) for (p, u) in direct_p_u if u in margin_u)
+
+# ============================================================================
 # Variables
-# ==========================================================================
+# ============================================================================
+
 const InputOutputTag = Tag(:InputOutput)
 
-# Values (growth + inflation adjusted)
+# Margin services are products, so the margin variables keep the full product
+# domain. Product clearing and import totals index them by any product.
 @variables db.model :: (InputOutputTag, GrowthAdjusted, InflationAdjusted) begin
-  vGDP[t], "Gross Domestic Product"
-  vGVA[t], "Gross Value Added"
-  vR[t], "Non-energy intermediate inputs"
-  vE[t], "Energy intermediate inputs"
-  vI[t], "Investments"
-  vC[t], "Private consumption"
-  vG[t], "Public consumption"
-  vX[t], "Exports"
-  vY[t], "Total output"
+  vY_p_i[p = P, i = I, t = t; (p, i) in supply_p_i], "Basic-price output by product and industry"
+  vD_p_u[p = P, u = U, t = t; (p, u) in direct_p_u], "Direct purchaser spend by product and use"
+  vD_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in direct_p_u_o], "Direct purchaser spend by product, use, and origin"
+  vS_u[u = U, t = t; u in margin_u], "Margin-bundle value by use"
+  vS_s_u[s = S, u = U, t = t; (s, u) in margin_s_u], "Margin-service value by service and use"
+  vS_s_u_o[s = P, u = U, o = O, t = t; (s, u, o) in margin_s_u_o], "Margin-service value by service, use, and origin"
+  vY_p_u[p = P, u = U, t = t; (p, u) in domestic_p_u], "Domestic deliveries by product and use"
+  vM_p_u[p = P, u = U, t = t; (p, u) in import_p_u], "Imports by product and use"
+
+  vY_p[p = P, t = t; p in supply_p], "Domestic output by product"
+  vY_i[i = I, t = t; i in supply_i], "Domestic output by industry"
+  vY_u[u = U, t = t; u in domestic_u], "Domestic output by use"
+  vD_u[u = U, t = t; u in direct_u], "Direct purchaser spend by use"
+  vProductTax_u[u = U, t = t; u in product_tax_u], "Product taxes by use"
+  vM_p[p = P, t = t; p in import_p], "Imports by product"
+  vM_u[u = U, t = t; u in import_u], "Imports by use"
+
+  vC[t], "Household and non-profit consumption"
+  vG[t], "Government consumption"
+  vI[t], "Fixed investment"
+  vINV[t], "Change in inventories"
+  vX[t], "Total exports"
+  vY[t], "Total domestic output"
   vM[t], "Total imports"
-  vY_i[I, t], "Output by industry"
-  vGVA_i[I, t], "Gross value added at basic prices by industry"
-  vM_i[M, t], "Imports by industry"
-  vD[D, t], "Demand by demand component at purchaser prices"
-  vY_d[D, t], "Domestic output by demand component before net product taxes and subsidies"
-  vM_d[D, t], "Imports by demand component before net product taxes and subsidies"
-  vY_i_d[i=I, d=D, t=t; (i, d) in D1Y], "Domestic output by industry and demand before net product taxes and subsidies"
-  vM_i_d[i=I, d=D, t=t; (i, d) in D1M], "Imports by industry and demand before net product taxes and subsidies"
-  vtY_i_d[i=I, d=D, t=t; (i, d) in D1Y], "Net taxes less subsidies on domestic produced products by (i,d)"
-  vtM_i_d[i=I, d=D, t=t; (i, d) in D1M], "Net taxes less subsidies on imported products by (i,d)"
-  vtD[D, t], "Net taxes less subsidies on products by demand component"
-  vtY_d[D, t], "Net taxes less subsidies on products on domestic production by demand component"
-  vtM_d[D, t], "Net taxes less subsidies on products on imports by demand component"
-  vtY_i[I, t], "Net taxes less subsidies on products on domestic production by industry"
-  vtM_i[M, t], "Net taxes less subsidies on products on imports by industry"
-  vtY[t], "Net taxes less subsidies on products (domestic)"
-  vtM[t], "Net taxes less subsidies on products (imports)"
-  # Per-industry primary inputs (ESA value-added block of the use table)
-  vW_i[I, t], "Compensation of employees by industry (ESA D.1)"
-  vtYOther_i[I, t], "Other taxes less subsidies on production by industry (ESA D.29 − D.39)"
-  vDepr_i[I, t], "Consumption of fixed capital by industry (ESA P.51c / K.1)"
-  vOpSurplus_i[I, t], "Net operating surplus and mixed income by industry (ESA B.2n + B.3n)"
-  # Economy-wide aggregates of the value-added block
-  vW[t], "Total compensation of employees"
-  vtYOther[t], "Total other taxes less subsidies on production"
-  vDepr[t], "Total consumption of fixed capital"
-  vOpSurplus[t], "Total net operating surplus and mixed income"
 end
 
-# Prices (inflation adjusted)
 @variables db.model :: (InputOutputTag, InflationAdjusted) begin
-  pGDP[t], "GDP deflator"
-  pGVA[t], "GVA deflator"
-  pR[t], "Non-energy intermediates deflator"
-  pE[t], "Energy intermediates deflator"
-  pI[t], "Investment deflator"
-  pC[t], "Consumer price index"
-  pG[t], "Government consumption deflator"
-  pX[t], "Export deflator"
-  pY[t], "Output deflator"
-  pM[t], "Import deflator"
-  pY_i[I, t], "Price of domestic output by industry"
-  pM_i[I, t], "Price of imports by industry"
-  pD[D, t], "Deflator of demand component"
-  pY_i_d[i=I, d=D, t=t; (i, d) in D1Y], "Domestic output price before net product taxes and subsidies by (i,d)"
-  pM_i_d[i=I, d=D, t=t; (i, d) in D1M], "Import price before net product taxes and subsidies by (i,d)"
+  pY_p_i[p = P, i = I, t = t; (p, i) in supply_p_i], "Domestic basic price by product and industry"
+  pY_p[p = P, t = t; p in supply_p], "Domestic basic price by product"
+  pY_i[i = I, t = t; i in supply_i], "Domestic basic price by industry"
+  pY_p_u[p = P, u = U, t = t; (p, u) in domestic_p_u], "Domestic basic price by product and use"
+  pY_u[u = U, t = t; u in domestic_u], "Domestic output price by use"
+
+  pM_p_u[p = P, u = U, t = t; (p, u) in import_p_u], "Import border price by product and use"
+  pB_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in direct_p_u_o], "Basic or border price by product, use, and origin"
+  pD_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in direct_p_u_o], "Purchaser price by product, use, and origin"
+  pD_p_u[p = P, u = U, t = t; (p, u) in direct_p_u], "Purchaser price by product and use"
+  pD_u[u = ordinary_uses, t = t; u in direct_u], "Purchaser price by use"
+
+  pS_u[u = U, t = t; u in margin_u], "Margin-bundle price by use"
+  pS_s_u[s = S, u = U, t = t; (s, u) in margin_s_u], "Margin-service price by service and use"
+  pS_s_u_o[s = P, u = U, o = O, t = t; (s, u, o) in margin_s_u_o], "Margin-service price by service, use, and origin"
+  pOtherAdjustment_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in direct_p_u_o] :: ForecastConstant, "Other additive purchaser-price adjustment"
+
+  pM_p[p = P, t = t; p in import_p], "Import price by product"
+  pM_u[u = U, t = t; u in import_u], "Import price by use"
+  pC[t], "Consumption price"
+  pG[t], "Government consumption price"
+  pI[t], "Fixed investment price"
+  pINV[t], "Inventory price"
+  pX[t], "Total export price"
+  pY[t], "Domestic output price"
+  pM[t], "Import price"
 end
 
-# Quantities (growth adjusted)
 @variables db.model :: (InputOutputTag, GrowthAdjusted) begin
-  qGDP[t], "Real GDP"
-  qGVA[t], "Real GVA"
-  qR[t], "Real non-energy intermediates"
-  qE[t], "Real energy intermediates"
-  qI[t], "Real investments"
-  qC[t], "Real consumption"
-  qG[t], "Real government consumption"
-  qX[t], "Real exports"
-  qY[t], "Real total output"
-  qM[t], "Real imports"
-  qY_i[I, t], "Real output by industry"
-  qM_i[M, t], "Real imports by industry"
-  qD[D, t], "Real demand by demand component"
-  qY_i_d[i=I, d=D, t=t; (i, d) in D1Y], "Real domestic output by (i,d)"
-  qM_i_d[i=I, d=D, t=t; (i, d) in D1M], "Real imports by (i,d)"
+  qY_p_i[p = P, i = I, t = t; (p, i) in supply_p_i], "Output by product and industry"
+  qD_p_u[p = P, u = U, t = t; (p, u) in direct_p_u], "Direct demand by product and use"
+  qD_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in direct_p_u_o], "Direct demand by product, use, and origin"
+  qS_u[u = U, t = t; u in margin_u], "Margin-bundle demand by use"
+  qS_s_u[s = S, u = U, t = t; (s, u) in margin_s_u], "Margin-service demand by service and use"
+  qS_s_u_o[s = P, u = U, o = O, t = t; (s, u, o) in margin_s_u_o], "Margin-service demand by service, use, and origin"
+  qY_p_u[p = P, u = U, t = t; (p, u) in domestic_p_u], "Domestic deliveries by product and use"
+  qM_p_u[p = P, u = U, t = t; (p, u) in import_p_u], "Imports by product and use"
+
+  qY_p[p = P, t = t; p in supply_p], "Domestic output by product"
+  qY_i[i = I, t = t; i in supply_i], "Domestic output by industry"
+  qY_u[u = U, t = t; u in domestic_u], "Domestic output by use"
+  qD_u[u = ordinary_uses, t = t; u in direct_u], "Direct demand by use"
+  qM_p[p = P, t = t; p in import_p], "Imports by product"
+  qM_u[u = U, t = t; u in import_u], "Imports by use"
+
+  qC[t], "Household and non-profit consumption"
+  qG[t], "Government consumption"
+  qI[t], "Fixed investment"
+  qINV[t], "Change in inventories"
+  qX[t], "Total exports"
+  qY[t], "Total domestic output"
+  qM[t], "Total imports"
 end
 
-# Rates and shares (no adjustment)
 @variables db.model :: InputOutputTag begin
-  tY_i_d[i=I, d=D, t=t; (i, d) in D1Y] :: ForecastConstant, "Tax rate on domestic output by (i,d)"
-  tM_i_d[i=I, d=D, t=t; (i, d) in D1M] :: ForecastConstant, "Tax rate on imports by (i,d)"
-  jfpY_i_d[i=I, d=D, t=t; (i, d) in D1Y], "Price deviation, domestic"
-  jfpM_i_d[i=I, d=D, t=t; (i, d) in D1M], "Price deviation, imports"
-  rYM[i=I, d=D, t=t; (i, d) in D1YM] :: ForecastConstant, "Industry composition of demand"
-  rM[i=I, d=D, t=t; (i, d) in D1YM] :: ForecastConstant, "Import share"
+  muY_p_i[p = P, i = I, t = t; (p, i) in supply_p_i] :: ForecastConstant, "Fixed industry share for each product"
+  muD_p_u[p = P, u = U, t = t; (p, u) in ordinary_p_u] :: ForecastConstant, "Fixed product share for each direct use"
+  muO_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in origin_share_p_u_o] :: ForecastConstant, "Fixed origin share"
+  muS_s_u[s = S, u = U, t = t; (s, u) in margin_s_u] :: ForecastConstant, "Fixed margin-service share"
+  aS_p_u[p = P, u = U, t = t; (p, u) in carried_p_u] :: ForecastConstant, "Margin-bundle units per unit of direct demand"
+  tProduct_u[u = U, t = t; u in product_tax_u] :: ForecastConstant, "Product tax per unit of direct demand"
+  tVAT_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in direct_p_u_o] :: ForecastConstant, "VAT rate"
 end
 
-# ==========================================================================
+# ============================================================================
 # Data
-# ==========================================================================
-function set_data!(db; dir = input_output_data_dir)
-  cells_file = joinpath(dir, "input_output_cells.csv")
-  industries_file = joinpath(dir, "input_output_industries.csv")
-  demands_file = joinpath(dir, "input_output_demands.csv")
-  aggregates_file = joinpath(dir, "input_output_aggregates.csv")
+# ============================================================================
 
-  db[vY_i_d] .= read_variable(cells_file, vY_i_d)
-  db[vM_i_d] .= read_variable(cells_file, vM_i_d)
-  db[vtY_i_d] .= read_variable(cells_file, vtY_i_d; default=0.0)
-  db[vtM_i_d] .= read_variable(cells_file, vtM_i_d; default=0.0)
-  # No default: missing (industry, year) combos should stay `nothing` so
-  # `exogenous_constant_forecast!` forward-fills forecast years from t1, rather than
-  # being silently zeroed (the source file only has data for t1 and t1-1).
-  db[vW_i] .= read_variable(industries_file, vW_i)
-  db[vtYOther_i] .= read_variable(industries_file, vtYOther_i)
-  db[vDepr_i] .= 0.0
-  db[vOpSurplus_i] .= read_variable(industries_file, vOpSurplus_i)
+function set_data!(db)
+  @assert isdisjoint(margin_s_u, direct_p_u) "Reclassified margin cells must not stay in direct use"
+  @assert all((margin_rate_reference, u) in carried_p_u for u in margin_u) "Each margin use needs the margin-rate reference product"
+  # Calibration divides by the benchmark use total to get shares and tax rates.
+  @assert all(
+    abs(sum(benchmark(qD_p_u_o_data, p, u, o) for p in P for o in O)) > cell_tolerance
+    for u in (direct_u ∩ ordinary_uses) ∪ product_tax_u
+  ) "Each use with a fixed product share or a product tax needs non-zero demand"
 
-  db[jfpY_i_d] .= 0.0
-  db[jfpM_i_d] .= 0.0
-  db[rM][D1YonlyY] = 0.0
-  db[rM][D1MonlyM] = 1.0
+  db[qY_p_i] .= read_variable(supply_file, qY_p_i; variable = "qY_p_i_reported")
+  db[qS_s_u_o] .=
+    read_variable(margin_file, qS_s_u_o; variable = "qS_s_u_o_reclassified")
+  db[qD_p_u_o] .= [get(qD_p_u_o_data, key, nothing) for key in keys(qD_p_u_o)]
 
-  db[qD] .= read_variable(demands_file, qD)
-  db[vD] .= read_variable(demands_file, vD)
-  db[vGDP] .= read_variable(aggregates_file, vGDP)
-  db[vGVA] .= read_variable(aggregates_file, vGVA)
-
-  # Set prices to 1.0 (inflation, but not growth-adjusted, variables)
-  for name in tagged(InputOutputTag)
-    has_tag(name, InflationAdjusted) && !has_tag(name, GrowthAdjusted) && (db[getfield(@__MODULE__, name)] .= 1.0)
+  # Benchmark totals. Calibration holds them fixed while it solves for shares.
+  for (p, u) in direct_p_u
+    db[qD_p_u[p, u, calibration_year]] =
+      sum(benchmark(qD_p_u_o_data, p, u, o) for o in O)
+  end
+  for u in direct_u ∩ ordinary_uses
+    db[qD_u[u, calibration_year]] =
+      sum(benchmark(qD_p_u_o_data, p, u, o) for p in P for o in O)
+  end
+  for (s, u) in margin_s_u
+    db[qS_s_u[s, u, calibration_year]] =
+      sum(benchmark(qS_s_u_o_data, s, u, o) for o in O)
+  end
+  for u in margin_u
+    db[qS_u[u, calibration_year]] =
+      sum(benchmark(qS_s_u_o_data, s, u, o) for s in S for o in O)
   end
 
+  for (p, u, o) in inventory_p_u_o, tt in (calibration_year + 1):last(t)
+    db[qD_p_u_o[p, u, o, tt]] = 0.0
+  end
+
+  # D21X31 does not split VAT from other product taxes. The default closure
+  # treats the full value as an additive product tax and sets VAT to zero.
+  db[tVAT_p_u_o] .= 0.0
+  db[pOtherAdjustment_p_u_o] .= 0.0
+  db[pY_p_i] .= 1.0
+  db[pM_p_u] .= 1.0
+
+  db[vProductTax_u] .= read_variable(
+    adjustment_file,
+    vProductTax_u;
+    variable = "vProductTax_u_reported",
+  )
+  db[vD_u] .= read_variable(check_file, vD_u; variable = "vD_u_reported")
+  db[vM] .= read_variable(check_file, vM; variable = "vM_reported")
+  db[vX] .= read_variable(check_file, vX; variable = "vX_reported")
+  db[vY] .= read_variable(check_file, vY; variable = "vY_reported")
   return nothing
 end
 
-# ==========================================================================
-# Starting values (solver hints, not exogenous data)
-# ==========================================================================
-function set_starting_values!(db)
-end
-
-# ==========================================================================
-# Residuals allowed to exceed the global tolerance
-# ==========================================================================
 function set_residual_tolerances!(tolerances)
-  tolerances[vD] = 0.2
-  tolerances[vGDP] = 3
-  tolerances[vGVA] = 1
+  tolerances[vD_u] = 1e-6
+  # The IO and national-account import totals differ by EUR 0.059 million.
+  tolerances[vM] = 0.06
+  tolerances[vX] = 1e-6
+  tolerances[vY] = 1e-6
 end
 
-# ==========================================================================
+# ============================================================================
 # Equations
-# ==========================================================================
+# ============================================================================
+
 function define_equations()
   return @block db begin
-    # -- GDP identity and fixed price index --
-    vGDP[t = t1:T], vGDP[t] == vC[t] + vI[t] + vG[t] + vX[t] - vM[t]
-    pGDP[t = t1:T], pGDP[t] * qGDP[t] == vGDP[t]
-    qGDP[t = t1:T], qGDP[t] == qC[t] + qI[t] + qG[t] + qX[t] - qM[t]
+    # Fixed product and origin shares. Inventories bypass them.
+    qD_p_u[p = P, u = U, t = t1:T; (p, u) in ordinary_p_u],
+    qD_p_u[p, u, t] == muD_p_u[p, u, t] * qD_u[u, t]
 
-    # -- GVA identity and fixed price index --
-    vGVA[t = t1:T], vGVA[t] == vY[t] - vR[t] - vE[t]
-    pGVA[t = t1:T], pGVA[t] * qGVA[t] == vGVA[t]
-    qGVA[t = t1:T], qGVA[t] == qY[t] - qR[t] - qE[t]
+    qD_p_u[p = P, u = INV, t = t1:T; (p, u) in direct_p_u],
+    qD_p_u[p, u, t] == ∑(qD_p_u_o[p, u, o, t] for o in O)
 
-    # -- Per-industry GVA at basic prices (ESA D.1 + (D.29-D.39) + P.51c + B.2n+B.3n) --
-    vGVA_i[i=I, t=t1:T],
-    vGVA_i[i,t] == vW_i[i,t] + vtYOther_i[i,t] + vDepr_i[i,t] + vOpSurplus_i[i,t]
+    qD_p_u_o[p = P, u = U, o = O, t = t1:T; (p, u, o) in ordinary_p_u_o],
+    qD_p_u_o[p, u, o, t] == muO_p_u_o[p, u, o, t] * qD_p_u[p, u, t]
 
-    # -- Economy-wide value-added aggregates --
-    vW[t=t1:T], vW[t] == ∑(vW_i[i,t] for i in I)
-    vtYOther[t=t1:T], vtYOther[t] == ∑(vtYOther_i[i,t] for i in I)
-    vDepr[t=t1:T], vDepr[t] == ∑(vDepr_i[i,t] for i in I)
-    vOpSurplus[t=t1:T], vOpSurplus[t] == ∑(vOpSurplus_i[i,t] for i in I)
+    # Derived margin demand. Only uses with reported margins carry a bundle.
+    qS_u[u = U, t = t1:T; u in margin_u],
+    qS_u[u, t] == ∑(aS_p_u[p, u, t] * qD_p_u[p, u, t] for p in P)
 
-    # -- Demand aggregates --
-    vR[t = t1:T], vR[t] == ∑(vD[d,t] for d in RX)
-    vE[t = t1:T], vE[t] == ∑(vD[d,t] for d in RE)
-    vI[t = t1:T], vI[t] == ∑(vD[d,t] for d in K)
-    vC[t = t1:T], vC[t] == ∑(vD[d,t] for d in C)
-    vG[t = t1:T], vG[t] == ∑(vD[d,t] for d in G)
-    vX[t = t1:T], vX[t] == ∑(vD[d,t] for d in X)
+    qS_s_u[s = S, u = U, t = t1:T; (s, u) in margin_s_u],
+    qS_s_u[s, u, t] == muS_s_u[s, u, t] * qS_u[u, t]
 
-    # -- Deflator identities --
-    pR[t = t1:T], pR[t] * qR[t] == vR[t]
-    pE[t = t1:T], pE[t] * qE[t] == vE[t]
-    pI[t = t1:T], pI[t] * qI[t] == vI[t]
-    pC[t = t1:T], pC[t] * qC[t] == vC[t]
-    pG[t = t1:T], pG[t] * qG[t] == vG[t]
-    pX[t = t1:T], pX[t] * qX[t] == vX[t]
+    qS_s_u_o[s = S, u = U, o = O, t = t1:T; (s, u, o) in margin_s_u_o],
+    qS_s_u_o[s, u, o, t] == muO_p_u_o[s, u, o, t] * qS_s_u[s, u, t]
 
-    # -- Fixed price indices for demand aggregates --
-    qR[t = t1:T], qR[t] == ∑(qD[rx,t] for rx in RX)
-    qE[t = t1:T], qE[t] == ∑(qD[re,t] for re in RE)
-    qI[t = t1:T], qI[t] == ∑(qD[k,t] for k in K)
-    qC[t = t1:T], qC[t] == ∑(qD[c,t] for c in C)
-    qG[t = t1:T], qG[t] == ∑(qD[g,t] for g in G)
-    qX[t = t1:T], qX[t] == ∑(qD[x,t] for x in X)
+    # Product clearing includes domestic margin services.
+    qY_p_u[p = P, u = U, t = t1:T; (p, u) in domestic_p_u],
+    qY_p_u[p, u, t] == qD_p_u_o[p, u, domestic, t] + qS_s_u_o[p, u, domestic, t]
 
-    # -- Supply equilibrium before net product taxes and subsidies --
-    vY_i[i = I, t = t1:T],
-    vY_i[i, t] == ∑(vY_i_d[i, d, t] for d in D if (i, d) in D1Y)
+    qY_p[p = P, t = t1:T; p in supply_p],
+    qY_p[p, t] == ∑(qY_p_u[p, u, t] for u in U)
 
-    vY[t = t1:T], vY[t] == ∑(vY_i[i, t] for i in I)
-    pY[t = t1:T], pY[t] * qY[t] == vY[t]
-    qY[t = t1:T], qY[t] == ∑(qY_i[i, t] for i in I)
+    qY_p_i[p = P, i = I, t = t1:T; (p, i) in supply_p_i],
+    qY_p_i[p, i, t] == muY_p_i[p, i, t] * qY_p[p, t]
 
-    # -- Industry quantity aggregation --
-    qY_i[i = I, t = t1:T],
-    qY_i[i, t] == ∑(qY_i_d[i, d, t] for d in D if (i, d) in D1Y)
+    qY_i[i = I, t = t1:T; i in supply_i],
+    qY_i[i, t] == ∑(qY_p_i[p, i, t] for p in P)
 
-    qM_i[m = M, t = t1:T],
-    qM_i[m, t] == ∑(qM_i_d[m, d, t] for d in D if (m, d) in D1M)
+    qY_u[u = U, t = t1:T; u in domestic_u],
+    qY_u[u, t] == ∑(qY_p_u[p, u, t] for p in P)
 
-    # -- Import aggregation before net product taxes and subsidies --
-    vM_i[m = M, t = t1:T],
-    vM_i[m, t] == ∑(vM_i_d[m, d, t] for d in D if (m, d) in D1M)
+    # Imports mirror domestic deliveries and include imported margin services.
+    qM_p_u[p = P, u = U, t = t1:T; (p, u) in import_p_u],
+    qM_p_u[p, u, t] ==
+      qD_p_u_o[p, u, import_origin, t] + qS_s_u_o[p, u, import_origin, t]
 
-    vM[t = t1:T], vM[t] == ∑(vM_i[m, t] for m in M)
+    qM_p[p = P, t = t1:T; p in import_p],
+    qM_p[p, t] == ∑(qM_p_u[p, u, t] for u in U)
+
+    qM_u[u = U, t = t1:T; u in import_u],
+    qM_u[u, t] == ∑(qM_p_u[p, u, t] for p in P)
+
+    # Export, final-use, and output totals.
+    qM[t = t1:T], qM[t] == ∑(qM_p[p, t] for p in P)
+    qX[t = t1:T], qX[t] == ∑(qD_u[u, t] for u in X)
+    qC[t = t1:T], qC[t] == ∑(qD_u[u, t] for u in C)
+    qG[t = t1:T], qG[t] == ∑(qD_u[u, t] for u in G)
+    qI[t = t1:T], qI[t] == ∑(qD_u[u, t] for u in K)
+    qINV[t = t1:T], qINV[t] == ∑(qD_p_u[p, u, t] for p in P for u in INV)
+    qY[t = t1:T], qY[t] == ∑(qY_p[p, t] for p in P)
+
+    # Basic, border, margin, and purchaser prices.
+    pB_p_u_o[p = P, u = U, o = O, t = t1:T; (p, u, o) in direct_p_u_o],
+    pB_p_u_o[p, u, o, t] == (o == domestic ? pY_p[p, t] : pM_p_u[p, u, t])
+
+    pS_s_u_o[s = S, u = U, o = O, t = t1:T; (s, u, o) in margin_s_u_o],
+    pS_s_u_o[s, u, o, t] == (o == domestic ? pY_p[s, t] : pM_p_u[s, u, t])
+
+    pS_s_u[s = S, u = U, t = t1:T; (s, u) in margin_s_u],
+    pS_s_u[s, u, t] == ∑(muO_p_u_o[s, u, o, t] * pS_s_u_o[s, u, o, t] for o in O)
+
+    pS_u[u = U, t = t1:T; u in margin_u],
+    pS_u[u, t] == ∑(muS_s_u[s, u, t] * pS_s_u[s, u, t] for s in S)
+
+    pD_p_u_o[p = P, u = U, o = O, t = t1:T; (p, u, o) in direct_p_u_o],
+    pD_p_u_o[p, u, o, t] == (
+      pB_p_u_o[p, u, o, t] +
+      tProduct_u[u, t] +
+      pOtherAdjustment_p_u_o[p, u, o, t] +
+      aS_p_u[p, u, t] * pS_u[u, t]
+    ) * (1 + tVAT_p_u_o[p, u, o, t])
+
+    pD_p_u[p = P, u = U, t = t1:T; (p, u) in ordinary_p_u],
+    pD_p_u[p, u, t] == ∑(muO_p_u_o[p, u, o, t] * pD_p_u_o[p, u, o, t] for o in O)
+
+    # Inventory quantities are signed, so their price comes from the benchmark
+    # value and then stays put instead of following the origin shares.
+    pD_p_u[p = P, u = INV, t = t1:t1; (p, u) in direct_p_u],
+    pD_p_u[p, u, t] * qD_p_u[p, u, t] == vD_p_u[p, u, t]
+
+    pD_p_u[p = P, u = INV, t = (t1 + 1):T; (p, u) in direct_p_u],
+    pD_p_u[p, u, t] == pD_p_u[p, u, t1]
+
+    pD_u[u = ordinary_uses, t = t1:T; u in direct_u],
+    pD_u[u, t] == ∑(muD_p_u[p, u, t] * pD_p_u[p, u, t] for p in P)
+
+    # Cell values and value totals. Margin value does not enter vD twice.
+    vD_p_u_o[p = P, u = U, o = O, t = t1:T; (p, u, o) in direct_p_u_o],
+    vD_p_u_o[p, u, o, t] == pD_p_u_o[p, u, o, t] * qD_p_u_o[p, u, o, t]
+
+    vD_p_u[p = P, u = U, t = t1:T; (p, u) in direct_p_u],
+    vD_p_u[p, u, t] == ∑(vD_p_u_o[p, u, o, t] for o in O)
+
+    vD_u[u = U, t = t1:T; u in direct_u],
+    vD_u[u, t] == ∑(vD_p_u[p, u, t] for p in P)
+
+    vProductTax_u[u = U, t = t1:T; u in product_tax_u],
+    vProductTax_u[u, t] ==
+      tProduct_u[u, t] * ∑(qD_p_u_o[p, u, o, t] for p in P for o in O)
+
+    vS_s_u_o[s = S, u = U, o = O, t = t1:T; (s, u, o) in margin_s_u_o],
+    vS_s_u_o[s, u, o, t] == pS_s_u_o[s, u, o, t] * qS_s_u_o[s, u, o, t]
+
+    vS_s_u[s = S, u = U, t = t1:T; (s, u) in margin_s_u],
+    vS_s_u[s, u, t] == ∑(vS_s_u_o[s, u, o, t] for o in O)
+
+    vS_u[u = U, t = t1:T; u in margin_u],
+    vS_u[u, t] == ∑(vS_s_u[s, u, t] for s in S)
+
+    vY_p_i[p = P, i = I, t = t1:T; (p, i) in supply_p_i],
+    vY_p_i[p, i, t] == pY_p_i[p, i, t] * qY_p_i[p, i, t]
+
+    vY_p[p = P, t = t1:T; p in supply_p],
+    vY_p[p, t] == ∑(vY_p_i[p, i, t] for i in I)
+
+    pY_p[p = P, t = t1:T; p in supply_p],
+    pY_p[p, t] * qY_p[p, t] == vY_p[p, t]
+
+    pY_p_u[p = P, u = U, t = t1:T; (p, u) in domestic_p_u],
+    pY_p_u[p, u, t] == pY_p[p, t]
+
+    vY_p_u[p = P, u = U, t = t1:T; (p, u) in domestic_p_u],
+    vY_p_u[p, u, t] == pY_p_u[p, u, t] * qY_p_u[p, u, t]
+
+    vY_i[i = I, t = t1:T; i in supply_i],
+    vY_i[i, t] == ∑(vY_p_i[p, i, t] for p in P)
+
+    pY_i[i = I, t = t1:T; i in supply_i],
+    pY_i[i, t] * qY_i[i, t] == vY_i[i, t]
+
+    vY_u[u = U, t = t1:T; u in domestic_u],
+    vY_u[u, t] == ∑(vY_p_u[p, u, t] for p in P)
+
+    pY_u[u = ordinary_uses, t = t1:T; u in domestic_u],
+    pY_u[u, t] * qY_u[u, t] == vY_u[u, t]
+
+    vM_p_u[p = P, u = U, t = t1:T; (p, u) in import_p_u],
+    vM_p_u[p, u, t] == pM_p_u[p, u, t] * qM_p_u[p, u, t]
+
+    vM_p[p = P, t = t1:T; p in import_p],
+    vM_p[p, t] == ∑(vM_p_u[p, u, t] for u in U)
+
+    pM_p[p = P, t = t1:T; p in import_p],
+    pM_p[p, t] * qM_p[p, t] == vM_p[p, t]
+
+    vM_u[u = U, t = t1:T; u in import_u],
+    vM_u[u, t] == ∑(vM_p_u[p, u, t] for p in P)
+
+    pM_u[u = ordinary_uses, t = t1:T; u in import_u],
+    pM_u[u, t] * qM_u[u, t] == vM_u[u, t]
+
+    # Inventory quantities can be zero or change sign, so their deflators are
+    # fixed rather than divided out of a value.
+    pY_u[u = INV, t = t1:T; u in domestic_u], pY_u[u, t] == 1.0
+    pM_u[u = INV, t = t1:T; u in import_u], pM_u[u, t] == 1.0
+    pINV[t = t1:T], pINV[t] == 1.0
+
+    vM[t = t1:T], vM[t] == ∑(vM_p[p, t] for p in P)
     pM[t = t1:T], pM[t] * qM[t] == vM[t]
 
-    qM[t = t1:T],
-    qM[t] == ∑(qM_i[m, t] for m in M)
+    vX[t = t1:T], vX[t] == ∑(vD_u[u, t] for u in X)
+    pX[t = t1:T], pX[t] * qX[t] == vX[t]
 
-    # -- Net duties --
-    vtY_i_d[i = I, d = D, t = t1:T; (i, d) in D1Y],
-    vtY_i_d[i, d, t] == tY_i_d[i, d, t] * vY_i_d[i, d, t]
+    vC[t = t1:T], vC[t] == ∑(vD_u[u, t] for u in C)
+    pC[t = t1:T], pC[t] * qC[t] == vC[t]
+    vG[t = t1:T], vG[t] == ∑(vD_u[u, t] for u in G)
+    pG[t = t1:T], pG[t] * qG[t] == vG[t]
+    vI[t = t1:T], vI[t] == ∑(vD_u[u, t] for u in K)
+    pI[t = t1:T], pI[t] * qI[t] == vI[t]
+    vINV[t = t1:T], vINV[t] == ∑(vD_u[u, t] for u in INV)
 
-    vtM_i_d[i = I, d = D, t = t1:T; (i, d) in D1M],
-    vtM_i_d[i, d, t] == tM_i_d[i, d, t] * vM_i_d[i, d, t]
+    vY[t = t1:T], vY[t] == ∑(vY_p[p, t] for p in P)
+    pY[t = t1:T], pY[t] * qY[t] == vY[t]
 
-    vtY_i[i = I, t = t1:T],
-    vtY_i[i, t] == ∑(vtY_i_d[i, d, t] for d in D if (i, d) in D1Y)
+    # Post-solve accounts that do not add rows to the square system.
+    @test_constraint "Supply shares reproduce product output" qY_p[p = P, t = t1:T; p in supply_p],
+      qY_p[p, t] == ∑(qY_p_i[p, i, t] for i in I)
 
-    vtY_d[d = D, t = t1:T],
-    vtY_d[d, t] == ∑(vtY_i_d[i, d, t] for i in I if (i, d) in D1Y)
+    @test_constraint "Direct-use shares sum to total demand" qD_u[u = ordinary_uses, t = t1:T; u in direct_u],
+      qD_u[u, t] == ∑(qD_p_u[p, u, t] for p in P)
 
-    vtM_i[m = M, t = t1:T],
-    vtM_i[m, t] == ∑(vtM_i_d[m, d, t] for d in D if (m, d) in D1M)
+    @test_constraint "Origin shares sum to product demand" qD_p_u[p = P, u = U, t = t1:T; (p, u) in ordinary_p_u],
+      qD_p_u[p, u, t] == ∑(qD_p_u_o[p, u, o, t] for o in O)
 
-    vtM_d[d = D, t = t1:T],
-    vtM_d[d, t] == ∑(vtM_i_d[i, d, t] for i in I if (i, d) in D1M)
+    @test_constraint "Margin-service shares sum to the margin bundle" qS_u[u = U, t = t1:T; u in margin_u],
+      qS_u[u, t] == ∑(qS_s_u[s, u, t] for s in S)
 
-    vtD[d = D, t = t1:T],
-    vtD[d, t] == vtY_d[d, t] + vtM_d[d, t]
+    @test_constraint "Margin origin shares sum to service demand" qS_s_u[s = S, u = U, t = t1:T; (s, u) in margin_s_u],
+      qS_s_u[s, u, t] == ∑(qS_s_u_o[s, u, o, t] for o in O)
 
-    vtY[t = t1:T], vtY[t] == ∑(vtY_i[i, t] for i in I)
-    vtM[t = t1:T], vtM[t] == ∑(vtM_i[m, t] for m in M)
+    @test_constraint "Purchaser spend excludes separate margin spending" vD_u[u = U, t = t1:T; u in direct_u],
+      vD_u[u, t] == ∑(vD_p_u_o[p, u, o, t] for p in P for o in O)
 
-    # -- Demand composition and deflator at purchaser prices --
-    vY_d[d = D, t = t1:T],
-    vY_d[d, t] == ∑(vY_i_d[i, d, t] for i in I if (i, d) in D1Y)
-
-    vM_d[d = D, t = t1:T],
-    vM_d[d, t] == ∑(vM_i_d[i, d, t] for i in I if (i, d) in D1M)
-
-    vD[d = D, t = t1:T],
-    vD[d, t] == vY_d[d, t] + vM_d[d, t] + vtD[d, t]
-
-    pD[d = D, t = t1:T],
-    pD[d, t] * qD[d, t] == vD[d, t]
-
-    # -- IO price equations --
-    pY_i_d[i = I, d = D, t = t1:T; (i, d) in D1Y],
-    pY_i_d[i, d, t] == (1 + jfpY_i_d[i, d, t]) * pY_i[i, t]
-
-    pM_i_d[i = I, d = D, t = t1:T; (i, d) in D1M],
-    pM_i_d[i, d, t] == (1 + jfpM_i_d[i, d, t]) * pM_i[i, t]
-
-    # -- Quantity allocation --
-    qY_i_d[i = I, d = D, t = t1:T; (i, d) in D1Y],
-    qY_i_d[i, d, t] == (1 - rM[i, d, t]) * rYM[i, d, t] * qD[d, t]
-
-    qM_i_d[i = I, d = D, t = t1:T; (i, d) in D1M],
-    qM_i_d[i, d, t] == rM[i, d, t] * rYM[i, d, t] * qD[d, t]
-
-    # -- Value identities at IO-cell level --
-    vY_i_d[i = I, d = D, t = t1:T; (i, d) in D1Y],
-    vY_i_d[i, d, t] == pY_i_d[i, d, t] * qY_i_d[i, d, t]
-
-    vM_i_d[i = I, d = D, t = t1:T; (i, d) in D1M],
-    vM_i_d[i, d, t] == pM_i_d[i, d, t] * qM_i_d[i, d, t]
+    @test_constraint "Imports sum by product and use" qM[t = t1:T],
+      qM[t] == ∑(qM_u[u, t] for u in U)
   end
 end
 
-# ==========================================================================
+# ============================================================================
 # Calibration
-# ==========================================================================
+# ============================================================================
+
+function define_calibration_restrictions()
+  return @block db begin
+    # The source gives margins by service and use, not by carried product.
+    # Use the rate on the reference product for all carried products in a use.
+    aS_p_u[p = P, u = U, t = t1:t1; (p, u) in carried_p_u && p != margin_rate_reference],
+    aS_p_u[p, u, t] == aS_p_u[margin_rate_reference, u, t]
+  end
+end
+
 function define_calibration()
-  block = define_equations()
+  block = define_equations() + define_calibration_restrictions()
 
   @endo_exo_swap! block begin
-    tY_i_d[:, :, t1], vtY_i_d[:, :, t1]
-    tM_i_d[:, :, t1], vtM_i_d[:, :, t1]
-    rYM[:, :, t1], [(i, d) in D1Y ? vY_i_d[i, d, t1] : vM_i_d[i, d, t1] for (i, d) in D1YM]
-    [rM[i, d, t1] for (i, d) in  D1Y ∩ D1M ], [vM_i_d[i, d, t1] for (i, d) in  D1Y ∩ D1M ]
+    [muY_p_i[p, i, t1] for (p, i) in supply_p_i],
+    [qY_p_i[p, i, t1] for (p, i) in supply_p_i]
+
+    [muD_p_u[p, u, t1] for (p, u) in ordinary_p_u],
+    [qD_p_u[p, u, t1] for (p, u) in ordinary_p_u]
+
+    [muO_p_u_o[p, u, o, t1] for (p, u, o) in ordinary_p_u_o],
+    [qD_p_u_o[p, u, o, t1] for (p, u, o) in ordinary_p_u_o]
+
+    [muS_s_u[s, u, t1] for (s, u) in margin_s_u],
+    [qS_s_u[s, u, t1] for (s, u) in margin_s_u]
+
+    [muO_p_u_o[s, u, o, t1] for (s, u, o) in margin_s_u_o],
+    [qS_s_u_o[s, u, o, t1] for (s, u, o) in margin_s_u_o]
+
+    [aS_p_u[margin_rate_reference, u, t1] for u in margin_u],
+    [qS_u[u, t1] for u in margin_u]
+
+    [tProduct_u[u, t1] for u in product_tax_u],
+    [vProductTax_u[u, t1] for u in product_tax_u]
   end
 
   return block
 end
 
-# ==========================================================================
+# ============================================================================
 # Tests
-# ==========================================================================
+# ============================================================================
+
 function run_tests(db)
   errors = String[]
 
-  # Expenditure-side GDP vs. production-side GVA plus net taxes on products. Not implied by
-  # any single equation: vGDP and vGVA are each calibrated independently against their own
-  # national-accounts data, so this checks that the two approaches are actually reconcilable.
-  all(isapprox.(db[vGDP[t1:T]], db[vGVA[t1:T]] .+ db[vtY[t1:T]] .+ db[vtM[t1:T]]; rtol=1e-3)) ||
-    push!(errors, "vGDP should equal vGVA + vtY + vtM (net taxes on products)")
+  all(
+    db[qD_p_u_o[p, u, o, calibration_year]] ≈ benchmark(qD_p_u_o_data, p, u, o)
+    for (p, u, o) in inventory_p_u_o
+  ) || push!(errors, "The benchmark must keep the sign of each inventory cell")
 
-  # GVA from output minus intermediate consumption vs. GVA from primary inputs (income
-  # approach). These pull from different rows of the source data (output/use cells vs.
-  # compensation, other taxes and operating surplus), so agreement is a genuine data check.
-  all(isapprox.(db[vGVA[t1:T]], db[vW[t1:T]] .+ db[vtYOther[t1:T]] .+ db[vDepr[t1:T]] .+ db[vOpSurplus[t1:T]]; rtol=1e-3)) ||
-    push!(errors, "vGVA should equal vW + vtYOther + vDepr + vOpSurplus (income approach)")
+  all(
+    db[qD_p_u_o[p, u, o, tt]] == 0
+    for (p, u, o) in inventory_p_u_o, tt in (calibration_year + 1):T
+  ) || push!(errors, "All inventory cells must be zero after the benchmark year")
 
   return errors
 end
