@@ -13,19 +13,21 @@ import ..InputOutputSettings:
   P,
   U,
   margin_services,
-  accounting_ind_ava_codes,
   accounting_rename,
   accounting_rows,
   cell_tolerance,
+  cpa_p64_to_p21,
   demand_rename,
   eurostat_dataset,
   eurostat_margin_dataset,
   eurostat_unit,
   input_output_data_dir,
   margin_final_use_rename,
+  nace_a64_to_a21,
+  nace_a64_to_p21,
   national_accounts_dataset,
   national_accounts_unit,
-  sut_industry_codes
+  section_to_industry
 import ..DataRefreshUtils: long_format, sum_by
 
 const data_years = (calibration_year - 1):calibration_year
@@ -61,17 +63,13 @@ function fetch_margin_table()
     "geo" => country_code,
     year_params...,
   )
-  product_rename = Dict("CPA_$code" => Symbol(first(code)) for code in sut_industry_codes)
-  use_rename = merge(
-    Dict(code => Symbol(first(code)) for code in sut_industry_codes),
-    margin_final_use_rename,
-  )
+  use_rename = merge(nace_a64_to_a21, margin_final_use_rename)
   df = df[
-    in.(df.cpa2_1, Ref(Set(keys(product_rename)))) .&
+    in.(df.cpa2_1, Ref(Set(keys(cpa_p64_to_p21)))) .&
     in.(df.ind_use, Ref(Set(keys(use_rename)))),
     :,
   ]
-  df.product = [product_rename[code] for code in df.cpa2_1]
+  df.product = [cpa_p64_to_p21[code] for code in df.cpa2_1]
   df.use = [use_rename[code] for code in df.ind_use]
   df.year = parse.(Int, df.time)
   return sum_by(df, [:product, :use, :year])
@@ -100,43 +98,37 @@ end
 # Source table
 # ============================================================================
 
-"""Apply `mappings` in turn (codes not present pass through) and return a Symbol."""
-function rename_code(code, mappings...)
-  for mapping in mappings
-    code = get(mapping, code, code)
-  end
-  return Symbol(code)
-end
-
-"""Map raw industry codes to their NACE section letter, keeping accounting rows."""
-nace_section_map(codes) =
-  Dict(code => Symbol(first(code)) for code in setdiff(codes, accounting_ind_ava_codes))
-
 """Use within the country by product, use, and country of origin."""
-function domestic_flows(df, section_map)
-  df = copy(df)
+function domestic_flows(df)
+  row_rename = merge(nace_a64_to_p21, accounting_rename)
+  use_rename = merge(nace_a64_to_a21, demand_rename)
+  df = df[
+    in.(df.row, Ref(Set(keys(row_rename)))) .&
+    in.(df.use, Ref(Set(keys(use_rename)))),
+    :,
+  ]
   df.c_orig = ifelse.(in.(df.c_orig, Ref(("DOM", country_code))), :domestic, :import)
-  df.row = [rename_code(code, section_map, accounting_rename) for code in df.row]
-  df.use = [rename_code(code, section_map, demand_rename) for code in df.use]
+  df.row = [row_rename[code] for code in df.row]
+  df.use = [use_rename[code] for code in df.use]
   rename!(df, :c_orig => :origin)
   return sum_by(df, [:row, :use, :origin, :year])
 end
 
 """Domestic output delivered abroad, summed into the export use column."""
-function export_flows(df, section_map)
-  df = df[df.c_dest .!= country_code, :]
-  df.row = [rename_code(code, section_map, accounting_rename) for code in df.row]
+function export_flows(df)
+  row_rename = merge(nace_a64_to_p21, accounting_rename)
+  df = df[(df.c_dest .!= country_code) .& in.(df.row, Ref(Set(keys(row_rename)))), :]
+  df.row = [row_rename[code] for code in df.row]
   df = sum_by(df, [:row, :year])
-  insertcols!(df, :use => :x, :origin => :domestic)
+  insertcols!(df, :use => :X, :origin => :domestic)
   return df[:, [:row, :use, :origin, :year, :value]]
 end
 
 """Product rows and value-added accounting rows by use and origin.
 `domestic` and `exports` are the raw `c_dest` and `c_orig` fetches."""
 function input_output_table(domestic, exports)
-  section_map = nace_section_map(domestic.row)
   table = sum_by(
-    vcat(domestic_flows(domestic, section_map), export_flows(exports, section_map)),
+    vcat(domestic_flows(domestic), export_flows(exports)),
     [:row, :use, :origin, :year],
   )
   is_product = in.(table.row, Ref(Set(P)))
@@ -156,70 +148,111 @@ accounting_table(table, row) =
 
 """Direct purchases recorded against household consumption: residents' spending
 abroad (`OP_RES`) or non-residents' spending in the country (`OP_NRES`)."""
-function direct_purchase_adjustment(domestic, section_map, code)
+function direct_purchase_adjustment(domestic, code)
   df = domestic[domestic.row .== code, [:use, :year, :value]]
-  df.use = [rename_code(use, section_map, demand_rename) for use in df.use]
+  df = df[in.(df.use, Ref(Set(keys(demand_rename)))), :]
+  df.use = [demand_rename[use] for use in df.use]
   df = sum_by(df, [:use, :year])
-  return df[(df.use .== :cHh) .& (abs.(df.value) .> cell_tolerance), :]
+  return df[(df.use .== :C) .& (abs.(df.value) .> cell_tolerance), :]
 end
 
 # ============================================================================
 # Reported, estimated, and model-set direct use
 # ============================================================================
 
-"""Move non-residents' domestic purchases from household consumption to exports.
-Eurostat books `OP_NRES` as a negative adjustment to household consumption, so
-negating it gives the amount to move. The product and origin mix of household
-consumption sets the mix of the moved amount."""
-function nonresident_purchase_updates(reported, nonresidents)
-  amounts = copy(nonresidents)
-  amounts.value .*= -1
-  @assert all(amounts.value .>= 0) "OP_NRES must be non-positive in the source table"
-
-  basis = reported[(reported.use .== :cHh) .& (reported.value .> cell_tolerance), :]
-  totals = rename(sum_by(basis, [:year]), :value => :total)
-  basis = innerjoin(basis, totals, on = :year)
-  basis.share = basis.value ./ basis.total
-  moved = innerjoin(amounts, basis[:, [:product, :origin, :year, :share]], on = :year)
-  moved.value .*= moved.share
-
-  from = moved[:, cell_columns]
-  to = copy(from)
-  from.value .*= -1
-  to.use .= :x
-  return vcat(from, to)
+"""Non-residents' purchases in the country. The product cells already include
+these purchases, so only store the positive total for the tourism account."""
+function reported_tourist_spend(nonresidents)
+  tourists = copy(nonresidents[:, [:year, :value]])
+  tourists.value .*= -1
+  @assert all(tourists.value .>= 0) "OP_NRES must be non-positive in the source table"
+  return tourists
 end
 
-"""Residents' spending abroad is travel import, so assign it to imported
-accommodation and food service (`:I`) rather than the general import mix."""
-function resident_purchase_imports(residents)
-  df = copy(residents)
-  insertcols!(df, :product => :I, :origin => :import)
-  return df[:, cell_columns]
+"""Add residents' purchases abroad as travel imports. Eurostat gives no product
+split, so use the combined private-consumption product mix."""
+function resident_purchase_imports(reported, residents)
+  @assert all(residents.value .>= 0) "OP_RES must be non-negative in the source table"
+  basis = reported[
+    (reported.use .== :C) .& (reported.value .> cell_tolerance),
+    :,
+  ]
+  basis = sum_by(basis, [:product, :year])
+  totals = rename(sum_by(basis, [:year]), :value => :total)
+  shares = innerjoin(basis, totals, on = :year)
+  @assert all(shares.total .> cell_tolerance) "Travel imports need a consumption product mix"
+  shares.value ./= shares.total
+  rename!(shares, :value => :share)
+  imports = innerjoin(residents, shares[:, [:product, :year, :share]], on = :year)
+  imports.value .*= imports.share
+  insertcols!(imports, :origin => :import)
+  return imports[:, cell_columns]
+end
+
+"""Deflate tourist spend with the combined private-consumption price. At the
+benchmark, this price is purchaser spend divided by direct consumption volume."""
+function tourist_quantities(
+  tourist_spend,
+  direct,
+  carried_margins,
+  service_totals,
+  product_taxes,
+)
+  direct_totals = rename(
+    sum_by(direct[direct.use .== :C, :], [:year]),
+    :value => :direct,
+  )
+  service_use_totals = rename(
+    sum_by(service_totals[service_totals.use .== :C, :], [:year]),
+    :value => :services,
+  )
+  margin_totals = rename(
+    sum_by(carried_margins[carried_margins.use .== :C, :], [:year]),
+    :value => :margins,
+  )
+  tax_totals = rename(
+    product_taxes[product_taxes.use .== :C, [:year, :value]],
+    :value => :taxes,
+  )
+  prices = innerjoin(direct_totals, service_use_totals, on = :year)
+  prices = innerjoin(prices, margin_totals, on = :year)
+  prices = innerjoin(prices, tax_totals, on = :year)
+  @assert nrow(prices) == nrow(tourist_spend) "Each tourist total needs a consumption price"
+  prices.quantity = prices.direct .- prices.services
+  @assert all(prices.quantity .> cell_tolerance) "Consumption volume must be positive"
+  prices.price = (prices.quantity .+ prices.margins .+ prices.taxes) ./ prices.quantity
+  quantities = innerjoin(tourist_spend, prices[:, [:year, :price]], on = :year)
+  quantities.value ./= quantities.price
+  return quantities[:, [:year, :value]]
 end
 
 """Imports sold abroad with no domestic processing. The IO export table has
 domestic output only, so the gap to national-accounts exports is re-export. SNA
 books the gap as a trade margin, so it goes to wholesale and retail trade
 (`:G`)."""
-function reexport_flows(direct_before_reexports, product_taxes)
+function reexport_flows(direct_before_reexports, product_taxes, tourist_spend)
   exports = mapped_country_table(
     national_accounts_dataset,
     "na_item",
-    Dict("P6" => :x),
+    Dict("P6" => :X),
     :use,
   )
-  existing = direct_before_reexports[direct_before_reexports.use .== :x, :]
+  existing = direct_before_reexports[direct_before_reexports.use .== :X, :]
   existing = rename(sum_by(existing, [:year]), :value => :existing)
-  export_taxes = rename(product_taxes[product_taxes.use .== :x, [:year, :value]], :value => :tax)
+  export_taxes = rename(
+    product_taxes[product_taxes.use .== :X, [:year, :value]],
+    :value => :tax,
+  )
   reexports = leftjoin(exports, existing, on = :year)
   reexports = leftjoin(reexports, export_taxes, on = :year)
+  reexports = leftjoin(reexports, rename(tourist_spend, :value => :tourists), on = :year)
   reexports.existing = coalesce.(reexports.existing, 0.0)
   reexports.tax = coalesce.(reexports.tax, 0.0)
-  reexports.value .-= reexports.existing .+ reexports.tax
+  reexports.tourists = coalesce.(reexports.tourists, 0.0)
+  reexports.value .-= reexports.existing .+ reexports.tax .+ reexports.tourists
   @assert all(reexports.value .>= -cell_tolerance) "Estimated re-exports must not be negative"
   reexports = reexports[reexports.value .> cell_tolerance, [:year, :value]]
-  insertcols!(reexports, :product => :G, :origin => :import, :use => :x)
+  insertcols!(reexports, :product => :G, :origin => :import, :use => :X)
   return reexports[:, cell_columns]
 end
 
@@ -273,26 +306,28 @@ end
 
 """Direct use split into its reported, estimated, and reclassified parts, plus
 the product-tax row. Each estimate uses the parts before it as its basis."""
-function direct_use_parts(table, domestic, service_totals)
-  section_map = nace_section_map(domestic.row)
+function direct_use_parts(table, domestic, carried_margins, service_totals)
   reported = reported_direct_use(table)
   product_taxes = accounting_table(table, :vProductTax_u)
-  estimated = sum_cells(
-    nonresident_purchase_updates(
-      reported,
-      direct_purchase_adjustment(domestic, section_map, "OP_NRES"),
-    ),
-    resident_purchase_imports(
-      direct_purchase_adjustment(domestic, section_map, "OP_RES"),
-    ),
+  tourist_spend = reported_tourist_spend(direct_purchase_adjustment(domestic, "OP_NRES"))
+  estimated = resident_purchase_imports(
+    reported,
+    direct_purchase_adjustment(domestic, "OP_RES"),
+  )
+  tourists = tourist_quantities(
+    tourist_spend,
+    sum_cells(reported, estimated),
+    carried_margins,
+    service_totals,
+    product_taxes,
   )
   estimated = sum_cells(
     estimated,
-    reexport_flows(sum_cells(reported, estimated), product_taxes),
+    reexport_flows(sum_cells(reported, estimated), product_taxes, tourist_spend),
   )
   reclassification, services =
     margin_reclassification(sum_cells(reported, estimated), service_totals)
-  return reported, estimated, reclassification, services, product_taxes
+  return reported, estimated, reclassification, services, product_taxes, tourists
 end
 
 # ============================================================================
@@ -303,7 +338,7 @@ end
 product to the industry of the same NACE section."""
 function reported_supply(reported)
   supply = sum_by(reported[reported.origin .== :domestic, :], [:product, :year])
-  supply.industry = supply.product
+  supply.industry = [section_to_industry[product] for product in supply.product]
   return supply[:, [:product, :industry, :year, :value]]
 end
 
@@ -327,8 +362,8 @@ function refresh_input_output_data!(dir = input_output_data_dir)
   exports = fetch_io_table("c_orig")
   carried_margins, margin_service_totals = margin_source_parts(fetch_margin_table())
   table = input_output_table(domestic, exports)
-  reported, estimated, reclassification, services, product_taxes =
-    direct_use_parts(table, domestic, margin_service_totals)
+  reported, estimated, reclassification, services, product_taxes, tourists =
+    direct_use_parts(table, domestic, carried_margins, margin_service_totals)
   direct = sum_cells(reported, estimated, reclassification)
   supply = reported_supply(reported)
   national = mapped_country_table(
@@ -366,6 +401,7 @@ function refresh_input_output_data!(dir = input_output_data_dir)
       [:use, :year],
     ),
     long_format(:vY_reported, sum_by(supply, [:year]), [:year]),
+    long_format(:qCTourist_reported, tourists, [:year]),
     (
       long_format(variable, national[national.variable .== variable, :], [:year])
       for variable in (:vX_reported, :vM_reported)

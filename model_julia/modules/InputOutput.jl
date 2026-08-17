@@ -6,15 +6,10 @@ module InputOutput
 using SquareModels
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutputSettings:
-  C,
-  G,
   I,
-  INV,
-  K,
   O,
   P,
   U,
-  X,
   cell_tolerance,
   input_output_data_dir,
   margin_services,
@@ -133,6 +128,7 @@ const InputOutputTag = Tag(:InputOutput)
   vM_u[u = U, t = t; u in import_u], "Imports by use"
 
   vC[t], "Household and non-profit consumption"
+  vCTourist[t], "Consumption in the country by non-resident households"
   vG[t], "Government consumption"
   vI[t], "Fixed investment"
   vINV[t], "Change in inventories"
@@ -146,12 +142,12 @@ end
   pY_p[p = P, t = t; p in supply_p], "Domestic basic price by product"
   pY_i[i = I, t = t; i in supply_i], "Domestic basic price by industry"
   pY_p_u[p = P, u = U, t = t; (p, u) in domestic_p_u], "Domestic basic price by product and use"
-  pY_u[u = U, t = t; u in domestic_u], "Domestic output price by use"
+  pY_u[u = ordinary_uses, t = t; u in domestic_u], "Domestic output price by use"
 
   pM_p_u[p = P, u = U, t = t; (p, u) in import_p_u], "Import border price by product and use"
   pB_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in direct_p_u_o], "Basic or border price by product, use, and origin"
   pD_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in direct_p_u_o], "Purchaser price by product, use, and origin"
-  pD_p_u[p = P, u = U, t = t; (p, u) in direct_p_u], "Purchaser price by product and use"
+  pD_p_u[p = P, u = ordinary_uses, t = t; (p, u) in ordinary_p_u], "Purchaser price by product and use"
   pD_u[u = ordinary_uses, t = t; u in direct_u], "Purchaser price by use"
 
   pS_u[u = U, t = t; u in margin_u], "Margin-bundle price by use"
@@ -160,11 +156,10 @@ end
   pOtherAdjustment_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in direct_p_u_o] :: ForecastConstant, "Other additive purchaser-price adjustment"
 
   pM_p[p = P, t = t; p in import_p], "Import price by product"
-  pM_u[u = U, t = t; u in import_u], "Import price by use"
+  pM_u[u = ordinary_uses, t = t; u in import_u], "Import price by use"
   pC[t], "Consumption price"
   pG[t], "Government consumption price"
   pI[t], "Fixed investment price"
-  pINV[t], "Inventory price"
   pX[t], "Total export price"
   pY[t], "Domestic output price"
   pM[t], "Import price"
@@ -188,6 +183,7 @@ end
   qM_u[u = U, t = t; u in import_u], "Imports by use"
 
   qC[t], "Household and non-profit consumption"
+  qCTourist[t] :: ForecastConstant, "Consumption in the country by non-resident households"
   qG[t], "Government consumption"
   qI[t], "Fixed investment"
   qINV[t], "Change in inventories"
@@ -263,6 +259,7 @@ function set_data!(db)
     variable = "vProductTax_u_reported",
   )
   db[vD_u] .= read_variable(check_file, vD_u; variable = "vD_u_reported")
+  db[qCTourist] .= read_variable(check_file, qCTourist; variable = "qCTourist_reported")
   db[vM] .= read_variable(check_file, vM; variable = "vM_reported")
   db[vX] .= read_variable(check_file, vX; variable = "vX_reported")
   db[vY] .= read_variable(check_file, vY; variable = "vY_reported")
@@ -286,75 +283,75 @@ end
 function define_equations()
   return @block db begin
     # Fixed product and origin shares. Inventories bypass them.
-    qD_p_u[p = P, u = U, t = t1:T; (p, u) in ordinary_p_u],
+    qD_p_u[(p, u, t) in keys(qD_p_u); t in t1:T && u in ordinary_uses],
     qD_p_u[p, u, t] == muD_p_u[p, u, t] * qD_u[u, t]
 
-    qD_p_u[p = P, u = INV, t = t1:T; (p, u) in direct_p_u],
+    qD_p_u[(p, u, t) in keys(qD_p_u); t in t1:T && u == :INV],
     qD_p_u[p, u, t] == ∑(qD_p_u_o[p, u, o, t] for o in O)
 
-    qD_p_u_o[p = P, u = U, o = O, t = t1:T; (p, u, o) in ordinary_p_u_o],
+    qD_p_u_o[(p, u, o, t) in keys(qD_p_u_o); t in t1:T && u in ordinary_uses],
     qD_p_u_o[p, u, o, t] == muO_p_u_o[p, u, o, t] * qD_p_u[p, u, t]
 
     # Derived margin demand. Only uses with reported margins carry a bundle.
-    qS_u[u = U, t = t1:T; u in margin_u],
+    qS_u[(u, t) in keys(qS_u); t in t1:T],
     qS_u[u, t] == ∑(aS_p_u[p, u, t] * qD_p_u[p, u, t] for p in P)
 
-    qS_s_u[s = margin_services, u = U, t = t1:T; (s, u) in margin_s_u],
+    qS_s_u[(s, u, t) in keys(qS_s_u); t in t1:T],
     qS_s_u[s, u, t] == muS_s_u[s, u, t] * qS_u[u, t]
 
-    qS_s_u_o[s = margin_services, u = U, o = O, t = t1:T; (s, u, o) in margin_s_u_o],
+    qS_s_u_o[(s, u, o, t) in keys(qS_s_u_o); t in t1:T],
     qS_s_u_o[s, u, o, t] == muO_p_u_o[s, u, o, t] * qS_s_u[s, u, t]
 
     # Product clearing includes domestic margin services.
-    qY_p_u[p = P, u = U, t = t1:T; (p, u) in domestic_p_u],
+    qY_p_u[(p, u, t) in keys(qY_p_u); t in t1:T],
     qY_p_u[p, u, t] == qD_p_u_o[p, u, domestic, t] + qS_s_u_o[p, u, domestic, t]
 
-    qY_p[p = P, t = t1:T; p in supply_p],
+    qY_p[(p, t) in keys(qY_p); t in t1:T],
     qY_p[p, t] == ∑(qY_p_u[p, u, t] for u in U)
 
-    qY_p_i[p = P, i = I, t = t1:T; (p, i) in supply_p_i],
+    qY_p_i[(p, i, t) in keys(qY_p_i); t in t1:T],
     qY_p_i[p, i, t] == muY_p_i[p, i, t] * qY_p[p, t]
 
-    qY_i[i = I, t = t1:T; i in supply_i],
+    qY_i[(i, t) in keys(qY_i); t in t1:T],
     qY_i[i, t] == ∑(qY_p_i[p, i, t] for p in P)
 
-    qY_u[u = U, t = t1:T; u in domestic_u],
+    qY_u[(u, t) in keys(qY_u); t in t1:T],
     qY_u[u, t] == ∑(qY_p_u[p, u, t] for p in P)
 
     # Imports mirror domestic deliveries and include imported margin services.
-    qM_p_u[p = P, u = U, t = t1:T; (p, u) in import_p_u],
+    qM_p_u[(p, u, t) in keys(qM_p_u); t in t1:T],
     qM_p_u[p, u, t] ==
       qD_p_u_o[p, u, import_origin, t] + qS_s_u_o[p, u, import_origin, t]
 
-    qM_p[p = P, t = t1:T; p in import_p],
+    qM_p[(p, t) in keys(qM_p); t in t1:T],
     qM_p[p, t] == ∑(qM_p_u[p, u, t] for u in U)
 
-    qM_u[u = U, t = t1:T; u in import_u],
+    qM_u[(u, t) in keys(qM_u); t in t1:T],
     qM_u[u, t] == ∑(qM_p_u[p, u, t] for p in P)
 
     # Export, final-use, and output totals.
     qM[t = t1:T], qM[t] == ∑(qM_p[p, t] for p in P)
-    qX[t = t1:T], qX[t] == ∑(qD_u[u, t] for u in X)
-    qC[t = t1:T], qC[t] == ∑(qD_u[u, t] for u in C)
-    qG[t = t1:T], qG[t] == ∑(qD_u[u, t] for u in G)
-    qI[t = t1:T], qI[t] == ∑(qD_u[u, t] for u in K)
-    qINV[t = t1:T], qINV[t] == ∑(qD_p_u[p, u, t] for p in P for u in INV)
+    qX[t = t1:T], qX[t] == qD_u[:X, t] + qCTourist[t]
+    qC[t = t1:T], qC[t] == qD_u[:C, t] - qCTourist[t]
+    qG[t = t1:T], qG[t] == qD_u[:G, t]
+    qI[t = t1:T], qI[t] == qD_u[:K, t]
+    qINV[t = t1:T], qINV[t] == ∑(qD_p_u[p, :INV, t] for p in P)
     qY[t = t1:T], qY[t] == ∑(qY_p[p, t] for p in P)
 
     # Basic, border, margin, and purchaser prices.
-    pB_p_u_o[p = P, u = U, o = O, t = t1:T; (p, u, o) in direct_p_u_o],
+    pB_p_u_o[(p, u, o, t) in keys(pB_p_u_o); t in t1:T],
     pB_p_u_o[p, u, o, t] == (o == domestic ? pY_p[p, t] : pM_p_u[p, u, t])
 
-    pS_s_u_o[s = margin_services, u = U, o = O, t = t1:T; (s, u, o) in margin_s_u_o],
+    pS_s_u_o[(s, u, o, t) in keys(pS_s_u_o); t in t1:T],
     pS_s_u_o[s, u, o, t] == (o == domestic ? pY_p[s, t] : pM_p_u[s, u, t])
 
-    pS_s_u[s = margin_services, u = U, t = t1:T; (s, u) in margin_s_u],
+    pS_s_u[(s, u, t) in keys(pS_s_u); t in t1:T],
     pS_s_u[s, u, t] == ∑(muO_p_u_o[s, u, o, t] * pS_s_u_o[s, u, o, t] for o in O)
 
-    pS_u[u = U, t = t1:T; u in margin_u],
+    pS_u[(u, t) in keys(pS_u); t in t1:T],
     pS_u[u, t] == ∑(muS_s_u[s, u, t] * pS_s_u[s, u, t] for s in margin_services)
 
-    pD_p_u_o[p = P, u = U, o = O, t = t1:T; (p, u, o) in direct_p_u_o],
+    pD_p_u_o[(p, u, o, t) in keys(pD_p_u_o); t in t1:T],
     pD_p_u_o[p, u, o, t] == (
       pB_p_u_o[p, u, o, t] +
       tProduct_u[u, t] +
@@ -362,125 +359,112 @@ function define_equations()
       aS_p_u[p, u, t] * pS_u[u, t]
     ) * (1 + tVAT_p_u_o[p, u, o, t])
 
-    pD_p_u[p = P, u = U, t = t1:T; (p, u) in ordinary_p_u],
+    pD_p_u[(p, u, t) in keys(pD_p_u); t in t1:T],
     pD_p_u[p, u, t] == ∑(muO_p_u_o[p, u, o, t] * pD_p_u_o[p, u, o, t] for o in O)
 
-    # Inventory quantities are signed, so their price comes from the benchmark
-    # value and then stays put instead of following the origin shares.
-    pD_p_u[p = P, u = INV, t = t1:t1; (p, u) in direct_p_u],
-    pD_p_u[p, u, t] * qD_p_u[p, u, t] == vD_p_u[p, u, t]
-
-    pD_p_u[p = P, u = INV, t = (t1 + 1):T; (p, u) in direct_p_u],
-    pD_p_u[p, u, t] == pD_p_u[p, u, t1]
-
-    pD_u[u = ordinary_uses, t = t1:T; u in direct_u],
+    pD_u[(u, t) in keys(pD_u); t in t1:T],
     pD_u[u, t] == ∑(muD_p_u[p, u, t] * pD_p_u[p, u, t] for p in P)
 
     # Cell values and value totals. Margin value does not enter vD twice.
-    vD_p_u_o[p = P, u = U, o = O, t = t1:T; (p, u, o) in direct_p_u_o],
+    vD_p_u_o[(p, u, o, t) in keys(vD_p_u_o); t in t1:T],
     vD_p_u_o[p, u, o, t] == pD_p_u_o[p, u, o, t] * qD_p_u_o[p, u, o, t]
 
-    vD_p_u[p = P, u = U, t = t1:T; (p, u) in direct_p_u],
+    vD_p_u[(p, u, t) in keys(vD_p_u); t in t1:T],
     vD_p_u[p, u, t] == ∑(vD_p_u_o[p, u, o, t] for o in O)
 
-    vD_u[u = U, t = t1:T; u in direct_u],
+    vD_u[(u, t) in keys(vD_u); t in t1:T],
     vD_u[u, t] == ∑(vD_p_u[p, u, t] for p in P)
 
-    vProductTax_u[u = U, t = t1:T; u in product_tax_u],
+    vProductTax_u[(u, t) in keys(vProductTax_u); t in t1:T],
     vProductTax_u[u, t] ==
       tProduct_u[u, t] * ∑(qD_p_u_o[p, u, o, t] for p in P for o in O)
 
-    vS_s_u_o[s = margin_services, u = U, o = O, t = t1:T; (s, u, o) in margin_s_u_o],
+    vS_s_u_o[(s, u, o, t) in keys(vS_s_u_o); t in t1:T],
     vS_s_u_o[s, u, o, t] == pS_s_u_o[s, u, o, t] * qS_s_u_o[s, u, o, t]
 
-    vS_s_u[s = margin_services, u = U, t = t1:T; (s, u) in margin_s_u],
+    vS_s_u[(s, u, t) in keys(vS_s_u); t in t1:T],
     vS_s_u[s, u, t] == ∑(vS_s_u_o[s, u, o, t] for o in O)
 
-    vS_u[u = U, t = t1:T; u in margin_u],
+    vS_u[(u, t) in keys(vS_u); t in t1:T],
     vS_u[u, t] == ∑(vS_s_u[s, u, t] for s in margin_services)
 
-    vY_p_i[p = P, i = I, t = t1:T; (p, i) in supply_p_i],
+    vY_p_i[(p, i, t) in keys(vY_p_i); t in t1:T],
     vY_p_i[p, i, t] == pY_p_i[p, i, t] * qY_p_i[p, i, t]
 
-    vY_p[p = P, t = t1:T; p in supply_p],
+    vY_p[(p, t) in keys(vY_p); t in t1:T],
     vY_p[p, t] == ∑(vY_p_i[p, i, t] for i in I)
 
-    pY_p[p = P, t = t1:T; p in supply_p],
+    pY_p[(p, t) in keys(pY_p); t in t1:T],
     pY_p[p, t] * qY_p[p, t] == vY_p[p, t]
 
-    pY_p_u[p = P, u = U, t = t1:T; (p, u) in domestic_p_u],
+    pY_p_u[(p, u, t) in keys(pY_p_u); t in t1:T],
     pY_p_u[p, u, t] == pY_p[p, t]
 
-    vY_p_u[p = P, u = U, t = t1:T; (p, u) in domestic_p_u],
+    vY_p_u[(p, u, t) in keys(vY_p_u); t in t1:T],
     vY_p_u[p, u, t] == pY_p_u[p, u, t] * qY_p_u[p, u, t]
 
-    vY_i[i = I, t = t1:T; i in supply_i],
+    vY_i[(i, t) in keys(vY_i); t in t1:T],
     vY_i[i, t] == ∑(vY_p_i[p, i, t] for p in P)
 
-    pY_i[i = I, t = t1:T; i in supply_i],
+    pY_i[(i, t) in keys(pY_i); t in t1:T],
     pY_i[i, t] * qY_i[i, t] == vY_i[i, t]
 
-    vY_u[u = U, t = t1:T; u in domestic_u],
+    vY_u[(u, t) in keys(vY_u); t in t1:T],
     vY_u[u, t] == ∑(vY_p_u[p, u, t] for p in P)
 
-    pY_u[u = ordinary_uses, t = t1:T; u in domestic_u],
+    pY_u[(u, t) in keys(pY_u); t in t1:T],
     pY_u[u, t] * qY_u[u, t] == vY_u[u, t]
 
-    vM_p_u[p = P, u = U, t = t1:T; (p, u) in import_p_u],
+    vM_p_u[(p, u, t) in keys(vM_p_u); t in t1:T],
     vM_p_u[p, u, t] == pM_p_u[p, u, t] * qM_p_u[p, u, t]
 
-    vM_p[p = P, t = t1:T; p in import_p],
+    vM_p[(p, t) in keys(vM_p); t in t1:T],
     vM_p[p, t] == ∑(vM_p_u[p, u, t] for u in U)
 
-    pM_p[p = P, t = t1:T; p in import_p],
+    pM_p[(p, t) in keys(pM_p); t in t1:T],
     pM_p[p, t] * qM_p[p, t] == vM_p[p, t]
 
-    vM_u[u = U, t = t1:T; u in import_u],
+    vM_u[(u, t) in keys(vM_u); t in t1:T],
     vM_u[u, t] == ∑(vM_p_u[p, u, t] for p in P)
 
-    pM_u[u = ordinary_uses, t = t1:T; u in import_u],
+    pM_u[(u, t) in keys(pM_u); t in t1:T],
     pM_u[u, t] * qM_u[u, t] == vM_u[u, t]
-
-    # Inventory quantities can be zero or change sign, so their deflators are
-    # fixed rather than divided out of a value.
-    pY_u[u = INV, t = t1:T; u in domestic_u], pY_u[u, t] == 1.0
-    pM_u[u = INV, t = t1:T; u in import_u], pM_u[u, t] == 1.0
-    pINV[t = t1:T], pINV[t] == 1.0
 
     vM[t = t1:T], vM[t] == ∑(vM_p[p, t] for p in P)
     pM[t = t1:T], pM[t] * qM[t] == vM[t]
 
-    vX[t = t1:T], vX[t] == ∑(vD_u[u, t] for u in X)
+    vX[t = t1:T], vX[t] == vD_u[:X, t] + vCTourist[t]
     pX[t = t1:T], pX[t] * qX[t] == vX[t]
 
-    vC[t = t1:T], vC[t] == ∑(vD_u[u, t] for u in C)
-    pC[t = t1:T], pC[t] * qC[t] == vC[t]
-    vG[t = t1:T], vG[t] == ∑(vD_u[u, t] for u in G)
+    pC[t = t1:T], pC[t] == pD_u[:C, t]
+    vC[t = t1:T], vC[t] == pC[t] * qC[t]
+    vCTourist[t = t1:T], vCTourist[t] == pC[t] * qCTourist[t]
+    vG[t = t1:T], vG[t] == vD_u[:G, t]
     pG[t = t1:T], pG[t] * qG[t] == vG[t]
-    vI[t = t1:T], vI[t] == ∑(vD_u[u, t] for u in K)
+    vI[t = t1:T], vI[t] == vD_u[:K, t]
     pI[t = t1:T], pI[t] * qI[t] == vI[t]
-    vINV[t = t1:T], vINV[t] == ∑(vD_u[u, t] for u in INV)
+    vINV[t = t1:T], vINV[t] == vD_u[:INV, t]
 
     vY[t = t1:T], vY[t] == ∑(vY_p[p, t] for p in P)
     pY[t = t1:T], pY[t] * qY[t] == vY[t]
 
     # Post-solve accounts that do not add rows to the square system.
-    @test_constraint "Supply shares reproduce product output" qY_p[p = P, t = t1:T; p in supply_p],
+    @test_constraint "Supply shares reproduce product output" qY_p[(p, t) in keys(qY_p); t in t1:T],
       qY_p[p, t] == ∑(qY_p_i[p, i, t] for i in I)
 
-    @test_constraint "Direct-use shares sum to total demand" qD_u[u = ordinary_uses, t = t1:T; u in direct_u],
+    @test_constraint "Direct-use shares sum to total demand" qD_u[(u, t) in keys(qD_u); t in t1:T],
       qD_u[u, t] == ∑(qD_p_u[p, u, t] for p in P)
 
-    @test_constraint "Origin shares sum to product demand" qD_p_u[p = P, u = U, t = t1:T; (p, u) in ordinary_p_u],
+    @test_constraint "Origin shares sum to product demand" qD_p_u[(p, u, t) in keys(qD_p_u); t in t1:T && u in ordinary_uses],
       qD_p_u[p, u, t] == ∑(qD_p_u_o[p, u, o, t] for o in O)
 
-    @test_constraint "Margin-service shares sum to the margin bundle" qS_u[u = U, t = t1:T; u in margin_u],
+    @test_constraint "Margin-service shares sum to the margin bundle" qS_u[(u, t) in keys(qS_u); t in t1:T],
       qS_u[u, t] == ∑(qS_s_u[s, u, t] for s in margin_services)
 
-    @test_constraint "Margin origin shares sum to service demand" qS_s_u[s = margin_services, u = U, t = t1:T; (s, u) in margin_s_u],
+    @test_constraint "Margin origin shares sum to service demand" qS_s_u[(s, u, t) in keys(qS_s_u); t in t1:T],
       qS_s_u[s, u, t] == ∑(qS_s_u_o[s, u, o, t] for o in O)
 
-    @test_constraint "Purchaser spend excludes separate margin spending" vD_u[u = U, t = t1:T; u in direct_u],
+    @test_constraint "Purchaser spend excludes separate margin spending" vD_u[(u, t) in keys(vD_u); t in t1:T],
       vD_u[u, t] == ∑(vD_p_u_o[p, u, o, t] for p in P for o in O)
 
     @test_constraint "Imports sum by product and use" qM[t = t1:T],
@@ -540,6 +524,16 @@ function run_tests(db)
       benchmark(qMargin_p_u_data, p, u)
     for (p, u) in carried_p_u
   ) || push!(errors, "Margin rates must reproduce reported product-use margins")
+
+  all(
+    db[qD_u[:C, tt]] ≈ db[qC[tt]] + db[qCTourist[tt]]
+    for tt in t1:T
+  ) || push!(errors, "Private-consumption demand must include tourist demand once")
+
+  all(
+    db[vX[tt]] ≈ db[vD_u[:X, tt]] + db[vCTourist[tt]]
+    for tt in t1:T
+  ) || push!(errors, "Total exports must include tourist demand")
 
   return errors
 end
