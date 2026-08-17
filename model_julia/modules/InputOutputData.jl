@@ -11,19 +11,21 @@ import ..EurostatClient
 using ..Settings: calibration_year, country_code
 import ..InputOutputSettings:
   P,
-  S,
   U,
+  margin_services,
   accounting_ind_ava_codes,
   accounting_rename,
   accounting_rows,
   cell_tolerance,
   demand_rename,
   eurostat_dataset,
+  eurostat_margin_dataset,
   eurostat_unit,
   input_output_data_dir,
-  margin_uses,
+  margin_final_use_rename,
   national_accounts_dataset,
-  national_accounts_unit
+  national_accounts_unit,
+  sut_industry_codes
 import ..DataRefreshUtils: long_format, sum_by
 
 const data_years = (calibration_year - 1):calibration_year
@@ -48,6 +50,31 @@ function fetch_io_table(country_dimension)
   rename!(df, :ind_ava => :row, :ind_use => :use, :time => :year)
   df.year = parse.(Int, df.year)
   return df[:, [:row, :use, :c_orig, :c_dest, :year, :value]]
+end
+
+"""National trade and transport margins by product and use."""
+function fetch_margin_table()
+  df = EurostatClient.fetch_table(
+    eurostat_margin_dataset,
+    "unit" => eurostat_unit,
+    "stk_flow" => "TOTAL",
+    "geo" => country_code,
+    year_params...,
+  )
+  product_rename = Dict("CPA_$code" => Symbol(first(code)) for code in sut_industry_codes)
+  use_rename = merge(
+    Dict(code => Symbol(first(code)) for code in sut_industry_codes),
+    margin_final_use_rename,
+  )
+  df = df[
+    in.(df.cpa2_1, Ref(Set(keys(product_rename)))) .&
+    in.(df.ind_use, Ref(Set(keys(use_rename)))),
+    :,
+  ]
+  df.product = [product_rename[code] for code in df.cpa2_1]
+  df.use = [use_rename[code] for code in df.ind_use]
+  df.year = parse.(Int, df.time)
+  return sum_by(df, [:product, :use, :year])
 end
 
 function fetch_country_table(dataset, dimension, values)
@@ -196,25 +223,57 @@ function reexport_flows(direct_before_reexports, product_taxes)
   return reexports[:, cell_columns]
 end
 
-"""Take the margin services out of direct use. The model puts them back as
-derived margin demand, priced into the purchaser price of the carried product."""
-function margin_reclassification(direct_before_margins)
-  services = direct_before_margins[
-    in.(direct_before_margins.product, Ref(Set(S))) .&
-    in.(direct_before_margins.use, Ref(Set(margin_uses))) .&
-    (abs.(direct_before_margins.value) .> cell_tolerance),
-    :,
-  ]
-  @assert all(services.value .>= 0) "Margin-service benchmark cells must be non-negative"
-  adjustments = copy(services)
+"""Split T1620 into carried-product margins and margin-service totals."""
+function margin_source_parts(table)
+  is_service = in.(table.product, Ref(Set(margin_services)))
+  @assert all(table.value[is_service] .<= cell_tolerance) "Margin-service rows must not be positive"
+  carried = table[.!is_service .& (abs.(table.value) .> cell_tolerance), :]
+  services = rename(table[is_service .& (table.value .< -cell_tolerance), :], :product => :service)
+  services.value .*= -1
+  carried_totals = rename(sum_by(carried, [:use, :year]), :value => :carried)
+  service_totals = rename(sum_by(services, [:use, :year]), :value => :services)
+  balances = innerjoin(carried_totals, service_totals, on = [:use, :year])
+  @assert nrow(balances) == nrow(carried_totals) == nrow(service_totals) "Each margin use needs both sides of T1620"
+  @assert all(isapprox.(balances.carried, balances.services; atol = 0.15, rtol = 0)) "T1620 margin sides must balance after source rounding"
+  return carried, services
+end
+
+"""Take reported margin services out of direct use. T1620 supplies each
+service total. FIGARO direct-use cells supply its standard origin shares."""
+function margin_reclassification(direct_before_margins, service_totals)
+  basis = innerjoin(
+    rename(
+      direct_before_margins[
+        in.(direct_before_margins.product, Ref(Set(margin_services))),
+        :,
+      ],
+      :product => :service,
+    ),
+    unique(service_totals[:, [:service, :use, :year]]),
+    on = [:service, :use, :year],
+  )
+  totals = rename(sum_by(basis, [:service, :use, :year]), :value => :total)
+  @assert nrow(totals) == nrow(service_totals) "Each margin service needs an origin basis"
+  shares = innerjoin(basis, totals, on = [:service, :use, :year])
+  @assert all(abs.(shares.total) .> cell_tolerance) "Each margin service needs a non-zero origin basis"
+  shares.share = shares.value ./ shares.total
+  services = innerjoin(
+    service_totals,
+    shares[:, [:service, :use, :origin, :year, :share]],
+    on = [:service, :use, :year],
+  )
+  services.value .*= services.share
+  @assert all(services.value .>= -cell_tolerance) "Margin-service origin cells must be non-negative"
+  select!(services, [:service, :use, :origin, :year, :value])
+
+  adjustments = rename(copy(services), :service => :product)
   adjustments.value .*= -1
-  rename!(services, :product => :service)
   return adjustments, services
 end
 
 """Direct use split into its reported, estimated, and reclassified parts, plus
 the product-tax row. Each estimate uses the parts before it as its basis."""
-function direct_use_parts(table, domestic)
+function direct_use_parts(table, domestic, service_totals)
   section_map = nace_section_map(domestic.row)
   reported = reported_direct_use(table)
   product_taxes = accounting_table(table, :vProductTax_u)
@@ -231,7 +290,8 @@ function direct_use_parts(table, domestic)
     estimated,
     reexport_flows(sum_cells(reported, estimated), product_taxes),
   )
-  reclassification, services = margin_reclassification(sum_cells(reported, estimated))
+  reclassification, services =
+    margin_reclassification(sum_cells(reported, estimated), service_totals)
   return reported, estimated, reclassification, services, product_taxes
 end
 
@@ -247,11 +307,11 @@ function reported_supply(reported)
   return supply[:, [:product, :industry, :year, :value]]
 end
 
-"""Purchaser-price spend by use: direct cells, margin services, product taxes."""
-demand_checks(direct, services, product_taxes) = sum_by(
+"""Purchaser-price spend by use: direct cells, carried-product margins, taxes."""
+demand_checks(direct, carried_margins, product_taxes) = sum_by(
   vcat(
     sum_by(direct, [:use, :year]),
-    sum_by(services, [:use, :year]),
+    sum_by(carried_margins, [:use, :year]),
     product_taxes,
   ),
   [:use, :year],
@@ -265,9 +325,10 @@ function refresh_input_output_data!(dir = input_output_data_dir)
   mkpath(dir)
   domestic = fetch_io_table("c_dest")
   exports = fetch_io_table("c_orig")
+  carried_margins, margin_service_totals = margin_source_parts(fetch_margin_table())
   table = input_output_table(domestic, exports)
   reported, estimated, reclassification, services, product_taxes =
-    direct_use_parts(table, domestic)
+    direct_use_parts(table, domestic, margin_service_totals)
   direct = sum_cells(reported, estimated, reclassification)
   supply = reported_supply(reported)
   national = mapped_country_table(
@@ -289,7 +350,10 @@ function refresh_input_output_data!(dir = input_output_data_dir)
   ))
   CSV.write(
     joinpath(dir, "input_output_margins.csv"),
-    long_format(:qS_s_u_o_reclassified, services, [:service, :use, :origin, :year]),
+    vcat(
+      long_format(:qMargin_p_u_reported, carried_margins, [:product, :use, :year]),
+      long_format(:qS_s_u_o_reclassified, services, [:service, :use, :origin, :year]),
+    ),
   )
   CSV.write(
     joinpath(dir, "input_output_price_adjustments.csv"),
@@ -298,7 +362,7 @@ function refresh_input_output_data!(dir = input_output_data_dir)
   CSV.write(joinpath(dir, "input_output_checks.csv"), vcat(
     long_format(
       :vD_u_reported,
-      demand_checks(direct, services, product_taxes),
+      demand_checks(direct, carried_margins, product_taxes),
       [:use, :year],
     ),
     long_format(:vY_reported, sum_by(supply, [:year]), [:year]),
