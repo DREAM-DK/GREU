@@ -282,17 +282,17 @@ the technology catalogue and the financial-accounts module — are out of scope.
       <td><span class="verdict coarser">COARSER</span></td>
       <td>A21 industries only; PIM estimation where countries lack data</td></tr>
   <tr><td>Investment split<br><span class="kbd">io_invest_long_format</span></td>
-      <td>Two partial sources: FIGARO's investment column by product (supply side) and <span class="src">nama_10_nfa_st</span> by asset × industry group (use side)</td>
+      <td>Two partial sources: FIGARO's investment column by product (supply side) and <span class="src">nama_10_a64_p5</span> / <span class="src">nama_10_nfa_st</span> by asset × industry (use side)</td>
       <td><span class="verdict gap">GAP</span></td>
-      <td><b>Rescoped 7 Aug:</b> the model needs two separate breakdowns, not the full matrix previously assumed (§6). Supply side is largely a classification job; the use side must be split from 21 industry groups to GREU's 57, using Denmark as the starting pattern.</td></tr>
+      <td><b>Rescoped 7 Aug:</b> the model needs two separate breakdowns, not the full matrix previously assumed (§6). <b>New 17 Aug:</b> <span class="src">nama_10_a64_p5</span> publishes investment by asset type at near-full industry detail for 13/27 countries incl. DK and SE — the use side is nearly direct data there; the other 14 countries still need the 21-group split using Denmark as the starting pattern.</td></tr>
   <tr><td>ETS data<br><span class="kbd">ets</span></td>
       <td>Commission Union Registry daily bulk + EEA EU ETS viewer</td>
       <td><span class="verdict coarser">COARSER</span></td>
       <td>Totals match within 0.007%. Emissions/allocation direct; “bought” is a derived shortfall; cost needs an EUA price. No authoritative current installation→NACE map.</td></tr>
   <tr><td>Government finances<br><span class="kbd">government_finances</span></td>
-      <td><span class="src">gov_10a_main</span> (full ESA transactions)</td>
+      <td><span class="src">gov_10a_main</span> + <span class="src">gov_10a_taxag</span> (main aggregates + tax detail)</td>
       <td><span class="verdict ok">OK</span></td>
-      <td>Concept-match only — Danish values come from MAKRO, not raw DST</td></tr>
+      <td><b>Pilot done 17 Aug: number-exact</b> — every mappable row reconciles to the third decimal (bn DKK) except interest revenue (+0.62%); the expected MAKRO difference did not materialize. 14/27 countries publish every needed item. Small enumerable leftovers with named candidate sources: domestic/abroad transfer splits, dividends/rent detail, pension-yield tax as a separate series, EU-paid farm subsidies.</td></tr>
   <tr><td>Financial accounts<br><span class="kbd">institutional_financial_accounts</span></td>
       <td><span class="src">nasa_10_f_bs</span> + <span class="src">nasa_10_nf_tr</span></td>
       <td><span class="verdict ok">OK</span></td>
@@ -349,9 +349,12 @@ All are EU-wide and free, but they are not the two core databases — flagged fo
     machinery, and who supplies those goods. EU data cannot. <b>Rescoped 7 Aug:</b> a
     code audit showed the model never uses the full matrix, only two simpler breakdowns
     (§6) — so this gap is smaller than previously recorded.
-    <b>Route:</b> the supply side is largely a classification job; the use side means
-    splitting 21 industry groups into GREU's 57, using Denmark's pattern as a starting
-    point. First step is a Denmark back-test against its own known answer.</p></div>
+    <b>Route:</b> the supply side is largely a classification job; the use side is
+    nearly direct data for 13/27 countries (17 Aug probe: <span class="src">nama_10_a64_p5</span>
+    publishes investment by asset at near-full industry detail there, incl. DK and SE);
+    the other 14 countries mean splitting 21 industry groups into GREU's 57, using
+    Denmark's pattern as a starting point. First step is a Denmark back-test against
+    its own known answer.</p></div>
   <div class="card"><h3>④ Marginal tax rates</h3>
     <p>Imported from Danish GreenREFORM via <span class="src">EU_GR_data.gdx</span> —
     a stopgap by the code's own admission. <b>Route:</b> derive from the gap-① excise/ETS
@@ -656,6 +659,55 @@ splitting keys, or a decision to run other EU countries at the aggregated level 
 </div>
 
 <div class="evidence">
+  <h3>✓ Pilot 8 · Government finances reconcile to the øre (gov_10a_main + gov_10a_taxag, 17 August)</h3>
+  <p><b>What this input does:</b> the model needs the government's budget by type of transaction —
+  consumption, investment, subsidies, transfers, interest, and each family of taxes (VAT, income
+  taxes, excises, ...) — as national scalar series. The Danish file carries 34 such rows for 2020,
+  and the project had flagged it with a warning: its values come from Denmark's MAKRO model rather
+  than raw statistics, so the expectation was that Eurostat would match the <i>concepts</i> but
+  not the <i>numbers</i> (as just seen with the LULUCF vintage gap).</p>
+  <p style="margin-top:4pt"><b>Denmark 2020 result: the warning did not materialize.</b> Every row
+  that maps onto a Eurostat item reconciles <b>exactly, to the third decimal of a billion DKK</b> —
+  public consumption 576.099 bn, investment 82.871 bn, VAT 231.650 bn, and so on through the
+  total expenditure (1,220.039 bn) and revenue (1,228.387 bn) sums. The single exception is
+  interest <i>revenue</i> (+0.088 bn, +0.62%), which alone explains the small gap in the budget
+  balance. Getting there required four documented re-readings, each verified numerically: Denmark's
+  pension-yield tax (PAL, ~48 bn) sits inside Eurostat's <i>household</i> income taxes, not the
+  corporate ones; the Danish "other product taxes" row silently includes import excises; dividends
+  and rent are only published as one bundle for Denmark; and one Danish sheet stores components
+  with signs. Two Danish label typos were found along the way. What remains is structural, small
+  and enumerable: the split of transfers between domestic recipients and abroad, the
+  dividends/rent detail, PAL as a separate series, and the EU-paid farm subsidies — each with a
+  named candidate source (mostly the sector accounts dataset <span class="src">nasa_10_nf_tr</span>)
+  or a fixed-share fallback.</p>
+  <p style="margin-top:4pt"><b>EU-wide coverage:</b> 14 of 27 member states publish every item the
+  mapping needs for 2020; the gaps elsewhere are mostly items that are plausibly just zero and
+  unpublished (Eurostat drops zero cells), plus the patchy counterpart memo items already counted
+  under the structural leftovers. Expenditure series run 1995–2025 for all 27.
+  <b>Verdict: the mapping table's "OK" is confirmed — and upgraded to number-exact.</b>
+  The transaction-code concordance was seeded from a colleague's Eurostat-only reference
+  implementation (see the contribution note below). Artifacts:
+  <span class="src">download_government_finances_dk_2020.py</span> and
+  <span class="src">reconcile_government_finances_dk_2020.py</span> in
+  <span class="src">data/preprocessing/scripts/</span>, raw deliveries with provenance under
+  <span class="src">government_finances_raw/DK/2020/</span>, workbook
+  <span class="src">government_finances_dk2020_reconciliation.xlsx</span>.</p>
+</div>
+
+<div class="evidence">
+  <h3>✓ Contribution · A colleague's Eurostat-only "core model" (received 17 August)</h3>
+  <p>A colleague independently built a stripped-down GREU variant that runs entirely on live
+  Eurostat data — no energy, emissions or climate content, and industries aggregated to 19
+  sections instead of GREU's 57. It is committed as reference material under
+  <span class="src">data/read_eurostat_data/</span> (see its README for provenance and caveats).
+  It is <i>not</i> the deliverable pipeline — it keeps no raw-data provenance and skips the hard
+  energy layer this project solved for Sweden — but its dataset mappings are working, tested
+  concordances: they seeded the government-finances pilot above, cover the balance-sheet and
+  flows datasets needed for the next pilot (financial accounts), and pointed to the
+  <span class="src">nama_10_a64_p5</span> discovery that shrinks the investment-split gap (§5③).</p>
+</div>
+
+<div class="evidence">
   <h3>✓ Scope audit · The investment gap is smaller than recorded (code verification, 7 August)</h3>
   <p><b>What was assumed:</b> Denmark's statistics office publishes a detailed investment table —
   for every pair of industries, how much investment equipment one sells to the other, split into
@@ -789,7 +841,7 @@ territorial/UNFCCC scope—do not subtract bunker rows ad hoc.</div>
   <li><span class="cb done"></span><span class="done-txt">31 Jul: PRODCOM + waste-statistics residual pilots complete — CPA_C16 is ≥98.5% non-energy (PRODCOM DS-059358 on the Comext API is a viable EU-wide splitting key; the prc_stapro code previously cited does not exist), CPA_E37-E39 is ≥85% non-energy and not narrowable with public EU-wide data; the monetary-residual stream is closed as a data question (see §6)</span></li>
   <li><span class="cb"></span>Decision with colleagues: accept the evidence-backed non-energy residuals (CPA_C16, CPA_E37-E39) as permanent disclosed features of the public-core method; optionally annotate with the PRODCOM export share / ~1.0 bn SEK energy ceiling (Q7)</li>
   <li><span class="cb"></span>Agree IDEES process→GREU purpose concordance and specify the reviewed installation→industry + fuel/emission-factor method for in_ETS; retain PEFA controls</li>
-  <li><span class="cb"></span>Investment split (rescoped 7 Aug, §5③/§6): first map the 21 Eurostat industry groups onto GREU's 57 to see which groups are estimable at all, then run the Denmark back-test before building anything</li>
+  <li><span class="cb"></span>Investment split (rescoped 7 Aug, §5③/§6; use side nearly direct for 13/27 countries per the 17 Aug <span class="src">nama_10_a64_p5</span> probe): for the remaining 14 countries, first map the 21 Eurostat industry groups onto GREU's 57 to see which groups are estimable at all, then run the Denmark back-test before building anything</li>
   <li><span class="cb"></span>Tax/margin price layer per product × user from excise schedules</li>
   <li><span class="cb"></span>Replace EU_GR_data.gdx marginal-tax input (from excise/ETS layer, or model-side redesign)</li>
 </ul>
@@ -800,7 +852,9 @@ territorial/UNFCCC scope—do not subtract bunker rows ad hoc.</div>
   <li><span class="cb done"></span><span class="done-txt">First non-Danish monetary-energy package: Sweden 2020 public core</span></li>
   <li><span class="cb done"></span><span class="done-txt">31 Jul: parameterization phase started — first OK-verdict input piloted: employed.xlsx vs nama_10_a64_e (DK 2020). Hours — the only load-bearing per-industry content — reconcile essentially exactly; persons carry a uniform +3.52% concept gap (→ Q8); 16/27 countries complete at A64, with documented mild workarounds for the rest (see §6)</span></li>
   <li><span class="cb done"></span><span class="done-txt">17 Aug: second OK-verdict input piloted: emissions_bridge_items.xlsx vs env_ac_aibrid_r2 (DK 2020). Net residence adjustment within 0.05% per gas; LULUCF concept-exact (level is inventory vintage); complete EU-27 coverage — the first pilot with no gaps</span></li>
-  <li><span class="cb"></span><b>▶ next session:</b> continue the OK-verdict pilots one input per increment — <span class="src">government_finances.xlsx</span> vs <span class="src">gov_10a_main</span> next (expect concept-not-number match; Danish values come from MAKRO — the LULUCF vintage gap just observed is a live example), then <span class="src">institutional_financial_accounts.xlsx</span> reusing the financial-accounts module's <span class="src">nasa_10_f_bs</span> pull (replicate the pension-asset reallocation)</li>
+  <li><span class="cb done"></span><span class="done-txt">17 Aug: third OK-verdict input piloted: government_finances.xlsx vs gov_10a_main + gov_10a_taxag (DK 2020). Number-exact — every mappable row to the third decimal except interest revenue (+0.62%); the expected MAKRO gap did not materialize. 14/27 countries complete. Leftovers with named candidates: dom/RoW transfer splits, dividends/rent detail, pension-yield tax, EU-paid CAP subsidies</span></li>
+  <li><span class="cb done"></span><span class="done-txt">17 Aug: a colleague's Eurostat-only "EU core" GREU variant received and committed as reference material (data/read_eurostat_data/) — no energy/climate content, 19-industry aggregation, live-API pulls; its dataset mappings seeded the government pilot and pointed to the nama_10_a64_p5 investment finding</span></li>
+  <li><span class="cb"></span><b>▶ next session:</b> continue the OK-verdict pilots — <span class="src">institutional_financial_accounts.xlsx</span> next, reusing the financial-accounts module's <span class="src">nasa_10_f_bs</span> pull (replicate the pension-asset reallocation) and the colleague's <span class="src">nasa_10_f_bs</span>/<span class="src">nasa_10_nf_tr</span> modules as concordance seed; while in <span class="src">nasa_10_nf_tr</span>, probe the government pilot's four leftovers</li>
   <li><span class="cb"></span>Generalize the remaining non-energy inputs before any full Sweden run; only then choose a second country</li>
   <li><span class="cb"></span>Hole-filling rules documented for countries with missing pieces</li>
   <li><span class="cb"></span>Full EU-27 data build; model runs on EU-sourced data</li>

@@ -945,3 +945,109 @@ build-time notes: (1) derive `bord_trade` from net land transport (the
 row-split definition), (2) accept inventory-vintage differences on LULUCF
 levels. A 2020-only build suffices: like `employed.xlsx`, the Danish file
 carries a single year.
+
+## Pilot results — `gov_10a_main` vs `government_finances.xlsx` (2026-08-17)
+
+Third pilot of the parameterization phase. Artifacts:
+`data/preprocessing/scripts/download_government_finances_dk_2020.py`,
+`reconcile_government_finances_dk_2020.py`; raw JSON-stat deliveries with
+manifest and README under
+`data/preprocessing/data/government_finances_raw/DK/2020/` (DK + SE pulls of
+`gov_10a_main` and `gov_10a_taxag`, EU-27 coverage probes for both, TE year
+probe); 8-sheet workbook
+`data/preprocessing/data/government_finances_dk2020_reconciliation.xlsx`
+(15/15 internal checks pass). The `na_item` concordance was seeded from the
+colleague's reference module `data/read_eurostat_data/government_data.py`.
+
+### What the model actually consumes (inspected, not assumed)
+
+`government_finances.xlsx` sheet `gov_fin`: 34 rows for 2020 only, bn DKK,
+government transactions by ESA code (`trans_esa`) split into
+`exp`/`rev`/`exp_eu`/`rev_eu`. `read_data.py:427-553` builds ~28 scalar time
+series from it (`vG`, `vTrans`, `vtVAT`, `vtDirect`, `vtPAL`, `vtCorp`,
+`vGovInv`, ...). No industry dimension anywhere. Two quirks: the "disagg"
+read at line 545 actually re-reads sheet 0 (the two `tax_direct_other_labor`
+rows are distinguished by `trans_txt`), and the `gov_fin_disagg` sheet
+(cons_publ split into its 8 ESA components, with DST statbank provenance) is
+never consumed.
+
+### Denmark 2020 reconciliation — exact, contrary to expectation
+
+The mapping doc predicted concept-not-number match because the Danish values
+come from MAKRO. **In fact every mappable row reconciles to the third
+decimal (bn DKK)** once four re-readings are applied, with a single
+exception: interest revenue (`D41REC` 14.337 vs Danish 14.249, +0.088 bn,
++0.62%), which is also the entire net-lending gap (B9 8.434 vs Danish
+rev−exp 8.348). MAKRO passes national-accounts levels through unchanged for
+this input. Highlights (bn DKK, Danish = Eurostat exactly unless noted):
+P3 576.099, D3PAY 75.463, D41PAY 12.058, P51G 82.871, NP −3.954, D9PAY
+13.916, D211 231.650, D29REC 51.888, D61REC 20.123, D91REC 6.676, P51C
+61.862, D7REC 24.009, D92_D99REC −5.53, and the total exp/rev sums 1220.039
+/ 1228.387.
+
+The four re-readings (all verified numerically, not assumed):
+
+1. **PAL is a household tax in Eurostat.** Danish `tax_direct_corp` =
+   `D51B_C2` exactly (67.720); the pension-yield tax (~48.3 bn) sits inside
+   `D51A_C1` "taxes on individual/household income *including holding
+   gains*". `source + other_labor + pension` = `D51A_C1 + D51D` to 0.001.
+   PAL cannot be recovered as a separate series from `gov_10a_taxag` alone.
+2. **The Danish "D214" row is really D212 + D214.** `tax_indirect_products`
+   87.831 = taxag S13 `D212` (37.396, import excises recorded in S13) +
+   `D214` (50.435). The separate `rev_eu` `tax_import` row (3.089) is the
+   S212 slice of D212 (duties collected for the EU) — also exact.
+3. **D42–D45 detail is not delivered for DK.** Danish dividends +
+   quasi-corp + rent (6.288) = `D42_TO_D45REC` exactly, but the D421/D422/
+   D45 detail `read_data.py` consumes separately (`vtDividends`,
+   `vGovRevQuasi`, `vGovRent`) needs another source (candidate:
+   `nasa_10_nf_tr` D42/D45 for S13) or a fixed split.
+4. **The disagg sheet stores signed contributions** to the P3 formula; with
+   signs applied all 8 components match `gov_10a_main` exactly.
+
+Tax detail generally: for DK the main dataset does *not* deliver
+`D211REC`/`D51A_C1REC`/`D59REC` despite the codes existing — the reliable
+tax source is `gov_10a_taxag` (S13, plus S212 for EU-collected duties),
+whose totals tie back to the main dataset's `D2REC`/`D5REC` identities
+exactly.
+
+### The genuine structural gaps (not number gaps)
+
+- **Domestic/RoW counterpart splits.** Four Danish row pairs
+  (`transfer_to_hh`/`transfer_to_row`, `transfers_from_dom`/`_row`,
+  `cap_transfer_to_dom`/`_row`, `cap_transfers_from_dom`/`_row`) have no
+  counterpart dimension in `gov_10a_main`. The partial published items do
+  not close it: `D9PAY_S2`/`D9REC_S2` carry no value for DK 2020, and the
+  EU-institutions proxy (`D74PAY + D76PAY` = 21.022) recovers only half of
+  Danish `transfer_to_row` (42.660) — Danish RoW transfers include D62
+  benefits paid abroad and non-EU D7. All four *sums* are exact. An EU
+  rebuild needs `nasa_10_nf_tr` S2 counterpart data or fixed-share splits.
+- **EU-paid CAP subsidies** (`subs_other_production_eu`, 7.035 →
+  `vtCAP_prodsubsidy`): no delivered value anywhere in `gov_10a_*` — the
+  flow sits in sector S212 and `D3REC_S212` carries no observation for DK
+  or SE. Candidates: `nasa_10_nf_tr` D39 received by resident sectors net
+  of gov `D39PAY`, or CAP budget data.
+- Minor: Danish `trans_esa` label "D22+D99" on the capital-transfer rows is
+  a typo for D92+D99 (values behave exactly as D9); Eurostat bundles P52
+  with valuables as `P52_P53` (both 0.000 for DK 2020).
+
+### EU-27 coverage and Sweden
+
+14/27 countries publish every item the pilot mapping needs for 2020. The
+gaps are narrow: `D8` missing for 8 countries and `D39REC` for 5 (both
+plausibly zero-and-unpublished — Eurostat drops zero cells; neither is a
+row of the Danish file, they only enter the TE identity), `D91`/`D91REC`
+missing for EE and SE (Sweden abolished inheritance/capital taxes —
+likely a true zero), `D212` missing in taxag S13 for FI/HU/NL. The
+counterpart items are patchy EU-wide (`D3REC_S212` in 14/27,
+`D9PAY_S2` in 18/27), consistent with the split gap above. TE series run
+1995–2025 for all 27 (Finland from 1975). Sweden's full 2020 slice misses
+only `D91REC` (true-zero candidate) and `D3REC_S212` (the CAP gap).
+
+### Verdict
+
+**OK confirmed, upgraded to number-exact.** `gov_10a_main` + `gov_10a_taxag`
+reproduce the Danish file to the third decimal for every mappable row
+(except D41REC +0.62%). What is left is structural, small and enumerable:
+the four dom/RoW splits, the D421/D422/D45 detail, PAL as a separate series,
+and the EU-paid CAP subsidy row. Each has a named candidate source
+(`nasa_10_nf_tr`) or an explicit fallback (fixed shares from a base year).

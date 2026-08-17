@@ -165,15 +165,18 @@ SUMMARY_ROWS = [
         "Investment split: how much of each industry's investment is buildings, "
         "vehicles or machinery, and which industries supply those goods",
         "Two partial sources, no single one: FIGARO's investment column by "
-        "product (supply side) and nama_10_nfa_st by asset and industry group "
-        "(use side)",
+        "product (supply side) and nama_10_a64_p5 / nama_10_nfa_st by asset "
+        "and industry (use side)",
         "GAP",
         "Rescoped 2026-08-07: the model uses two separate breakdowns, not the "
-        "full matrix previously assumed — verified in read_data.py and the GAMS "
-        "model. This makes the gap materially smaller than first recorded",
+        "full matrix previously assumed. New 2026-08-17: nama_10_a64_p5 "
+        "publishes investment by asset type at near-full industry detail for "
+        "13/27 countries incl. DK and SE — the use margin is nearly direct "
+        "data there",
         "Supply side is mainly a classification job (construction → buildings, "
-        "etc.). Use side must be split from 21 industry groups to GREU's 57, "
-        "using Denmark as a starting pattern — a method decision for colleagues",
+        "etc.). Use side: direct for 13 countries; the other 14 must be split "
+        "from 21 industry groups using Denmark as a starting pattern — a "
+        "method decision for colleagues",
     ),
     (
         "ets.xlsx",
@@ -191,12 +194,14 @@ SUMMARY_ROWS = [
         "government_finances.xlsx",
         "Government expenditure and revenue by transaction type (wages, "
         "investment, subsidies, ...)",
-        "gov_10a_main (main aggregates of general government)",
+        "gov_10a_main + gov_10a_taxag (government main aggregates + tax detail)",
         "MATCHES",
-        "Concept-exact by design (same ESA transaction codes). Caveat: the Danish "
-        "numbers come from the MAKRO model, so a number pilot may show differences",
-        "Numeric pilot not yet run (next scheduled pilot); functional "
-        "detail would use COFOG (gov_10a_exp) if needed",
+        "Pilot done (DK 2020): number-exact — every mappable row reconciles to "
+        "the third decimal except interest revenue (+0.62%); the expected MAKRO "
+        "difference did not materialize. 14/27 countries publish every needed item",
+        "Small enumerable leftovers, each with a named candidate source: "
+        "domestic/abroad transfer splits, dividends/rent detail, pension-yield "
+        "tax as separate series, EU-paid farm subsidies",
     ),
     (
         "institutional_financial_accounts.xlsx",
@@ -573,15 +578,18 @@ DETAIL_ROWS = [
         "Use margin: investment by investing industry × asset type",
         "How much of each industry's investment is buildings, vehicles or "
         "machinery",
-        "nama_10_nfa_st (asset × industry, 21 industry groups)",
+        "nama_10_a64_p5 (asset × industry, near-full detail for 13/27 "
+        "countries); nama_10_nfa_st (21 groups) as fallback",
         "GAP",
-        "Not piloted. The real underdetermined part: 21 industry groups must be "
-        "split to GREU's 57 industries",
+        "Probed 2026-08-17: nama_10_a64_p5 carries investment by asset at "
+        "(near-)64-industry detail for 13/27 countries incl. DK and SE — for "
+        "those the use margin is nearly direct data. The other 14 publish only "
+        "~7–23 industry codes and still need disaggregation",
         "—",
-        "Denmark as starting pattern; identifiable per industry group only where "
-        "enough years exist (roughly one year per GREU industry in the group), so "
-        "large groups such as manufacturing stay assumption-driven. Recommended "
-        "first step is a Denmark back-test against its known answer",
+        "For the 14 coarse countries: Denmark as starting pattern; identifiable "
+        "per industry group only where enough years exist, so large groups such "
+        "as manufacturing stay assumption-driven. Recommended first step is a "
+        "Denmark back-test against its known answer",
     ),
     # ----------------------------------------------------------------------- ets
     (
@@ -645,13 +653,16 @@ DETAIL_ROWS = [
         "government_finances.xlsx",
         "Government expenditure/revenue by ESA transaction",
         "Wages, investment, subsidies, transfers etc. of general government",
-        "gov_10a_main (main aggregates of general government)",
+        "gov_10a_main + gov_10a_taxag (main aggregates + tax detail)",
         "MATCHES",
-        "Concept-exact (same ESA transaction codes). Caveat: Danish values come "
-        "from the MAKRO model, so numbers may not reproduce exactly",
-        "—",
-        "Numeric pilot scheduled (current phase); COFOG (gov_10a_exp) if "
-        "functional detail is needed",
+        "Pilot done (DK 2020): number-exact to the third decimal for every "
+        "mappable row except interest revenue (+0.62%); the MAKRO caveat did "
+        "not materialize. 14/27 countries complete; gaps are plausibly-zero "
+        "items plus patchy counterpart memo items",
+        "government_finances_dk2020_reconciliation.xlsx",
+        "Leftovers with named candidates (nasa_10_nf_tr or fixed shares): "
+        "domestic/abroad transfer splits, D421/D422/D45 detail, PAL "
+        "pension-yield tax, EU-paid CAP subsidies",
     ),
     # -------------------------------------- institutional_financial_accounts
     (
