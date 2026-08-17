@@ -859,3 +859,89 @@ pilot's own mapping artifact contains **28 mapped clusters** (+1 unmapped
 `U`), and this pilot's 28 match that artifact exactly. The "24" in the FIGARO
 and PEFA prose is a doc inaccuracy, not a methodology difference; the numbers
 of *coarser* clusters (7) and covered industries quoted there are unaffected.
+
+## Pilot results — `env_ac_aibrid_r2` vs `emissions_bridge_items.xlsx` (2026-08-17)
+
+Second pilot of the parameterization phase. Artifacts:
+`data/preprocessing/scripts/download_emissions_bridge_dk_2020.py`,
+`reconcile_emissions_bridge_dk_2020.py`; raw JSON-stat deliveries with
+manifest and README under
+`data/preprocessing/data/emissions_bridge_raw/DK/2020/` (DK + SE pulls,
+EU-27 coverage probes, and an `env_air_gge` CRF4 cross-check); 7-sheet
+workbook `data/preprocessing/data/emissions_bridge_dk2020_reconciliation.xlsx`
+(16/16 internal checks pass).
+
+### What the model actually consumes (inspected, not assumed)
+
+`emissions_bridge_items.xlsx` is one sheet, 3 rows for 2020 only
+(`bord_trade`, `internat_transp`, `lulucf`) × gas columns
+(`ch4`, `co2_bio`, `co2_xbio`, `n2o`, `co2_eq`), thousand tonnes.
+`read_data.py:379-403,694-696` uses:
+
+- `lulucf` row → `qEmmLULUCF[t]`, **CO2-eq only**;
+- `bord_trade` row → `qEmmBorderTrade[em,t]` per gas (`co2_bio` is NaN and
+  dropped);
+- **`internat_transp` is read but never exported to GAMS** — dead weight,
+  like per-industry head counts in the employment pilot. The model computes
+  its international-transport bridge terms (bunkering, international
+  aviation) from the energy balance itself (`data_from_GR.gms:583-586`,
+  `emissions.gms:105-111`), and at `data_from_GR.gms:586` also nets
+  international road diesel (industry 49509) and international aviation jet
+  fuel (51009) bunkering out of `qEmmBorderTrade`.
+
+Unit/GWP identity verified on both sides: Danish `co2_eq` =
+`co2_xbio + 28·ch4 + 265·n2o` **exactly** on all three rows (AR5 GWP100),
+and Eurostat's `CH4_CO2E/CH4` and `N2O_CO2E/N2O` ratios equal the same
+factors.
+
+### Denmark 2020 reconciliation
+
+One dataset covers all three Danish rows: `env_ac_aibrid_r2`'s `indic_env`
+dimension carries both the residence adjustments (`AEMIS_RES_ABR_*`
+residents abroad, `AEMIS_TER_NRES_*` non-residents on territory, by mode
+fishing/land/water/air) and a LULUCF block (`LULUCF` = `FORL` + `CRL_GRL` +
+`LULUCF_OTH`). No second dataset is needed.
+
+- **Net residence adjustment: matches to ≤0.05% per gas.** Danish
+  `bord_trade + internat_transp` vs Eurostat `AEMIS_RES_ABR −
+  AEMIS_TER_NRES`: CO2 −0.006% (38,482.0 vs 38,484.2 kt), CO2-eq −0.006%,
+  CH4 +0.027%, N2O −0.049%.
+- **The two-row split is a Danish national definition, not reproducible
+  from Eurostat's mode split — and quantified as a pure reclassification.**
+  Denmark books international road hauliers under `internat_transp`;
+  Eurostat books all road under land transport. The offsets cancel:
+  `bord_trade` exceeds EU net-land by +361.0 kt CO2 while
+  `internat_transp` falls short of EU net-(water+air+fishing) by −363.2 kt
+  (difference = the 2.2 kt net discrepancy). Since `internat_transp` never
+  reaches GAMS, the practical question is only how to build `bord_trade`:
+  EU net land transport is the natural proxy, with the international-road
+  component handled consistently with the model's own netting at
+  `data_from_GR.gms:586` (method decision noted for the build, not a data
+  gap).
+- **LULUCF: exact concept match, numbers differ by inventory vintage.**
+  aibrid `LULUCF` equals the UNFCCC inventory sector `env_air_gge` CRF4
+  cell-for-cell (0.0 diff, all gases), and aibrid `AEMIS_TER_LULUCF` equals
+  the inventory total `TOTXMEMO` exactly. The Danish file's LULUCF CO2-eq
+  is +17.7% above the current inventory (1,292.1 vs 1,097.4 kt) with CO2
+  +41%, CH4 −21%, N2O −12% — the Danish file was built from an earlier
+  UNFCCC submission, and LULUCF recalculations between submissions are
+  routinely this large. Same phenomenon expected for `government_finances`
+  (concept-not-number).
+
+### EU-27 coverage and Sweden
+
+**Complete.** All 27 member states publish every key GHG cell
+(`AEMIS_RES`, `AEMIS_RES_ABR`, `AEMIS_TER`, `AEMIS_TER_NRES`, `LULUCF`) in
+`env_ac_aibrid_r2` for 2020, and all 27 publish the `env_air_gge` CRF4 GHG
+total. Sweden's full 2020 slice is delivered with all three key indicators
+present. This is the first pilot with zero coverage gaps.
+
+### Verdict
+
+**OK confirmed — the strongest pilot so far.** The load-bearing content
+(`bord_trade` per gas, LULUCF CO2-eq) is available for all EU-27 from one
+dataset, with the net adjustment reconciling to ≤0.05% and only two
+build-time notes: (1) derive `bord_trade` from net land transport (the
+row-split definition), (2) accept inventory-vintage differences on LULUCF
+levels. A 2020-only build suffices: like `employed.xlsx`, the Danish file
+carries a single year.

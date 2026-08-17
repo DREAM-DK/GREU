@@ -127,12 +127,16 @@ SUMMARY_ROWS = [
     (
         "emissions_bridge_items.xlsx",
         "Adjustment items bridging resident-principle emissions to national "
-        "territory (border trade, international transport)",
-        "env_ac_aibrid_r2 (air emissions bridging items — the exact same concept)",
+        "territory (border trade, international transport, LULUCF)",
+        "env_ac_aibrid_r2 (air emissions bridging items — the exact same concept, "
+        "one dataset covers all three rows)",
         "MATCHES",
-        "Exact concept match by design (both are the official accounts-to-inventory "
-        "bridge). Number reconciliation is the next scheduled pilot",
-        "Numeric pilot not yet run (smallest input; first item of the current phase)",
+        "DK 2020: net residence adjustment matches to within 0.05% per gas; all "
+        "27 member states publish every needed cell — the first pilot with zero "
+        "coverage gaps",
+        "The Danish split into two rows follows a national definition (quantified, "
+        "internal reclassification only); LULUCF level differs by inventory "
+        "vintage (+17.7%), same concept",
     ),
     (
         "employed.xlsx",
@@ -191,7 +195,7 @@ SUMMARY_ROWS = [
         "MATCHES",
         "Concept-exact by design (same ESA transaction codes). Caveat: the Danish "
         "numbers come from the MAKRO model, so a number pilot may show differences",
-        "Numeric pilot not yet run (second item of the current phase); functional "
+        "Numeric pilot not yet run (next scheduled pilot); functional "
         "detail would use COFOG (gov_10a_exp) if needed",
     ),
     (
@@ -499,13 +503,16 @@ DETAIL_ROWS = [
     (
         "emissions_bridge_items.xlsx",
         "Residence-to-territory bridge items",
-        "Border trade and international transport adjustments",
-        "env_ac_aibrid_r2 (air emissions bridging items)",
+        "Border trade, international transport and LULUCF adjustments",
+        "env_ac_aibrid_r2 (air emissions bridging items, incl. LULUCF block)",
         "MATCHES",
-        "Exact concept match by design — both are the official accounts↔inventory "
-        "bridge. Number pilot is the next scheduled task",
-        "—",
-        "Smallest input; first pilot of the current phase",
+        "DK 2020: net residence adjustment within 0.05% per gas; LULUCF exact "
+        "concept match (inventory-vintage level difference +17.7%); complete "
+        "EU-27 coverage",
+        "emissions_bridge_dk2020_reconciliation.xlsx",
+        "Build note: derive border trade from net land transport (the Danish "
+        "two-row split is a national definition; only border trade reaches the "
+        "model)",
     ),
     # ---------------------------------------------------------------- employed
     (

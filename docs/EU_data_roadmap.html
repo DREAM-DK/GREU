@@ -101,7 +101,7 @@
     <h1>GREU → EU Framework</h1>
     <div class="subtitle">Data roadmap &amp; progress tracker — replacing Statistics Denmark with EU-wide sources</div>
   </div>
-  <div class="date">Status: 7 August 2026<br>DREAM · GREU</div>
+  <div class="date">Status: 17 August 2026<br>DREAM · GREU</div>
 </div>
 
 <p class="lead"><b>Goal:</b> a version of GREU that any EU member state can run, using only data
@@ -158,15 +158,17 @@ in <span class="src">docs/eu_data_pilots.md</span> and the linked workbooks.</p>
   <div class="stat"><div class="big">4</div><div class="lbl">Direct EU counterpart (OK)</div></div>
   <div class="stat"><div class="big">6</div><div class="lbl">Available but coarser</div></div>
   <div class="stat"><div class="big">4</div><div class="lbl">Structural gaps to build</div></div>
-  <div class="stat"><div class="big">24</div><div class="lbl">Source codes confirmed</div></div>
+  <div class="stat"><div class="big">25</div><div class="lbl">Source codes confirmed</div></div>
 </div>
-<p class="caption"><b>24 source codes</b> = the previous 20 plus four annual gas/electricity
-price-component datasets. The monetary pilot also moved the national SUT and environmental-tax codes
+<p class="caption"><b>25 source codes</b> = the previous 20 plus four annual gas/electricity
+price-component datasets and, since 17 Aug, the UNFCCC inventory dataset
+<span class="src">env_air_gge</span>. The monetary pilot also moved the national SUT and environmental-tax codes
 from existence-only to numerically tested controls. The 3 FIGARO codes were proven end-to-end on 29 Jul.
 The 31 Jul residual pilots additionally live-verified PRODCOM (<span class="src">DS-059358</span> on the
-Comext API) and five waste-statistics datasets as evidence sources; these are not counted in the 24.
+Comext API) and five waste-statistics datasets as evidence sources; these are not counted in the 25.
 The 31 Jul employment pilot moved <span class="src">nama_10_a64_e</span> from existence-only to
-numerically tested.
+numerically tested, and the 17 Aug emissions-bridge pilot did the same for
+<span class="src">env_ac_aibrid_r2</span>.
 The OK / coarser / gap counts sum to <b>14</b>, not 12, because two input files split across
 several rows in §2 — their components come from different EU sources.
 Audit trail: §"Audit log" in <span class="src">docs/eu_data_mapping.md</span>.</p>
@@ -268,9 +270,9 @@ the technology catalogue and the financial-accounts module — are out of scope.
       <td><span class="verdict coarser">COARSER</span></td>
       <td>Energy/non-energy split derived: total − (fuel use × emission factors)</td></tr>
   <tr><td>Emissions bridge items<br><span class="kbd">emissions_bridge_items</span></td>
-      <td><span class="src">env_ac_aibrid_r2</span> — exact concept match</td>
+      <td><span class="src">env_ac_aibrid_r2</span> — exact concept match; one dataset also covers the LULUCF row</td>
       <td><span class="verdict ok">OK</span></td>
-      <td>Built for precisely this purpose</td></tr>
+      <td><b>Pilot done 17 Aug:</b> the net residence adjustment (the sum the model needs) matches to within 0.05% per gas, and all 27 member states publish every needed cell — the first pilot with zero coverage gaps. Denmark splits the adjustment into two rows by a national definition (border shopping vs international transport); Eurostat splits by transport mode instead, and the difference is a quantified internal reshuffle that never reaches the model. The LULUCF level differs by +17.7% only because the Danish file predates recent inventory revisions — same concept, older vintage.</td></tr>
   <tr><td>Employment &amp; hours<br><span class="kbd">employed</span></td>
       <td><span class="src">nama_10_a64_e</span> (persons + hours, A64; self-employed published directly, total − employees only where suppressed)</td>
       <td><span class="verdict ok">OK</span></td>
@@ -618,6 +620,42 @@ splitting keys, or a decision to run other EU countries at the aggregated level 
 </div>
 
 <div class="evidence">
+  <h3>✓ Pilot 7 · The emissions bridge reconciles with zero coverage gaps (env_ac_aibrid_r2, 17 August)</h3>
+  <p><b>What this input does:</b> national emission statistics exist in two flavours. The
+  <i>residence</i> principle counts everything caused by a country's residents wherever it happens
+  (a Danish ship burning fuel off Singapore counts for Denmark); the <i>territory</i> principle of
+  the UN climate inventories counts everything happening on national soil, whoever causes it. GREU
+  works with residence-based accounts but must also report territory-based UNFCCC totals, so it
+  needs the small "bridge" between the two — border fuel purchases, international transport — plus
+  the LULUCF term (emissions and removals from land use and forests, which only the inventory
+  carries). The Danish input file holds exactly these bridge items.</p>
+  <p style="margin-top:4pt"><b>Denmark 2020 result:</b> Eurostat publishes the identical concept as
+  <span class="src">env_ac_aibrid_r2</span>, and a single dataset covers all three rows of the
+  Danish file, LULUCF included. The total residence adjustment matches to within <b>0.05% per
+  gas</b> (fossil CO2: 38,482 vs 38,484 thousand tonnes, −0.006%). Denmark's split of that total
+  into two rows follows a national convention — international road hauliers sit under
+  "international transport" in the Danish file but under "land transport" at Eurostat — and the
+  pilot quantified this as a pure internal reshuffle of ~362 kt CO2 whose two halves cancel.
+  Since only the border-trade row and the LULUCF total ever reach the model, this costs nothing:
+  border trade can be built from Eurostat's net land-transport item. The LULUCF level differs by
+  +17.7% for a known, benign reason: the Danish file predates recent revisions of the UN
+  inventory, which routinely restates LULUCF heavily — the concept matches cell-for-cell against
+  the current inventory (verified via <span class="src">env_air_gge</span>). Both sides use the
+  same global-warming-potential factors (verified arithmetically). All 19 internal consistency
+  checks pass.</p>
+  <p style="margin-top:4pt"><b>EU-wide coverage: complete.</b> All 27 member states publish every
+  needed cell for 2020 — the first pilot without a single coverage gap.
+  <b>Verdict: the mapping table's "OK" is confirmed.</b> The same vintage effect just seen on
+  LULUCF is expected for the next pilot (government finances, whose Danish values come from the
+  MAKRO model rather than raw statistics). Artifacts:
+  <span class="src">download_emissions_bridge_dk_2020.py</span> and
+  <span class="src">reconcile_emissions_bridge_dk_2020.py</span> in
+  <span class="src">data/preprocessing/scripts/</span>, raw deliveries with provenance under
+  <span class="src">emissions_bridge_raw/DK/2020/</span>, workbook
+  <span class="src">emissions_bridge_dk2020_reconciliation.xlsx</span>.</p>
+</div>
+
+<div class="evidence">
   <h3>✓ Scope audit · The investment gap is smaller than recorded (code verification, 7 August)</h3>
   <p><b>What was assumed:</b> Denmark's statistics office publishes a detailed investment table —
   for every pair of industries, how much investment equipment one sells to the other, split into
@@ -761,7 +799,8 @@ territorial/UNFCCC scope—do not subtract bunker rows ad hoc.</div>
   <li><span class="cb done"></span><span class="done-txt">Parameterize the monetary-energy compatibility boundary by country code and mode, with schema/key tests and portable GAMS input macro</span></li>
   <li><span class="cb done"></span><span class="done-txt">First non-Danish monetary-energy package: Sweden 2020 public core</span></li>
   <li><span class="cb done"></span><span class="done-txt">31 Jul: parameterization phase started — first OK-verdict input piloted: employed.xlsx vs nama_10_a64_e (DK 2020). Hours — the only load-bearing per-industry content — reconcile essentially exactly; persons carry a uniform +3.52% concept gap (→ Q8); 16/27 countries complete at A64, with documented mild workarounds for the rest (see §6)</span></li>
-  <li><span class="cb"></span><b>▶ next session:</b> continue the OK-verdict pilots one input per increment — <span class="src">emissions_bridge_items.xlsx</span> vs <span class="src">env_ac_aibrid_r2</span> first (smallest, exact concept match by design), then <span class="src">government_finances.xlsx</span> vs <span class="src">gov_10a_main</span> (expect concept-not-number match; Danish values come from MAKRO), then <span class="src">institutional_financial_accounts.xlsx</span> reusing the financial-accounts module's <span class="src">nasa_10_f_bs</span> pull (replicate the pension-asset reallocation)</li>
+  <li><span class="cb done"></span><span class="done-txt">17 Aug: second OK-verdict input piloted: emissions_bridge_items.xlsx vs env_ac_aibrid_r2 (DK 2020). Net residence adjustment within 0.05% per gas; LULUCF concept-exact (level is inventory vintage); complete EU-27 coverage — the first pilot with no gaps</span></li>
+  <li><span class="cb"></span><b>▶ next session:</b> continue the OK-verdict pilots one input per increment — <span class="src">government_finances.xlsx</span> vs <span class="src">gov_10a_main</span> next (expect concept-not-number match; Danish values come from MAKRO — the LULUCF vintage gap just observed is a live example), then <span class="src">institutional_financial_accounts.xlsx</span> reusing the financial-accounts module's <span class="src">nasa_10_f_bs</span> pull (replicate the pension-asset reallocation)</li>
   <li><span class="cb"></span>Generalize the remaining non-energy inputs before any full Sweden run; only then choose a second country</li>
   <li><span class="cb"></span>Hole-filling rules documented for countries with missing pieces</li>
   <li><span class="cb"></span>Full EU-27 data build; model runs on EU-sourced data</li>

@@ -1,0 +1,217 @@
+{
+  "datasets": [
+    "env_ac_aibrid_r2",
+    "env_air_gge"
+  ],
+  "source": "Eurostat dissemination API (statistics/1.0, JSON-stat 2.0)",
+  "base_url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data",
+  "retrieval_date": "2026-08-17",
+  "purpose": "Pilot reconciliation of env_ac_aibrid_r2 (plus env_air_gge as LULUCF cross-check) against the Danish GREU input emissions_bridge_items.xlsx (DK 2020), with SE-2020 and EU-27 coverage/year probes. See docs/eu_data_mapping.md.",
+  "files": [
+    {
+      "file": "env_ac_aibrid_r2_DK_2020.json",
+      "dataset": "env_ac_aibrid_r2",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_aibrid_r2",
+      "params": {
+        "geo": "DK",
+        "time": "2020",
+        "lang": "en"
+      },
+      "note": "Denmark 2020, all airpol/indic_env/units as delivered.",
+      "bytes": 24775,
+      "sha256": "016d4632a330afe2bcaf9472e74ff7b10e529c9b3080a64f0c7a62e1fcca421d",
+      "retrieval_date": "2026-08-17",
+      "n_observations": 1304
+    },
+    {
+      "file": "env_ac_aibrid_r2_SE_2020.json",
+      "dataset": "env_ac_aibrid_r2",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_aibrid_r2",
+      "params": {
+        "geo": "SE",
+        "time": "2020",
+        "lang": "en"
+      },
+      "note": "Sweden 2020 availability probe (public-core pilot country).",
+      "bytes": 24814,
+      "sha256": "fec975905cb1c165b3a16873a7bd455b0531ca88ed86880ff1eafba60c694e45",
+      "retrieval_date": "2026-08-17",
+      "n_observations": 1304
+    },
+    {
+      "file": "env_ac_aibrid_r2_eu27_coverage_probe_2020.json",
+      "dataset": "env_ac_aibrid_r2",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_aibrid_r2",
+      "params": {
+        "geo": [
+          "AT",
+          "BE",
+          "BG",
+          "CY",
+          "CZ",
+          "DE",
+          "DK",
+          "EE",
+          "EL",
+          "ES",
+          "FI",
+          "FR",
+          "HR",
+          "HU",
+          "IE",
+          "IT",
+          "LT",
+          "LU",
+          "LV",
+          "MT",
+          "NL",
+          "PL",
+          "PT",
+          "RO",
+          "SE",
+          "SI",
+          "SK"
+        ],
+        "time": "2020",
+        "unit": "THS_T",
+        "airpol": [
+          "GHG",
+          "CO2",
+          "CO2_BIO",
+          "CH4",
+          "N2O"
+        ],
+        "lang": "en"
+      },
+      "note": "EU-27 coverage probe 2020: THS_T, GHG-relevant airpol, all indic_env.",
+      "bytes": 39776,
+      "sha256": "dbdbd0b279adfec6c1223fd136240adadaf60ce929a8578b479ef646e0e848b6",
+      "retrieval_date": "2026-08-17",
+      "n_observations": 2124
+    },
+    {
+      "file": "env_ac_aibrid_r2_eu27_year_probe_GHG.json",
+      "dataset": "env_ac_aibrid_r2",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_ac_aibrid_r2",
+      "params": {
+        "geo": [
+          "AT",
+          "BE",
+          "BG",
+          "CY",
+          "CZ",
+          "DE",
+          "DK",
+          "EE",
+          "EL",
+          "ES",
+          "FI",
+          "FR",
+          "HR",
+          "HU",
+          "IE",
+          "IT",
+          "LT",
+          "LU",
+          "LV",
+          "MT",
+          "NL",
+          "PL",
+          "PT",
+          "RO",
+          "SE",
+          "SI",
+          "SK"
+        ],
+        "unit": "THS_T",
+        "airpol": "GHG",
+        "lang": "en"
+      },
+      "note": "EU-27 year-coverage probe: GHG in THS_T, all indic_env, all years.",
+      "bytes": 202769,
+      "sha256": "d146379a86d3bc3734af4ef3b89797aafbe1dfd76a961bb021a156215c81da50",
+      "retrieval_date": "2026-08-17",
+      "n_observations": 10657
+    },
+    {
+      "file": "env_air_gge_DK_2020_lulucf.json",
+      "dataset": "env_air_gge",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_air_gge",
+      "params": {
+        "geo": "DK",
+        "time": "2020",
+        "unit": "THS_T",
+        "src_crf": [
+          "CRF4",
+          "TOTXMEMO",
+          "TOTX4_MEMO"
+        ],
+        "airpol": [
+          "GHG",
+          "CO2",
+          "CH4",
+          "CH4_CO2E",
+          "N2O",
+          "N2O_CO2E",
+          "HFC_CO2E",
+          "PFC_CO2E",
+          "HFC_PFC_NSP_CO2E",
+          "SF6_CO2E",
+          "NF3_CO2E"
+        ],
+        "lang": "en"
+      },
+      "note": "Inventory (env_air_gge) DK 2020: LULUCF sector CRF4 and totals with/without LULUCF \u2014 independent cross-check of aibrid LULUCF.",
+      "bytes": 3935,
+      "sha256": "744c932fda88b317088a9449eb1ff60021ec4e146116bafde239be9e6e1988e2",
+      "retrieval_date": "2026-08-17",
+      "n_observations": 24
+    },
+    {
+      "file": "env_air_gge_eu27_lulucf_coverage_probe_2020.json",
+      "dataset": "env_air_gge",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/env_air_gge",
+      "params": {
+        "geo": [
+          "AT",
+          "BE",
+          "BG",
+          "CY",
+          "CZ",
+          "DE",
+          "DK",
+          "EE",
+          "EL",
+          "ES",
+          "FI",
+          "FR",
+          "HR",
+          "HU",
+          "IE",
+          "IT",
+          "LT",
+          "LU",
+          "LV",
+          "MT",
+          "NL",
+          "PL",
+          "PT",
+          "RO",
+          "SE",
+          "SI",
+          "SK"
+        ],
+        "time": "2020",
+        "unit": "THS_T",
+        "src_crf": "CRF4",
+        "airpol": "GHG",
+        "lang": "en"
+      },
+      "note": "EU-27 coverage probe for the inventory LULUCF sector (CRF4, GHG).",
+      "bytes": 3916,
+      "sha256": "688942051eb15b57a8514922d97c90a7dbd5ac31e2f8ae7da80f0973e5e79caf",
+      "retrieval_date": "2026-08-17",
+      "n_observations": 27
+    }
+  ]
+}
