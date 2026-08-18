@@ -236,8 +236,6 @@ function set_residual_tolerances!(tolerances)
   tolerances[vNetProductTax_u] = 0.15
   tolerances[vM] = 0.15
   tolerances[vY] = 0.15
-  # T1620 rounds the carried-product and service sides to EUR 0.01 million.
-  tolerances[qMarginBundle_u] = 0.1
 end
 
 # ============================================================================
@@ -466,17 +464,7 @@ function define_calibration()
     qCTourist[t1], vCTourist[t1]
   end
 
-  solver_totals = [
-    [qSupply_p_o[p, o, tt] for (p, o, tt) in keys(qSupply_p_o) if o == domestic && tt == t1];
-    [qMarginBundle_u[u, tt] for (u, tt) in keys(qMarginBundle_u) if tt == t1]
-  ]
-  residual_by_endo = Dict(zip(endogenous(block), residuals(block)))
-  @endo_exo_swap!(block, [residual_by_endo[var] for var in solver_totals], solver_totals)
-
   return block + @block db begin
-    qSupply_p_o[(p, o, tt) in keys(qSupply_p_o); o == domestic && tt == t1],
-    qSupply_p_o[p, o, tt] == ∑(qY_p_i[p, i, tt] for i in industry)
-
     qPurchaserUse_p_u[(p, u, tt) in keys(qPurchaserUse_p_u); u in ordinary_uses && tt == t1],
     qPurchaserUse_p_u[p, u, tt] == ∑(qPurchaserUse_p_u_o[p, u, o, tt] for o in origin)
 
@@ -485,9 +473,6 @@ function define_calibration()
 
     qMarginService_s_u[(s, u, tt) in keys(qMarginService_s_u); tt == t1],
     qMarginService_s_u[s, u, tt] == ∑(qMarginService_s_u_o[s, u, o, tt] for o in origin)
-
-    qMarginBundle_u[(u, tt) in keys(qMarginBundle_u); tt == t1],
-    qMarginBundle_u[u, tt] == ∑(qMarginService_s_u[s, u, tt] for s in margin_services)
   end
 end
 
