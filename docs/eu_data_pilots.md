@@ -28,6 +28,9 @@ pilot results — do not copy them into other documents; link to this file.
 | Pilot 5 — monetary energy feasibility | 2026-07-30 | 0 of 862 rows source-complete; controls usable, cells not |
 | Pilot 6 — PRODCOM / waste statistics | 2026-07-31 | Residuals are ≥98.5% and ≥85% non-energy money |
 | Pilot 7 — employment | 2026-07-31 | Hours essentially exact; persons +3.52% concept gap |
+| Emissions bridge (`env_ac_aibrid_r2`) | 2026-08-17 | Net residence adjustment ≤0.05% per gas; zero EU-27 gaps |
+| Government finances (`gov_10a_main`) | 2026-08-17 | Number-exact except D41REC +0.62%; splits/PAL structural |
+| Financial accounts (`nasa_10_f_bs`/`nf_tr`) | 2026-08-18 | Model never reads the Excel; F5 equity exact; pension move quantified (2,703.8 bn); EU-27 complete |
 
 ## Architecture decision and first compatibility increment (2026-07-30)
 
@@ -1051,3 +1054,119 @@ reproduce the Danish file to the third decimal for every mappable row
 the four dom/RoW splits, the D421/D422/D45 detail, PAL as a separate series,
 and the EU-paid CAP subsidy row. Each has a named candidate source
 (`nasa_10_nf_tr`) or an explicit fallback (fixed shares from a base year).
+
+## Pilot results — `nasa_10_f_bs` / `nasa_10_nf_tr` vs `institutional_financial_accounts.xlsx` (2026-08-18)
+
+Fourth pilot of the parameterization phase. Artifacts:
+`data/preprocessing/scripts/download_financial_accounts_dk_2020.py`,
+`reconcile_financial_accounts_dk_2020.py`; raw JSON-stat deliveries with
+manifest and README under
+`data/preprocessing/data/financial_accounts_raw/DK/2020/` (DK + SE pulls of
+`nasa_10_f_bs` stocks — both units, both consolidations, incl. the
+S128/S129 insurance/pension subsectors — and `nasa_10_nf_tr` flows; EU-27
+coverage probes for both; two year probes); 11-sheet workbook
+`data/preprocessing/data/financial_accounts_dk2020_reconciliation.xlsx`
+(21/23 internal checks pass; the 2 fails are one explained Eurostat
+source-data quirk, see below). Instrument definitions were cross-checked
+against the colleague's reference modules
+`data/read_eurostat_data/financial_accounts_balance_data.py` / `_flow_data.py`.
+
+### What the model actually consumes (inspected, not assumed)
+
+The headline finding precedes any number: **the model never reads this
+Excel.** `read_data.py:406-424` and `:556-570` build eight GDX symbols from
+it (five `[sector, as_li_net, t]` parameters plus three government-interest
+scalars), all exported to the country GDX — and none is ever `$load`-ed.
+`data_from_GR.gms:138-140` loads `sector`, `vNetFinAssets` and
+`vNetDebtInstruments` from
+`Modules/financial_accounts/financial_accounts_data.gdx`, the live Eurostat
+`nasa_10_f_bs` pull (PR #107), and the flow variables are model equations
+(`model/modules/financial_accounts.gms:107-110`, generated from calibrated
+rates `rInterests_s`/`rDividends`/`rRevaluations_s`). So the EU replacement
+is already in production, previously unverified; this pilot verifies it.
+Incidentally, `read_data.py:562-568` contains three no-op `.rename()` calls
+(including an `as`-for-`li` typo) on exactly these orphaned symbols.
+
+### Denmark 2020 reconciliation — exact where unadjusted, and the pension move quantified
+
+The Danish file (20 rows: 5 vars × 4 sectors × as/li/net, bn DKK, 2020,
+internally exact to 1e-13) differs from raw Eurostat **only** by the
+documented Danish pension-asset reallocation (metadata `sectors`:
+households' pension assets moved from financial corporations to
+households), which touches `corp` and `hh` but not `gov`/`row`:
+
+- **Equity = F5, exactly.** `vNetEquity` net matches `nasa_10_f_bs` F5 net
+  to rounding for the unadjusted sectors (gov +0.007, row −0.020 bn DKK) —
+  and row matches in gross as/li too (3,076.8 / 4,080.2). The implied
+  corp→hh equity move is mirror-exact from both sides: 2,703.848 (hh) vs
+  2,703.841 (corp).
+- **The colleague reference definition does not reproduce the Danish
+  file.** `data/read_eurostat_data` uses Equity = F51 with F52 counted as
+  debt; that misses gov equity by −46.8 and row by +367.0 bn DKK. The live
+  module's Equity = F5 / debt = F1+F2+F3+F4+F6+F7+F8−F11 is the
+  Danish-consistent one. (Net positions are consolidation-invariant;
+  Danish gross levels sit closest to non-consolidated.)
+- **Flows are `nasa_10_nf_tr` D41/D42, exactly.** `vNetInterests` and
+  `vNetDividends` match gov and row exactly in as (=RECV), li (=PAID) and
+  net — gov interest 14.337/12.058/2.279 ties to the government pilot's
+  D41REC/D41PAY to the third decimal. corp and hh match exactly in sum;
+  the implied moves are interest 51.064 (mirror-exact) and dividends
+  22.406/22.407 bn DKK.
+- **The pension move is the insurance/pension subsector's portfolio.** The
+  total implied moved portfolio (equity move + debt move + removal of the
+  4,158.9 bn hh F6 claims) is 5,002.2 bn DKK vs the S128_S129 subsector's
+  entire financial-asset portfolio of 4,952.1 bn — within 1%. It is **not
+  net-neutral**: Danish hh net financial assets end +837.3 bn DKK above raw
+  Eurostat (the moved portfolio exceeds the removed F6 claims). Exact
+  composition replication would need the Danish computation, but S128_S129
+  balance sheets are published EU-wide, so a close approximation is
+  buildable. `nasa_10_nf_tr` publishes no D41/D42 for S128_S129 (DK), so
+  the flow-side move cannot be replicated from that dataset.
+- **Small unexplained debt-stock gaps** on the unadjusted sectors: gov
+  +23.551 and row +46.788 bn DKK (0.3–1.3% of net positions; likeliest
+  vintage — the Excel predates the current Eurostat vintage and financial
+  accounts revise heavily; equity happens to be revision-stable).
+- **`vNetRevaluations` has no source** in either pilot dataset (route if
+  ever needed: Δ`nasa_10_f_bs` stocks − `nasa_10_f_tr` transactions −
+  other volume changes). The model generates revaluations, so nothing is
+  blocked.
+- **One Eurostat source-data quirk:** the DK delivery contains a household
+  F2 (currency/deposits) *liability* of exactly 5.950 bn that Eurostat's
+  own published F total excludes — the two failing workbook checks are this
+  additivity gap, present for S14+S15 and S14_S15 alike.
+
+### Government-pilot leftovers probed in `nasa_10_nf_tr`
+
+Of the four gaps the government pilot left open: **rent closed exactly**
+(S13 D45 RECV = 0.533); **the D42 dividend bundle closed at D42 level**
+(S13 D42 RECV = 5.755 = Danish dividends + quasi-corp; the D421/D422 split
+is still undelivered for DK — and IE — though the codes exist); **EU-paid
+CAP subsidies found a close candidate** (S2 D39 PAID = 6.809 vs Danish
+7.035, −3.2%; the EU is not separable from other RoW in `nasa_10_nf_tr`);
+**dom/RoW counterpart splits only bounded** (S2 D62+D7 RECV = 60.837
+economy-wide vs Danish gov-specific 42.660 — no payer × receiver
+dimension, so a gov split still needs fixed shares or national data).
+**PAL is impossible here too**: `nasa_10_nf_tr` has no D51 subitems.
+
+### EU-27 coverage and Sweden
+
+**All 27 member states are complete** for the core 2020 requirement (F,
+F2–F8 stocks for S11/S12/S13/S2 plus households, and D41/D42 flows) — the
+second pilot with zero EU-27 coverage gaps, after the emissions bridge.
+Every country publishes the S14/S15 split *and* the S128_S129 subsector
+needed to replicate the pension reallocation. F1/F11 (monetary gold/SDRs)
+are absent for most non-financial sectors as true zeros, deliberately not
+counted as gaps. Stock series run 1995–2025 for nearly all (HU from 1990,
+IE from 2001); flow series 1995–2024/25 (SE from 1993, BG ends 2022).
+
+### Verdict
+
+**OK confirmed — and the row is really "already in production, now
+verified".** The two load-bearing symbols (`vNetFinAssets`,
+`vNetDebtInstruments`) come from the live module today; this pilot proves
+the module's instrument definitions are the Danish-consistent ones and
+quantifies the one concept it omits: the Danish pension-asset reallocation
+(equity 2,703.8 bn DKK, household net wealth +837.3 bn — now decision 18
+in the mapping doc). Remaining defects are enumerable: no pension
+reallocation, `geo`/years hardcoded to DK/2019–2020, no raw provenance,
+and the D421/D422 and PAL details stay open on the government side.

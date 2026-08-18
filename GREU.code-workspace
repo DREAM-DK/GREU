@@ -12,7 +12,10 @@
 {
 	"folders": [
 		{
-			"path": "." // Top directory
+			"path": "."
+		},
+		{
+			"path": "../GREU_EU_core"
 		}
 	],
 	"settings": {

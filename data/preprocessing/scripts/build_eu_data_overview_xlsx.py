@@ -207,19 +207,24 @@ SUMMARY_ROWS = [
         "institutional_financial_accounts.xlsx",
         "Net financial positions by sector (households, firms, government, "
         "abroad) and instrument group",
-        "nasa_10_f_bs (financial balance sheets) — the model's financial-accounts "
-        "module already pulls this live from Eurostat",
+        "nasa_10_f_bs (financial balance sheets) + nasa_10_nf_tr (interest/"
+        "dividend flows) — the model's financial-accounts module already "
+        "pulls the balance sheets live from Eurostat",
         "MATCHES",
-        "The download code already exists and runs in the model (financial-accounts "
-        "module); this input can reuse it directly",
-        "Caveat: 'MATCHES' means the live Eurostat connection is proven, not that "
-        "this file is fully replaced yet. The existing module is Denmark-only so "
-        "far, does not yet compute interest/dividend/revaluation flows (only "
-        "current holdings), and is not yet wired into the model's data pipeline "
-        "for this file. Also to replicate: the Danish pension-asset reallocation "
-        "(move household pension assets from financial corporations to "
-        "households; the detail needed for this is published under Eurostat's "
-        "instrument code 'F6' — pension entitlements, not a spreadsheet cell)",
+        "Pilot done (DK 2020, 2026-08-18) with a twist: the model never reads "
+        "this spreadsheet — the live Eurostat module already supplies the two "
+        "numbers the model uses, and the pilot verified that route: equity "
+        "positions match exactly for government and rest-of-world, interest "
+        "and dividend flows match exactly, and all 27 member states publish "
+        "every needed cell (second input ever with zero EU-wide gaps)",
+        "The Danish data applies a pension adjustment (household pension "
+        "savings counted as owned by households directly rather than via "
+        "pension funds) worth 2,703.8 bn DKK of equity and +837.3 bn DKK of "
+        "household net wealth; the live module does not do this yet — "
+        "colleagues must decide whether to replicate it (the needed Eurostat "
+        "detail exists EU-wide) or adopt the unadjusted definition. "
+        "Housekeeping: the module is hardcoded to Denmark/2019-2020 and keeps "
+        "no download provenance",
     ),
     (
         "EU_GR_data.gdx",
@@ -251,9 +256,13 @@ SUMMARY_ROWS = [
         "completeness",
         "nasa_10_f_bs via the Eurostat API (already implemented)",
         "MATCHES",
-        "Already EU-sourced and running in the model — serves as the working "
-        "template for every replaced input",
-        "Nothing — out of scope of the replacement work",
+        "Already EU-sourced and running in the model — and since 2026-08-18 "
+        "verified against the Danish numbers: its instrument definitions are "
+        "the Danish-consistent ones (a competing definition in the reference "
+        "code is not)",
+        "Implement or reject the Danish pension adjustment (decision for "
+        "colleagues); generalize the hardcoded country/years; add download "
+        "provenance",
     ),
 ]
 
@@ -671,16 +680,21 @@ DETAIL_ROWS = [
         "Who owns/owes what: households, firms, government, rest of world",
         "nasa_10_f_bs (financial balance sheets)",
         "MATCHES",
-        "The model's financial-accounts module already pulls this live from "
-        "Eurostat; the replacement can reuse that code directly. Caveat: the "
-        "module is Denmark-only so far and does not yet compute interest/"
-        "dividend/revaluation flows or wire into this file — a proven template, "
-        "not a finished replacement",
-        "—",
-        "Replicate the pension-asset reallocation (move household pension assets "
-        "from financial corporations to households; the needed detail is "
-        "published under Eurostat's instrument code 'F6' — pension "
-        "entitlements, not a spreadsheet cell)",
+        "DK 2020: equity (instrument F5) matches exactly for government "
+        "(+0.007 bn DKK) and rest-of-world (−0.020); firms and households "
+        "differ only by the documented Danish pension adjustment, which the "
+        "data pins down mirror-exactly at 2,703.8 bn DKK (≈ the insurance/"
+        "pension subsector's entire portfolio, published EU-wide as sector "
+        "S128_S129). Small debt-position differences remain for government "
+        "(+23.6 bn) and rest-of-world (+46.8 bn) — 0.3–1.3%, most likely "
+        "data-vintage. All 27 member states publish every needed cell",
+        "financial_accounts_dk2020_reconciliation.xlsx",
+        "Key finding: the model never reads this spreadsheet — it already "
+        "loads these positions from the live Eurostat module, now verified. "
+        "The pension adjustment is not net-neutral (+837.3 bn DKK household "
+        "wealth) and is unimplemented in the module: decision 18. A competing "
+        "equity definition in the colleague reference code (F51) does NOT "
+        "reproduce the Danish numbers; the module's (F5) does",
     ),
     (
         "institutional_financial_accounts.xlsx",
@@ -688,9 +702,19 @@ DETAIL_ROWS = [
         "Property-income flows between sectors (D41, D42)",
         "nasa_10_nf_tr (non-financial transactions by sector)",
         "MATCHES",
-        "Concept match; not yet piloted numerically",
-        "—",
-        "Include in the financial-accounts pilot",
+        "DK 2020: interest (D41) and dividends (D42) match exactly for "
+        "government and rest-of-world — including the gross received/paid "
+        "sides — and exactly in sum for firms+households (the pension "
+        "adjustment shifts 51.1 bn interest and 22.4 bn dividends between "
+        "the two). Revaluations have no source in these datasets",
+        "financial_accounts_dk2020_reconciliation.xlsx",
+        "The model generates these flows from calibrated rates rather than "
+        "loading them, so this is a calibration opportunity, not a gap. "
+        "Bonus: the same dataset closed two government-pilot leftovers "
+        "exactly (rent D45, the D42 dividend bundle) and offers a close "
+        "candidate for EU-paid CAP subsidies (−3.2%); the dividend "
+        "D421/D422 sub-split and the PAL pension-yield tax remain "
+        "unavailable",
     ),
     # -------------------------------------------------------------- EU_GR_data
     (
@@ -731,6 +755,164 @@ DETAIL_ROWS = [
         "real-estate split, extensions for EUTL activities and asset bridges, and "
         "a NACE Rev. 2.1 check",
     ),
+]
+
+# ---------------------------------------------------------------- Progress
+# One-line scoreboard per consumed input: has it been piloted, when, and
+# what came out. Transcribed from docs/eu_data_mapping.md (mapping table +
+# status) and docs/eu_data_pilots.md.
+
+PROGRESS_STATE_FILLS = {
+    "PILOT DONE": "C6EFCE",     # green
+    "BUILT": "E2EFDA",          # light green — constructed package accepted
+    "PROBED": "FFEB9C",         # yellow — sources probed, no full pilot yet
+    "PARTLY": "FFEB9C",         # yellow — checked inside another pilot
+    "NOT PILOTED": "FFC7CE",    # red
+    "KEPT": "D9D9D9",           # grey
+}
+
+PROGRESS_HEADERS = [
+    "#",
+    "Danish input",
+    "Verdict",
+    "Pilot state",
+    "Date",
+    "Headline result",
+    "Evidence",
+]
+
+PROGRESS_ROWS = [
+    ("io_long_format.xlsx", "COARSER", "PILOT DONE", "2026-07-29",
+     "Totals match to 0.1%; re-exports and the 7 finer-than-NACE industry "
+     "groups remain open",
+     "figaro_dk2020_reconciliation.xlsx"),
+    ("io_energy_long_format.xlsx", "CONSTRUCTED", "BUILT", "2026-07-30/31",
+     "Sweden 2020 package accepted; 0 monetary cells directly observed; "
+     "residuals disclosed and shown to be non-energy money",
+     "energy_money_se2020_public_core_reconciliation.xlsx"),
+    ("energy_and_emissions.xlsx", "COARSER", "PILOT DONE", "2026-07-30",
+     "Physical energy −0.611%; emissions −0.007% (CO2); purpose and "
+     "price/tax layers must be constructed",
+     "eurostat_energy_emissions_dk2020_reconciliation.xlsx"),
+    ("non_energy_emissions.xlsx", "COARSER", "PARTLY", "2026-07-30",
+     "Combined emissions boundary verified inside the PEFA pilot (F-gases "
+     "exact); the energy/non-energy split derivation is untested",
+     "eurostat_energy_emissions_dk2020_reconciliation.xlsx"),
+    ("emissions_bridge_items.xlsx", "MATCHES", "PILOT DONE", "2026-08-17",
+     "Net residence adjustment ≤0.05% per gas; first input with zero EU-27 "
+     "coverage gaps",
+     "emissions_bridge_dk2020_reconciliation.xlsx"),
+    ("employed.xlsx", "MATCHES", "PILOT DONE", "2026-07-31",
+     "Hours (the only per-industry content used) essentially exact; persons "
+     "+3.52% concept question",
+     "employment_dk2020_reconciliation.xlsx"),
+    ("fixed_assets.xlsx", "COARSER", "NOT PILOTED", "—",
+     "NEXT IN LINE: nama_10_nfa_st at 21 industry groups; doubles as "
+     "groundwork for the investment split",
+     "—"),
+    ("io_invest_long_format.xlsx", "GAP", "PROBED", "2026-08-17",
+     "Rescoped to two margins (2026-08-07); use margin is near-direct data "
+     "for 13/27 countries via nama_10_a64_p5",
+     "probe_nama_10_a64_p5_asset_detail.py"),
+    ("ets.xlsx", "CLOSE MATCH", "PILOT DONE", "2026-07-30",
+     "Emissions/allocations reproduce to +0.007%; industry bridge and EUA "
+     "price remain decisions",
+     "eutl_dk2020_reconciliation.xlsx"),
+    ("government_finances.xlsx", "MATCHES", "PILOT DONE", "2026-08-17",
+     "Number-exact except interest revenue +0.62%; splits/PAL structural "
+     "leftovers have named candidates",
+     "government_finances_dk2020_reconciliation.xlsx"),
+    ("institutional_financial_accounts.xlsx", "MATCHES", "PILOT DONE",
+     "2026-08-18",
+     "Model never reads the Excel — the live Eurostat module is now "
+     "verified; pension adjustment quantified (decision 18); zero EU-27 "
+     "coverage gaps",
+     "financial_accounts_dk2020_reconciliation.xlsx"),
+    ("Household consumption detail (12 groups)", "COARSER", "NOT PILOTED",
+     "—",
+     "nama_10_co3_p3 at 2–3 digit COICOP vs the Danish 4-digit map; check "
+     "group by group",
+     "—"),
+    ("EU_GR_data.gdx", "CONSTRUCTED", "BUILT", "2026-07-30/31",
+     "Sweden compatible GDX with explicit average=marginal assumption; a "
+     "legal excise/ETS engine is still needed for true policy rates",
+     "eu_core/SE/energy_money_manifest.json"),
+    ("metadata.xlsx", "KEPT", "KEPT", "—",
+     "Master concordance file, kept; 4 energy-product fixes pending owner "
+     "review",
+     "—"),
+]
+
+# --------------------------------------------------------------- Decisions
+# One row per open decision for colleagues. Transcribed from the tagged
+# list in docs/eu_data_mapping.md ('Decisions needed from colleagues');
+# days-open is computed at generation time.
+
+DECISIONS_HEADERS = [
+    "ID",
+    "Decision needed",
+    "Owner",
+    "Raised",
+    "Days open",
+    "What it blocks",
+]
+
+DECISIONS_ROWS = [
+    ("6",
+     "Which GREU industry splits finer than NACE A64 survive in the EU "
+     "version (organic/conventional farming, five waste industries, "
+     "electricity subdivisions)? Country keys or aggregated level?",
+     "Model owners", "2026-07-28",
+     "The final industry dimension of every converted input — packages "
+     "built before this may need re-cutting"),
+    ("7",
+     "Re-export handling, and the NACE-L ↔ 68203 real-estate split (hit by "
+     "three pilots)",
+     "metadata.xlsx concordance owner", "2026-07-29",
+     "Exact cluster-level reconciliation in the FIGARO, PEFA and "
+     "employment pilots"),
+    ("8",
+     "Review the four energy-product concordance fixes the PEFA pilot "
+     "exposed (P18 diesel, ambient heat, spelling, P10)",
+     "metadata.xlsx concordance owner", "2026-07-30",
+     "Removing the pilots' ad-hoc adjustment layer from every PEFA-based "
+     "build"),
+    ("10",
+     "Agree the JRC-IDEES process-code concordance and the rules for "
+     "heating / process_normal / process_special",
+     "Energy/purpose work-stream colleagues", "2026-07-30",
+     "Structural gap 2 (the purpose dimension)"),
+    ("11",
+     "ETS: maintain a reviewed installation→industry concordance, or "
+     "redesign at regulatory-activity level? Plus the fuel/emission-factor "
+     "method for in_ETS",
+     "Model owners + emissions colleagues", "2026-07-30",
+     "The ets.xlsx industry bridge and the in_ETS part of gap 2"),
+    ("13",
+     "Accept the evidence-backed non-energy residuals (CPA_C16 ≥98.5%, "
+     "CPA_E37-E39 ≥85%) as permanent disclosed features of the public-core "
+     "method (recommended)",
+     "Energy-money work-stream colleagues", "2026-07-31",
+     "Formally closing the Sweden monetary-residual work stream"),
+    ("16",
+     "Which person concept does the Danish employed column use? (uniform "
+     "+3.52% vs national accounts while hours match exactly)",
+     "employed.xlsx author (MAKRO/DST side)", "2026-07-31",
+     "Only the nEmployed(t) scalar — low stakes"),
+    ("Invest",
+     "Investment split method: Denmark-as-prior, time-invariant shares, "
+     "Julia as a new toolchain dependency",
+     "Model owners / management", "2026-08-07",
+     "Starting the gap-3 estimator and the Denmark back-test"),
+    ("18",
+     "Pension-asset reallocation: replicate the Danish adjustment from "
+     "S128_S129 subsector balance sheets (published EU-wide), or accept "
+     "the unadjusted Eurostat definition? It is worth 2,703.8 bn DKK of "
+     "equity and +837.3 bn DKK of household net wealth, and the live "
+     "module does not implement it",
+     "Model owners", "2026-08-18",
+     "Closing the institutional_financial_accounts row; household-wealth "
+     "levels in calibration"),
 ]
 
 HEADER_FILL = PatternFill("solid", fgColor="1F4E79")
@@ -777,6 +959,37 @@ def _write_table(ws, headers, rows, widths, status_col_idx):
     _autofit_row_heights(ws, widths)
 
 
+def _write_plain_table(ws, headers, rows, widths, fill_col_idx=None,
+                       fill_map=None):
+    """Table writer for sheets whose highlight column uses its own
+    vocabulary (Progress / Decisions) instead of the Status legend."""
+    ws.append(headers)
+    for cell in ws[1]:
+        cell.fill = HEADER_FILL
+        cell.font = HEADER_FONT
+        cell.alignment = Alignment(wrap_text=True, vertical="center")
+    for row in rows:
+        ws.append(row)
+    for col_idx, width in enumerate(widths, start=1):
+        ws.column_dimensions[get_column_letter(col_idx)].width = width
+    for row in ws.iter_rows(min_row=2):
+        for cell in row:
+            cell.alignment = WRAP_TOP
+            cell.border = THIN_BORDER
+        if fill_col_idx is not None:
+            cell = row[fill_col_idx - 1]
+            key = cell.value
+            if key not in fill_map:
+                raise ValueError(f"Illegal state {key!r} in sheet {ws.title}")
+            cell.fill = PatternFill("solid", fgColor=fill_map[key])
+            cell.font = Font(bold=True)
+            cell.alignment = Alignment(vertical="top", horizontal="center",
+                                       wrap_text=True)
+    ws.freeze_panes = "A2"
+    ws.auto_filter.ref = f"A1:{get_column_letter(len(headers))}{ws.max_row}"
+    _autofit_row_heights(ws, widths)
+
+
 def build_workbook() -> Workbook:
     wb = Workbook()
 
@@ -798,9 +1011,21 @@ def build_workbook() -> Workbook:
          "well that source reproduces the Danish numbers in the completed pilot "
          "reconciliations (Denmark 2020 and Sweden 2020).",),
         (),
-        ("Sheets: 'Summary' has one row per input file — the one-page view. "
-         "'Detail' breaks each input into its individual variables/datapoints, "
-         "because pieces of one file can have very different statuses.",),
+        ("Sheets: 'Progress' is the scoreboard — one line per input: piloted "
+         "or not, when, and the headline result. 'Decisions' lists every "
+         "question currently waiting on colleagues, with owner, age and what "
+         "it blocks — the sheet to bring to a meeting. 'Summary' has one row "
+         "per input file — the one-page view. 'Detail' breaks each input "
+         "into its individual variables/datapoints, because pieces of one "
+         "file can have very different statuses.",),
+        (),
+        ("Where it stands (see Progress): 9 of the 13 inputs needing "
+         "replacement have pilot or build evidence, 1 is probed and rescoped "
+         "(the investment split), and 3 are untouched (fixed assets — next "
+         "in line, the non-energy emissions split, and the household "
+         "consumption detail). No input has been found infeasible. The "
+         "binding constraint is now the Decisions sheet: several open items "
+         "block more than one pilot.",),
         (),
         (f"All content is transcribed from {SOURCE_DOC} (the technical audit "
          "log) and the pilot reconciliation workbooks named in the 'Verified in' "
@@ -826,6 +1051,32 @@ def build_workbook() -> Workbook:
         ws.row_dimensions[row].height = 30
     ws.column_dimensions["A"].width = 18
     ws.column_dimensions["B"].width = 100
+
+    # -------------------------------------------------------------- Progress
+    ws_prog = wb.create_sheet("Progress")
+    prog_rows = [(i + 1, *row) for i, row in enumerate(PROGRESS_ROWS)]
+    _write_plain_table(
+        ws_prog,
+        PROGRESS_HEADERS,
+        prog_rows,
+        widths=[4, 34, 14, 14, 12, 62, 44],
+        fill_col_idx=4,
+        fill_map=PROGRESS_STATE_FILLS,
+    )
+
+    # ------------------------------------------------------------- Decisions
+    ws_dec = wb.create_sheet("Decisions")
+    today_date = dt.date.today()
+    dec_rows = []
+    for dec_id, question, owner, raised, blocks in DECISIONS_ROWS:
+        days_open = (today_date - dt.date.fromisoformat(raised)).days
+        dec_rows.append((dec_id, question, owner, raised, days_open, blocks))
+    _write_plain_table(
+        ws_dec,
+        DECISIONS_HEADERS,
+        dec_rows,
+        widths=[8, 62, 26, 12, 10, 52],
+    )
 
     # --------------------------------------------------------------- Summary
     ws_sum = wb.create_sheet("Summary")
@@ -856,7 +1107,9 @@ def main() -> None:
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     wb.save(OUTPUT_PATH)
     print(f"Wrote {OUTPUT_PATH}")
-    print(f"Summary rows: {len(SUMMARY_ROWS)}; Detail rows: {len(DETAIL_ROWS)}")
+    print(f"Summary rows: {len(SUMMARY_ROWS)}; Detail rows: {len(DETAIL_ROWS)}; "
+          f"Progress rows: {len(PROGRESS_ROWS)}; "
+          f"Decisions rows: {len(DECISIONS_ROWS)}")
 
 
 if __name__ == "__main__":

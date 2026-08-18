@@ -101,7 +101,7 @@
     <h1>GREU → EU Framework</h1>
     <div class="subtitle">Data roadmap &amp; progress tracker — replacing Statistics Denmark with EU-wide sources</div>
   </div>
-  <div class="date">Status: 17 August 2026<br>DREAM · GREU</div>
+  <div class="date">Status: 18 August 2026<br>DREAM · GREU</div>
 </div>
 
 <p class="lead"><b>Goal:</b> a version of GREU that any EU member state can run, using only data
@@ -129,11 +129,14 @@ non-energy goods and services sharing a broad category with energy, not hidden e
 (§6). What remains is chiefly
 <i>classification and construction</i>: exact industry-purpose energy in PJ (including
 <span class="src">in_ETS</span>), narrower product controls, the investment split, and conversion
-of the model's other still-Danish inputs. That conversion has now started: a sixth Denmark
-pilot (31 July) tested the smallest remaining input — <b>employment</b> — and Eurostat
-reproduces its load-bearing content essentially exactly (hours match to the rounding digit;
-see §6), confirming the first “OK” verdict of the new one-input-per-increment
-parameterization phase.</div>
+of the model's other still-Danish inputs. That conversion has now started and is moving quickly: four inputs have been
+piloted in the one-input-per-increment parameterization phase — <b>employment</b> (31 July,
+hours match to the rounding digit), the <b>emissions bridge</b> (17 August, zero EU-wide
+coverage gaps), <b>government finances</b> (17 August, number-exact to the third decimal),
+and <b>financial accounts</b> (18 August), where the pilot found the model already runs on
+live Eurostat data for this input and verified that route (see §6). Nine of the thirteen
+inputs now have pilot or build evidence and none has proved infeasible — the binding
+constraint has shifted from data feasibility to the <b>open decisions in §7</b>.</div>
 
 <div class="verified"><span class="tag v">Sweden package accepted · compatibility boundary only</span>
 The monetary-energy interface will use a <b>coarser public-EU core</b> with an
@@ -167,8 +170,9 @@ from existence-only to numerically tested controls. The 3 FIGARO codes were prov
 The 31 Jul residual pilots additionally live-verified PRODCOM (<span class="src">DS-059358</span> on the
 Comext API) and five waste-statistics datasets as evidence sources; these are not counted in the 25.
 The 31 Jul employment pilot moved <span class="src">nama_10_a64_e</span> from existence-only to
-numerically tested, and the 17 Aug emissions-bridge pilot did the same for
-<span class="src">env_ac_aibrid_r2</span>.
+numerically tested, the 17 Aug emissions-bridge pilot did the same for
+<span class="src">env_ac_aibrid_r2</span>, and the 18 Aug financial-accounts pilot for
+<span class="src">nasa_10_f_bs</span> and <span class="src">nasa_10_nf_tr</span>.
 The OK / coarser / gap counts sum to <b>14</b>, not 12, because two input files split across
 several rows in §2 — their components come from different EU sources.
 Audit trail: §"Audit log" in <span class="src">docs/eu_data_mapping.md</span>.</p>
@@ -186,8 +190,9 @@ roadmap is about the left-hand end of that chain.</p>
 <p class="caption">Traced end-to-end 28 Jul. <span class="src">data_from_GR.gms</span> is the natural
 integration point for EU data. Implemented 30 Jul: only the two monetary-energy workbook paths, the
 complete marginal-rate GDX and generated country GDX are configurable; all unrelated transformations
-remain unchanged. The financial-accounts branch already pulls Eurostat live (PR #107) — it is out of
-scope as a work stream but is the in-repo <b>template</b> every replacement should copy.</p>
+remain unchanged. The financial-accounts branch already pulls Eurostat live (PR #107) — and the 18 Aug pilot
+verified its numbers against the Danish input (see §6): it is the in-repo <b>template</b>
+every replacement should copy, now with known, listed defects to fix.</p>
 
 <p style="margin-top:6pt"><b>How many input files, exactly?</b> The folder listing is misleading, so
 the count narrows in three steps:</p>
@@ -296,7 +301,7 @@ the technology catalogue and the financial-accounts module — are out of scope.
   <tr><td>Financial accounts<br><span class="kbd">institutional_financial_accounts</span></td>
       <td><span class="src">nasa_10_f_bs</span> + <span class="src">nasa_10_nf_tr</span></td>
       <td><span class="verdict ok">OK</span></td>
-      <td>Replicate pension-asset reallocation (F6). A separate live Eurostat-pull module (<span class="kbd">data/Modules/financial_accounts/</span>) already fetches <span class="src">nasa_10_f_bs</span> and shows the pattern to follow, but it is Denmark-only, missing the interest/dividend/revaluation variables, has no pension-reallocation logic yet, and is not wired into <span class="kbd">read_data.py</span> — not yet done, just a proven template.</td></tr>
+      <td><b>Pilot done 18 Aug, with a twist: the model never reads this spreadsheet</b> — it already loads these positions from the live Eurostat module (<span class="kbd">data/Modules/financial_accounts/</span>), whose route the pilot verified: equity matches exactly for government and rest-of-world, interest/dividend flows match exactly, and <b>all 27 member states publish every needed cell</b>. The Danish pension adjustment (2,703.8 bn DKK of equity moved to households) is quantified but not implemented in the module — a decision for colleagues (§7). Housekeeping: the module hardcodes Denmark/2019–2020 and keeps no download provenance.</td></tr>
   <tr><td>Marginal tax rates<br><span class="kbd">EU_GR_data.gdx</span></td>
       <td>No direct source. Sweden package uses allocated average duty as an explicit average=marginal assumption.</td>
       <td><span class="verdict gap">GAP</span></td>
@@ -695,16 +700,68 @@ splitting keys, or a decision to run other EU countries at the aggregated level 
 </div>
 
 <div class="evidence">
+  <h3>✓ Pilot 9 · Financial accounts: the replacement was already running — now it is verified (nasa_10_f_bs + nasa_10_nf_tr, 18 August)</h3>
+  <p><b>What this input does:</b> the model needs each sector's net financial position — what
+  households, firms, the government and the rest of the world own and owe, split into debt-type
+  instruments and equity — plus the interest and dividend flows between them. The Danish file
+  carries 20 rows for 2020.</p>
+  <p style="margin-top:4pt"><b>The headline is architectural, not numerical: the model never
+  reads this spreadsheet.</b> Code tracing showed all eight values built from it are orphaned —
+  the model loads its two financial stock inputs from the live Eurostat module instead, and
+  generates the flows internally from calibrated rates. So the EU replacement has been in
+  production all along, unverified. The pilot verified it: where the Danish data applies no
+  adjustment (government and rest-of-world), Eurostat equity matches <b>exactly</b>
+  (to 0.007 and 0.020 bn DKK on net positions of 703 and −1,003 bn), and interest and dividend
+  flows match exactly on both the received and paid side. It also settled a definition dispute:
+  two competing debt/equity definitions exist in the repo, and only the live module's
+  (equity = ESA instrument F5) reproduces the Danish numbers — the colleague reference code's
+  (F51) does not.</p>
+  <p style="margin-top:4pt"><b>The one real concept difference is the Danish pension
+  adjustment.</b> Denmark books households' pension savings as if households held the underlying
+  investments directly, rather than claims on pension funds. The pilot pinned this down from the
+  data: 2,703.8 bn DKK of equity moves from financial corporations to households (mirror-exact
+  from both sectors' sides), along with 51.1 bn of interest and 22.4 bn of dividend income, and
+  the moved portfolio equals the insurance/pension subsector's entire balance sheet to within
+  1%. It is <i>not</i> a neutral relabelling — it raises household net financial wealth by
+  837.3 bn DKK — and the live module does not do it. Whether to replicate it (the needed
+  Eurostat detail, subsector S128_S129, is published EU-wide) or adopt the unadjusted
+  definition is now a decision for colleagues (§7). Small unexplained debt-position gaps remain
+  for government (+23.6 bn) and rest-of-world (+46.8 bn), 0.3–1.3%, most likely data-vintage.</p>
+  <p style="margin-top:4pt"><b>Bonus — the government pilot's leftovers, probed in the same
+  session:</b> the flows dataset closes the dividends/rent detail exactly (rent 0.533 bn and the
+  dividend bundle 5.755 bn match to the third decimal), offers a close candidate for the EU-paid
+  farm subsidies (6.809 vs 7.035 bn, −3.2%), bounds but cannot split the domestic/abroad
+  transfer question, and confirms the pension-yield tax is unrecoverable there too.
+  <b>EU-wide coverage: all 27 member states publish every needed cell</b> — the second input
+  ever with zero coverage gaps — including the pension subsector detail, with stock series from
+  1995. <b>Verdict: "OK" confirmed; the row's real status is "already in production, now
+  verified".</b> Artifacts: <span class="src">download_financial_accounts_dk_2020.py</span> and
+  <span class="src">reconcile_financial_accounts_dk_2020.py</span> in
+  <span class="src">data/preprocessing/scripts/</span>, raw deliveries with provenance under
+  <span class="src">financial_accounts_raw/DK/2020/</span>, workbook
+  <span class="src">financial_accounts_dk2020_reconciliation.xlsx</span>.</p>
+</div>
+
+<div class="evidence">
   <h3>✓ Contribution · A colleague's Eurostat-only "core model" (received 17 August)</h3>
-  <p>A colleague independently built a stripped-down GREU variant that runs entirely on live
+  <p>A colleague independently built a stripped-down GREU variant that solves on live
   Eurostat data — no energy, emissions or climate content, and industries aggregated to 19
   sections instead of GREU's 57. It is committed as reference material under
   <span class="src">data/read_eurostat_data/</span> (see its README for provenance and caveats).
   It is <i>not</i> the deliverable pipeline — it keeps no raw-data provenance and skips the hard
   energy layer this project solved for Sweden — but its dataset mappings are working, tested
-  concordances: they seeded the government-finances pilot above, cover the balance-sheet and
-  flows datasets needed for the next pilot (financial accounts), and pointed to the
+  concordances: they seeded the government-finances pilot above and the financial-accounts
+  pilot (where, note, its equity definition turned out <i>not</i> to reproduce the Danish
+  numbers — see Pilot 9), and pointed to the
   <span class="src">nama_10_a64_p5</span> discovery that shrinks the investment-split gap (§5③).</p>
+  <p style="margin-top:4pt"><b>Follow-up (18 August):</b> a code audit found her rewritten
+  financial-accounts model module expects variable names her data-loading script never
+  produces; a conversation with her confirmed this is an incomplete push (not intentional) and
+  that her own validation checked GDP, not financial accounts — the block most likely solves
+  on silently zero-filled data. More decisive for scoping: her model is being rewritten in
+  Julia by a second colleague, so the GAMS model modules are a shrinking asset regardless.
+  This project now treats her contribution as a source of Eurostat dataset mappings only, not
+  as model code to adopt or reconcile.</p>
 </div>
 
 <div class="evidence">
@@ -746,6 +803,40 @@ ships and aircraft count even when operating abroad. GREU's bunker products are 
 territorial/UNFCCC scope—do not subtract bunker rows ad hoc.</div>
 
 <h2><span class="num">7</span>Decisions and open questions<span class="hint">what blocks the next stage</span></h2>
+
+<p><b>The decision register.</b> Data feasibility is no longer the bottleneck — these nine open
+items are. The table is the meeting view (mirrored as the <b>Decisions</b> sheet of
+<span class="src">docs/EU_data_overview.xlsx</span>); the numbered questions below give each
+item's full context. IDs follow the open-items list in
+<span class="src">docs/eu_data_mapping.md</span>.</p>
+
+<table>
+  <thead><tr><th style="width:6%">ID</th><th style="width:38%">Decision needed</th>
+  <th style="width:18%">Owner</th><th style="width:9%">Raised</th><th style="width:29%">What it blocks</th></tr></thead>
+  <tbody>
+  <tr><td><b>6</b></td><td>Which industry splits finer than NACE A64 survive EU-wide? (→ Q3)</td>
+      <td>Model owners</td><td>28 Jul</td><td>The industry dimension of every converted input — decided late, packages may need re-cutting</td></tr>
+  <tr><td><b>7</b></td><td>Re-exports, and the NACE-L ↔ housing real-estate split</td>
+      <td>Concordance owner</td><td>29 Jul</td><td>Exact reconciliation in three pilots (FIGARO, PEFA, employment)</td></tr>
+  <tr><td><b>8</b></td><td>Approve the four energy-product concordance fixes (→ Q5)</td>
+      <td>Concordance owner</td><td>30 Jul</td><td>Removing the pilots' ad-hoc adjustment layer</td></tr>
+  <tr><td><b>10</b></td><td>IDEES process-code concordance and purpose rules</td>
+      <td>Energy work stream</td><td>30 Jul</td><td>Structural gap ② (the purpose dimension)</td></tr>
+  <tr><td><b>11</b></td><td>ETS: reviewed installation→industry map, or activity-level redesign? (→ Q1)</td>
+      <td>Model + emissions</td><td>30 Jul</td><td>The ETS industry bridge and in_ETS energy</td></tr>
+  <tr><td><b>13</b></td><td>Accept the two evidence-backed non-energy residuals as permanent, disclosed features (→ Q7; recommended)</td>
+      <td>Energy work stream</td><td>31 Jul</td><td>Formally closing the Sweden monetary-residual stream</td></tr>
+  <tr><td><b>16</b></td><td>Which person concept does the Danish employment column use? (→ Q8)</td>
+      <td>employed.xlsx author</td><td>31 Jul</td><td>One national scalar — low stakes</td></tr>
+  <tr><td><b>Inv</b></td><td>Investment split method: Denmark-as-prior, time-invariant shares, Julia toolchain</td>
+      <td>Model owners / mgmt</td><td>7 Aug</td><td>Starting the gap-③ estimator and Denmark back-test</td></tr>
+  <tr><td><b>18</b></td><td>Pension adjustment: replicate the Danish reallocation EU-wide, or adopt the unadjusted definition? (→ Q9)</td>
+      <td>Model owners</td><td>18 Aug</td><td>Closing the financial-accounts row; household wealth levels in calibration</td></tr>
+  </tbody>
+</table>
+<p class="caption">Three of the nine (6, 7, 11) block more than one work stream. Q2 and Q4 below
+are smaller repo-internal questions tracked outside the register.</p>
+
 <div class="q"><span class="status">☑ EUTL tested &nbsp; ☐ construction and GREU meaning confirmed</span>
   <b>Q1 · What does in_ETS cover exactly?</b><br>
   Confirmed mutually exclusive with the other purposes, so purpose sums are safe — but what qualifies a
@@ -803,12 +894,60 @@ territorial/UNFCCC scope—do not subtract bunker rows ad hoc.</div>
   definitional difference in who counts as an "employed person" (e.g. annual average vs a
   point-in-time or register concept), not a data error. Only one number in the model depends on
   the answer: the national employment scalar. The per-industry wage imputation is unaffected.</div>
+<div class="q"><span class="status">☐ asked &nbsp; ☐ answered</span>
+  <b>Q9 · Replicate the Danish pension adjustment, or adopt the unadjusted definition?</b><br>
+  Denmark counts households' pension savings as if households held the underlying investments
+  directly (worth 2,703.8 bn DKK of equity and +837.3 bn DKK of household net wealth in 2020 —
+  quantified by the 18 Aug pilot). The model currently runs on <i>unadjusted</i> Eurostat data,
+  because the live module never implemented the adjustment. Both options are viable: the
+  Eurostat detail needed to replicate it (the insurance/pension subsector's balance sheet,
+  S128_S129) is published for all 27 member states, or the unadjusted definition can be adopted
+  as the EU-generic concept — but then household wealth levels mean something slightly
+  different than in the Danish model. This choice affects the household-wealth calibration.</div>
 
 <div class="pagebreak"></div>
 
 <h2><span class="num">8</span>Task list<span class="hint">where things stand</span></h2>
 
-<p class="phase">Phase 0 — Foundations</p>
+<p><b>The scoreboard.</b> One line per input needing replacement (mirrored as the
+<b>Progress</b> sheet of <span class="src">docs/EU_data_overview.xlsx</span>): 9 of 13 have
+pilot or build evidence, 1 is probed and rescoped, 3 are untouched. No input has been found
+infeasible.</p>
+
+<table>
+  <thead><tr><th style="width:26%">Input</th><th style="width:13%">State</th>
+  <th style="width:9%">Date</th><th style="width:52%">Headline</th></tr></thead>
+  <tbody>
+  <tr><td>IO table (io_long_format)</td><td><span class="verdict ok">PILOTED</span></td><td>29 Jul</td>
+      <td>Totals ≤0.1%; re-exports and finer-than-NACE splits open (decisions 6, 7)</td></tr>
+  <tr><td>Energy IO in money</td><td><span class="verdict ok">BUILT</span></td><td>30–31 Jul</td>
+      <td>Sweden 2020 package accepted; residuals disclosed and characterized</td></tr>
+  <tr><td>Energy &amp; emissions</td><td><span class="verdict ok">PILOTED</span></td><td>30 Jul</td>
+      <td>Physical −0.61%, CO₂ −0.007%; purpose and price layers must be constructed (gap ②)</td></tr>
+  <tr><td>Non-energy emissions</td><td><span class="verdict coarser">PARTLY</span></td><td>30 Jul</td>
+      <td>Combined boundary verified inside the PEFA pilot; the energy/non-energy split derivation untested</td></tr>
+  <tr><td>Emissions bridge</td><td><span class="verdict ok">PILOTED</span></td><td>17 Aug</td>
+      <td>≤0.05% per gas; zero EU-27 coverage gaps</td></tr>
+  <tr><td>Employment</td><td><span class="verdict ok">PILOTED</span></td><td>31 Jul</td>
+      <td>Hours essentially exact; persons +3.52% concept question (decision 16)</td></tr>
+  <tr><td>Fixed assets</td><td><span class="verdict gap">NOT PILOTED</span></td><td>—</td>
+      <td><b>Next in line</b>: nama_10_nfa_st at 21 industry groups; doubles as gap-③ groundwork</td></tr>
+  <tr><td>Investment split</td><td><span class="verdict coarser">PROBED</span></td><td>17 Aug</td>
+      <td>Rescoped to two margins; use side near-direct for 13/27 countries; method decision pending</td></tr>
+  <tr><td>ETS</td><td><span class="verdict ok">PILOTED</span></td><td>30 Jul</td>
+      <td>Totals +0.007%; industry bridge and EUA price are decisions (11)</td></tr>
+  <tr><td>Government finances</td><td><span class="verdict ok">PILOTED</span></td><td>17 Aug</td>
+      <td>Number-exact except interest revenue +0.62%; enumerable leftovers, mostly closed by Pilot 9</td></tr>
+  <tr><td>Financial accounts</td><td><span class="verdict ok">PILOTED</span></td><td>18 Aug</td>
+      <td>Model already runs on the EU source, now verified; pension adjustment is decision 18</td></tr>
+  <tr><td>HH consumption detail</td><td><span class="verdict gap">NOT PILOTED</span></td><td>—</td>
+      <td>nama_10_co3_p3 at 2–3 digit COICOP vs the Danish 4-digit map</td></tr>
+  <tr><td>Marginal tax rates (EU_GR_data)</td><td><span class="verdict ok">BUILT</span></td><td>30–31 Jul</td>
+      <td>Sweden GDX with explicit average=marginal assumption; excise engine still needed (gap ④)</td></tr>
+  </tbody>
+</table>
+
+<p class="phase" style="margin-top:9pt">Phase 0 — Foundations</p>
 <ul class="clean">
   <li><span class="cb done"></span><span class="done-txt">Agent + shared instructions set up (AGENTS.md, data-analyst agent)</span></li>
   <li><span class="cb done"></span><span class="done-txt">Danish energy data semantics verified &amp; documented (energy_data_notes.md)</span></li>
@@ -854,7 +993,9 @@ territorial/UNFCCC scope—do not subtract bunker rows ad hoc.</div>
   <li><span class="cb done"></span><span class="done-txt">17 Aug: second OK-verdict input piloted: emissions_bridge_items.xlsx vs env_ac_aibrid_r2 (DK 2020). Net residence adjustment within 0.05% per gas; LULUCF concept-exact (level is inventory vintage); complete EU-27 coverage — the first pilot with no gaps</span></li>
   <li><span class="cb done"></span><span class="done-txt">17 Aug: third OK-verdict input piloted: government_finances.xlsx vs gov_10a_main + gov_10a_taxag (DK 2020). Number-exact — every mappable row to the third decimal except interest revenue (+0.62%); the expected MAKRO gap did not materialize. 14/27 countries complete. Leftovers with named candidates: dom/RoW transfer splits, dividends/rent detail, pension-yield tax, EU-paid CAP subsidies</span></li>
   <li><span class="cb done"></span><span class="done-txt">17 Aug: a colleague's Eurostat-only "EU core" GREU variant received and committed as reference material (data/read_eurostat_data/) — no energy/climate content, 19-industry aggregation, live-API pulls; its dataset mappings seeded the government pilot and pointed to the nama_10_a64_p5 investment finding</span></li>
-  <li><span class="cb"></span><b>▶ next session:</b> continue the OK-verdict pilots — <span class="src">institutional_financial_accounts.xlsx</span> next, reusing the financial-accounts module's <span class="src">nasa_10_f_bs</span> pull (replicate the pension-asset reallocation) and the colleague's <span class="src">nasa_10_f_bs</span>/<span class="src">nasa_10_nf_tr</span> modules as concordance seed; while in <span class="src">nasa_10_nf_tr</span>, probe the government pilot's four leftovers</li>
+  <li><span class="cb done"></span><span class="done-txt">18 Aug: follow-up conversation with the colleague — confirmed the financial-accounts naming skew is an incomplete push (not intentional) and her validation checked GDP only; her model is being rewritten in Julia by a second colleague, so her GAMS model modules are out of scope going forward — only the Python dataset-sourcing scripts remain relevant reference material</span></li>
+  <li><span class="cb done"></span><span class="done-txt">18 Aug: fourth input piloted: institutional_financial_accounts.xlsx vs nasa_10_f_bs + nasa_10_nf_tr (DK 2020). Headline: the model never reads the Excel — the live Eurostat module supplies the two used values, now verified (equity = F5 exact; flows exact; all 27 countries complete). Pension adjustment quantified (2,703.8 bn DKK equity, +837.3 bn household wealth) and unimplemented → decision 18; module hardening (hardcoded DK/years, no provenance) is a named follow-up. Same session probed the government leftovers: rent and the dividend bundle closed exactly, CAP candidate −3.2%, transfer splits only bounded, PAL impossible</span></li>
+  <li><span class="cb"></span><b>▶ next session:</b> continue the pilots — <span class="src">fixed_assets.xlsx</span> vs <span class="src">nama_10_nfa_st</span> next (stocks at 21 industry groups × asset type; the pilot doubles as groundwork for the investment split, so probe <span class="src">nama_10_a64_p5</span> investment detail alongside); then non-energy emissions and the household consumption detail</li>
   <li><span class="cb"></span>Generalize the remaining non-energy inputs before any full Sweden run; only then choose a second country</li>
   <li><span class="cb"></span>Hole-filling rules documented for countries with missing pieces</li>
   <li><span class="cb"></span>Full EU-27 data build; model runs on EU-sourced data</li>
