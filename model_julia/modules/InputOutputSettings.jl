@@ -3,11 +3,11 @@ module InputOutputSettings
 
 const input_output_data_dir = joinpath(@__DIR__, "..", "data", "input_output")
 
-const eurostat_dataset = "naio_10_fcp_ii3"
+const eurostat_supply_dataset = "naio_10_cp15"
+const eurostat_use_dataset = "naio_10_cp1610"
 const eurostat_margin_dataset = "naio_10_cp1620"
+const eurostat_net_product_tax_dataset = "naio_10_cp1630"
 const eurostat_unit = "MIO_EUR"
-const national_accounts_dataset = "nama_10_gdp"
-const national_accounts_unit = "CP_MEUR"
 const cell_tolerance = 1e-6
 
 const model_sections = [
@@ -39,18 +39,17 @@ const use = [industry; final_uses]
 # Inventory changes are signed and exogenous, so they bypass the fixed shares.
 const ordinary_uses = setdiff(use, [:INV])
 
-const demand_rename = Dict(
+const final_use_rename = Dict(
   "P3_S14" => :C,
   "P3_S15" => :C,
   "P3_S13" => :G,
   "P51G" => :K,
-  "P52" => :INV,
   "P5M" => :INV,
+  "P6" => :X,
 )
 
 # Eurostat's standard SUT detail is A*64 for NACE industries and P*64 for CPA
-# products. National SUT codes split real estate into L68A and L68B. FIGARO
-# uses section L and full division codes for some other sections.
+# products. The national tables split real estate into L68A and L68B.
 const sut_detail_codes = [
   "A01", "A02", "A03", "B", "C10-12", "C13-15", "C16", "C17", "C18", "C19",
   "C20", "C21", "C22", "C23", "C24", "C25", "C26", "C27", "C28", "C29",
@@ -60,39 +59,15 @@ const sut_detail_codes = [
   "M74_75", "N77", "N78", "N79", "N80-82", "O", "P", "Q86", "Q87_88",
   "R90-92", "R93", "S94", "S95", "S96", "T", "U",
 ]
-const figaro_a64_aliases = Dict("D35" => :D, "L" => :L, "O84" => :O, "P85" => :P)
-const nace_a64_to_p21 = merge(
-  Dict(code => Symbol(first(code)) for code in sut_detail_codes),
-  figaro_a64_aliases,
-)
 const nace_a64_to_a21 = Dict(
-  code => section_to_industry[section]
-  for (code, section) in nace_a64_to_p21
+  code => section_to_industry[Symbol(first(code))]
+  for code in sut_detail_codes
 )
 const cpa_p64_to_p21 = Dict(
   "CPA_$code" => Symbol(first(code))
   for code in sut_detail_codes
 )
-@assert Set(values(nace_a64_to_p21)) == Set(product) "NACE map must cover each model product"
 @assert Set(values(nace_a64_to_a21)) == Set(industry) "NACE map must cover each model industry"
 @assert Set(values(cpa_p64_to_p21)) == Set(product) "CPA map must cover each model product"
-
-const margin_final_use_rename = Dict(
-  "P3_S14" => :C,
-  "P3_S15" => :C,
-  "P3_S13" => :G,
-  "P51G" => :K,
-  "P52" => :INV,
-  "P6" => :X,
-)
-
-const accounting_rename = Dict(
-  "D21X31" => :vProductTax_u,
-  "D29X39" => :vOtherProductionTax_i,
-  "D1" => :vWage_i,
-  "B2A3G" => :vOperatingSurplus_i,
-)
-
-const accounting_rows = collect(values(accounting_rename))
 
 end # module
