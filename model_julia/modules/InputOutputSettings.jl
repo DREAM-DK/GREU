@@ -17,13 +17,13 @@ const model_sections = [
 
 # Products use CPA section labels. Industry labels need a prefix because final
 # uses use scalar national-account symbols such as :C and :G.
-const P = copy(model_sections)
+const product = copy(model_sections)
 const section_to_industry = Dict(section => Symbol("i$section") for section in model_sections)
-const I = [section_to_industry[section] for section in model_sections]
+const industry = [section_to_industry[section] for section in model_sections]
 
 # Wholesale and retail trade, and transport, supply the margin services.
 const margin_services = [:G, :H]
-@assert margin_services ⊆ P "Margin services must be products"
+@assert margin_services ⊆ product "Margin services must be products"
 
 const final_uses = [
   :C,
@@ -32,12 +32,12 @@ const final_uses = [
   :K,
   :INV,
 ]
-const O = [:domestic, :import]
+const origin = [:domestic, :import]
 
-const U = [I; final_uses]
-@assert allunique(U) "Industry and final-use labels must be distinct"
+const use = [industry; final_uses]
+@assert allunique(use) "Industry and final-use labels must be distinct"
 # Inventory changes are signed and exogenous, so they bypass the fixed shares.
-const ordinary_uses = setdiff(U, [:INV])
+const ordinary_uses = setdiff(use, [:INV])
 
 const demand_rename = Dict(
   "P3_S14" => :C,
@@ -73,9 +73,9 @@ const cpa_p64_to_p21 = Dict(
   "CPA_$code" => Symbol(first(code))
   for code in sut_detail_codes
 )
-@assert Set(values(nace_a64_to_p21)) == Set(P) "NACE map must cover each model product"
-@assert Set(values(nace_a64_to_a21)) == Set(I) "NACE map must cover each model industry"
-@assert Set(values(cpa_p64_to_p21)) == Set(P) "CPA map must cover each model product"
+@assert Set(values(nace_a64_to_p21)) == Set(product) "NACE map must cover each model product"
+@assert Set(values(nace_a64_to_a21)) == Set(industry) "NACE map must cover each model industry"
+@assert Set(values(cpa_p64_to_p21)) == Set(product) "CPA map must cover each model product"
 
 const margin_final_use_rename = Dict(
   "P3_S14" => :C,

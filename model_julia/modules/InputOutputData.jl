@@ -10,8 +10,6 @@ using DataFrames
 import ..EurostatClient
 using ..Settings: calibration_year, country_code
 import ..InputOutputSettings:
-  P,
-  U,
   margin_services,
   accounting_rename,
   accounting_rows,
@@ -27,13 +25,15 @@ import ..InputOutputSettings:
   nace_a64_to_p21,
   national_accounts_dataset,
   national_accounts_unit,
-  section_to_industry
+  product,
+  section_to_industry,
+  use
 import ..DataRefreshUtils: long_format, sum_by
 
 const data_years = (calibration_year - 1):calibration_year
 const year_params = ["time" => string(y) for y in data_years]
 
-# Index of a direct-use cell, in the order the model reads it.
+# Index of a purchaser-use cell, in the order the model reads it.
 const cell_index = [:product, :use, :origin, :year]
 const cell_columns = [cell_index; :value]
 sum_cells(parts...) = sum_by(vcat(parts...), cell_index)
@@ -131,14 +131,14 @@ function input_output_table(domestic, exports)
     vcat(domestic_flows(domestic), export_flows(exports)),
     [:row, :use, :origin, :year],
   )
-  is_product = in.(table.row, Ref(Set(P)))
+  is_product = in.(table.row, Ref(Set(product)))
   is_accounting =
     (table.origin .== :domestic) .& in.(table.row, Ref(Set(accounting_rows)))
-  return table[in.(table.use, Ref(Set(U))) .& (is_product .| is_accounting), :]
+  return table[in.(table.use, Ref(Set(use))) .& (is_product .| is_accounting), :]
 end
 
-reported_direct_use(table) = rename(
-  table[in.(table.row, Ref(Set(P))), [:row, :use, :origin, :year, :value]],
+reported_purchaser_use(table) = rename(
+  table[in.(table.row, Ref(Set(product))), [:row, :use, :origin, :year, :value]],
   :row => :product,
 )
 
@@ -157,7 +157,7 @@ function direct_purchase_adjustment(domestic, code)
 end
 
 # ============================================================================
-# Reported, estimated, and model-set direct use
+# Reported, estimated, and model-set purchaser use
 # ============================================================================
 
 """Non-residents' purchases in the country. The product cells already include
@@ -190,17 +190,17 @@ function resident_purchase_imports(reported, residents)
 end
 
 """Deflate tourist spend with the combined private-consumption price. At the
-benchmark, this price is purchaser spend divided by direct consumption volume."""
+benchmark, this price is purchaser spend divided by purchaser-use volume."""
 function tourist_quantities(
   tourist_spend,
-  direct,
+  purchaser_use,
   carried_margins,
   service_totals,
   product_taxes,
 )
-  direct_totals = rename(
-    sum_by(direct[direct.use .== :C, :], [:year]),
-    :value => :direct,
+  purchaser_use_totals = rename(
+    sum_by(purchaser_use[purchaser_use.use .== :C, :], [:year]),
+    :value => :purchaser_use,
   )
   service_use_totals = rename(
     sum_by(service_totals[service_totals.use .== :C, :], [:year]),
@@ -214,11 +214,11 @@ function tourist_quantities(
     product_taxes[product_taxes.use .== :C, [:year, :value]],
     :value => :taxes,
   )
-  prices = innerjoin(direct_totals, service_use_totals, on = :year)
+  prices = innerjoin(purchaser_use_totals, service_use_totals, on = :year)
   prices = innerjoin(prices, margin_totals, on = :year)
   prices = innerjoin(prices, tax_totals, on = :year)
   @assert nrow(prices) == nrow(tourist_spend) "Each tourist total needs a consumption price"
-  prices.quantity = prices.direct .- prices.services
+  prices.quantity = prices.purchaser_use .- prices.services
   @assert all(prices.quantity .> cell_tolerance) "Consumption volume must be positive"
   prices.price = (prices.quantity .+ prices.margins .+ prices.taxes) ./ prices.quantity
   quantities = innerjoin(tourist_spend, prices[:, [:year, :price]], on = :year)
@@ -230,14 +230,14 @@ end
 domestic output only, so the gap to national-accounts exports is re-export. SNA
 books the gap as a trade margin, so it goes to wholesale and retail trade
 (`:G`)."""
-function reexport_flows(direct_before_reexports, product_taxes, tourist_spend)
+function reexport_flows(purchaser_use_before_reexports, product_taxes, tourist_spend)
   exports = mapped_country_table(
     national_accounts_dataset,
     "na_item",
     Dict("P6" => :X),
     :use,
   )
-  existing = direct_before_reexports[direct_before_reexports.use .== :X, :]
+  existing = purchaser_use_before_reexports[purchaser_use_before_reexports.use .== :X, :]
   existing = rename(sum_by(existing, [:year]), :value => :existing)
   export_taxes = rename(
     product_taxes[product_taxes.use .== :X, [:year, :value]],
@@ -271,13 +271,13 @@ function margin_source_parts(table)
   return carried, services
 end
 
-"""Take reported margin services out of direct use. T1620 supplies each
-service total. FIGARO direct-use cells supply its standard origin shares."""
-function margin_reclassification(direct_before_margins, service_totals)
+"""Take reported margin services out of purchaser use. T1620 supplies each
+service total. FIGARO purchaser-use cells supply its standard origin shares."""
+function margin_reclassification(purchaser_use_before_margins, service_totals)
   basis = innerjoin(
     rename(
-      direct_before_margins[
-        in.(direct_before_margins.product, Ref(Set(margin_services))),
+      purchaser_use_before_margins[
+        in.(purchaser_use_before_margins.product, Ref(Set(margin_services))),
         :,
       ],
       :product => :service,
@@ -304,10 +304,10 @@ function margin_reclassification(direct_before_margins, service_totals)
   return adjustments, services
 end
 
-"""Direct use split into its reported, estimated, and reclassified parts, plus
+"""Purchaser use split into its reported, estimated, and reclassified parts, plus
 the product-tax row. Each estimate uses the parts before it as its basis."""
-function direct_use_parts(table, domestic, carried_margins, service_totals)
-  reported = reported_direct_use(table)
+function purchaser_use_parts(table, domestic, carried_margins, service_totals)
+  reported = reported_purchaser_use(table)
   product_taxes = accounting_table(table, :vProductTax_u)
   tourist_spend = reported_tourist_spend(direct_purchase_adjustment(domestic, "OP_NRES"))
   estimated = resident_purchase_imports(
@@ -342,10 +342,10 @@ function reported_supply(reported)
   return supply[:, [:product, :industry, :year, :value]]
 end
 
-"""Purchaser-price spend by use: direct cells, carried-product margins, taxes."""
-demand_checks(direct, carried_margins, product_taxes) = sum_by(
+"""Purchaser-price spend by use: purchaser-use cells, carried margins, and taxes."""
+purchaser_use_checks(purchaser_use, carried_margins, product_taxes) = sum_by(
   vcat(
-    sum_by(direct, [:use, :year]),
+    sum_by(purchaser_use, [:use, :year]),
     sum_by(carried_margins, [:use, :year]),
     product_taxes,
   ),
@@ -363,8 +363,8 @@ function refresh_input_output_data!(dir = input_output_data_dir)
   carried_margins, margin_service_totals = margin_source_parts(fetch_margin_table())
   table = input_output_table(domestic, exports)
   reported, estimated, reclassification, services, product_taxes, tourists =
-    direct_use_parts(table, domestic, carried_margins, margin_service_totals)
-  direct = sum_cells(reported, estimated, reclassification)
+    purchaser_use_parts(table, domestic, carried_margins, margin_service_totals)
+  purchaser_use = sum_cells(reported, estimated, reclassification)
   supply = reported_supply(reported)
   national = mapped_country_table(
     national_accounts_dataset,
@@ -378,16 +378,16 @@ function refresh_input_output_data!(dir = input_output_data_dir)
     joinpath(dir, "input_output_supply.csv"),
     long_format(:qY_p_i_reported, supply, [:product, :industry, :year]),
   )
-  CSV.write(joinpath(dir, "input_output_direct_use.csv"), vcat(
-    long_format(:qD_p_u_o_reported, reported, cell_index),
-    long_format(:qD_p_u_o_estimated, estimated, cell_index),
-    long_format(:qD_p_u_o_reclassified, reclassification, cell_index),
+  CSV.write(joinpath(dir, "input_output_purchaser_use.csv"), vcat(
+    long_format(:qPurchaserUse_p_u_o_reported, reported, cell_index),
+    long_format(:qPurchaserUse_p_u_o_estimated, estimated, cell_index),
+    long_format(:qPurchaserUse_p_u_o_reclassified, reclassification, cell_index),
   ))
   CSV.write(
     joinpath(dir, "input_output_margins.csv"),
     vcat(
-      long_format(:qMargin_p_u_reported, carried_margins, [:product, :use, :year]),
-      long_format(:qS_s_u_o_reclassified, services, [:service, :use, :origin, :year]),
+      long_format(:qMarginBundle_p_u_reported, carried_margins, [:product, :use, :year]),
+      long_format(:qMarginService_s_u_o_reclassified, services, [:service, :use, :origin, :year]),
     ),
   )
   CSV.write(
@@ -396,8 +396,8 @@ function refresh_input_output_data!(dir = input_output_data_dir)
   )
   CSV.write(joinpath(dir, "input_output_checks.csv"), vcat(
     long_format(
-      :vD_u_reported,
-      demand_checks(direct, carried_margins, product_taxes),
+      :vPurchaserUse_u_reported,
+      purchaser_use_checks(purchaser_use, carried_margins, product_taxes),
       [:use, :year],
     ),
     long_format(:vY_reported, sum_by(supply, [:year]), [:year]),
