@@ -23,14 +23,14 @@ const domestic = :domestic
 const import_origin = :import
 
 # ============================================================================
-# Checked-in benchmark data
+# Checked-in data
 # ============================================================================
 
 const supply_file = joinpath(input_output_data_dir, "input_output_supply.csv")
 const purchaser_use_file = joinpath(input_output_data_dir, "input_output_purchaser_use.csv")
 const margin_file = joinpath(input_output_data_dir, "input_output_margins.csv")
-const adjustment_file = joinpath(input_output_data_dir, "input_output_price_adjustments.csv")
-const check_file = joinpath(input_output_data_dir, "input_output_checks.csv")
+const net_product_tax_file = joinpath(input_output_data_dir, "input_output_net_product_tax.csv")
+const aggregate_totals_file = joinpath(input_output_data_dir, "input_output_aggregate_totals.csv")
 
 """Read one variable from a checked-in file into a dictionary keyed by index tuple."""
 function read_cells(file, variable)
@@ -40,8 +40,8 @@ function read_cells(file, variable)
   return cells
 end
 
-"""Benchmark-year value of one cell. Cells the source does not report are zero."""
-benchmark(cells, index...) = get(cells, (index..., calibration_year), 0.0)
+"""Calibration-year value of one cell. Cells the source does not report are zero."""
+calibration_year_value(cells, index...) = get(cells, (index..., calibration_year), 0.0)
 
 """Copy checked-in cells into a model variable. Years the file omits stay `nothing`."""
 fill_cells!(db, var, cells) = db[var] .= [get(cells, key, nothing) for key in keys(var)]
@@ -55,8 +55,8 @@ end
 const qY_p_i_data = read_cells(supply_file, "qY_p_i")
 const qMarginBundle_p_u_data = read_cells(margin_file, "qMarginBundle_p_u")
 const qMarginService_s_u_o_data = read_cells(margin_file, "qMarginService_s_u_o")
-const vNetProductTax_p_u_data = read_cells(adjustment_file, "vNetProductTax_p_u")
-const vNetProductTax_u_data = read_cells(adjustment_file, "vNetProductTax_u")
+const vNetProductTax_p_u_data = read_cells(net_product_tax_file, "vNetProductTax_p_u")
+const vNetProductTax_u_data = read_cells(net_product_tax_file, "vNetProductTax_u")
 const qPurchaserUse_p_u_o_data = read_cells(purchaser_use_file, "qPurchaserUse_p_u_o")
 
 # ============================================================================
@@ -65,7 +65,7 @@ const qPurchaserUse_p_u_o_data = read_cells(purchaser_use_file, "qPurchaserUse_p
 # Each mask is named after the indices it holds. Cells outside a mask have no
 # variable and no equation, so a mask change needs a model rebuild.
 
-"""Cells with a non-negligible benchmark value. The last index is the year."""
+"""Cells with a non-negligible calibration-year value. The last index is the year."""
 active_cells(cells) = Set(
   key[1:(end - 1)]
   for (key, value) in cells
@@ -207,15 +207,15 @@ function set_data!(db)
   @assert Set(p for (p, _) in supply_p_i) == Set(p for (p, o) in supply_p_o if o == domestic) "Domestic product supply must match industry output"
   @assert Set(o for (_, o) in supply_p_o) == Set(origin) "Each origin needs supply"
   @assert all(
-    abs(sum(benchmark(qPurchaserUse_p_u_o_data, p, u, o) for p in product for o in origin)) > cell_tolerance
+    abs(sum(calibration_year_value(qPurchaserUse_p_u_o_data, p, u, o) for p in product for o in origin)) > cell_tolerance
     for u in purchaser_use_u ∩ ordinary_uses
   ) "Each use with a fixed product share needs non-zero demand"
   @assert all(
-    abs(sum(benchmark(qPurchaserUse_p_u_o_data, p, u, o) for o in origin)) > cell_tolerance
+    abs(sum(calibration_year_value(qPurchaserUse_p_u_o_data, p, u, o) for o in origin)) > cell_tolerance
     for (p, u) in net_product_tax_p_u
   ) "Each net product tax needs non-zero purchaser use"
   @assert all(
-    abs(sum(benchmark(qPurchaserUse_p_u_o_data, p, u, o) for o in origin)) > cell_tolerance
+    abs(sum(calibration_year_value(qPurchaserUse_p_u_o_data, p, u, o) for o in origin)) > cell_tolerance
     for (p, u) in reported_margin_p_u
   ) "Each margin rate needs non-zero purchaser use"
 
@@ -231,58 +231,27 @@ function set_data!(db)
     for u in use, tt in t
   ]
 
-  # Totals implied by the cell data. Calibration holds them fixed so residuals
-  # absorb inconsistent source totals and the solver hits the data exactly.
-  for p in Set(p for (p, _) in supply_p_i)
-    db[qY_p[p, calibration_year]] = sum(benchmark(qY_p_i_data, p, i) for i in industry)
-  end
-  for i in supply_i
-    db[qY_i[i, calibration_year]] = sum(benchmark(qY_p_i_data, p, i) for p in product)
-  end
-  for (p, u) in purchaser_use_p_u
-    db[qPurchaserUse_p_u[p, u, calibration_year]] =
-      sum(benchmark(qPurchaserUse_p_u_o_data, p, u, o) for o in origin)
-  end
-  for u in purchaser_use_u ∩ ordinary_uses
-    db[qPurchaserUse_u[u, calibration_year]] =
-      sum(benchmark(qPurchaserUse_p_u_o_data, p, u, o) for p in product for o in origin)
-  end
-  for (s, u) in margin_s_u
-    db[qMarginService_s_u[s, u, calibration_year]] =
-      sum(benchmark(qMarginService_s_u_o_data, s, u, o) for o in origin)
-  end
-  for u in margin_u
-    db[qMarginBundle_u[u, calibration_year]] =
-      sum(benchmark(qMarginService_s_u_o_data, s, u, o) for s in margin_services for o in origin)
-  end
-  db[[
-    qPurchaserUse_p_u_o[p, u, o, tt]
-    for (p, u, o, tt) in keys(qPurchaserUse_p_u_o)
-    if u ∉ ordinary_uses && tt > calibration_year
-  ]] .= 0.0
-
   # The T1630 split is net of product subsidies and includes VAT, tariffs, and
   # other product taxes. Keep it in tNetProduct until a tax module splits it.
   db[tVAT] .= 0.0
   db[pY_p_i] .= 1.0
   db[pM_p_u] .= 1.0
 
-  fill_cells!(db, vPurchaserUse_u, read_cells(check_file, "vPurchaserUse_u"))
-  db[qCTourist] .= read_series(check_file, "qCTourist")
-  db[vM] .= read_series(check_file, "vM")
-  db[vX] .= read_series(check_file, "vX")
-  db[vY] .= read_series(check_file, "vY")
+  fill_cells!(db, vPurchaserUse_u, read_cells(aggregate_totals_file, "vPurchaserUse_u"))
+  db[vCTourist] .= read_series(aggregate_totals_file, "vCTourist")
+  db[vM] .= read_series(aggregate_totals_file, "vM")
+  db[vX] .= read_series(aggregate_totals_file, "vX")
+  db[vY] .= read_series(aggregate_totals_file, "vY")
   return nothing
 end
 
 function set_residual_tolerances!(tolerances)
-  tolerances[vPurchaserUse_u] = 1e-6
   # T1610 and T1630 can differ by EUR 0.01 million in each A64 cell.
   tolerances[vNetProductTax_u] = 0.15
+  tolerances[vM] = 0.15
+  tolerances[vY] = 0.15
   # T1620 rounds the carried-product and service sides to EUR 0.01 million.
   tolerances[qMarginBundle_u] = 0.1
-  tolerances[vX] = 1e-6
-  tolerances[vY] = 1e-6
 end
 
 # ============================================================================
@@ -300,6 +269,9 @@ function define_equations()
 
     qPurchaserUse_p_u_o[(p, u, o, t) in keys(qPurchaserUse_p_u_o); t in t1:T && u in ordinary_uses],
     qPurchaserUse_p_u_o[p, u, o, t] == rOriginShare[p, u, o, t] * qPurchaserUse_p_u[p, u, t]
+
+    qPurchaserUse_p_u_o[(p, u, o, t) in keys(qPurchaserUse_p_u_o); t in t1:T && u == :INV && t > t1],
+    qPurchaserUse_p_u_o[p, u, o, t] == 0
 
     # Derived margin demand. Only uses with reported margins carry a bundle.
     qMarginBundle_p_u[(p, u, t) in keys(qMarginBundle_p_u); t in t1:T],
@@ -452,10 +424,11 @@ function define_equations()
       qMarginService_s_u[s, u, t] == ∑(qMarginService_s_u_o[s, u, o, t] for o in origin)
 
     @test_constraint "Purchaser spend excludes separate margin spending" vPurchaserUse_u[(u, t) in keys(vPurchaserUse_u); t in t1:T],
-      vPurchaserUse_u[u, t] == ∑(vPurchaserUse_p_u_o[p, u, o, t] for p in product for o in origin)
+      ∑(vPurchaserUse_p_u[p, u, t] for p in product) ==
+        ∑(vPurchaserUse_p_u_o[p, u, o, t] for p in product for o in origin)
 
     @test_constraint "Purchaser spend has only recorded price adjustments" vPurchaserUse_u[(u, t) in keys(vPurchaserUse_u); t in t1:T],
-      vPurchaserUse_u[u, t] ==
+      ∑(vPurchaserUse_p_u[p, u, t] for p in product) ==
         ∑(vUse_u_o[u, o, t] for o in origin) +
         ∑(vNetProductTax_p_u[p, u, t] for (p, uu) in net_product_tax_p_u if uu == u) +
         pMarginBundle_u[u, t] * (
@@ -495,9 +468,33 @@ function define_calibration()
 
     [tNetProduct[p, u, tt] for (p, u, tt) in keys(vNetProductTax_p_u) if tt == t1],
     [vNetProductTax_p_u[p, u, tt] for (p, u, tt) in keys(vNetProductTax_p_u) if tt == t1]
+
+    qCTourist[t1], vCTourist[t1]
   end
 
-  return block
+  solver_totals = [
+    [qSupply_p_o[p, o, tt] for (p, o, tt) in keys(qSupply_p_o) if o == domestic && tt == t1];
+    [qMarginBundle_u[u, tt] for (u, tt) in keys(qMarginBundle_u) if tt == t1]
+  ]
+  residual_by_endo = Dict(zip(endogenous(block), residuals(block)))
+  @endo_exo_swap!(block, [residual_by_endo[var] for var in solver_totals], solver_totals)
+
+  return block + @block db begin
+    qSupply_p_o[(p, o, tt) in keys(qSupply_p_o); o == domestic && tt == t1],
+    qSupply_p_o[p, o, tt] == ∑(qY_p_i[p, i, tt] for i in industry)
+
+    qPurchaserUse_p_u[(p, u, tt) in keys(qPurchaserUse_p_u); u in ordinary_uses && tt == t1],
+    qPurchaserUse_p_u[p, u, tt] == ∑(qPurchaserUse_p_u_o[p, u, o, tt] for o in origin)
+
+    qPurchaserUse_u[(u, tt) in keys(qPurchaserUse_u); tt == t1],
+    qPurchaserUse_u[u, tt] == ∑(qPurchaserUse_p_u[p, u, tt] for p in product)
+
+    qMarginService_s_u[(s, u, tt) in keys(qMarginService_s_u); tt == t1],
+    qMarginService_s_u[s, u, tt] == ∑(qMarginService_s_u_o[s, u, o, tt] for o in origin)
+
+    qMarginBundle_u[(u, tt) in keys(qMarginBundle_u); tt == t1],
+    qMarginBundle_u[u, tt] == ∑(qMarginService_s_u[s, u, tt] for s in margin_services)
+  end
 end
 
 # ============================================================================

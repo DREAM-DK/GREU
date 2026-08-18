@@ -159,6 +159,18 @@ function accounting_table(df, row)
   return sum_by(df, [:use, :year])
 end
 
+"""One source row and column by year."""
+function accounting_series(df, row, column; stock_flow = "TOTAL")
+  series = df[
+    (df.stk_flow .== stock_flow) .&
+    (df.prd_ava .== row) .&
+    (df.ind_use .== column),
+    [:year, :value],
+  ]
+  @assert Set(series.year) == Set(data_years) "$row/$column/$stock_flow must report each input-output data year"
+  return series
+end
+
 """Direct purchases recorded against household consumption: residents' spending
 abroad (`OP_RES`) or non-residents' spending in the country (`OP_NRES`)."""
 function direct_purchase_adjustment(df, code)
@@ -204,43 +216,6 @@ function resident_purchase_imports(reported, residents)
   imports.value .*= imports.share
   insertcols!(imports, :origin => :import)
   return imports[:, cell_columns]
-end
-
-"""Deflate tourist spend with the combined private-consumption price. At the
-benchmark, this price is purchaser spend divided by purchaser-use volume."""
-function tourist_quantities(
-  tourist_spend,
-  purchaser_use,
-  carried_margins,
-  service_totals,
-  net_product_tax_totals,
-)
-  purchaser_use_totals = rename(
-    sum_by(purchaser_use[purchaser_use.use .== :C, :], [:year]),
-    :value => :purchaser_use,
-  )
-  service_use_totals = rename(
-    sum_by(service_totals[service_totals.use .== :C, :], [:year]),
-    :value => :services,
-  )
-  margin_totals = rename(
-    sum_by(carried_margins[carried_margins.use .== :C, :], [:year]),
-    :value => :margins,
-  )
-  tax_totals = rename(
-    net_product_tax_totals[net_product_tax_totals.use .== :C, [:year, :value]],
-    :value => :taxes,
-  )
-  prices = innerjoin(purchaser_use_totals, service_use_totals, on = :year)
-  prices = innerjoin(prices, margin_totals, on = :year)
-  prices = innerjoin(prices, tax_totals, on = :year)
-  @assert nrow(prices) == nrow(tourist_spend) "Each tourist total needs a consumption price"
-  prices.quantity = prices.purchaser_use .- prices.services
-  @assert all(prices.quantity .> cell_tolerance) "Consumption volume must be positive"
-  prices.price = (prices.quantity .+ prices.margins .+ prices.taxes) ./ prices.quantity
-  quantities = innerjoin(tourist_spend, prices[:, [:year, :price]], on = :year)
-  quantities.value ./= quantities.price
-  return quantities[:, [:year, :value]]
 end
 
 """Split T1620 into carried-product margins and margin-service totals."""
@@ -294,42 +269,14 @@ end
 """Build the model's purchaser-use cells from T1610 and its valuation tables."""
 function purchaser_use_data(
   reported,
-  use_table,
-  carried_margins,
+  residents,
   service_totals,
-  net_product_tax_totals,
 )
-  tourist_spend =
-    reported_tourist_spend(direct_purchase_adjustment(use_table, "OP_NRES"))
-  resident_imports = resident_purchase_imports(
-    reported,
-    direct_purchase_adjustment(use_table, "OP_RES"),
-  )
+  resident_imports = resident_purchase_imports(reported, residents)
   before_margins = sum_cells(reported, resident_imports)
-  tourists = tourist_quantities(
-    tourist_spend,
-    before_margins,
-    carried_margins,
-    service_totals,
-    net_product_tax_totals,
-  )
   reclassification, services = margin_reclassification(before_margins, service_totals)
-  return sum_cells(before_margins, reclassification), services, tourists, tourist_spend
+  return sum_cells(before_margins, reclassification), services
 end
-
-# ============================================================================
-# Aggregate checks
-# ============================================================================
-
-"""Purchaser-price spend by use: purchaser use, margins, and net product taxes."""
-purchaser_use_checks(purchaser_use, carried_margins, net_product_tax_totals) = sum_by(
-  vcat(
-    sum_by(purchaser_use, [:use, :year]),
-    sum_by(carried_margins, [:use, :year]),
-    net_product_tax_totals,
-  ),
-  [:use, :year],
-)
 
 # ============================================================================
 # Checked-in files
@@ -342,34 +289,33 @@ function refresh_input_output_data!(dir = input_output_data_dir)
   supply = fetch_supply_table(reported)
   carried_margins, margin_service_totals = margin_source_parts(fetch_margin_table())
   net_product_taxes = fetch_net_product_tax_table()
-  net_product_tax_cell_totals = sum_by(net_product_taxes, [:use, :year])
   net_product_tax_totals = accounting_table(use_table, "D21X31")
-  purchaser_use, services, tourists, tourist_spend = purchaser_use_data(
+  residents = direct_purchase_adjustment(use_table, "OP_RES")
+  tourist_spend = reported_tourist_spend(direct_purchase_adjustment(use_table, "OP_NRES"))
+  purchaser_use, services = purchaser_use_data(
     reported,
-    use_table,
-    carried_margins,
+    residents,
     margin_service_totals,
-    net_product_tax_cell_totals,
   )
-  purchaser_use_totals = purchaser_use_checks(
-    purchaser_use,
-    carried_margins,
-    net_product_tax_cell_totals,
+  purchaser_use_totals = sum_by(
+    vcat(accounting_table(use_table, "P2_ADJ"), residents),
+    [:use, :year],
   )
   imports = sum_by(
     vcat(
-      purchaser_use[purchaser_use.origin .== :import, [:year, :value]],
-      services[services.origin .== :import, [:year, :value]],
+      accounting_series(use_table, "CPA_TOTAL", "TU"; stock_flow = "IMP"),
+      residents[:, [:year, :value]],
     ),
     [:year],
   )
   exports = sum_by(
     vcat(
-      purchaser_use_totals[purchaser_use_totals.use .== :X, [:year, :value]],
-      tourist_spend[:, [:year, :value]],
+      accounting_series(use_table, "P2_ADJ", "P6"),
+      tourist_spend,
     ),
     [:year],
   )
+  output = accounting_series(use_table, "P1", "TOTAL")
 
   CSV.write(
     joinpath(dir, "input_output_supply.csv"),
@@ -387,7 +333,7 @@ function refresh_input_output_data!(dir = input_output_data_dir)
     ),
   )
   CSV.write(
-    joinpath(dir, "input_output_price_adjustments.csv"),
+    joinpath(dir, "input_output_net_product_tax.csv"),
     vcat(
       long_format(
         :vNetProductTax_p_u,
@@ -401,17 +347,16 @@ function refresh_input_output_data!(dir = input_output_data_dir)
       ),
     ),
   )
-  CSV.write(joinpath(dir, "input_output_checks.csv"), vcat(
-    long_format(
-      :vPurchaserUse_u,
-      purchaser_use_totals,
-      [:use, :year],
+  CSV.write(
+    joinpath(dir, "input_output_aggregate_totals.csv"),
+    vcat(
+      long_format(:vPurchaserUse_u, purchaser_use_totals, [:use, :year]),
+      long_format(:vY, output, [:year]),
+      long_format(:vCTourist, tourist_spend, [:year]),
+      long_format(:vM, imports, [:year]),
+      long_format(:vX, exports, [:year]),
     ),
-    long_format(:vY, sum_by(supply, [:year]), [:year]),
-    long_format(:qCTourist, tourists, [:year]),
-    long_format(:vM, imports, [:year]),
-    long_format(:vX, exports, [:year]),
-  ))
+  )
   return nothing
 end
 

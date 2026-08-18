@@ -15,8 +15,8 @@ end
 
 """
 For calibration: exogenize endogenous variables that have data and endogenize their residuals.
-This includes source series and the model totals they imply. Residuals absorb inconsistent
-source totals and keep the data value exact when the solver has rounding error.
+This includes only values read from a source. Equations calculate model totals from source
+cells. If the source also reports a total, load it and let its residual record the gap.
 
 Parameters should already have been swapped for data in `define_calibration`. This step
 covers remaining endogenous variables that have data.
