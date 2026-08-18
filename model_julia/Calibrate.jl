@@ -15,8 +15,11 @@ end
 
 """
 For calibration: exogenize endogenous variables that have data and endogenize their residuals.
-This allows the residuals to absorb any discrepancy between the data and the model equations.
-This is useful for checking for inconsistencies in the data itself, as well as for debugging the model.
+This includes source series and the model totals they imply. Residuals absorb inconsistent
+source totals and keep the data value exact when the solver has rounding error.
+
+Parameters should already have been swapped for data in `define_calibration`. This step
+covers remaining endogenous variables that have data.
 
 The @block macro transforms each equation `endo[t] == RHS` into `(endo[t] + endo_J[t]) == RHS`,
 where `endo_J` is the residual. Swapping makes endo_J endogenous while endo stays at its data value.

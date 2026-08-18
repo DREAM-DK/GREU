@@ -43,6 +43,9 @@ end
 """Benchmark-year value of one cell. Cells the source does not report are zero."""
 benchmark(cells, index...) = get(cells, (index..., calibration_year), 0.0)
 
+"""Copy checked-in cells into a model variable. Years the file omits stay `nothing`."""
+fill_cells!(db, var, cells) = db[var] .= [get(cells, key, nothing) for key in keys(var)]
+
 const qY_p_i_data = read_cells(supply_file, "qY_p_i_reported")
 const qMargin_p_u_data = read_cells(margin_file, "qMargin_p_u_reported")
 const qS_s_u_o_data = read_cells(margin_file, "qS_s_u_o_reclassified")
@@ -98,8 +101,6 @@ const ordinary_p_u = Set((p, u) for (p, u, _) in ordinary_p_u_o)
 const inventory_p_u_o = setdiff(direct_p_u_o, ordinary_p_u_o)
 const origin_share_p_u_o = ordinary_p_u_o ∪ margin_s_u_o
 const margin_only_s_u_o = setdiff(margin_s_u_o, ordinary_p_u_o)
-# Direct demand in a use with margin services carries the reported product-use margin.
-const carried_p_u = Set((p, u) for (p, u) in direct_p_u if u in margin_u)
 
 # ============================================================================
 # Variables
@@ -145,14 +146,13 @@ end
   pY_u[u = ordinary_uses, t = t; u in domestic_u], "Domestic output price by use"
 
   pM_p_u[p = P, u = U, t = t; (p, u) in import_p_u], "Import border price by product and use"
-  pB_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in direct_p_u_o], "Basic or border price by product, use, and origin"
+  pB_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in delivery_p_u_o], "Basic or border price by product, use, and origin"
   pD_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in direct_p_u_o], "Purchaser price by product, use, and origin"
   pD_p_u[p = P, u = ordinary_uses, t = t; (p, u) in ordinary_p_u], "Purchaser price by product and use"
   pD_u[u = ordinary_uses, t = t; u in direct_u], "Purchaser price by use"
 
   pS_u[u = U, t = t; u in margin_u], "Margin-bundle price by use"
   pS_s_u[s = margin_services, u = U, t = t; (s, u) in margin_s_u], "Margin-service price by service and use"
-  pS_s_u_o[s = P, u = U, o = O, t = t; (s, u, o) in margin_s_u_o], "Margin-service price by service, use, and origin"
   pOtherAdjustment_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in direct_p_u_o] :: ForecastConstant, "Other additive purchaser-price adjustment"
 
   pM_p[p = P, t = t; p in import_p], "Import price by product"
@@ -170,6 +170,7 @@ end
   qD_p_u[p = P, u = U, t = t; (p, u) in direct_p_u], "Direct demand by product and use"
   qD_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in direct_p_u_o], "Direct demand by product, use, and origin"
   qS_u[u = U, t = t; u in margin_u], "Margin-bundle demand by use"
+  qMargin_p_u[p = P, u = U, t = t; (p, u) in reported_margin_p_u], "Margin-bundle demand by product and use"
   qS_s_u[s = margin_services, u = U, t = t; (s, u) in margin_s_u], "Margin-service demand by service and use"
   qS_s_u_o[s = P, u = U, o = O, t = t; (s, u, o) in margin_s_u_o], "Margin-service demand by service, use, and origin"
   qY_p_u[p = P, u = U, t = t; (p, u) in domestic_p_u], "Domestic deliveries by product and use"
@@ -197,7 +198,7 @@ end
   rD_p_u[p = P, u = U, t = t; (p, u) in ordinary_p_u] :: ForecastConstant, "Fixed product share for each direct use"
   rO_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in origin_share_p_u_o] :: ForecastConstant, "Fixed origin share"
   rS_s_u[s = margin_services, u = U, t = t; (s, u) in margin_s_u] :: ForecastConstant, "Fixed margin-service share"
-  rS_p_u[p = P, u = U, t = t; (p, u) in carried_p_u] :: ForecastConstant, "Margin-bundle units per unit of direct demand"
+  rS_p_u[p = P, u = U, t = t; (p, u) in reported_margin_p_u] :: ForecastConstant, "Margin-bundle units per unit of direct demand"
   tProduct_u[u = U, t = t; u in product_tax_u] :: ForecastConstant, "Product tax per unit of direct demand"
   tVAT_p_u_o[p = P, u = U, o = O, t = t; (p, u, o) in direct_p_u_o] :: ForecastConstant, "VAT rate"
 end
@@ -208,26 +209,32 @@ end
 
 function set_data!(db)
   @assert reported_margin_p_u ⊆ direct_p_u "Each reported margin needs direct demand"
-  # Calibration divides by the benchmark use total to get shares and tax rates.
   @assert all(
     abs(sum(benchmark(qD_p_u_o_data, p, u, o) for p in P for o in O)) > cell_tolerance
     for u in (direct_u ∩ ordinary_uses) ∪ product_tax_u
   ) "Each use with a fixed product share or a product tax needs non-zero demand"
+  @assert all(
+    abs(sum(benchmark(qD_p_u_o_data, p, u, o) for o in O)) > cell_tolerance
+    for (p, u) in reported_margin_p_u
+  ) "Each margin rate needs non-zero direct demand"
 
-  db[qY_p_i] .= read_variable(supply_file, qY_p_i; variable = "qY_p_i_reported")
-  db[qS_s_u_o] .=
-    read_variable(margin_file, qS_s_u_o; variable = "qS_s_u_o_reclassified")
-  db[qD_p_u_o] .= [get(qD_p_u_o_data, key, nothing) for key in keys(qD_p_u_o)]
+  fill_cells!(db, qY_p_i, qY_p_i_data)
+  fill_cells!(db, qS_s_u_o, qS_s_u_o_data)
+  fill_cells!(db, qD_p_u_o, qD_p_u_o_data)
+  fill_cells!(db, qMargin_p_u, qMargin_p_u_data)
+  fill_cells!(db, vProductTax_u, vProductTax_u_data)
 
-  # Benchmark totals. Calibration holds them fixed while it solves for shares.
+  # Totals implied by the cell data. Calibration holds them fixed so residuals
+  # absorb inconsistent source totals and the solver hits the data exactly.
+  for p in supply_p
+    db[qY_p[p, calibration_year]] = sum(benchmark(qY_p_i_data, p, i) for i in I)
+  end
+  for i in supply_i
+    db[qY_i[i, calibration_year]] = sum(benchmark(qY_p_i_data, p, i) for p in P)
+  end
   for (p, u) in direct_p_u
     db[qD_p_u[p, u, calibration_year]] =
       sum(benchmark(qD_p_u_o_data, p, u, o) for o in O)
-  end
-  for (p, u) in carried_p_u
-    demand = sum(benchmark(qD_p_u_o_data, p, u, o) for o in O)
-    @assert abs(demand) > cell_tolerance "Each margin rate needs non-zero direct demand"
-    db[rS_p_u[p, u, calibration_year]] = benchmark(qMargin_p_u_data, p, u) / demand
   end
   for u in direct_u ∩ ordinary_uses
     db[qD_u[u, calibration_year]] =
@@ -253,11 +260,6 @@ function set_data!(db)
   db[pY_p_i] .= 1.0
   db[pM_p_u] .= 1.0
 
-  db[vProductTax_u] .= read_variable(
-    adjustment_file,
-    vProductTax_u;
-    variable = "vProductTax_u_reported",
-  )
   db[vD_u] .= read_variable(check_file, vD_u; variable = "vD_u_reported")
   db[qCTourist] .= read_variable(check_file, qCTourist; variable = "qCTourist_reported")
   db[vM] .= read_variable(check_file, vM; variable = "vM_reported")
@@ -293,8 +295,11 @@ function define_equations()
     qD_p_u_o[p, u, o, t] == rO_p_u_o[p, u, o, t] * qD_p_u[p, u, t]
 
     # Derived margin demand. Only uses with reported margins carry a bundle.
+    qMargin_p_u[(p, u, t) in keys(qMargin_p_u); t in t1:T],
+    qMargin_p_u[p, u, t] == rS_p_u[p, u, t] * qD_p_u[p, u, t]
+
     qS_u[(u, t) in keys(qS_u); t in t1:T],
-    qS_u[u, t] == ∑(rS_p_u[p, u, t] * qD_p_u[p, u, t] for p in P)
+    qS_u[u, t] == ∑(qMargin_p_u[p, u, t] for p in P)
 
     qS_s_u[(s, u, t) in keys(qS_s_u); t in t1:T],
     qS_s_u[s, u, t] == rS_s_u[s, u, t] * qS_u[u, t]
@@ -342,11 +347,8 @@ function define_equations()
     pB_p_u_o[(p, u, o, t) in keys(pB_p_u_o); t in t1:T],
     pB_p_u_o[p, u, o, t] == (o == domestic ? pY_p[p, t] : pM_p_u[p, u, t])
 
-    pS_s_u_o[(s, u, o, t) in keys(pS_s_u_o); t in t1:T],
-    pS_s_u_o[s, u, o, t] == (o == domestic ? pY_p[s, t] : pM_p_u[s, u, t])
-
     pS_s_u[(s, u, t) in keys(pS_s_u); t in t1:T],
-    pS_s_u[s, u, t] == ∑(rO_p_u_o[s, u, o, t] * pS_s_u_o[s, u, o, t] for o in O)
+    pS_s_u[s, u, t] == ∑(rO_p_u_o[s, u, o, t] * pB_p_u_o[s, u, o, t] for o in O)
 
     pS_u[(u, t) in keys(pS_u); t in t1:T],
     pS_u[u, t] == ∑(rS_s_u[s, u, t] * pS_s_u[s, u, t] for s in margin_services)
@@ -380,7 +382,7 @@ function define_equations()
       tProduct_u[u, t] * ∑(qD_p_u_o[p, u, o, t] for p in P for o in O)
 
     vS_s_u_o[(s, u, o, t) in keys(vS_s_u_o); t in t1:T],
-    vS_s_u_o[s, u, o, t] == pS_s_u_o[s, u, o, t] * qS_s_u_o[s, u, o, t]
+    vS_s_u_o[s, u, o, t] == pB_p_u_o[s, u, o, t] * qS_s_u_o[s, u, o, t]
 
     vS_s_u[(s, u, t) in keys(vS_s_u); t in t1:T],
     vS_s_u[s, u, t] == ∑(vS_s_u_o[s, u, o, t] for o in O)
@@ -492,6 +494,9 @@ function define_calibration()
     [rS_s_u[s, u, t1] for (s, u) in margin_s_u],
     [qS_s_u[s, u, t1] for (s, u) in margin_s_u]
 
+    [rS_p_u[p, u, t1] for (p, u) in reported_margin_p_u],
+    [qMargin_p_u[p, u, t1] for (p, u) in reported_margin_p_u]
+
     [rO_p_u_o[s, u, o, t1] for (s, u, o) in margin_only_s_u_o],
     [qS_s_u_o[s, u, o, t1] for (s, u, o) in margin_only_s_u_o]
 
@@ -522,7 +527,7 @@ function run_tests(db)
   all(
     db[rS_p_u[p, u, calibration_year]] * db[qD_p_u[p, u, calibration_year]] ≈
       benchmark(qMargin_p_u_data, p, u)
-    for (p, u) in carried_p_u
+    for (p, u) in reported_margin_p_u
   ) || push!(errors, "Margin rates must reproduce reported product-use margins")
 
   all(

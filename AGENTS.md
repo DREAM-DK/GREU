@@ -106,15 +106,20 @@ db[vGDP] .= 2000.0
 
 ### 3. Endo-Exo Swapping
 
-`@endo_exo!` changes which variables are solved for:
+`@endo_exo_swap!` changes which variables are solved for:
 
 ```julia
-@endo_exo! block begin
+@endo_exo_swap! block begin
     μ, L[t1]    # Make μ endogenous (solved), L[t1] exogenous (fixed)
 end
 ```
 
-Calibration uses `endo_exo_data_residuals!` in `Calibrate.jl`: for endogenous variables that have data (up through `t1`), it swaps so the residual is endogenous and the data variable stays fixed.
+Calibration has two swap steps:
+
+1. In `define_calibration`, swap each parameter for the data that identifies it. The data variable stays at its loaded value. The solver finds the parameter (`r*`, `t*`, and similar).
+2. `endo_exo_data_residuals!` in `Calibrate.jl` then swaps any remaining endogenous variable that has data (up through `t1`) for its residual. The data value stays fixed. The residual absorbs the gap.
+
+Load every series the source reports. Also load model totals that those series imply, such as `qD_p_u` from `∑ qD_p_u_o`. Do not compute parameters in `set_data!`. Exogenizing the data hits the data exactly when the solver has rounding error, and puts inconsistent source totals on residuals.
 
 ### 4. Solving
 
@@ -132,9 +137,9 @@ Baselines are persisted with `unload` / `load` (parquet).
 Each model component under `modules/` is a Julia module. See `SubmodelTemplate.jl`. Typical API:
 
 - **Variables**: Declared with `@variables` (optionally `@growth_adjusted` / `@inflation_adjusted`, or tags like `ForecastConstant`)
-- **`set_data!(db)`**: Initialize data values
+- **`set_data!(db)`**: Load source series and the model totals they imply. Do not compute parameters from data.
 - **`define_equations()`**: Return a Block with the model equations
-- **`define_calibration()`**: Return a Block used only for calibration (often `define_equations()` plus calibration equations)
+- **`define_calibration()`**: Return a Block used only for calibration. Start from `define_equations()`, then `@endo_exo_swap!` each parameter for the data that identifies it.
 - **`run_tests(db)`** (optional): Return a `Vector{String}` of failure messages
 - **`set_starting_values!(db)`** (optional): Starting values before solve
 - **`set_residual_tolerances!(tolerances)`** (optional): Per-residual `atol` overrides
@@ -147,16 +152,19 @@ base_model() = sum(m.define_equations() for m in submodels)
 
 ### Calibration (`Calibrate.jl`)
 
-**Concept**: Variables with data are exogenized; their residuals absorb equation imbalances.
+**Concept**: Exogenize data. Endogenize parameters. Residuals absorb equation imbalances.
 
-- Variables **with data**: stay at data values; residuals adjust
-- Variables **without data**: solved by model equations
+- **Parameters** (`r*`, `t*`, and similar): endogenous in calibration. Identify each one by swapping it for the data it is fitted to. Do not set the parameter in `set_data!`.
+- **Variables the source reports**, and **totals the model identities imply from that source** (for example `qD_p_u == ∑ qD_p_u_o`): load them in `set_data!` and keep them exogenous. This includes cells that an equation also determines. The residual then records inconsistent source totals, and the solver hits the data exactly when there is rounding error.
+- **Variables with no data**: solved by model equations.
+
+Do not skip a data series because an equation can infer it. Inference belongs in the equations. The loaded value belongs in the dictionary.
 
 Flow:
 
-1. Sum `define_calibration()` from all submodels
+1. Sum `define_calibration()` from all submodels (includes parameter-for-data swaps)
 2. `forecast_constants!` — `ForecastConstant` vars: equations `var[t] == var[t1]` if endogenous at `t1`, else copy data forward
-3. `endo_exo_data_residuals!` — swap data-backed endos for their residuals
+3. `endo_exo_data_residuals!` — swap remaining data-backed endos for their residuals
 4. `exogenous_constant_forecast!` — fill missing future exogenous values from `t1`
 5. Optional `set_starting_values!`
 6. `solve`
@@ -174,7 +182,7 @@ Loads the calibrated baseline into a copy, applies scenario changes, then `solve
 | Function | Purpose |
 |----------|---------|
 | `@block db begin ... end` | Create equation block |
-| `@endo_exo!(block, ...)` | Swap variable roles |
+| `@endo_exo_swap!(block, ...)` | Swap variable roles: first argument becomes endogenous, second becomes exogenous |
 | `endogenous(block)` | Get endogenous variables vector |
 | `residuals(block)` | Get matching residuals vector |
 | `solve(block, data)` / `solve!(...)` | Solve; return new dict or update in place |
