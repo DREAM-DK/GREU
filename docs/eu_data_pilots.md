@@ -31,6 +31,9 @@ pilot results — do not copy them into other documents; link to this file.
 | Emissions bridge (`env_ac_aibrid_r2`) | 2026-08-17 | Net residence adjustment ≤0.05% per gas; zero EU-27 gaps |
 | Government finances (`gov_10a_main`) | 2026-08-17 | Number-exact except D41REC +0.62%; splits/PAL structural |
 | Financial accounts (`nasa_10_f_bs`/`nf_tr`) | 2026-08-18 | Model never reads the Excel; F5 equity exact; pension move quantified (2,703.8 bn); EU-27 complete |
+| Fixed assets (`nama_10_nfa_st` / `nama_10_a64_p5`) | 2026-08-18 | Net CRC number-exact (7,624.010 vs 7,624.016); GFCF 3-type totals exact; 24/28 clusters exact (decision 7); all 27 have net stocks |
+| Non-energy emissions (`env_ac_ainah_r2` / `env_air_gge`) | 2026-08-19 | Load-bearing `qEmmxE`; F-gases exact; `ainah−energy` tautological for CH4/N2O; item 9 = two A01 gaps; all 27 A64 |
+| Household consumption (`nama_10_co3_p3`) | 2026-08-19 | Load-bearing CES `c` nest; 3-digit uniquely identifies 3/12; food cluster and 1999 bev+tobacco pass; `cTou`=`OP_RES` exact; all 27 at 3-digit |
 
 ## Architecture decision and first compatibility increment (2026-07-30)
 
@@ -384,10 +387,10 @@ comparable GREU air-account boundary:
   +1.111%**).
 
 The GHG gap is almost entirely the CH4/N2O difference; the largest cluster is
-agriculture (A01: +811.038 kt CO2e). This is a genuine source/vintage or
-national-adjustment discrepancy to investigate, not a unit conversion error:
-both sources use kt, AR5 factors 28/265 reproduce the totals, and Eurostat's
-component identity closes.
+agriculture (A01: +811.038 kt CO2e). **Follow-up 2026-08-19 (Pilot 11):**
+this is not a missing source. The CH4 gap is A01 and two stacked
+differences (GREU below current CRF3; ainah above CRF3). See Pilot 11
+below; do not re-investigate as a data-availability question.
 
 ### Residence principle and bunker scope
 
@@ -1170,3 +1173,382 @@ quantifies the one concept it omits: the Danish pension-asset reallocation
 in the mapping doc). Remaining defects are enumerable: no pension
 reallocation, `geo`/years hardcoded to DK/2019–2020, no raw provenance,
 and the D421/D422 and PAL details stay open on the government side.
+
+## Pilot results — `nama_10_nfa_st` / `nama_10_a64_p5` vs `fixed_assets.xlsx` (2026-08-18)
+
+Fifth pilot of the parameterization phase (Pilot 10 overall). Artifacts:
+`data/preprocessing/scripts/download_fixed_assets_dk_2020.py`,
+`reconcile_fixed_assets_dk_2020.py`; raw JSON-stat deliveries with
+manifest and README under
+`data/preprocessing/data/fixed_assets_raw/DK/2020/` (DK + SE pulls of
+stocks and GFCF; EU-27 coverage and year probes for both);
+14-sheet workbook
+`data/preprocessing/data/fixed_assets_dk2020_reconciliation.xlsx`
+(20/21 identity checks PASS; the one FAIL is the expected gross-vs-net
+contrast). Asset map cross-checked against
+`data/read_eurostat_data/factor_demand_data.py` and rejected (see below).
+
+### What the model actually consumes
+
+`read_data.py:89` maps the Danish file's 7 ESA-style asset codes onto
+GREU `k ∈ {iB, iT, iM}` and `:362-370` sums to that 3-type stock.
+`data_from_GR.gms:126` `$load`s `qK`; `:592-594` copies it into
+`qProd[iM/iT/iB]` and `:601` freezes `qK_k_i` at the 2020 cross-section.
+Unlike `institutional_financial_accounts.xlsx`, **this Excel is
+load-bearing**. `qI_k_i` does *not* come from this file — it comes from
+`io_invest_long_format.xlsx` (supplying dimension dropped). The GFCF
+comparison below is gap-3 use-margin groundwork, not a second input
+pilot.
+
+### Denmark 2020 stocks — net current replacement cost, number-exact
+
+The Danish file (296 rows, 57 industries, 7 assets, bn DKK, 2020 only,
+total **7,624.010**) is net capital stock at current replacement cost:
+
+| GREU `k` | Danish | Eurostat net `CRC_MNAC` | Diff |
+|---|---:|---:|---:|
+| total | 7,624.010 | `N11N` 7,624.016 | +0.006 |
+| `iB` | 6,038.713 | `N11KN` 6,038.712 | −0.000 |
+| `iT` | 397.388 | `N1131N` 397.392 | +0.004 |
+| `iM` | 1,187.909 | `N1132N+N11ON+N115N+N117N` 1,187.912 | +0.003 |
+
+The 7-type list also matches once Eurostat's unsplit `N112N` is compared
+to Danish `N1121+N1122_3` (both 2,521.376; both map to `iB`, so the
+missing buildings-vs-structures split is irrelevant for `qK`). Gross
+`N11G` is 13,881.699 — ~1.82×, the wrong concept. In 2020,
+`CLV20_MNAC` equals `CRC_MNAC` (chain-linked base year). All dwellings
+sit in NACE L (`L N111N` = `TOTAL N111N` = 3,517.338); `L68A` (owner-occupied
+imputed rents, 2,095.455) is of-which L and must not be added.
+
+**24 of 28 industry clusters match to rounding (<0.02%).** The four that
+do not are the known NACE-L / services boundary (decision 7) and
+**cancel**:
+
+| Cluster (GREU) | DK | Eurostat | Diff | % |
+|---|---:|---:|---:|---:|
+| L (`68203`) | 3,526.122 | 3,797.713 | +271.591 | +7.70% |
+| business services (`71000`) | 523.077 | 261.606 | −261.471 | −50.0% |
+| public `off` | 1,067.924 | 1,059.543 | −8.381 | −0.79% |
+| consumer `55560` | 263.024 | 261.288 | −1.736 | −0.66% |
+| four-cluster sum | | | −0.0 | |
+
+### Gap-3 use margin — GFCF 3-type totals also number-exact
+
+Danish `io_invest_long_format.xlsx` 2020 (the object's `qI_k_i` actually
+uses) vs `nama_10_a64_p5` P51G `CP_MNAC`:
+
+| GREU `k` | Danish invest | Eurostat GFCF | Diff |
+|---|---:|---:|---:|
+| total | 516.141 | `N11G` 516.141 | +0.000 |
+| `iB` | 254.935 | `N11KG` 254.935 | 0 |
+| `iT` | 36.177 | `N1131G` 36.177 | 0 |
+| `iM` | 225.029 | `N11G−N11KG−N1131G` 225.030 | +0.000 |
+
+The same four clusters reappear on the flow side (L +14.070 vs 71000
+−13.558, with `off`/`55560` absorbing the rest). Gap-3's use-margin
+*national 3-type totals* are direct data for Denmark, not an A21
+estimation problem.
+
+### A21 → GREU lookup (the gap-3 "do this first")
+
+GREU industries do **not** partition into A21 sections. Three span
+several: `55560` → I,J,N,R,S,T; `71000` → J,M,N; `off` → O,P,Q,R.
+Wholly-contained `n_g`: A=13, C=13, H=12, E=7, G=3, D=2, B=F=K=L=1;
+I,J,M,N,O,P,Q,R,S,T = 0. The identification arithmetic (years required
+≈ `n_g`) is therefore not a partition; manufacturing (C, 13) still will
+not identify from time variation alone.
+
+### EU-27 coverage and Sweden
+
+**All 27 member states publish 2020 net stocks including transport
+(`N11N` + `N1131N`)** at national total. Industry detail is A64 for 9/27
+and A21 for the rest, except Malta which is missing A21 sections B
+(mining) and D (electricity). No PIM estimation is needed.
+Stocks at A64: 9/27 (AT, BG, CZ, DK, EL, FI, LV, SE, SK). GFCF at A64 ×
+the three GREU types: **13/27** (the 2026-08-17 in-memory probe,
+confirmed against saved payloads): AT, BG, CY, CZ, DK, EL, FI, HU, LV,
+PT, RO, SE, SK. CY/HU/PT/RO have A64 GFCF but only A21 stocks. Sweden
+2020: net stock 16,158.322 bn SEK, `iT` 536.15, GFCF 1,229.784, A64 on
+both, **gross stocks not published**. Year span typically 1995–2024
+(DK stocks/GFCF 1975–2025; SE 1993–2023/24).
+
+### Colleague reference — dataset codes yes, asset map no
+
+`data/read_eurostat_data/factor_demand_data.py` pulls `nama_10_nfa_st`
+in `CRC_MEUR` **gross** (`N11KG`/`N11MG`/`N115G`/`N117G`) and has no
+`iT` (`N11MG` includes transport). That would scale Danish `qK` ~1.82×
+and drop 397.4 bn DKK of transport stock (5.2% of the total, 33% of
+machinery+transport). It also fails for Sweden, which publishes net
+only. Keep the dataset codes; do not copy the asset map.
+
+### Verdict
+
+**OK confirmed.** The concept the model uses (net CRC, three GREU types)
+is published EU-wide and matches Denmark to rounding. Remaining defects
+are enumerable and already on the backlog: decision 7 (four clusters),
+A64 vs A21 industry detail for a minority of countries (9/27 stocks,
+13/27 GFCF), and the three spanning GREU industries for any A21
+estimator. The mapping-table "A21 only / may need PIM" claim is
+withdrawn.
+
+## Pilot results — `env_ac_ainah_r2` / `env_air_gge` vs `non_energy_emissions.xlsx` (2026-08-19)
+
+Sixth pilot of the parameterization phase (Pilot 11 overall). Artifacts:
+`data/preprocessing/scripts/download_non_energy_emissions_dk_2020.py`,
+`reconcile_non_energy_emissions_dk_2020.py`; raw JSON-stat deliveries with
+manifest and README under
+`data/preprocessing/data/non_energy_emissions_raw/DK/2020/` (DK + SE
+ainah and CRF1/2/3/5; EU-27 coverage and year probes); 12-sheet workbook
+`data/preprocessing/data/non_energy_emissions_dk2020_reconciliation.xlsx`
+(13/17 identity checks PASS; the four FAIL are the expected item-9
+CH4/N2O combined and split-identity gaps). The 2026-07-30 PEFA-pilot
+ainah pull is preserved for vintage comparison and is **number-identical**
+on every TOTAL_HH gas.
+
+### What the model actually consumes
+
+`read_data.py:103-116` stacks the gas columns, maps `flow` via
+`dict_transaction` (`cons_inter` → `input_in_production`, `cons_hh` →
+`household_consumption`) and `co2_xbio`/`co2_eq` via `dict_ebalitems`,
+and exports `NonEnergyEmissions[ebalitems,transaction,d,t]`.
+`data_from_GR.gms:128` `$load`s it; `:572` sets `qEmmxE[em,d,t]`. That
+parameter is used in `model/modules/emissions.gms` and the non-energy CO2
+tax in `energy_and_emissions_taxes.gms`. Dummy zeros would silently drop
+process-emission tax and non-energy GHGs. **This Excel is load-bearing.**
+
+Danish file: sheet `ems_non_energy`, 58 rows, 2020 only, `bal=use`, flows
+`cons_inter` (57 GREU industries) + `cons_hh` (`cHou`). Gases `ch4`,
+`co2_bio` (all empty), `co2_xbio`, `n2o`, `hfc`, `pfc`, `sf6`, `co2_eq`.
+F-gases already in CO2e (`GWP=1` in the model). AR5 identity
+`co2_eq = co2_xbio + 28·CH4 + 265·N2O + F-gases` holds to 1e-12.
+Energy file has no F-gas columns; combined air-account total = energy +
+non-energy.
+
+### National split — F-gases exact; CH4/N2O identity is tautological
+
+Recomputed combined boundary matches the PEFA-pilot figures. The new
+test is `implied non-energy = ainah TOTAL_HH − GREU energy` vs the
+Danish non-energy file:
+
+| Pollutant | GREU energy | GREU non-energy | Combined | ainah TOTAL_HH | Combined − ainah | Implied NE − GREU NE |
+|---|---:|---:|---:|---:|---:|---:|
+| CH4 kt | 10.395 | 298.010 | 308.405 | 334.834 | −26.430 | +26.430 |
+| N2O kt | 1.987 | 18.050 | 20.036 | 20.672 | −0.636 | +0.636 |
+| fossil CO2 kt | 65,098.224 | 1,929.779 | 67,028.003 | 67,023.396 | +4.607 | −4.607 |
+| biogenic CO2 kt | 17,036.703 | 0 | 17,036.703 | 17,036.781 | −0.078 | +0.078 |
+| F-gases kt CO2e | 0 | 364.426 | 364.426 | 364.427 | −0.001 | +0.001 |
+| GHG kt CO2e | 65,915.713 | 15,421.669 | 81,337.382 | 82,241.335 | −903.953 | +903.953 |
+
+F-gases pass (energy share is zero; 100% process). Fossil CO2 identity
+passes at the 5 kt tolerance — the residual *is* the combined-boundary
+CO2 gap, redistributed. CH4 and N2O fail by construction: subtracting
+energy just parks the known combined residual on the non-energy side.
+That is not a derivation.
+
+Ainah `CH4_CO2E/CH4 = 28` and `N2O_CO2E/N2O = 265` (AR5). Ainah TOTAL_HH
+is unchanged vs the 2026-07-30 pull on every gas — item 9 is not an
+Eurostat revision since the PEFA pilot.
+
+### Item 9 — two stacked A01 gaps, not a missing source
+
+99% of the national CH4 gap sits in the A01 agriculture cluster
+(+26.148 kt of +26.430); waste `E37-E39` is +0.714 kt.
+
+| Comparison | Left | Right | Diff |
+|---|---:|---:|---:|
+| GREU A01 non-energy CH4 vs CRF3 CH4 | 260.529 | 277.970 | +17.441 |
+| ainah A01 CH4 vs CRF3 CH4 | 287.399 | 277.970 | +9.429 |
+| ainah A01 CH4 vs GREU A01 combined CH4 | 287.399 | 261.252 | +26.148 |
+| CRF2+3+5 GHG vs GREU non-energy CO2e | 15,610.410 | 15,421.669 | +188.741 |
+| CRF2F HFC_CO2E vs GREU HFC | 316.520 | 316.520 | 0.000 |
+| CRF1 GHG vs GREU energy CO2e | 27,303.450 | 65,915.713 | −38,612 |
+| ainah GHG TOTAL_HH vs TOTX4_MEMO | 82,241.335 | 43,237.230 | −39,004 |
+
+CRF1 vs GREU energy is the known ~39 Mt bunker/residence wedge — **do
+not subtract CRF1 from ainah**. CRF2F HFC matches GREU HFC exactly.
+CRF2+3+5 vs GREU non-energy GHG is +1.22% (usable national process
+control). N2O is the same agriculture story at smaller scale (CRF3 N2O
+18.050 vs GREU A01 17.355).
+
+Public EU data cannot tell a GREU national adjustment from an older
+inventory vintage baked into the Danish file. There is no missing
+dataset. For an EU package, take ainah by industry minus energy (higher
+A01 CH4, residence-consistent with the energy file); do not try to
+reproduce the Danish agriculture undercount.
+
+### Household and the CO2 allocation
+
+Household F-gases and CH4 are close (identity +1.42 and +0.05 kt).
+Household fossil CO2 is not: combined HH is ~73 kt above ainah HH even
+though the *national* fossil-CO2 total matches to +4.6 kt. The
+non-energy household CO2 row (65 kt) is not recoverable as
+`ainah_HH − GREU energy_HH`. Keep F-gas and CH4 household rows; do not
+trust the CO2 household residual identity.
+
+### EU-27 coverage and Sweden
+
+**All 27 member states** publish 2020 ainah at full A64 (64/64 leaves)
+for GHG, CO2, CH4, N2O and HFC, and **all 27** publish CRF1/2/3/5.
+Year span on ainah TOTAL_HH GHG is typically 18 years (2008–2025);
+DE/HR have 20 (2006–2025); DK/HU/MT/NL/PT/SK have 31. Coverage is not
+the blocker.
+
+Sweden 2020 (no GREU non-energy file to check): ainah GHG TOTAL_HH
+48,660 kt CO2e; F-gases 986.3; CRF1 31,988; CRF2+3+5 13,980; inventory
+TOTX4_MEMO 45,969. The residence/territory wedge is ~2.7 Mt (much
+smaller than Denmark's shipping bunker wedge). A Sweden package can
+copy ainah F-gases as non-energy and use CRF2+3+5 / ainah industry
+clusters for process CH4/N2O/CO2.
+
+### EU recipe (and what not to do)
+
+- **F-gases:** copy ainah `HFC_CO2E+PFC_CO2E+NF3_SF6_CO2E` wholly as
+  non-energy. Do not substitute CRF2F HFC — that is the HFC component
+  only (316.520 of 364.426 kt CO2e) and drops SF6/PFC.
+- **Fossil CO2:** `ainah − energy` is usable nationally (4.6 kt /
+  0.24% of non-energy). Do not use the household residual identity.
+- **CH4/N2O:** use ainah by industry (A01, waste) minus energy, not the
+  national residual against the Danish file.
+- **Do not** invent a PEFA × emission-factor energy engine for DK —
+  GREU energy already closes fossil CO2 to −0.007%.
+- **Do not** subtract territorial CRF1 from residence ainah.
+
+### Verdict
+
+**COARSER / PILOT DONE.** The file is load-bearing. Eurostat publishes
+the combined air-account control and an independent process-emissions
+control, both EU-27-complete at A64. It does not publish GREU's energy /
+non-energy split; F-gases and national fossil CO2 can be derived, CH4/N2O
+must be taken from ainah industry (or CRF3/5) rather than from
+`ainah − energy` against the Danish levels. Item 9 is closed as a
+sourcing task.
+
+## Pilot results — `nama_10_co3_p3` vs GREU household consumption groups (2026-08-19)
+
+Seventh pilot of the parameterization phase (Pilot 12 overall). Last
+unpiloted Danish input. Artifacts:
+`data/preprocessing/scripts/download_hh_consumption_dk_2020.py`,
+`reconcile_hh_consumption_dk_2020.py`; raw JSON-stat deliveries with
+manifest and README under
+`data/preprocessing/data/hh_consumption_raw/DK/2020/` (DK + SE 2020;
+EU-27 coverage and year probes); workbook
+`data/preprocessing/data/hh_consumption_dk2020_reconciliation.xlsx`.
+Live JSON-stat dimensions are `freq, unit, coicop, geo, time` — **no
+`na_item`** (the table is already household FCE). National total code is
+`TOTAL`, not `CP00`. Finest published digit is 3 (`CP011`, `CP045`, …).
+
+### What the model actually consumes
+
+There is no separate household-consumption Excel. The 12 GREU `c` groups
+are the `d` columns of `io_long_format.xlsx` under `col_l1` in
+`{cons_hh, cons_hh_foreign}`. `read_data.py:220-238` adds those two
+columns (the model has no tourist split) and exports `vIO_y` / `vIO_m`.
+`data_from_GR.gms:125` `$load`s them; `:414-517` builds purchaser `vD[d,t]`
+/ `qD[d,t]` (prod+imp + distributed `TaxSub`+`Moms`). Household
+`prim_input` is only `tax_products`+`tax_vat`, so the all-rows column
+total is the CES quantity. `input_output.gms:141` `vC[t] = sum(c, vD[c,t])`.
+`consumption_disaggregated.gms:87` calibrates `qCHh` / `uCHh` from
+`qD[c,t1]`. Dummy equal shares would silently mis-calibrate
+food/housing/cars/tourism. **The 12-group split is load-bearing.**
+
+Energy groups `cHouEne` / `cCarEne` are also filled from the energy IO
+(Sweden public core already constructs them from PEFA `HH_HEAT`/`HH_OTH`
+and `HH_TRA`). This pilot does not invent a PEFA×price household energy
+engine and does not rebuild industry × group cells (FIGARO already
+matched the total).
+
+### Totals — FIGARO identity holds; COICOP is S14 only
+
+Recomputed from `figaro_raw/`, not pasted from Pilot 1. Units bn DKK.
+
+| Comparison | Left | Right | Diff | Result |
+|---|---:|---:|---:|---|
+| IO `cons_hh` vs FIGARO P3_S14+P3_S15+OP_RES+OP_NRES | 1,089.667 | 1,089.668 | +0.001 | PASS |
+| IO `cons_hh_foreign` vs abs(FIGARO OP_NRES) | 27.747 | 27.747 | −0.000 | PASS |
+| `nama_10_co3_p3` TOTAL vs FIGARO P3_S14 | 1,044.357 | 1,066.568 | +22.211 | PASS (≤5%) |
+| TOTAL vs IO `cons_hh` (S14 vs S14+S15+tourism) | 1,044.357 | 1,089.667 | +45.310 | FAIL expected |
+| TOTAL vs CES `vD` (`cons_hh`+`cons_hh_foreign`) | 1,044.357 | 1,117.414 | +73.056 | FAIL expected |
+
+COICOP is purchaser prices, households only. Danish `cons_hh` includes
+NPISH (`P3_S15` ≈ 33.7) and tourism (`OP_RES` +17.159, `OP_NRES` −27.747);
+FIGARO `P3_S14` 1,066.568 vs COICOP 1,044.357 is the remaining valuation
+wedge. `read_data.py` then *adds* the foreign column, so CES calibrates
+on 1,117.414. Compare **shares** as well as levels.
+
+### 3-digit spanning — 3 of 12 uniquely identified
+
+`cons_hh_coicop_map` is 299 lines of 5-digit-style ECOICOP stored as
+floats (`1111.0` = cereals); padded to 5 digits and collapsed to `CP0xx`.
+The only NA coicop is `cTou`. The map is **COICOP 2018-style** (tobacco
+= 02.3, alcohol production services = 02.2); `nama_10_co3_p3` is
+**COICOP 1999** (tobacco = `CP022`, narcotics = `CP023` empty). Ten map
+3-digit codes are absent from the 1999 dimension (`CP013`, `CP024`,
+`CP064`, `CP074`, `CP097`, `CP098`, `CP131`–`CP139`).
+
+Six published 1999 3-digit parents span more than one GREU group:
+`CP011` (four food groups), `CP031`/`CP032`/`CP056` (`cNonFood`+`cSer`),
+`CP044` (`cHou`+`cSer`), `CP072` (`cCarEne`+`cSer`). `cSer` therefore
+connects housing, non-food and car energy into one 3-digit component —
+those groups cannot be uniquely identified without 4-digit COICOP.
+
+Uniquely identified at published 3-digit: `cCar` (`CP071`), `cHouEne`
+(`CP045`), `cFoodBev` (`CP012`+`CP021` only — tobacco missing).
+
+| GREU | CES `vD` | Eurostat | Identification | Result |
+|---|---:|---:|---|---|
+| `cCar` | 50.978 | `CP071` 48.092 | unique | PASS (−5.7%; share 4.56% vs 4.60%) |
+| `cHouEne` | 51.868 | `CP045` 48.102 | unique | PASS (−7.3%; share 4.64% vs 4.61%) |
+| `cFoodBev` | 54.239 | `CP012`+`CP021` 34.715 | unique, incomplete | FAIL (2018 tobacco=023 vs 1999 `CP022`) |
+| `cFoodBev` vs 1999 bev+tobacco | 54.239 | `CP012`+`CP021`+`CP022` 50.847 | remap | PASS (−6.3%) |
+| FOOD_CP011 (veg+meat+fish+dairy) | 114.289 | `CP011` 112.036 | cluster | PASS (−2.0%) |
+| `cTou` | 17.159 | no COICOP; FIGARO `OP_RES` 17.159 | unmapped | PASS vs `OP_RES` |
+
+`cCarEne` 22.035 vs mixed `CP072` 60.886 (fuels + spare parts +
+maintenance in `cSer`) — expected FAIL. `cHou` vs exclusive
+`CP041`+`CP042`+`CP043` 258.976 vs 230.904 FAIL (`CP044` water/dwelling
+services spans `cSer`).
+
+### Energy groups and `cTou`
+
+- `cHouEne` vs `CP045`: usable 3-digit control; Sweden public core
+  already fills this from PEFA household heat/appliances, which remains
+  the EU recipe.
+- `cCarEne` cannot be isolated at 3-digit. Use PEFA `HH_TRA`.
+- `cTou` (“expenses in other countries”) has no COICOP row.
+  `nama_10_co3_p3` is domestic household FCE. FIGARO `OP_RES` matches
+  17.159 bn DKK exactly — treat `cTou` as a tourism/RoW residual.
+
+### EU-27 coverage and Sweden
+
+All 27 member states publish 2020 `CP_MNAC` TOTAL and 3-digit COICOP
+(43–47 of the 47 possible 3-digit codes; DE/FI/NL/PL at 43). Year probe
+`TOTAL`/`CP_MNAC`: every country has 2020; span 1975–2024 (28–48 years).
+Sweden 2020 TOTAL 2,147.511 bn SEK, 12 two-digit / 47 three-digit codes
+(DK publishes 44 of the same 47; same digit depth). `CP045` 106.848,
+`CP071` 75.688, `CP072` 130.946.
+
+### Recipe
+
+1. Collapse `cons_hh_coicop_map` to the digit depth the country publishes
+   (3-digit everywhere in 2020; remap 2018 02.3 tobacco → 1999 `CP022`).
+2. Take uniquely identified groups and the food cluster from that
+   aggregation; allocate spanning 3-digit parents (`CP044`, `CP031`,
+   `CP072`, …) with a documented key or leave them in `cSer`/`cNonFood`
+   as the map’s 5-digit split would have.
+3. Fill `cHouEne` / `cCarEne` from the energy core (PEFA household uses),
+   not from `CP045`/`CP072`.
+4. Set `cTou` from FIGARO `OP_RES` (or a national-accounts residents-abroad
+   residual), not from domestic COICOP.
+5. Do **not** rebuild the industry × consumption-group matrix; cells stay
+   FIGARO/SUT. Scale the purpose split to the FIGARO household total.
+
+### Verdict
+
+**COARSER / PILOT DONE.** The 12-group split is load-bearing. Eurostat
+publishes household FCE by 3-digit COICOP for all 27 countries, which is
+enough to identify cars, household energy, the food cluster and
+(after a 1999 tobacco remap) beverages+tobacco. It cannot uniquely
+identify services/non-food/housing/car-energy at 3-digit because those
+groups share parents, and it does not contain tourism abroad. That is a
+digit-depth and concept limit, not a missing source.
+

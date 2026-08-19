@@ -1,0 +1,130 @@
+{
+  "datasets": [
+    "nama_10_co3_p3"
+  ],
+  "source": "Eurostat dissemination API (statistics/1.0, JSON-stat 2.0)",
+  "base_url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data",
+  "retrieval_date": "2026-08-19",
+  "purpose": "Pilot reconciliation of nama_10_co3_p3 (household FCE by COICOP 1999 purpose) against the 12 GREU consumption groups in io_long_format.xlsx (DK 2020 cons_hh / cons_hh_foreign columns), with SE-2020 and EU-27 coverage/year probes. See docs/eu_data_mapping.md.",
+  "dimension_note": "Live JSON-stat id is [freq, unit, coicop, geo, time]. There is no na_item dimension (the table is already household FCE). National total code is TOTAL, not CP00.",
+  "files": [
+    {
+      "file": "nama_10_co3_p3_DK_2020.json",
+      "dataset": "nama_10_co3_p3",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_co3_p3",
+      "params": {
+        "geo": "DK",
+        "time": "2020",
+        "lang": "en"
+      },
+      "note": "Denmark 2020 household FCE by COICOP purpose: all coicop / units as delivered. Digit depth (2- vs 3-digit) is read from the payload. No na_item filter \u2014 the dataset has none.",
+      "bytes": 28970,
+      "sha256": "29d0da7b132b2cec28d6bd523994004d89696974aab47588b33127265110492a",
+      "retrieval_date": "2026-08-19",
+      "n_observations": 1624
+    },
+    {
+      "file": "nama_10_co3_p3_SE_2020.json",
+      "dataset": "nama_10_co3_p3",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_co3_p3",
+      "params": {
+        "geo": "SE",
+        "time": "2020",
+        "lang": "en"
+      },
+      "note": "Sweden 2020 household FCE by COICOP purpose, same slice as DK.",
+      "bytes": 29210,
+      "sha256": "35aa2b280e25d0e6c7f3f2dcbc79693eff8ffe33a731285ee449c4db59b542f3",
+      "retrieval_date": "2026-08-19",
+      "n_observations": 1648
+    },
+    {
+      "file": "nama_10_co3_p3_eu27_coverage_probe_2020.json",
+      "dataset": "nama_10_co3_p3",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_co3_p3",
+      "params": {
+        "geo": [
+          "AT",
+          "BE",
+          "BG",
+          "CY",
+          "CZ",
+          "DE",
+          "DK",
+          "EE",
+          "EL",
+          "ES",
+          "FI",
+          "FR",
+          "HR",
+          "HU",
+          "IE",
+          "IT",
+          "LT",
+          "LU",
+          "LV",
+          "MT",
+          "NL",
+          "PL",
+          "PT",
+          "RO",
+          "SE",
+          "SI",
+          "SK"
+        ],
+        "time": "2020",
+        "unit": "CP_MNAC",
+        "lang": "en"
+      },
+      "note": "EU-27 coverage probe 2020: current prices, millions of national currency, all published COICOP codes. Used to see who publishes 3-digit vs 2-digit only.",
+      "bytes": 28357,
+      "sha256": "2310bf52e3ff5a0b4bccce1fd28df6db09f8b77b225495821de42baec2dff433",
+      "retrieval_date": "2026-08-19",
+      "n_observations": 1620
+    },
+    {
+      "file": "nama_10_co3_p3_eu27_year_probe_TOTAL.json",
+      "dataset": "nama_10_co3_p3",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_co3_p3",
+      "params": {
+        "geo": [
+          "AT",
+          "BE",
+          "BG",
+          "CY",
+          "CZ",
+          "DE",
+          "DK",
+          "EE",
+          "EL",
+          "ES",
+          "FI",
+          "FR",
+          "HR",
+          "HU",
+          "IE",
+          "IT",
+          "LT",
+          "LU",
+          "LV",
+          "MT",
+          "NL",
+          "PL",
+          "PT",
+          "RO",
+          "SE",
+          "SI",
+          "SK"
+        ],
+        "unit": "CP_MNAC",
+        "coicop": "TOTAL",
+        "lang": "en"
+      },
+      "note": "EU-27 year probe: TOTAL household FCE, current prices, millions of national currency, all years as delivered.",
+      "bytes": 16929,
+      "sha256": "31ce4fcd966def2962e81c65e1a6cd0588e3f2244d9fef20a559cc366fe86077",
+      "retrieval_date": "2026-08-19",
+      "n_observations": 826
+    }
+  ]
+}

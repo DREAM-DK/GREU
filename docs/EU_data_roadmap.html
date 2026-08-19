@@ -101,7 +101,7 @@
     <h1>GREU → EU Framework</h1>
     <div class="subtitle">Data roadmap &amp; progress tracker — replacing Statistics Denmark with EU-wide sources</div>
   </div>
-  <div class="date">Status: 18 August 2026<br>DREAM · GREU</div>
+  <div class="date">Status: 19 August 2026<br>DREAM · GREU</div>
 </div>
 
 <p class="lead"><b>Goal:</b> a version of GREU that any EU member state can run, using only data
@@ -129,12 +129,14 @@ non-energy goods and services sharing a broad category with energy, not hidden e
 (§6). What remains is chiefly
 <i>classification and construction</i>: exact industry-purpose energy in PJ (including
 <span class="src">in_ETS</span>), narrower product controls, the investment split, and conversion
-of the model's other still-Danish inputs. That conversion has now started and is moving quickly: four inputs have been
+of the model's other still-Danish inputs. That conversion has now started and is moving quickly: seven inputs have been
 piloted in the one-input-per-increment parameterization phase — <b>employment</b> (31 July,
 hours match to the rounding digit), the <b>emissions bridge</b> (17 August, zero EU-wide
 coverage gaps), <b>government finances</b> (17 August, number-exact to the third decimal),
-and <b>financial accounts</b> (18 August), where the pilot found the model already runs on
-live Eurostat data for this input and verified that route (see §6). Nine of the thirteen
+<b>financial accounts</b> (18 August; the model already runs on live Eurostat data for this
+input), <b>fixed assets</b> (18 August, capital stocks match Eurostat net replacement
+cost to rounding), and <b>non-energy emissions</b> (19 August, F-gases copy exactly;
+the methane gap is a documented agriculture difference, not a missing source — see §6), and <b>household consumption</b> (19 August, 3-digit COICOP uniquely identifies 3 of 12 purpose groups; tourism abroad matches FIGARO exactly; all 27 countries publish the split — see §6). Twelve of the thirteen
 inputs now have pilot or build evidence and none has proved infeasible — the binding
 constraint has shifted from data feasibility to the <b>open decisions in §7</b>.</div>
 
@@ -158,8 +160,8 @@ in <span class="src">docs/eu_data_pilots.md</span> and the linked workbooks.</p>
 
 <div class="statgrid">
   <div class="stat"><div class="big">12</div><div class="lbl">Danish inputs to replace</div></div>
-  <div class="stat"><div class="big">4</div><div class="lbl">Direct EU counterpart (OK)</div></div>
-  <div class="stat"><div class="big">6</div><div class="lbl">Available but coarser</div></div>
+  <div class="stat"><div class="big">5</div><div class="lbl">Direct EU counterpart (OK)</div></div>
+  <div class="stat"><div class="big">5</div><div class="lbl">Available but coarser</div></div>
   <div class="stat"><div class="big">4</div><div class="lbl">Structural gaps to build</div></div>
   <div class="stat"><div class="big">25</div><div class="lbl">Source codes confirmed</div></div>
 </div>
@@ -172,7 +174,9 @@ Comext API) and five waste-statistics datasets as evidence sources; these are no
 The 31 Jul employment pilot moved <span class="src">nama_10_a64_e</span> from existence-only to
 numerically tested, the 17 Aug emissions-bridge pilot did the same for
 <span class="src">env_ac_aibrid_r2</span>, and the 18 Aug financial-accounts pilot for
-<span class="src">nasa_10_f_bs</span> and <span class="src">nasa_10_nf_tr</span>.
+<span class="src">nasa_10_f_bs</span> and <span class="src">nasa_10_nf_tr</span>,
+and the 18 Aug fixed-assets pilot for
+<span class="src">nama_10_nfa_st</span> and <span class="src">nama_10_a64_p5</span>.
 The OK / coarser / gap counts sum to <b>14</b>, not 12, because two input files split across
 several rows in §2 — their components come from different EU sources.
 Audit trail: §"Audit log" in <span class="src">docs/eu_data_mapping.md</span>.</p>
@@ -271,9 +275,9 @@ the technology catalogue and the financial-accounts module — are out of scope.
       <td><span class="verdict gap">GAP</span></td>
       <td>SUT combines margins/net taxes; payer totals lack products; retail prices lack NACE/purpose; VAT lacks the taxable base. Allocation must be modelled explicitly.</td></tr>
   <tr><td>Non-energy emissions<br><span class="kbd">non_energy_emissions</span></td>
-      <td><span class="src">env_ac_ainah_r2</span> (totals incl. F-gases)</td>
+      <td><span class="src">env_ac_ainah_r2</span> (totals incl. F-gases) + <span class="src">env_air_gge</span> CRF2/3/5 (process control)</td>
       <td><span class="verdict coarser">COARSER</span></td>
-      <td>Energy/non-energy split derived: total − (fuel use × emission factors)</td></tr>
+      <td><b>Pilot done 19 Aug.</b> The spreadsheet is load-bearing (process-emission tax). F-gases copy from Eurostat exactly. Subtracting energy-related emissions from the air-account total does <i>not</i> recover the Danish methane/N₂O figures — that residual is a documented agriculture difference (Danish file below the current inventory; air accounts above it), not a missing source. All 27 countries publish the 2020 air accounts at fine industry detail. Do not reconstruct energy emissions from fuel × factors for Denmark; do not mix territorial inventory energy with residence-principle air accounts.</td></tr>
   <tr><td>Emissions bridge items<br><span class="kbd">emissions_bridge_items</span></td>
       <td><span class="src">env_ac_aibrid_r2</span> — exact concept match; one dataset also covers the LULUCF row</td>
       <td><span class="verdict ok">OK</span></td>
@@ -283,13 +287,13 @@ the technology catalogue and the financial-accounts module — are out of scope.
       <td><span class="verdict ok">OK</span></td>
       <td><b>Pilot done 31 Jul:</b> hours — the only per-industry content the model uses — reconcile essentially exactly (national total to the rounding digit; 24 of 28 clusters exact). Persons carry a uniform +3.52% concept gap affecting only one national scalar (Q8). Six countries publish hours at coarser industry detail (mild workaround, see §6); L↔68203 split still open.</td></tr>
   <tr><td>Fixed assets<br><span class="kbd">fixed_assets</span></td>
-      <td><span class="src">nama_10_nfa_st</span> (stocks by industry × asset)</td>
-      <td><span class="verdict coarser">COARSER</span></td>
-      <td>A21 industries only; PIM estimation where countries lack data</td></tr>
+      <td><span class="src">nama_10_nfa_st</span> (net stocks at current replacement cost)</td>
+      <td><span class="verdict ok">OK</span></td>
+      <td><b>Pilot done 18 Aug: number-exact.</b> Danish capital stock is the net replacement-cost figure Eurostat publishes for every member state (7,624.010 vs 7,624.016 bn DKK). The three groups the model uses — buildings, vehicles, other machinery — match to rounding. 24 of 28 industry groups match; the four that differ are the known housing/services boundary (decision 7) and cancel. All 27 countries publish 2020 net stocks including vehicles; 9 of 27 at the finer industry breakdown, the rest at 21 groups except Malta (missing mining and electricity). No country needs a capital-stock reconstruction.</td></tr>
   <tr><td>Investment split<br><span class="kbd">io_invest_long_format</span></td>
       <td>Two partial sources: FIGARO's investment column by product (supply side) and <span class="src">nama_10_a64_p5</span> / <span class="src">nama_10_nfa_st</span> by asset × industry (use side)</td>
       <td><span class="verdict gap">GAP</span></td>
-      <td><b>Rescoped 7 Aug:</b> the model needs two separate breakdowns, not the full matrix previously assumed (§6). <b>New 17 Aug:</b> <span class="src">nama_10_a64_p5</span> publishes investment by asset type at near-full industry detail for 13/27 countries incl. DK and SE — the use side is nearly direct data there; the other 14 countries still need the 21-group split using Denmark as the starting pattern.</td></tr>
+      <td><b>Rescoped 7 Aug</b> to two simpler breakdowns (§6). <b>18 Aug:</b> the use-side <i>totals</i> by buildings/vehicles/machinery match the Danish investment file exactly (516.141 bn DKK). 13/27 countries publish that at fine industry detail; 14 are coarser. Three GREU industries span several of the 21 coarse groups, so the split is messier than the original counting argument. Supply side is still a classification job.</td></tr>
   <tr><td>ETS data<br><span class="kbd">ets</span></td>
       <td>Commission Union Registry daily bulk + EEA EU ETS viewer</td>
       <td><span class="verdict coarser">COARSER</span></td>
@@ -309,7 +313,7 @@ the technology catalogue and the financial-accounts module — are out of scope.
   <tr><td>HH consumption detail<br><span class="kbd">cons_hh groups</span></td>
       <td><span class="src">nama_10_co3_p3</span> (COICOP)</td>
       <td><span class="verdict coarser">COARSER</span></td>
-      <td>3-digit vs Danish 4-digit; likely sufficient for 12 groups</td></tr>
+      <td><b>Pilot done 19 Aug:</b> the 12 purpose groups are load-bearing (they calibrate the household consumption nest). 3-digit COICOP uniquely identifies cars, household energy, and (after a 1999 tobacco remap) beverages; the four food groups collapse to one code and still match to 2%. Tourism abroad is missing from domestic COICOP but matches FIGARO's "residents abroad" residual exactly. All 27 countries publish 2020 at 3-digit. Energy groups still come from the energy accounts, not from this table.</td></tr>
   <tr><td>Sets &amp; concordances<br><span class="kbd">metadata</span></td>
       <td>Stays — becomes the master EU concordance file</td>
       <td><span class="verdict kept">KEPT</span></td>
@@ -354,12 +358,13 @@ All are EU-wide and free, but they are not the two core databases — flagged fo
     machinery, and who supplies those goods. EU data cannot. <b>Rescoped 7 Aug:</b> a
     code audit showed the model never uses the full matrix, only two simpler breakdowns
     (§6) — so this gap is smaller than previously recorded.
-    <b>Route:</b> the supply side is largely a classification job; the use side is
-    nearly direct data for 13/27 countries (17 Aug probe: <span class="src">nama_10_a64_p5</span>
-    publishes investment by asset at near-full industry detail there, incl. DK and SE);
-    the other 14 countries mean splitting 21 industry groups into GREU's 57, using
-    Denmark's pattern as a starting point. First step is a Denmark back-test against
-    its own known answer.</p></div>
+    <b>Route:</b> the supply side is largely a classification job. The use-side
+    <i>totals</i> by buildings/vehicles/machinery are now known to be direct data
+    (18 Aug: Denmark matches exactly). 13/27 countries publish the same at fine
+    industry detail; the other 14 still mean splitting 21 industry groups into
+    GREU's 57, using Denmark's pattern as a starting point — with the catch that
+    three GREU industries span several of those groups. First remaining step is
+    an industry-level Denmark back-test (the three-group totals already pass).</p></div>
   <div class="card"><h3>④ Marginal tax rates</h3>
     <p>Imported from Danish GreenREFORM via <span class="src">EU_GR_data.gdx</span> —
     a stopgap by the code's own admission. <b>Route:</b> derive from the gap-① excise/ETS
@@ -500,7 +505,8 @@ splitting keys, or a decision to run other EU countries at the aggregated level 
   emissions, so both GREU emissions workbooks must be combined. Fossil CO₂ then matches within
   −0.0069% and F-gases within 0.001 kt CO₂e. Total GHG is +1.111% in Eurostat
   (82.241 vs 81.337 Mt CO₂e), driven mainly by +26.430 kt CH₄ and +0.636 kt N₂O,
-  especially agriculture. This is an <b>open source/vintage difference</b>, not rounding.</p>
+  especially agriculture. <b>Follow-up 19 Aug (Pilot 11):</b> this is not a missing
+  source — see the non-energy-emissions pilot below.</p>
   <p style="margin-top:4pt"><b>Why it matters:</b> EU data can reproduce the physical totals needed
   for modelling, while making the remaining construction problems explicit. Detailed workbook:
   <span class="src">eurostat_energy_emissions_dk2020_reconciliation.xlsx</span>; methods and audit:
@@ -743,6 +749,80 @@ splitting keys, or a decision to run other EU countries at the aggregated level 
 </div>
 
 <div class="evidence">
+  <h3>✓ Pilot 10 · Capital stocks match Eurostat net replacement cost (nama_10_nfa_st, 18 August)</h3>
+  <p>The Danish capital-stock file is the figure Eurostat already publishes for every
+  EU country: <b>net</b> capital at current replacement cost, not the larger "gross"
+  (undepreciated) stock. Denmark 2020 totals <b>7,624.010 vs 7,624.016 bn DKK</b>.
+  The three groups the model actually uses — buildings 6,038.713, vehicles 397.388,
+  other machinery 1,187.909 — match the European classification to rounding.
+  24 of 28 industry groups match; the four that differ are the same housing/services
+  boundary three earlier pilots have hit (decision 7) — now four including this one — and they cancel. All 27 member states
+  publish 2020 net stocks including vehicles, so no country needs a reconstructed
+  capital stock. Nine publish the finer industry breakdown; Sweden (the public-core
+  country) is one of them, and publishes net stocks only — a colleague's draft that
+  used the gross stock would have failed there.</p>
+  <p style="margin-top:4pt"><b>Same session, the investment-split use side:</b> the
+  annual investment totals by buildings/vehicles/machinery in the Danish investment
+  file match Eurostat GFCF exactly (516.141 bn DKK). That means the "use margin" of
+  gap ③ is direct data at this level, not something to estimate. 13/27 countries
+  publish it at fine industry detail. The remaining work is who-invests-in-what
+  inside industry groups, plus the supply-side classification, plus the fact that
+  three GREU industries sit in several of the 21 coarse groups at once so the
+  original counting argument is not a clean partition. Scripts
+  <span class="src">data/preprocessing/scripts/download_fixed_assets_dk_2020.py</span> /
+  <span class="src">reconcile_fixed_assets_dk_2020.py</span>, workbook
+  <span class="src">fixed_assets_dk2020_reconciliation.xlsx</span>.</p>
+</div>
+
+<div class="evidence">
+  <h3>✓ Pilot 11 · Non-energy emissions: F-gases copy; methane is a documented agriculture difference (env_ac_ainah_r2 + env_air_gge, 19 August)</h3>
+  <p>The Danish process-emissions spreadsheet is load-bearing — it feeds the
+  model's non-energy emission tax. F-gases (HFCs, PFCs, SF₆) live only in this
+  file and match Eurostat's air accounts to 0.001 kt CO₂e; the inventory's
+  "product uses as ozone-depleting-substance substitutes" category matches
+  Danish HFCs exactly. Copying those cells is the EU recipe.</p>
+  <p style="margin-top:4pt">Eurostat's air accounts do <i>not</i> split energy from
+  process emissions. Subtracting GREU's energy-related emissions from the air-account
+  total simply parks the already-known methane/N₂O residual onto the process side —
+  it is not a derivation. That residual is almost entirely agriculture, and it is
+  <b>two stacked differences, not one</b>: the Danish file sits below the current
+  UNFCCC inventory (agriculture methane 260.5 vs 278.0 kt), and the air accounts
+  sit above the inventory (287.4 vs 278.0 kt). Eurostat has not revised the air-account
+  total since the July PEFA pilot. There is no missing dataset. For any other
+  country, take air-account agriculture/waste minus energy — that will be higher
+  than the Danish file, and that is the residence-principle figure consistent with
+  the energy accounts. All 27 member states publish 2020 air accounts at fine
+  industry detail and the inventory energy/industry/agriculture/waste split.
+  Scripts <span class="src">download_non_energy_emissions_dk_2020.py</span> /
+  <span class="src">reconcile_non_energy_emissions_dk_2020.py</span>, workbook
+  <span class="src">non_energy_emissions_dk2020_reconciliation.xlsx</span>.</p>
+</div>
+
+<div class="evidence">
+  <h3>✓ Pilot 12 · Household consumption: 3-digit COICOP identifies some purpose groups, not all (nama_10_co3_p3, 19 August)</h3>
+  <p>The last unpiloted Danish input is not a spreadsheet — it is the 12 purpose
+  columns of the main input-output table (food, housing, cars, tourism, …).
+  They calibrate the household consumption nest, so dummy equal shares would
+  silently mis-weight food against cars. FIGARO had already matched the
+  <i>total</i>; this pilot tested the purpose split.</p>
+  <p style="margin-top:4pt">Eurostat publishes household spending by 3-digit
+  purpose code for <b>all 27 member states</b>. That uniquely identifies 3 of
+  the 12 GREU groups: cars match (51.0 vs 48.1 bn DKK), household energy
+  matches (51.9 vs 48.1), and beverages match once 1999 tobacco is remapped
+  (the Danish concordance is a newer COICOP vintage). The four food groups
+  collapse to one code and still match to 2% (114.3 vs 112.0). Tourism abroad
+  is missing from domestic purpose statistics but equals FIGARO's
+  "residents abroad" residual exactly (17.159 bn). Services, other goods,
+  housing and car fuels <i>share</i> 3-digit parents, so they cannot be
+  separated without a finer split or the energy accounts. The EU recipe is
+  therefore: aggregate the existing map to published digit depth, take the two
+  energy groups from the energy core, and treat tourism as a rest-of-world
+  residual. Scripts <span class="src">download_hh_consumption_dk_2020.py</span> /
+  <span class="src">reconcile_hh_consumption_dk_2020.py</span>, workbook
+  <span class="src">hh_consumption_dk2020_reconciliation.xlsx</span>.</p>
+</div>
+
+<div class="evidence">
   <h3>✓ Contribution · A colleague's Eurostat-only "core model" (received 17 August)</h3>
   <p>A colleague independently built a stripped-down GREU variant that solves on live
   Eurostat data — no energy, emissions or climate content, and industries aggregated to 19
@@ -780,20 +860,20 @@ splitting keys, or a decision to run other EU countries at the aggregated level 
   than the matrix was. The supply side — which industries make investment goods — is essentially a
   classification exercise, since construction firms supply buildings and vehicle manufacturers
   supply vehicles; FIGARO already publishes the total to within 0.1% of the Danish figure. Only the
-  use side is genuinely missing detail: Eurostat publishes it for 21 industry groups where GREU
-  needs 57.</p>
+  use side is genuinely missing <i>industry</i> detail for 14 countries (21 groups where GREU
+  needs 57). The <i>totals</i> by buildings/vehicles/machinery, though, are now known to
+  be published directly — Denmark 2020 matches exactly (Pilot 10, 18 August).</p>
   <p style="margin-top:4pt"><b>The catch, and the honest limit:</b> the original idea was that
   using several years of data would let the finer split be estimated rather than assumed. Working
   through the arithmetic shows this works <i>per industry group</i>, and roughly needs as many
   years of data as there are GREU industries inside that group. Small groups will be pinned down
   by the data; large ones — manufacturing above all — will not, and there the Danish pattern will
-  still be doing the work. That is a limitation to disclose, not to hide, and the estimator should
-  say group by group which is which. <b>Recommended first step:</b> a Denmark back-test — hide
-  Denmark's detailed table, rebuild it from only the coarse figures an ordinary member state would
-  have, and see how close the reconstruction gets. It needs no new data and it tests the whole
-  method, including whether Denmark's own pattern is stable enough over time to serve as anyone
-  else's starting point. Full technical record, including the code references and the
-  identification arithmetic, is in <span class="src">docs/eu_data_mapping.md</span>.</p>
+  still be doing the work. <b>Update 18 August:</b> that counting argument assumed each GREU
+  industry sits in exactly one of the 21 groups. Three do not (consumer services, business
+  services, and the public-sector lumped industry), so the arithmetic is not a partition.
+  <b>Recommended remaining step:</b> a Denmark back-test of the <i>industry</i> split —
+  the three-group national totals already pass. Full technical record in
+  <span class="src">docs/eu_data_mapping.md</span>.</p>
 </div>
 
 <div class="verified"><span class="tag v">Verified scope</span>
@@ -817,7 +897,7 @@ item's full context. IDs follow the open-items list in
   <tr><td><b>6</b></td><td>Which industry splits finer than NACE A64 survive EU-wide? (→ Q3)</td>
       <td>Model owners</td><td>28 Jul</td><td>The industry dimension of every converted input — decided late, packages may need re-cutting</td></tr>
   <tr><td><b>7</b></td><td>Re-exports, and the NACE-L ↔ housing real-estate split</td>
-      <td>Concordance owner</td><td>29 Jul</td><td>Exact reconciliation in three pilots (FIGARO, PEFA, employment)</td></tr>
+      <td>Concordance owner</td><td>29 Jul</td><td>Exact reconciliation in four pilots (FIGARO, PEFA, employment, fixed assets)</td></tr>
   <tr><td><b>8</b></td><td>Approve the four energy-product concordance fixes (→ Q5)</td>
       <td>Concordance owner</td><td>30 Jul</td><td>Removing the pilots' ad-hoc adjustment layer</td></tr>
   <tr><td><b>10</b></td><td>IDEES process-code concordance and purpose rules</td>
@@ -866,11 +946,14 @@ are smaller repo-internal questions tracked outside the register.</p>
   The pilot found three clear corrections (P18 gasoil, ambient heat, spelling) and one small open
   allocation (P10 derived gas, 0.555 PJ). Keep these as pilot overrides until the concordance owner
   confirms the permanent changes.</div>
-<div class="q"><span class="status">☐ investigate vintage / national adjustment</span>
+<div class="q"><span class="status">☑ documented 19 Aug — not a missing source</span>
   <b>Q6 · Why are Eurostat methane and N₂O higher?</b><br>
-  The comparable total differs by +26.430 kt CH₄ and +0.636 kt N₂O; agriculture explains most of the
-  resulting +0.904 Mt CO₂e GHG gap. Check source vintage and national adjustments before adopting the
-  Eurostat series as the new baseline.</div>
+  The comparable total differs by +26.430 kt CH₄ and +0.636 kt N₂O, almost entirely
+  agriculture. Pilot 11 (19 Aug) split this into two stacked differences: the Danish
+  file sits below the current UNFCCC inventory, and the air accounts sit above it.
+  Eurostat has not revised the air-account total since July. There is no missing
+  source. An EU package should take air-account agriculture minus energy, not try
+  to reproduce the Danish undercount.</div>
 <div class="q"><span class="status">☑ architecture &amp; Sweden method implemented &nbsp; ☑ residuals narrowed &amp; characterized &nbsp; ☐ colleague acceptance</span>
   <b>Q7 · How should the monetary energy layer be redesigned?</b><br>
   The audit proves that public controls do not directly supply any complete GREU monetary cell.
@@ -910,8 +993,8 @@ are smaller repo-internal questions tracked outside the register.</p>
 <h2><span class="num">8</span>Task list<span class="hint">where things stand</span></h2>
 
 <p><b>The scoreboard.</b> One line per input needing replacement (mirrored as the
-<b>Progress</b> sheet of <span class="src">docs/EU_data_overview.xlsx</span>): 9 of 13 have
-pilot or build evidence, 1 is probed and rescoped, 3 are untouched. No input has been found
+<b>Progress</b> sheet of <span class="src">docs/EU_data_overview.xlsx</span>): 12 of 13 have
+pilot or build evidence, 1 is probed and partly closed (investment split). No input has been found
 infeasible.</p>
 
 <table>
@@ -924,24 +1007,24 @@ infeasible.</p>
       <td>Sweden 2020 package accepted; residuals disclosed and characterized</td></tr>
   <tr><td>Energy &amp; emissions</td><td><span class="verdict ok">PILOTED</span></td><td>30 Jul</td>
       <td>Physical −0.61%, CO₂ −0.007%; purpose and price layers must be constructed (gap ②)</td></tr>
-  <tr><td>Non-energy emissions</td><td><span class="verdict coarser">PARTLY</span></td><td>30 Jul</td>
-      <td>Combined boundary verified inside the PEFA pilot; the energy/non-energy split derivation untested</td></tr>
+  <tr><td>Non-energy emissions</td><td><span class="verdict ok">PILOTED</span></td><td>19 Aug</td>
+      <td>F-gases exact; methane residual is two documented A01 gaps, not a missing source; all 27 at fine industry detail</td></tr>
   <tr><td>Emissions bridge</td><td><span class="verdict ok">PILOTED</span></td><td>17 Aug</td>
       <td>≤0.05% per gas; zero EU-27 coverage gaps</td></tr>
   <tr><td>Employment</td><td><span class="verdict ok">PILOTED</span></td><td>31 Jul</td>
       <td>Hours essentially exact; persons +3.52% concept question (decision 16)</td></tr>
-  <tr><td>Fixed assets</td><td><span class="verdict gap">NOT PILOTED</span></td><td>—</td>
-      <td><b>Next in line</b>: nama_10_nfa_st at 21 industry groups; doubles as gap-③ groundwork</td></tr>
-  <tr><td>Investment split</td><td><span class="verdict coarser">PROBED</span></td><td>17 Aug</td>
-      <td>Rescoped to two margins; use side near-direct for 13/27 countries; method decision pending</td></tr>
+  <tr><td>Fixed assets</td><td><span class="verdict ok">PILOTED</span></td><td>18 Aug</td>
+      <td>Net replacement cost number-exact (7,624.010 vs 7,624.016); 24/28 industry groups exact; all 27 countries publish the stock</td></tr>
+  <tr><td>Investment split</td><td><span class="verdict coarser">PROBED</span></td><td>18 Aug</td>
+      <td>Use-side totals by buildings/vehicles/machinery now number-exact for DK; 13/27 countries at fine industry detail; supply side and A21 industry split remain</td></tr>
   <tr><td>ETS</td><td><span class="verdict ok">PILOTED</span></td><td>30 Jul</td>
       <td>Totals +0.007%; industry bridge and EUA price are decisions (11)</td></tr>
   <tr><td>Government finances</td><td><span class="verdict ok">PILOTED</span></td><td>17 Aug</td>
       <td>Number-exact except interest revenue +0.62%; enumerable leftovers, mostly closed by Pilot 9</td></tr>
   <tr><td>Financial accounts</td><td><span class="verdict ok">PILOTED</span></td><td>18 Aug</td>
       <td>Model already runs on the EU source, now verified; pension adjustment is decision 18</td></tr>
-  <tr><td>HH consumption detail</td><td><span class="verdict gap">NOT PILOTED</span></td><td>—</td>
-      <td>nama_10_co3_p3 at 2–3 digit COICOP vs the Danish 4-digit map</td></tr>
+  <tr><td>HH consumption detail</td><td><span class="verdict coarser">PILOTED</span></td><td>19 Aug</td>
+      <td>3 of 12 groups uniquely identified at 3-digit; food cluster and tourism residual pass; all 27 countries publish the split</td></tr>
   <tr><td>Marginal tax rates (EU_GR_data)</td><td><span class="verdict ok">BUILT</span></td><td>30–31 Jul</td>
       <td>Sweden GDX with explicit average=marginal assumption; excise engine still needed (gap ④)</td></tr>
   </tbody>
@@ -967,8 +1050,9 @@ infeasible.</p>
   <li><span class="cb done"></span><span class="done-txt">30 Jul: Union Registry/EEA installation pilot complete — ETS totals match within 0.007%; “bought” identified as derived shortfall; secondary NACE covers 97.59% of emissions; EUTL has no PJ, so in_ETS remains constructed</span></li>
   <li><span class="cb done"></span><span class="done-txt">30 Jul: Monetary-energy feasibility audit complete — public controls verified, but 0/862 monetary use rows are directly source-complete; exact-family price controls cover 15.00% of PJ, not cells</span></li>
   <li><span class="cb"></span>Decision with colleagues: industry splits (Q3)</li>
-  <li><span class="cb"></span>From the pilot: decide handling of re-exports and of the NACE-L ↔ 68203 real-estate split; add a note or split key to industries_naceA64_map — the split has now been hit by three pilots (most recently employment, 31 Jul) and also blocks that input</li>
-  <li><span class="cb"></span>Review PEFA product-map corrections (Q5) and investigate the agriculture CH₄/N₂O gap (Q6)</li>
+  <li><span class="cb"></span>From the pilot: decide handling of re-exports and of the NACE-L ↔ 68203 real-estate split; add a note or split key to industries_naceA64_map — the split has now been hit by four pilots (most recently fixed assets, 18 Aug) and also blocks that input</li>
+  <li><span class="cb"></span>Review PEFA product-map corrections (Q5)</li>
+  <li><span class="cb done"></span><span class="done-txt">19 Aug: agriculture CH₄/N₂O gap (Q6) documented as two stacked A01 differences, not a missing source (Pilot 11)</span></li>
 </ul>
 
 <p class="phase">Phase 2 — Close the gaps</p>
@@ -980,7 +1064,7 @@ infeasible.</p>
   <li><span class="cb done"></span><span class="done-txt">31 Jul: PRODCOM + waste-statistics residual pilots complete — CPA_C16 is ≥98.5% non-energy (PRODCOM DS-059358 on the Comext API is a viable EU-wide splitting key; the prc_stapro code previously cited does not exist), CPA_E37-E39 is ≥85% non-energy and not narrowable with public EU-wide data; the monetary-residual stream is closed as a data question (see §6)</span></li>
   <li><span class="cb"></span>Decision with colleagues: accept the evidence-backed non-energy residuals (CPA_C16, CPA_E37-E39) as permanent disclosed features of the public-core method; optionally annotate with the PRODCOM export share / ~1.0 bn SEK energy ceiling (Q7)</li>
   <li><span class="cb"></span>Agree IDEES process→GREU purpose concordance and specify the reviewed installation→industry + fuel/emission-factor method for in_ETS; retain PEFA controls</li>
-  <li><span class="cb"></span>Investment split (rescoped 7 Aug, §5③/§6; use side nearly direct for 13/27 countries per the 17 Aug <span class="src">nama_10_a64_p5</span> probe): for the remaining 14 countries, first map the 21 Eurostat industry groups onto GREU's 57 to see which groups are estimable at all, then run the Denmark back-test before building anything</li>
+  <li><span class="cb"></span>Investment split (rescoped 7 Aug, use-side totals closed 18 Aug, §5③/§6): supply-side classification still open; for the 14 countries without fine industry detail, three GREU industries span several of the 21 groups so the original counting argument is not a partition; industry-level Denmark back-test still to run (three-group totals already pass)</li>
   <li><span class="cb"></span>Tax/margin price layer per product × user from excise schedules</li>
   <li><span class="cb"></span>Replace EU_GR_data.gdx marginal-tax input (from excise/ETS layer, or model-side redesign)</li>
 </ul>
@@ -995,7 +1079,10 @@ infeasible.</p>
   <li><span class="cb done"></span><span class="done-txt">17 Aug: a colleague's Eurostat-only "EU core" GREU variant received and committed as reference material (data/read_eurostat_data/) — no energy/climate content, 19-industry aggregation, live-API pulls; its dataset mappings seeded the government pilot and pointed to the nama_10_a64_p5 investment finding</span></li>
   <li><span class="cb done"></span><span class="done-txt">18 Aug: follow-up conversation with the colleague — confirmed the financial-accounts naming skew is an incomplete push (not intentional) and her validation checked GDP only; her model is being rewritten in Julia by a second colleague, so her GAMS model modules are out of scope going forward — only the Python dataset-sourcing scripts remain relevant reference material</span></li>
   <li><span class="cb done"></span><span class="done-txt">18 Aug: fourth input piloted: institutional_financial_accounts.xlsx vs nasa_10_f_bs + nasa_10_nf_tr (DK 2020). Headline: the model never reads the Excel — the live Eurostat module supplies the two used values, now verified (equity = F5 exact; flows exact; all 27 countries complete). Pension adjustment quantified (2,703.8 bn DKK equity, +837.3 bn household wealth) and unimplemented → decision 18; module hardening (hardcoded DK/years, no provenance) is a named follow-up. Same session probed the government leftovers: rent and the dividend bundle closed exactly, CAP candidate −3.2%, transfer splits only bounded, PAL impossible</span></li>
-  <li><span class="cb"></span><b>▶ next session:</b> continue the pilots — <span class="src">fixed_assets.xlsx</span> vs <span class="src">nama_10_nfa_st</span> next (stocks at 21 industry groups × asset type; the pilot doubles as groundwork for the investment split, so probe <span class="src">nama_10_a64_p5</span> investment detail alongside); then non-energy emissions and the household consumption detail</li>
+  <li><span class="cb done"></span><span class="done-txt">18 Aug: fifth input piloted: fixed_assets.xlsx vs nama_10_nfa_st + nama_10_a64_p5 (DK 2020). Headline: Danish capital stock is Eurostat net replacement cost, number-exact (7,624.010 vs 7,624.016 bn DKK; buildings/vehicles/machinery exact; 24/28 industry groups exact). All 27 countries publish 2020 net stocks including vehicles; Sweden is fine-detail and net-only. Same session closed the investment-split use-side <i>totals</i> (GFCF matches the Danish investment file exactly) and showed three GREU industries span several of the 21 coarse groups. The four industry-group gaps are the known housing/services boundary (decision 7)</span></li>
+  <li><span class="cb done"></span><span class="done-txt">19 Aug: sixth input piloted: non_energy_emissions.xlsx vs env_ac_ainah_r2 + env_air_gge CRF1/2/3/5 (DK 2020). Headline: the spreadsheet is load-bearing; F-gases copy from Eurostat exactly; subtracting energy from the air-account total does not recover the Danish methane/N₂O figures — that is two documented agriculture gaps (Danish file below the current inventory; air accounts above it), not a missing source. All 27 countries publish 2020 air accounts at fine industry detail. Item 9 closed as a sourcing task</span></li>
+  <li><span class="cb done"></span><span class="done-txt">19 Aug: seventh (last) input piloted: household consumption 12-group split vs nama_10_co3_p3 (DK 2020). Headline: the split is load-bearing for the household nest; 3-digit COICOP uniquely identifies 3 of 12 groups (cars and household energy match; beverages need a 1999 tobacco remap); the four food groups collapse to one code and still match to 2%; tourism abroad is missing from domestic COICOP but equals FIGARO's residents-abroad residual exactly. All 27 countries publish 2020 at 3-digit. Item 17 closed</span></li>
+  <li><span class="cb"></span><b>▶ next session:</b> item 19 — harden the live financial-accounts module (country/years currently hardcoded, no download provenance) — or the investment-split industry back-test</li>
   <li><span class="cb"></span>Generalize the remaining non-energy inputs before any full Sweden run; only then choose a second country</li>
   <li><span class="cb"></span>Hole-filling rules documented for countries with missing pieces</li>
   <li><span class="cb"></span>Full EU-27 data build; model runs on EU-sourced data</li>

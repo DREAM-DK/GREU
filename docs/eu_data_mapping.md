@@ -19,7 +19,7 @@ is, and what to do next.
 This file is searched far more often than it is read end to end. Use grep for
 the input name or dataset code you care about rather than reading it whole.
 
-## Current status (2026-08-17)
+## Current status (2026-08-19)
 
 - **Monetary-energy core: architecture chosen and proven.** Sweden 2020 is the
   first accepted non-Danish `public_core` package, built only from public
@@ -33,26 +33,37 @@ the input name or dataset code you care about rather than reading it whole.
   What is left is a colleague decision, not more data work.
 - **The parameterization phase has started:** converting the remaining Danish
   inputs one at a time, smallest first. `employed.xlsx`,
-  `emissions_bridge_items.xlsx`, `government_finances.xlsx` and
-  `institutional_financial_accounts.xlsx` are done and confirmed OK — the
-  government pilot reconciled **number-exact**, and the financial-accounts
-  pilot (2026-08-18) found the model **never reads that Excel**: the live
-  Eurostat module already supplies the two load-bearing symbols, now
-  verified (equity = F5 exact; the Danish pension-asset reallocation is
-  quantified but unimplemented → decision 18). Never piloted yet:
-  `non_energy_emissions.xlsx`, `fixed_assets.xlsx` and the household
-  consumption detail; `fixed_assets.xlsx` is next (doubles as gap-3
-  groundwork).
+  `emissions_bridge_items.xlsx`, `government_finances.xlsx`,
+  `institutional_financial_accounts.xlsx`, `fixed_assets.xlsx`,
+  `non_energy_emissions.xlsx` and the household-consumption split of
+  `io_long_format.xlsx` are done. The government and fixed-assets
+  pilots reconciled **number-exact** at the totals the model uses; the
+  financial-accounts pilot (2026-08-18) found the model **never reads that
+  Excel** (live Eurostat module already supplies the two load-bearing
+  symbols; pension reallocation unimplemented → decision 18). The
+  fixed-assets pilot also closed gap-3's *use-margin totals*. The
+  non-energy-emissions pilot (2026-08-19) confirmed the Excel is
+  **load-bearing** (`qEmmxE`): F-gases copy from `env_ac_ainah_r2` exactly;
+  `ainah − energy` is tautological for CH4/N2O (item 9 documented, not a
+  missing source); all 27 countries publish 2020 ainah at A64 and CRF
+  1/2/3/5. The household-consumption pilot (2026-08-19) closed the last
+  unpiloted Danish input: 3-digit `nama_10_co3_p3` uniquely identifies 3
+  of 12 GREU groups; the food four-pack and 1999 beverages+tobacco
+  clusters pass; `cTou` matches FIGARO `OP_RES` exactly; all 27 countries
+  publish 2020 at 3-digit.
 - **A colleague's Eurostat-only "EU core" reference implementation was
   received 2026-08-17** and committed under `data/read_eurostat_data/` (see
   its README for provenance and caveats). It is inspiration/concordance
-  material, not the deliverable pipeline; its `gov_10a_main` mapping seeded
-  the government-finances pilot, and its `nasa_10_nf_tr` flows module is
-  directly relevant to the next pilot. **2026-08-18 follow-up:** her model is
-  being rewritten in Julia by a second colleague, so only her Python
-  data-sourcing scripts remain relevant going forward — see Handoff.
+  material, not the deliverable pipeline. **2026-08-18 follow-up:** her model
+  is being rewritten in Julia by a second colleague, so only her Python
+  data-sourcing scripts remain relevant going forward — see Handoff. The
+  fixed-assets pilot rejected her `factor_demand_data.py` asset map (gross
+  stocks, no `iT`; Sweden publishes net only).
 - **Structural gap 3 was rescoped on 2026-08-07** after a code audit: the model
   needs two investment margins, not the full matrix previously recorded.
+  **2026-08-18:** the use-margin *totals* are direct data; remaining work is
+  the industry dimension (A64 concordance for 13/27 countries; A21
+  disaggregation for 14, with three GREU industries that do not nest in A21).
 
 Full evidence for every claim above is in `docs/eu_data_pilots.md`.
 
@@ -105,8 +116,9 @@ proven end-to-end by the 2026-08-17 emissions-bridge pilot;
 `nasa_10_f_bs` and `nasa_10_nf_tr` are proven end-to-end by the 2026-08-18
 financial-accounts pilot. Four additional
 annual energy-price-component codes (`nrg_pc_202_c` through `_205_c`) were
-added and tested, and `env_air_gge` (UNFCCC inventory, used as the LULUCF
-cross-check) was verified 2026-08-17, bringing the total from 20 to 25. The **3 FIGARO codes**
+added and tested, and `env_air_gge` (UNFCCC inventory) was verified
+2026-08-17 as the LULUCF cross-check and 2026-08-19 as the CRF1/2/3/5
+process-emissions control, bringing the total from 20 to 25. The **3 FIGARO codes**
 `naio_10_fcp_s3` / `_u3` / `_ii3` were proven end-to-end on 2026-07-29.
 **Correction (2026-07-29):** this doc originally stated that FIGARO is distributed only
 via the Eurostat FIGARO page → CIRCABC (CSV/Excel/Parquet) and not as regular database
@@ -144,16 +156,16 @@ work is sourcing EU data on the right-hand side of each map.
 | `io_energy_long_format.xlsx` | Energy-only IO (money) | **Constructed public core:** PEFA physical supply-use plus a modelled price/tax layer, constrained by SUT and price/tax controls | GAP / PILOT BUILT | Direct coverage remains zero. Sweden 2020 is the first accepted calibrated package: 177 modelled use cells, 610.583 bn SEK purchaser value, with 299.131 bn SEK explicit unmatched SUT residual. |
 | `energy_and_emissions.xlsx` | PJ + emissions + full price decomposition by bal/flow/indu/purp/product | Physical: `env_ac_pefasu` (PEFA supply-use, PJ, by NACE); balances `nrg_bal_c` (product detail, no industry dim). Emissions: `env_ac_ainah_r2` (air emissions by NACE A64 + households, all gases). Purpose candidate: **JRC-IDEES-2023** + EUTL | COARSER | **PEFA pilot:** concept-adjusted 2,237.794 vs GREU 2,251.550 PJ (−0.611%); household total +0.039%. **IDEES pilot:** process envelope +3.05%, but exact purposes remain constructed. **EUTL pilot:** proves which installations/emissions are regulated but publishes no fuel or PJ; it cannot populate `in_ETS` without installation→industry plus fuel/emission-factor modelling. Four PEFA product-map issues also need correction (P18, ambient heat, spelling, P10). |
 | — price decomposition (basic→purch: 3 margins, 5 taxes, VAT per energy cell) | | `naio_10_cp15`: broad CPA basic/purchaser totals, **combined** trade+transport margins and net product taxes; `cp16`: broad CPA purchaser use; `env_ac_taxind2`: payer totals; Eurostat electricity/gas components; EC Oil Bulletin; TAXUD rates | GAP | None supplies the joint cell. `cp15` does not split GREU's wholesale/retail/motor margins; tax accounts do not identify products/rates; electricity/gas/oil prices lack NACE/purpose and gas is not complete EU-27; VAT rate lacks taxable base/recovery. An explicit tax/price engine or redesigned model interface is required. |
-| `non_energy_emissions.xlsx` | Process emissions by indu (incl. HFC/PFC) | `env_ac_ainah_r2` covers **total** emissions by NACE incl. F-gases | COARSER | Energy vs non-energy split not in the accounts → derive: non-energy = total (ainah) − energy-related (PEFA fuel use × emission factors), or use UNFCCC CRF categories / EDGAR. |
+| `non_energy_emissions.xlsx` | Process emissions by indu (incl. HFC/PFC) → model `qEmmxE` | `env_ac_ainah_r2` (residence, combined energy+process) + `env_air_gge` CRF2/3/5 (territorial process control) | COARSER / PILOT DONE | **DK-2020 pilot (2026-08-19):** Excel is load-bearing. Copy ainah F-gases wholly as non-energy (do not substitute CRF2F HFC — that drops SF6/PFC). `ainah − energy` is tautological for CH4/N2O. Item 9 is two stacked A01 gaps, not a missing source. All 27 countries publish 2020 ainah at A64 and CRF1/2/3/5. Do **not** PEFA×EF for DK; do **not** subtract CRF1 from ainah. Figures: `docs/eu_data_pilots.md`. |
 | `emissions_bridge_items.xlsx` | Residence adjustments (bord_trade, internat_transp) + LULUCF | `env_ac_aibrid_r2` (air emissions accounts **bridging items**) — one dataset covers all three rows incl. the LULUCF block | OK / PILOT DONE | **DK-2020 pilot (2026-08-17): net residence adjustment matches to ≤0.05% per gas; zero EU-27 coverage gaps** — the first pilot with complete coverage. The Danish two-row split (bord_trade vs internat_transp) is a national definition; Eurostat splits by mode, and the ~362 kt CO2 difference is a quantified internal reclassification (international road hauliers). `internat_transp` is never exported to GAMS. LULUCF: exact concept match (= `env_air_gge` CRF4 cell-for-cell) but Danish level is +17.7% CO2-eq — inventory vintage. Both sides use AR5 GWPs (verified arithmetically). |
 | `employed.xlsx` | Employment + hours by indu × employees/self-employed | `nama_10_a64_e` (employment by A64: persons and hours; `SELF_DC` self-employed is published directly, EMP−SAL only needed where suppressed) | OK / PILOT DONE | **DK-2020 pilot (2026-07-31): hours reconcile to <0.001% nationally and exactly in 24 of 28 clusters** — and hours are the only per-industry content `read_data.py` uses (self/employee hours ratio for imputed labour income; head counts collapse to one national scalar). Persons carry a uniform **+3.52%** concept gap (Danish column is a non-standard person concept — colleague question). Known L↔68203 boundary reappears (cluster L hours +180%). Hours not at A64 for DE/FR/BE/BG/LT/EE; SE suppresses 6 A64 codes (pair residuals derivable). |
-| `fixed_assets.xlsx` | Capital stock by indu × 7 asset types | `nama_10_nfa_st` (fixed asset stocks by industry × asset) | COARSER | Eurostat side is A21 industries (not A64) and asset detail varies by country; may need capital-stock estimation (PIM) from `nama_10_a64` GFCF for missing countries. |
-| `io_invest_long_format.xlsx` | Investment matrices (build/trans/other) by producing indu × investing indu — but **only two margins are load-bearing**, see below | **GAP (reduced scope, 2026-08-07; use margin largely closed 2026-08-17).** No EU source publishes the joint producing × investing matrix, but the model never uses it. The two margins it does use: supply side = FIGARO `P51G` column by supplying product (needs a 3-way asset split); use side = `nama_10_a64_p5` asset × industry at (near-)A64 for 13/27 countries incl. DK+SE (probed 2026-08-17), falling back to `nama_10_nfa_st` A21 + disaggregation for the rest | GAP | **Reframed 2026-08-07** (verified against `read_data.py:305-311`, `factor_demand.gms:64`, `input_output.gms:209`): `read_data.py` discards the supplying dimension and builds `qI_k_i[k,i,t]` only; the supply side re-enters through the IO investment columns and calibrated `rYM` shares. So the task is two separate margin problems, not a full-matrix RAS. Supply side is mostly a concordance (buildings→F, transport eq.→C29-30). Use side is a genuine A21→57 disaggregation, identified per A21 group only where enough years are available. See the dedicated task record in the Handoff section. |
+| `fixed_assets.xlsx` | Capital stock by indu × 7 asset types → model uses 3 GREU types (`iB`/`iT`/`iM`) | `nama_10_nfa_st` (net capital stocks at current replacement cost, `CRC_MNAC`) | OK / PILOT DONE | **DK-2020 pilot (2026-08-18): number-exact** at the net CRC totals the model uses. 24/28 industry clusters exact; the four that differ are the known NACE-L/services boundary (decision 7) and cancel. All 27 countries publish 2020 net stocks including transport (`N1131N`); 9/27 at A64, the rest A21 except Malta (missing B and D). Sweden is A64 and **net-only** (no gross). PIM not needed. Colleague reference uses gross and drops `iT` — rejected. Figures: `docs/eu_data_pilots.md`. |
+| `io_invest_long_format.xlsx` | Investment matrices (build/trans/other) by producing indu × investing indu — but **only two margins are load-bearing**, see below | **GAP (reduced scope, 2026-08-07; use-margin *totals* closed 2026-08-18).** No EU source publishes the joint producing × investing matrix, but the model never uses it. Supply side = FIGARO `P51G` column by supplying product (3-way asset split still a concordance). Use side = `nama_10_a64_p5` P51G by asset × industry: **DK 2020 3-type totals number-exact** vs `io_invest_long_format.xlsx` (buildings=`N11KG`, transport=`N1131G`, other=remainder); A64 × 3 assets for 13/27 countries; A21 fallback for 14. Industry split inside clusters is the remaining gap (decision 7 on four clusters; three GREU industries span A21 so the `n_g` identification arithmetic is not a partition) | GAP | **Reframed 2026-08-07** (`read_data.py:305-311`). **2026-08-18:** use-margin *national 3-type totals* are direct data, not an estimation problem. Remaining use-side work is GREU↔A64 concordance (13 countries) / A21 disaggregation (14), blocked on decision 7. Supply side still a concordance. See the task record and `docs/eu_data_pilots.md`. |
 | `ets.xlsx` | Free/bought allowances, verified emissions, implied tax by indu | **European Commission Union Registry + EEA EU ETS viewer**: anonymous daily installation-level GZIP-CSV plus EEA aggregates, all EU-27 | COARSER | DK 2020 totals reproduce almost exactly: emissions +0.0067%, free allocation +0.0023%, installation shortfall +0.0020%. Emissions/allocation are direct; “bought” is derived as positive installation shortfall, not observed purchases; tax/cost needs an external EUA price. Registry activity codes are not NACE. A public secondary carbon-leakage-list NACE map covers 97.59% of DK emissions but is not authoritative enough to close the industry bridge. |
 | `government_finances.xlsx` | Gov exp/rev by ESA transaction (D1, P51c, D3, …) | `gov_10a_main` + `gov_10a_taxag` (main aggregates of general government + tax detail) | OK / PILOT DONE | **DK-2020 pilot (2026-08-17): number-exact** — every mappable row reconciles to the third decimal (bn DKK) except interest revenue `D41REC` (+0.62%); the MAKRO caveat did not materialize. Four re-readings needed (PAL sits in `D51A_C1`; Danish "D214" row = D212+D214; D42–D45 only as a bundle for DK; disagg sheet is signed). Remaining structural gaps, all with named candidates: 4 dom/RoW counterpart splits, D421/D422/D45 detail, PAL as separate series, EU-paid CAP subsidies (→ `nasa_10_nf_tr` or fixed shares). 14/27 countries complete; gaps are plausibly-zero items plus patchy counterpart memos. |
 | `institutional_financial_accounts.xlsx` | Net financial positions by sector (hh/corp/gov/row) × instrument groups | `nasa_10_f_bs` (financial balance sheets by sector × instrument F2–F8); flows/interest/dividends: `nasa_10_nf_tr` (D41, D42) | OK / PILOT DONE | **DK-2020 pilot (2026-08-18): the model never reads this Excel** — all 8 exported symbols are orphaned; `data_from_GR.gms:138-140` loads `vNetFinAssets`/`vNetDebtInstruments` from the live Eurostat module instead, now verified: equity = F5 net matches gov/row exactly; D41/D42 flows exact for gov/row and corp+hh in sum; **all 27 countries complete** incl. S128_S129. The Danish pension reallocation is quantified (equity 2,703.8 bn, hh net wealth +837.3 bn, ≈ the S128_S129 portfolio) and NOT implemented in the module → decision 18. Colleague reference's Equity=F51 does **not** reproduce the Danish file. Open: small gov/row debt-stock gaps (vintage candidates), module hardcodes DK/2019-2020, no raw provenance. |
 | `metadata.xlsx` | Sets + concordances | Stays; becomes the master EU concordance file | KEPT | Extend maps to: PEFA product list per country availability, EUTL activity→NACE, asset→product bridge. |
-| Household consumption detail (12 cGroups) | | `nama_10_co3_p3` (consumption by COICOP) | COARSER | Eurostat publishes 2–3 digit COICOP; the Danish map uses 4-digit. 3-digit is enough to build the 12 GREU groups approximately; check group-by-group. |
+| Household consumption detail (12 cGroups) | | `nama_10_co3_p3` (consumption by COICOP 1999 purpose) | COARSER / PILOT DONE | **DK-2020:** no separate Excel — the 12 groups are `io_long_format` `cons_hh`/`cons_hh_foreign` columns and **are load-bearing** (CES nest `qCHh` from `qD[c]`). 3-digit uniquely identifies 3/12 groups; food cluster and 1999 beverages+tobacco pass; `cTou` matches FIGARO `OP_RES` exactly. All 27 countries publish 2020 at 3-digit. Recipe: collapse the existing map to published digit depth, take `cHouEne`/`cCarEne` from the energy core, treat `cTou` as a tourism residual. Figures: `docs/eu_data_pilots.md`. |
 | `EU_GR_data.gdx` | Marginal tax rates `tEAFG_REmarg`, `tCO2_REmarg` from Danish GreenREFORM | **Constructed public-core GDX for Sweden; no direct EU counterpart** | GAP / PILOT BUILT | Sweden uses allocated average `ener_tax/PJ` as an explicit average=marginal assumption and zero separate CO2 rate. Public-core mode bypasses Danish industry surgery. This proves compatibility, not direct marginal-rate observation. |
 
 ## The four structural gaps (= the real work of step 2)
@@ -175,16 +187,17 @@ work is sourcing EU data on the right-hand side of each map.
    and an installation→industry bridge, followed by explicit fuel/emission-factor
    modelling for `in_ETS`; owner-approved concordance and residual rules remain
    essential.
-3. **Investment split** (was "investment matrices"; **rescoped 2026-08-07**):
-   the model needs two margins, not the joint producing × investing matrix it
-   was previously recorded as needing. Supply side = split FIGARO's single
-   `P51G` product column into buildings/transport/other, which is largely a
-   concordance question. Use side = disaggregate `nama_10_nfa_st` asset ×
-   industry from A21 to GREU's 57 industries, which is the genuinely
-   underdetermined part; Danish structure as prior, with per-group
-   identification depending on the number of years available. See the task
-   record in the Handoff section for the evidence, the identification
-   arithmetic and the recommended Denmark back-test.
+3. **Investment split** (was "investment matrices"; **rescoped 2026-08-07**,
+   use-margin totals **closed 2026-08-18**): the model needs two margins, not
+   the joint producing × investing matrix. Supply side = split FIGARO's
+   single `P51G` product column into buildings/transport/other (still a
+   concordance). Use-margin *national 3-type totals* match `nama_10_a64_p5`
+   P51G exactly for DK 2020; 13/27 countries publish the same at A64. What
+   remains is the industry dimension: A64→GREU concordance for those 13
+   (blocked on decision 7), and A21 disaggregation for the other 14 — but
+   three GREU industries (`55560`, `71000`, `off`) span several A21 sections,
+   so the `n_g` identification arithmetic is not a partition. See the task
+   record and `docs/eu_data_pilots.md`.
 4. **Marginal tax rates** (`EU_GR_data.gdx`, added 2026-07-28): Denmark still
    imports the GreenREFORM stopgap. Sweden's complete public-core GDX proves the
    compatibility route using explicit average=marginal rates, while recording
@@ -253,40 +266,39 @@ can likely reuse its code directly.
 
 ## Open items
 
-Completed items 1–5, 12, 13 and 15 are archived with their evidence in
+Completed items 1–5, 9, 12, 13, 15 and 17 are archived with their evidence in
 `docs/eu_data_pilots.md`; only what is still open is listed here. Item numbers
 are kept stable so older notes and the roadmap still resolve.
 
 ### Data tasks (no colleague input needed)
 
-- **17 — NEXT.** Pilot the remaining inputs one per increment.
-  Done: `emissions_bridge_items.xlsx`, `government_finances.xlsx` (both
-  2026-08-17) and `institutional_financial_accounts.xlsx` (2026-08-18,
-  incl. the `nasa_10_nf_tr` probe of the government pilot's leftovers:
-  rent and the D42 bundle closed, CAP candidate found, counterpart splits
-  only bounded, PAL impossible — see `docs/eu_data_pilots.md`). Next:
-  `fixed_assets.xlsx` vs `nama_10_nfa_st` (A21 × asset stocks; also the
-  gap-3 use-margin fallback source, so the pilot doubles as gap-3
-  groundwork; check `nama_10_a64_p5` GFCF detail alongside). Then
-  `non_energy_emissions.xlsx` and the household consumption detail
-  (`nama_10_co3_p3`).
+- **17 — DONE (2026-08-19).** Pilot the remaining inputs one per increment.
+  Last increment: household consumption detail (`nama_10_co3_p3`) vs the
+  12 GREU `c` groups in `io_long_format.xlsx`. 3-digit uniquely identifies
+  3/12; food cluster and 1999 beverages+tobacco pass; `cTou` = FIGARO
+  `OP_RES` exact; all 27 publish 3-digit. **No remaining unpiloted Danish
+  input.** See `docs/eu_data_pilots.md`. Remaining parameterization work
+  is item 19 (module hardening) and gap-3 (industry dimension).
+- **9 — DONE (2026-08-19).** Two stacked A01 gaps, not a missing source:
+  GREU below current CRF3, ainah above CRF3. See Pilot 11 in
+  `docs/eu_data_pilots.md`.
 - **19 (follow-up task, needs no decision).** Bring
   `Modules/financial_accounts/financial_accounts_data.py` up to repo
   standards: parameterize `geo`/years (currently hardcoded DK/2019-2020),
   add raw-payload provenance (currently a cache without manifest), and —
   once decision 18 lands — implement or explicitly reject the pension
   reallocation. The pilot verified its instrument definitions are correct.
-- **9.** Investigate the +26.430 kt CH4 / +0.636 kt N2O Eurostat gaps found by
-  the PEFA/air pilot (mostly agriculture) and document whether they are
-  vintage or national-adjustment differences.
 - **14 (optional).** If colleagues want the `CPA_C16` residual annotated rather
   than merely accepted, wire the PRODCOM export share (~1.15% energy-relevant)
   into the builder as an audit annotation — an annotation, not an allocation,
   since PRODCOM values are ex-works/FOB against SUT purchaser prices.
-- **Structural gap 3 (investment split).** Rescoped 2026-08-07; see the task
-  record at the end of this file. First step is a cheap lookup, not modelling:
-  map the 21 Eurostat industry groups onto GREU's 57 to find which groups are
-  estimable at all.
+- **Structural gap 3 (investment split).** Rescoped 2026-08-07. The A21→GREU
+  lookup is done (2026-08-18): three GREU industries span A21, so the `n_g`
+  rule is not a partition; use-margin *totals* are direct data. Remaining:
+  supply-side concordance, industry split inside clusters (decision 7), and
+  A21 disaggregation for the 14 countries without A64 GFCF. Denmark back-test
+  of 3-type totals already passed; the industry-dimension back-test is still
+  open (method decisions permitting).
 
 ### Decisions needed from colleagues
 
@@ -309,10 +321,12 @@ triaged; the same list is transcribed into the `decisions` sheet of
   dimension of every converted input — every EU package built before this is
   decided may need re-cutting.)*
 - **7.** Handling of re-exports, and of the NACE-L ↔ 68203 real-estate split.
-  Add a note or split key to `industries_naceA64_map`. **Three separate pilots
-  have now hit this** (FIGARO, PEFA, employment); it blocks each of them.
+  Add a note or split key to `industries_naceA64_map`. **Four separate pilots
+  have now hit this** (FIGARO, PEFA, employment, fixed assets); it blocks
+  each of them. The fixed-assets diffs cancel across L / 71000 / off / 55560.
   *(owner: `metadata.xlsx` concordance owner; raised 2026-07-29; blocks: exact
-  cluster-level reconciliation in the FIGARO, PEFA and employment pilots.)*
+  cluster-level reconciliation in the FIGARO, PEFA, employment and
+  fixed-assets pilots.)*
 - **8.** Review and correct the four energy-product concordance issues the PEFA
   pilot exposed: P18 missing from diesel, heat-pump ambient energy belongs with
   renewable natural inputs, `sem_refin_oil` misspelling, P10 unmapped. The
@@ -361,26 +375,22 @@ Where the project stands is summarized in "Current status" at the top of this
 file; the evidence behind it is in `docs/eu_data_pilots.md`. This section
 records only what the next session needs to act on.
 
-**Next task (do not broaden it):** continue the pilots one input per
-increment (item 17). Done 2026-08-18: `institutional_financial_accounts.xlsx`
-vs `nasa_10_f_bs`+`nasa_10_nf_tr` — headline: **the model never reads that
-Excel** (all 8 exported symbols orphaned; the live Eurostat module supplies
-the two load-bearing ones, now verified: equity = F5 exact for gov/row,
-D41/D42 flows exact, all 27 countries complete). The Danish pension-asset
-reallocation is quantified (equity 2,703.8 bn DKK; ≈ the S128_S129
-subsector portfolio; NOT net-neutral, hh +837.3 bn) and is not implemented
-in the module → **decision 18**; module hardening is item 19. The same
-session probed the government pilot's leftovers in `nasa_10_nf_tr`: rent
-D45 and the D42 bundle closed exactly, CAP candidate S2 D39 PAID (−3.2%),
-counterpart splits only bounded, PAL impossible there. Evidence:
-`docs/eu_data_pilots.md`, workbook
-`data/preprocessing/data/financial_accounts_dk2020_reconciliation.xlsx`.
-Next: `fixed_assets.xlsx` vs `nama_10_nfa_st` (stocks at A21 × asset; the
-pilot doubles as gap-3 use-margin groundwork — probe `nama_10_a64_p5` GFCF
-detail alongside, see the gap-3 task record below). After that:
-`non_energy_emissions.xlsx`, then household consumption detail
-(`nama_10_co3_p3`). Alternative if blocked: start structural gap 3's
-Denmark back-test (method decisions permitting).
+**Next task (do not broaden it):** item 17 is complete — there is no
+remaining unpiloted Danish input. Done 2026-08-19 (this session):
+household consumption detail (`nama_10_co3_p3`) vs the 12 GREU `c` groups
+in `io_long_format.xlsx` `cons_hh`/`cons_hh_foreign`. Headline: **CES nest
+is load-bearing; 3-digit uniquely identifies 3/12 groups; food cluster and
+1999 beverages+tobacco pass; `cTou` = FIGARO `OP_RES` exact (17.159);
+all 27 countries publish 2020 at 3-digit.** Map is COICOP 2018-style
+(tobacco=023) against a 1999 table (tobacco=`CP022`); `CP072` mixes car
+fuels with maintenance. Recipe: collapse the map to published digit
+depth, take `cHouEne`/`cCarEne` from the energy core, treat `cTou` as a
+tourism/RoW residual. Evidence: `docs/eu_data_pilots.md`, workbook
+`data/preprocessing/data/hh_consumption_dk2020_reconciliation.xlsx`.
+**Next: item 19** (harden `Modules/financial_accounts/financial_accounts_data.py`:
+parameterize `geo`/years, add raw provenance, then decision 18) **or
+gap-3** industry-dimension Denmark back-test (method decisions
+permitting; 3-type totals already pass).
 
 **Colleague reference implementation (received 2026-08-17):** an
 Eurostat-only "EU core" GREU variant (no energy/emissions/climate), committed
@@ -426,13 +436,12 @@ this is a separate, lower-priority thread from the CPA_C16/E37-E39 task above,
 which concerns misallocation across too-broad controls rather than a missing
 control.
 
-**Documentation state (2026-08-18):** all documents are synchronized —
-`docs/EU_data_roadmap.html`/`.pdf`, `docs/EU_data_overview.xlsx` (which now
-carries `progress` and `decisions` sheets transcribed from this file),
+**Documentation state (2026-08-19):** all documents are synchronized —
+`docs/EU_data_roadmap.html`/`.pdf`, `docs/EU_data_overview.xlsx`,
 `docs/eu_data_pilots.md`, `energy_data_notes.md` and
 `data/Modules/energy_money/README.md`. **No pending doc updates; safe to
-start the next session directly on the `fixed_assets.xlsx` pilot, or on any
-item from the open-decisions list.**
+start the next session on item 19 (financial-accounts module hardening)
+or gap-3, or on any item from the open-decisions list.**
 
 ## Task recorded 2026-08-07 — investment split (structural gap 3), reframed
 
@@ -489,23 +498,23 @@ a free 64×3 estimation — the counting argument below shows that would not be
 identified, and it does not need to be.
 
 **2. Use margin — which industries buy investment goods, by type.**
-`nama_10_nfa_st` gives assets by type and industry at A21; GREU needs 57
-industries. This is a within-group disaggregation from A21 to the GREU
-industry list, holding asset type fixed, and it is the genuinely
-underdetermined part where the prior and the extra years matter.
+For 13/27 countries (incl. DK and SE) this is `nama_10_a64_p5` P51G at A64
+× asset — a concordance to GREU industries, not an estimation. DK 2020
+3-type totals match `io_invest_long_format.xlsx` exactly (2026-08-18
+pilot). For the other 14 countries the fallback is `nama_10_nfa_st` /
+`nama_10_a64_p5` at A21, and that *is* a within-group disaggregation.
+**Caveat (lookup 2026-08-18):** three GREU industries do not nest in one
+A21 section (`55560` → I,J,N,R,S,T; `71000` → J,M,N; `off` → O,P,Q,R), so
+the `n_g` identification arithmetic below is not a partition.
 
-**Probe 2026-08-17 — the use margin is nearly direct data for half the
-EU (lead from the colleague's `factor_demand_data.py`):** `nama_10_a64_p5`
-publishes GFCF (`P51G`, current prices) by `asset10` **at (near-)A64
-industry detail** for 13/27 countries — AT, BG, CY, CZ, **DK**, EL, FI, HU,
-LV, PT, RO, **SE**, SK all populate ≥55/63 A64 industries for the three key
-asset groups (N11KG buildings, N1131G transport equipment, N11MG machinery;
-probe script `data/preprocessing/scripts/probe_nama_10_a64_p5_asset_detail.py`).
-The remaining 14 countries publish only section/A21-level cells (DE/ES/HR/
-LT/MT/PL/SI ~7–9 codes, BE/IT/NL/FR ~23, IE missing N11KG entirely, LU 38).
-Consequence: for the 13 direct countries the estimation below reduces to a
-concordance from A64 to GREU's 57 industries; the disaggregation machinery
-is only needed for the other 14.
+**Probe 2026-08-17, confirmed against saved raw payloads 2026-08-18:**
+`nama_10_a64_p5` publishes GFCF (`P51G`, current prices) by `asset10` **at
+(near-)A64 industry detail** for 13/27 countries — AT, BG, CY, CZ, **DK**,
+EL, FI, HU, LV, PT, RO, **SE**, SK all populate ≥55 A64 industries for the
+three key asset groups (N11KG buildings, N1131G transport, N11MG machinery).
+The remaining 14 publish A21-level cells. Stocks (`nama_10_nfa_st` net CRC):
+all 27 have 2020 `N11N` + `N1131N`; 9/27 at A64 (AT, BG, CZ, DK, EL, FI, LV,
+SE, SK). Sweden publishes **net only** (no gross). PIM is not needed.
 
 **Asset concordance already exists for Denmark** at `read_data.py:89`, mapping
 7 ESA asset codes to the 3 GREU groups:
@@ -578,18 +587,17 @@ Method: RAS / biproportional fitting for the plain margin case; cross-entropy
 minimization against the Danish prior for the general case, which handles
 multi-year pooling and lets the prior's weight be set explicitly.
 
-### Codes and facts still to verify
+### Codes and facts verified 2026-08-18
 
-- **GFCF by asset type**: the Eurostat dataset code and its EU-27 coverage are
-  **not** verified in this repo. Do not cite a code until checked against the
-  dissemination API. (`nama_10_a64` carries `P51G` by industry, not by asset —
-  an earlier draft of this note conflated the two.)
-- Whether `nama_10_a64` `P51G` (GFCF by A64 industry) is complete for the
-  target countries, and for which years.
-- **Do this first:** the exact A21→GREU-57 correspondence and the resulting
-  `n_g` per group. It is a cheap lookup against `metadata.xlsx` and it decides,
-  group by group, how much of the use margin is identifiable at all before any
-  estimator is written.
+- **GFCF by asset type** is `nama_10_a64_p5` `P51G` (not `nama_10_a64`).
+  EU-27 coverage: 13/27 A64 × the three GREU types; 14/27 A21. DK 2020
+  3-type totals number-exact vs `io_invest_long_format.xlsx`. Year span
+  typically 1995–2024 (DK 1975–2025, SE 1993–2024).
+- **A21→GREU-57 lookup done.** Wholly-contained `n_g`: A=13, C=13, H=12,
+  E=7, G=3, D=2, B=F=K=L=1; I,J,M,N,O,P,Q,R,S,T = 0 because three GREU
+  industries span those sections (`55560`, `71000`, `off`). The
+  identification arithmetic is not a partition. Manufacturing (C, n_g=13)
+  still will not identify from time variation alone.
 
 ### Open questions for colleagues
 

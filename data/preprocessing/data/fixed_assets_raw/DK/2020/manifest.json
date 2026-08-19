@@ -1,0 +1,265 @@
+{
+  "datasets": [
+    "nama_10_nfa_st",
+    "nama_10_a64_p5"
+  ],
+  "source": "Eurostat dissemination API (statistics/1.0, JSON-stat 2.0)",
+  "base_url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data",
+  "retrieval_date": "2026-08-18",
+  "purpose": "Pilot reconciliation of nama_10_nfa_st (plus nama_10_a64_p5 GFCF detail) against the Danish GREU input fixed_assets.xlsx (DK 2020), with SE-2020 and EU-27 coverage/year probes. The GFCF pull is also gap-3 use-margin groundwork. See docs/eu_data_mapping.md.",
+  "files": [
+    {
+      "file": "nama_10_nfa_st_DK_2020.json",
+      "dataset": "nama_10_nfa_st",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_nfa_st",
+      "params": {
+        "geo": "DK",
+        "time": "2020",
+        "lang": "en"
+      },
+      "note": "Denmark 2020 capital stocks: all units, NACE codes and asset types as delivered, so net vs gross and CRC vs CLV can be settled from raw data.",
+      "bytes": 125457,
+      "sha256": "22ce491b1bc49d9fc9bc855e8000fe21e1bbc8512a8bb4c8955ceb6ce2bc10f5",
+      "retrieval_date": "2026-08-18",
+      "n_observations": 7796
+    },
+    {
+      "file": "nama_10_a64_p5_DK_2020.json",
+      "dataset": "nama_10_a64_p5",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_a64_p5",
+      "params": {
+        "geo": "DK",
+        "time": "2020",
+        "unit": [
+          "CP_MNAC",
+          "PYP_MNAC"
+        ],
+        "na_item": "P51G",
+        "lang": "en"
+      },
+      "note": "Denmark 2020 GFCF (P51G) by industry x asset: current and previous-year prices in national currency.",
+      "bytes": 30069,
+      "sha256": "844d0c0e73f1fedc0f08ca16cc69505472330199443554c93bbe2b12edd44c2c",
+      "retrieval_date": "2026-08-18",
+      "n_observations": 1518
+    },
+    {
+      "file": "nama_10_nfa_st_SE_2020.json",
+      "dataset": "nama_10_nfa_st",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_nfa_st",
+      "params": {
+        "geo": "SE",
+        "time": "2020",
+        "lang": "en"
+      },
+      "note": "Sweden 2020 capital stocks, same slice (public-core pilot country).",
+      "bytes": 227613,
+      "sha256": "08f9f82140d76e47265f38339fec988fc4070470bc1af9aa4a3b29278c344a61",
+      "retrieval_date": "2026-08-18",
+      "n_observations": 8030
+    },
+    {
+      "file": "nama_10_a64_p5_SE_2020.json",
+      "dataset": "nama_10_a64_p5",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_a64_p5",
+      "params": {
+        "geo": "SE",
+        "time": "2020",
+        "unit": [
+          "CP_MNAC",
+          "PYP_MNAC"
+        ],
+        "na_item": "P51G",
+        "lang": "en"
+      },
+      "note": "Sweden 2020 GFCF, same slice.",
+      "bytes": 44850,
+      "sha256": "a0819e5ff9e071b0d81a30b2d2401afb4982d51d4e9a4d7b1bc40f31a30d5faf",
+      "retrieval_date": "2026-08-18",
+      "n_observations": 2450
+    },
+    {
+      "file": "nama_10_nfa_st_eu27_coverage_probe_2020.json",
+      "dataset": "nama_10_nfa_st",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_nfa_st",
+      "params": {
+        "geo": [
+          "AT",
+          "BE",
+          "BG",
+          "CY",
+          "CZ",
+          "DE",
+          "DK",
+          "EE",
+          "EL",
+          "ES",
+          "FI",
+          "FR",
+          "HR",
+          "HU",
+          "IE",
+          "IT",
+          "LT",
+          "LU",
+          "LV",
+          "MT",
+          "NL",
+          "PL",
+          "PT",
+          "RO",
+          "SE",
+          "SI",
+          "SK"
+        ],
+        "time": "2020",
+        "unit": "CRC_MNAC",
+        "lang": "en"
+      },
+      "note": "EU-27 coverage probe 2020: stocks at current replacement cost in national currency, all NACE codes and asset types.",
+      "bytes": 520764,
+      "sha256": "b6d2ed9f0c679c52e1ad2c3472c3077fd167b0ca0dff450062b03333517eb1b5",
+      "retrieval_date": "2026-08-18",
+      "n_observations": 34578
+    },
+    {
+      "file": "nama_10_a64_p5_eu27_coverage_probe_2020.json",
+      "dataset": "nama_10_a64_p5",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_a64_p5",
+      "params": {
+        "geo": [
+          "AT",
+          "BE",
+          "BG",
+          "CY",
+          "CZ",
+          "DE",
+          "DK",
+          "EE",
+          "EL",
+          "ES",
+          "FI",
+          "FR",
+          "HR",
+          "HU",
+          "IE",
+          "IT",
+          "LT",
+          "LU",
+          "LV",
+          "MT",
+          "NL",
+          "PL",
+          "PT",
+          "RO",
+          "SE",
+          "SI",
+          "SK"
+        ],
+        "time": "2020",
+        "unit": "CP_MNAC",
+        "na_item": "P51G",
+        "lang": "en"
+      },
+      "note": "EU-27 coverage probe 2020: GFCF P51G at current prices in national currency, all NACE codes and asset types.",
+      "bytes": 310768,
+      "sha256": "db0b2a6174089070fd35cb0e20a0aa5304ddb942acff59f153f432dfe84fb857",
+      "retrieval_date": "2026-08-18",
+      "n_observations": 22315
+    },
+    {
+      "file": "nama_10_nfa_st_eu27_year_probe_N11.json",
+      "dataset": "nama_10_nfa_st",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_nfa_st",
+      "params": {
+        "geo": [
+          "AT",
+          "BE",
+          "BG",
+          "CY",
+          "CZ",
+          "DE",
+          "DK",
+          "EE",
+          "EL",
+          "ES",
+          "FI",
+          "FR",
+          "HR",
+          "HU",
+          "IE",
+          "IT",
+          "LT",
+          "LU",
+          "LV",
+          "MT",
+          "NL",
+          "PL",
+          "PT",
+          "RO",
+          "SE",
+          "SI",
+          "SK"
+        ],
+        "unit": "CRC_MNAC",
+        "nace_r2": "TOTAL",
+        "asset10": [
+          "N11N",
+          "N11G"
+        ],
+        "lang": "en"
+      },
+      "note": "EU-27 year-coverage probe: economy-wide total fixed assets, net and gross, current replacement cost.",
+      "bytes": 30990,
+      "sha256": "26a7a163f9926c93466b7911a84290d4b32814ef0f4c69ffc65b896fe5183453",
+      "retrieval_date": "2026-08-18",
+      "n_observations": 1591
+    },
+    {
+      "file": "nama_10_a64_p5_eu27_year_probe_N11G.json",
+      "dataset": "nama_10_a64_p5",
+      "url": "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/nama_10_a64_p5",
+      "params": {
+        "geo": [
+          "AT",
+          "BE",
+          "BG",
+          "CY",
+          "CZ",
+          "DE",
+          "DK",
+          "EE",
+          "EL",
+          "ES",
+          "FI",
+          "FR",
+          "HR",
+          "HU",
+          "IE",
+          "IT",
+          "LT",
+          "LU",
+          "LV",
+          "MT",
+          "NL",
+          "PL",
+          "PT",
+          "RO",
+          "SE",
+          "SI",
+          "SK"
+        ],
+        "unit": "CP_MNAC",
+        "na_item": "P51G",
+        "nace_r2": "TOTAL",
+        "asset10": "N11G",
+        "lang": "en"
+      },
+      "note": "EU-27 year-coverage probe: economy-wide GFCF, total fixed assets.",
+      "bytes": 17531,
+      "sha256": "48382f1d9a8cebe0ee05c830bee58d273b088aa5c28e682b9924e8a9e3150c58",
+      "retrieval_date": "2026-08-18",
+      "n_observations": 867
+    }
+  ]
+}

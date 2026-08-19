@@ -115,14 +115,15 @@ SUMMARY_ROWS = [
     (
         "non_energy_emissions.xlsx",
         "Process (non-energy) emissions by industry, incl. F-gases",
-        "env_ac_ainah_r2 (air emissions accounts, total emissions by industry)",
+        "env_ac_ainah_r2 (combined air accounts) + env_air_gge CRF2/3/5 "
+        "(territorial process control)",
         "COARSER",
-        "DK 2020 (combined with energy emissions, the comparable boundary): "
-        "fossil CO2 −0.007%, F-gases exact; CH4 +8.6% and N2O +3.2% source gaps "
-        "remain (mostly agriculture)",
-        "Eurostat publishes only total emissions; the energy vs non-energy split "
-        "must be derived (total minus fuel-based estimate). CH4/N2O gap to "
-        "investigate",
+        "DK 2020: F-gases exact (364.426 vs 364.427 kt CO2e; CRF2F HFC exact); "
+        "ainah-energy identity tautological for CH4/N2O (item 9 = two A01 "
+        "gaps, not a missing source); all 27 countries at A64",
+        "Copy F-gases wholly as non-energy; take CH4/N2O from ainah by "
+        "industry minus energy, not from the Danish undercount. Do not "
+        "PEFA x EF; do not subtract CRF1 from ainah",
     ),
     (
         "emissions_bridge_items.xlsx",
@@ -152,13 +153,16 @@ SUMMARY_ROWS = [
     ),
     (
         "fixed_assets.xlsx",
-        "Capital stock by industry and 7 asset types",
-        "nama_10_nfa_st (fixed asset stocks by industry and asset)",
-        "COARSER",
-        "Not yet piloted. Eurostat side is 21 industry groups (vs 64/57) and asset "
-        "detail varies by country",
-        "Industry detail; for countries without stock data a capital-stock "
-        "estimation (PIM) from investment series may be needed",
+        "Capital stock by industry and 7 asset types (model uses 3 groups: "
+        "buildings, transport, other machinery)",
+        "nama_10_nfa_st (net capital stocks at current replacement cost)",
+        "MATCHES",
+        "DK 2020: 7,624.010 vs Eurostat net 7,624.016 bn DKK; the three "
+        "model groups match to rounding. 24/28 industry clusters exact",
+        "The four cluster gaps are the known real-estate/services boundary "
+        "(decision 7) and cancel. 9/27 countries publish A64 stocks, the "
+        "rest A21 except Malta (missing B and D); no country needs "
+        "capital-stock estimation",
     ),
     (
         "io_invest_long_format.xlsx",
@@ -169,14 +173,13 @@ SUMMARY_ROWS = [
         "and industry (use side)",
         "GAP",
         "Rescoped 2026-08-07: the model uses two separate breakdowns, not the "
-        "full matrix previously assumed. New 2026-08-17: nama_10_a64_p5 "
-        "publishes investment by asset type at near-full industry detail for "
-        "13/27 countries incl. DK and SE — the use margin is nearly direct "
-        "data there",
-        "Supply side is mainly a classification job (construction → buildings, "
-        "etc.). Use side: direct for 13 countries; the other 14 must be split "
-        "from 21 industry groups using Denmark as a starting pattern — a "
-        "method decision for colleagues",
+        "full matrix previously assumed. 2026-08-18: DK GFCF by the three "
+        "model groups matches the Danish investment file exactly (516.141 bn "
+        "DKK); 13/27 countries publish that at full industry detail",
+        "Supply side is mainly a classification job. Use side: direct totals "
+        "for everyone, A64 industry detail for 13 countries; the other 14 "
+        "must be split from 21 industry groups — and three GREU industries "
+        "span several of those groups, so the split is messier than assumed",
     ),
     (
         "ets.xlsx",
@@ -341,10 +344,13 @@ DETAIL_ROWS = [
         "Consumption split into the model's 12 groups",
         "nama_10_co3_p3 (consumption by COICOP purpose)",
         "COARSER",
-        "Not yet piloted. Eurostat publishes 2–3 digit COICOP; the Danish map "
-        "uses 4-digit",
-        "—",
-        "3-digit is expected to approximate the 12 groups; check group by group",
+        "DK 2020: 3-digit uniquely identifies 3/12 groups (cCar, cHouEne PASS; "
+        "cFoodBev needs a 1999 tobacco remap). FOOD cluster 114.3 vs 112.0 bn; "
+        "cTou = FIGARO OP_RES 17.159 exact. All 27 countries at 3-digit",
+        "hh_consumption_dk2020_reconciliation.xlsx",
+        "CES nest is load-bearing. Recipe: collapse the existing map to "
+        "published digit depth, take cHouEne/cCarEne from the energy core, "
+        "treat cTou as a tourism residual. Map is COICOP 2018-style vs a 1999 table",
     ),
     # ----------------------------------------------------- io_energy_long_format
     (
@@ -505,13 +511,15 @@ DETAIL_ROWS = [
         "non_energy_emissions.xlsx",
         "Process emissions by industry (incl. F-gases)",
         "Emissions not from fuel combustion (cement, agriculture, F-gases)",
-        "env_ac_ainah_r2 (covers total emissions incl. F-gases)",
+        "env_ac_ainah_r2 (combined) + env_air_gge CRF2/3/5 (process control)",
         "COARSER",
-        "DK 2020 combined boundary: F-gases exact (+0.001 kt); CH4 +8.6% and "
-        "N2O +3.2% source discrepancies (mostly agriculture, +811 kt CO2e)",
-        "eurostat_energy_emissions_dk2020_reconciliation.xlsx",
-        "Derive non-energy = total − energy-related estimate; investigate the "
-        "CH4/N2O vintage/adjustment gap",
+        "DK 2020: F-gases exact (364.426 vs 364.427 kt CO2e; CRF2F HFC exact). "
+        "ainah-energy identity tautological for CH4/N2O — item 9 is two "
+        "stacked A01 gaps (GREU below CRF3, ainah above CRF3), not a missing "
+        "source. All 27 countries publish 2020 ainah at A64 and CRF1/2/3/5",
+        "non_energy_emissions_dk2020_reconciliation.xlsx",
+        "Copy F-gases wholly as non-energy; take CH4/N2O from ainah by industry "
+        "minus energy. Do not PEFA x EF; do not subtract CRF1 from ainah",
     ),
     # ---------------------------------------------------- emissions_bridge_items
     (
@@ -558,13 +566,15 @@ DETAIL_ROWS = [
         "fixed_assets.xlsx",
         "Capital stock by industry × 7 asset types",
         "Machinery, buildings, transport equipment etc. per industry",
-        "nama_10_nfa_st (fixed asset stocks)",
-        "COARSER",
-        "Not yet piloted. Eurostat is 21 industry groups vs 64/57; asset detail "
-        "varies by country",
-        "—",
-        "May need capital-stock estimation (PIM) from investment series for "
-        "countries with missing stock data",
+        "nama_10_nfa_st (net stocks, current replacement cost)",
+        "MATCHES",
+        "DK 2020: 7,624.010 vs 7,624.016 bn DKK net; iB/iT/iM exact; 24/28 "
+        "clusters exact. All 27 countries publish 2020 net stocks including "
+        "transport equipment",
+        "fixed_assets_dk2020_reconciliation.xlsx",
+        "Decision 7 (four clusters that cancel). 9/27 countries are A64, "
+        "the rest A21 except Malta (missing B and D) — a split, not a "
+        "missing source",
     ),
     # ------------------------------------------------------ io_invest_long_format
     (
@@ -587,18 +597,16 @@ DETAIL_ROWS = [
         "Use margin: investment by investing industry × asset type",
         "How much of each industry's investment is buildings, vehicles or "
         "machinery",
-        "nama_10_a64_p5 (asset × industry, near-full detail for 13/27 "
-        "countries); nama_10_nfa_st (21 groups) as fallback",
+        "nama_10_a64_p5 (asset × industry, A64 for 13/27 countries); "
+        "nama_10_nfa_st (A21) as fallback",
         "GAP",
-        "Probed 2026-08-17: nama_10_a64_p5 carries investment by asset at "
-        "(near-)64-industry detail for 13/27 countries incl. DK and SE — for "
-        "those the use margin is nearly direct data. The other 14 publish only "
-        "~7–23 industry codes and still need disaggregation",
-        "—",
-        "For the 14 coarse countries: Denmark as starting pattern; identifiable "
-        "per industry group only where enough years exist, so large groups such "
-        "as manufacturing stay assumption-driven. Recommended first step is a "
-        "Denmark back-test against its known answer",
+        "DK 2020: 3-type GFCF totals number-exact vs io_invest_long_format "
+        "(516.141 bn). 13/27 countries publish A64 × buildings/transport/"
+        "machinery; 14 are A21. Three GREU industries span several A21 "
+        "sections so the identification arithmetic is not a partition",
+        "fixed_assets_dk2020_reconciliation.xlsx",
+        "Industry split inside clusters (decision 7); A21 disaggregation "
+        "for 14 countries; supply-side concordance still open",
     ),
     # ----------------------------------------------------------------------- ets
     (
@@ -794,10 +802,10 @@ PROGRESS_ROWS = [
      "Physical energy −0.611%; emissions −0.007% (CO2); purpose and "
      "price/tax layers must be constructed",
      "eurostat_energy_emissions_dk2020_reconciliation.xlsx"),
-    ("non_energy_emissions.xlsx", "COARSER", "PARTLY", "2026-07-30",
-     "Combined emissions boundary verified inside the PEFA pilot (F-gases "
-     "exact); the energy/non-energy split derivation is untested",
-     "eurostat_energy_emissions_dk2020_reconciliation.xlsx"),
+    ("non_energy_emissions.xlsx", "COARSER", "PILOT DONE", "2026-08-19",
+     "Load-bearing qEmmxE; F-gases exact; ainah-energy tautological for "
+     "CH4/N2O; item 9 documented as two A01 gaps; all 27 A64",
+     "non_energy_emissions_dk2020_reconciliation.xlsx"),
     ("emissions_bridge_items.xlsx", "MATCHES", "PILOT DONE", "2026-08-17",
      "Net residence adjustment ≤0.05% per gas; first input with zero EU-27 "
      "coverage gaps",
@@ -806,14 +814,14 @@ PROGRESS_ROWS = [
      "Hours (the only per-industry content used) essentially exact; persons "
      "+3.52% concept question",
      "employment_dk2020_reconciliation.xlsx"),
-    ("fixed_assets.xlsx", "COARSER", "NOT PILOTED", "—",
-     "NEXT IN LINE: nama_10_nfa_st at 21 industry groups; doubles as "
-     "groundwork for the investment split",
-     "—"),
-    ("io_invest_long_format.xlsx", "GAP", "PROBED", "2026-08-17",
-     "Rescoped to two margins (2026-08-07); use margin is near-direct data "
-     "for 13/27 countries via nama_10_a64_p5",
-     "probe_nama_10_a64_p5_asset_detail.py"),
+    ("fixed_assets.xlsx", "MATCHES", "PILOT DONE", "2026-08-18",
+     "Net CRC number-exact (7,624.010 vs 7,624.016); 24/28 clusters exact; "
+     "all 27 countries have 2020 net stocks including transport",
+     "fixed_assets_dk2020_reconciliation.xlsx"),
+    ("io_invest_long_format.xlsx", "GAP", "PROBED", "2026-08-18",
+     "Use-margin 3-type totals number-exact for DK; A64 × 3 assets for 13/27; "
+     "three GREU industries span A21 so the n_g rule is not a partition",
+     "fixed_assets_dk2020_reconciliation.xlsx"),
     ("ets.xlsx", "CLOSE MATCH", "PILOT DONE", "2026-07-30",
      "Emissions/allocations reproduce to +0.007%; industry bridge and EUA "
      "price remain decisions",
@@ -828,11 +836,11 @@ PROGRESS_ROWS = [
      "verified; pension adjustment quantified (decision 18); zero EU-27 "
      "coverage gaps",
      "financial_accounts_dk2020_reconciliation.xlsx"),
-    ("Household consumption detail (12 groups)", "COARSER", "NOT PILOTED",
-     "—",
-     "nama_10_co3_p3 at 2–3 digit COICOP vs the Danish 4-digit map; check "
-     "group by group",
-     "—"),
+    ("Household consumption detail (12 groups)", "COARSER", "PILOT DONE",
+     "2026-08-19",
+     "3-digit uniquely identifies 3/12; food cluster and 1999 bev+tobacco "
+     "pass; cTou=OP_RES exact; all 27 at 3-digit",
+     "hh_consumption_dk2020_reconciliation.xlsx"),
     ("EU_GR_data.gdx", "CONSTRUCTED", "BUILT", "2026-07-30/31",
      "Sweden compatible GDX with explicit average=marginal assumption; a "
      "legal excise/ETS engine is still needed for true policy rates",
@@ -867,10 +875,10 @@ DECISIONS_ROWS = [
      "built before this may need re-cutting"),
     ("7",
      "Re-export handling, and the NACE-L ↔ 68203 real-estate split (hit by "
-     "three pilots)",
+     "four pilots)",
      "metadata.xlsx concordance owner", "2026-07-29",
-     "Exact cluster-level reconciliation in the FIGARO, PEFA and "
-     "employment pilots"),
+     "Exact cluster-level reconciliation in the FIGARO, PEFA, employment "
+     "and fixed-assets pilots"),
     ("8",
      "Review the four energy-product concordance fixes the PEFA pilot "
      "exposed (P18 diesel, ambient heat, spelling, P10)",
