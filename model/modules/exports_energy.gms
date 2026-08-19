@@ -17,7 +17,7 @@ $ENDIF # variables
 $IF %stage% == "equations":
 
 $BLOCK exports_energy_equations exports_energy_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-  .. qEpj[es,e,xEne,t] =E= uEpj_xEne[es,e,t] * (pEpj[es,e,xEne,t]/pEpj_foreign[es,e,t])**(-eX_ene[e]); 
+  .. qEpj[es,e,xEne,t] =E= uEpj_xEne[es,e,t] * (pEpj_marg[es,e,xEne,t]/pEpj_foreign[es,e,t])**(-eX_ene[e]); 
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -60,7 +60,7 @@ $IF %stage% == "calibration":
 # Add equations and calibration equations to calibration model
 $BLOCK exports_energy_calibration_equations exports_energy_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
   #In this equation we fix energy-exports to the value in data-year. Consider changing if you want baseline-forecast to produce varying energy-exports.
-  .. pEpj_foreign[es,e,t] =E= pEpj[es,e,'xEne',t];
+  .. pEpj_foreign[es,e,t] =E= pEpj_marg[es,e,'xEne',t];
 $ENDBLOCK
 
 model calibration /
