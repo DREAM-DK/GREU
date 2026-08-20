@@ -591,7 +591,7 @@ Product split
 \end_layout
 
 \begin_layout Standard
-We default to fixed shares of products for each direct use:
+We default to fixed shares of products for each purchaser use:
 \end_layout
 
 \begin_layout Standard
@@ -610,6 +610,90 @@ The shares can be endogenized by other modules to allow substitution.
  For private consumption,
  the consumption-type split below replaces this use-level mapping.
  Inventories are the exception below.
+\end_layout
+
+\begin_layout Subsection
+Tourism
+\end_layout
+
+\begin_layout Standard
+Tourism needs a special entry because the household and trade accounts classify
+ the same purchase in different ways.
+ The household budget uses the resident concept.
+ Thus,
+ \begin_inset Formula $C$
+\end_inset
+
+ covers purchases by resident households at home and abroad.
+ National accounts count purchases in the country by non-resident households
+ as exports.
+\end_layout
+
+\begin_layout Standard
+Eurostat reports the household product cells under the domestic concept.
+ These cells include purchases in the country by resident and non-resident
+ households.
+ Eurostat gives only total adjustments for residents' purchases abroad and
+ non-residents' purchases in the country.
+ We add residents' purchases abroad to the private-consumption cells as travel
+ imports.
+ We leave non-residents' purchases in these cells and store their total as
+ \begin_inset Formula $C^{\mathrm{Tourist}}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+The input-output private-consumption aggregate is therefore
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+D_{C}=C+C^{\mathrm{Tourist}}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The model also includes tourist demand in total exports:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+X=D_{X}+C^{\mathrm{Tourist}},
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where
+ \begin_inset Formula $D_{X}$
+\end_inset
+
+ is the direct export column.
+ Tourist demand enters the product balance once through
+ \begin_inset Formula $D_{C}$
+\end_inset
+
+.
+ The household budget includes only resident consumption
+ \begin_inset Formula $C$
+\end_inset
+
+,
+ while the rest-of-the-world account includes tourist demand in exports.
+ The default uses the combined private-consumption product mix and price for
+ resident and tourist demand because Eurostat does not give a separate tourist
+ product split.
 \end_layout
 
 \begin_layout Subsection
@@ -1386,7 +1470,7 @@ Let
 \begin_inset Formula $D_{p,u}$
 \end_inset
 
- be direct use.
+ be purchaser use.
  Each unit needs 
 \begin_inset Formula $a^{S}_{p,u}$
 \end_inset
@@ -1438,7 +1522,7 @@ Let
 \end_inset
 
 .
- The purchaser price of direct use is
+ The purchaser-use price is
 \end_layout
 
 \begin_layout Standard
@@ -1453,7 +1537,7 @@ P^{D}_{p,u,o}=\left(P_{p,u,o}+t_{p,u,o}+a^{S}_{p,u}P^{S}_{u}\right)\left(1+t^{\t
 \end_layout
 
 \begin_layout Standard
-This is the price that enters into any substitution decision and the direct-demand aggregate:
+This is the price that enters into any substitution decision and the purchaser-use aggregate:
 \end_layout
 
 \begin_layout Standard
