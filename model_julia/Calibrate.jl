@@ -62,34 +62,49 @@ function forecast_constants!(block::Block, data::ModelDictionary)
 	return block + forecast_block
 end
 
-function exogenous_constant_forecast!(block::Block, data::ModelDictionary)
-	endo_set = Set(endogenous(block))
-	for var in variables(block)
-		var in endo_set && continue
+"""
+Fill missing future exogenous data with the period-one calibration value.
+
+This is the default for exogenous variables without a forecast rule. It also supports
+smaller model setups: if an omitted module would make a variable endogenous, the
+active model keeps that variable at its period-one value. It does not overwrite
+forecast data set by a module or a source.
+"""
+function fill_missing_exogenous_forecasts!(block::Block, data::ModelDictionary, calibration::ModelDictionary)
+	forecast_vars = filter(exogenous(block)) do var
 		year = variable_year(var)
-		isnothing(year) || year <= t1 && continue
-		isnothing(data[var]) || continue
-		var_t1 = at_year(var, t1)
-		v_t1 = data[var_t1]
-		if isnothing(v_t1)
-			data[var_t1] = 0.0
-			v_t1 = 0.0
-		end
-		data[var] = v_t1
+		!isnothing(year) && year > t1 && isnothing(data[var])
 	end
+	data[forecast_vars] .= calibration[at_year.(forecast_vars, t1)]
 	return nothing
 end
 
-function calibrate_model(db, submodels)
+"""
+Fill missing future endogenous start values with the period-one value.
+
+These values are solver hints. They do not make the variables exogenous. Values set
+by a module take precedence over this fallback.
+"""
+function fill_missing_endogenous_start_values!(block::Block, start_values::ModelDictionary)
+	forecast_vars = filter(endogenous(block)) do var
+		year = variable_year(var)
+		!isnothing(year) && year > t1 && isnothing(start_values[var])
+	end
+	start_values[forecast_vars] .= start_values[at_year.(forecast_vars, t1)]
+	return nothing
+end
+
+function calibrate_model(data, start_values, submodels)
 	@info "Calibration (T=$T):"
 	@log_time block = sum(m.define_calibration() for m in submodels)
-	@log_time block = forecast_constants!(block, db)
-	@log_time endo_exo_data_residuals!(block, db)
-	@log_time exogenous_constant_forecast!(block, db)
+	@log_time block = forecast_constants!(block, data)
+	@log_time endo_exo_data_residuals!(block, data)
+	@log_time fill_missing_exogenous_forecasts!(block, data, start_values)
 	for m in submodels
-		isdefined(m, :set_starting_values!) && m.set_starting_values!(db)
+		isdefined(m, :set_starting_values!) && m.set_starting_values!(start_values)
 	end
-	return @log_time solve(block, db; replace_nothing=1.0)
+	@log_time fill_missing_endogenous_start_values!(block, start_values)
+	return @log_time solve(block, data; start_values, replace_nothing=1.0)
 end
 
 # ==============================================================================
@@ -97,20 +112,20 @@ end
 # ==============================================================================
 # Static: single-period at t1 — calibrates residuals and parameters
 Time.T = Settings.calibration_year
-@log_time static_solution = calibrate_model(db, submodels)
+@log_time static_solution = calibrate_model(db, db, submodels)
 @log_errors assert_residuals_small(
 	static_solution;
-	atol=1e-1,
+	rtol=1e-4,
   tolerances=residual_tolerances(static_solution, submodels),
 	msg="Large residuals after static calibration"
 )
 
 # Dynamic: full horizon — uses static solution as starting values
 Time.T = Time.max_terminal_year
-@log_time baseline = calibrate_model(static_solution, submodels)
+@log_time baseline = calibrate_model(db, static_solution, submodels)
 @log_errors assert_residuals_small(
 	baseline;
-	atol=1e-1,
+	rtol=1e-4,
   tolerances=residual_tolerances(baseline, submodels),
 	msg="Large residuals after dynamic calibration"
 )
