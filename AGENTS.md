@@ -44,6 +44,44 @@ In this branch, we are working on a new version of the model implemented in Juli
   component. Split blocks only when independently reused, replaced, or
   conditionally composed.
 
+## Julia Formatting
+
+- Start each file with two to six short comment lines that state its purpose,
+  scope, and key exclusions.
+- Use this form for main section headers:
+
+  ```julia
+  # ============================================================================
+  # Variables
+  # ============================================================================
+  const ModelTag = Tag(:Model)
+  ```
+
+- Use short sentences with a final period for group comments, such as
+  `# Government.`
+- Do not align assignment operators across lines. Use one space on each side of
+  `=`.
+- Use compact spacing in model indices. Use whitespace around operators,
+  except for plus/minus 1 and multiplication or division by fq, fp or fv. 
+  Write `x[s,t-1]/fv * y`, not `x[s, t - 1] / fv * y`.
+- In a `SquareModels.@block`, put the endogenous variable and its equation on
+  one line when they fit. Split them when the row is long.
+- In a multiline `SquareModels.@block` equation, put `+` and `-` at the start of
+  continuation lines and align them with the first term on the right-hand side.
+  `SquareModels.@block` joins these lines to the prior equation. Do not use this
+  form outside `@block`, where Julia treats them as separate expressions.
+- Keep short equations on one line. For a long equation, put each main term on its own line.
+- Write short but complete variable descriptions. End each description with a period.
+- Put a long comment above the code that it explains. A short, local comment can
+  follow the code on the same line.
+- Do not add a blank line just after `begin` or just before `end`. Use blank
+  lines between logical groups. Add a short comment after `end` when its matching
+  opening line is far away, for example `end # module`.
+- Group imports by their project source or layer. Preserve a useful order within
+  each group; do not sort imports only for style.
+- Use one line-ending form in each file. Do not mix line endings or leave
+  trailing spaces.
+
 ## Repository Structure
 
 ```
