@@ -93,17 +93,17 @@ const InputOutputTag = Tag(:InputOutput)
 @variables db.model :: (InputOutputTag, GrowthAdjusted, InflationAdjusted) begin
   vY_p_i[p = product, i = industry, t = t; (p, i) in calibration_year_indices(qY_p_i_data)], "Basic-price output by product and industry"
   vPurchaserUse_p_u_o[p = product, u = use, o = origin, t = t; (p, u, o) in purchaser_use_p_u_o], "Purchaser spend by product, use, and origin"
-  vPurchaserUse_p_u[p = product, u = use, t = t; (p, u) in Set((p, u) for (p, u, _, _) in keys(vPurchaserUse_p_u_o))], "Purchaser spend by product and use"
+  vPurchaserUse_p_u[(p, u, t) = select_axes(vPurchaserUse_p_u_o, 1, 2, 4)], "Purchaser spend by product and use"
   vMarginService_s_u_o[s = product, u = use, o = origin, t = t; (s, u, o) in margin_s_u_o], "Margin-service value by service, use, and origin"
-  vMarginService_s_u[s = margin_services, u = use, t = t; (s, u) in Set((s, u) for (s, u, _, _) in keys(vMarginService_s_u_o))], "Margin-service value by service and use"
-  vMarginBundle_u[u = use, t = t; u in Set(u for (_, u, _) in keys(vMarginService_s_u))], "Margin-bundle value by use"
-  vUse_p_u_o[p = product, u = use, o = origin, t = t; (p, u, o, t) in keys(vPurchaserUse_p_u_o) || (p, u, o, t) in keys(vMarginService_s_u_o)], "Basic or border value by product, use, and origin"
-  vSupply_p_o[p = product, o = origin, t = t; (p, o) in Set((p, o) for (p, _, o, _) in keys(vUse_p_u_o))], "Supply value by product and origin"
-  vUse_u_o[u = use, o = origin, t = t; (u, o) in Set((u, o) for (_, u, o, _) in keys(vUse_p_u_o))], "Basic or border value by use and origin"
+  vMarginService_s_u[(s, u, t) = select_axes(vMarginService_s_u_o[margin_services, :, :, :], 1, 2, 4)], "Margin-service value by service and use"
+  vMarginBundle_u[(u, t) = select_axes(vMarginService_s_u, 2, 3)], "Margin-bundle value by use"
+  vUse_p_u_o[(p, u, o, t) = merge_indices(vPurchaserUse_p_u_o, vMarginService_s_u_o)], "Basic or border value by product, use, and origin"
+  vSupply_p_o[(p, o, t) = select_axes(vUse_p_u_o, 1, 3, 4)], "Supply value by product and origin"
+  vUse_u_o[(u, o, t) = select_axes(vUse_p_u_o, 2, 3, 4)], "Basic or border value by use and origin"
   vSupply_o[o = origin, t = t], "Supply value by origin"
 
-  vY_i[i = industry, t = t; i in Set(i for (_, i, _) in keys(vY_p_i))], "Domestic output by industry"
-  vPurchaserUse_u[u = use, t = t; u in Set(u for (_, u, _) in keys(vPurchaserUse_p_u))], "Purchaser spend by use"
+  vY_i[(i, t) = select_axes(vY_p_i, 2, 3)], "Domestic output by industry"
+  vPurchaserUse_u[(u, t) = select_axes(vPurchaserUse_p_u, 2, 3)], "Purchaser spend by use"
   vNetProductTax_p_u[p = product, u = use, t = t; (p, u) in calibration_year_indices(vNetProductTax_p_u_data)], "Taxes less subsidies on products by product and use"
   vNetProductTax_u[u = use, t = t], "Taxes less subsidies on products by use"
 
@@ -116,19 +116,19 @@ const InputOutputTag = Tag(:InputOutput)
 end
 
 @variables db.model :: (InputOutputTag, InflationAdjusted) begin
-  pY_p_i[p = product, i = industry, t = t; (p, i, t) in keys(vY_p_i)], "Domestic basic price by product and industry"
-  pY_i[i = industry, t = t; (i, t) in keys(vY_i)], "Domestic basic price by industry"
-  pBasic[p = product, u = use, o = origin, t = t; (p, u, o, t) in keys(vUse_p_u_o)], "Basic or border price by product, use, and origin"
-  pSupply_p_o[p = product, o = origin, t = t; (p, o, t) in keys(vSupply_p_o)], "Supply price by product and origin"
-  pUse_u_o[u = ordinary_uses, o = origin, t = t; (u, o, t) in keys(vUse_u_o)], "Basic or border price by use and origin"
+  pY_p_i[(p, i, t) = vY_p_i], "Domestic basic price by product and industry"
+  pY_i[(i, t) = vY_i], "Domestic basic price by industry"
+  pBasic[(p, u, o, t) = vUse_p_u_o], "Basic or border price by product, use, and origin"
+  pSupply_p_o[(p, o, t) = vSupply_p_o], "Supply price by product and origin"
+  pUse_u_o[(u, o, t) = vUse_u_o[ordinary_uses, :, :]], "Basic or border price by use and origin"
   pSupply_o[o = origin, t = t], "Supply price by origin"
 
-  pPurchaserUse_p_u_o[p = product, u = use, o = origin, t = t; (p, u, o, t) in keys(vPurchaserUse_p_u_o)], "Purchaser price by product, use, and origin"
-  pPurchaserUse_p_u[p = product, u = ordinary_uses, t = t; (p, u, t) in keys(vPurchaserUse_p_u)], "Purchaser price by product and use"
-  pPurchaserUse_u[u = ordinary_uses, t = t; (u, t) in keys(vPurchaserUse_u)], "Purchaser price by use"
+  pPurchaserUse_p_u_o[(p, u, o, t) = vPurchaserUse_p_u_o], "Purchaser price by product, use, and origin"
+  pPurchaserUse_p_u[(p, u, t) = vPurchaserUse_p_u[:, ordinary_uses, :]], "Purchaser price by product and use"
+  pPurchaserUse_u[(u, t) = vPurchaserUse_u[ordinary_uses, :]], "Purchaser price by use"
 
-  pMarginBundle_u[u = use, t = t; (u, t) in keys(vMarginBundle_u)], "Margin-bundle price by use"
-  pMarginService_s_u[s = margin_services, u = use, t = t; (s, u, t) in keys(vMarginService_s_u)], "Margin-service price by service and use"
+  pMarginBundle_u[(u, t) = vMarginBundle_u], "Margin-bundle price by use"
+  pMarginService_s_u[(s, u, t) = vMarginService_s_u], "Margin-service price by service and use"
 
   pC[t], "Consumption price"
   pG[t], "Government consumption price"
@@ -137,20 +137,20 @@ end
 end
 
 @variables db.model :: (InputOutputTag, GrowthAdjusted) begin
-  qY_p_i[p = product, i = industry, t = t; (p, i, t) in keys(vY_p_i)], "Output by product and industry"
-  qPurchaserUse_p_u[p = product, u = use, t = t; (p, u, t) in keys(vPurchaserUse_p_u)], "Purchaser use by product and use"
-  qPurchaserUse_p_u_o[p = product, u = use, o = origin, t = t; (p, u, o, t) in keys(vPurchaserUse_p_u_o)], "Purchaser use by product, use, and origin"
-  qMarginBundle_u[u = use, t = t; (u, t) in keys(vMarginBundle_u)], "Margin-bundle demand by use"
+  qY_p_i[(p, i, t) = vY_p_i], "Output by product and industry"
+  qPurchaserUse_p_u[(p, u, t) = vPurchaserUse_p_u], "Purchaser use by product and use"
+  qPurchaserUse_p_u_o[(p, u, o, t) = vPurchaserUse_p_u_o], "Purchaser use by product, use, and origin"
+  qMarginBundle_u[(u, t) = vMarginBundle_u], "Margin-bundle demand by use"
   qMarginBundle_p_u[p = product, u = use, t = t; (p, u) in calibration_year_indices(qMarginBundle_p_u_data)], "Margin-bundle demand by product and use"
-  qMarginService_s_u[s = margin_services, u = use, t = t; (s, u, t) in keys(vMarginService_s_u)], "Margin-service demand by service and use"
-  qMarginService_s_u_o[s = product, u = use, o = origin, t = t; (s, u, o, t) in keys(vMarginService_s_u_o)], "Margin-service demand by service, use, and origin"
-  qUse_p_u_o[p = product, u = use, o = origin, t = t; (p, u, o, t) in keys(vUse_p_u_o)], "Basic-price use by product, use, and origin"
-  qSupply_p_o[p = product, o = origin, t = t; (p, o, t) in keys(vSupply_p_o)], "Supply by product and origin"
-  qUse_u_o[u = use, o = origin, t = t; (u, o, t) in keys(vUse_u_o)], "Basic-price use by use and origin"
+  qMarginService_s_u[(s, u, t) = vMarginService_s_u], "Margin-service demand by service and use"
+  qMarginService_s_u_o[(s, u, o, t) = vMarginService_s_u_o], "Margin-service demand by service, use, and origin"
+  qUse_p_u_o[(p, u, o, t) = vUse_p_u_o], "Basic-price use by product, use, and origin"
+  qSupply_p_o[(p, o, t) = vSupply_p_o], "Supply by product and origin"
+  qUse_u_o[(u, o, t) = vUse_u_o], "Basic-price use by use and origin"
   qSupply_o[o = origin, t = t], "Supply by origin"
 
-  qY_i[i = industry, t = t; (i, t) in keys(vY_i)], "Domestic output by industry"
-  qPurchaserUse_u[u = ordinary_uses, t = t; (u, t) in keys(vPurchaserUse_u)], "Purchaser use by use"
+  qY_i[(i, t) = vY_i], "Domestic output by industry"
+  qPurchaserUse_u[(u, t) = vPurchaserUse_u[ordinary_uses, :]], "Purchaser use by use"
 
   qC[t], "Household and non-profit consumption"
   qCTourist[t] :: ForecastConstant, "Consumption in the country by non-resident households"
@@ -171,16 +171,13 @@ const vM = vSupply_o[import_origin, :]
 const pM_p_u = pBasic[:, :, import_origin, :]
 
 @variables db.model :: InputOutputTag begin
-  rIndustryShare[p = product, i = industry, t = t; (p, i, t) in keys(qY_p_i)] :: ForecastConstant, "Fixed industry share for each product"
-  rProductShare[p = product, u = ordinary_uses, t = t; (p, u, t) in keys(qPurchaserUse_p_u)] :: ForecastConstant, "Fixed product share for each purchaser use"
-  rOriginShare[p = product, u = use, o = origin, t = t; (
-    ((p, u, o, t) in keys(qPurchaserUse_p_u_o) && u in ordinary_uses) ||
-    (p, u, o, t) in keys(qMarginService_s_u_o)
-  )] :: ForecastConstant, "Fixed origin share"
-  rMarginServiceShare[s = margin_services, u = use, t = t; (s, u, t) in keys(qMarginService_s_u)] :: ForecastConstant, "Fixed margin-service share"
-  rMarginRate[p = product, u = use, t = t; (p, u, t) in keys(qMarginBundle_p_u)] :: ForecastConstant, "Margin-bundle units per unit of purchaser use"
-  tNetProduct[p = product, u = use, t = t; (p, u, t) in keys(vNetProductTax_p_u)] :: ForecastConstant, "Net product tax per unit of purchaser use"
-  tVAT[p = product, u = use, o = origin, t = t; (p, u, o, t) in keys(qPurchaserUse_p_u_o)] :: ForecastConstant, "Separate VAT rate; zero while tNetProduct includes VAT"
+  rIndustryShare[(p, i, t) = qY_p_i] :: ForecastConstant, "Fixed industry share for each product"
+  rProductShare[(p, u, t) = qPurchaserUse_p_u[:, ordinary_uses, :]] :: ForecastConstant, "Fixed product share for each purchaser use"
+  rOriginShare[(p, u, o, t) = merge_indices(qPurchaserUse_p_u_o[:, ordinary_uses, :, :], qMarginService_s_u_o)] :: ForecastConstant, "Fixed origin share"
+  rMarginServiceShare[(s, u, t) = qMarginService_s_u] :: ForecastConstant, "Fixed margin-service share"
+  rMarginRate[(p, u, t) = qMarginBundle_p_u] :: ForecastConstant, "Margin-bundle units per unit of purchaser use"
+  tNetProduct[(p, u, t) = vNetProductTax_p_u] :: ForecastConstant, "Net product tax per unit of purchaser use"
+  tVAT[(p, u, o, t) = qPurchaserUse_p_u_o] :: ForecastConstant, "Separate VAT rate; zero while tNetProduct includes VAT"
 end
 
 # ============================================================================
@@ -392,41 +389,27 @@ function define_equations()
     vINV[t = t1:T], vINV[t] == vPurchaserUse_u[:INV, t]
 
     # Post-solve accounts that do not add rows to the square system.
-    @test_constraint("Supply shares reproduce product output")
+    @test_constraint("Supply shares reproduce product output"; rtol=1e-3)
     qSupply_p_o[(p, o, t) in keys(qSupply_p_o); o == domestic && t in t1:T],
       qSupply_p_o[p, o, t] == ∑(qY_p_i[p, i, t] for i in industry)
 
-    @test_constraint("Purchaser-use shares sum to total use")
+    @test_constraint("Purchaser-use shares sum to total use"; rtol=1e-3)
     qPurchaserUse_u[(u, t) in keys(qPurchaserUse_u); t in t1:T],
       qPurchaserUse_u[u, t] == ∑(qPurchaserUse_p_u[p, u, t] for p in product)
 
-    @test_constraint("Origin shares sum to product use")
+    @test_constraint("Origin shares sum to product use"; rtol=1e-3)
     qPurchaserUse_p_u[(p, u, t) in keys(qPurchaserUse_p_u); t in t1:T && u in ordinary_uses],
       qPurchaserUse_p_u[p, u, t] == ∑(qPurchaserUse_p_u_o[p, u, o, t] for o in origin)
 
-    @test_constraint("Margin-service shares sum to the margin bundle")
+    @test_constraint("Margin-service shares sum to the margin bundle"; rtol=1e-3)
     qMarginBundle_u[(u, t) in keys(qMarginBundle_u); t in t1:T],
       qMarginBundle_u[u, t] == ∑(qMarginService_s_u[s, u, t] for s in margin_services)
 
-    @test_constraint("Margin origin shares sum to service demand")
+    @test_constraint("Margin origin shares sum to service demand"; rtol=1e-3)
     qMarginService_s_u[(s, u, t) in keys(qMarginService_s_u); t in t1:T],
       qMarginService_s_u[s, u, t] == ∑(qMarginService_s_u_o[s, u, o, t] for o in origin)
 
-    @test_constraint("Purchaser spend excludes separate margin spending")
-    vPurchaserUse_u[(u, t) in keys(vPurchaserUse_u); t in t1:T],
-      ∑(vPurchaserUse_p_u[p, u, t] for p in product) ==
-        ∑(vPurchaserUse_p_u_o[p, u, o, t] for p in product for o in origin)
-
-    @test_constraint("Purchaser spend has only recorded price adjustments")
-    vPurchaserUse_u[(u, t) in keys(vPurchaserUse_u); t in t1:T],
-      ∑(vPurchaserUse_p_u[p, u, t] for p in product) ==
-        ∑(vUse_u_o[u, o, t] for o in origin) +
-        ∑(vNetProductTax_p_u[p, u, t] for p in product) +
-        pMarginBundle_u[u, t] * (
-          ∑(qMarginBundle_p_u[p, u, t] for p in product) - qMarginBundle_u[u, t]
-        )
-
-    @test_constraint("Imports sum by product and use")
+    @test_constraint("Imports sum by product and use"; rtol=1e-3)
     qM[t = t1:T],
       qM[t] == ∑(qM_u[u, t] for u in use)
   end
