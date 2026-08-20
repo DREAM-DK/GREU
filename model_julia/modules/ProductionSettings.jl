@@ -1,5 +1,7 @@
 module ProductionSettings
 
+import ..InputOutputSettings: industry, product
+
 const production_data_dir = joinpath(@__DIR__, "..", "data", "production")
 
 # Capital enters production in the industry that owns the asset. The supply and
@@ -29,5 +31,53 @@ const flow_asset_to_capital_type = Dict(
 
 const capital_type = sort(unique(collect(values(flow_asset_to_capital_type))))
 @assert Set(capital_type) == Set(values(stock_asset_to_capital_type)) "Stock and flow assets must use the same capital types"
+
+# Keep each factor class as a set, even when it has one member. The nests name
+# their factors directly and must change when either set changes.
+const labor_type = [:labor]
+const intermediate_type = [:intermediate]
+
+# Each industry owns its nest map and each nest owns its elasticity. Most
+# industries use the full tree. Real estate has no live equipment stock, and
+# household production has no live capital or intermediate input in the source
+# data.
+const full_capital_nesting = Dict(
+  :KL => (children = [:equipment, :labor], elasticity = 0.7),
+  :KLB => (children = [:KL, :structures], elasticity = 0.7),
+  :KLBM => (children = [:KLB, :intermediate], elasticity = 0.7),
+)
+const production_nesting = Dict(
+  i => if i == :iL
+    Dict(
+      :KLB => (children = [:structures, :labor], elasticity = 0.7),
+      :KLBM => (children = [:KLB, :intermediate], elasticity = 0.7),
+    )
+  elseif i == :iT
+    Dict(
+      :KLBM => (children = [:labor], elasticity = 0.7),
+    )
+  else
+    deepcopy(full_capital_nesting)
+  end
+  for i in industry
+)
+
+# Dummy weights for the fixed-investment product split. Construction supplies
+# structures. Other products split across capital types in proportion to the
+# capital-flow totals. Replace these weights when asset-product data arrive.
+const investment_product_capital_weight = Dict(
+  (p, k) => p == :F ? Float64(k == :structures) : 1.0
+  for p in product, k in capital_type
+)
+
+@assert allunique([capital_type; labor_type; intermediate_type]) "Production factor labels must be unique"
+@assert all(
+  isfinite(spec.elasticity) && spec.elasticity > 0 && allunique(spec.children)
+  for spec in Iterators.flatten(values(nests) for nests in values(production_nesting))
+) "Each production nest needs a positive elasticity and unique children"
+@assert all(
+  isfinite(weight) && weight >= 0
+  for weight in values(investment_product_capital_weight)
+) "Investment-product weights must be finite and non-negative"
 
 end # module
