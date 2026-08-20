@@ -12,6 +12,7 @@ const terminal_year = 2025
 const enabled_modules = [
   :SubmodelTemplate,
   :InputOutput,
+  # :Production,
 ]
 
 # JuMP `Model` configured as a square nonlinear system for the selected backend.
