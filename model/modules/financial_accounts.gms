@@ -111,7 +111,7 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
 
   .. rInterests_s[sector,t] =E= rInterests[t] + jrInterests_s[sector,t];
 
-  .. rHh[t] =E= (vNetInterests['Hh',t] + vNetDividends['Hh',t]) / vNetFinAssets['Hh',t-1]/fv;  
+  .. rHh[t]*vNetFinAssets['Hh',t-1]/fv =E= (vNetInterests['Hh',t] + vNetDividends['Hh',t]);  
 
   # Interests of sectors sum to zero. Rest of World is residual.
   jrInterests_s[RoW,t].. sum(sector, vNetInterests[sector,t]) =E= 0; 
