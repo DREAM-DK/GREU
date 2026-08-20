@@ -18,8 +18,7 @@ import ..Tags: ForecastConstant
 
 # See if better way can be found than import for all other modules:
 import ..InputOutput:
-    I as IO_I,
-    RX as IO_RX,
+    RX,
     K,
     pD,
     qD,
@@ -48,6 +47,7 @@ const non_top_nests = [nest for nest in nests if nest != top]
 
 # Find good name for this group #notfinished
 const qK_k_i_data = read_sparse_array(joinpath(production_data_dir, "production_capital.csv"); variable="qK_k_i")
+
 #notfinished way to complicated, but it works for now
 const D1K = Set(
     (k, i)
@@ -56,40 +56,21 @@ const D1K = Set(
        qK_k_i_data[k, i, calibration_year - 1] > 0
 )
 
-#notfinished, look through
-const I = [
-    i for i in IO_I
-    if any((k, i) ∈ D1K for k in K)
-]
-
-#notfinished, look through
-# Calibration-year intermediate-demand data.
-# Industries with zero intermediate demand must not have an active RxE leaf.
-const qD_i_data = read_sparse_array(
-    joinpath(input_output_data_dir, "input_output_demands.csv");
-    variable = "qD",
-)
-
-#notfinished, look through
-const RX = [
-    i for i in IO_RX
-    if i ∈ I &&
-       !isnothing(qD_i_data[i, calibration_year]) &&
-       qD_i_data[i, calibration_year] > 1e-9
-]
+# Only industries with data. 
+const I = sort(unique(i for (k, i) in D1K))
 
 #notfinished, look through
 # Which nodes exist for which industry. A capital leaf needs a stock, :RxE needs
 # an intermediate-demand column, :labor is always present, and a nest lives if
 # any child does. Declaring a node without data gives it a zero CES share and a
 # zero Jacobian column, which makes the system singular.
-live(pf, i) =
-    haskey(children, pf) ? any(live(c, i) for c in children[pf]) :
-    pf in K            ? (pf, i) in D1K :
-    pf == :RxE         ? i in RX :
-    true
-
-const D1Prod = Set((pf, i) for pf in PF, i in I if live(pf, i))
+const D1Prod = Set(
+    (pf, i)
+    for pf in PF, i in I
+    if pf ∉ K && pf != :RxE ||          # nests and :labor always exist
+       pf in K && (pf, i) in D1K ||     # capital leaves need a stock
+       pf == :RxE && i in RX            # RxE needs an intermediate column
+)
 
 
 
@@ -211,13 +192,6 @@ function set_data!(db; dir = production_data_dir)
     db[pProd] .= 1.0
     db[pY0_i] .= 1.0
 
-    #notfinished, create bounds but need to be sure of them later.
-    # Must run here, not at module level: the capital bound reads data that
-    # does not exist until the lines above have run.
-    for pf in PF, i in I, tt in t
-        (pf == top || (pf, i) ∉ D1Prod) && continue
-        JuMP.set_lower_bound(pProd2pNest[pf, i, tt], 1e-4)
-    end
 
     return nothing
 end
