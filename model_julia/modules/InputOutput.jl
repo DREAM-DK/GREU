@@ -404,26 +404,21 @@ function define_calibration()
   block = define_equations()
 
   @endo_exo_swap! block begin
-    [rIndustryShare[p, i, tt] for (p, i, tt) in keys(qY_p_i) if tt == t1],
-    [qY_p_i[p, i, tt] for (p, i, tt) in keys(qY_p_i) if tt == t1]
+    rIndustryShare[:,:,t1], qY_p_i[:,:,t1]
 
-    [rProductShare[p, u, tt] for (p, u, tt) in keys(rProductShare) if tt == t1],
-    [qPurchaserUse_p_u[p, u, tt] for (p, u, tt) in keys(rProductShare) if tt == t1]
+    rProductShare[:,:,t1], qPurchaserUse_p_u[:,ordinary_uses,t1]
 
-    [rOriginShare[p, u, o, tt] for (p, u, o, tt) in keys(qPurchaserUse_p_u_o) if u in ordinary_uses && tt == t1],
-    [qPurchaserUse_p_u_o[p, u, o, tt] for (p, u, o, tt) in keys(qPurchaserUse_p_u_o) if u in ordinary_uses && tt == t1]
+    rOriginShare[(p,u,o,t) in keys(qPurchaserUse_p_u_o); u in ordinary_uses && t == t1],
+    qPurchaserUse_p_u_o[p,u,o,t]
 
-    [rMarginServiceShare[s, u, tt] for (s, u, tt) in keys(qMarginService_s_u) if tt == t1],
-    [qMarginService_s_u[s, u, tt] for (s, u, tt) in keys(qMarginService_s_u) if tt == t1]
+    rMarginServiceShare[:,:,t1], qMarginService_s_u[:,:,t1]
 
-    [rMarginRate[p, u, tt] for (p, u, tt) in keys(qMarginBundle_p_u) if tt == t1],
-    [qMarginBundle_p_u[p, u, tt] for (p, u, tt) in keys(qMarginBundle_p_u) if tt == t1]
+    rMarginRate[:,:,t1], qMarginBundle_p_u[:,:,t1]
 
-    [rOriginShare[s, u, o, t1] for (s, u, o) in margin_only_s_u_o],
-    [qMarginService_s_u_o[s, u, o, t1] for (s, u, o) in margin_only_s_u_o]
+    rOriginShare[(s,u,o,t) in keys(qMarginService_s_u_o); (s,u,o) in margin_only_s_u_o && t == t1],
+    qMarginService_s_u_o[s,u,o,t]
 
-    [tNetProduct[p, u, tt] for (p, u, tt) in keys(vNetProductTax_p_u) if tt == t1],
-    [vNetProductTax_p_u[p, u, tt] for (p, u, tt) in keys(vNetProductTax_p_u) if tt == t1]
+    tNetProduct[:,:,t1], vNetProductTax_p_u[:,:,t1]
 
     qCTourist[t1], vCTourist[t1]
   end
