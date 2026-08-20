@@ -13,6 +13,11 @@ const enabled_modules = [
   :SubmodelTemplate,
   :InputOutput,
   :Production,
+  :Labor,
+  :Capital,
+  :Intermediates,
+  :CapitalAdjustmentCosts,
+  :SectorAccounts,
 ]
 
 # JuMP `Model` configured as a square nonlinear system for the selected backend.
