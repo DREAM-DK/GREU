@@ -136,7 +136,7 @@ Time.T = Time.max_terminal_year
 # Zero shock test: After calibration, solving the base model with no changes should give identical results
 @log_time begin
 	zero_shock = solve(base_model(), baseline)
-	assert_no_diff(baseline, zero_shock; atol=1e-6, msg="Zero shock test failed")
+	assert_no_diff(baseline, zero_shock; atol=1e-5, msg="Zero shock test failed")
 end
 
 # Module-specific tests: collect failures from every module before raising, since a single

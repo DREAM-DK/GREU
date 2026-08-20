@@ -1,29 +1,18 @@
 module ProductionSettings
 
-const production_data_dir =  joinpath(@__DIR__, "..", "data", "production")
-# ==========================================================================
-# Eurostat datasets
-# ==========================================================================
-# Capital enters production from the perspective of the industry that owns the
-# asset. The input-output table only knows the supplier, so both stock and
-# investment are fetched separately here.
+const production_data_dir = joinpath(@__DIR__, "..", "data", "production")
 
-const capital_stock_dataset = "nama_10_nfa_st"   # -> qK_k_i
-const capital_flow_dataset  = "nama_10_a64_p5"   # -> qI_k_i
+# Capital enters production in the industry that owns the asset. The supply and
+# use tables show the product supplier, so capital stocks and flows need their
+# own source tables.
+const capital_stock_dataset = "nama_10_nfa_st"
+const capital_flow_dataset = "nama_10_a64_p5"
 
-const stock_unit = "CRC_MEUR"   # current replacement costs
-const flow_unit  = "CP_MEUR"    # current prices
-const stock_deflator_unit = "PYR_MEUR"   # previous year replacement costs
+const stock_unit = "CRC_MEUR"
+const stock_deflator_unit = "PYR_MEUR"
+const flow_unit = "CP_MEUR"
 
-# ==========================================================================
-# Assets
-# ==========================================================================
-# The model has two capital types, so the ESA 2010 asset hierarchy is collapsed
-# onto them. These four codes are mutually exclusive and sum to total fixed
-# assets (N11G), which must be excluded: an aggregate alongside its components
-# double counts.
-
-# Net assets used for capital stocks qK_k_i
+# These non-overlapping ESA asset groups add to total fixed assets.
 const stock_asset_to_capital_type = Dict(
   "N11KN" => :structures,
   "N11MN" => :equipment,
@@ -31,7 +20,6 @@ const stock_asset_to_capital_type = Dict(
   "N117N" => :equipment,
 )
 
-# Gross assets used for investment flows qI_k_i
 const flow_asset_to_capital_type = Dict(
   "N11KG" => :structures,
   "N11MG" => :equipment,
@@ -39,6 +27,7 @@ const flow_asset_to_capital_type = Dict(
   "N117G" => :equipment,
 )
 
-
+const capital_type = sort(unique(collect(values(flow_asset_to_capital_type))))
+@assert Set(capital_type) == Set(values(stock_asset_to_capital_type)) "Stock and flow assets must use the same capital types"
 
 end # module

@@ -13,6 +13,7 @@ include("Settings.jl")
 include("Time.jl")
 include("GrowthInflationAdjustment.jl")
 include("Tags.jl")
+include("CheckedData.jl")
 
 include("Logging.jl")
 import .Log: @log_time, @log_errors

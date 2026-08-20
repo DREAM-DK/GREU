@@ -1,387 +1,342 @@
-# ==============================================================================
-# Production Module
-# ==============================================================================
-# find some text to put here that easily and well default
+# Industry production costs and factor demand.
 include(joinpath(@__DIR__, "ProductionSettings.jl"))
 
 module Production
 
-using SquareModels
 import JuMP
-import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fq, fp
-import ..ProductionSettings: production_data_dir
+using SquareModels
+import ..CheckedData: fill_cells!, read_cells
+import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fp, fq
+import ..InputOutput:
+  pI,
+  pPurchaserUse_u,
+  qPurchaserUse_u,
+  qY_i,
+  vI
+import ..InputOutputSettings: cell_tolerance, industry
+import ..ProductionSettings: capital_type, production_data_dir
 import ..Settings: base_year, calibration_year
-import ..InputOutputSettings: input_output_data_dir
 import ..db
-import ..Time: t, t1, T, at_year, variable_year
+import ..Time: t, t1, T
 import ..Tags: ForecastConstant
 
-# See if better way can be found than import for all other modules:
-import ..InputOutput:
-    I as IO_I,
-    RX as IO_RX,
-    K,
-    pD,
-    qD,
-    qY_i,
-    vW_i
+# ============================================================================
+# Checked-in data
+# ============================================================================
 
+const capital_file = joinpath(production_data_dir, "production_capital.csv")
+const labor_file = joinpath(production_data_dir, "production_labor.csv")
 
-# ==========================================================================
-# Indices
-# ==========================================================================
+const qK_k_i_data = read_cells(capital_file, "qK_k_i")
+const qI_k_i_data = read_cells(capital_file, "qI_k_i")
+const qL_i_data = read_cells(labor_file, "qL_i")
 
-# CES nesting tree structure:
+# ============================================================================
+# Cell masks and production tree
+# ============================================================================
+
+# A capital cell needs a positive current and lagged stock.
+const capital_k_i = Set(
+  (k, i)
+  for (k, i, year) in keys(qK_k_i_data)
+  if year == calibration_year &&
+    get(qK_k_i_data, (k, i, calibration_year), 0.0) > cell_tolerance &&
+    get(qK_k_i_data, (k, i, calibration_year - 1), 0.0) > cell_tolerance
+)
+
+const output_industry = Set(i for (i, year) in keys(qY_i) if year == t1)
+const production_industry = [
+  i for i in industry
+  if i in output_industry && get(qL_i_data, (i, calibration_year), 0.0) > cell_tolerance
+]
+const intermediate_industry = Set(
+  i for (i, year) in keys(qPurchaserUse_u)
+  if year == t1 && i in production_industry
+)
+
+# The tree has no one-child nests. A missing capital or intermediate cell also
+# removes that leaf and any nest with no live child.
 const children = Dict(
-    :KE           => [:equipment],
-    :KEL          => [:KE, :labor],
-    :KELB         => [:KEL, :structures],
-    :TopPfunction => [:KELB, :RxE],
+  :equipment_labor => [:equipment, :labor],
+  :capital_labor => [:equipment_labor, :structures],
+  :production => [:capital_labor, :intermediate],
 )
-# Sets, we might consider moving them to seperate files later.
-const parent = Dict(child => nest for (nest, nest_children) in children for child in nest_children) # maybe return to this and see if it can be made clearer, rest are good. #notfinished
-const nests  = sort([nest for nest in keys(children)])
-const leaves = sort([node for node in keys(parent) if node ∉ values(parent)])
-const PF     = sort([nests; leaves])
-const top    = only([node for node in PF if node ∉ keys(parent)])
-const non_top_nests = [nest for nest in nests if nest != top]
+const parent = Dict(child => nest for (nest, nest_children) in children for child in nest_children)
+const nest = sort(collect(keys(children)))
+const top = only(setdiff(keys(children), keys(parent)))
+const node = sort(unique(vcat(collect(keys(children)), collect(Iterators.flatten(values(children))))))
+const non_top_nest = setdiff(nest, [top])
 
-# Find good name for this group #notfinished
-const qK_k_i_data = read_sparse_array(joinpath(production_data_dir, "production_capital.csv"); variable="qK_k_i")
-#notfinished way to complicated, but it works for now
-const D1K = Set(
-    (k, i)
-    for (k, i) in eachindex(qK_k_i_data[:, :, calibration_year])
-    if qK_k_i_data[k, i, calibration_year] > 0 &&
-       qK_k_i_data[k, i, calibration_year - 1] > 0
+const live_leaf_node_i = union(
+  Set((:labor, i) for i in production_industry),
+  Set((k, i) for (k, i) in capital_k_i if i in production_industry),
+  Set((:intermediate, i) for i in intermediate_industry),
+)
+live(node, i) =
+  (node, i) in live_leaf_node_i ||
+  (haskey(children, node) && any(live(child, i) for child in children[node]))
+
+const production_node_i = Set(
+  (production_node, i)
+  for production_node in node, i in production_industry
+  if live(production_node, i)
+)
+const production_child_node_i = Set(
+  (production_node, i)
+  for (production_node, i) in production_node_i
+  if production_node != top
+)
+const production_nest_i = Set(
+  (production_nest, i)
+  for (production_nest, i) in production_node_i
+  if production_nest in nest
+)
+const non_top_nest_i = Set(
+  (production_nest, i)
+  for (production_nest, i) in production_nest_i
+  if production_nest != top
 )
 
-#notfinished, look through
-const I = [
-    i for i in IO_I
-    if any((k, i) ∈ D1K for k in K)
-]
-
-#notfinished, look through
-# Calibration-year intermediate-demand data.
-# Industries with zero intermediate demand must not have an active RxE leaf.
-const qD_i_data = read_sparse_array(
-    joinpath(input_output_data_dir, "input_output_demands.csv");
-    variable = "qD",
-)
-
-#notfinished, look through
-const RX = [
-    i for i in IO_RX
-    if i ∈ I &&
-       !isnothing(qD_i_data[i, calibration_year]) &&
-       qD_i_data[i, calibration_year] > 1e-9
-]
-
-#notfinished, look through
-# Which nodes exist for which industry. A capital leaf needs a stock, :RxE needs
-# an intermediate-demand column, :labor is always present, and a nest lives if
-# any child does. Declaring a node without data gives it a zero CES share and a
-# zero Jacobian column, which makes the system singular.
-live(pf, i) =
-    haskey(children, pf) ? any(live(c, i) for c in children[pf]) :
-    pf in K            ? (pf, i) in D1K :
-    pf == :RxE         ? i in RX :
-    true
-
-const D1Prod = Set((pf, i) for pf in PF, i in I if live(pf, i))
-
-
-
-
-# ==========================================================================
+# ============================================================================
 # Variables
-# ==========================================================================
+# ============================================================================
+
 const ProductionTag = Tag(:Production)
 
-# Quantities
 @variables db.model :: (ProductionTag, GrowthAdjusted) begin
-    qK_k_i[k=K, i=I, t=t; (k, i) in D1K], "Real capital stock by capital type and industry"
-    qI_k_i[k=K, i=I, t=t; (k, i) in D1K], "Real investment by capital type and industry" 
-    qInstCost_k_i[k=K, i=I, t=t; (k, i) in D1K], "Real installation costs"
-    qL_i[I, t], "Labour in effecinecy units"
-    qProd[pf=PF, i=I, t=t; (pf, i) in D1Prod], "Quantity at a node of the tree"
-    qY0_i[I, t], "Output net of installation costs and costs outside the tree"         
+  qK_k_i[k = capital_type, i = production_industry, t = t; (k, i) in capital_k_i], "Capital stock by type and industry"
+  qI_k_i[(k, i, t) = qK_k_i], "Investment by capital type and industry"
+  qInstCost_k_i[(k, i, t) = qK_k_i], "Capital installation cost"
+  qL_i[i = production_industry, t = t], "Labor in efficiency units"
+  qProd[pf = node, i = production_industry, t = t; (pf, i) in production_node_i], "Quantity at a production node"
+  qY0_i[i = production_industry, t = t], "Output net of installation costs"
 end
 
-# Prices 
 @variables db.model :: (ProductionTag, InflationAdjusted) begin
-    pK_k_i[k=K, i=I, t=t; (k, i) in D1K], "User cost of capital"
-    pL_i[I, t], "wage per unit"
-    pProd[pf=PF, i=I, t=t; (pf, i) in D1Prod], "Price at a node of the tree"
-    pY0_i[I, t], "Price index"
+  pK_k_i[(k, i, t) = qK_k_i], "User cost of capital"
+  pL_i[i = production_industry, t = t], "Wage per labor unit"
+  pProd[(pf, i, t) = qProd], "Price at a production node"
+  pY0_i[i = production_industry, t = t], "Unit production cost"
 end
 
-# Values
-@variables db.model :: (ProductionTag, GrowthAdjusted, InflationAdjusted) begin 
-    vI_k_i[k=K, i=I, t=t; (k, i) in D1K], "Investment" 
-    vProdOtherProductionCosts[I, t], "Production costs outside the tree"
+@variables db.model :: (ProductionTag, GrowthAdjusted, InflationAdjusted) begin
+  vI_k_i[(k, i, t) = qK_k_i], "Investment by capital type and industry"
 end
 
-# Ratios, shares, rates and derivatives. 
 @variables db.model :: ProductionTag begin
-    qK2qY_k_i[k=K, i=I, t=t; (k, i) in D1K], "Capital per unit of output"
-    qL2qY_i[I, t], "Labour per unit of output"
-    qR2qY_i[I, t], "Intermediates per unit of output"
-    qPFtop2qY[I, t] :: ForecastConstant, "Units conversion between the top of the tree and qY_i" 
+  qK2qY_k_i[(k, i, t) = qK_k_i], "Capital per unit of output"
+  qL2qY_i[i = production_industry, t = t], "Labor per unit of output"
+  qIntermediate2qY_i[i = production_industry, t = t; i in intermediate_industry], "Intermediate input per unit of output"
+  qTop2qY_i[i = production_industry, t = t] :: ForecastConstant, "Top-node units per unit of output"
 
-    uProd[pf=PF, i=I, t=t; (pf, i) in D1Prod] :: ForecastConstant, "CES share at a node"
-    pProd2pNest[pf=PF, i=I, t=t; (pf, i) in D1Prod && pf != top], "Price relatve to the parent nest"
-    eProd[nests, I], "Elasticity of substitution within a nest"
+  uProd[pf = node, i = production_industry, t = t; (pf, i) in production_child_node_i] :: ForecastConstant, "CES share at a production node"
+  pProd2pNest[pf = node, i = production_industry, t = t; (pf, i) in production_child_node_i], "Child price relative to its parent price"
+  eProd[n = nest, i = production_industry; (n, i) in production_nest_i], "Substitution elasticity in a production nest"
 
-    rKDepr_k_i[k=K, i=I, t=t; (k, i) in D1K] :: ForecastConstant, "Depreciation rate"
-    rHurdleRate_i[I, t] :: ForecastConstant, "Hurdle rate of investment"
-    fInstCost_k_i[k=K, i=I, t=t; (k, i) in D1K] :: ForecastConstant, "Installation costs"
-    dInstCost2dK_k_i[k=K, i=I, t=t; (k, i) in D1K], "Derivative wrt current capital"
-    dInstCost2dKLag_k_i[k=K, i=I, t=t; (k, i) in D1K], "Derivative wrt lagged capital"
-
-    jpK_k_i[k=K, i=I, t=t; (k, i) in D1K], "Addition to user cost get better name #notfinished"
-
+  rKDepr_k_i[(k, i, t) = qK_k_i] :: ForecastConstant, "Capital depreciation rate"
+  rHurdleRate_i[i = production_industry, t = t] :: ForecastConstant, "Investment hurdle rate"
+  rInvestmentScale[t = t] :: ForecastConstant, "Purchaser investment units per capital-flow unit"
+  fInstCost_k_i[(k, i, t) = qK_k_i] :: ForecastConstant, "Installation-cost factor"
+  dInstCost2dK_k_i[(k, i, t) = qK_k_i], "Installation-cost derivative for current capital"
+  dInstCost2dKLag_k_i[(k, i, t) = qK_k_i], "Installation-cost derivative for lagged capital"
+  jpK_k_i[(k, i, t) = qK_k_i], "User-cost addition"
 end
 
+JuMP.set_lower_bound.(
+  [pProd2pNest[pf, i, year] for (pf, i, year) in keys(pProd2pNest)],
+  1e-4,
+)
 
-
-
-# ==========================================================================
+# ============================================================================
 # Data
-# ==========================================================================
-function set_data!(db; dir = production_data_dir)
-    file = joinpath(dir, "production_capital.csv")
+# ============================================================================
 
-    # Input Capital and investment from Eurostat, file fromed in ProductionData.jl
-    db[qK_k_i] .= read_variable(file, qK_k_i)
-    db[qI_k_i] .= read_variable(file, qI_k_i)
+function set_data!(db)
+  @assert Set(first.(capital_k_i)) == Set(capital_type) "Each capital type needs a live stock"
+  @assert all(haskey(qI_k_i_data, (k, i, t1)) for (k, i) in capital_k_i) "Each capital stock needs calibration-year investment"
+  @assert all((i, t1) in keys(qY_i) for i in production_industry) "Each production industry needs output"
+  @assert all((i, t1) in keys(qPurchaserUse_u) for i in intermediate_industry) "Each intermediate leaf needs purchaser use"
+  @assert (:K, t1) in keys(qPurchaserUse_u) "Production needs fixed investment purchaser use"
 
-    #notfinished really long and bad, but makes it work fix later. 
-    # Reconcile the Eurostat capital quantities with the IO investment totals.
-    #
-    # qI and qK must receive the same scaling factor. Scaling only qI changes
-    # the implied depreciation rate in the capital-accumulation equation.
-    for k in K
-        cells = [
-            (k, i) for i in I
-            if (k, i) in D1K &&
-            !isnothing(db[qI_k_i[k, i, t1]])
-        ]
+  fill_cells!(db, qK_k_i, qK_k_i_data)
+  fill_cells!(db, qI_k_i, qI_k_i_data)
+  fill_cells!(db, qL_i, qL_i_data)
 
-        production_total = sum(
-            db[qI_k_i[k, i, t1]]
-            for (k, i) in cells
-        )
+  db[pL_i] .= 1.0
+  db[eProd] .= 0.7
+  db[rHurdleRate_i] .= 0.2
+  db[fInstCost_k_i] .= 0.5
+  db[jpK_k_i] .= 0.0
 
-        io_total = db[qD[k, t1]]
-
-        if !isnothing(io_total) && production_total != 0
-            adjustment = io_total / production_total
-
-            for (k, i) in cells, tt in t
-                investment = db[qI_k_i[k, i, tt]]
-                capital    = db[qK_k_i[k, i, tt]]
-
-                if !isnothing(investment)
-                    db[qI_k_i[k, i, tt]] = investment * adjustment
-                end
-
-                if !isnothing(capital)
-                    db[qK_k_i[k, i, tt]] = capital * adjustment
-                end
-            end
-        end
-    end
-
-
-    #notfinished, was much simpler before
-    for i in I, tt in t
-        db[qL_i[i, tt]] = db[vW_i[i, tt]]
-    end
-    db[eProd] .= 0.7
-    db[rHurdleRate_i] .= 0.2
-    db[fInstCost_k_i] .= 0.0 #notfinished, removes usercost while leaving equations. 
-    db[jpK_k_i] .= 0.0
-
-    #notfinished, 
-    # Set prices to 1.0 (inflation, but not growth-adjusted, variables) #notfinished
-    # Price indices initialized at one. pK_k_i is determined endogenously.
-    db[pL_i]  .= 1.0
-    db[pProd] .= 1.0
-    db[pY0_i] .= 1.0
-
-    #notfinished, create bounds but need to be sure of them later.
-    # Must run here, not at module level: the capital bound reads data that
-    # does not exist until the lines above have run.
-    for pf in PF, i in I, tt in t
-        (pf == top || (pf, i) ∉ D1Prod) && continue
-        JuMP.set_lower_bound(pProd2pNest[pf, i, tt], 1e-4)
-    end
-
-    return nothing
+  # Calibration fixes nest prices at one and solves for their CES shares.
+  db[pProd] .= [
+    production_node in nest && year == t1 ? 1.0 : nothing
+    for (production_node, _, year) in keys(pProd)
+  ]
+  return nothing
 end
 
-
-# ==========================================================================
-# Starting values (solver hints, not exogenous data)
-# ==========================================================================
-
-    #notfinished long and unwindly not a good idea, fix later. 
-    # Extend the static calibration values across the dynamic horizon.
-    # This is called after endogenous/exogenous selection, so these values
-    # are solver starting values rather than exogenous data.
-    function set_starting_values!(db)
-        for tt in t
-            (tt <= t1 || tt > T) && continue
-    
-            for (k, i) in D1K
-                isnothing(db[qK_k_i[k, i, tt]]) && (db[qK_k_i[k, i, tt]] = db[qK_k_i[k, i, t1]])
-            end
-    
-            # Base of a negative fractional power; one is the base-year normalisation.
-            for pf in PF, i in I
-               (pf == top || (pf, i) ∉ D1Prod) || (db[pProd2pNest[pf, i, tt]] = 1.0)
-            end
-    
-            for pf in PF, i in I
-                (pf, i) ∈ D1Prod || continue
-                isnothing(db[qProd[pf, i, tt]]) && (db[qProd[pf, i, tt]] = db[qProd[pf, i, t1]])
-                isnothing(db[pProd[pf, i, tt]]) && (db[pProd[pf, i, tt]] = db[pProd[pf, i, t1]])
-            end
-        end
-        return nothing
-    end
-
-# ==========================================================================
-# Residuals allowed to exceed the global tolerance
-# ==========================================================================
-function set_residual_tolerances!(tolerances)
-    tolerances[dInstCost2dKLag_k_i] .= 1.0
-    return nothing
-end
-
-# ==========================================================================
+# ============================================================================
 # Equations
-# ==========================================================================
+# ============================================================================
 
 function define_equations()
-    return @block db begin
-        # -- Factor demands --
-        #notfinished, changed qY0_i to qY_i in two below please double check later. 
-        qK_k_i[k = K, i = I, t = t1:T; (k, i) in D1K], qK_k_i[k, i , t] == qK2qY_k_i[k, i, t] * qY_i[i, t]
+  return @block db begin
+    # Fixed factor-output links.
+    qK_k_i[(k, i, t) in keys(qK_k_i); t in t1:T],
+    qK_k_i[k, i, t] == qK2qY_k_i[k, i, t] * qY_i[i, t]
 
-        qL_i[i = I, t = t1:T], qL_i[i, t] == qL2qY_i[i, t] * qY_i[i, t]
+    qL_i[i = production_industry, t = t1:T],
+    qL_i[i, t] == qL2qY_i[i, t] * qY_i[i, t]
 
-        qD[i = RX, t = t1:T], qD[i, t] == qR2qY_i[i, t] * qY_i[i, t]
+    qPurchaserUse_u[i = production_industry, t = t1:T; i in intermediate_industry],
+    qPurchaserUse_u[i, t] == qIntermediate2qY_i[i, t] * qY_i[i, t]
 
-        # -- Capital accumulation --
-        qI_k_i[k = K, i = I, t = t1:T; (k, i) ∈ D1K],
-        qI_k_i[k, i, t] == qK_k_i[k, i, t] - (1 - rKDepr_k_i[k, i, t]) * qK_k_i[k, i, t-1]/fq
+    # Capital accumulation and its fixed-investment link.
+    qI_k_i[(k, i, t) in keys(qI_k_i); t in t1:T],
+    qI_k_i[k, i, t] ==
+      qK_k_i[k, i, t] -
+      (1 - rKDepr_k_i[k, i, t]) * qK_k_i[k, i, t - 1] / fq
 
-        qD[k = K, t = t1:T], qD[k, t] == ∑(qI_k_i[k, i, t] for i ∈ I if (k, i) ∈ D1K)
+    qPurchaserUse_u[u = [:K], t = t1:T],
+    qPurchaserUse_u[u, t] ==
+      rInvestmentScale[t] * ∑(qI_k_i[k, i, t] for (k, i) in capital_k_i)
 
-        vI_k_i[k = K, i = I, t = t1:T; (k, i) ∈ D1K], vI_k_i[k, i, t] == pD[k, t] * qI_k_i[k, i, t]
-        
-        # -- Installation costs --
-        qInstCost_k_i[k = K, i = I, t = t1:T; (k, i) ∈ D1K],
-        qInstCost_k_i[k, i, t] == fInstCost_k_i[k, i, t] * (qI_k_i[k, i, t]/qK_k_i[k, i, t-1])^2 * qK_k_i[k, i, t-1]
+    vI_k_i[(k, i, t) in keys(vI_k_i); t in t1:T],
+    vI_k_i[k, i, t] == pI[t] * rInvestmentScale[t] * qI_k_i[k, i, t]
 
-        dInstCost2dK_k_i[k = K, i = I, t = t1:T; (k, i) ∈ D1K],
-        dInstCost2dK_k_i[k, i , t] == 2 * fInstCost_k_i[k, i, t] * qI_k_i[k, i, t]/(qK_k_i[k, i, t-1] / fq)
+    # Capital installation costs.
+    qInstCost_k_i[(k, i, t) in keys(qInstCost_k_i); t in t1:T],
+    qInstCost_k_i[k, i, t] ==
+      fInstCost_k_i[k, i, t] *
+      (qI_k_i[k, i, t] / qK_k_i[k, i, t - 1])^2 *
+      qK_k_i[k, i, t - 1]
 
-        dInstCost2dKLag_k_i[k = K, i = I, t = t1:T-1; (k, i) ∈ D1K],
-        dInstCost2dKLag_k_i[k, i, t] == 
-            -fInstCost_k_i[k, i, t] * 
-            (2 * (1 - rKDepr_k_i[k, i, t]) + qI_k_i[k, i, t+1] * fq / qK_k_i[k, i, t]) * 
-            (qI_k_i[k, i, t+1] * fq / qK_k_i[k, i, t])
-        
-        # Last period in regard to lagged capital, assume ratio is at steady state at this point
-        dInstCost2dKLag_k_i[k = K, i = I, t = T:T; (k, i) in D1K],
-        dInstCost2dKLag_k_i[k, i, t] ==
-              -fInstCost_k_i[k, i, t] * 
-              (2 * (1 - rKDepr_k_i[k, i, t]) + qI_k_i[k, i, t] * fq / qK_k_i[k, i, t]) * (qI_k_i[k, i, t] * fq / qK_k_i[k, i, t])
+    dInstCost2dK_k_i[(k, i, t) in keys(dInstCost2dK_k_i); t in t1:T],
+    dInstCost2dK_k_i[k, i, t] ==
+      2 * fInstCost_k_i[k, i, t] * qI_k_i[k, i, t] /
+      (qK_k_i[k, i, t - 1] / fq)
 
-        # -- Cost minimization, CES tree is constraint --
-        pProd2pNest[pf = PF, i = I, t = t1:T; pf != top && (pf, i) ∈ D1Prod],
-        pProd2pNest[pf, i, t] == pProd[pf, i, t] / pProd[parent[pf], i, t] 
+    dInstCost2dKLag_k_i[(k, i, t) in keys(dInstCost2dKLag_k_i); t in t1:(T - 1)],
+    dInstCost2dKLag_k_i[k, i, t] ==
+      -fInstCost_k_i[k, i, t] *
+      (2 * (1 - rKDepr_k_i[k, i, t]) + qI_k_i[k, i, t + 1] * fq / qK_k_i[k, i, t]) *
+      (qI_k_i[k, i, t + 1] * fq / qK_k_i[k, i, t])
 
-        qProd[pf = [top], i = I, t = t1:T],
-        qProd[pf, i, t] == qY0_i[i, t] + sum(qInstCost_k_i[k, i, t] for k ∈ K if (k, i) ∈ D1K)
+    dInstCost2dKLag_k_i[(k, i, t) in keys(dInstCost2dKLag_k_i); t == T],
+    dInstCost2dKLag_k_i[k, i, t] ==
+      -fInstCost_k_i[k, i, t] *
+      (2 * (1 - rKDepr_k_i[k, i, t]) + qI_k_i[k, i, t] * fq / qK_k_i[k, i, t]) *
+      (qI_k_i[k, i, t] * fq / qK_k_i[k, i, t])
 
-        qProd[pf = PF, i = I, t = t1:T; pf != top && (pf, i) ∈ D1Prod],
-        qProd[pf, i, t] == uProd[pf, i, t] * pProd2pNest[pf, i, t]^(-eProd[parent[pf], i]) * qProd[parent[pf], i, t]
+    # Nested CES production costs and factor demand.
+    pProd2pNest[(pf, i, t) in keys(pProd2pNest); t in t1:T],
+    pProd2pNest[pf, i, t] == pProd[pf, i, t] / pProd[parent[pf], i, t]
 
-        pProd[pf = nests, i = I, t = t1:T; (pf, i) ∈ D1Prod],
-        pProd[pf, i , t] * qProd[pf, i, t] == ∑(pProd[c, i, t] * qProd[c, i, t] for c ∈ children[pf] if (c, i) ∈ D1Prod)
+    qProd[pf = [top], i = production_industry, t = t1:T],
+    qProd[pf, i, t] ==
+      qY0_i[i, t] + ∑(qInstCost_k_i[k, i, t] for k in capital_type if (k, i) in capital_k_i)
 
-        qY0_i[i = I, t = t1:T], qY0_i[i, t] == qPFtop2qY[i, t] * qY_i[i, t]
-        pY0_i[i = I, t = t1:T], pY0_i[i, t] * qY0_i[i, t] == pProd[top, i, t] * qProd[top, i, t] 
+    qProd[(pf, i, t) in keys(qProd); pf != top && t in t1:T],
+    qProd[pf, i, t] ==
+      uProd[pf, i, t] *
+      pProd2pNest[pf, i, t]^(-eProd[parent[pf], i]) *
+      qProd[parent[pf], i, t]
 
-        # -- Deciding leafs of the tree --
-        pProd[pf = [:RxE], i = RX, t = t1:T], pProd[pf, i, t] == pD[i, t]
-        pProd[pf = [:labor], i = I, t = t1:T; (pf, i) ∈ D1Prod], pProd[pf, i, t] == pL_i[i, t]
-        pProd[pf = K, i = I, t = t1:T; (pf, i) ∈ D1K], pProd[pf, i, t] == pK_k_i[pf, i, t] / pK_k_i[pf, i, base_year]
+    pProd[n = nest, i = production_industry, t = t1:T; (n, i) in production_nest_i],
+    pProd[n, i, t] * qProd[n, i, t] ==
+      ∑(pProd[child, i, t] * qProd[child, i, t] for child in children[n] if (child, i) in production_node_i)
 
-        qR2qY_i[i = RX, t = t1:T], qD[i, t] == qProd[:RxE, i, t]
-        qL2qY_i[i = I, t = t1:T], qL_i[i, t] == qProd[:labor, i, t]
-        qK2qY_k_i[k = K, i = I, t = t1:T; (k, i) ∈ D1K], qProd[k, i, t] == qK_k_i[k, i, t] * pK_k_i[k, i, base_year]
+    qY0_i[i = production_industry, t = t1:T],
+    qY0_i[i, t] == qTop2qY_i[i, t] * qY_i[i, t]
 
-        # -- User cost of capital --
-        pK_k_i[k = K, i = I, t = t1:T-1; (k, i) in D1K],
-        pK_k_i[k, i, t] ==
-          pD[k, t] -
-          (1 - rKDepr_k_i[k, i, t]) / (1 + rHurdleRate_i[i, t+1]) * pD[k, t+1] * fp + 
-          pProd[top, i, t] * dInstCost2dK_k_i[k, i, t] + 
-          dInstCost2dKLag_k_i[k, i, t] / (1 + rHurdleRate_i[i, t+1]) * pProd[top, i, t+1] * fp + 
-          jpK_k_i[k, i, t]
-        
-        # Last period 
-        #notfinished, fix later not a good solution in regard to Lag variable. 
-        pK_k_i[k = K, i = I, t = T:T; (k, i) in D1K],
-        pK_k_i[k, i, t] ==
-            pD[k, t] - 
-            (1 - rKDepr_k_i[k, i, t]) / (1 + rHurdleRate_i[i, t]) * pD[k, t] * fp + 
-            pProd[top, i, t] * dInstCost2dK_k_i[k, i, t] + 
-            dInstCost2dKLag_k_i[k, i,  t] / (1 + rHurdleRate_i[i, t]) * pProd[top, i, t] * fp + 
-            jpK_k_i[k, i, t]
+    pY0_i[i = production_industry, t = t1:T],
+    pY0_i[i, t] * qY0_i[i, t] == pProd[top, i, t] * qProd[top, i, t]
 
-    end  
+    # Prices and quantities at the tree leaves.
+    pProd[pf = [:intermediate], i = production_industry, t = t1:T; i in intermediate_industry],
+    pProd[pf, i, t] == pPurchaserUse_u[i, t]
+
+    pProd[pf = [:labor], i = production_industry, t = t1:T],
+    pProd[pf, i, t] == pL_i[i, t]
+
+    pProd[pf = capital_type, i = production_industry, t = t1:T; (pf, i) in capital_k_i],
+    pProd[pf, i, t] == pK_k_i[pf, i, t] / pK_k_i[pf, i, base_year]
+
+    qIntermediate2qY_i[i = production_industry, t = t1:T; i in intermediate_industry],
+    qPurchaserUse_u[i, t] == qProd[:intermediate, i, t]
+
+    qL2qY_i[i = production_industry, t = t1:T],
+    qL_i[i, t] == qProd[:labor, i, t]
+
+    qK2qY_k_i[(k, i, t) in keys(qK2qY_k_i); t in t1:T],
+    qProd[k, i, t] == qK_k_i[k, i, t] * pK_k_i[k, i, base_year]
+
+    # User cost of capital.
+    pK_k_i[(k, i, t) in keys(pK_k_i); t in t1:(T - 1)],
+    pK_k_i[k, i, t] ==
+      pI[t] * rInvestmentScale[t] -
+      (1 - rKDepr_k_i[k, i, t]) /
+      (1 + rHurdleRate_i[i, t + 1]) * pI[t + 1] * rInvestmentScale[t + 1] * fp +
+      pProd[top, i, t] * dInstCost2dK_k_i[k, i, t] +
+      dInstCost2dKLag_k_i[k, i, t] /
+      (1 + rHurdleRate_i[i, t + 1]) * pProd[top, i, t + 1] * fp +
+      jpK_k_i[k, i, t]
+
+    pK_k_i[(k, i, t) in keys(pK_k_i); t == T],
+    pK_k_i[k, i, t] ==
+      pI[t] * rInvestmentScale[t] -
+      (1 - rKDepr_k_i[k, i, t]) /
+      (1 + rHurdleRate_i[i, t]) * pI[t] * rInvestmentScale[t] * fp +
+      pProd[top, i, t] * dInstCost2dK_k_i[k, i, t] +
+      dInstCost2dKLag_k_i[k, i, t] /
+      (1 + rHurdleRate_i[i, t]) * pProd[top, i, t] * fp +
+      jpK_k_i[k, i, t]
+
+    @test_constraint("Capital investment values sum to fixed investment"; rtol = 1e-3)
+    vI[t = t1:T], vI[t] == ∑(vI_k_i[k, i, t] for (k, i) in capital_k_i)
+  end
 end
 
-
-# ==========================================================================
+# ============================================================================
 # Calibration
-# ==========================================================================
+# ============================================================================
+
 function define_calibration()
-    block = define_equations()
-   
-    @endo_exo_swap! block begin
-        rKDepr_k_i[:, :, t1], qI_k_i[:, :, t1]
-        uProd[non_top_nests, :, t1], pProd[non_top_nests, :, t1]
-    end
+  block = define_equations()
 
-    #notfinished
-    @endo_exo_swap! block begin
-        [uProd[:RxE, i, t1] for i in RX], [qD[i, t1] for i in RX]
-        [uProd[k, i, t1] for (k, i) in D1K], [qK_k_i[k, i, t1] for (k, i) in D1K]
-        [uProd[:labor, i, t1] for i in I], [qL_i[i, t1] for i in I]
-        [qPFtop2qY[i, t1] for i in I], [pProd[top, i, t1] for i in I]
-    end
+  @endo_exo_swap! block begin
+    [rKDepr_k_i[k, i, t1] for (k, i) in capital_k_i],
+    [qI_k_i[k, i, t1] for (k, i) in capital_k_i]
 
-    return block
+    [uProd[n, i, t1] for (n, i) in non_top_nest_i],
+    [pProd[n, i, t1] for (n, i) in non_top_nest_i]
+
+    [uProd[:intermediate, i, t1] for i in intermediate_industry],
+    [qPurchaserUse_u[i, t1] for i in intermediate_industry]
+
+    [uProd[k, i, t1] for (k, i) in capital_k_i if i in production_industry],
+    [qK_k_i[k, i, t1] for (k, i) in capital_k_i if i in production_industry]
+
+    [uProd[:labor, i, t1] for i in production_industry],
+    [qL_i[i, t1] for i in production_industry]
+
+    [qTop2qY_i[i, t1] for i in production_industry],
+    [pProd[top, i, t1] for i in production_industry]
+
+    rInvestmentScale[t1], qPurchaserUse_u[:K, t1]
+  end
+
+  return block
 end
 
-
-# ==========================================================================
+# ============================================================================
 # Tests
-# ==========================================================================
+# ============================================================================
+
 function run_tests(db)
-    errors = String[]
-  
-    return errors
+  errors = String[]
+  return errors
 end
-
-
 
 end # module

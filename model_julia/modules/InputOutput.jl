@@ -4,6 +4,7 @@ include(joinpath(@__DIR__, "InputOutputSettings.jl"))
 module InputOutput
 
 using SquareModels
+import ..CheckedData: cell_value, fill_cells!, read_cells, read_series
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutputSettings:
   industry,
@@ -31,26 +32,6 @@ const purchaser_use_file = joinpath(input_output_data_dir, "input_output_purchas
 const margin_file = joinpath(input_output_data_dir, "input_output_margins.csv")
 const net_product_tax_file = joinpath(input_output_data_dir, "input_output_net_product_tax.csv")
 const aggregate_totals_file = joinpath(input_output_data_dir, "input_output_aggregate_totals.csv")
-
-"""Read one variable from a checked-in file into a dictionary keyed by index tuple."""
-function read_cells(file, variable)
-  data = read_sparse_array(file; variable)
-  cells = Dict(key => data[key...] for key in eachindex(data))
-  @assert all(isfinite, values(cells)) "$variable in $file must be finite"
-  return cells
-end
-
-"""Calibration-year value of one cell. Cells the source does not report are zero."""
-calibration_year_value(cells, index...) = get(cells, (index..., calibration_year), 0.0)
-
-"""Copy checked-in cells into a model variable. Years the file omits stay `nothing`."""
-fill_cells!(db, var, cells) = db[var] .= [get(cells, key, nothing) for key in keys(var)]
-
-"""Read one time series for a one-dimensional variable view."""
-function read_series(file, variable)
-  cells = read_cells(file, variable)
-  return [get(cells, (tt,), nothing) for tt in t]
-end
 
 const qY_p_i_data = read_cells(supply_file, "qY_p_i")
 const qMarginBundle_p_u_data = read_cells(margin_file, "qMarginBundle_p_u")
@@ -190,15 +171,15 @@ function set_data!(db)
   @assert Set(p for (p, _, tt) in keys(vY_p_i) if tt == t1) == Set(p for (p, o, tt) in keys(vSupply_p_o) if o == domestic && tt == t1) "Domestic product supply must match industry output"
   @assert Set(o for (_, o, tt) in keys(vSupply_p_o) if tt == t1) == Set(origin) "Each origin needs supply"
   @assert all(
-    abs(sum(calibration_year_value(qPurchaserUse_p_u_o_data, p, u, o) for p in product for o in origin)) > cell_tolerance
+    abs(sum(cell_value(qPurchaserUse_p_u_o_data, p, u, o, calibration_year) for p in product for o in origin)) > cell_tolerance
     for (u, tt) in keys(vPurchaserUse_u) if u in ordinary_uses && tt == t1
   ) "Each use with a fixed product share needs non-zero demand"
   @assert all(
-    abs(sum(calibration_year_value(qPurchaserUse_p_u_o_data, p, u, o) for o in origin)) > cell_tolerance
+    abs(sum(cell_value(qPurchaserUse_p_u_o_data, p, u, o, calibration_year) for o in origin)) > cell_tolerance
     for (p, u, tt) in keys(vNetProductTax_p_u) if tt == t1
   ) "Each net product tax needs non-zero purchaser use"
   @assert all(
-    abs(sum(calibration_year_value(qPurchaserUse_p_u_o_data, p, u, o) for o in origin)) > cell_tolerance
+    abs(sum(cell_value(qPurchaserUse_p_u_o_data, p, u, o, calibration_year) for o in origin)) > cell_tolerance
     for (p, u, tt) in keys(qMarginBundle_p_u) if tt == t1
   ) "Each margin rate needs non-zero purchaser use"
 
@@ -221,10 +202,10 @@ function set_data!(db)
   db[pM_p_u] .= 1.0
 
   fill_cells!(db, vPurchaserUse_u, read_cells(aggregate_totals_file, "vPurchaserUse_u"))
-  db[vCTourist] .= read_series(aggregate_totals_file, "vCTourist")
-  db[vM] .= read_series(aggregate_totals_file, "vM")
-  db[vX] .= read_series(aggregate_totals_file, "vX")
-  db[vY] .= read_series(aggregate_totals_file, "vY")
+  db[vCTourist] .= read_series(aggregate_totals_file, "vCTourist", t)
+  db[vM] .= read_series(aggregate_totals_file, "vM", t)
+  db[vX] .= read_series(aggregate_totals_file, "vX", t)
+  db[vY] .= read_series(aggregate_totals_file, "vY", t)
   return nothing
 end
 

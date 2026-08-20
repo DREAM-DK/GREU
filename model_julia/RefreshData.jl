@@ -11,6 +11,13 @@ include(joinpath(@__DIR__, "modules", "InputOutputData.jl"))
 InputOutputData.refresh_input_output_data!()
 
 # ==============================================================================
+# Production data
+# ==============================================================================
+include(joinpath(@__DIR__, "modules", "ProductionData.jl"))
+
+ProductionData.refresh_production_data!()
+
+# ==============================================================================
 # Sector accounts data
 # ==============================================================================
 include(joinpath(@__DIR__, "modules", "SectorAccountsData.jl"))

@@ -1,4 +1,5 @@
 include(joinpath(@__DIR__, "..", "Settings.jl"))
+include("InputOutputSettings.jl")
 include("ProductionSettings.jl")
 include("EurostatClient.jl")
 include("DataRefreshUtils.jl")
@@ -8,104 +9,120 @@ module ProductionData
 using CSV
 using DataFrames
 import ..EurostatClient
-using ..Settings: calibration_year, country_code
-import ..DataRefreshUtils: sum_by, long_format
+import ..DataRefreshUtils: long_format, sum_by
+import ..InputOutputSettings:
+  eurostat_unit,
+  eurostat_use_dataset,
+  nace_a64_to_a21
 import ..ProductionSettings:
-  stock_asset_to_capital_type,
-  flow_asset_to_capital_type,
   capital_flow_dataset,
   capital_stock_dataset,
+  flow_asset_to_capital_type,
   flow_unit,
   production_data_dir,
+  stock_asset_to_capital_type,
   stock_deflator_unit,
   stock_unit
+import ..Settings: calibration_year, country_code
 
-const nace_sections = string.('A':'U')
+const data_years = (calibration_year - 1):calibration_year
+const year_params = ["time" => string(year) for year in data_years]
 
-# ==========================================================================
-# Eurostat fetch
-# ==========================================================================
+# ============================================================================
+# Eurostat data
+# ============================================================================
 
-"""Fetch one capital table for the model country."""
+"""Fetch one capital table and map A64 industries to model industries."""
 function fetch_capital_table(dataset, unit, asset_map)
-  assets = sort(collect(keys(asset_map)))
-
-  df = EurostatClient.fetch_table(dataset,
-    "unit"        => unit,
-    "geo"         => country_code,
-    "startPeriod" => string(calibration_year - 1),
-    "endPeriod"   => string(calibration_year + 1),
-    ("asset10" => asset for asset in assets)...,
+  df = EurostatClient.fetch_table(
+    dataset,
+    "unit" => unit,
+    "geo" => country_code,
+    year_params...,
   )
-
-  return sum_by(DataFrame(
-    k        = [asset_map[code] for code in df.asset10],
-    industry = [Symbol(first(code)) for code in df.nace_r2],
-    year     = parse.(Int, df.time),
-    value    = df.value,
-  ), [:k, :industry, :year])
+  df = df[
+    in.(df.asset10, Ref(Set(keys(asset_map)))) .&
+    in.(df.nace_r2, Ref(Set(keys(nace_a64_to_a21)))),
+    :,
+  ]
+  df.k = [asset_map[asset] for asset in df.asset10]
+  df.industry = [nace_a64_to_a21[code] for code in df.nace_r2]
+  df.year = parse.(Int, df.time)
+  return sum_by(df, [:k, :industry, :year])
 end
 
-# ==========================================================================
-# Deflation
-# ==========================================================================
-# CRC values a stock at this year's prices; PYR values the same stock at last
-# year's. Their ratio is a pure price change with no volume effect, so chaining
-# those changes rebases every year onto the calibration year.
-#
-# Without this the stock grows partly because assets got more expensive, so it
-# appears to grow by more than gross investment — impossible in real terms —
-# and the depreciation rate calibrated from the accumulation equation comes out
-# too low or negative.
+"""Fetch employee pay by industry as the labor quantity at the base price."""
+function fetch_labor_table()
+  df = EurostatClient.fetch_table(
+    eurostat_use_dataset,
+    "unit" => eurostat_unit,
+    "stk_flow" => "TOTAL",
+    "prd_ava" => "D1",
+    "geo" => country_code,
+    year_params...,
+  )
+  df = df[in.(df.ind_use, Ref(Set(keys(nace_a64_to_a21)))), :]
+  df.industry = [nace_a64_to_a21[code] for code in df.ind_use]
+  df.year = parse.(Int, df.time)
+  return sum_by(df, [:industry, :year])
+end
 
+# CRC values a stock at current prices. PYR values the same stock at last
+# year's prices. Their ratio gives the asset price change.
 """Express capital stocks in calibration-year prices."""
 function rebase_to_calibration_prices(current_cost, previous_year_cost)
   change = innerjoin(
-    rename(current_cost, :value => :crc),
-    rename(previous_year_cost, :value => :pyr),
+    rename(current_cost, :value => :current),
+    rename(previous_year_cost, :value => :previous),
     on = [:k, :industry, :year],
   )
-  rate = Dict((row.k, row.industry, row.year) => row.crc / row.pyr for row in eachrow(change))
-  factor(k, i, y) = get(rate, (k, i, y), 1.0)
+  function change_factor(row)
+    row.previous != 0 && return row.current / row.previous
+    @assert row.current == 0 "A zero prior-price stock needs a zero current-price stock"
+    return 1.0
+  end
+  price_change = Dict(
+    (row.k, row.industry, row.year) => change_factor(row)
+    for row in eachrow(change)
+  )
+  factor(k, i, year) = get(price_change, (k, i, year), 1.0)
 
   rebased = copy(current_cost)
   rebased.value = [
     row.value *
-      prod(factor(row.k, row.industry, y) for y in (row.year + 1):calibration_year; init = 1.0) /
-      prod(factor(row.k, row.industry, y) for y in (calibration_year + 1):row.year; init = 1.0)
+      prod(factor(row.k, row.industry, year) for year in (row.year + 1):calibration_year; init = 1.0) /
+      prod(factor(row.k, row.industry, year) for year in (calibration_year + 1):row.year; init = 1.0)
     for row in eachrow(current_cost)
   ]
   return rebased
 end
 
-
-# ==========================================================================
-# Output files
-# ==========================================================================
-
-"""Capital stock and investment, one row per (variable, capital type, industry, year)."""
-function write_production_variables(dir, stock, flow)
-  CSV.write(joinpath(dir, "production_capital.csv"), vcat(
-    long_format(:qK_k_i, stock, [:k, :industry, :year]),
-    long_format(:qI_k_i, flow, [:k, :industry, :year]),
-  ))
-end
+# ============================================================================
+# Checked-in data
+# ============================================================================
 
 function refresh_production_data!(dir = production_data_dir)
   mkpath(dir)
-  #notfinished, look through
   stock = rebase_to_calibration_prices(
     fetch_capital_table(capital_stock_dataset, stock_unit, stock_asset_to_capital_type),
     fetch_capital_table(capital_stock_dataset, stock_deflator_unit, stock_asset_to_capital_type),
   )
-  
-  flow = fetch_capital_table(
+  investment = fetch_capital_table(
     capital_flow_dataset,
     flow_unit,
     flow_asset_to_capital_type,
   )
-  write_production_variables(dir, stock, flow)
-  return stock, flow
+  labor = fetch_labor_table()
+
+  CSV.write(joinpath(dir, "production_capital.csv"), vcat(
+    long_format(:qK_k_i, stock, [:k, :industry, :year]),
+    long_format(:qI_k_i, investment, [:k, :industry, :year]),
+  ))
+  CSV.write(
+    joinpath(dir, "production_labor.csv"),
+    long_format(:qL_i, labor, [:industry, :year]),
+  )
+  return nothing
 end
 
 end # module
@@ -113,4 +130,3 @@ end # module
 if abspath(PROGRAM_FILE) == abspath(@__FILE__)
   ProductionData.refresh_production_data!()
 end
-
