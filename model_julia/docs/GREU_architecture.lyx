@@ -1,0 +1,1813 @@
+#LyX 2.5 created this file. For more info see https://www.lyx.org/
+\lyxformat 643
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\begin_preamble
+\usepackage{xcolor}
+\newcommand{\TemplateBrandName}{GreenREFORM}
+\definecolor{TemplateAccent}{HTML}{31B149}
+\definecolor{TemplateGray}{HTML}{46464C}
+\definecolor{TemplateTableHeader}{HTML}{31B149}
+\definecolor{TemplateTableRow}{HTML}{E6E6E8}
+\definecolor{TemplateFrontPageBackground}{HTML}{EFFBF1}
+\definecolor{TemplateFrontPageShape}{HTML}{B3E1F3}
+\newcommand{\TemplateModelLogo}{i:/Skabeloner/Icons/Modellogo_GREEN_REFORM_100mm_RGB.pdf}
+\newcommand{\TemplateDocumentType}{Working paper}
+
+\input{i:/Skabeloner/Latex/DREAM_template_preamble.tex}
+\TemplateFrontPagetrue
+\subtitle{}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children no
+\language american
+\language_package default
+\inputencoding auto-legacy
+\fontencoding auto
+\font_roman "lmodern" "default"
+\font_sans "default" "Hind"
+\font_typewriter "default" "default"
+\font_math "iwona-math" "auto"
+\font_default_family sfdefault
+\use_non_tex_fonts true
+\font_sc false
+\font_roman_osf false
+\font_sans_osf false
+\font_typewriter_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype true
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\float_placement H
+\float_alignment class
+\paperfontsize default
+\spacing onehalf
+\use_hyperref false
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen true
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder true
+\pdf_colorlinks false
+\pdf_backref section
+\pdf_pdfusetitle true
+\papersize a4
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification false
+\crossref_package refstyle
+\use_formatted_ref 0
+\use_minted 0
+\use_lineno 0
+\backgroundcolor none
+\fontcolor none
+\notefontcolor lightgray
+\boxbgcolor red
+\table_border_color default
+\table_odd_row_color default
+\table_even_row_color default
+\table_alt_row_colors_start 1
+\branch product_rows_columns
+\selected 0
+\filename_suffix 0
+\color background background
+\end_branch
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation skip
+\defskip medskip
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tablestyle default
+\tracking_changes false
+\output_changes false
+\change_bars false
+\postpone_fragile_content false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\docbook_table_output 0
+\docbook_mathml_prefix 1
+\docbook_mathml_version 0
+\end_header
+
+\begin_body
+
+\begin_layout Title
+GreenREFORM-EU 3 Architecture
+\end_layout
+
+\begin_layout Author
+Martin Kirk Bonde
+\end_layout
+
+\begin_layout Date
+August 2026
+\end_layout
+
+\begin_layout Standard
+In this document,
+ I outline a new version of the GreenREFORM model system.
+ The document is extremely terse —
+ written to be readable by experts,
+ without fluff or trivial details that make it harder to grasp the big picture.
+ We assume close familiarity with optimizing representative agent models.
+\end_layout
+
+\begin_layout Section
+Notation
+\end_layout
+
+\begin_layout Standard
+We omit time indices,
+ except where there is a lead or lag.
+ We reuse variable names,
+ where indices in subscripts can be used to distinguish.
+ Accounting aggregates are equal to the sum of the same variables with an additional index,
+ unless a CES or CET equation defines a quantity aggregate.
+ E.g.,
+ 
+\begin_inset Formula $Y=\sum_{i}Y_{i}$
+\end_inset
+
+ —
+ we leave out simple accounting aggregates for brevity.
+\end_layout
+
+\begin_layout Standard
+Prices are implicitly aggregated as 
+\begin_inset Formula $P\cdot X=\sum_{x}P_{x}X_{x}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section
+Model layers
+\end_layout
+
+\begin_layout Standard
+The model is built in three layers,
+ with each layer depending on the previous layers existing.
+\end_layout
+
+\begin_layout Standard
+The core accounting layer is useful for testing if data is internally consistent and for basic input output analysis.
+ This layer should be free of assumptions about economic behavior as far as possible.
+ Its fixed shares are default closures that behavioral modules can replace.
+\end_layout
+
+\begin_layout Standard
+The macroeconomic core provides a New Keynesian model of demand for private consumption,
+ exports,
+ intermediate inputs in production,
+ and capital investments.
+\end_layout
+
+\begin_layout Standard
+The Green transition core adds a model of production of energy,
+ energy-markets,
+ emissions inventory,
+ and energy-taxation.
+\end_layout
+
+\begin_layout Standard
+Satellite modules are sub-models that do not define variables used in other modules.
+ Instead,
+ connections between modules should use core models as intermediaries in order to minimize linkages.
+ Extensions attach to the core in two ways:
+ they can endogenize core parameters,
+ such as the share parameters,
+ or they can provide equations for friction variables that core modules define as hooks and that default to zero.
+\end_layout
+
+\begin_layout Subsection
+Accounting core
+\end_layout
+
+\begin_layout Itemize
+Sector accounts
+\end_layout
+
+\begin_layout Itemize
+Input output
+\end_layout
+
+\begin_layout Subsection
+Macroeconomic core
+\end_layout
+
+\begin_layout Itemize
+Production
+\end_layout
+
+\begin_layout Itemize
+Pricing
+\end_layout
+
+\begin_layout Itemize
+Households
+\end_layout
+
+\begin_layout Itemize
+Government
+\end_layout
+
+\begin_layout Itemize
+Firms
+\end_layout
+
+\begin_layout Itemize
+Taxes
+\end_layout
+
+\begin_layout Itemize
+Exports
+\end_layout
+
+\begin_layout Itemize
+Import substitution
+\end_layout
+
+\begin_layout Itemize
+Labor market
+\end_layout
+
+\begin_layout Subsection
+Green transition core
+\end_layout
+
+\begin_layout Itemize
+CET production
+\end_layout
+
+\begin_layout Itemize
+Physical units
+\end_layout
+
+\begin_layout Itemize
+Emissions
+\end_layout
+
+\begin_layout Itemize
+Emission dependent taxes
+\end_layout
+
+\begin_layout Subsection
+Planned macroeconomic satellites
+\end_layout
+
+\begin_layout Itemize
+Capital adjustment costs
+\end_layout
+
+\begin_layout Itemize
+Consumption product substitution
+\end_layout
+
+\begin_layout Itemize
+Demographic demand for public consumption
+\end_layout
+
+\begin_layout Itemize
+Fiscal sustainability indicator
+\end_layout
+
+\begin_layout Itemize
+Endogenous migration (Faroe Islands takes lead)
+\end_layout
+
+\begin_layout Subsection
+Planned green transition satellites
+\end_layout
+
+\begin_layout Itemize
+Energy technologies
+\end_layout
+
+\begin_layout Section
+Sector accounts
+\end_layout
+
+\begin_layout Standard
+Our sector accounts match the national accounts,
+ except we lump non-profit institutions serving households together with households.
+ Each sector also corresponds to one or more agents in the model.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\text{sectors}=\left\{ \text{Households},\text{Government},\text{Financial corporations},\text{Non-financial corporations},\text{Rest of the world}\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Sector accounting keeps track of the financial assets and liabilities of all sectors and all transfers between them.
+ Non-financial assets are not part of the sector accounts.
+\end_layout
+
+\begin_layout Standard
+A key feature of sector accounting is that all net variables sum to zero over sectors.
+ E.g.
+ total net debt is zero,
+ as any debt liability has a corresponding debt asset.
+ Net assets,
+ financial income,
+ financial transfers between sectors,
+ and revaluations all sum to zero.
+\end_layout
+
+\begin_layout Subsection
+Sector modules vs sector accounts
+\end_layout
+
+\begin_layout Standard
+Each sector,
+ corresponding to one or more agents,
+ has a dedicated module.
+ These dedicated modules contain sector-specific specifications of the net financial transactions of the sectors —
+ e.g.
+ net income and expenditures in the budget constraint.
+\end_layout
+
+\begin_layout Standard
+These are reconciled with a condensed budget constraint in the sector accounts file,
+ which simply states that the period to period change in net assets equals the net financial transactions of the sector plus any revaluation of assets.
+\end_layout
+
+\begin_layout Standard
+Each sector modules must specify how net savings are split between assets and liabilities,
+ and between different financial instruments (debt vs equity).
+\end_layout
+
+\begin_layout Standard
+Splitting net positions into assets and liabilities is practical,
+ as the alternative is to introduce an additional asset type to distinguish between domestic and foreign equity.
+ With explicit liabilities,
+ the equity liability of the rest-of-the-world equals the total foreign equity owned by domestic sectors.
+\end_layout
+
+\begin_layout Section
+Input output
+\end_layout
+
+\begin_layout Standard
+The input output system keeps track of all flows of goods and services.
+\end_layout
+
+\begin_layout Subsection
+Indices
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+i=\text{industries}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+p=\text{products}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+u=\text{uses}=i\cup\left\{ C,G,X,K,\mathrm{INV}\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where 
+\begin_inset Formula $G$
+\end_inset
+
+ is government consumption,
+ 
+\begin_inset Formula $C$
+\end_inset
+
+ is consumption by households and non-profits,
+ 
+\begin_inset Formula $X$
+\end_inset
+
+ is export demand,
+ and 
+\begin_inset Formula $K$
+\end_inset
+
+ is fixed investment,
+ while
+\begin_inset Formula $\mathrm{INV}$
+\end_inset
+
+ is the change in inventories.
+\end_layout
+
+\begin_layout Subsection
+Industry split (supply table)
+\end_layout
+
+\begin_layout Standard
+Our default assumption is fixed industry shares for each product.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Y_{p,i}=\mu_{p,i}Y_{p}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Endogenous industry shares
+\end_layout
+
+\begin_layout Paragraph
+CET split
+\end_layout
+
+\begin_layout Standard
+When industry shares are endogenous,
+ perfect transformation determines
+\begin_inset Formula $\mu_{p,i}$
+\end_inset
+
+ and sets
+\begin_inset Formula $MC_{p,i}=MC_{i}$
+\end_inset
+
+.
+ For selected cells,
+ CET replaces this closure with
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Y_{p,i}=\hat{\mu}^{CET}_{p,i}\left(\frac{MC_{p,i}}{MC_{i}}\right)^{E^{CET}_{i}}Y_{i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $Y_{i}$
+\end_inset
+
+ is the CET aggregate.
+ CET keeps
+\begin_inset Formula $\hat{\mu}^{CET}_{p,i}$
+\end_inset
+
+ and
+\begin_inset Formula $E^{CET}_{i}$
+\end_inset
+
+ fixed and determines
+\begin_inset Formula $\mu_{p,i}$
+\end_inset
+
+ through the output allocation.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $MC_{i}$
+\end_inset
+
+ is marginal cost before the product split.
+\begin_inset Formula $MC_{p,i}$
+\end_inset
+
+ includes product-specific production taxes or subsidies:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+MC_{p,i}=MC^{\text{resource}}_{p,i}+\frac{\partial T^{\text{production}}_{i}}{\partial Y_{p,i}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+User taxes,
+ VAT,
+ purchaser-price product taxes,
+ and trade margins do not enter
+\begin_inset Formula $MC_{p,i}$
+\end_inset
+
+;
+ they enter the purchaser price.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\sum_{p}MC_{p,i}Y_{p,i}=MC_{i}Y_{i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Pricing uses
+\begin_inset Formula $MC_{p,i}$
+\end_inset
+
+;
+ CET adds no markup.
+\end_layout
+
+\begin_layout Subsection
+Product split
+\end_layout
+
+\begin_layout Standard
+We default to fixed shares of products for each direct use:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+D_{p,u}=\mu_{p,u}D_{u}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The shares can be endogenized by other modules to allow substitution.
+ For private consumption,
+ the consumption-type split below replaces this use-level mapping.
+ Inventories are the exception below.
+\end_layout
+
+\begin_layout Subsection
+Country of origin split
+\end_layout
+
+\begin_layout Standard
+We split all direct product demand by country of origin:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+D_{p,u,o}=\mu_{p,u,o}D_{p,u}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+o=\left\{ \text{domestic},\text{import}\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Using an index for origin makes it easy to split imports later,
+ for example into Euro-zone vs rest-of-the-world.
+\end_layout
+
+\begin_layout Subsubsection
+Inventories
+\end_layout
+
+\begin_layout Standard
+Inventory demand by product and origin,
+\begin_inset Formula $D_{p,\mathrm{INV},o}$
+\end_inset
+
+,
+ is exogenous and can be positive or negative.
+ It is zero after the calibration year.
+ The fixed product and origin shares above do not apply.
+\end_layout
+
+\begin_layout Subsubsection
+Import-substitution
+\end_layout
+
+\begin_layout Standard
+To introduce import-substitution with a satellite model,
+ endogenize 
+\begin_inset Formula $\mu_{p,u,o}$
+\end_inset
+
+.
+ Substitution by product,
+ rather than also by use,
+ might be enough.
+ Demand responds to relative purchaser prices (see Trade margins):
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+D_{p,u,o}=\hat{\mu}_{p,u,o}\left(\frac{P^{D}_{p,u,o}}{P^{D}_{p,u}}\right)^{-E_{p}}D_{p,u}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Physical energy markets
+\end_layout
+
+\begin_layout Standard
+Let
+\begin_inset Formula $e\in\mathcal{E}\subset p$
+\end_inset
+
+ denote an energy product.
+ For a homogeneous energy product,
+ use the origin choice above.
+ Replace
+\begin_inset Formula $\hat{\mu}_{e,u,o}$
+\end_inset
+
+ with
+\begin_inset Formula $\lambda_{e,u}\hat{\mu}_{e,u,o}$
+\end_inset
+
+ and let physical market clearing determine
+\begin_inset Formula $\lambda_{e,u}$
+\end_inset
+
+ for each use.
+ CET or an energy-technology module allocates domestic output across industries through
+\begin_inset Formula $\mu_{e,i}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Paragraph
+National-account and physical units
+\end_layout
+
+\begin_layout Standard
+The national-account quantities
+\begin_inset Formula $D_{e,u,o}$
+\end_inset
+
+ and
+\begin_inset Formula $Y_{e,i}$
+\end_inset
+
+ do not measure physical energy.
+ Map them to PJ:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Q^{D}_{e,u,o}=\kappa^{D}_{e,u,o}D_{e,u,o}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Q^{D}_{e,u}=\kappa^{D}_{e,u}D_{e,u}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Q^{Y}_{e,i}=\kappa^{Y}_{e,i}Y_{e,i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Keep 
+\begin_inset Formula $\kappa$
+\end_inset
+
+ fixed unless technology changes physical unit content.
+ Budgets still use price times national-account quantity.
+\end_layout
+
+\begin_layout Standard
+Total physical demand is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Q^{D}_{e}=\sum_{u}Q^{D}_{e,u}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Quantity-preserving origin demand
+\end_layout
+
+\begin_layout Standard
+For energy,
+ the physical balance for each use is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\sum_{o}\kappa^{D}_{e,u,o}D_{e,u,o}=\kappa^{D}_{e,u}D_{e,u}=Q^{D}_{e,u}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It determines
+\begin_inset Formula $\lambda_{e,u}$
+\end_inset
+
+ in the origin-demand equation above.
+ With fixed 
+\begin_inset Formula $\kappa$
+\end_inset
+
+,
+ using prices per PJ only rescales the calibrated CES weights.
+\end_layout
+
+\begin_layout Paragraph
+Source balance
+\end_layout
+
+\begin_layout Standard
+Supply by origin is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Q^{S}_{e,o}=\sum_{u}Q^{D}_{e,u,o}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Thus,
+ the aggregate physical balance is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\sum_{o}Q^{S}_{e,o}=Q^{D}_{e}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Domestic supply is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Q^{S}_{e,\text{domestic}}=\sum_{i}Q^{Y}_{e,i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A energy-technology module can endogenize the domestic industry mix,
+ but needs to ensure that the supply mix does not break the physical balance.
+ A network module can specify losses that need to be added to the balances above.
+\end_layout
+
+\begin_layout Standard
+Use-price differences per PJ come from
+\begin_inset Formula $\kappa^{D}_{e,u,o}$
+\end_inset
+
+,
+ taxes,
+ margin services,
+ and VAT.
+\end_layout
+
+\begin_layout Standard
+An energy tax
+\begin_inset Formula $\tau^{E}_{e,u,o}$
+\end_inset
+
+ per PJ maps to
+\begin_inset Formula $t^{E}_{e,u,o}=\tau^{E}_{e,u,o}\kappa^{D}_{e,u,o}$
+\end_inset
+
+.
+ Emissions use physical fuel at combustion or conversion.
+\end_layout
+
+\begin_layout Section
+Production (cost minimization)
+\end_layout
+
+\begin_layout Standard
+Given the output to be produced,
+ the production module calculates a marginal cost of production and the demand for each input factor into production.
+\end_layout
+
+\begin_layout Subsection
+Production function
+\end_layout
+
+\begin_layout Standard
+We assume a nested CES production function with
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\text{factors of production}=k\cup r\cup l
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $k$
+\end_inset
+
+ are types of capital,
+ 
+\begin_inset Formula $r$
+\end_inset
+
+ are types of intermediate inputs,
+ and 
+\begin_inset Formula $l$
+\end_inset
+
+ are types of labor (with one type being perfectly fine).
+\end_layout
+
+\begin_layout Standard
+Let
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+f=\text{factors of production}\cup\text{nests}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Demand for the factor or nest 
+\begin_inset Formula $X_{f}$
+\end_inset
+
+ in a specific industry (we omit the 
+\begin_inset Formula $i$
+\end_inset
+
+ index here) is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+X_{f}=\mu_{f}X_{N}\left(\frac{P_{f}}{P_{N}}\right)^{-E_{N}}\forall f\in N
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where N is a production nest and 
+\begin_inset Formula $P_{f}$
+\end_inset
+
+ is the usercost of the production factor or nest.
+\end_layout
+
+\begin_layout Standard
+The usercost of a nest is given by the budget constraint
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P_{N}X_{N}=\sum_{f\in N}P_{f}X_{f}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Usercost of factors of production can either be simple spot prices,
+ or come from complicated usercost expressions.
+\end_layout
+
+\begin_layout Standard
+We implement the nesting structure very compactly,
+ using a single variable and demand equation for all factors of production,
+ letting a mapping handle the nesting structure.
+ The main upside is that this enables us to vary the nesting structure depending on the industry.
+\end_layout
+
+\begin_layout Subsection
+Capital adjustment costs and other frictions
+\end_layout
+
+\begin_layout Standard
+Various frictions should be added to the simple usercost expressions,
+ e.g.
+\end_layout
+
+\begin_layout Standard
+E.g.
+ the usercost of capital is something like
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P^{f}_{k}=P^{I}_{k}+\frac{\partial T^{\text{Corp}}}{\partial K_{k}}-\frac{1-\delta_{k,t+1}}{1+r_{t+1}}\left(P^{I}_{k,t+1}-\frac{\partial T^{\text{Corp}}_{t+1}}{\partial K_{k}}\right)+\text{marginal capital adjustment cost}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The friction itself should be detailed in a satellite model,
+ not in the production module.
+ Friction variables are hooks that default to zero when no satellite model provides them.
+\end_layout
+
+\begin_layout Standard
+Similarly,
+ marginal taxes (here 
+\begin_inset Formula $\frac{\partial T^{\text{Corp}}}{\partial K_{k}}$
+\end_inset
+
+) are defined elsewhere.
+\end_layout
+
+\begin_layout Subsection
+Output and marginal cost
+\end_layout
+
+\begin_layout Standard
+Output is the top nest less friction losses
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Y=X_{N=\text{TopNest}}-\text{friction losses}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Friction losses can for example be foregone output due to capital adjustment costs.
+\end_layout
+
+\begin_layout Standard
+The marginal cost of production is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+MC\cdot Y=P_{N=\text{TopNest}}Y+\text{production taxes}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Frictions do not enter this equation directly.
+ They affect the price through the usercosts inside the nest:
+ the marginal capital adjustment cost enters the usercost of capital,
+ and therefore 
+\begin_inset Formula $P_{N=\text{TopNest}}$
+\end_inset
+
+,
+ while the average (total) capital adjustment cost is subtracted from output at the top.
+ 
+\begin_inset Formula $MC$
+\end_inset
+
+ is therefore the cost of one more unit of output,
+ and 
+\begin_inset Formula $MC\cdot Y$
+\end_inset
+
+ is not total cost.
+\end_layout
+
+\begin_layout Subsection
+Behavior vs accounting
+\end_layout
+
+\begin_layout Standard
+Usercosts are behavior,
+ not accounting.
+ The usercost of capital contains the hurdle rate of the firm.
+ Marginal cost and the markup derive from this subjective usercost,
+ so they are model constructs,
+ not neutral accounting.
+ The sector account of firms records actual payments instead:
+ revenue 
+\begin_inset Formula $P^{Y}_{i}Y_{i}$
+\end_inset
+
+ less labor compensation,
+ intermediate inputs,
+ investments,
+ and total (not marginal) taxes.
+\end_layout
+
+\begin_layout Subsection
+Multiple types of capital
+\end_layout
+
+\begin_layout Standard
+In the input-output system capital investments enter as a single column.
+ In the production module,
+ or in a satellite module,
+ we split capital investments into multiple types of fixed assets,
+ 
+\begin_inset Formula $k$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+D_{K}=\sum_{k}I_{k}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+I_{k}=\sum_{i}I_{k,i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Endogenize 
+\begin_inset Formula $\mu_{p,K}$
+\end_inset
+
+ by
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+D_{p,K}=\sum_{k}I_{p,k}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For each type of capital,
+ we assume fixed product shares.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+I_{p,k}=\mu_{p,k}I_{k}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $I_{k,i}$
+\end_inset
+
+ is given by cost-minimizing a production function subject to capital accumulation laws of motion.
+\end_layout
+
+\begin_layout Subsection
+Multiple types of intermediate inputs (energy)
+\end_layout
+
+\begin_layout Standard
+We can split use in production into different types of intermediate inputs
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+D_{p,i}=\sum_{m}\mu_{p,m,i}M_{m,i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where for example
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+m=\left\{ \text{transport energy},\text{heating},\text{processing energy},\text{other intermediates}\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+and 
+\begin_inset Formula $M_{m,i}$
+\end_inset
+
+ is given by cost-minimizing a production function.
+\end_layout
+
+\begin_layout Standard
+Note that assuming identical product shares for energy inputs across industries is not needed and does not simplify much.
+\end_layout
+
+\begin_layout Section
+Pricing
+\end_layout
+
+\begin_layout Subsection
+Markups in basic prices
+\end_layout
+
+\begin_layout Standard
+We use one fixed markup for each industry:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P^{Y}_{p,i}=\theta_{i}\text{MC}_{p,i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The markup is the same for all products from industry
+\begin_inset Formula $i$
+\end_inset
+
+.
+ Under the default product split,
+\begin_inset Formula $MC_{p,i}=MC_{i}$
+\end_inset
+
+.
+ The CET module can give product-specific marginal costs.
+\end_layout
+
+\begin_layout Standard
+Basic-price values sum by product and industry:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P^{Y}_{p}Y_{p}=\sum_{i}P^{Y}_{p,i}Y_{p,i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P^{Y}_{i}Y_{i}=\sum_{p}P^{Y}_{p,i}Y_{p,i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Base-year prices equal one,
+ so measured volumes equal values.
+ Product-by-use cells therefore do not identify price gaps or markup levels.
+\end_layout
+
+\begin_layout Subsection
+Trade and transport margins
+\end_layout
+
+\begin_layout Standard
+Trade and transport margins are the wholesale,
+ retail,
+ and transport services needed to deliver a product to its user.
+\end_layout
+
+\begin_layout Standard
+Let 
+\begin_inset Formula $s=\left\{ \text{wholesale},\text{retail},\text{transport}\right\} \subset p$
+\end_inset
+
+ index margin service products.
+ Each user has a fixed-share margin-service bundle.
+ We use the standard origin shares for each margin service:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P^{S}_{u}=\sum_{s,o}\mu^{S}_{s,u}\mu_{s,u,o}P_{s,u,o}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Let 
+\begin_inset Formula $D_{p,u}$
+\end_inset
+
+ be direct use.
+ Each unit needs 
+\begin_inset Formula $a^{S}_{p,u}$
+\end_inset
+
+ units of the margin service bundle:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+S_{u}=\sum_{p}a^{S}_{p,u}D_{p,u}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+S_{s,u,o}=\mu^{S}_{s,u}\mu_{s,u,o}S_{u}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+S_{p,u,o}=0\quad\forall p\notin s
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Let
+\begin_inset Formula $P_{p,u,o}$
+\end_inset
+
+ be the domestic basic price or import border price,
+ with
+\begin_inset Formula $P_{p,u,\text{domestic}}=P^{Y}_{p}$
+\end_inset
+
+.
+ The purchaser price of direct use is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P^{D}_{p,u,o}=\left(P_{p,u,o}+t_{p,u,o}+a^{S}_{p,u}P^{S}_{u}\right)\left(1+t^{\text{VAT}}_{p,u,o}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This is the price that enters into any substitution decision and the direct-demand aggregate:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P^{D}_{u}D_{u}=\sum_{p,o}P^{D}_{p,u,o}D_{p,u,o}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The product balance is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Y_{p,u}=D_{p,u,\text{domestic}}+S_{p,u,\text{domestic}}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Margin demand enters the product balance but not
+\begin_inset Formula $D_{u}$
+\end_inset
+
+.
+ Its value is already in the purchaser price of direct demand,
+ so do not add
+\begin_inset Formula $P^{S}_{u}S_{u}$
+\end_inset
+
+ to the user budget.
+\end_layout
+
+\begin_layout Section
+Households
+\end_layout
+
+\begin_layout Standard
+The household module determines total demand for private consumption (consumption savings decision).
+\end_layout
+
+\begin_layout Subsection
+Consumption savings decision
+\end_layout
+
+\begin_layout Standard
+Our default has one forward-looking household.
+ It chooses total consumption
+\begin_inset Formula $C_{t}$
+\end_inset
+
+ and end-of-period real wealth
+\begin_inset Formula $W_{t}$
+\end_inset
+
+.
+ A fixed share of current real disposable income follows a hand-to-mouth rule:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+C^{\mathrm{HtM}}_{t}=\lambda_{\mathrm{HtM}}Y^{d}_{t},\qquad0\leq\lambda_{\mathrm{HtM}}\leq1.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Thus,
+\begin_inset Formula $\lambda_{\mathrm{HtM}}$
+\end_inset
+
+ is a share of income,
+ not a share of households.
+ The household takes the external habit
+\begin_inset Formula $H_{t}=h\bar{C}_{t-1}$
+\end_inset
+
+ as given.
+ Define consumption in excess of the reference level as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+C^{\mathrm{xRef}}_{t}=C_{t}-H_{t}-C^{\mathrm{HtM}}_{t}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The household solves
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\max_{\{C_{s},W_{s}\}^{\infty}_{s=t}}\sum^{\infty}_{s=t}\beta^{s-t}\left[\frac{(C^{\mathrm{xRef}}_{s})^{1-\sigma}}{1-\sigma}+\omega\frac{W^{1-\nu}_{s}}{1-\nu}\right].
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Use the simple budget constraint
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+W_{t}=(1+r_{t})W_{t-1}+Y^{d}_{t}-C_{t},
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where
+\begin_inset Formula $r_{t}$
+\end_inset
+
+ is the real interest rate.
+ The first-order condition for saving gives the Euler equation
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+(C^{\mathrm{xRef}}_{t})^{-\sigma}=\omega W^{-\nu}_{t}+\beta(1+r_{t+1})(C^{\mathrm{xRef}}_{t+1})^{-\sigma}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Private consumption types
+\end_layout
+
+\begin_layout Standard
+We split private consumption into types 
+\begin_inset Formula $c\in\mathcal{C}$
+\end_inset
+
+.
+ The same product can enter more than one type,
+ such as electricity for heating and transport.
+ For each type,
+ the default has fixed product shares:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+D_{p,C}=\sum_{c\in\mathcal{C}}\mu_{p,c}C_{c}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A type-specific module can replace the fixed product shares with technology choices.
+\end_layout
+
+\begin_layout Standard
+Consumption types are the leaves of a CES tree.
+ Let
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+a=\mathcal{C}\cup\text{consumption nests}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+C_{a}=\mu_{a}C_{N}\left(\frac{P_{a}}{P_{N}}\right)^{-E_{N}}\quad\forall a\in N,
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P_{N}C_{N}=\sum_{a\in N}P_{a}C_{a}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+At the root,
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+C_{N=\mathrm{TopNest}}=C.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Exports
+\end_layout
+
+\begin_layout Standard
+We model export demand directly for domestic production of each product,
+ 
+\begin_inset Formula $Y_{p,X}$
+\end_inset
+
+,
+ using the final purchaser price 
+\begin_inset Formula $P^{D}_{p,X,\text{domestic}}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Imports for re-export,
+ 
+\begin_inset Formula $D_{p,X,\text{import}}$
+\end_inset
+
+,
+ are completely exogenous.
+ To accommodate this,
+ the import share of exports,
+ 
+\begin_inset Formula $\mu_{p,X,o}$
+\end_inset
+
+,
+ is endogenized.
+\end_layout
+
+\begin_layout Section
+Government
+\end_layout
+
+\begin_layout Standard
+Sector accounting.
+\end_layout
+
+\begin_layout Standard
+Including basic demand for public consumption and government transfers to other sectors.
+\end_layout
+
+\begin_layout Standard
+There is no fiscal closure by default:
+ government debt drifts.
+\end_layout
+
+\begin_layout Section
+Taxes
+\end_layout
+
+\begin_layout Standard
+Tax accounting and marginal tax rates (derivatives of total revenues wrt.
+ to various tax bases).
+\end_layout
+
+\begin_layout Standard
+Ideally,
+ other modules should only use aggregate marginal tax rates and aggregate tax revenues.
+ E.g.,
+ a household budget contains a total taxes paid variable,
+ while a labor market decision equation uses only a marginal tax on labor income.
+ The break down of marginal taxes into income brackets etc.
+ is kept in the taxes module.
+\end_layout
+
+\begin_layout Section
+Labor market
+\end_layout
+
+\begin_layout Standard
+The default model is a forward-looking Phillips curve with exogenous labor supply.
+\end_layout
+
+\begin_layout Section
+Firms
+\end_layout
+
+\begin_layout Standard
+Sector accounting and endogenous revaluation rate of equity through a discounted cash flow valuation of the firm.
+\end_layout
+
+\begin_layout Standard
+One module covers both financial and non-financial corporations.
+ The non-financial sector sums profits over industries;
+ the sector accounting system redistributes them to owners.
+\end_layout
+
+\begin_layout Section
+Rest of the world
+\end_layout
+
+\begin_layout Standard
+Closure of the sector accounting system and financial markets.
+\end_layout
+
+\begin_layout Standard
+Foreign prices and fixed interest rate from ECB belongs here.
+\end_layout
+
+\begin_layout Section
+Aggregates
+\end_layout
+
+\begin_layout Standard
+Accounting aggregates not covered by other parts of the model.
+ E.g.
+ GDP.
+\end_layout
+
+\end_body
+\end_document

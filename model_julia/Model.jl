@@ -25,7 +25,7 @@ db = ModelDictionary(Settings.square_model())
 # ==============================================================================
 # Include submodules
 # ==============================================================================
-const submodels = [@log_time include(joinpath("modules", "$name.jl")) for name in Settings.enabled_modules]
+const submodels = [@log_time("include modules/$name.jl", include(joinpath("modules", "$name.jl"))) for name in Settings.enabled_modules]
 
 for m in submodels
 	@log_time m.set_data!(db)

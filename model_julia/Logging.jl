@@ -83,6 +83,15 @@ macro log_time(expr)
 	end
 end
 
+macro log_time(label, expr)
+	quote
+		local _label = string($(esc(label)))
+		local _result, _elapsed = @timed $(esc(expr))
+		@info _label * " ($(round(_elapsed, digits=2))s)"
+		_result
+	end
+end
+
 setup!(file=joinpath(@__DIR__, "..", "greu.log"))
 
 end # module Log

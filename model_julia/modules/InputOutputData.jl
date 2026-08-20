@@ -10,306 +10,354 @@ using DataFrames
 import ..EurostatClient
 using ..Settings: calibration_year, country_code
 import ..InputOutputSettings:
-  accounting_ind_ava_codes,
-  accounting_rename,
-  accounting_rows,
-  all_demand_components,
-  demand_rename,
-  energy_type_by_supply_industry,
-  energy_types,
-  eurostat_dataset,
+  margin_services,
+  cell_tolerance,
+  cpa_p64_to_p21,
+  eurostat_supply_dataset,
+  eurostat_use_dataset,
+  eurostat_margin_dataset,
+  eurostat_net_product_tax_dataset,
   eurostat_unit,
+  final_use_rename,
   input_output_data_dir,
-  model_industries,
-  national_accounts_dataset,
-  national_accounts_unit
-import ..DataRefreshUtils: sum_by, long_format, write_index_set
+  nace_a64_to_a21
+import ..DataRefreshUtils: long_format, sum_by
 
-# ==========================================================================
+const data_years = (calibration_year - 1):calibration_year
+const year_params = ["time" => string(y) for y in data_years]
+
+# Index of a purchaser-use cell, in the order the model reads it.
+const cell_index = [:product, :use, :origin, :year]
+const cell_columns = [cell_index; :value]
+sum_cells(parts...) = sum_by(vcat(parts...), cell_index)
+
+# ============================================================================
 # Eurostat fetches
-# ==========================================================================
+# ============================================================================
 
-const year_params = ["time" => string(y) for y in (calibration_year - 1, calibration_year)]
+"""Domestic output by product and industry from the national supply table.
 
-function fetch_io_table(country_dimension)
-  df = EurostatClient.fetch_table(eurostat_dataset,
-    "unit" => eurostat_unit, country_dimension => country_code, year_params...)
-  rename!(df, :ind_ava => :industry, :ind_use => :demand, :time => :year)
-  df.year = parse.(Int, df.year)
-  return df[:, [:industry, :demand, :c_orig, :c_dest, :year, :value]]
-end
-
-function fetch_country_table(dataset, dimension, values)
-  df = EurostatClient.fetch_table(dataset,
-    "unit" => national_accounts_unit, "geo" => country_code,
-    (dimension => value for value in values)..., year_params...)
+The detailed T15 cells do not add to the balanced T1610 product totals. Keep
+their industry shares and scale each product row to domestic use.
+"""
+function fetch_supply_table(domestic_use)
+  df = EurostatClient.fetch_table(
+    eurostat_supply_dataset,
+    "unit" => eurostat_unit,
+    "stk_flow" => "TOTAL",
+    "geo" => country_code,
+    year_params...,
+  )
   df.year = parse.(Int, df.time)
-  return df
-end
+  supply = df[
+    in.(df.prd_amo, Ref(Set(keys(cpa_p64_to_p21)))) .&
+    in.(df.ind_impv, Ref(Set(keys(nace_a64_to_a21)))),
+    :,
+  ]
+  supply.product = [cpa_p64_to_p21[code] for code in supply.prd_amo]
+  supply.industry = [nace_a64_to_a21[code] for code in supply.ind_impv]
+  supply = sum_by(supply, [:product, :industry, :year])
 
-"""Fetch a country table and map `dimension` codes into model names in `target_col`."""
-function mapped_country_table(dataset, dimension, mapping, target_col)
-  df = fetch_country_table(dataset, dimension, collect(keys(mapping)))
-  df[!, target_col] = [mapping[code] for code in df[!, Symbol(dimension)]]
-  return df[:, [target_col, :year, :value]]
-end
-
-# ==========================================================================
-# Input-output table assembly
-# ==========================================================================
-
-"""Apply `mappings` in turn (codes not present pass through) and return a Symbol."""
-function rename_code(code, mappings...)
-  for mapping in mappings
-    code = get(mapping, code, code)
-  end
-  return Symbol(code)
-end
-
-"""Map raw industry codes (excluding accounting rows) to their NACE section letter."""
-nace_section_map(codes) = Dict(code => Symbol(first(code)) for code in setdiff(codes, accounting_ind_ava_codes))
-
-"""Within-country use flows by (industry, demand, supply origin)."""
-function domestic_flows(df, agg_map)
-  df = copy(df)
-  df.c_orig = ifelse.(df.c_orig .∈ Ref(("DOM", country_code)), "DOM", "IMP")
-  df.industry = [rename_code(c, agg_map, accounting_rename) for c in df.industry]
-  df.demand = [rename_code(c, agg_map, demand_rename) for c in df.demand]
-  df = sum_by(df, [:industry, :demand, :c_orig, :year])
-  # GFCF is split into capital types by supplying industry: construction delivers structures.
-  df.demand = ifelse.(df.demand .== :P51G, ifelse.(df.industry .== :F, :structures, :equipment), df.demand)
-  return df
-end
-
-"""Domestic output delivered abroad, summed into the export demand component."""
-function export_flows(df, agg_map)
-  df = df[df.c_dest .!= country_code, :]
-  df.industry = [rename_code(c, agg_map) for c in df.industry]
-  df = sum_by(df, [:industry, :year])
-  insertcols!(df, :demand => :x, :c_orig => "DOM")
-  return df[:, [:industry, :demand, :c_orig, :year, :value]]
-end
-
-"""Full I-O table: intermediate flows, exports, and accounting rows by supply origin.
-`domestic` and `exports` are the raw `c_dest`/`c_orig` fetches from `fetch_io_table`."""
-function input_output_table(domestic, exports)
-  agg_map = nace_section_map(domestic.industry)
-
-  table = vcat(domestic_flows(domestic, agg_map), export_flows(exports, agg_map))
-  table = sum_by(table, [:industry, :demand, :c_orig, :year])
-  rename!(table, :industry => :row, :c_orig => :supply)
-
-  # Intermediate deliveries from energy-supplying industries form the energy demand components.
-  flows = (table.row .∈ Ref(model_industries)) .& (table.demand .∈ Ref(model_industries))
-  table.demand[flows] = get.(Ref(energy_type_by_supply_industry), table.row[flows], table.demand[flows])
-  table = sum_by(table, [:row, :demand, :supply, :year])
-
-  industries = intersect(model_industries, table.row)
-  demands = Set(all_demand_components(industries))
-  is_industry = table.row .∈ Ref(Set(industries))
-  is_accounting = (table.supply .== "DOM") .& (table.row .∈ Ref(Set(accounting_rows)))
-  return table[(table.demand .∈ Ref(demands)) .& (is_industry .| is_accounting), :]
-end
-
-# ==========================================================================
-# I-O table slices
-# ==========================================================================
-
-"""Industry × demand flows for one supply origin ("DOM" or "IMP")."""
-function supply_table(io_table, supply)
-  mask = (io_table.supply .== supply) .& (io_table.row .∈ Ref(model_industries))
-  return rename(io_table[mask, [:row, :demand, :year, :value]], :row => :industry)
-end
-
-"""One accounting row (e.g. wages) by demand column."""
-accounting_table(io_table, row::Symbol) =
-  io_table[(io_table.supply .== "DOM") .& (io_table.row .== row), [:demand, :year, :value]]
-
-"""Keep only (industry, demand) cells that are non-zero in the calibration year,
-since those define the model's sparsity pattern."""
-function restrict_to_calibration_cells(df)
-  at_t1 = (df.year .== calibration_year) .& (abs.(df.value) .> 1e-6)
-  active = Set(tuple.(df.industry[at_t1], df.demand[at_t1]))
-  return df[tuple.(df.industry, df.demand) .∈ Ref(active), :]
-end
-
-# ==========================================================================
-# Product taxes
-# ==========================================================================
-
-"""Product tax rate by demand component: vtYM_d totals over the basic-price base.
-The tax row records intermediate use by industry while the cells use energy demand
-components, so intermediate taxes are pooled and re-spread by basic-price shares."""
-function product_tax_rates(io_table, vY_i_d, vM_i_d)
-  taxes = accounting_table(io_table, :vtYM_d)
-  base = combine(groupby(vcat(vY_i_d, vM_i_d), [:demand, :year]), :value => sum => :base)
-
-  intermediate = taxes.demand .∈ Ref(model_industries)
-  pooled = combine(groupby(taxes[intermediate, :], :year), :value => sum => :value)
-  shares = base[base.demand .∈ Ref(vcat(model_industries, energy_types)), :]
-  transform!(groupby(shares, :year), :base => (x -> x ./ sum(x)) => :share)
-  spread = innerjoin(pooled, shares[:, [:demand, :year, :share]], on = :year)
-  spread.value .*= spread.share
-  taxes = vcat(taxes[.!intermediate, :], spread[:, [:demand, :year, :value]])
-
-  rates = innerjoin(taxes, base, on = [:demand, :year])
-  rates = rates[rates.base .> 0, :]
-  rates.rate = rates.value ./ rates.base
-  return rates[:, [:demand, :year, :rate]]
-end
-
-"""Allocate demand-level taxes to (industry, demand) cells in proportion to the flow."""
-function allocate_taxes(flow, rates)
-  df = innerjoin(flow, rates, on = [:demand, :year])
-  df.value .*= df.rate
-  return df[df.value .!= 0, [:industry, :demand, :year, :value]]
-end
-
-"""Direct-purchase adjustment: residents' spending abroad ("OP_RES") or non-residents' spending
-in the domestic economy ("OP_NRES"), both always recorded against household consumption
-(P3_S14/P3_S15) in the source data. `domestic` is the raw `c_dest` fetch from `fetch_io_table`,
-shared with `input_output_table` to avoid fetching the same Eurostat table twice."""
-function direct_purchase_adjustment(domestic, code)
-  df = domestic[domestic.industry .== code, [:demand, :year, :value]]
-  df.demand = [rename_code(c, demand_rename) for c in df.demand]
-  df = sum_by(df, [:demand, :year])
-  return df[(df.demand .== :cHh) .& (df.value .!= 0), :]
-end
-
-"""Attach a fixed industry to demand-level totals that have no natural industry breakdown."""
-with_industry(df, industry) = insertcols(df, :industry => industry)[:, [:industry, :demand, :year, :value]]
-
-"""Move non-resident domestic purchases from household consumption to exports.
-Eurostat records "OP_NRES" as a negative adjustment to household consumption (it is spending
-already counted there that belongs to non-residents), so negating it gives the positive amount
-to move from cHh to exports."""
-function reclassify_nonresident_purchases(vY_i_d, vM_i_d, nonresidents)
-  nonresidents.value .*= -1
-  tagged = vcat(
-    insertcols!(copy(vY_i_d), :supply => :Y),
-    insertcols!(copy(vM_i_d), :supply => :M),
+  reported = rename(
+    sum_by(domestic_use[domestic_use.origin .== :domestic, :], [:product, :year]),
+    :value => :reported,
   )
-  basis = tagged[(tagged.demand .== :cHh) .& (tagged.value .> 0), :]
+  cell_totals = rename(sum_by(supply, [:product, :year]), :value => :cell_total)
+  scales = innerjoin(reported, cell_totals, on = [:product, :year])
+  @assert nrow(scales) == nrow(reported) == nrow(cell_totals) "Each supply row needs T15 cells and T1610 use"
+  @assert all(
+    (abs.(scales.cell_total) .> cell_tolerance) .|
+    (abs.(scales.reported) .<= cell_tolerance)
+  ) "Each non-zero T1610 supply total needs non-zero T15 product-industry cells"
+  scales.scale = [
+    abs(cell_total) > cell_tolerance ? reported / cell_total : 0.0
+    for (reported, cell_total) in zip(scales.reported, scales.cell_total)
+  ]
+  supply = leftjoin(supply, scales[:, [:product, :year, :scale]], on = [:product, :year])
+  supply.value .*= supply.scale
+  return supply[:, [:product, :industry, :year, :value]]
+end
+
+"""Raw national use table at basic prices."""
+function fetch_use_table()
+  df = EurostatClient.fetch_table(
+    eurostat_use_dataset,
+    "unit" => eurostat_unit,
+    "geo" => country_code,
+    year_params...,
+  )
+  df.year = parse.(Int, df.time)
+  @assert Set(df.year) == Set(data_years) "T1610 must report each input-output data year"
+  return df
+end
+
+"""Fetch and map one national product-by-use table."""
+function fetch_product_use_table(dataset)
+  df = EurostatClient.fetch_table(
+    dataset,
+    "unit" => eurostat_unit,
+    "stk_flow" => "TOTAL",
+    "geo" => country_code,
+    year_params...,
+  )
+  use_rename = merge(nace_a64_to_a21, final_use_rename)
+  df = df[
+    in.(df.cpa2_1, Ref(Set(keys(cpa_p64_to_p21)))) .&
+    in.(df.ind_use, Ref(Set(keys(use_rename)))),
+    :,
+  ]
+  df.product = [cpa_p64_to_p21[code] for code in df.cpa2_1]
+  df.use = [use_rename[code] for code in df.ind_use]
+  df.year = parse.(Int, df.time)
+  return sum_by(df, [:product, :use, :year])
+end
+
+"""National trade and transport margins by product and use."""
+fetch_margin_table() = fetch_product_use_table(eurostat_margin_dataset)
+
+"""Net product taxes by product and use.
+
+T1630 includes D21 product taxes, such as VAT and tariffs, less D31 product
+subsidies. A tax module can split this net total into gross flows and tax types.
+"""
+function fetch_net_product_tax_table()
+  taxes = fetch_product_use_table(eurostat_net_product_tax_dataset)
+  @assert Set(taxes.year) == Set(data_years) "T1630 must report each input-output data year"
+  return taxes
+end
+
+# ============================================================================
+# Source table
+# ============================================================================
+
+"""Basic-price use by product, use, and domestic or import origin."""
+function reported_use(df)
+  use_rename = merge(nace_a64_to_a21, final_use_rename)
+  origin_rename = Dict("DOM" => :domestic, "IMP" => :import)
+  df = df[
+    in.(df.prd_ava, Ref(Set(keys(cpa_p64_to_p21)))) .&
+    in.(df.ind_use, Ref(Set(keys(use_rename)))) .&
+    in.(df.stk_flow, Ref(Set(keys(origin_rename)))),
+    :,
+  ]
+  df.product = [cpa_p64_to_p21[code] for code in df.prd_ava]
+  df.use = [use_rename[code] for code in df.ind_use]
+  df.origin = [origin_rename[code] for code in df.stk_flow]
+  return sum_by(df, cell_index)
+end
+
+"""One national-use accounting row by model use."""
+function accounting_table(df, row)
+  use_rename = merge(nace_a64_to_a21, final_use_rename)
+  df = df[
+    (df.stk_flow .== "TOTAL") .&
+    (df.prd_ava .== row) .&
+    in.(df.ind_use, Ref(Set(keys(use_rename)))),
+    :,
+  ]
+  df.use = [use_rename[code] for code in df.ind_use]
+  return sum_by(df, [:use, :year])
+end
+
+"""One source row and column by year."""
+function accounting_series(df, row, column; stock_flow = "TOTAL")
+  series = df[
+    (df.stk_flow .== stock_flow) .&
+    (df.prd_ava .== row) .&
+    (df.ind_use .== column),
+    [:year, :value],
+  ]
+  @assert Set(series.year) == Set(data_years) "$row/$column/$stock_flow must report each input-output data year"
+  return series
+end
+
+"""Direct purchases recorded against household consumption: residents' spending
+abroad (`OP_RES`) or non-residents' spending in the country (`OP_NRES`)."""
+function direct_purchase_adjustment(df, code)
+  df = df[
+    (df.stk_flow .== "TOTAL") .&
+    (df.prd_ava .== code) .&
+    (df.ind_use .== "P3_S14") .&
+    (abs.(df.value) .> cell_tolerance),
+    [:year, :value],
+  ]
+  insertcols!(df, :use => :C)
+  return df[:, [:use, :year, :value]]
+end
+
+# ============================================================================
+# Purchaser use
+# ============================================================================
+
+"""Non-residents' purchases in the country. The product cells already include
+these purchases, so only store the positive total for the tourism account."""
+function reported_tourist_spend(nonresidents)
+  tourists = copy(nonresidents[:, [:year, :value]])
+  tourists.value .*= -1
+  @assert all(tourists.value .>= 0) "OP_NRES must be non-positive in the source table"
+  return tourists
+end
+
+"""Add residents' purchases abroad as travel imports. Eurostat gives no product
+split, so use the combined private-consumption product mix."""
+function resident_purchase_imports(reported, residents)
+  @assert all(residents.value .>= 0) "OP_RES must be non-negative in the source table"
+  basis = reported[
+    (reported.use .== :C) .& (reported.value .> cell_tolerance),
+    :,
+  ]
+  basis = sum_by(basis, [:product, :year])
   totals = rename(sum_by(basis, [:year]), :value => :total)
-  basis = innerjoin(basis, totals, on = :year)
-  basis.share = basis.value ./ basis.total
-  moved = innerjoin(nonresidents, basis[:, [:supply, :industry, :year, :share]], on = :year)
-  moved.value .*= moved.share
+  shares = innerjoin(basis, totals, on = :year)
+  @assert all(shares.total .> cell_tolerance) "Travel imports need a consumption product mix"
+  shares.value ./= shares.total
+  rename!(shares, :value => :share)
+  imports = innerjoin(residents, shares[:, [:product, :year, :share]], on = :year)
+  imports.value .*= imports.share
+  insertcols!(imports, :origin => :import)
+  return imports[:, cell_columns]
+end
 
-  function updates(supply)
-    df = moved[moved.supply .== supply, [:industry, :demand, :year, :value]]
-    from = copy(df)
-    from.value .*= -1
-    to = copy(df)
-    to.demand .= :x
-    return vcat(from, to)
-  end
+"""Split T1620 into carried-product margins and margin-service totals."""
+function margin_source_parts(table)
+  is_service = in.(table.product, Ref(Set(margin_services)))
+  @assert all(table.value[is_service] .<= cell_tolerance) "Margin-service rows must not be positive"
+  carried = table[.!is_service .& (abs.(table.value) .> cell_tolerance), :]
+  services = rename(table[is_service .& (table.value .< -cell_tolerance), :], :product => :service)
+  services.value .*= -1
+  carried_totals = rename(sum_by(carried, [:use, :year]), :value => :carried)
+  service_totals = rename(sum_by(services, [:use, :year]), :value => :services)
+  balances = innerjoin(carried_totals, service_totals, on = [:use, :year])
+  @assert nrow(balances) == nrow(carried_totals) == nrow(service_totals) "Each margin use needs both sides of T1620"
+  @assert all(isapprox.(balances.carried, balances.services; atol = 0.15, rtol = 0)) "T1620 margin sides must balance after source rounding"
+  return carried, services
+end
 
-  return (
-    sum_by(vcat(vY_i_d, updates(:Y)), [:industry, :demand, :year]),
-    sum_by(vcat(vM_i_d, updates(:M)), [:industry, :demand, :year]),
+"""Take reported margin services out of purchaser use. T1620 supplies each
+service total. T1610 supplies its domestic and import shares."""
+function margin_reclassification(purchaser_use_before_margins, service_totals)
+  basis = innerjoin(
+    rename(
+      purchaser_use_before_margins[
+        in.(purchaser_use_before_margins.product, Ref(Set(margin_services))),
+        :,
+      ],
+      :product => :service,
+    ),
+    unique(service_totals[:, [:service, :use, :year]]),
+    on = [:service, :use, :year],
   )
+  totals = rename(sum_by(basis, [:service, :use, :year]), :value => :total)
+  @assert nrow(totals) == nrow(service_totals) "Each margin service needs an origin basis"
+  shares = innerjoin(basis, totals, on = [:service, :use, :year])
+  @assert all(abs.(shares.total) .> cell_tolerance) "Each margin service needs a non-zero origin basis"
+  shares.share = shares.value ./ shares.total
+  services = innerjoin(
+    service_totals,
+    shares[:, [:service, :use, :origin, :year, :share]],
+    on = [:service, :use, :year],
+  )
+  services.value .*= services.share
+  @assert all(services.value .>= -cell_tolerance) "Margin-service origin cells must be non-negative"
+  select!(services, [:service, :use, :origin, :year, :value])
+
+  adjustments = rename(copy(services), :service => :product)
+  adjustments.value .*= -1
+  return adjustments, services
 end
 
-"""Residents' direct purchases abroad are travel imports (accommodation & food services, :I),
-not spread across the general import mix, which would misattribute tourist spending to
-unrelated goods-producing industries."""
-resident_purchases_abroad(residents) = with_industry(residents, :I)
-
-"""Imported goods and services exported again, not covered by existing export cells.
-The IO table's export flows (`export_flows`) only cover domestic output crossing the border,
-so goods imported and re-exported without domestic processing (merchanting) are invisible to
-it; they are recovered here as the gap between the IO table's :x cells and national-accounts
-total exports. SNA convention books merchanting as a margin earned by the trading activity
-itself, so the whole gap is attributed to wholesale/retail trade (:G) rather than spread across
-the general import mix, which would otherwise misattribute it to unrelated industries."""
-function reexport_flows(vY_i_d, vM_i_d)
-  exports = mapped_country_table(national_accounts_dataset, "na_item",
-    Dict("P6" => :x), :demand)
-  existing_exports = rename(sum_by(vcat(
-    vY_i_d[vY_i_d.demand .== :x, :],
-    vM_i_d[vM_i_d.demand .== :x, :],
-  ), [:demand, :year]), :value => :existing_exports)
-  reexports = innerjoin(exports, existing_exports, on = [:demand, :year])
-  reexports.value .-= reexports.existing_exports
-  return with_industry(reexports[reexports.value .!= 0, [:demand, :year, :value]], :G)
+"""Build the model's purchaser-use cells from T1610 and its valuation tables."""
+function purchaser_use_data(
+  reported,
+  residents,
+  service_totals,
+)
+  resident_imports = resident_purchase_imports(reported, residents)
+  before_margins = sum_cells(reported, resident_imports)
+  reclassification, services = margin_reclassification(before_margins, service_totals)
+  return sum_cells(before_margins, reclassification), services
 end
 
-# ==========================================================================
-# Output files
-# ==========================================================================
-
-function write_indices(dir, io_table)
-  rows = io_table[io_table.row .∈ Ref(model_industries), :]
-  industries(supply) = sort(unique(rows.row[rows.supply .== supply]))
-  write_index_set(joinpath(dir, "industries.csv"), "industries", industries("DOM"))
-  write_index_set(joinpath(dir, "industries_with_imports.csv"), "industries_with_imports", industries("IMP"))
-end
-
-"""Industry × demand cells: basic-price flows plus allocated product taxes."""
-function write_cells(dir, io_table, residents, nonresidents)
-  vY_i_d = restrict_to_calibration_cells(supply_table(io_table, "DOM"))
-  vM_i_d = restrict_to_calibration_cells(supply_table(io_table, "IMP"))
-  vY_i_d, vM_i_d = reclassify_nonresident_purchases(vY_i_d, vM_i_d, nonresidents)
-  vM_i_d = vcat(vM_i_d, resident_purchases_abroad(residents))
-  vM_i_d = vcat(vM_i_d, reexport_flows(vY_i_d, vM_i_d))
-  vM_i_d = sum_by(vM_i_d, [:industry, :demand, :year])
-  rates = product_tax_rates(io_table, vY_i_d, vM_i_d)
-  vtY_i_d = allocate_taxes(vY_i_d, rates)
-  vtM_i_d = allocate_taxes(vM_i_d, rates)
-  CSV.write(joinpath(dir, "input_output_cells.csv"), vcat(
-    long_format(:vY_i_d, vY_i_d, [:industry, :demand, :year]),
-    long_format(:vM_i_d, vM_i_d, [:industry, :demand, :year]),
-    long_format(:vtY_i_d, vtY_i_d, [:industry, :demand, :year]),
-    long_format(:vtM_i_d, vtM_i_d, [:industry, :demand, :year]),
-  ))
-  return vY_i_d, vM_i_d, vtY_i_d, vtM_i_d
-end
-
-"""Demand totals at purchaser prices: IO cells plus net product taxes (qD) and NA demand (vD)."""
-function write_demands(dir, vY_i_d, vM_i_d, vtY_i_d, vtM_i_d)
-  qD = sum_by(vcat(vY_i_d, vM_i_d, vtY_i_d, vtM_i_d), [:demand, :year])
-  vD = mapped_country_table(national_accounts_dataset, "na_item",
-    Dict("P31_S14_S15" => :cHh, "P3_S13" => :g, "P6" => :x), :demand)
-  append!(vD, qD[in.(qD.demand, Ref([:equipment, :structures])), :])
-  vD = sum_by(vD, [:demand, :year])
-  qD = antijoin(qD, vD[:, [:demand, :year]], on = [:demand, :year])
-  append!(qD, vD)
-  CSV.write(joinpath(dir, "input_output_demands.csv"), vcat(
-    long_format(:qD, qD, [:demand, :year]),
-    long_format(:vD, vD, [:demand, :year]),
-  ))
-end
-
-"""Macro totals from national accounts (not in the I-O table)."""
-function write_aggregates(dir)
-  df = mapped_country_table(national_accounts_dataset, "na_item",
-    Dict("B1GQ" => :vGDP, "B1G" => :vGVA), :variable)
-  CSV.write(joinpath(dir, "input_output_aggregates.csv"),
-    vcat((long_format(v, df[df.variable .== v, :], [:year]) for v in (:vGDP, :vGVA))...))
-end
-
-"""Per-industry accounting rows: wages, other production taxes, operating surplus."""
-function write_industries(dir, io_table)
-  industry_row(name) = rename(accounting_table(io_table, name), :demand => :industry)
-  CSV.write(joinpath(dir, "input_output_industries.csv"),
-    vcat((long_format(v, industry_row(v), [:industry, :year]) for v in (:vW_i, :vtYOther_i, :vOpSurplus_i))...))
-end
+# ============================================================================
+# Checked-in files
+# ============================================================================
 
 function refresh_input_output_data!(dir = input_output_data_dir)
   mkpath(dir)
-  domestic = fetch_io_table("c_dest")  # use within the country, by country of origin
-  exports = fetch_io_table("c_orig")   # domestic output, by country of destination
-  io_table = input_output_table(domestic, exports)
-  CSV.write(joinpath(dir, "input_output.csv"), io_table)
-  write_indices(dir, io_table)
-  residents = direct_purchase_adjustment(domestic, "OP_RES")
-  nonresidents = direct_purchase_adjustment(domestic, "OP_NRES")
-  vY_i_d, vM_i_d, vtY_i_d, vtM_i_d = write_cells(dir, io_table, residents, nonresidents)
-  write_demands(dir, vY_i_d, vM_i_d, vtY_i_d, vtM_i_d)
-  write_aggregates(dir)
-  write_industries(dir, io_table)
-  return io_table
+  use_table = fetch_use_table()
+  reported = reported_use(use_table)
+  supply = fetch_supply_table(reported)
+  carried_margins, margin_service_totals = margin_source_parts(fetch_margin_table())
+  net_product_taxes = fetch_net_product_tax_table()
+  net_product_tax_totals = accounting_table(use_table, "D21X31")
+  residents = direct_purchase_adjustment(use_table, "OP_RES")
+  tourist_spend = reported_tourist_spend(direct_purchase_adjustment(use_table, "OP_NRES"))
+  purchaser_use, services = purchaser_use_data(
+    reported,
+    residents,
+    margin_service_totals,
+  )
+  purchaser_use_totals = sum_by(
+    vcat(accounting_table(use_table, "P2_ADJ"), residents),
+    [:use, :year],
+  )
+  imports = sum_by(
+    vcat(
+      accounting_series(use_table, "CPA_TOTAL", "TU"; stock_flow = "IMP"),
+      residents[:, [:year, :value]],
+    ),
+    [:year],
+  )
+  exports = sum_by(
+    vcat(
+      accounting_series(use_table, "P2_ADJ", "P6"),
+      tourist_spend,
+    ),
+    [:year],
+  )
+  output = accounting_series(use_table, "P1", "TOTAL")
+
+  CSV.write(
+    joinpath(dir, "input_output_supply.csv"),
+    long_format(:qY_p_i, supply, [:product, :industry, :year]),
+  )
+  CSV.write(
+    joinpath(dir, "input_output_purchaser_use.csv"),
+    long_format(:qPurchaserUse_p_u_o, purchaser_use, cell_index),
+  )
+  CSV.write(
+    joinpath(dir, "input_output_margins.csv"),
+    vcat(
+      long_format(:qMarginBundle_p_u, carried_margins, [:product, :use, :year]),
+      long_format(:qMarginService_s_u_o, services, [:service, :use, :origin, :year]),
+    ),
+  )
+  CSV.write(
+    joinpath(dir, "input_output_net_product_tax.csv"),
+    vcat(
+      long_format(
+        :vNetProductTax_p_u,
+        net_product_taxes,
+        [:product, :use, :year],
+      ),
+      long_format(
+        :vNetProductTax_u,
+        net_product_tax_totals,
+        [:use, :year],
+      ),
+    ),
+  )
+  CSV.write(
+    joinpath(dir, "input_output_aggregate_totals.csv"),
+    vcat(
+      long_format(:vPurchaserUse_u, purchaser_use_totals, [:use, :year]),
+      long_format(:vY, output, [:year]),
+      long_format(:vCTourist, tourist_spend, [:year]),
+      long_format(:vM, imports, [:year]),
+      long_format(:vX, exports, [:year]),
+    ),
+  )
+  return nothing
 end
 
 end # module
