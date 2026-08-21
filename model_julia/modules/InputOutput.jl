@@ -4,7 +4,7 @@ include(joinpath(@__DIR__, "InputOutputSettings.jl"))
 module InputOutput
 
 using SquareModels
-import ..CheckedData: cell_value, fill_cells!, read_cells, read_series
+import ..DataUtils: cell_value, fill_cells!, read_cells, read_series
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutputSettings:
   final_uses,

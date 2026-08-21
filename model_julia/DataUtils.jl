@@ -1,7 +1,16 @@
-module CheckedData
+# Read data into model variables.
+# Group and write checked-in data tables.
+# Do not fetch source data here.
+module DataUtils
 
+using CSV
+using DataFrames
 import JuMP
 using SquareModels
+
+# ============================================================================
+# Model data
+# ============================================================================
 
 """Read one variable into a dictionary keyed by its index tuple."""
 function read_cells(file, variable)
@@ -26,5 +35,21 @@ function read_series(file, variable, indices)
   cells = read_cells(file, variable)
   return [get(cells, (index,), nothing) for index in indices]
 end
+
+# ============================================================================
+# Data tables
+# ============================================================================
+
+sum_by(df, cols) = combine(groupby(df, cols), :value => sum => :value)
+
+"""Return long-format rows that SquareModels can read."""
+long_format(varname, df, index_cols) = DataFrame(
+  variable = string(varname),
+  indices = [join((string(row[col]) for col in index_cols), ",") for row in eachrow(df)],
+  value = df.value,
+)
+
+write_index_set(path, name, members) =
+  CSV.write(path, DataFrame(variable = name, indices = string.(members), value = 1.0))
 
 end # module

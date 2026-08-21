@@ -5,7 +5,7 @@
 module Capital
 
 using SquareModels
-import ..CheckedData: fill_cells!, read_cells
+import ..DataUtils: fill_cells!, read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fp, fq
 import ..InputOutput:
   industry,

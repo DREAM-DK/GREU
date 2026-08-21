@@ -89,6 +89,8 @@ In this branch, we are working on a new version of the model implemented in Juli
 model_julia/
 ├── Model.jl                 # Shared container: settings, modules, base_model()
 ├── Calibrate.jl             # Baseline solve, tests, export to Output/
+├── Calibration.jl           # Calibration rules and one-horizon solve
+├── DataUtils.jl             # Model data and data-table helpers
 ├── Shock.jl                 # Load baseline, apply scenario, plot
 ├── RefreshData.jl           # Refresh Eurostat-sourced CSV data
 ├── Settings.jl              # Country, years, enabled_modules, solver backend
@@ -103,8 +105,7 @@ model_julia/
     ├── Households.jl, Government.jl, Corporations.jl, RestOfWorld.jl
     ├── *Settings.jl         # Module-local constants / mappings
     ├── *Data.jl             # Eurostat fetch + write checked-in CSV
-    ├── EurostatClient.jl
-    └── DataRefreshUtils.jl
+    └── EurostatClient.jl
 ```
 
 Entry points:
@@ -156,7 +157,7 @@ end
 Calibration has two swap steps:
 
 1. In `define_calibration`, swap each parameter for the data that identifies it. The data variable stays at its loaded value. The solver finds the parameter (`r*`, `t*`, and similar).
-2. `endo_exo_data_residuals!` in `Calibrate.jl` then swaps any remaining endogenous variable that has data (up through `t1`) for its residual. The data value stays fixed. The residual absorbs the gap.
+2. `endo_exo_data_residuals!` in `Calibration.jl` then swaps any remaining endogenous variable that has data (up through `t1`) for its residual. The data value stays fixed. The residual absorbs the gap.
 
 Load every series the source reports. Also load model totals that those series imply, such as `qD_p_u` from `∑ qD_p_u_o`. Do not compute parameters in `set_data!`. Exogenizing the data hits the data exactly when the solver has rounding error, and puts inconsistent source totals on residuals.
 
@@ -189,7 +190,7 @@ Each model component under `modules/` is a Julia module. See `SubmodelTemplate.j
 base_model() = sum(m.define_equations() for m in submodels)
 ```
 
-### Calibration (`Calibrate.jl`)
+### Calibration (`Calibrate.jl` and `Calibration.jl`)
 
 **Concept**: Exogenize data. Endogenize parameters. Residuals absorb equation imbalances.
 

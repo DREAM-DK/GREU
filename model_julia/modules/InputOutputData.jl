@@ -1,7 +1,7 @@
 include(joinpath(@__DIR__, "..", "Settings.jl"))
 include("InputOutputSettings.jl")
 include("EurostatClient.jl")
-include("DataRefreshUtils.jl")
+include(joinpath(@__DIR__, "..", "DataUtils.jl"))
 
 module InputOutputData
 
@@ -21,7 +21,7 @@ import ..InputOutputSettings:
   final_use_rename,
   input_output_data_dir,
   nace_a64_to_a21
-import ..DataRefreshUtils: long_format, sum_by
+import ..DataUtils: long_format, sum_by
 
 const data_years = (calibration_year - 1):calibration_year
 const year_params = ["time" => string(y) for y in data_years]

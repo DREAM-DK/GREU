@@ -2,14 +2,14 @@ include(joinpath(@__DIR__, "..", "Settings.jl"))
 include("InputOutputSettings.jl")
 include("ProductionSettings.jl")
 include("EurostatClient.jl")
-include("DataRefreshUtils.jl")
+include(joinpath(@__DIR__, "..", "DataUtils.jl"))
 
 module ProductionData
 
 using CSV
 using DataFrames
 import ..EurostatClient
-import ..DataRefreshUtils: long_format, sum_by
+import ..DataUtils: long_format, sum_by
 import ..InputOutputSettings:
   eurostat_unit,
   eurostat_use_dataset,

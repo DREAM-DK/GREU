@@ -1,7 +1,7 @@
 include(joinpath(@__DIR__, "..", "Settings.jl"))
 include("SectorAccountsSettings.jl")
 include("EurostatClient.jl")
-include("DataRefreshUtils.jl")
+include(joinpath(@__DIR__, "..", "DataUtils.jl"))
 
 module SectorAccountsData
 
@@ -35,7 +35,7 @@ import ..SectorAccountsSettings:
   sector_map
 
 sum_by(df, cols) = combine(groupby(df, cols), :value => (x -> sum(skipmissing(x); init=0.0)) => :value)
-import ..DataRefreshUtils: sum_by, long_format, write_index_set
+import ..DataUtils: long_format, write_index_set
 
 # ==========================================================================
 # Eurostat fetches

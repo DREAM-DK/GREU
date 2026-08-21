@@ -4,7 +4,7 @@
 module Labor
 
 using SquareModels
-import ..CheckedData: fill_cells!, read_cells
+import ..DataUtils: fill_cells!, read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutput: industry
 import ..InputOutputSettings: cell_tolerance
