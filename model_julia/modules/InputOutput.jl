@@ -7,14 +7,13 @@ using SquareModels
 import ..CheckedData: cell_value, fill_cells!, read_cells, read_series
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutputSettings:
-  industry,
+  final_uses,
   origin,
   product,
-  use,
+  source_industry,
   cell_tolerance,
   input_output_data_dir,
-  margin_services,
-  ordinary_uses
+  margin_services
 import ..Settings: calibration_year
 import ..db
 import ..Time: t, t1, T
@@ -39,6 +38,19 @@ const qMarginService_s_u_o_data = read_cells(margin_file, "qMarginService_s_u_o"
 const vNetProductTax_p_u_data = read_cells(net_product_tax_file, "vNetProductTax_p_u")
 const vNetProductTax_u_data = read_cells(net_product_tax_file, "vNetProductTax_u")
 const qPurchaserUse_p_u_o_data = read_cells(purchaser_use_file, "qPurchaserUse_p_u_o")
+
+# Keep industries with output in the calibration year.
+const industry = sort(unique(
+  i
+  for ((_, i, year), value) in qY_p_i_data
+  if year == calibration_year && abs(value) > cell_tolerance
+))
+@assert industry ⊆ source_industry "Output data contain an unknown industry"
+
+const use = [industry; final_uses]
+@assert allunique(use) "Industry and final-use labels must be distinct"
+# Inventory changes are signed and exogenous, so they bypass the fixed shares.
+const ordinary_uses = setdiff(use, [:INV])
 
 # ============================================================================
 # Cell masks
