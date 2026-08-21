@@ -421,14 +421,14 @@ function define_calibration()
     rProductShare[:,:,t1], qPurchaserUse_p_u[:,ordinary_uses,t1]
 
     rOriginShare[(p,u,o,t) in keys(qPurchaserUse_p_u_o); u in ordinary_uses && t == t1],
-    qPurchaserUse_p_u_o[p,u,o,t]
+    qPurchaserUse_p_u_o[(p,u,o,t) in keys(qPurchaserUse_p_u_o); u in ordinary_uses && t == t1]
 
     rMarginServiceShare[:,:,t1], qMarginService_s_u[:,:,t1]
 
     rMarginRate[:,:,t1], qMarginBundle_p_u[:,:,t1]
 
     rOriginShare[(s,u,o,t) in keys(qMarginService_s_u_o); (s,u,o) in margin_only_s_u_o && t == t1],
-    qMarginService_s_u_o[s,u,o,t]
+    qMarginService_s_u_o[(s,u,o,t) in keys(qMarginService_s_u_o); (s,u,o) in margin_only_s_u_o && t == t1]
 
     tNetProduct[:,:,t1], vNetProductTax_p_u[:,:,t1]
 

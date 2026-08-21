@@ -13,7 +13,8 @@ import ..DataRefreshUtils: long_format, sum_by
 import ..InputOutputSettings:
   eurostat_unit,
   eurostat_use_dataset,
-  nace_a64_to_a21
+  nace_a64_to_a21,
+  section_to_industry
 import ..ProductionSettings:
   capital_flow_dataset,
   capital_stock_dataset,
@@ -27,26 +28,47 @@ import ..Settings: calibration_year, country_code
 
 const data_years = (calibration_year - 1):calibration_year
 const year_params = ["time" => string(year) for year in data_years]
+const capital_nace_to_industry = Dict(string(section) => i for (section, i) in section_to_industry)
 
 # ============================================================================
 # Eurostat data
 # ============================================================================
 
-"""Fetch one capital table and map A64 industries to model industries."""
-function fetch_capital_table(dataset, unit, asset_map)
+"""Fetch one capital table and map direct A21 rows to model industries."""
+function fetch_capital_table(dataset, unit, asset_map, params...)
   df = EurostatClient.fetch_table(
     dataset,
     "unit" => unit,
     "geo" => country_code,
     year_params...,
+    params...,
   )
+  @assert all(
+    isapprox(
+      sum(
+        row.value
+        for row in eachrow(df)
+        if row.asset10 == asset &&
+          row.nace_r2 in keys(capital_nace_to_industry) &&
+          row.time == string(year)
+      ),
+      only(
+        row.value
+        for row in eachrow(df)
+        if row.asset10 == asset && row.nace_r2 == "TOTAL" && row.time == string(year)
+      );
+      atol = 1.1,
+      rtol = 0,
+    )
+    for asset in keys(asset_map), year in data_years
+  ) "Capital A21 rows must sum to each source total"
   df = df[
     in.(df.asset10, Ref(Set(keys(asset_map)))) .&
-    in.(df.nace_r2, Ref(Set(keys(nace_a64_to_a21)))),
+    in.(df.nace_r2, Ref(Set(keys(capital_nace_to_industry)))),
     :,
   ]
   df.k = [asset_map[asset] for asset in df.asset10]
-  df.industry = [nace_a64_to_a21[code] for code in df.nace_r2]
+  df.industry = [capital_nace_to_industry[code] for code in df.nace_r2]
   df.year = parse.(Int, df.time)
   return sum_by(df, [:k, :industry, :year])
 end
@@ -111,12 +133,13 @@ function refresh_production_data!(dir = production_data_dir)
     capital_flow_dataset,
     flow_unit,
     flow_asset_to_capital_type,
+    "na_item" => "P51G",
   )
   labor = fetch_labor_table()
 
   CSV.write(joinpath(dir, "production_capital.csv"), vcat(
     long_format(:qK_k_i, stock, [:k, :industry, :year]),
-    long_format(:qI_k_i, investment, [:k, :industry, :year]),
+    long_format(:vI_k_i, investment, [:k, :industry, :year]),
   ))
   CSV.write(
     joinpath(dir, "production_labor.csv"),

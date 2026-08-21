@@ -7,8 +7,7 @@ module Production
 
 using SquareModels
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
-import ..InputOutput: qY_i
-import ..InputOutputSettings: industry
+import ..InputOutput: industry, qY_i, qY_p_i_data
 import ..ProductionSettings: production_nesting
 import ..db
 import ..Time: t, t1, T
@@ -19,17 +18,17 @@ import ..Tags: ForecastConstant, ForecastZero
 # ============================================================================
 const parent = Dict(
   (child, i) => n
-  for i in industry if (i, t1) in keys(qY_i)
+  for i in industry
   for (n, spec) in production_nesting[i]
   for child in spec.children
 )
-const top_i = Dict(
+const topNest = Dict(
   i => only(n for n in keys(production_nesting[i]) if !haskey(parent, (n, i)))
-  for i in industry if (i, t1) in keys(qY_i)
+  for i in industry
 )
 const node = sort(unique(
   v
-  for i in keys(top_i)
+  for i in industry
   for (n, spec) in production_nesting[i]
   for v in (n, spec.children...)
 ))
@@ -40,22 +39,22 @@ const node = sort(unique(
 const ProductionTag = Tag(:Production)
 
 @variables db.model :: (ProductionTag, GrowthAdjusted) begin
-  qProd[n = node, i = industry, t = t; haskey(top_i, i) && (haskey(parent, (n, i)) || n == top_i[i])], "Quantity by production node and industry."
-  qProductionLoss_i[i = industry, t = t; haskey(top_i, i)] :: ForecastZero, "Output used by added production costs by industry."
+  qProd[n = node, i = industry, t = t; haskey(parent, (n, i)) || n == topNest[i]], "Quantity by production node and industry."
+  qProductionLoss[i = industry, t = t] :: ForecastZero, "Output used by added production costs by industry."
 end
 
 @variables db.model :: (ProductionTag, InflationAdjusted) begin
   pProd[(n, i, t) = qProd], "Price by production node and industry."
-  pY0_i[i = industry, t = t; haskey(top_i, i)], "Unit production cost by industry."
+  pY0[i = industry, t = t], "Unit production cost by industry."
 end
 
 @variables db.model :: (ProductionTag, GrowthAdjusted, InflationAdjusted) begin
-  vProductionTax_i[i = industry, t = t; haskey(top_i, i)], "Production taxes in marginal cost by industry."
+  vProductionTax_i[i = industry, t = t], "Production taxes in marginal cost by industry."
 end
 
 @variables db.model :: ProductionTag begin
   uProd[n = node, i = industry, t = t; haskey(parent, (n, i))] :: ForecastConstant, "CES share by child node and industry."
-  eProd[n = node, i = industry; haskey(top_i, i) && haskey(production_nesting[i], n)], "Substitution elasticity by production nest and industry."
+  eProd[n = node, i = industry; haskey(production_nesting[i], n)], "Substitution elasticity by production nest and industry."
 end
 
 # ============================================================================
@@ -74,12 +73,52 @@ function set_data!(db)
 end
 
 # ============================================================================
+# Starting values
+# ============================================================================
+function qProd_start(n, i)
+  if n == topNest[i]
+    output = sum(cell for ((_, ii, year), cell) in qY_p_i_data if ii == i && year == t1)
+    @assert isfinite(output) && output > 0 "Production output starts must be finite and positive"
+    return output
+  end
+  return qProd_start(parent[n, i], i) / length(production_nesting[i][parent[n, i]].children)
+end
+
+function set_starting_values!(start_values)
+  # Use observed output, equal child shares, and unit prices at t1.
+  q_keys = [
+    (n, i, year)
+    for (n, i, year) in keys(qProd)
+    if year == t1 && isnothing(start_values[qProd[n, i, year]])
+  ]
+  start_values[[qProd[key...] for key in q_keys]] .= [qProd_start(n, i) for (n, i, _) in q_keys]
+
+  p_keys = [
+    (n, i, year)
+    for (n, i, year) in keys(pProd)
+    if year == t1 && isnothing(start_values[pProd[n, i, year]])
+  ]
+  start_values[[pProd[key...] for key in p_keys]] .= 1.0
+
+  u_keys = [
+    (n, i, year)
+    for (n, i, year) in keys(uProd)
+    if year == t1 && isnothing(start_values[uProd[n, i, year]])
+  ]
+  start_values[[uProd[key...] for key in u_keys]] .= [
+    1 / length(production_nesting[i][parent[n, i]].children)
+    for (n, i, _) in u_keys
+  ]
+  return nothing
+end
+
+# ============================================================================
 # Equations
 # ============================================================================
 function define_equations()
   return @block db begin
-    qProd[(n, i, t) in keys(qProd); n == top_i[i] && t in t1:T],
-    qProd[n, i, t] == qY_i[i, t] + qProductionLoss_i[i, t]
+    qProd[(n, i, t) in keys(qProd); n == topNest[i] && t in t1:T],
+    qProd[n, i, t] == qY_i[i, t] + qProductionLoss[i, t]
 
     qProd[(n, i, t) in keys(qProd); haskey(parent, (n, i)) && t in t1:T],
     qProd[n, i, t] * pProd[n, i, t]^eProd[parent[n, i], i] ==
@@ -87,13 +126,13 @@ function define_equations()
       qProd[parent[n, i], i, t] *
       pProd[parent[n, i], i, t]^eProd[parent[n, i], i]
 
-    pProd[n = node, i = industry, t = t1:T; haskey(top_i, i) && haskey(production_nesting[i], n)],
+    pProd[n = node, i = industry, t = t1:T; haskey(production_nesting[i], n)],
     pProd[n, i, t] * qProd[n, i, t] ==
       ∑(pProd[child, i, t] * qProd[child, i, t] for child in production_nesting[i][n].children)
 
-    pY0_i[(i, t) in keys(pY0_i); t in t1:T],
-    pY0_i[i, t] * qY_i[i, t] ==
-      pProd[top_i[i], i, t] * qY_i[i, t] + vProductionTax_i[i, t]
+    pY0[i = industry, t = t1:T],
+    pY0[i, t] * qY_i[i, t] ==
+      pProd[topNest[i], i, t] * qY_i[i, t] + vProductionTax_i[i, t]
   end
 end
 
@@ -107,10 +146,10 @@ function define_calibration()
 
   @endo_exo_swap! block begin
     uProd[(n, i, t) in keys(uProd); haskey(production_nesting[i], n) && t == t1],
-    pProd[n, i, t]
+    pProd[(n, i, t) in keys(uProd); haskey(production_nesting[i], n) && t == t1]
 
     uProd[(n, i, t) in keys(uProd); !haskey(production_nesting[i], n) && t == t1],
-    qProd[n, i, t]
+    qProd[(n, i, t) in keys(uProd); !haskey(production_nesting[i], n) && t == t1]
   end
 
   return block

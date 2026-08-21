@@ -1,6 +1,6 @@
 module ProductionSettings
 
-import ..InputOutputSettings: industry, product
+import ..InputOutputSettings: product, source_industry
 
 const production_data_dir = joinpath(@__DIR__, "..", "data", "production")
 
@@ -38,9 +38,8 @@ const labor_type = [:labor]
 const intermediate_type = [:intermediate]
 
 # Each industry owns its nest map and each nest owns its elasticity. Most
-# industries use the full tree. Real estate has no live equipment stock, and
-# household production has no live capital or intermediate input in the source
-# data.
+# industries use the full tree. Household production has no live capital or
+# intermediate input in the source data.
 const full_capital_nesting = Dict(
   :KL => (children = [:equipment, :labor], elasticity = 0.7),
   :KLB => (children = [:KL, :structures], elasticity = 0.7),
@@ -48,23 +47,11 @@ const full_capital_nesting = Dict(
 )
 const production_nesting = Dict(
   i =>
-    i == :iL ? Dict(
-      :KLB => (children = [:structures, :labor], elasticity = 0.7),
-      :KLBM => (children = [:KLB, :intermediate], elasticity = 0.7),
-    ) :
     i == :iT ? Dict(
       :KLBM => (children = [:labor], elasticity = 0.7),
     ) :
     Dict(full_capital_nesting)
-  for i in industry
-)
-
-# Dummy weights for the fixed-investment product split. Construction supplies
-# structures. Other products split across capital types in proportion to the
-# capital-flow totals. Replace these weights when asset-product data arrive.
-const investment_product_capital_weight = Dict(
-  (p, k) => p == :F ? (k == :structures ? 1.0 : 0.0) : 1.0
-  for p in product, k in capital_type
+  for i in source_industry
 )
 
 @assert allunique([capital_type; labor_type; intermediate_type]) "Production factor labels must be unique"
@@ -79,10 +66,6 @@ const intermediate_product_type_weight = Dict(
   isfinite(spec.elasticity) && spec.elasticity > 0 && allunique(spec.children)
   for spec in Iterators.flatten(values(nests) for nests in values(production_nesting))
 ) "Each production nest needs a positive elasticity and unique children"
-@assert all(
-  isfinite(weight) && weight >= 0
-  for weight in values(investment_product_capital_weight)
-) "Investment-product weights must be finite and non-negative"
 @assert all(
   isfinite(weight) && weight >= 0
   for weight in values(intermediate_product_type_weight)

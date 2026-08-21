@@ -6,12 +6,13 @@ module Intermediates
 using SquareModels
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutput:
+  industry,
   pPurchaserUse_p_u,
   qPurchaserUse_p_u,
   qPurchaserUse_p_u_o_data,
   qPurchaserUse_u,
   rProductShare
-import ..InputOutputSettings: cell_tolerance, industry, origin, product
+import ..InputOutputSettings: cell_tolerance, origin, product
 import ..Production: parent, pProd, qProd
 import ..ProductionSettings: intermediate_product_type_weight, intermediate_type, production_nesting
 import ..Settings: calibration_year
@@ -52,13 +53,13 @@ const qIntermediate_p_m_i = Dict(
     intermediate_product_type_weight[p, m] * qIntermediate_m_i[m, i] /
     sum(
       intermediate_product_type_weight[p, mm] * qIntermediate_m_i[mm, i]
-      for mm in intermediate_type if (mm, i) in intermediate_m_i
+      for mm in intermediate_type
     )
   for (p, i) in intermediate_product_i, m in intermediate_type
-  if (m, i) in intermediate_m_i && intermediate_product_type_weight[p, m] > 0
+  if intermediate_product_type_weight[p, m] > 0
 )
 const intermediate_product_m_i = Set(keys(qIntermediate_p_m_i))
-const rIntermediateProductShare_p_m_i_data = Dict(
+const rIntermediateProductShare_data = Dict(
   (p, m, i) => value / sum(v for ((_, mm, ii), v) in qIntermediate_p_m_i if mm == m && ii == i)
   for ((p, m, i), value) in qIntermediate_p_m_i
 )
@@ -78,7 +79,7 @@ end
 end
 
 @variables db.model :: IntermediatesTag begin
-  rIntermediateProductShare_p_m_i[(p, m, i, t) = qM_p_m_i] :: ForecastConstant, "Fixed product share by intermediate type and industry."
+  rIntermediateProductShare[(p, m, i, t) = qM_p_m_i] :: ForecastConstant, "Fixed product share by intermediate type and industry."
 end
 
 # ============================================================================
@@ -96,9 +97,9 @@ function set_data!(db)
     year == t1 ? qIntermediate_m_i[m, i] : nothing
     for (m, i, year) in keys(qM_m_i)
   ]
-  db[rIntermediateProductShare_p_m_i] .= [
-    year == t1 ? rIntermediateProductShare_p_m_i_data[p, m, i] : nothing
-    for (p, m, i, year) in keys(rIntermediateProductShare_p_m_i)
+  db[rIntermediateProductShare] .= [
+    year == t1 ? rIntermediateProductShare_data[p, m, i] : nothing
+    for (p, m, i, year) in keys(rIntermediateProductShare)
   ]
   return nothing
 end
@@ -114,20 +115,20 @@ function define_equations(product_link_years)
     qM_m_i[m, i, t] == qProd[m, i, t] / pM_m_i[m, i, t1]
 
     qM_p_m_i[(p, m, i, t) in keys(qM_p_m_i); t in t1:T],
-    qM_p_m_i[p, m, i, t] == rIntermediateProductShare_p_m_i[p, m, i, t] * qM_m_i[m, i, t]
+    qM_p_m_i[p, m, i, t] == rIntermediateProductShare[p, m, i, t] * qM_m_i[m, i, t]
 
     rProductShare[(p, u, t) in keys(rProductShare); u in intermediate_industry && t in product_link_years],
     qPurchaserUse_p_u[p, u, t] ==
-      ∑(qM_p_m_i[p, m, u, t] for m in intermediate_type if (p, m, u) in intermediate_product_m_i)
+      ∑(qM_p_m_i[p, m, u, t] for m in intermediate_type)
 
     qPurchaserUse_u[i = intermediate_industry, t = product_link_years],
-    qPurchaserUse_u[i, t] == ∑(qM_m_i[m, i, t] for m in intermediate_type if (m, i) in intermediate_m_i)
+    qPurchaserUse_u[i, t] == ∑(qM_m_i[m, i, t] for m in intermediate_type)
 
     pM_m_i[(m, i, t) in keys(pM_m_i); t in t1:T],
     pM_m_i[m, i, t] ==
       ∑(
-        rIntermediateProductShare_p_m_i[p, m, i, t] * pPurchaserUse_p_u[p, i, t]
-        for p in product if (p, m, i) in intermediate_product_m_i
+        rIntermediateProductShare[p, m, i, t] * pPurchaserUse_p_u[p, i, t]
+        for p in product
       )
 
     pProd[m = intermediate_type, i = intermediate_industry, t = t1:T; (m, i) in intermediate_m_i],
@@ -143,7 +144,7 @@ function define_calibration()
   block = define_equations((t1+1):T)
 
   @endo_exo_swap! block begin
-    qProd[(m, i, t) in keys(qM_m_i); t == t1], qM_m_i[m, i, t]
+    qProd[(m, i, t) in keys(qM_m_i); t == t1], qM_m_i[(m, i, t) in keys(qM_m_i); t == t1]
   end
 
   return block
