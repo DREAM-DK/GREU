@@ -3,7 +3,7 @@
 using SquareModels
 include("Model.jl")
 import .Time: at_year, variable_year, t1, T
-import .Tags: ForecastConstant
+import .Tags: ForecastConstant, ForecastZero
 
 function residual_tolerances(data::ModelDictionary, submodels)
 	tolerances = ModelDictionary(data.model)
@@ -63,6 +63,20 @@ function forecast_constants!(block::Block, data::ModelDictionary)
 end
 
 """
+Set ForecastZero variables to zero when the full model leaves them exogenous.
+
+An optional module can make a zero hook endogenous and add its equation. In
+that case, this function does not add data that would fix the hook at zero.
+"""
+function forecast_zeros!(block::Block, data::ModelDictionary)
+	zero_vars = filter(exogenous(block)) do var
+		has_tag(var, ForecastZero)
+	end
+	data[zero_vars] .= 0.0
+	return nothing
+end
+
+"""
 Fill missing future exogenous data with the period-one calibration value.
 
 This is the default for exogenous variables without a forecast rule. It also supports
@@ -76,6 +90,20 @@ function fill_missing_exogenous_forecasts!(block::Block, data::ModelDictionary, 
 		!isnothing(year) && year > t1 && isnothing(data[var])
 	end
 	data[forecast_vars] .= calibration[at_year.(forecast_vars, t1)]
+	return nothing
+end
+
+"""
+Use hot starts for missing exogenous values at t1.
+
+The same value stays a solver hot start when the combined block makes the
+variable endogenous. Values before t1 and values without a year need data.
+"""
+function fill_missing_t1_exogenous_start_values!(block::Block, data::ModelDictionary, start_values::ModelDictionary)
+	vars = filter(exogenous(block)) do var
+		variable_year(var) == t1 && isnothing(data[var]) && !isnothing(start_values[var])
+	end
+	data[vars] .= start_values[vars]
 	return nothing
 end
 
@@ -97,12 +125,14 @@ end
 function calibrate_model(data, start_values, submodels)
 	@info "Calibration (T=$T):"
 	@log_time block = sum(m.define_calibration() for m in submodels)
+	@log_time forecast_zeros!(block, data)
 	@log_time block = forecast_constants!(block, data)
 	@log_time endo_exo_data_residuals!(block, data)
-	@log_time fill_missing_exogenous_forecasts!(block, data, start_values)
 	for m in submodels
 		isdefined(m, :set_starting_values!) && m.set_starting_values!(start_values)
 	end
+	@log_time fill_missing_t1_exogenous_start_values!(block, data, start_values)
+	@log_time fill_missing_exogenous_forecasts!(block, data, start_values)
 	@log_time fill_missing_endogenous_start_values!(block, start_values)
 	return @log_time solve(block, data; start_values, replace_nothing=1.0)
 end
@@ -112,7 +142,7 @@ end
 # ==============================================================================
 # Static: single-period at t1 — calibrates residuals and parameters
 Time.T = Settings.calibration_year
-@log_time static_solution = calibrate_model(db, db, submodels)
+@log_time static_solution = calibrate_model(db, ModelDictionary(db.model), submodels)
 @log_errors assert_residuals_small(
 	static_solution;
 	rtol=1e-4,
@@ -135,7 +165,9 @@ Time.T = Time.max_terminal_year
 # ==============================================================================
 # Zero shock test: After calibration, solving the base model with no changes should give identical results
 @log_time begin
-	zero_shock = solve(base_model(), baseline)
+	base_block = base_model()
+	baseline[filter(resid -> isnothing(baseline[resid]), residuals(base_block))] .= 0.0
+	zero_shock = solve(base_block, baseline)
 	assert_no_diff(baseline, zero_shock; atol=1e-5, msg="Zero shock test failed")
 end
 
