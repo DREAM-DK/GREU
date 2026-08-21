@@ -108,9 +108,11 @@ SUMMARY_ROWS = [
         "COARSER",
         "DK 2020: physical energy −0.611% (2,237.8 vs 2,251.6 PJ); household "
         "totals +0.04%; fossil CO2 −0.007%",
-        "The purpose split (heating / process / transport / ETS) and the price/tax "
-        "layer are not published EU-wide and must be constructed; industry detail "
-        "is coarser in 7 of 28 industry groups",
+        "The purpose split (heating / process / transport / ETS) is an "
+        "optional subdivision of known use-table columns (Split A / gap 2), "
+        "not qI_k_i. It and the price/tax layer are not published EU-wide "
+        "and must be constructed; industry detail is coarser in 7 of 28 "
+        "industry groups",
     ),
     (
         "non_energy_emissions.xlsx",
@@ -175,11 +177,16 @@ SUMMARY_ROWS = [
         "Rescoped 2026-08-07: the model uses two separate breakdowns, not the "
         "full matrix previously assumed. 2026-08-18: DK GFCF by the three "
         "model groups matches the Danish investment file exactly (516.141 bn "
-        "DKK); 13/27 countries publish that at full industry detail",
+        "DKK); 13/27 countries publish that at full industry detail. "
+        "2026-08-20: remaining construction is industry × asset amounts "
+        "(qI_k_i), via Danish-prior cross-entropy — not who supplied whom. "
+        "2026-08-21: this is Split B (capital types), not Martin's purpose "
+        "split of known purchases (gap 2)",
         "Supply side is mainly a classification job. Use side: direct totals "
         "for everyone, A64 industry detail for 13 countries; the other 14 "
-        "must be split from 21 industry groups — and three GREU industries "
-        "span several of those groups, so the split is messier than assumed",
+        "must be split from 21 industry groups with a Danish prior "
+        "(cross-entropy; RAS is the one-year special case). Three GREU "
+        "industries span several of those groups",
     ),
     (
         "ets.xlsx",
@@ -403,7 +410,8 @@ DETAIL_ROWS = [
         "too broad)",
         "jrc_idees_dk2020_purpose_reconciliation.xlsx",
         "Needs an owner-approved IDEES-process→GREU-purpose concordance with PEFA "
-        "as the balancing control",
+        "as the balancing control. Split A / gap 2 (subdivide an industry "
+        "column); do not confuse with qI_k_i capital types",
     ),
     (
         "energy_and_emissions.xlsx",
@@ -605,8 +613,10 @@ DETAIL_ROWS = [
         "machinery; 14 are A21. Three GREU industries span several A21 "
         "sections so the identification arithmetic is not a partition",
         "fixed_assets_dk2020_reconciliation.xlsx",
-        "Industry split inside clusters (decision 7); A21 disaggregation "
-        "for 14 countries; supply-side concordance still open",
+        "National totals match; the industry split is coarser in 14/27 "
+        "countries and is constructed there by Danish-prior cross-entropy "
+        "balancing. qI_k_i is amounts, not shares. Not a "
+        "supplier×investor matrix.",
     ),
     # ----------------------------------------------------------------------- ets
     (
@@ -818,9 +828,10 @@ PROGRESS_ROWS = [
      "Net CRC number-exact (7,624.010 vs 7,624.016); 24/28 clusters exact; "
      "all 27 countries have 2020 net stocks including transport",
      "fixed_assets_dk2020_reconciliation.xlsx"),
-    ("io_invest_long_format.xlsx", "GAP", "PROBED", "2026-08-18",
+    ("io_invest_long_format.xlsx", "GAP", "PROBED", "2026-08-20",
      "Use-margin 3-type totals number-exact for DK; A64 × 3 assets for 13/27; "
-     "three GREU industries span A21 so the n_g rule is not a partition",
+     "remaining work is industry × asset via Danish-prior cross-entropy "
+     "(not a supplier×investor RAS); three GREU industries span A21",
      "fixed_assets_dk2020_reconciliation.xlsx"),
     ("ets.xlsx", "CLOSE MATCH", "PILOT DONE", "2026-07-30",
      "Emissions/allocations reproduce to +0.007%; industry bridge and EUA "
@@ -908,10 +919,13 @@ DECISIONS_ROWS = [
      "employed.xlsx author (MAKRO/DST side)", "2026-07-31",
      "Only the nEmployed(t) scalar — low stakes"),
     ("Invest",
-     "Investment split method: Denmark-as-prior, time-invariant shares, "
-     "Julia as a new toolchain dependency",
+     "Investment split method (Split B / qI_k_i, not Martin's purpose "
+     "whiteboard): Denmark-as-prior cross-entropy (RAS special "
+     "case); time-invariant or smooth shares; rank/collinearity per A21 "
+     "group; RAS zeros; vehicle-donor risk; two back-tests (A: DK prior "
+     "on coarsened DK; B: non-DK prior). Python default unless Julia signed off",
      "Model owners / management", "2026-08-07",
-     "Starting the gap-3 estimator and the Denmark back-test"),
+     "Treating the estimator as the EU method; back-test A can still proceed"),
     ("18",
      "Pension-asset reallocation: replicate the Danish adjustment from "
      "S128_S129 subsector balance sheets (published EU-wide), or accept "

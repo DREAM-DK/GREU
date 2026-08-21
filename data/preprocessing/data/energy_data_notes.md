@@ -154,7 +154,10 @@ The four headline results, so you know whether you need to look:
   Public sources work as calibration controls, never as cells.
 - **The purpose dimension stays constructed.** JRC-IDEES supports a combined
   process envelope (+3.05%) but not GREU's exact categories, and EUTL proves
-  ETS membership without publishing any PJ.
+  ETS membership without publishing any PJ. GREU `purp` is **Split A**: a
+  subdivision of an industry (or household) column you already have in the
+  use table — not `qI_k_i` (Split B, who invests in which capital type).
+  Catch-up: `docs/eu_data_mapping.md` Handoff, "two different splits."
 - **Four concordance errors in `energy_products_pefa_map` were found and are
   still unfixed** pending owner review: `sem_refin_oil` misspelling, P18
   (146.140 PJ) missing from the diesel mapping, `heat_pump` belongs with

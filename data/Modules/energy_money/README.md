@@ -84,7 +84,9 @@ Policy `public_core_v1.0` is stored at
   each whole cluster with one representative runtime code; never split A64
   with Danish shares;
 - use `unspecified` for industrial purpose, while retaining PEFA's direct
-  household heating/transport/other purposes;
+  household heating/transport/other purposes (filling GREU industrial
+  `purp` is Split A / gap 2, not `qI_k_i` — see
+  `docs/eu_data_mapping.md` Handoff, "two different splits");
 - control physical supply/use to PEFA and retain reporting-detail and rounding
   residuals explicitly;
 - use public price families as initial weights, then calibrate to Sweden's

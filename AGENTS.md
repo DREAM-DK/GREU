@@ -47,6 +47,7 @@ handoffs there so the next session can resume cold.
 | Question | File |
 |---|---|
 | What is the status? What should I do next? | `docs/eu_data_mapping.md` (Handoff) |
+| Did we mix Martin's purpose split with `qI_k_i`? | `docs/eu_data_mapping.md` (Handoff, "two different splits") |
 | Which EU source replaces input X, and how good is it? | `docs/eu_data_mapping.md` (Mapping table) |
 | What exactly did pilot Y find? Which numbers? | `docs/eu_data_pilots.md` |
 | What do the Danish energy columns mean? | `data/preprocessing/data/energy_data_notes.md` |
