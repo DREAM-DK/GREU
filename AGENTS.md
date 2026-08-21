@@ -61,8 +61,9 @@ In this branch, we are working on a new version of the model implemented in Juli
   `# Government.`
 - Do not align assignment operators across lines. Use one space on each side of
   `=`.
-- Use compact spacing in model indices. Use whitespace around operators,
-  except for plus/minus 1 and multiplication or division by fq, fp or fv. 
+- Use compact spacing in model indices. Put one space after a comma between
+  index assignments, such as `[a=aaa, b=bbb]`. Use whitespace around operators,
+  except for plus/minus 1 and multiplication or division by fq, fp or fv.
   Write `x[s,t-1]/fv * y`, not `x[s, t - 1] / fv * y`.
 - In a `SquareModels.@block`, put the endogenous variable and its equation on
   one line when they fit. Split them when the row is long.
