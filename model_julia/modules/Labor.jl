@@ -62,11 +62,11 @@ end
 # ============================================================================
 function define_equations()
   return @block db begin
-    qL_l_i[(l, i, t) in keys(qL_l_i); t in t1:T], qL_l_i[l, i, t] == qProd[l, i, t]
+    qL_l_i[l = labor_type, i = industry, t = t1:T], qL_l_i[l, i, t] == qProd[l, i, t]
 
     # pW[t = t1:T], qLSupply[t] == ∑(qL_l_i[l, i, t] for (l, i) in labor_l_i)
 
-    pProd[(l, i, t) in keys(pProd); (l, i) in labor_l_i && t in t1:T], pProd[l, i, t] == pW[t]
+    pProd[l = labor_type, i = industry, t = t1:T], pProd[l, i, t] == pW[t]
   end
 end
 
@@ -77,7 +77,7 @@ function define_calibration()
   block = define_equations()
 
   @endo_exo_swap! block begin
-    qProd[(l, i, t) in keys(qL_l_i); t == t1], qL_l_i[(l, i, t) in keys(qL_l_i); t == t1]
+    qProd[l = labor_type, i = industry, t = t1], qL_l_i[l = labor_type, i = industry, t = t1]
   end
 
   return block

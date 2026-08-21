@@ -128,30 +128,30 @@ define_equations() = define_equations(t1:T)
 function define_equations(investment_link_years)
   return @block db begin
     # One-year time to build. Installed stock sets the shadow price.
-    pProd[(k, i, t) in keys(pProd); (k, i) in capital_k_i && t in t1:T],
+    pProd[k = capital_type, i = industry, t = t1:T],
     qProd[k, i, t] == pK_k_i[k, i, t1] * qK_k_i[k, i, t-1]/fq
 
     # User cost equals the shadow price in expectation. This sets lagged capital.
-    qK_k_i[(k, i, t) in keys(qK_k_i); t in t1:(T-1)],
+    qK_k_i[k = capital_type, i = industry, t = t1:(T-1)],
     pProd[k, i, t+1] == pK_k_i[k, i, t+1] / pK_k_i[k, i, t1]
 
     # Terminal condition
-    qK_k_i[(k, i, t) in keys(qK_k_i); t == T && T > t1],
+    qK_k_i[k = capital_type, i = industry, t = T; T > t1],
     qK_k_i[k, i, t] == qK_k_i[k, i, t-1]
 
     # Capital accumulation and the fixed-investment product split.
-    qI_k_i[(k, i, t) in keys(qI_k_i); t in t1:T],
+    qI_k_i[k = capital_type, i = industry, t = t1:T],
     qI_k_i[k, i, t] == qK_k_i[k, i, t] - (1 - rKDepr_k_i[k, i, t]) * qK_k_i[k, i, t-1]/fq
 
     qI_k[k = capital_type, t = t1:T],
     qI_k[k, t] == ∑(qI_k_i[k, i, t] for i in industry)
 
     # Construction forms structures in the calibration year.
-    qI_p_k[(p, k, t) in keys(qI_p_k); p == :F && t == t1],
+    qI_p_k[p = :F, k = capital_type, t = t1],
     qI_p_k[p, k, t] == qPurchaserUse_p_u[p, :K, t]
 
     # Split other products by investment net of construction.
-    qI_p_k[(p, k, t) in keys(qI_p_k); p != :F && t == t1],
+    qI_p_k[p = investment_product, k = capital_type, t = t1; p != :F],
     qI_p_k[p, k, t] == nonconstruction_product_share[p] *
       (qI_k[k, t] - ∑(
         qI_p_k[pp, kk, t]
@@ -159,12 +159,13 @@ function define_equations(investment_link_years)
       ))
 
     # Hold each capital type's calibrated product mix fixed.
-    qI_p_k[(p, k, t) in keys(qI_p_k); t in (t1+1):T], qI_p_k[p, k, t] == rInvestmentProductShare[p, k, t] * qI_k[k, t]
+    qI_p_k[p = investment_product, k = capital_type, t = (t1+1):T],
+    qI_p_k[p, k, t] == rInvestmentProductShare[p, k, t] * qI_k[k, t]
 
-    rInvestmentProductShare[(p, k, t) in keys(rInvestmentProductShare); t == t1],
+    rInvestmentProductShare[p = investment_product, k = capital_type, t = t1],
     rInvestmentProductShare[p, k, t] * qI_k[k, t] == qI_p_k[p, k, t]
 
-    rProductShare[(p, u, t) in keys(rProductShare); u == :K && t in investment_link_years],
+    rProductShare[p = investment_product, u = :K, t = investment_link_years],
     qPurchaserUse_p_u[p, u, t] ==
       ∑(qI_p_k[p, k, t] for k in capital_type if (p, k) in investment_product_k)
 
@@ -178,10 +179,11 @@ function define_equations(investment_link_years)
         for p in investment_product if (p, k) in investment_product_k
       )
 
-    vI_k_i[(k, i, t) in keys(vI_k_i); t in t1:T], vI_k_i[k, i, t] == pI_k[k, t] * qI_k_i[k, i, t]
+    vI_k_i[k = capital_type, i = industry, t = t1:T],
+    vI_k_i[k, i, t] == pI_k[k, t] * qI_k_i[k, i, t]
 
     # Capital user cost. The adjustment term stays zero without its module.
-    pK_k_i[(k, i, t) in keys(pK_k_i); t in t1:(T-1)],
+    pK_k_i[k = capital_type, i = industry, t = t1:(T-1)],
     pK_k_i[k, i, t] ==
       pI_k[k, t]
       + pMarginalCapitalTax_k_i[k, i, t]
@@ -190,7 +192,7 @@ function define_equations(investment_link_years)
         (pI_k[k, t+1] - pMarginalCapitalTax_k_i[k, i, t+1]) * fp)
       + pCapitalAdjustment_k_i[k, i, t]
 
-    pK_k_i[(k, i, t) in keys(pK_k_i); t == T],
+    pK_k_i[k = capital_type, i = industry, t = T],
     pK_k_i[k, i, t] ==
       pI_k[k, t]
       + pMarginalCapitalTax_k_i[k, i, t]
@@ -213,7 +215,7 @@ function define_calibration()
   block = define_equations((t1+1):T)
 
   @endo_exo_swap! block begin
-    qProd[(k,i,t) in keys(qI_k_i); t == t1], pProd[(k,i,t) in keys(qI_k_i); t == t1]
+    qProd[k = capital_type, i = industry, t = t1], pProd[k = capital_type, i = industry, t = t1]
     rKDepr_k_i[:,:,t1], vI_k_i[:,:,t1]
   end
 

@@ -111,27 +111,27 @@ define_equations() = define_equations(t1:T)
 
 function define_equations(product_link_years)
   return @block db begin
-    qM_m_i[(m, i, t) in keys(qM_m_i); t in t1:T],
+    qM_m_i[m = intermediate_type, i = intermediate_industry, t = t1:T],
     qM_m_i[m, i, t] == qProd[m, i, t] / pM_m_i[m, i, t1]
 
-    qM_p_m_i[(p, m, i, t) in keys(qM_p_m_i); t in t1:T],
+    qM_p_m_i[p = product, m = intermediate_type, i = intermediate_industry, t = t1:T],
     qM_p_m_i[p, m, i, t] == rIntermediateProductShare[p, m, i, t] * qM_m_i[m, i, t]
 
-    rProductShare[(p, u, t) in keys(rProductShare); u in intermediate_industry && t in product_link_years],
+    rProductShare[p = product, u = intermediate_industry, t = product_link_years],
     qPurchaserUse_p_u[p, u, t] ==
       ∑(qM_p_m_i[p, m, u, t] for m in intermediate_type)
 
     qPurchaserUse_u[i = intermediate_industry, t = product_link_years],
     qPurchaserUse_u[i, t] == ∑(qM_m_i[m, i, t] for m in intermediate_type)
 
-    pM_m_i[(m, i, t) in keys(pM_m_i); t in t1:T],
+    pM_m_i[m = intermediate_type, i = intermediate_industry, t = t1:T],
     pM_m_i[m, i, t] ==
       ∑(
         rIntermediateProductShare[p, m, i, t] * pPurchaserUse_p_u[p, i, t]
         for p in product
       )
 
-    pProd[m = intermediate_type, i = intermediate_industry, t = t1:T; (m, i) in intermediate_m_i],
+    pProd[m = intermediate_type, i = intermediate_industry, t = t1:T],
     pProd[m, i, t] == pM_m_i[m, i, t] / pM_m_i[m, i, t1]
   end
 end
@@ -144,7 +144,8 @@ function define_calibration()
   block = define_equations((t1+1):T)
 
   @endo_exo_swap! block begin
-    qProd[(m, i, t) in keys(qM_m_i); t == t1], qM_m_i[(m, i, t) in keys(qM_m_i); t == t1]
+    qProd[m = intermediate_type, i = intermediate_industry, t = t1],
+    qM_m_i[m = intermediate_type, i = intermediate_industry, t = t1]
   end
 
   return block

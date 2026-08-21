@@ -235,48 +235,48 @@ end
 function define_equations()
   return @block db begin
     # Fixed product and origin shares. Inventories bypass them.
-    qPurchaserUse_p_u[(p,u,t) in keys(qPurchaserUse_p_u); t in t1:T && u in ordinary_uses],
+    qPurchaserUse_p_u[p = product, u = ordinary_uses, t = t1:T],
     qPurchaserUse_p_u[p,u,t] == rProductShare[p,u,t] * qPurchaserUse_u[u,t]
 
-    qPurchaserUse_p_u[(p,u,t) in keys(qPurchaserUse_p_u); t in t1:T && u == :INV],
+    qPurchaserUse_p_u[p = product, u = :INV, t = t1:T],
     qPurchaserUse_p_u[p,u,t] == ∑(qPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
-    qPurchaserUse_p_u_o[(p,u,o,t) in keys(qPurchaserUse_p_u_o); t in t1:T && u in ordinary_uses],
+    qPurchaserUse_p_u_o[p = product, u = ordinary_uses, o = origin, t = t1:T],
     qPurchaserUse_p_u_o[p,u,o,t] == rOriginShare[p,u,o,t] * qPurchaserUse_p_u[p,u,t]
 
-    qPurchaserUse_p_u_o[(p,u,o,t) in keys(qPurchaserUse_p_u_o); t in t1:T && u == :INV && t > t1],
+    qPurchaserUse_p_u_o[p = product, u = :INV, o = origin, t = (t1+1):T],
     qPurchaserUse_p_u_o[p,u,o,t] == 0
 
     # Derived margin demand. Only uses with reported margins carry a bundle.
-    qMarginBundle_p_u[(p,u,t) in keys(qMarginBundle_p_u); t in t1:T],
+    qMarginBundle_p_u[p = product, u = use, t = t1:T],
     qMarginBundle_p_u[p,u,t] == rMarginRate[p,u,t] * qPurchaserUse_p_u[p,u,t]
 
-    qMarginBundle_u[(u,t) in keys(qMarginBundle_u); t in t1:T],
+    qMarginBundle_u[u = use, t = t1:T],
     qMarginBundle_u[u,t] == ∑(qMarginBundle_p_u[p,u,t] for p in product)
 
-    qMarginService_s_u[(s,u,t) in keys(qMarginService_s_u); t in t1:T],
+    qMarginService_s_u[s = margin_services, u = use, t = t1:T],
     qMarginService_s_u[s,u,t] == rMarginServiceShare[s,u,t] * qMarginBundle_u[u,t]
 
-    qMarginService_s_u_o[(s,u,o,t) in keys(qMarginService_s_u_o); t in t1:T],
+    qMarginService_s_u_o[s = product, u = use, o = origin, t = t1:T],
     qMarginService_s_u_o[s,u,o,t] == rOriginShare[s,u,o,t] * qMarginService_s_u[s,u,t]
 
     # Use at basic or border prices adds margin services.
-    qUse_p_u_o[(p,u,o,t) in keys(qUse_p_u_o); t in t1:T],
+    qUse_p_u_o[p = product, u = use, o = origin, t = t1:T],
     qUse_p_u_o[p,u,o,t] == qPurchaserUse_p_u_o[p,u,o,t] + qMarginService_s_u_o[p,u,o,t]
 
-    qSupply_p_o[(p,o,t) in keys(qSupply_p_o); t in t1:T],
+    qSupply_p_o[p = product, o = origin, t = t1:T],
     qSupply_p_o[p,o,t] == ∑(qUse_p_u_o[p,u,o,t] for u in use)
 
-    qUse_u_o[(u,o,t) in keys(qUse_u_o); t in t1:T],
+    qUse_u_o[u = use, o = origin, t = t1:T],
     qUse_u_o[u,o,t] == ∑(qUse_p_u_o[p,u,o,t] for p in product)
 
     qSupply_o[o=origin, t=t1:T],
     qSupply_o[o,t] == ∑(qSupply_p_o[p,o,t] for p in product)
 
-    qY_p_i[(p,i,t) in keys(qY_p_i); t in t1:T],
+    qY_p_i[p = product, i = industry, t = t1:T],
     qY_p_i[p,i,t] == rIndustryShare[p,i,t] * qY_p[p,t]
 
-    qY_i[(i,t) in keys(qY_i); t in t1:T],
+    qY_i[i = industry, t = t1:T],
     qY_i[i,t] == ∑(qY_p_i[p,i,t] for p in product)
 
     # Export and final-use totals.
@@ -287,39 +287,39 @@ function define_equations()
     qINV[t=t1:T], qINV[t] == ∑(qPurchaserUse_p_u[p,:INV,t] for p in product)
 
     # Basic, border, margin, and purchaser prices.
-    pBasic[(p,u,o,t) in keys(pBasic); t in t1:T && o == domestic],
+    pBasic[p = product, u = use, o = domestic, t = t1:T],
     pBasic[p,u,o,t] == pSupply_p_o[p,o,t]
 
-    pMarginService_s_u[(s,u,t) in keys(pMarginService_s_u); t in t1:T],
+    pMarginService_s_u[s = margin_services, u = use, t = t1:T],
     pMarginService_s_u[s,u,t] == ∑(rOriginShare[s,u,o,t] * pBasic[s,u,o,t] for o in origin)
 
-    pMarginBundle_u[(u,t) in keys(pMarginBundle_u); t in t1:T],
+    pMarginBundle_u[u = use, t = t1:T],
     pMarginBundle_u[u,t] == ∑(rMarginServiceShare[s,u,t] * pMarginService_s_u[s,u,t] for s in margin_services)
 
-    pPurchaserUse_p_u_o[(p,u,o,t) in keys(pPurchaserUse_p_u_o); t in t1:T],
+    pPurchaserUse_p_u_o[p = product, u = use, o = origin, t = t1:T],
     pPurchaserUse_p_u_o[p,u,o,t] == (
       pBasic[p,u,o,t]
       + tNetProduct[p,u,t]
       + rMarginRate[p,u,t] * pMarginBundle_u[u,t]
     ) * (1 + tVAT[p,u,o,t])
 
-    pPurchaserUse_p_u[(p,u,t) in keys(pPurchaserUse_p_u); t in t1:T],
+    pPurchaserUse_p_u[p = product, u = ordinary_uses, t = t1:T],
     pPurchaserUse_p_u[p,u,t] == ∑(rOriginShare[p,u,o,t] * pPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
-    pPurchaserUse_u[(u,t) in keys(pPurchaserUse_u); t in t1:T],
+    pPurchaserUse_u[u = ordinary_uses, t = t1:T],
     pPurchaserUse_u[u,t] == ∑(rProductShare[p,u,t] * pPurchaserUse_p_u[p,u,t] for p in product)
 
     # Purchaser values include margin spend once through the purchaser price.
-    vPurchaserUse_p_u_o[(p,u,o,t) in keys(vPurchaserUse_p_u_o); t in t1:T],
+    vPurchaserUse_p_u_o[p = product, u = use, o = origin, t = t1:T],
     vPurchaserUse_p_u_o[p,u,o,t] == pPurchaserUse_p_u_o[p,u,o,t] * qPurchaserUse_p_u_o[p,u,o,t]
 
-    vPurchaserUse_p_u[(p,u,t) in keys(vPurchaserUse_p_u); t in t1:T],
+    vPurchaserUse_p_u[p = product, u = use, t = t1:T],
     vPurchaserUse_p_u[p,u,t] == ∑(vPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
-    vPurchaserUse_u[(u,t) in keys(vPurchaserUse_u); t in t1:T],
+    vPurchaserUse_u[u = use, t = t1:T],
     vPurchaserUse_u[u,t] == ∑(vPurchaserUse_p_u[p,u,t] for p in product)
 
-    vNetProductTax_p_u[(p,u,t) in keys(vNetProductTax_p_u); t in t1:T],
+    vNetProductTax_p_u[p = product, u = use, t = t1:T],
     vNetProductTax_p_u[p,u,t] ==
       tNetProduct[p,u,t] * ∑(qPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
@@ -327,40 +327,40 @@ function define_equations()
     vNetProductTax_u[u,t] ==
       ∑(vNetProductTax_p_u[p,u,t] for p in product)
 
-    vMarginService_s_u_o[(s,u,o,t) in keys(vMarginService_s_u_o); t in t1:T],
+    vMarginService_s_u_o[s = product, u = use, o = origin, t = t1:T],
     vMarginService_s_u_o[s,u,o,t] == pBasic[s,u,o,t] * qMarginService_s_u_o[s,u,o,t]
 
-    vMarginService_s_u[(s,u,t) in keys(vMarginService_s_u); t in t1:T],
+    vMarginService_s_u[s = margin_services, u = use, t = t1:T],
     vMarginService_s_u[s,u,t] == ∑(vMarginService_s_u_o[s,u,o,t] for o in origin)
 
-    vMarginBundle_u[(u,t) in keys(vMarginBundle_u); t in t1:T],
+    vMarginBundle_u[u = use, t = t1:T],
     vMarginBundle_u[u,t] == ∑(vMarginService_s_u[s,u,t] for s in margin_services)
 
-    vUse_p_u_o[(p,u,o,t) in keys(vUse_p_u_o); t in t1:T],
+    vUse_p_u_o[p = product, u = use, o = origin, t = t1:T],
     vUse_p_u_o[p,u,o,t] == pBasic[p,u,o,t] * qUse_p_u_o[p,u,o,t]
 
-    vY_p_i[(p,i,t) in keys(vY_p_i); t in t1:T],
+    vY_p_i[p = product, i = industry, t = t1:T],
     vY_p_i[p,i,t] == pY_p_i[p,i,t] * qY_p_i[p,i,t]
 
-    vSupply_p_o[(p,o,t) in keys(vSupply_p_o); t in t1:T && o == domestic],
+    vSupply_p_o[p = product, o = domestic, t = t1:T],
     vSupply_p_o[p,o,t] == ∑(vY_p_i[p,i,t] for i in industry)
 
-    vSupply_p_o[(p,o,t) in keys(vSupply_p_o); t in t1:T && o == import_origin],
+    vSupply_p_o[p = product, o = import_origin, t = t1:T],
     vSupply_p_o[p,o,t] == ∑(vUse_p_u_o[p,u,o,t] for u in use)
 
-    pSupply_p_o[(p,o,t) in keys(pSupply_p_o); t in t1:T],
+    pSupply_p_o[p = product, o = origin, t = t1:T],
     pSupply_p_o[p,o,t] * qSupply_p_o[p,o,t] == vSupply_p_o[p,o,t]
 
-    vY_i[(i,t) in keys(vY_i); t in t1:T],
+    vY_i[i = industry, t = t1:T],
     vY_i[i,t] == ∑(vY_p_i[p,i,t] for p in product)
 
-    pY_i[(i,t) in keys(pY_i); t in t1:T],
+    pY_i[i = industry, t = t1:T],
     pY_i[i,t] * qY_i[i,t] == vY_i[i,t]
 
-    vUse_u_o[(u,o,t) in keys(vUse_u_o); t in t1:T],
+    vUse_u_o[u = use, o = origin, t = t1:T],
     vUse_u_o[u,o,t] == ∑(vUse_p_u_o[p,u,o,t] for p in product)
 
-    pUse_u_o[(u,o,t) in keys(pUse_u_o); t in t1:T],
+    pUse_u_o[u = ordinary_uses, o = origin, t = t1:T],
     pUse_u_o[u,o,t] * qUse_u_o[u,o,t] == vUse_u_o[u,o,t]
 
     vSupply_o[o=origin, t=t1:T],
@@ -383,23 +383,23 @@ function define_equations()
 
     # Post-solve accounts that do not add rows to the square system.
     @test_constraint("Supply shares reproduce product output"; rtol=1e-3)
-    qSupply_p_o[(p,o,t) in keys(qSupply_p_o); o == domestic && t in t1:T],
+    qSupply_p_o[p = product, o = domestic, t = t1:T],
       qSupply_p_o[p,o,t] == ∑(qY_p_i[p,i,t] for i in industry)
 
     @test_constraint("Purchaser-use shares sum to total use"; rtol=1e-3)
-    qPurchaserUse_u[(u,t) in keys(qPurchaserUse_u); t in t1:T],
+    qPurchaserUse_u[u = ordinary_uses, t = t1:T],
       qPurchaserUse_u[u,t] == ∑(qPurchaserUse_p_u[p,u,t] for p in product)
 
     @test_constraint("Origin shares sum to product use"; rtol=1e-3)
-    qPurchaserUse_p_u[(p,u,t) in keys(qPurchaserUse_p_u); t in t1:T && u in ordinary_uses],
+    qPurchaserUse_p_u[p = product, u = ordinary_uses, t = t1:T],
       qPurchaserUse_p_u[p,u,t] == ∑(qPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
     @test_constraint("Margin-service shares sum to the margin bundle"; rtol=1e-3)
-    qMarginBundle_u[(u,t) in keys(qMarginBundle_u); t in t1:T],
+    qMarginBundle_u[u = use, t = t1:T],
       qMarginBundle_u[u,t] == ∑(qMarginService_s_u[s,u,t] for s in margin_services)
 
     @test_constraint("Margin origin shares sum to service demand"; rtol=1e-3)
-    qMarginService_s_u[(s,u,t) in keys(qMarginService_s_u); t in t1:T],
+    qMarginService_s_u[s = margin_services, u = use, t = t1:T],
       qMarginService_s_u[s,u,t] == ∑(qMarginService_s_u_o[s,u,o,t] for o in origin)
 
     @test_constraint("Imports sum by product and use"; rtol=1e-3)
@@ -421,14 +421,14 @@ function define_calibration()
     rProductShare[:,:,t1], qPurchaserUse_p_u[:,ordinary_uses,t1]
 
     rOriginShare[(p,u,o,t) in keys(qPurchaserUse_p_u_o); u in ordinary_uses && t == t1],
-    qPurchaserUse_p_u_o[(p,u,o,t) in keys(qPurchaserUse_p_u_o); u in ordinary_uses && t == t1]
+    qPurchaserUse_p_u_o[p = product, u = ordinary_uses, o = origin, t = t1]
 
     rMarginServiceShare[:,:,t1], qMarginService_s_u[:,:,t1]
 
     rMarginRate[:,:,t1], qMarginBundle_p_u[:,:,t1]
 
     rOriginShare[(s,u,o,t) in keys(qMarginService_s_u_o); (s,u,o) in margin_only_s_u_o && t == t1],
-    qMarginService_s_u_o[(s,u,o,t) in keys(qMarginService_s_u_o); (s,u,o) in margin_only_s_u_o && t == t1]
+    qMarginService_s_u_o[s = product, u = use, o = origin, t = t1; (s, u, o) in margin_only_s_u_o]
 
     tNetProduct[:,:,t1], vNetProductTax_p_u[:,:,t1]
 
@@ -436,14 +436,14 @@ function define_calibration()
   end
 
   return block + @block db begin
-    qPurchaserUse_p_u[(p,u,tt) in keys(qPurchaserUse_p_u); u in ordinary_uses && tt == t1],
-    qPurchaserUse_p_u[p,u,tt] == ∑(qPurchaserUse_p_u_o[p,u,o,tt] for o in origin)
+    qPurchaserUse_p_u[p = product, u = ordinary_uses, t = t1],
+    qPurchaserUse_p_u[p,u,t] == ∑(qPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
-    qPurchaserUse_u[(u,tt) in keys(qPurchaserUse_u); tt == t1],
-    qPurchaserUse_u[u,tt] == ∑(qPurchaserUse_p_u[p,u,tt] for p in product)
+    qPurchaserUse_u[u = ordinary_uses, t = t1],
+    qPurchaserUse_u[u,t] == ∑(qPurchaserUse_p_u[p,u,t] for p in product)
 
-    qMarginService_s_u[(s,u,tt) in keys(qMarginService_s_u); tt == t1],
-    qMarginService_s_u[s,u,tt] == ∑(qMarginService_s_u_o[s,u,o,tt] for o in origin)
+    qMarginService_s_u[s = margin_services, u = use, t = t1],
+    qMarginService_s_u[s,u,t] == ∑(qMarginService_s_u_o[s,u,o,t] for o in origin)
   end
 end
 

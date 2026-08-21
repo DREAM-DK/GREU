@@ -117,10 +117,10 @@ end
 # ============================================================================
 function define_equations()
   return @block db begin
-    qProd[(n, i, t) in keys(qProd); n == topNest[i] && t in t1:T],
+    qProd[n = node, i = industry, t = t1:T; n == topNest[i]],
     qProd[n, i, t] == qY_i[i, t] + qProductionLoss[i, t]
 
-    qProd[(n, i, t) in keys(qProd); haskey(parent, (n, i)) && t in t1:T],
+    qProd[n = node, i = industry, t = t1:T; haskey(parent, (n, i))],
     qProd[n, i, t] * pProd[n, i, t]^eProd[parent[n, i], i] ==
       uProd[n, i, t] *
       qProd[parent[n, i], i, t] *
@@ -145,10 +145,10 @@ function define_calibration()
   block = define_equations()
 
   @endo_exo_swap! block begin
-    uProd[(n, i, t) in keys(uProd); haskey(production_nesting[i], n) && t == t1],
+    uProd[n = node, i = industry, t = t1; haskey(production_nesting[i], n)],
     pProd[(n, i, t) in keys(uProd); haskey(production_nesting[i], n) && t == t1]
 
-    uProd[(n, i, t) in keys(uProd); !haskey(production_nesting[i], n) && t == t1],
+    uProd[n = node, i = industry, t = t1; !haskey(production_nesting[i], n)],
     qProd[(n, i, t) in keys(uProd); !haskey(production_nesting[i], n) && t == t1]
   end
 

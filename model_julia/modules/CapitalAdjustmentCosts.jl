@@ -47,24 +47,24 @@ end
 # ============================================================================
 function define_equations()
   return @block db begin
-    qInstCost_k_i[(k, i, t) in keys(qInstCost_k_i); t in t1:T],
+    qInstCost_k_i[k = capital_type, i = industry, t = t1:T],
     qInstCost_k_i[k, i, t] ==
       fInstCost_k_i[k, i, t] *
       (qI_k_i[k, i, t] / qK_k_i[k, i, t-1])^2 *
       qK_k_i[k, i, t-1]
 
-    dInstCost2dK_k_i[(k, i, t) in keys(dInstCost2dK_k_i); t in t1:T],
+    dInstCost2dK_k_i[k = capital_type, i = industry, t = t1:T],
     dInstCost2dK_k_i[k, i, t] ==
       2 * fInstCost_k_i[k, i, t] * qI_k_i[k, i, t] /
       (qK_k_i[k, i, t-1]/fq)
 
-    dInstCost2dKLag_k_i[(k, i, t) in keys(dInstCost2dKLag_k_i); t in t1:(T-1)],
+    dInstCost2dKLag_k_i[k = capital_type, i = industry, t = t1:(T-1)],
     dInstCost2dKLag_k_i[k, i, t] ==
       -fInstCost_k_i[k, i, t] *
       (2 * (1 - rKDepr_k_i[k, i, t]) + qI_k_i[k, i, t+1] * fq / qK_k_i[k, i, t]) *
       (qI_k_i[k, i, t+1] * fq / qK_k_i[k, i, t])
 
-    dInstCost2dKLag_k_i[(k, i, t) in keys(dInstCost2dKLag_k_i); t == T],
+    dInstCost2dKLag_k_i[k = capital_type, i = industry, t = T],
     dInstCost2dKLag_k_i[k, i, t] ==
       -fInstCost_k_i[k, i, t] *
       (2 * (1 - rKDepr_k_i[k, i, t]) + qI_k_i[k, i, t] * fq / qK_k_i[k, i, t]) *
@@ -74,13 +74,13 @@ function define_equations()
     qProductionLoss[i, t] ==
       ∑(qInstCost_k_i[k, i, t] for k in capital_type)
 
-    pCapitalAdjustment_k_i[(k, i, t) in keys(pCapitalAdjustment_k_i); t in t1:(T-1)],
+    pCapitalAdjustment_k_i[k = capital_type, i = industry, t = t1:(T-1)],
     pCapitalAdjustment_k_i[k, i, t] ==
       pProd[topNest[i], i, t] * dInstCost2dK_k_i[k, i, t]
       + (dInstCost2dKLag_k_i[k, i, t] /
         (1 + rHurdleRate_i[i, t+1]) * pProd[topNest[i], i, t+1] * fp)
 
-    pCapitalAdjustment_k_i[(k, i, t) in keys(pCapitalAdjustment_k_i); t == T],
+    pCapitalAdjustment_k_i[k = capital_type, i = industry, t = T],
     pCapitalAdjustment_k_i[k, i, t] ==
       pProd[topNest[i], i, t] * dInstCost2dK_k_i[k, i, t]
       + (dInstCost2dKLag_k_i[k, i, t] /

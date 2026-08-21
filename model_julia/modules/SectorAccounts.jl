@@ -175,7 +175,7 @@ end
 function define_equations()
   return @block db begin
     # Stock changes equal transactions, revaluations, and other volume changes.
-    vFinTransactions[(s,f,al,t) in keys(vFinTransactions); t in t1:T],
+    vFinTransactions[s = sector, f = fin_instrument, al = ass_liab, t = t1:T],
     vFinAL[s,f,al,t] == vFinAL[s,f,al,t-1]/fv
                        + vFinTransactions[s,f,al,t]
                        + vFinReval[s,f,al,t]
