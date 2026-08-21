@@ -47,6 +47,7 @@ end
 # Starting values
 # ==========================================================================
 function set_starting_values!(start_values)
+  # start_values contains all data read by the enabled modules.
   # Set only endogenous values that need a non-standard solver hot start.
   # Keep a value from an earlier solve unless this module needs to replace it.
   # isnothing(start_values[variable[t1]]) && (start_values[variable[t1]] = value)
