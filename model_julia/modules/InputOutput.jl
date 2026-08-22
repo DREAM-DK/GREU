@@ -49,7 +49,7 @@ const industry = sort(unique(
 
 const use = [industry; final_uses]
 @assert allunique(use) "Industry and final-use labels must be distinct"
-# Inventory changes are signed and exogenous, so they bypass the fixed shares.
+# Inventory changes are signed and exogenous, so they bypass the product-demand links.
 const ordinary_uses = setdiff(use, [:INV])
 
 # ============================================================================
@@ -96,7 +96,6 @@ const InputOutputTag = Tag(:InputOutput)
   vSupply_o[o=origin, t=t], "Supply value by origin"
 
   vY_i[(i,t)=select_axes(vY_p_i, 2, 3)], "Domestic output by industry"
-  vPurchaserUse_u[(u,t)=select_axes(vPurchaserUse_p_u, 2, 3)], "Purchaser spend by use"
   vNetProductTax_p_u[p=product, u=use, t=t; (p,u) in calibration_year_indices(vNetProductTax_p_u_data)], "Taxes less subsidies on products by product and use"
   vNetProductTax_u[u=use, t=t], "Taxes less subsidies on products by use"
 
@@ -118,8 +117,6 @@ end
 
   pPurchaserUse_p_u_o[(p,u,o,t)=vPurchaserUse_p_u_o], "Purchaser price by product, use, and origin"
   pPurchaserUse_p_u[(p,u,t)=vPurchaserUse_p_u[:,ordinary_uses,:]], "Purchaser price by product and use"
-  pPurchaserUse_u[(u,t)=vPurchaserUse_u[ordinary_uses,:]], "Purchaser price by use"
-
   pMarginBundle_u[(u,t)=vMarginBundle_u], "Margin-bundle price by use"
   pMarginService_s_u[(s,u,t)=vMarginService_s_u], "Margin-service price by service and use"
 
@@ -143,7 +140,11 @@ end
   qSupply_o[o=origin, t=t], "Supply by origin"
 
   qY_i[(i,t)=vY_i], "Domestic output by industry"
-  qPurchaserUse_u[(u,t)=vPurchaserUse_u[ordinary_uses,:]], "Purchaser use by use"
+  qM_p_i[(p,i,t)=qPurchaserUse_p_u[:,industry,:]], "Intermediate input by product and industry."
+  qC_p[(p,t)=qPurchaserUse_p_u[:,:C,:]], "Household and non-profit consumption by product."
+  qG_p[(p,t)=qPurchaserUse_p_u[:,:G,:]], "Government consumption by product."
+  qI_p[(p,t)=qPurchaserUse_p_u[:,:K,:]], "Fixed investment by product."
+  qX_p[(p,t)=qPurchaserUse_p_u[:,:X,:]], "Direct exports by product."
 
   qC[t], "Household and non-profit consumption"
   qCTourist[t] :: ForecastConstant, "Consumption in the country by non-resident households"
@@ -165,7 +166,6 @@ const pM_p_u = pBasic[:,:,import_origin,:]
 
 @variables db.model :: InputOutputTag begin
   rIndustryShare[(p,i,t)=qY_p_i] :: ForecastConstant, "Fixed industry share for each product"
-  rProductShare[(p,u,t)=qPurchaserUse_p_u[:,ordinary_uses,:]] :: ForecastConstant, "Fixed product share for each purchaser use"
   rOriginShare[(p,u,o,t)=merge_indices(qPurchaserUse_p_u_o[:,ordinary_uses,:,:], qMarginService_s_u_o)] :: ForecastConstant, "Fixed origin share"
   rMarginServiceShare[(s,u,t)=qMarginService_s_u] :: ForecastConstant, "Fixed margin-service share"
   rMarginRate[(p,u,t)=qMarginBundle_p_u] :: ForecastConstant, "Margin-bundle units per unit of purchaser use"
@@ -183,10 +183,6 @@ function set_data!(db)
   @assert Set(p for (p,_,tt) in keys(vY_p_i) if tt == t1) == Set(p for (p,o,tt) in keys(vSupply_p_o) if o == domestic && tt == t1) "Domestic product supply must match industry output"
   @assert Set(o for (_,o,tt) in keys(vSupply_p_o) if tt == t1) == Set(origin) "Each origin needs supply"
   @assert all(
-    abs(sum(cell_value(qPurchaserUse_p_u_o_data, p, u, o, calibration_year) for p in product for o in origin)) > cell_tolerance
-    for (u,tt) in keys(vPurchaserUse_u) if u in ordinary_uses && tt == t1
-  ) "Each use with a fixed product share needs non-zero demand"
-  @assert all(
     abs(sum(cell_value(qPurchaserUse_p_u_o_data, p, u, o, calibration_year) for o in origin)) > cell_tolerance
     for (p,u,tt) in keys(vNetProductTax_p_u) if tt == t1
   ) "Each net product tax needs non-zero purchaser use"
@@ -200,6 +196,20 @@ function set_data!(db)
   fill_cells!(db, qPurchaserUse_p_u_o, qPurchaserUse_p_u_o_data)
   fill_cells!(db, qMarginBundle_p_u, qMarginBundle_p_u_data)
   fill_cells!(db, vNetProductTax_p_u, vNetProductTax_p_u_data)
+
+  # Source-implied purchaser-use product cells and margin totals.
+  purchaser_use_years = Set(tt for (_,_,_,tt) in keys(qPurchaserUse_p_u_o_data))
+  margin_service_years = Set(tt for (_,_,_,tt) in keys(qMarginService_s_u_o_data))
+  purchaser_use_p_u(p, u, tt) = sum(cell_value(qPurchaserUse_p_u_o_data, p, u, o, tt) for o in origin)
+  db[qPurchaserUse_p_u] .= [tt in purchaser_use_years ? purchaser_use_p_u(p, u, tt) : nothing for (p,u,tt) in keys(qPurchaserUse_p_u)]
+  db[qM_p_i] .= [tt in purchaser_use_years ? purchaser_use_p_u(p, i, tt) : nothing for (p,i,tt) in keys(qM_p_i)]
+  db[qC_p] .= [tt in purchaser_use_years ? purchaser_use_p_u(p, :C, tt) : nothing for (p,tt) in keys(qC_p)]
+  db[qG_p] .= [tt in purchaser_use_years ? purchaser_use_p_u(p, :G, tt) : nothing for (p,tt) in keys(qG_p)]
+  db[qI_p] .= [tt in purchaser_use_years ? purchaser_use_p_u(p, :K, tt) : nothing for (p,tt) in keys(qI_p)]
+  db[qX_p] .= [tt in purchaser_use_years ? purchaser_use_p_u(p, :X, tt) : nothing for (p,tt) in keys(qX_p)]
+  db[qI] .= [tt in purchaser_use_years ? sum(purchaser_use_p_u(p, :K, tt) for p in product) : nothing for tt in t]
+  db[qMarginService_s_u] .= [tt in margin_service_years ? sum(cell_value(qMarginService_s_u_o_data, s, u, o, tt) for o in origin) : nothing for (s,u,tt) in keys(qMarginService_s_u)]
+
   # The source omits uses with no product tax: zero in reported years, open after.
   tax_years = Set(tt for (_,tt) in keys(vNetProductTax_u_data))
   db[vNetProductTax_u] .= [
@@ -213,7 +223,6 @@ function set_data!(db)
   db[pY_p_i] .= 1.0
   db[pM_p_u] .= 1.0
 
-  fill_cells!(db, vPurchaserUse_u, read_cells(aggregate_totals_file, "vPurchaserUse_u"))
   db[vCTourist] .= read_series(aggregate_totals_file, "vCTourist", t)
   db[vM] .= read_series(aggregate_totals_file, "vM", t)
   db[vX] .= read_series(aggregate_totals_file, "vX", t)
@@ -234,9 +243,12 @@ end
 
 function define_equations()
   return @block db begin
-    # Fixed product and origin shares. Inventories bypass them.
-    qPurchaserUse_p_u[p = product, u = ordinary_uses, t = t1:T],
-    qPurchaserUse_p_u[p,u,t] == rProductShare[p,u,t] * qPurchaserUse_u[u,t]
+    # Direct product demand. Inventories bypass the module links.
+    qPurchaserUse_p_u[(p,i,t) in keys(qM_p_i); t in t1:T], qPurchaserUse_p_u[p,i,t] == qM_p_i[p,i,t]
+    qPurchaserUse_p_u[p=product, u=:C, t=t1:T], qPurchaserUse_p_u[p,u,t] == qC_p[p,t]
+    qPurchaserUse_p_u[p=product, u=:G, t=t1:T], qPurchaserUse_p_u[p,u,t] == qG_p[p,t]
+    qPurchaserUse_p_u[p=product, u=:K, t=t1:T], qPurchaserUse_p_u[p,u,t] == qI_p[p,t]
+    qPurchaserUse_p_u[p=product, u=:X, t=t1:T], qPurchaserUse_p_u[p,u,t] == qX_p[p,t]
 
     qPurchaserUse_p_u[p = product, u = :INV, t = t1:T],
     qPurchaserUse_p_u[p,u,t] == ∑(qPurchaserUse_p_u_o[p,u,o,t] for o in origin)
@@ -279,11 +291,10 @@ function define_equations()
     qY_i[i = industry, t = t1:T],
     qY_i[i,t] == ∑(qY_p_i[p,i,t] for p in product)
 
-    # Export and final-use totals.
-    qX[t=t1:T], qX[t] == qPurchaserUse_u[:X,t] + qCTourist[t]
-    qC[t=t1:T], qC[t] == qPurchaserUse_u[:C,t] - qCTourist[t]
-    qG[t=t1:T], qG[t] == qPurchaserUse_u[:G,t]
-    qI[t=t1:T], qI[t] == qPurchaserUse_u[:K,t]
+    # Final-use totals.
+    qX[t=t1:T], qX[t] == ∑(qX_p[p,t] for p in product) + qCTourist[t]
+    qC[t=t1:T], qC[t] == ∑(qC_p[p,t] for p in product) - qCTourist[t]
+    qG[t=t1:T], qG[t] == ∑(qG_p[p,t] for p in product)
     qINV[t=t1:T], qINV[t] == ∑(qPurchaserUse_p_u[p,:INV,t] for p in product)
 
     # Basic, border, margin, and purchaser prices.
@@ -306,18 +317,12 @@ function define_equations()
     pPurchaserUse_p_u[p = product, u = ordinary_uses, t = t1:T],
     pPurchaserUse_p_u[p,u,t] == ∑(rOriginShare[p,u,o,t] * pPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
-    pPurchaserUse_u[u = ordinary_uses, t = t1:T],
-    pPurchaserUse_u[u,t] == ∑(rProductShare[p,u,t] * pPurchaserUse_p_u[p,u,t] for p in product)
-
     # Purchaser values include margin spend once through the purchaser price.
     vPurchaserUse_p_u_o[p = product, u = use, o = origin, t = t1:T],
     vPurchaserUse_p_u_o[p,u,o,t] == pPurchaserUse_p_u_o[p,u,o,t] * qPurchaserUse_p_u_o[p,u,o,t]
 
     vPurchaserUse_p_u[p = product, u = use, t = t1:T],
     vPurchaserUse_p_u[p,u,t] == ∑(vPurchaserUse_p_u_o[p,u,o,t] for o in origin)
-
-    vPurchaserUse_u[u = use, t = t1:T],
-    vPurchaserUse_u[u,t] == ∑(vPurchaserUse_p_u[p,u,t] for p in product)
 
     vNetProductTax_p_u[p = product, u = use, t = t1:T],
     vNetProductTax_p_u[p,u,t] ==
@@ -369,26 +374,22 @@ function define_equations()
     pSupply_o[o=origin, t=t1:T],
     pSupply_o[o,t] * qSupply_o[o,t] == vSupply_o[o,t]
 
-    vX[t=t1:T], vX[t] == vPurchaserUse_u[:X,t] + vCTourist[t]
+    vX[t=t1:T], vX[t] == ∑(vPurchaserUse_p_u[p,:X,t] for p in product) + vCTourist[t]
     pX[t=t1:T], pX[t] * qX[t] == vX[t]
 
-    pC[t=t1:T], pC[t] == pPurchaserUse_u[:C,t]
+    pC[t=t1:T], pC[t] * ∑(qC_p[p,t] for p in product) == ∑(vPurchaserUse_p_u[p,:C,t] for p in product)
     vC[t=t1:T], vC[t] == pC[t] * qC[t]
     vCTourist[t=t1:T], vCTourist[t] == pC[t] * qCTourist[t]
-    vG[t=t1:T], vG[t] == vPurchaserUse_u[:G,t]
+    vG[t=t1:T], vG[t] == ∑(vPurchaserUse_p_u[p,:G,t] for p in product)
     pG[t=t1:T], pG[t] * qG[t] == vG[t]
-    vI[t=t1:T], vI[t] == vPurchaserUse_u[:K,t]
+    vI[t=t1:T], vI[t] == ∑(vPurchaserUse_p_u[p,:K,t] for p in product)
     pI[t=t1:T], pI[t] * qI[t] == vI[t]
-    vINV[t=t1:T], vINV[t] == vPurchaserUse_u[:INV,t]
+    vINV[t=t1:T], vINV[t] == ∑(vPurchaserUse_p_u[p,:INV,t] for p in product)
 
     # Post-solve accounts that do not add rows to the square system.
     @test_constraint("Supply shares reproduce product output"; rtol=1e-3)
     qSupply_p_o[p = product, o = domestic, t = t1:T],
       qSupply_p_o[p,o,t] == ∑(qY_p_i[p,i,t] for i in industry)
-
-    @test_constraint("Purchaser-use shares sum to total use"; rtol=1e-3)
-    qPurchaserUse_u[u = ordinary_uses, t = t1:T],
-      qPurchaserUse_u[u,t] == ∑(qPurchaserUse_p_u[p,u,t] for p in product)
 
     @test_constraint("Origin shares sum to product use"; rtol=1e-3)
     qPurchaserUse_p_u[p = product, u = ordinary_uses, t = t1:T],
@@ -418,8 +419,6 @@ function define_calibration()
   @endo_exo_swap! block begin
     rIndustryShare[:,:,t1], qY_p_i[:,:,t1]
 
-    rProductShare[:,:,t1], qPurchaserUse_p_u[:,ordinary_uses,t1]
-
     rOriginShare[(p,u,o,t) in keys(qPurchaserUse_p_u_o); u in ordinary_uses && t == t1],
     qPurchaserUse_p_u_o[p = product, u = ordinary_uses, o = origin, t = t1]
 
@@ -435,16 +434,7 @@ function define_calibration()
     qCTourist[t1], vCTourist[t1]
   end
 
-  return block + @block db begin
-    qPurchaserUse_p_u[p = product, u = ordinary_uses, t = t1],
-    qPurchaserUse_p_u[p,u,t] == ∑(qPurchaserUse_p_u_o[p,u,o,t] for o in origin)
-
-    qPurchaserUse_u[u = ordinary_uses, t = t1],
-    qPurchaserUse_u[u,t] == ∑(qPurchaserUse_p_u[p,u,t] for p in product)
-
-    qMarginService_s_u[s = margin_services, u = use, t = t1],
-    qMarginService_s_u[s,u,t] == ∑(qMarginService_s_u_o[s,u,o,t] for o in origin)
-  end
+  return block
 end
 
 # ============================================================================

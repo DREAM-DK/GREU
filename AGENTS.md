@@ -209,7 +209,7 @@ Flow:
 5. Optional `set_starting_values!`
 6. `solve`
 
-Runs twice: static (`T = calibration_year`), then dynamic (`T = max_terminal_year`) using the static solution as start. Then zero-shock test (`solve(base_model(), baseline)` must match), module `run_tests`, and export `Output/baseline.parquet`.
+`calibration_modules` in `Calibrate.jl` selects the module set next to the solve. Calibration runs twice: static (`T = calibration_year`), then dynamic (`T = max_terminal_year`) using the static result as its start. The zero-shock test and module tests use the full model before export to `Output/baseline.parquet`.
 
 After calibration, residual values indicate data-model discrepancies.
 

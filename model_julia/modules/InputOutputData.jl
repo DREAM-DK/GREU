@@ -297,10 +297,6 @@ function refresh_input_output_data!(dir = input_output_data_dir)
     residents,
     margin_service_totals,
   )
-  purchaser_use_totals = sum_by(
-    vcat(accounting_table(use_table, "P2_ADJ"), residents),
-    [:use, :year],
-  )
   imports = sum_by(
     vcat(
       accounting_series(use_table, "CPA_TOTAL", "TU"; stock_flow = "IMP"),
@@ -350,7 +346,6 @@ function refresh_input_output_data!(dir = input_output_data_dir)
   CSV.write(
     joinpath(dir, "input_output_aggregate_totals.csv"),
     vcat(
-      long_format(:vPurchaserUse_u, purchaser_use_totals, [:use, :year]),
       long_format(:vY, output, [:year]),
       long_format(:vCTourist, tourist_spend, [:year]),
       long_format(:vM, imports, [:year]),

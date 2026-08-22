@@ -13,10 +13,10 @@ calibration_modules = [
   InputOutput,
   Production,
   Labor,
-  # Capital,
-  Intermediates,
+  Capital,
+  # Intermediates,
   # CapitalAdjustmentCosts,
-  # SectorAccounts,
+  SectorAccounts,
 ]
 
 # ============================================================================

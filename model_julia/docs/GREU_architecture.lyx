@@ -188,7 +188,7 @@ The model is built in three layers,
 \begin_layout Standard
 The core accounting layer is useful for testing if data is internally consistent and for basic input output analysis.
  This layer should be free of assumptions about economic behavior as far as possible.
- Its fixed shares are default closures that behavioral modules can replace.
+ Demand modules send product demand to this layer directly.
 \end_layout
 
 \begin_layout Standard
@@ -587,28 +587,22 @@ Pricing uses
 \end_layout
 
 \begin_layout Subsection
-Product split
+Product demand
 \end_layout
 
 \begin_layout Standard
-We default to fixed shares of products for each purchaser use:
+Demand modules set purchaser use by product directly.
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
-D_{p,u}=\mu_{p,u}D_{u}
-\]
-
+The input-output system has no use-level demand quantity or product-share parameter.
+ A demand module can use fixed shares,
+ substitution,
+ or other rules to determine
+\begin_inset Formula $D_{p,u}$
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-The shares can be endogenized by other modules to allow substitution.
- For private consumption,
- the consumption-type split below replaces this use-level mapping.
+.
  Inventories are the exception below.
 \end_layout
 
@@ -1045,6 +1039,18 @@ where
 \end_layout
 
 \begin_layout Standard
+The default full tree adds materials at
+\begin_inset Formula $KLBM$
+\end_inset
+
+ and energy at the top nest
+\begin_inset Formula $KELBM$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
 Let
 \end_layout
 
@@ -1278,11 +1284,7 @@ I_{k}=\sum_{i}I_{k,i}
 \end_layout
 
 \begin_layout Standard
-Endogenize 
-\begin_inset Formula $\mu_{p,K}$
-\end_inset
-
- by
+Fixed investment enters purchaser use by product:
 \end_layout
 
 \begin_layout Standard
@@ -1339,18 +1341,31 @@ D_{p,i}=\sum_{m}\mu_{p,m,i}M_{m,i}
 \end_layout
 
 \begin_layout Standard
+The resulting
+\begin_inset Formula $D_{p,i}$
+\end_inset
+
+ enters input-output purchaser use directly.
+\end_layout
+
+\begin_layout Standard
 where for example
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \[
-m=\left\{ \text{transport energy},\text{heating},\text{processing energy},\text{other intermediates}\right\} 
+m=\left\{ \text{energy},\text{materials}\right\}
 \]
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Until detailed energy data are added,
+ synthetic data assign CPA sections B and D to energy and all other products to materials.
 \end_layout
 
 \begin_layout Standard
@@ -1537,18 +1552,7 @@ P^{D}_{p,u,o}=\left(P_{p,u,o}+t_{p,u,o}+a^{S}_{p,u}P^{S}_{u}\right)\left(1+t^{\t
 \end_layout
 
 \begin_layout Standard
-This is the price that enters into any substitution decision and the purchaser-use aggregate:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-P^{D}_{u}D_{u}=\sum_{p,o}P^{D}_{p,u,o}D_{p,u,o}.
-\]
-
-\end_inset
-
-
+This is the price that enters into any product substitution decision.
 \end_layout
 
 \begin_layout Standard
@@ -1567,11 +1571,7 @@ Y_{p,u}=D_{p,u,\text{domestic}}+S_{p,u,\text{domestic}}.
 \end_layout
 
 \begin_layout Standard
-Margin demand enters the product balance but not
-\begin_inset Formula $D_{u}$
-\end_inset
-
-.
+Margin demand enters the product balance but not the direct-demand quantity sum.
  Its value is already in the purchaser price of direct demand,
  so do not add
 \begin_inset Formula $P^{S}_{u}S_{u}$
@@ -1718,6 +1718,14 @@ D_{p,C}=\sum_{c\in\mathcal{C}}\mu_{p,c}C_{c}
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+The resulting
+\begin_inset Formula $D_{p,C}$
+\end_inset
+
+ enters input-output purchaser use directly.
 \end_layout
 
 \begin_layout Standard

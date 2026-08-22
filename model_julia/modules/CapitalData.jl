@@ -1,19 +1,21 @@
+# Fetch and write capital data for production.
+# Include capital stocks, flows, and the investment-product split.
+# Keep labor data in LaborData.jl.
 include(joinpath(@__DIR__, "..", "Settings.jl"))
 include("InputOutputSettings.jl")
 include("ProductionSettings.jl")
 include("EurostatClient.jl")
 include(joinpath(@__DIR__, "..", "DataUtils.jl"))
 
-module ProductionData
+module CapitalData
 
 using CSV
 using DataFrames
 import ..EurostatClient
-import ..DataUtils: long_format, sum_by
+import ..DataUtils: long_format, read_cells, sum_by
 import ..InputOutputSettings:
-  eurostat_unit,
-  eurostat_use_dataset,
-  nace_a64_to_a21,
+  cell_tolerance,
+  input_output_data_dir,
   section_to_industry
 import ..ProductionSettings:
   capital_flow_dataset,
@@ -29,6 +31,7 @@ import ..Settings: calibration_year, country_code
 const data_years = (calibration_year - 1):calibration_year
 const year_params = ["time" => string(year) for year in data_years]
 const capital_nace_to_industry = Dict(string(section) => i for (section, i) in section_to_industry)
+const purchaser_use_file = joinpath(input_output_data_dir, "input_output_purchaser_use.csv")
 
 # ============================================================================
 # Eurostat data
@@ -73,22 +76,6 @@ function fetch_capital_table(dataset, unit, asset_map, params...)
   return sum_by(df, [:k, :industry, :year])
 end
 
-"""Fetch employee pay by industry as the labor quantity at the base price."""
-function fetch_labor_table()
-  df = EurostatClient.fetch_table(
-    eurostat_use_dataset,
-    "unit" => eurostat_unit,
-    "stk_flow" => "TOTAL",
-    "prd_ava" => "D1",
-    "geo" => country_code,
-    year_params...,
-  )
-  df = df[in.(df.ind_use, Ref(Set(keys(nace_a64_to_a21)))), :]
-  df.industry = [nace_a64_to_a21[code] for code in df.ind_use]
-  df.year = parse.(Int, df.time)
-  return sum_by(df, [:industry, :year])
-end
-
 # CRC values a stock at current prices. PYR values the same stock at last
 # year's prices. Their ratio gives the asset price change.
 """Express capital stocks in calibration-year prices."""
@@ -120,10 +107,80 @@ function rebase_to_calibration_prices(current_cost, previous_year_cost)
 end
 
 # ============================================================================
+# Synthetic investment split
+# ============================================================================
+
+"""Split fixed-investment products across capital types."""
+function synthetic_investment_product_split(
+  investment,
+  purchaser_use = read_cells(purchaser_use_file, "qPurchaserUse_p_u_o"),
+)
+  investment_product = sort(unique(
+    p
+    for ((p, u, o, year), value) in purchaser_use
+    if u == :K && year == calibration_year && abs(value) > cell_tolerance
+  ))
+  investment_product_quantity = Dict(
+    p => sum(
+      value
+      for ((pp, u, o, year), value) in purchaser_use
+      if pp == p && u == :K && year == calibration_year
+    )
+    for p in investment_product
+  )
+  capital_type = sort(unique(
+    row.k for row in eachrow(investment) if row.year == calibration_year
+  ))
+  capital_type_value = Dict(
+    k => sum(
+      row.value
+      for row in eachrow(investment)
+      if row.k == k && row.year == calibration_year
+    )
+    for k in capital_type
+  )
+
+  @assert :structures in capital_type "Investment split needs structures"
+  @assert all(>(cell_tolerance), values(capital_type_value)) "Each capital type needs positive investment"
+
+  investment_quantity = sum(values(investment_product_quantity))
+  nonconstruction_quantity = sum(
+    value for (p, value) in investment_product_quantity if p != :F
+  )
+  @assert investment_quantity > cell_tolerance "Fixed investment must be positive"
+  @assert nonconstruction_quantity > cell_tolerance "Non-construction investment must be positive"
+
+  capital_quantity = Dict(
+    k => value / sum(values(capital_type_value)) * investment_quantity
+    for (k, value) in capital_type_value
+  )
+  nonconstruction_capital_quantity = Dict(
+    k => value - (k == :structures ? investment_product_quantity[:F] : 0.0)
+    for (k, value) in capital_quantity
+  )
+  @assert all(
+    >(cell_tolerance),
+    values(nonconstruction_capital_quantity),
+  ) "Each capital type needs positive non-construction investment"
+  split = DataFrame([
+    (
+      product = p,
+      k = k,
+      value = p == :F ?
+        (k == :structures ? investment_product_quantity[p] : 0.0) :
+        investment_product_quantity[p] *
+          nonconstruction_capital_quantity[k] / nonconstruction_quantity,
+    )
+    for p in investment_product for k in capital_type
+  ])
+  return split
+end
+
+# ============================================================================
 # Checked-in data
 # ============================================================================
 
-function refresh_production_data!(dir = production_data_dir)
+function refresh_capital_data!(dir = production_data_dir)
   mkpath(dir)
   stock = rebase_to_calibration_prices(
     fetch_capital_table(capital_stock_dataset, stock_unit, stock_asset_to_capital_type),
@@ -135,15 +192,16 @@ function refresh_production_data!(dir = production_data_dir)
     flow_asset_to_capital_type,
     "na_item" => "P51G",
   )
-  labor = fetch_labor_table()
+  investment_product_split = synthetic_investment_product_split(investment)
 
   CSV.write(joinpath(dir, "production_capital.csv"), vcat(
     long_format(:qK_k_i, stock, [:k, :industry, :year]),
     long_format(:vI_k_i, investment, [:k, :industry, :year]),
   ))
+  # Replace this synthetic table with direct country data when it exists.
   CSV.write(
-    joinpath(dir, "production_labor.csv"),
-    long_format(:qL_i, labor, [:industry, :year]),
+    joinpath(dir, "production_investment_product_split.csv"),
+    long_format(:qI_p_k, investment_product_split, [:product, :k]),
   )
   return nothing
 end
@@ -151,5 +209,5 @@ end
 end # module
 
 if abspath(PROGRAM_FILE) == abspath(@__FILE__)
-  ProductionData.refresh_production_data!()
+  CapitalData.refresh_capital_data!()
 end

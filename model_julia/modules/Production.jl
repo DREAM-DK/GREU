@@ -7,8 +7,8 @@ module Production
 
 using SquareModels
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
-import ..InputOutput: industry, qY_i, qY_p_i_data
-import ..ProductionSettings: production_nesting
+import ..InputOutput: industry, qY_i
+import ..ProductionSettings: capital_type, intermediate_type, labor_type, production_nesting
 import ..db
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant, ForecastZero
@@ -54,6 +54,7 @@ end
 
 @variables db.model :: ProductionTag begin
   uProd[n = node, i = industry, t = t; haskey(parent, (n, i))] :: ForecastConstant, "CES share by child node and industry."
+  qTop2qY[i = industry, t = t] :: ForecastConstant, "Ratio of top-nest quantity to output by industry."
   eProd[n = node, i = industry; haskey(production_nesting[i], n)], "Substitution elasticity by production nest and industry."
 end
 
@@ -64,51 +65,19 @@ function set_data!(db)
   db[eProd] .= [production_nesting[i][n].elasticity for (n, i) in keys(eProd)]
   db[vProductionTax_i] .= 0.0
 
-  # Non-top nest prices identify their CES shares in calibration.
-  db[pProd] .= [
-    haskey(production_nesting[i], n) && haskey(parent, (n, i)) && year == t1 ? 1.0 : nothing
-    for (n, i, year) in keys(pProd)
-  ]
+  # All factor prices are calibrated to 1.0
+  db[pProd] .= 1
+
   return nothing
 end
 
 # ============================================================================
 # Starting values
 # ============================================================================
-function qProd_start(n, i)
-  if n == topNest[i]
-    output = sum(cell for ((_, ii, year), cell) in qY_p_i_data if ii == i && year == t1)
-    @assert isfinite(output) && output > 0 "Production output starts must be finite and positive"
-    return output
-  end
-  return qProd_start(parent[n, i], i) / length(production_nesting[i][parent[n, i]].children)
-end
-
 function set_starting_values!(start_values)
-  # Use observed output, equal child shares, and unit prices at t1.
-  q_keys = [
-    (n, i, year)
-    for (n, i, year) in keys(qProd)
-    if year == t1 && isnothing(start_values[qProd[n, i, year]])
-  ]
-  start_values[[qProd[key...] for key in q_keys]] .= [qProd_start(n, i) for (n, i, _) in q_keys]
-
-  p_keys = [
-    (n, i, year)
-    for (n, i, year) in keys(pProd)
-    if year == t1 && isnothing(start_values[pProd[n, i, year]])
-  ]
-  start_values[[pProd[key...] for key in p_keys]] .= 1.0
-
-  u_keys = [
-    (n, i, year)
-    for (n, i, year) in keys(uProd)
-    if year == t1 && isnothing(start_values[uProd[n, i, year]])
-  ]
-  start_values[[uProd[key...] for key in u_keys]] .= [
-    1 / length(production_nesting[i][parent[n, i]].children)
-    for (n, i, _) in u_keys
-  ]
+  start_values[qProd[capital_type,:,:]] .= start_values[:qK_k_i][capital_type,:,:]
+  start_values[qProd[labor_type,:,:]] .= start_values[:qL_l_i][labor_type,:,:]
+  start_values[qProd[intermediate_type,:,:]] .= start_values[:qM_m_i][intermediate_type,:,:]
   return nothing
 end
 
@@ -118,7 +87,7 @@ end
 function define_equations()
   return @block db begin
     qProd[n = node, i = industry, t = t1:T; n == topNest[i]],
-    qProd[n, i, t] == qY_i[i, t] + qProductionLoss[i, t]
+    qProd[n, i, t] == qTop2qY[i, t] * qY_i[i, t] + qProductionLoss[i, t]
 
     qProd[n = node, i = industry, t = t1:T; haskey(parent, (n, i))],
     qProd[n, i, t] * pProd[n, i, t]^eProd[parent[n, i], i] ==
@@ -127,12 +96,10 @@ function define_equations()
       pProd[parent[n, i], i, t]^eProd[parent[n, i], i]
 
     pProd[n = node, i = industry, t = t1:T; haskey(production_nesting[i], n)],
-    pProd[n, i, t] * qProd[n, i, t] ==
-      ∑(pProd[child, i, t] * qProd[child, i, t] for child in production_nesting[i][n].children)
+    pProd[n, i, t] * qProd[n, i, t] == ∑(pProd[child, i, t] * qProd[child, i, t] for child in production_nesting[i][n].children)
 
     pY0[i = industry, t = t1:T],
-    pY0[i, t] * qY_i[i, t] ==
-      pProd[topNest[i], i, t] * qY_i[i, t] + vProductionTax_i[i, t]
+    pY0[i, t] * qTop2qY[i, t] * qY_i[i, t] == pProd[topNest[i], i, t] * qProd[topNest[i], i, t] + vProductionTax_i[i, t]
   end
 end
 
@@ -140,8 +107,8 @@ end
 # Calibration
 # ============================================================================
 function define_calibration()
-  # Identify nest shares from pProd and leaf shares from qProd. Factor modules
-  # make qProd endogenous from factor data.
+  # Identify nest shares from pProd, leaf shares from qProd, and the top-nest
+  # to output ratio from pProd at the top nest.
   block = define_equations()
 
   @endo_exo_swap! block begin
@@ -150,6 +117,9 @@ function define_calibration()
 
     uProd[n = node, i = industry, t = t1; !haskey(production_nesting[i], n)],
     qProd[(n, i, t) in keys(uProd); !haskey(production_nesting[i], n) && t == t1]
+
+    qTop2qY[:,t1],
+    pProd[(n, i, t) in keys(pProd); n == topNest[i] && t == t1]
   end
 
   return block

@@ -9,13 +9,12 @@ import ..DataUtils: fill_cells!, read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fp, fq
 import ..InputOutput:
   industry,
+  product,
   pPurchaserUse_p_u,
-  qPurchaserUse_p_u_o_data,
-  qPurchaserUse_p_u,
-  qPurchaserUse_u,
-  rProductShare,
+  qI,
+  qI_p,
   vI
-import ..InputOutputSettings: cell_tolerance, origin
+import ..InputOutputSettings: cell_tolerance
 import ..Production: parent, pProd, qProd
 import ..ProductionSettings:
   capital_type,
@@ -30,8 +29,10 @@ import ..Tags: ForecastConstant, ForecastZero
 # Checked-in data
 # ============================================================================
 const capital_file = joinpath(production_data_dir, "production_capital.csv")
+const investment_product_split_file = joinpath(production_data_dir, "production_investment_product_split.csv")
 const qK_k_i_data = read_cells(capital_file, "qK_k_i")
 const vI_k_i_data = read_cells(capital_file, "vI_k_i")
+const qI_p_k_data = read_cells(investment_product_split_file, "qI_p_k")
 
 # ============================================================================
 # Cell masks and investment split
@@ -39,36 +40,15 @@ const vI_k_i_data = read_cells(capital_file, "vI_k_i")
 # A capital cell needs a positive current and lagged stock.
 const capital_k_i = Set(
   (k, i)
-  for ((k, i, year), value) in qK_k_i_data
+  for ((k,i,year), value) in qK_k_i_data
   if year == calibration_year &&
     value > cell_tolerance &&
-    get(qK_k_i_data, (k, i, calibration_year-1), 0.0) > cell_tolerance
+    get(qK_k_i_data, (k,i,calibration_year-1), 0.0) > cell_tolerance
 )
 
-# The input-output data give products but not capital types. Construction forms
-# structures. Split all other products by investment net of construction.
-const investment_product = sort(unique(
-  p for (p, u, year) in keys(qPurchaserUse_p_u) if u == :K && year == t1
-))
-@assert :F in investment_product "Capital needs construction investment"
-@assert :structures in capital_type "Construction needs a structures capital type"
-const investment_product_k = Set(
-  (p, k)
-  for p in investment_product, k in capital_type
-  if p != :F || k == :structures
-)
-const investment_product_quantity = Dict(
-  p => sum(get(qPurchaserUse_p_u_o_data, (p, :K, o, calibration_year), 0.0) for o in origin)
-  for p in investment_product
-)
-const nonconstruction_product_share = let
-  total = sum(value for (p, value) in investment_product_quantity if p != :F)
-  @assert total > cell_tolerance "Non-construction investment must be positive"
-  Dict(
-    p => value / total
-    for (p, value) in investment_product_quantity if p != :F
-  )
-end
+# The input-output data give products but not capital types. A separate table
+# gives the base-year product split for each capital type.
+const investment_product_k = Set(keys(qI_p_k_data))
 
 # ============================================================================
 # Variables
@@ -76,27 +56,27 @@ end
 const CapitalTag = Tag(:Capital)
 
 @variables db.model :: (CapitalTag, GrowthAdjusted) begin
-  qK_k_i[k = capital_type, i = industry, t = t; (k, i) in capital_k_i], "Capital stock by type and industry."
-  qI_k_i[(k, i, t) = qK_k_i], "Capital flow by type and industry."
-  qI_k[k = capital_type, t = t], "Investment by capital type."
-  qI_p_k[p = investment_product, k = capital_type, t = t; (p, k) in investment_product_k], "Investment by product and capital type."
+  qK_k_i[k=capital_type, i=industry, t = t; (k, i) in capital_k_i], "Capital stock by type and industry."
+  qI_k_i[(k,i,t) = qK_k_i], "Capital flow by type and industry."
+  qI_k[k=capital_type, t = t], "Investment by capital type."
+  qI_p_k[p=product, k=capital_type, t = t; (p, k) in investment_product_k], "Investment by product and capital type."
 end
 
 @variables db.model :: (CapitalTag, InflationAdjusted) begin
-  pK_k_i[(k, i, t) = qK_k_i], "User cost of capital by type and industry."
-  pI_k[k = capital_type, t = t], "Investment price by capital type."
-  pMarginalCapitalTax_k_i[(k, i, t) = qK_k_i], "Marginal corporation tax per unit of capital."
-  pCapitalAdjustment_k_i[(k, i, t) = qK_k_i] :: ForecastZero, "Added user cost from capital adjustment by type and industry."
+  pK_k_i[(k,i,t) = qK_k_i], "User cost of capital by type and industry."
+  pI_k[k=capital_type, t = t], "Investment price by capital type."
+  pMarginalCapitalTax_k_i[(k,i,t) = qK_k_i], "Marginal corporation tax per unit of capital."
+  pCapitalAdjustment_k_i[(k,i,t) = qK_k_i] :: ForecastZero, "Added user cost from capital adjustment by type and industry."
 end
 
 @variables db.model :: (CapitalTag, GrowthAdjusted, InflationAdjusted) begin
-  vI_k_i[(k, i, t) = qK_k_i], "Investment value by capital type and industry."
+  vI_k_i[(k,i,t) = qK_k_i], "Investment value by capital type and industry."
 end
 
 @variables db.model :: CapitalTag begin
-  rKDepr_k_i[(k, i, t) = qK_k_i] :: ForecastConstant, "Capital depreciation rate by type and industry."
-  rHurdleRate_i[i = industry, t = t] :: ForecastConstant, "Investment hurdle rate by industry."
-  rInvestmentProductShare[(p, k, t) = qI_p_k] :: ForecastConstant, "Fixed product share by capital type."
+  rKDepr_k_i[(k,i,t) = qK_k_i] :: ForecastConstant, "Capital depreciation rate by type and industry."
+  rHurdleRate_i[i=industry, t = t] :: ForecastConstant, "Investment hurdle rate by industry."
+  rInvestmentProductShare[(p,k,t) = qI_p_k] :: ForecastConstant, "Fixed product share by capital type."
 end
 
 # ============================================================================
@@ -109,100 +89,72 @@ function set_data!(db)
     if haskey(parent, (k, i)) && !haskey(production_nesting[i], k)
   ) == capital_k_i "Capital data and the industry nest maps must agree"
   @assert Set(first.(capital_k_i)) == Set(capital_type) "Each capital type needs a live stock"
-  @assert all(haskey(vI_k_i_data, (k, i, t1)) for (k, i) in capital_k_i) "Each capital stock needs calibration-year investment"
-  @assert (:K, t1) in keys(qPurchaserUse_u) "Capital needs fixed investment purchaser use"
-
+  @assert all(haskey(vI_k_i_data, (k,i,t1)) for (k, i) in capital_k_i) "Each capital stock needs calibration-year investment"
   fill_cells!(db, qK_k_i, qK_k_i_data)
   fill_cells!(db, vI_k_i, vI_k_i_data)
-  db[[pProd[k, i, t1] for (k, i) in capital_k_i]] .= 1.0
-  db[rHurdleRate_i] .= 0.2
+  db[[pProd[k,i,t1] for (k, i) in capital_k_i]] .= 1.0
+  db[rHurdleRate_i] .= 0.15
   db[pMarginalCapitalTax_k_i] .= 0.0
+  db[qI_p_k] .= [
+    year == t1 ? qI_p_k_data[p, k] : nothing
+    for (p,k,year) in keys(qI_p_k)
+  ]
   return nothing
 end
 
 # ============================================================================
 # Equations
 # ============================================================================
-define_equations() = define_equations(t1:T)
-
-function define_equations(investment_link_years)
+function define_equations()
   return @block db begin
     # One-year time to build. Installed stock sets the shadow price.
-    pProd[k = capital_type, i = industry, t = t1:T],
-    qProd[k, i, t] == pK_k_i[k, i, t1] * qK_k_i[k, i, t-1]/fq
+    pProd[k=capital_type, i=industry, t=t1:T],
+    qProd[k,i,t] == pK_k_i[k,i,t1] * qK_k_i[k,i,t-1]/fq
 
     # User cost equals the shadow price in expectation. This sets lagged capital.
-    qK_k_i[k = capital_type, i = industry, t = t1:(T-1)],
-    pProd[k, i, t+1] == pK_k_i[k, i, t+1] / pK_k_i[k, i, t1]
+    qK_k_i[k=capital_type, i=industry, t=t1:(T-1)],
+    pProd[k,i,t+1] == pK_k_i[k,i,t+1] / pK_k_i[k,i,t1]
 
     # Terminal condition
-    qK_k_i[k = capital_type, i = industry, t = T; T > t1],
-    qK_k_i[k, i, t] == qK_k_i[k, i, t-1]
+    qK_k_i[k=capital_type, i=industry, t=T; T > t1],
+    qK_k_i[k,i,t] == qK_k_i[k,i,t-1]
 
-    # Capital accumulation and the fixed-investment product split.
-    qI_k_i[k = capital_type, i = industry, t = t1:T],
-    qI_k_i[k, i, t] == qK_k_i[k, i, t] - (1 - rKDepr_k_i[k, i, t]) * qK_k_i[k, i, t-1]/fq
+    # Capital accumulation
+    qI_k_i[k=capital_type, i=industry, t=t1:T],
+    qI_k_i[k,i,t] == qK_k_i[k,i,t] - (1 - rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq
 
-    qI_k[k = capital_type, t = t1:T],
-    qI_k[k, t] == ∑(qI_k_i[k, i, t] for i in industry)
+    qI_k[k=capital_type, t=t1:T],
+    qI_k[k,t] == ∑(qI_k_i[k,i,t] for i in industry)
 
-    # Construction forms structures in the calibration year.
-    qI_p_k[p = :F, k = capital_type, t = t1],
-    qI_p_k[p, k, t] == qPurchaserUse_p_u[p, :K, t]
+    # Product split.
+    qI_p_k[p=product, k=capital_type, t=t1:T],
+    qI_p_k[p,k,t] == rInvestmentProductShare[p,k,t] * qI_k[k,t]
 
-    # Split other products by investment net of construction.
-    qI_p_k[p = investment_product, k = capital_type, t = t1; p != :F],
-    qI_p_k[p, k, t] == nonconstruction_product_share[p] *
-      (qI_k[k, t] - ∑(
-        qI_p_k[pp, kk, t]
-        for (pp, kk) in investment_product_k if pp == :F && kk == k
-      ))
+    qI_p[(p,t) in keys(qI_p); t in t1:T], qI_p[p,t] == ∑(qI_p_k[p,k,t] for k in capital_type)
 
-    # Hold each capital type's calibrated product mix fixed.
-    qI_p_k[p = investment_product, k = capital_type, t = (t1+1):T],
-    qI_p_k[p, k, t] == rInvestmentProductShare[p, k, t] * qI_k[k, t]
+    qI[t=t1:T], qI[t] == ∑(qI_k[k,t] for k in capital_type)
 
-    rInvestmentProductShare[p = investment_product, k = capital_type, t = t1],
-    rInvestmentProductShare[p, k, t] * qI_k[k, t] == qI_p_k[p, k, t]
+    pI_k[k=capital_type, t=t1:T],
+    pI_k[k,t] * qI_k[k,t] == ∑(pPurchaserUse_p_u[p,:K,t] * qI_p_k[p,k,t] for p in product)
 
-    rProductShare[p = investment_product, u = :K, t = investment_link_years],
-    qPurchaserUse_p_u[p, u, t] ==
-      ∑(qI_p_k[p, k, t] for k in capital_type if (p, k) in investment_product_k)
-
-    qPurchaserUse_u[u = [:K], t = investment_link_years],
-    qPurchaserUse_u[u, t] == ∑(qI_k[k, t] for k in capital_type)
-
-    pI_k[k = capital_type, t = t1:T],
-    pI_k[k, t] * qI_k[k, t] ==
-      ∑(
-        pPurchaserUse_p_u[p, :K, t] * qI_p_k[p, k, t]
-        for p in investment_product if (p, k) in investment_product_k
-      )
-
-    vI_k_i[k = capital_type, i = industry, t = t1:T],
-    vI_k_i[k, i, t] == pI_k[k, t] * qI_k_i[k, i, t]
+    vI_k_i[k=capital_type, i=industry, t=t1:T],
+    vI_k_i[k,i,t] == pI_k[k,t] * qI_k_i[k,i,t]
 
     # Capital user cost. The adjustment term stays zero without its module.
-    pK_k_i[k = capital_type, i = industry, t = t1:(T-1)],
-    pK_k_i[k, i, t] ==
-      pI_k[k, t]
-      + pMarginalCapitalTax_k_i[k, i, t]
-      - ((1 - rKDepr_k_i[k, i, t+1]) /
-        (1 + rHurdleRate_i[i, t+1]) *
-        (pI_k[k, t+1] - pMarginalCapitalTax_k_i[k, i, t+1]) * fp)
-      + pCapitalAdjustment_k_i[k, i, t]
+    pK_k_i[k=capital_type, i=industry, t=t1:(T-1)],
+    pK_k_i[k,i,t] == (
+      pI_k[k,t] + pMarginalCapitalTax_k_i[k,i,t]
+      - (1 - rKDepr_k_i[k,i,t+1]) / (1 + rHurdleRate_i[i, t+1]) * (pI_k[k, t+1]*fp - pMarginalCapitalTax_k_i[k,i,t+1]*fp)
+      + pCapitalAdjustment_k_i[k,i,t])
 
-    pK_k_i[k = capital_type, i = industry, t = T],
-    pK_k_i[k, i, t] ==
-      pI_k[k, t]
-      + pMarginalCapitalTax_k_i[k, i, t]
-      - ((1 - rKDepr_k_i[k, i, t]) /
-        (1 + rHurdleRate_i[i, t]) *
-        (pI_k[k, t] - pMarginalCapitalTax_k_i[k, i, t]) * fp)
-      + pCapitalAdjustment_k_i[k, i, t]
+    pK_k_i[k=capital_type, i=industry, t = T],
+    pK_k_i[k,i,t] == (
+      pI_k[k,t] + pMarginalCapitalTax_k_i[k,i,t]
+      - (1 - rKDepr_k_i[k,i,t]) / (1 + rHurdleRate_i[i, t]) * (pI_k[k, t]*fp - pMarginalCapitalTax_k_i[k,i,t]*fp)
+      + pCapitalAdjustment_k_i[k,i,t])
 
     @test_constraint("Capital investment values sum to fixed investment"; rtol = 1e-3)
-    vI[t = t1:T], vI[t] == ∑(vI_k_i[k, i, t] for k in capital_type, i in industry)
+    vI[t=t1:T], vI[t] == ∑(vI_k_i[k,i,t] for k in capital_type, i in industry)
   end
 end
 
@@ -210,13 +162,13 @@ end
 # Calibration
 # ============================================================================
 function define_calibration()
-  # InputOutput calibrates the base-year product cells and use total. Capital
-  # replaces those closures in later years and in the base model.
-  block = define_equations((t1+1):T)
+  block = define_equations()
 
   @endo_exo_swap! block begin
-    qProd[k = capital_type, i = industry, t = t1], pProd[k = capital_type, i = industry, t = t1]
+    qProd[k=capital_type, i=industry, t=t1], pProd[k=capital_type, i=industry, t=t1]
     rKDepr_k_i[:,:,t1], vI_k_i[:,:,t1]
+
+    rInvestmentProductShare[p=product, k=capital_type, t=t1], qI_p_k[p=product, k=capital_type, t=t1]
   end
 
   return block

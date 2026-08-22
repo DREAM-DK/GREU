@@ -1,3 +1,6 @@
+# Define production factors, nests, and source settings.
+# Put energy and materials in separate intermediate-input leaves.
+# Keep equations and country data in their own modules.
 module ProductionSettings
 
 import ..InputOutputSettings: product, source_industry
@@ -35,7 +38,9 @@ const capital_type = sort(unique(values(flow_asset_to_capital_type)))
 # Keep each factor class as a set, even when it has one member. The nests name
 # their factors directly and must change when either set changes.
 const labor_type = [:labor]
-const intermediate_type = [:intermediate]
+const energy_product = [:B, :D]
+const intermediate_type = [:energy, :materials]
+@assert energy_product ⊆ product "Energy products must be input-output products"
 
 # Each industry owns its nest map and each nest owns its elasticity. Most
 # industries use the full tree. Household production has no live capital or
@@ -43,12 +48,13 @@ const intermediate_type = [:intermediate]
 const full_capital_nesting = Dict(
   :KL => (children = [:equipment, :labor], elasticity = 0.7),
   :KLB => (children = [:KL, :structures], elasticity = 0.7),
-  :KLBM => (children = [:KLB, :intermediate], elasticity = 0.7),
+  :KLBM => (children = [:KLB, :materials], elasticity = 0.7),
+  :KELBM => (children = [:KLBM, :energy], elasticity = 0.7),
 )
 const production_nesting = Dict(
   i =>
     i == :iT ? Dict(
-      :KLBM => (children = [:labor], elasticity = 0.7),
+      :KELBM => (children = [:labor], elasticity = 0.7),
     ) :
     Dict(full_capital_nesting)
   for i in source_industry
@@ -56,19 +62,9 @@ const production_nesting = Dict(
 
 @assert allunique([capital_type; labor_type; intermediate_type]) "Production factor labels must be unique"
 
-# Dummy weights for the intermediate-input product split. All products currently
-# feed the single materials type. Replace these weights when energy arrives.
-const intermediate_product_type_weight = Dict(
-  (p, m) => 1.0
-  for p in product, m in intermediate_type
-)
 @assert all(
   isfinite(spec.elasticity) && spec.elasticity > 0 && allunique(spec.children)
   for spec in Iterators.flatten(values(nests) for nests in values(production_nesting))
 ) "Each production nest needs a positive elasticity and unique children"
-@assert all(
-  isfinite(weight) && weight >= 0
-  for weight in values(intermediate_product_type_weight)
-) "Intermediate-product weights must be finite and non-negative"
 
 end # module
