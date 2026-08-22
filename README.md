@@ -39,7 +39,7 @@ p^k_t = p^I_t - \beta (1-\delta) p^I_{t+1} + \frac{\partial AC_t}{\partial K_t} 
 $$
 
 rather than inserting the derivatives into the equation.
-In the code, we write the derivatives as explicit variables, e.g. *dKAdjCosts2dK[t]* and *dKAdjCosts2dKlag[t]* (see [variable naming conventions](#variable-names---in-code-and-in-documentation) in a section below).
+In the code, we write the derivatives as explicit variables, e.g. *dKAdjCost2dK[k,i,t]* and *dKAdjCost2dKLag[k,i,t]* (see [variable naming conventions](#variable-names---in-code-and-in-documentation) in a section below).
 This makes it much easier, both on paper and in the code, to change the functional form of the adjustment cost function, without having to meticulously track down all the places where the derivatives are used.
 
 In terms of modularity, this allows us to keep the formulation of the function form of the adjustment cost function in a submodel, which can be easily switched with a different submodel. Of course, if we may want to make changes which cannot be captured in the existing framework, e.g. adding an additional time lead $\frac{\partial AC_{t+2}}{\partial K_t}$ in the example above. In this case, we modify the code in the submodule above, as necessary, while being mindful that the change is general enough to not be inconsistent with other submodels.
