@@ -195,7 +195,7 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. pD[d,t] * qD[d,t] =E= vD[d,t];
 
   # Input-output prices reflect industry-prices or import prices, plus any taxes
-  # jfp[YM]_d can be endogenized by submodels to reflect pricing-to-market etc.
+  # jfp[YM]_d can be endogenized by modules to reflect pricing-to-market etc.
 
   .. pY_i_d[i,d,t] =E= (1+tY_i_d[i,d,t]) * pY_i_d_base[i,d,t]; 
   .. pM_i_d[i,d,t] =E= (1+tM_i_d[i,d,t]) * pM_i_d_base[i,d,t]; 
@@ -204,8 +204,8 @@ $BLOCK input_output_equations input_output_endogenous $(t1.val <= t.val and t.va
   .. pM_i_d_base[i,d,t] =E= (1+jfpM_i_d[i,d,t])/ (1+tM_i_d[i,d,tBase]) * pM_i[i,t];
   
 
-  # rYM is the real industry-composition for each demand - rYM is exogenous here, but can be endogenized in submodels
-  # rM is the real import-share for each demand - rM is exogenous here, but can be endogenized in submodels
+  # rYM is the real industry-composition for each demand - rYM is exogenous here, but can be endogenized in modules
+  # rM is the real import-share for each demand - rM is exogenous here, but can be endogenized in modules
   .. qY_i_d[i,d,t] =E= (1-rM[i,d,t]) * rYM[i,d,t] * qD[d,t];
   .. qM_i_d[i,d,t] =E= rM[i,d,t]     * rYM[i,d,t] * qD[d,t];
 

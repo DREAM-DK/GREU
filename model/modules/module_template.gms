@@ -4,7 +4,7 @@
 $IF %stage% == "variables":
 
 $Group+ all_variables
-  submodel_template_test_variable[t] "Test variable from submodel template."
+  module_template_test_variable[t] "Test variable from module template."
   test_scalar "Test variable with no indices."
   test_constant[i] "Test variable with no time index."
 ;
@@ -17,7 +17,7 @@ $ENDIF # variables
 $IF %stage% == "equations":
 
 $BLOCK template_equations template_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
-  .. submodel_template_test_variable[t] =E= 1;
+  .. module_template_test_variable[t] =E= 1;
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -32,10 +32,10 @@ $ENDIF # equations
 $IF %stage% == "exogenous_values":
 
 $Group template_data_variables
-  submodel_template_test_variable[t]
+  module_template_test_variable[t]
 ;
 # @load(template_data_variables, "../data/data.gdx")
-submodel_template_test_variable.l[t] = 1;
+module_template_test_variable.l[t] = 1;
 $Group+ data_covered_variables template_data_variables;
 
 $ENDIF # exogenous_values
@@ -69,7 +69,7 @@ $Group non_default_starting_values
 ;
 
 # Macro to set custom starting values for the variables in non_default_starting_values (called from calibration.gms)
-$MACRO submodel_template_calibration_starting_values
+$MACRO module_template_calibration_starting_values
 
 $ENDIF # calibration
 

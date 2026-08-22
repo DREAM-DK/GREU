@@ -99,7 +99,7 @@ model_julia/
 ├── Logging.jl               # Timing and error logging helpers
 ├── GrowthInflationAdjustment.jl
 └── modules/
-    ├── SubmodelTemplate.jl  # Template for new modules
+    ├── ModuleTemplate.jl   # Template for new modules
     ├── InputOutput.jl       # Example of a full module
     ├── SectorAccounts.jl    # Accounting identities (layer 1)
     ├── Households.jl, Government.jl, Corporations.jl, RestOfWorld.jl
@@ -114,7 +114,7 @@ Entry points:
 - `Shock.jl` — load that baseline, shock, solve `base_model()`, plot
 - `RefreshData.jl` — rebuild checked-in input-output and sector-accounts CSV from Eurostat
 
-`Settings.enabled_modules` selects which files under `modules/` are included. Copy `SubmodelTemplate.jl` when adding a module, then add its symbol to `enabled_modules`.
+`Settings.enabled_modules` selects which files under `modules/` are included. Copy `ModuleTemplate.jl` when adding a module, then add its symbol to `enabled_modules`.
 
 **SquareModels.jl** is an external dependency ([GitHub](https://github.com/MartinBonde/SquareModels)) that provides the modeling framework (Blocks, ModelDictionary, solve, etc.). We maintain it and can modify it freely.
 
@@ -172,9 +172,9 @@ Baselines are persisted with `unload` / `load` (parquet).
 
 ## GREU Architecture
 
-### Submodule Pattern
+### Module Pattern
 
-Each model component under `modules/` is a Julia module. See `SubmodelTemplate.jl`. Typical API:
+Each model component under `modules/` is a Julia module. See `ModuleTemplate.jl`. Typical API:
 
 - **Read data, Indices, Variables, Assign data**: Read files first, build indices from that data, declare variables, then copy values into `db`.
 - **`assign_data!(db)`**: Copy loaded series and the totals they imply into `db`. Do not compute parameters from data.
@@ -196,7 +196,7 @@ Data refresh files (`*Data.jl`) have no required section layout. Group the code 
 `Model.jl` builds `db`, includes enabled modules, calls each `assign_data!`, and defines:
 
 ```julia
-base_model() = sum(m.define_equations() for m in submodels)
+base_model(modules) = sum(m.define_equations() for m in modules)
 ```
 
 ### Calibration (`Calibrate.jl` and `Calibration.jl`)
@@ -211,7 +211,7 @@ Do not skip a data series because an equation can infer it. Inference belongs in
 
 Flow:
 
-1. Sum `define_calibration()` from all submodels (includes parameter-for-data swaps)
+1. Sum `define_calibration()` from all modules (includes parameter-for-data swaps)
 2. `forecast_constants!` — `ForecastConstant` vars: equations `var[t] == var[t1]` if endogenous at `t1`, else copy data forward
 3. `endo_exo_data_residuals!` — swap remaining data-backed endos for their residuals
 4. `exogenous_constant_forecast!` — fill missing future exogenous values from `t1`

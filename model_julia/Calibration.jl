@@ -13,9 +13,9 @@ import ..Time: at_year, variable_year, t1, T
 # Residual settings
 # ============================================================================
 
-function residual_tolerances(data::ModelDictionary, submodels)
+function residual_tolerances(data::ModelDictionary, modules)
   tolerances = ModelDictionary(data.model)
-  for m in submodels
+  for m in modules
     isdefined(m, :set_residual_tolerances!) && m.set_residual_tolerances!(tolerances)
   end
   return tolerances
@@ -136,13 +136,13 @@ end
 # Solve
 # ============================================================================
 
-function calibrate_model(data, start_values, submodels)
+function calibrate_model(data, start_values, modules)
   @info "Calibration (T=$T):"
-  @log_time block = sum(m.define_calibration() for m in submodels)
+  @log_time block = sum(m.define_calibration() for m in modules)
   @log_time forecast_zeros!(block, data)
   @log_time block = forecast_constants!(block, data)
   @log_time endo_exo_data_residuals!(block, data)
-  for m in submodels
+  for m in modules
     isdefined(m, :set_starting_values!) && m.set_starting_values!(start_values)
   end
   @log_time fill_missing_t1_exogenous_start_values!(block, data, start_values)

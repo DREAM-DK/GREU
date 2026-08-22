@@ -206,7 +206,7 @@ The Green transition core adds a model of production of energy,
 \end_layout
 
 \begin_layout Standard
-Satellite modules are sub-models that do not define variables used in other modules.
+Satellite modules do not define variables used in other modules.
  Instead,
  connections between modules should use core models as intermediaries in order to minimize linkages.
  Extensions attach to the core in two ways:

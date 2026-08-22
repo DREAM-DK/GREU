@@ -41,7 +41,7 @@ $FUNCTION import_from_modules({stage_key}):
   $SET stage {stage_key};
   $FOR {module}, {include} in [
     ## CORE MODULES
-    ("modules/submodel_template.gms", 1),
+    ("modules/module_template.gms", 1),
     ("modules/input_output.gms", 1),
     ("modules/labor_market.gms", 1),
     ("modules/factor_demand.gms", 1),

@@ -8,10 +8,10 @@ A key aim of the GREU project it is to maintain perfect modularity. In this sect
 Often, modularity comes with a real cost of increasing the level of abstraction in the system, e.g. by introducing intermediate variables that would always be eliminated in a typical academic paper. However, such intermediation between different components of the model system, can make the model easier to maintain and extend, as one can ideally work on changing one part of the system, without deeply understanding the rest of the model.
 
 ### Partial equilibrium
-To do this, each submodel should aim to be solvable as a partial equilibrium model, taking endogenous variables from other submodels as exogenous inputs. In the few cases where this is not possible, the submodel should at least be solvable together with the simplest possible version of another part of the model. For example, a labor market submodel may be dependent on a downward sloping demand curve for labor, but should be robust to how this curve is generated.
+To do this, each module should aim to be solvable as a partial equilibrium model, taking endogenous variables from other modules as exogenous inputs. In the few cases where this is not possible, the module should at least be solvable together with the simplest possible version of another part of the model. For example, a labor market module may be dependent on a downward sloping demand curve for labor, but should be robust to how this curve is generated.
 
 ### Aggregate approximation
-A useful technique for achieving modularity, is to start with simple aggregate relations, where a single variable sums up all the behavior of a more complicated micro-founded submodel.
+A useful technique for achieving modularity, is to start with simple aggregate relations, where a single variable sums up all the behavior of a more complicated micro-founded module.
 
 For example, we may write an expression for the usercost of labor as
 
@@ -19,7 +19,7 @@ $$
 p^L_t = w_t + LaborMarketFrictions_t
 $$
 
-where $w_t$ is the wage and $LaborMarketFrictions_t$ is initially exogenous and set to zero. We can then switch on a submodule for a complicated search and matching model of the labor market, and endogenize the $LaborMarketFrictions_t$ term.
+where $w_t$ is the wage and $LaborMarketFrictions_t$ is initially exogenous and set to zero. We can then switch on a module for a complicated search and matching model of the labor market, and endogenize the $LaborMarketFrictions_t$ term.
 As another example, it is also useful to write a single sector production function for aggregate output, e.g.
 
 $$
@@ -42,21 +42,21 @@ rather than inserting the derivatives into the equation.
 In the code, we write the derivatives as explicit variables, e.g. *dKAdjCost2dK[k,i,t]* and *dKAdjCost2dKLag[k,i,t]* (see [variable naming conventions](#variable-names---in-code-and-in-documentation) in a section below).
 This makes it much easier, both on paper and in the code, to change the functional form of the adjustment cost function, without having to meticulously track down all the places where the derivatives are used.
 
-In terms of modularity, this allows us to keep the formulation of the function form of the adjustment cost function in a submodel, which can be easily switched with a different submodel. Of course, if we may want to make changes which cannot be captured in the existing framework, e.g. adding an additional time lead $\frac{\partial AC_{t+2}}{\partial K_t}$ in the example above. In this case, we modify the code in the submodule above, as necessary, while being mindful that the change is general enough to not be inconsistent with other submodels.
+In terms of modularity, this allows us to keep the formulation of the function form of the adjustment cost function in a module, which can be easily switched with a different module. Of course, if we may want to make changes which cannot be captured in the existing framework, e.g. adding an additional time lead $\frac{\partial AC_{t+2}}{\partial K_t}$ in the example above. In this case, we modify the code in the module above, as necessary, while being mindful that the change is general enough to not be inconsistent with other modules.
 
 
 ### Core modules and dependencies
-The core modules are a set of submodels that together form a very simple general equilibrium model of the economy.
+The core modules together form a very simple general equilibrium model of the economy.
 These models are heavily interdependent, and should capture most of the interaction between different parts of the economy.
 
-We use the terms module and submodel interchangeably. More strictly, a submodel is a set of variable definitions and equations, whereas the module also refers to the surrounding code and documentation. For example code for calibrating parameters in the submodel and assigning data to variables. A cookbook for structuring a module is found in section [Module structure](#module-structure).
+We use the term module for a set of variable definitions and equations and for its supporting code and documentation. This includes code that calibrates parameters and assigns data to variables. A cookbook for structuring a module is found in section [Module structure](#module-structure).
 
-Peripheral submodels can thus depend on the core modules always being included, and we should aim to keep interaction between submodels contained in the core modules as far as possible. A set of peripheral modules may be heavily intertwined and depend on one another, but we should aim to only depend on the core modules as far as possible. For example, we should avoid using a specific tax policy variable from a peripheral tax module in a labor supply module. Instead, we could for example add a *marginal labor income tax rate* in a core module. This marginal tax rate can then be augmented in a tax module with complicated policies, and used to transfer the effects of the complicated tax rules to a labor market module, keeping the labor market module ignorant of the complexities of the tax rules.
+Peripheral modules can thus depend on the core modules always being included, and we should aim to keep interaction between modules contained in the core modules as far as possible. A set of peripheral modules may be heavily intertwined and depend on one another, but we should aim to only depend on the core modules as far as possible. For example, we should avoid using a specific tax policy variable from a peripheral tax module in a labor supply module. Instead, we could for example add a *marginal labor income tax rate* in a core module. This marginal tax rate can then be augmented in a tax module with complicated policies, and used to transfer the effects of the complicated tax rules to a labor market module, keeping the labor market module ignorant of the complexities of the tax rules.
 
 As far as possible, the core modules are free from economic behavior in terms of decision making, and should be thought of as pure book-keeping models.
 This has the added benefit, that the core modules can be used to verify internal consistency of a data set, catching mistakes in the data or the application of the data.
 
-E.g. instead of starting with a model of CES demand for a number of consumption goods, we can write an equation which simply sets the demand for each good as a fixed budget share of aggregate consumption. This can be calibrated to any set of data, and we can check that budget shares sum to one etc. For the purpose of testing the data, the budget shares are calibrated, and otherwise thought of as exogenous. To add a CES demand system, we keep the budget share equations and simply endogenize the budget share variables in a new submodel.
+E.g. instead of starting with a model of CES demand for a number of consumption goods, we can write an equation which simply sets the demand for each good as a fixed budget share of aggregate consumption. This can be calibrated to any set of data, and we can check that budget shares sum to one etc. For the purpose of testing the data, the budget shares are calibrated, and otherwise thought of as exogenous. To add a CES demand system, we keep the budget share equations and simply endogenize the budget share variables in a new module.
 As in previous example, such a simple model of budget shares is actually quite useful, for example allowing a user in a statistical agency to note that budget shares have changed more than is usual in preliminary data and raising a flag for further investigation.
 A budget share model is also useful for shock analysis, where we can note that demand for a good has changed due to aggregate consumption changes or goods-specific effects that affect the budget share (or a combination).
 
@@ -73,7 +73,7 @@ The source code defining all the model equations can be found in the [model subd
 The run.py shows the order in which the files are usually run.
 
 ## Module structure
-The entire code base can be thought of as a matrix structure, with phases as rows and submodels as columns.
+The entire code base can be thought of as a matrix structure, with phases as rows and modules as columns.
 The phases are:
 * Set definitions
 * Variable definitions
@@ -129,7 +129,7 @@ We can also manually specify a specific endogenous variable for the equation. Fo
 
 In the previous section, we noted that variables are defined with an optional condition defining which elements they exist for. The same logical conditions is automatically applied to any equation which is defined with that variable as the endogenous variable.
 
-After defining a submodel in the module with a matching group of endogenous variables, we add the model to the *main* model and add the group of endogenous variables to the *main_endogenous* group:
+After defining equations in the module with a matching group of endogenous variables, we add the equations to the *main* model and add the group of endogenous variables to the *main_endogenous* group:
 
     model main / template_equations /;
     $Group+ main_endogenous template_endogenous;
@@ -192,7 +192,7 @@ While inconvenient for writing a single module, unique names improve the overall
 - h - hours
 
 ### Suffixes and aggregation
-To allow for varying levels of aggregation, depending on the number of submodules included, we start with the shortest names for them most aggregate variables and add suffixes denoting dis-aggregate versions of the same variable. E.g. pC[t] is the price index of aggregate private consumption in year $t$. In the documentation, this appears as $p^C_{t}$ The price index of a specific type of consumption, $c$, is written as pC_c[c,t] in the source code. In the documentation, this appears as $p^C_{c,t}$, as we ommit the suffix. qC_c[c,t] is the equivalent real quantity of consumption in the source code. In the documentation we ommit the $q$ prefix and simply write $C_{c,t}$.
+To allow for varying levels of aggregation, depending on the number of modules included, we start with the shortest names for them most aggregate variables and add suffixes denoting dis-aggregate versions of the same variable. E.g. pC[t] is the price index of aggregate private consumption in year $t$. In the documentation, this appears as $p^C_{t}$ The price index of a specific type of consumption, $c$, is written as pC_c[c,t] in the source code. In the documentation, this appears as $p^C_{c,t}$, as we ommit the suffix. qC_c[c,t] is the equivalent real quantity of consumption in the source code. In the documentation we ommit the $q$ prefix and simply write $C_{c,t}$.
 
 Multi-word identifiers are written in CamelCase.
 

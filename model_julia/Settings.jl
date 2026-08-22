@@ -10,7 +10,7 @@ const calibration_year = 2019
 const terminal_year = 2025
 
 const enabled_modules = [
-  :SubmodelTemplate,
+  :ModuleTemplate,
   :InputOutput,
   :Production,
   :Labor,

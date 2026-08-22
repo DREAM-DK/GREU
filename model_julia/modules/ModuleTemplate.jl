@@ -1,7 +1,7 @@
 # Template for a new model module. Copy this file and add it to enabled_modules.
 # Read data, then build indices, then declare variables, then assign values.
 
-module SubmodelTemplate
+module ModuleTemplate
 
 using SquareModels
 import ..db
@@ -21,7 +21,7 @@ const test_index = [:a, :b, :c]
 # Variables
 # ============================================================================
 @variables db.model begin
-  test_variable[t], "Test variable from the submodel template."
+  test_variable[t], "Test variable from the module template."
   test_scalar, "Test variable with no indices."
   test_constant[test_index], "Test variable with no time index."
   test_forecast[t] :: ForecastConstant, "Variable forecast as constant from t1."
