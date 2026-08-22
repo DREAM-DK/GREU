@@ -159,7 +159,7 @@ Calibration has two swap steps:
 1. In `define_calibration`, swap each parameter for the data that identifies it. The data variable stays at its loaded value. The solver finds the parameter (`r*`, `t*`, and similar).
 2. `endo_exo_data_residuals!` in `Calibration.jl` then swaps any remaining endogenous variable that has data (up through `t1`) for its residual. The data value stays fixed. The residual absorbs the gap.
 
-Load every series the source reports. Also load model totals that those series imply, such as `qD_p_u` from `∑ qD_p_u_o`. Do not compute parameters in `set_data!`. Exogenizing the data hits the data exactly when the solver has rounding error, and puts inconsistent source totals on residuals.
+Load every series the source reports. Also load model totals that those series imply, such as `qD_p_u` from `∑ qD_p_u_o`. Do not compute parameters in `assign_data!`. Exogenizing the data hits the data exactly when the solver has rounding error, and puts inconsistent source totals on residuals.
 
 ### 4. Solving
 
@@ -176,15 +176,24 @@ Baselines are persisted with `unload` / `load` (parquet).
 
 Each model component under `modules/` is a Julia module. See `SubmodelTemplate.jl`. Typical API:
 
-- **Variables**: Declared with `@variables` (optionally `@growth_adjusted` / `@inflation_adjusted`, or tags like `ForecastConstant`)
-- **`set_data!(db)`**: Load source series and the model totals they imply. Do not compute parameters from data.
+- **Read data, Indices, Variables, Assign data**: Read files first, build indices from that data, declare variables, then copy values into `db`.
+- **`assign_data!(db)`**: Copy loaded series and the totals they imply into `db`. Do not compute parameters from data.
 - **`define_equations()`**: Return a Block with the model equations
 - **`define_calibration()`**: Return a Block used only for calibration. Start from `define_equations()`, then `@endo_exo_swap!` each parameter for the data that identifies it.
 - **`run_tests(db)`** (optional): Return a `Vector{String}` of failure messages
 - **`set_starting_values!(db)`** (optional): Starting values before solve
 - **`set_residual_tolerances!(tolerances)`** (optional): Per-residual `atol` overrides
 
-`Model.jl` builds `db`, includes enabled modules, calls each `set_data!`, and defines:
+Use these sections in model modules, in this order:
+
+1. **Read data** — read files once. Do not build indices or assign model values here.
+2. **Indices** — build sets and live-cell masks from the loaded data.
+3. **Variables** — declare variables after all indices exist.
+4. **Assign data** — implement `assign_data!` and copy loaded values into `db`.
+
+Data refresh files (`*Data.jl`) have no required section layout. Group the code by the structure of that source. A small file needs no section headings.
+
+`Model.jl` builds `db`, includes enabled modules, calls each `assign_data!`, and defines:
 
 ```julia
 base_model() = sum(m.define_equations() for m in submodels)
@@ -194,8 +203,8 @@ base_model() = sum(m.define_equations() for m in submodels)
 
 **Concept**: Exogenize data. Endogenize parameters. Residuals absorb equation imbalances.
 
-- **Parameters** (`r*`, `t*`, and similar): endogenous in calibration. Identify each one by swapping it for the data it is fitted to. Do not set the parameter in `set_data!`.
-- **Variables the source reports**, and **totals the model identities imply from that source** (for example `qD_p_u == ∑ qD_p_u_o`): load them in `set_data!` and keep them exogenous. This includes cells that an equation also determines. The residual then records inconsistent source totals, and the solver hits the data exactly when there is rounding error.
+- **Parameters** (`r*`, `t*`, and similar): endogenous in calibration. Identify each one by swapping it for the data it is fitted to. Do not set the parameter in `assign_data!`.
+- **Variables the source reports**, and **totals the model identities imply from that source** (for example `qD_p_u == ∑ qD_p_u_o`): assign them in `assign_data!` and keep them exogenous. This includes cells that an equation also determines. The residual then records inconsistent source totals, and the solver hits the data exactly when there is rounding error.
 - **Variables with no data**: solved by model equations.
 
 Do not skip a data series because an equation can infer it. Inference belongs in the equations. The loaded value belongs in the dictionary.

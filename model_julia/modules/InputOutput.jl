@@ -23,7 +23,7 @@ const domestic = :domestic
 const import_origin = :import
 
 # ============================================================================
-# Checked-in data
+# Read data
 # ============================================================================
 
 const supply_file = joinpath(input_output_data_dir, "input_output_supply.csv")
@@ -39,6 +39,10 @@ const vNetProductTax_p_u_data = read_cells(net_product_tax_file, "vNetProductTax
 const vNetProductTax_u_data = read_cells(net_product_tax_file, "vNetProductTax_u")
 const qPurchaserUse_p_u_o_data = read_cells(purchaser_use_file, "qPurchaserUse_p_u_o")
 
+# ============================================================================
+# Indices
+# ============================================================================
+
 # Keep industries with output in the calibration year.
 const industry = sort(unique(
   i
@@ -52,9 +56,6 @@ const use = [industry; final_uses]
 # Inventory changes are signed and exogenous, so they bypass the product-demand links.
 const ordinary_uses = setdiff(use, [:INV])
 
-# ============================================================================
-# Cell masks
-# ============================================================================
 # Each mask is named after the indices it holds. Cells outside a mask have no
 # variable and no equation, so a mask change needs a model rebuild.
 
@@ -174,10 +175,10 @@ const pM_p_u = pBasic[:,:,import_origin,:]
 end
 
 # ============================================================================
-# Data
+# Assign data
 # ============================================================================
 
-function set_data!(db)
+function assign_data!(db)
   @assert all(key in keys(vPurchaserUse_p_u) for key in keys(qMarginBundle_p_u)) "Each reported margin needs purchaser use"
   @assert all(key in keys(vPurchaserUse_p_u) for key in keys(vNetProductTax_p_u)) "Each net product tax needs purchaser use"
   @assert Set(p for (p,_,tt) in keys(vY_p_i) if tt == t1) == Set(p for (p,o,tt) in keys(vSupply_p_o) if o == domestic && tt == t1) "Domestic product supply must match industry output"

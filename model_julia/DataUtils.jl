@@ -1,6 +1,3 @@
-# Read data into model variables.
-# Group and write checked-in data tables.
-# Do not fetch source data here.
 module DataUtils
 
 using CSV

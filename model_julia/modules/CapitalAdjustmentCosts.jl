@@ -35,9 +35,9 @@ end
 end
 
 # ============================================================================
-# Data
+# Assign data
 # ============================================================================
-function set_data!(db)
+function assign_data!(db)
   db[fInstCost_k_i] .= 0.5
   return nothing
 end

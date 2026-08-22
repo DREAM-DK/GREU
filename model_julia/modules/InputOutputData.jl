@@ -1,3 +1,6 @@
+# Fetch and transform national supply-use tables.
+# Write model input files and the fixed-investment data contract.
+# Keep input-output equations in InputOutput.jl.
 include(joinpath(@__DIR__, "..", "Settings.jl"))
 include("InputOutputSettings.jl")
 include("EurostatClient.jl")
@@ -32,7 +35,7 @@ const cell_columns = [cell_index; :value]
 sum_cells(parts...) = sum_by(vcat(parts...), cell_index)
 
 # ============================================================================
-# Eurostat fetches
+# Supply and use tables
 # ============================================================================
 
 """Domestic output by product and industry from the national supply table.
@@ -127,7 +130,7 @@ function fetch_net_product_tax_table()
 end
 
 # ============================================================================
-# Source table
+# Reported use
 # ============================================================================
 
 """Basic-price use by product, use, and domestic or import origin."""
@@ -278,12 +281,38 @@ function purchaser_use_data(
   return sum_cells(before_margins, reclassification), services
 end
 
+"""Give fixed-investment quantity and purchaser value by product."""
+function fixed_investment_data(purchaser_use, carried_margins, net_product_taxes)
+  quantity = rename(
+    sum_by(purchaser_use[purchaser_use.use .== :K, :], [:product, :year]),
+    :value => :quantity,
+  )
+  margins = Dict(
+    (row.product, row.year) => row.value
+    for row in eachrow(carried_margins) if row.use == :K
+  )
+  taxes = Dict(
+    (row.product, row.year) => row.value
+    for row in eachrow(net_product_taxes) if row.use == :K
+  )
+  quantity_keys = Set((row.product, row.year) for row in eachrow(quantity))
+  @assert keys(margins) ⊆ quantity_keys "Each investment margin needs product quantity"
+  @assert keys(taxes) ⊆ quantity_keys "Each investment tax needs product quantity"
+  quantity.purchaser_value = [
+    row.quantity +
+      get(margins, (row.product, row.year), 0.0) +
+      get(taxes, (row.product, row.year), 0.0)
+    for row in eachrow(quantity)
+  ]
+  sort!(quantity, [:year, :product])
+  return quantity
+end
+
 # ============================================================================
-# Checked-in files
+# Refresh
 # ============================================================================
 
-function refresh_input_output_data!(dir = input_output_data_dir)
-  mkpath(dir)
+function build_input_output_data()
   use_table = fetch_use_table()
   reported = reported_use(use_table)
   supply = fetch_supply_table(reported)
@@ -312,20 +341,44 @@ function refresh_input_output_data!(dir = input_output_data_dir)
     [:year],
   )
   output = accounting_series(use_table, "P1", "TOTAL")
+  fixed_investment = fixed_investment_data(
+    purchaser_use,
+    carried_margins,
+    net_product_taxes,
+  )
+
+  return (;
+    use_table,
+    supply,
+    purchaser_use,
+    carried_margins,
+    services,
+    net_product_taxes,
+    net_product_tax_totals,
+    tourist_spend,
+    imports,
+    exports,
+    output,
+    fixed_investment,
+  )
+end
+
+function write_input_output_data!(data, dir = input_output_data_dir)
+  mkpath(dir)
 
   CSV.write(
     joinpath(dir, "input_output_supply.csv"),
-    long_format(:qY_p_i, supply, [:product, :industry, :year]),
+    long_format(:qY_p_i, data.supply, [:product, :industry, :year]),
   )
   CSV.write(
     joinpath(dir, "input_output_purchaser_use.csv"),
-    long_format(:qPurchaserUse_p_u_o, purchaser_use, cell_index),
+    long_format(:qPurchaserUse_p_u_o, data.purchaser_use, cell_index),
   )
   CSV.write(
     joinpath(dir, "input_output_margins.csv"),
     vcat(
-      long_format(:qMarginBundle_p_u, carried_margins, [:product, :use, :year]),
-      long_format(:qMarginService_s_u_o, services, [:service, :use, :origin, :year]),
+      long_format(:qMarginBundle_p_u, data.carried_margins, [:product, :use, :year]),
+      long_format(:qMarginService_s_u_o, data.services, [:service, :use, :origin, :year]),
     ),
   )
   CSV.write(
@@ -333,12 +386,12 @@ function refresh_input_output_data!(dir = input_output_data_dir)
     vcat(
       long_format(
         :vNetProductTax_p_u,
-        net_product_taxes,
+        data.net_product_taxes,
         [:product, :use, :year],
       ),
       long_format(
         :vNetProductTax_u,
-        net_product_tax_totals,
+        data.net_product_tax_totals,
         [:use, :year],
       ),
     ),
@@ -346,13 +399,34 @@ function refresh_input_output_data!(dir = input_output_data_dir)
   CSV.write(
     joinpath(dir, "input_output_aggregate_totals.csv"),
     vcat(
-      long_format(:vY, output, [:year]),
-      long_format(:vCTourist, tourist_spend, [:year]),
-      long_format(:vM, imports, [:year]),
-      long_format(:vX, exports, [:year]),
+      long_format(:vY, data.output, [:year]),
+      long_format(:vCTourist, data.tourist_spend, [:year]),
+      long_format(:vM, data.imports, [:year]),
+      long_format(:vX, data.exports, [:year]),
+    ),
+  )
+  CSV.write(
+    joinpath(dir, "input_output_fixed_investment.csv"),
+    vcat(
+      long_format(
+        :qI_p,
+        select(data.fixed_investment, :product, :year, :quantity => :value),
+        [:product, :year],
+      ),
+      long_format(
+        :vI_p,
+        select(data.fixed_investment, :product, :year, :purchaser_value => :value),
+        [:product, :year],
+      ),
     ),
   )
   return nothing
+end
+
+function refresh_input_output_data!(dir = input_output_data_dir)
+  data = build_input_output_data()
+  write_input_output_data!(data, dir)
+  return data
 end
 
 end # module

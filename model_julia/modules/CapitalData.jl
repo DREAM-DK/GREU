@@ -1,6 +1,6 @@
 # Fetch and write capital data for production.
 # Include capital stocks, flows, and the investment-product split.
-# Keep labor data in LaborData.jl.
+# Use InputOutput's fixed-investment quantity and value contract.
 include(joinpath(@__DIR__, "..", "Settings.jl"))
 include("InputOutputSettings.jl")
 include("ProductionSettings.jl")
@@ -31,10 +31,10 @@ import ..Settings: calibration_year, country_code
 const data_years = (calibration_year - 1):calibration_year
 const year_params = ["time" => string(year) for year in data_years]
 const capital_nace_to_industry = Dict(string(section) => i for (section, i) in section_to_industry)
-const purchaser_use_file = joinpath(input_output_data_dir, "input_output_purchaser_use.csv")
+const fixed_investment_file = joinpath(input_output_data_dir, "input_output_fixed_investment.csv")
 
 # ============================================================================
-# Eurostat data
+# Capital stocks and flows
 # ============================================================================
 
 """Fetch one capital table and map direct A21 rows to model industries."""
@@ -107,25 +107,26 @@ function rebase_to_calibration_prices(current_cost, previous_year_cost)
 end
 
 # ============================================================================
-# Synthetic investment split
+# Investment-product split
 # ============================================================================
 
 """Split fixed-investment products across capital types."""
 function synthetic_investment_product_split(
   investment,
-  purchaser_use = read_cells(purchaser_use_file, "qPurchaserUse_p_u_o"),
+  investment_product_quantity_data = read_cells(fixed_investment_file, "qI_p"),
+  investment_product_value_data = read_cells(fixed_investment_file, "vI_p"),
 )
   investment_product = sort(unique(
     p
-    for ((p, u, o, year), value) in purchaser_use
-    if u == :K && year == calibration_year && abs(value) > cell_tolerance
+    for ((p, year), value) in investment_product_quantity_data
+    if year == calibration_year && abs(value) > cell_tolerance
   ))
   investment_product_quantity = Dict(
-    p => sum(
-      value
-      for ((pp, u, o, year), value) in purchaser_use
-      if pp == p && u == :K && year == calibration_year
-    )
+    p => investment_product_quantity_data[p, calibration_year]
+    for p in investment_product
+  )
+  investment_product_value = Dict(
+    p => investment_product_value_data[p, calibration_year]
     for p in investment_product
   )
   capital_type = sort(unique(
@@ -143,25 +144,24 @@ function synthetic_investment_product_split(
   @assert :structures in capital_type "Investment split needs structures"
   @assert all(>(cell_tolerance), values(capital_type_value)) "Each capital type needs positive investment"
 
-  investment_quantity = sum(values(investment_product_quantity))
-  nonconstruction_quantity = sum(
-    value for (p, value) in investment_product_quantity if p != :F
-  )
-  @assert investment_quantity > cell_tolerance "Fixed investment must be positive"
-  @assert nonconstruction_quantity > cell_tolerance "Non-construction investment must be positive"
+  @assert sum(values(investment_product_quantity)) > cell_tolerance "Fixed investment must be positive"
+  @assert isapprox(
+    sum(values(capital_type_value)),
+    sum(values(investment_product_value));
+    rtol = 1e-3,
+  ) "Capital and input-output investment values must agree"
 
-  capital_quantity = Dict(
-    k => value / sum(values(capital_type_value)) * investment_quantity
+  # Construction is all structures. Split each other product by the remaining
+  # purchaser-price value of each capital type.
+  nonconstruction_capital_value = Dict(
+    k => value - (k == :structures ? investment_product_value[:F] : 0.0)
     for (k, value) in capital_type_value
-  )
-  nonconstruction_capital_quantity = Dict(
-    k => value - (k == :structures ? investment_product_quantity[:F] : 0.0)
-    for (k, value) in capital_quantity
   )
   @assert all(
     >(cell_tolerance),
-    values(nonconstruction_capital_quantity),
+    values(nonconstruction_capital_value),
   ) "Each capital type needs positive non-construction investment"
+  nonconstruction_value = sum(values(nonconstruction_capital_value))
   split = DataFrame([
     (
       product = p,
@@ -169,16 +169,12 @@ function synthetic_investment_product_split(
       value = p == :F ?
         (k == :structures ? investment_product_quantity[p] : 0.0) :
         investment_product_quantity[p] *
-          nonconstruction_capital_quantity[k] / nonconstruction_quantity,
+          nonconstruction_capital_value[k] / nonconstruction_value,
     )
     for p in investment_product for k in capital_type
   ])
   return split
 end
-
-# ============================================================================
-# Checked-in data
-# ============================================================================
 
 function refresh_capital_data!(dir = production_data_dir)
   mkpath(dir)

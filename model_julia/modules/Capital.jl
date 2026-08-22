@@ -26,7 +26,7 @@ import ..Time: t, t1, T
 import ..Tags: ForecastConstant, ForecastZero
 
 # ============================================================================
-# Checked-in data
+# Read data
 # ============================================================================
 const capital_file = joinpath(production_data_dir, "production_capital.csv")
 const investment_product_split_file = joinpath(production_data_dir, "production_investment_product_split.csv")
@@ -35,7 +35,7 @@ const vI_k_i_data = read_cells(capital_file, "vI_k_i")
 const qI_p_k_data = read_cells(investment_product_split_file, "qI_p_k")
 
 # ============================================================================
-# Cell masks and investment split
+# Indices
 # ============================================================================
 # A capital cell needs a positive current and lagged stock.
 const capital_k_i = Set(
@@ -80,9 +80,9 @@ end
 end
 
 # ============================================================================
-# Data
+# Assign data
 # ============================================================================
-function set_data!(db)
+function assign_data!(db)
   @assert Set(
     (k, i)
     for k in capital_type, i in industry
@@ -98,6 +98,12 @@ function set_data!(db)
   db[qI_p_k] .= [
     year == t1 ? qI_p_k_data[p, k] : nothing
     for (p,k,year) in keys(qI_p_k)
+  ]
+  # Keep the split-implied type totals fixed. The aggregation residual records
+  # gaps between the input-output and capital-flow sources.
+  db[qI_k] .= [
+    year == t1 ? sum(value for ((_,kk), value) in qI_p_k_data if kk == k) : nothing
+    for k in capital_type, year in t
   ]
   return nothing
 end

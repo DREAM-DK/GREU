@@ -18,10 +18,6 @@ import ..GovernmentSettings:
   government_unit,
   na_item_to_var
 
-# ==========================================================================
-# Eurostat fetch
-# ==========================================================================
-
 """Fetch general government (S13) national accounts from gov_10a_main."""
 function fetch_government_accounts()
   df = EurostatClient.fetch_table(government_dataset_code,
@@ -36,10 +32,6 @@ function fetch_government_accounts()
   df.year = parse.(Int, df.year)
   return df[:, [:na_item, :year, :value]]
 end
-
-# ==========================================================================
-# Output files
-# ==========================================================================
 
 """All government account variables in a single file, one row per (variable, year)."""
 function write_government_variables(dir, df)

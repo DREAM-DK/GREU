@@ -23,33 +23,31 @@ import ..Settings: calibration_year, country_code
 const data_years = (calibration_year - 1):calibration_year
 const year_params = ["time" => string(year) for year in data_years]
 
-# ============================================================================
-# Eurostat data
-# ============================================================================
-
-"""Fetch employee pay by industry as the labor quantity at the base price."""
-function fetch_labor_table()
-  df = EurostatClient.fetch_table(
-    eurostat_use_dataset,
-    "unit" => eurostat_unit,
-    "stk_flow" => "TOTAL",
-    "prd_ava" => "D1",
-    "geo" => country_code,
-    year_params...,
-  )
-  df = df[in.(df.ind_use, Ref(Set(keys(nace_a64_to_a21)))), :]
+"""Map employee pay from T1610 to model industries."""
+function labor_data(df)
+  df = df[
+    (df.stk_flow .== "TOTAL") .&
+    (df.prd_ava .== "D1") .&
+    in.(df.ind_use, Ref(Set(keys(nace_a64_to_a21)))),
+    :,
+  ]
   df.industry = [nace_a64_to_a21[code] for code in df.ind_use]
   df.year = parse.(Int, df.time)
   return sum_by(df, [:industry, :year])
 end
 
-# ============================================================================
-# Checked-in data
-# ============================================================================
+"""Fetch employee pay by industry as the labor quantity at the base price."""
+fetch_labor_table() = labor_data(EurostatClient.fetch_table(
+  eurostat_use_dataset,
+  "unit" => eurostat_unit,
+  "stk_flow" => "TOTAL",
+  "prd_ava" => "D1",
+  "geo" => country_code,
+  year_params...,
+))
 
-function refresh_labor_data!(dir = production_data_dir)
+function refresh_labor_data!(labor = fetch_labor_table(), dir = production_data_dir)
   mkpath(dir)
-  labor = fetch_labor_table()
   CSV.write(
     joinpath(dir, "production_labor.csv"),
     long_format(:qL_i, labor, [:industry, :year]),

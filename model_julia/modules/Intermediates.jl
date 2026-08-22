@@ -18,13 +18,13 @@ import ..Time: t, t1, T
 import ..Tags: ForecastConstant
 
 # ============================================================================
-# Checked-in data
+# Read data
 # ============================================================================
 const intermediate_product_split_file = joinpath(production_data_dir, "production_intermediate_product_split.csv")
 const qM_p_m_i_data = read_cells(intermediate_product_split_file, "qM_p_m_i")
 
 # ============================================================================
-# Cell masks
+# Indices
 # ============================================================================
 const intermediate_product_m_i = Set(keys(qM_p_m_i_data))
 const intermediate_m_i = Set((m, i) for (_,m,i) in intermediate_product_m_i)
@@ -48,9 +48,9 @@ end
 end
 
 # ============================================================================
-# Data
+# Assign data
 # ============================================================================
-function set_data!(db)
+function assign_data!(db)
   @assert intermediate_m_i == Set((m, i) for m in intermediate_type, i in industry if haskey(parent, (m, i)) && !haskey(production_nesting[i], m)) "Intermediate data and the industry nest maps must agree"
   @assert Set(m for (_,m,_) in intermediate_product_m_i) == Set(intermediate_type) "Each intermediate type needs product data"
   qM_m_i_data = Dict((m,i) => sum(value for ((_,mm,ii), value) in qM_p_m_i_data if mm == m && ii == i) for (m,i) in intermediate_m_i)

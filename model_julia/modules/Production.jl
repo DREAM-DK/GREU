@@ -14,7 +14,7 @@ import ..Time: t, t1, T
 import ..Tags: ForecastConstant, ForecastZero
 
 # ============================================================================
-# Production tree
+# Indices
 # ============================================================================
 const parent = Dict(
   (child, i) => n
@@ -59,9 +59,9 @@ end
 end
 
 # ============================================================================
-# Data
+# Assign data
 # ============================================================================
-function set_data!(db)
+function assign_data!(db)
   db[eProd] .= [production_nesting[i][n].elasticity for (n, i) in keys(eProd)]
   db[vProductionTax_i] .= 0.0
 

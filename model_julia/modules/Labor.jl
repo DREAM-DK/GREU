@@ -15,22 +15,18 @@ import ..Time: t, t1, T
 import ..Tags: ForecastConstant
 
 # ============================================================================
-# Checked-in data
+# Read data
 # ============================================================================
 const labor_file = joinpath(production_data_dir, "production_labor.csv")
 const qL_i_source_data = read_cells(labor_file, "qL_i")
+
+# ============================================================================
+# Indices
+# ============================================================================
 const labor_l_i = Set(
   (only(labor_type), i)
   for ((i, year), value) in qL_i_source_data
   if year == t1 && value > cell_tolerance
-)
-const qLSupply_data = Dict(
-  (year,) => sum(
-    value
-    for ((i, data_year), value) in qL_i_source_data
-    if data_year == year && (only(labor_type), i) in labor_l_i
-  )
-  for year in unique(last.(keys(qL_i_source_data)))
 )
 
 # ============================================================================
@@ -48,11 +44,18 @@ end
 end
 
 # ============================================================================
-# Data
+# Assign data
 # ============================================================================
-function set_data!(db)
+function assign_data!(db)
   fill_cells!(db, qL_l_i, Dict((only(labor_type), i, year) => value for ((i, year), value) in qL_i_source_data))
-  fill_cells!(db, qLSupply, qLSupply_data)
+  fill_cells!(db, qLSupply, Dict(
+    (year,) => sum(
+      value
+      for ((i, data_year), value) in qL_i_source_data
+      if data_year == year && (only(labor_type), i) in labor_l_i
+    )
+    for year in unique(last.(keys(qL_i_source_data)))
+  ))
   db[pW[t1]] = 1.0
   return nothing
 end

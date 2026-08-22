@@ -1,3 +1,6 @@
+# Fetch and transform sector-account and financial-account data.
+# Write sector sets and model input files.
+# Keep sector-account equations in SectorAccounts.jl.
 include(joinpath(@__DIR__, "..", "Settings.jl"))
 include("SectorAccountsSettings.jl")
 include("EurostatClient.jl")
@@ -38,7 +41,7 @@ sum_by(df, cols) = combine(groupby(df, cols), :value => (x -> sum(skipmissing(x)
 import ..DataUtils: long_format, write_index_set
 
 # ==========================================================================
-# Eurostat fetches
+# Sector and financial tables
 # ==========================================================================
 
 function fetch_sector_accounts()
@@ -121,7 +124,7 @@ function fetch_fin_accounts_balance()
 end
 
 # ==========================================================================
-# Data processing
+# Sector maps
 # ==========================================================================
 
 """Shared processing for nasa_10_f_tr, nasa_10_f_bs, nasa_10_f_oc, and nasa_10_f_gl:
@@ -286,7 +289,7 @@ function build_parameters(flow_df, tr_df, bal_df, oc_df, rev_df)
 end
 
 # ==========================================================================
-# Output files
+# Refresh
 # ==========================================================================
 
 function write_indices(dir, params)

@@ -17,10 +17,6 @@ import ..Settings: calibration_year
 
 const purchaser_use_file = joinpath(input_output_data_dir, "input_output_purchaser_use.csv")
 
-# ============================================================================
-# Synthetic intermediate split
-# ============================================================================
-
 """Assign each input-output product to energy or materials."""
 function synthetic_intermediate_product_split(
   purchaser_use = read_cells(purchaser_use_file, "qPurchaserUse_p_u_o"),
@@ -38,10 +34,6 @@ function synthetic_intermediate_product_split(
   sort!(split, [:industry, :m, :product])
   return split
 end
-
-# ============================================================================
-# Checked-in data
-# ============================================================================
 
 function refresh_intermediates_data!(dir = production_data_dir)
   mkpath(dir)

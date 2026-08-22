@@ -14,9 +14,9 @@ calibration_modules = [
   Production,
   Labor,
   Capital,
-  # Intermediates,
+  Intermediates,
   # CapitalAdjustmentCosts,
-  SectorAccounts,
+  # SectorAccounts,
 ]
 
 # ============================================================================
@@ -36,12 +36,10 @@ assert_residuals_small(baseline; rtol=1e-4, tolerances=residual_tolerances(basel
 # Tests
 # ==============================================================================
 # Zero shock test: After calibration, solving the base model with no changes should give identical results
-begin
-	base_block = base_model()
-	baseline[filter(resid -> isnothing(baseline[resid]), residuals(base_block))] .= 0.0
-	zero_shock = solve(base_block, baseline)
-	assert_no_diff(baseline, zero_shock; atol=1e-5, msg="Zero shock test failed")
-end
+base_block = base_model()
+baseline[filter(resid -> isnothing(baseline[resid]), residuals(base_block))] .= 0.0
+zero_shock = solve(base_block, baseline)
+assert_no_diff(baseline, zero_shock; atol=1e-5, msg="Zero shock test failed")
 
 # Module-specific tests: collect failures from every module before raising, since a single
 # underlying bug often trips several checks at once (across one or more modules).

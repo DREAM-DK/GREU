@@ -19,16 +19,12 @@ import ..db
 import ..Time: t, t1, T
 
 # ============================================================================
-# Indices
+# Read data
 # ============================================================================
 
 const sector = read_indices(joinpath(sector_accounts_data_dir, "sector_accounts_sectors.csv"))
 const fin_instrument = read_indices(joinpath(sector_accounts_data_dir, "sector_accounts_fin_instruments.csv"))
 const ass_liab = read_indices(joinpath(sector_accounts_data_dir, "sector_accounts_ass_liab.csv"))
-
-# ============================================================================
-# Checked-in data
-# ============================================================================
 
 const sector_accounts_file = joinpath(sector_accounts_data_dir, "sector_accounts.csv")
 
@@ -45,7 +41,7 @@ const vFinReval_data = read_cells(sector_accounts_file, "vFinReval")
 const vOtherChangesInVolume_data = read_cells(sector_accounts_file, "vOtherChangesInVolume")
 
 # ============================================================================
-# Cell masks
+# Indices
 # ============================================================================
 # Each mask is named after the indices it holds. Cells outside a mask have no
 # variable and no equation, so a mask change needs a model rebuild.
@@ -113,10 +109,10 @@ const SectorAccountsTag = Tag(:SectorAccounts)
 end # @variables
 
 # ============================================================================
-# Data
+# Assign data
 # ============================================================================
 
-function set_data!(db)
+function assign_data!(db)
   @assert all(haskey(vNetFinTransactions_data, (s,calibration_year)) for s in sector) "Each sector needs net financial transactions"
   @assert all(haskey(vFinAssets_al_data, (s,al,calibration_year)) for s in sector for al in ass_liab) "Each sector needs financial assets and liabilities"
 
@@ -157,7 +153,7 @@ function set_data!(db)
   ]
 
   return nothing
-end # set_data!
+end # assign_data!
 
 function set_residual_tolerances!(tolerances)
   # Sector stock changes can differ from the sum of transactions,

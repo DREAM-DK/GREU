@@ -29,7 +29,7 @@ db = ModelDictionary(Settings.square_model())
 const submodels = [@log_time("include modules/$name.jl", include(joinpath("modules", "$name.jl"))) for name in Settings.enabled_modules]
 
 for m in submodels
-	@log_time("set_data!($m)", m.set_data!(db))
+	@log_time("assign_data!($m)", m.assign_data!(db))
 end
 
 base_model() = @log_time sum(m.define_equations() for m in submodels)
