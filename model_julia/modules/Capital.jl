@@ -67,6 +67,7 @@ end
   pI_k[k=capital_type, t = t], "Investment price by capital type."
   pMarginalCapitalTax_k_i[(k,i,t) = qK_k_i], "Marginal corporation tax per unit of capital."
   pCapitalAdjustment_k_i[(k,i,t) = qK_k_i] :: ForecastZero, "Added user cost from capital adjustment by type and industry."
+  pInvestmentShock_k_i[(k,i,t) = qK_k_i] :: ForecastZero, "Shock that increases investment by type and industry."
 end
 
 @variables db.model :: (CapitalTag, GrowthAdjusted, InflationAdjusted) begin
@@ -117,9 +118,9 @@ function define_equations()
     pProd[k=capital_type, i=industry, t=t1:T],
     qProd[k,i,t] == pK_k_i[k,i,t1] * qK_k_i[k,i,t-1]/fq
 
-    # User cost equals the shadow price in expectation. This sets lagged capital.
+    # Expected user cost sets lagged capital. A positive shock raises investment.
     qK_k_i[k=capital_type, i=industry, t=t1:(T-1)],
-    pProd[k,i,t+1] == pK_k_i[k,i,t+1] / pK_k_i[k,i,t1]
+    pProd[k,i,t+1] * pK_k_i[k,i,t1] + pInvestmentShock_k_i[k,i,t+1] == pK_k_i[k,i,t+1]
 
     # Terminal condition
     qK_k_i[k=capital_type, i=industry, t=T; T > t1],
@@ -175,6 +176,9 @@ function define_calibration()
     rKDepr_k_i[:,:,t1], vI_k_i[:,:,t1]
 
     rInvestmentProductShare[p=product, k=capital_type, t=t1], qI_p_k[p=product, k=capital_type, t=t1]
+
+    pInvestmentShock_k_i[k=capital_type, i=industry, t=t1+1; T > t1],
+    qK_k_i[k=capital_type, i=industry, t=t1; T > t1]
   end
 
   return block
