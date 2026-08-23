@@ -11,7 +11,4 @@ const ForecastZero = Tag(:forecast_zero)
 """Parameters that stay endogenous in the dynamic calibration."""
 const DynamicCalibration = Tag(:dynamic_calibration)
 
-"""Variables that belong to capital adjustment costs."""
-const CapitalAdjustmentCostsTag = Tag(:CapitalAdjustmentCosts)
-
 end

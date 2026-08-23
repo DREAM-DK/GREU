@@ -23,7 +23,7 @@ import ..ProductionSettings:
 import ..Settings: calibration_year
 import ..model
 import ..Time: t, t1, T
-import ..Tags: CapitalAdjustmentCostsTag, DynamicCalibration, ForecastConstant, ForecastZero
+import ..Tags: DynamicCalibration, ForecastConstant, ForecastZero
 
 # ============================================================================
 # Read data
@@ -68,7 +68,7 @@ end
   pK_k_i[(k,i,t) = qK_k_i], "User cost of capital by type and industry."
   pI_k[k=capital_type, t = t], "Investment price by capital type."
   pMarginalCapitalTax_k_i[(k,i,t) = qK_k_i], "Marginal corporation tax per unit of capital."
-  pKAdjCost_k_i[(k,i,t) = qK_k_i] :: (CapitalAdjustmentCostsTag, ForecastZero, DynamicCalibration), "Added user cost from capital adjustment by type and industry."
+  pKAdjCost_k_i[(k,i,t) = qK_k_i] :: (ForecastZero, DynamicCalibration), "Added user cost from capital adjustment by type and industry."
   pInvestmentShock_k_i[(k,i,t) = qK_k_i] :: (ForecastZero, DynamicCalibration), "Shock that increases investment by type and industry."
 end
 
@@ -94,6 +94,14 @@ function assign_data!(db)
   db[[pProd[k,i,t1] for (k, i) in capital_k_i]] .= 1.0
   db[rHurdleRate_i] .= 0.15
   db[pMarginalCapitalTax_k_i] .= 0.0
+  return nothing
+end
+
+# ============================================================================
+# Starting values
+# ============================================================================
+function set_starting_values!(start_values)
+  start_values[pKAdjCost_k_i] .= 0
   return nothing
 end
 

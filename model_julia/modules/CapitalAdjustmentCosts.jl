@@ -17,17 +17,13 @@ import ..ProductionSettings: capital_type
 import ..Settings: calibration_year, first_data_year
 import ..model
 import ..Time: t1, T
-import ..Tags: CapitalAdjustmentCostsTag, ForecastConstant
-
-@assert calibration_year >= first_data_year + 2 "Capital adjustment costs need two historical years"
-@assert all(
-  haskey(qK_k_i_data, (k, i, year))
-  for (k, i) in capital_k_i, year in (calibration_year-2):calibration_year
-) "Each capital stock needs two historical years"
+import ..Tags: ForecastConstant
 
 # ============================================================================
 # Variables
 # ============================================================================
+const CapitalAdjustmentCostsTag = Tag(:CapitalAdjustmentCosts)
+
 @variables model :: (CapitalAdjustmentCostsTag, GrowthAdjusted) begin
   qKAdjCost_k_i[(k, i, t) = qK_k_i], "Capital adjustment cost by type and industry."
 end
@@ -44,7 +40,7 @@ end
 # Assign data
 # ============================================================================
 function assign_data!(db)
-  db[fKAdjCost] .= 0.01
+  db[fKAdjCost] .= 1.0
   return nothing
 end
 
