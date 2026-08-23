@@ -13,6 +13,7 @@ const enabled_modules = [
   :ModuleTemplate,
   :InputOutput,
   :ImportSubstitution,
+  :Exports,
   :Production,
   :Labor,
   :Capital,
