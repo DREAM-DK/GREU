@@ -22,6 +22,7 @@ data = assign_data!(ModelDictionary(model))
 modules = [
   ModuleTemplate,
   InputOutput,
+  ImportSubstitution,
   Production,
   Labor,
   Capital,

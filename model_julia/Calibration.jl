@@ -50,8 +50,9 @@ end
 """
 Handle ForecastConstant-tagged variables for calibration.
 
-For endogenous variables at t > t1: create equations var[t] == var[t1]
-For exogenous variables at t > t1: copy the t1 exogenous value.
+For parameters that are endogenous only at t1: create equations var[t] == var[t1].
+For parameters that are exogenous at t1: copy the t1 exogenous value.
+Leave variables that a model equation already makes endogenous at t > t1 unchanged.
 
 Returns a Block with forecast constraints (to be merged with the main block).
 """
@@ -63,7 +64,9 @@ function forecast_constants!(block::Block, exogenous_values::ModelDictionary)
     var_t1 = at_year(var, t1)
     var_t1 == var && continue  # Already at t1, no forecast needed.
 
-    if is_endogenous(var_t1, block)
+    if is_endogenous(var, block)
+      continue
+    elseif is_endogenous(var_t1, block)
       add_equation!(forecast_block, var, var, var_t1)
     else
       exogenous_values[var] = exogenous_values[var_t1]

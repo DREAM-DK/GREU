@@ -12,6 +12,7 @@ const terminal_year = 2025
 const enabled_modules = [
   :ModuleTemplate,
   :InputOutput,
+  :ImportSubstitution,
   :Production,
   :Labor,
   :Capital,

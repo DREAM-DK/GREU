@@ -382,9 +382,10 @@ function define_equations()
     qSupply_p_o[p = product, o = domestic, t = t1:T],
       qSupply_p_o[p,o,t] == ∑(qY_p_i[p,i,t] for i in industry)
 
-    @test_constraint("Origin shares sum to product use"; rtol=1e-3)
+    @test_constraint("Origin values sum to product use"; rtol=1e-3)
     qPurchaserUse_p_u[p = product, u = ordinary_uses, t = t1:T],
-      qPurchaserUse_p_u[p,u,t] == ∑(qPurchaserUse_p_u_o[p,u,o,t] for o in origin)
+      pPurchaserUse_p_u[p,u,t] * qPurchaserUse_p_u[p,u,t] ==
+        ∑(vPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
     @test_constraint("Margin-service shares sum to the margin bundle"; rtol=1e-3)
     qMarginBundle_u[u = use, t = t1:T],
