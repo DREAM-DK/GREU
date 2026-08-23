@@ -15,7 +15,7 @@ import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
 import ..InputOutput: vC, vM, vX
 import ..SectorAccountsSettings: sector_accounts_data_dir, cell_tolerance
 import ..Settings: calibration_year
-import ..db
+import ..model
 import ..Time: t, t1, T
 
 # ============================================================================
@@ -39,6 +39,8 @@ const vNetTransfers2sector_data = read_cells(sector_accounts_file, "vNetTransfer
 const vGrossOpSurplusMixedIncome_data = read_cells(sector_accounts_file, "vGrossOpSurplusMixedIncome")
 const vFinReval_data = read_cells(sector_accounts_file, "vFinReval")
 const vOtherChangesInVolume_data = read_cells(sector_accounts_file, "vOtherChangesInVolume")
+const vGovBalance_data = read_cells(sector_accounts_file, "vGovBalance")
+const vNetFinAssets_data = read_cells(sector_accounts_file, "vNetFinAssets")
 
 # ============================================================================
 # Indices
@@ -60,7 +62,7 @@ calibration_year_axis(cells) = Set(only(index) for index in calibration_year_ind
 
 const SectorAccountsTag = Tag(:SectorAccounts)
 
-@variables db.model :: (SectorAccountsTag, GrowthAdjusted, InflationAdjusted) begin
+@variables model :: (SectorAccountsTag, GrowthAdjusted, InflationAdjusted) begin
   # Sector totals.
   vNetFinAssets[s=sector,t=t], "Net financial assets by sector: assets less liabilities."
   vNetFinTransactions[s=sector,t=t], "Net financial transactions by sector: assets acquired less liabilities incurred (B.9F)."
@@ -113,9 +115,6 @@ end # @variables
 # ============================================================================
 
 function assign_data!(db)
-  @assert all(haskey(vNetFinTransactions_data, (s,calibration_year)) for s in sector) "Each sector needs net financial transactions"
-  @assert all(haskey(vFinAssets_al_data, (s,al,calibration_year)) for s in sector for al in ass_liab) "Each sector needs financial assets and liabilities"
-
   fill_cells!(db, vFinIncome, vFinIncome_data)
   fill_cells!(db, vFinAL, vFinAL_data)
   fill_cells!(db, vFinTransactions, vFinTransactions_data)
@@ -137,20 +136,8 @@ function assign_data!(db)
 
   # Until the government module supplies B.9, use the same source total as
   # government net financial transactions.
-  db[vGovBalance] .= [
-    get(vNetFinTransactions_data, (:Gov,tt), nothing)
-    for tt in t
-  ]
-
-  # Net financial assets: assets minus liabilities by sector.
-  db[vNetFinAssets] .= [
-    let
-      asset = db[vFinAssets_al][s,:Assets,tt]
-      liability = db[vFinAssets_al][s,:Liab,tt]
-      asset === nothing || liability === nothing ? nothing : asset-liability
-    end
-    for s in sector, tt in t
-  ]
+  fill_cells!(db, vGovBalance, vGovBalance_data)
+  fill_cells!(db, vNetFinAssets, vNetFinAssets_data)
 
   return nothing
 end # assign_data!
@@ -169,7 +156,7 @@ end
 # ============================================================================
 
 function define_equations()
-  return @block db begin
+  return @block model begin
     # Stock changes equal transactions, revaluations, and other volume changes.
     vFinTransactions[s = sector, f = fin_instrument, al = ass_liab, t = t1:T],
     vFinAL[s,f,al,t] == vFinAL[s,f,al,t-1]/fv

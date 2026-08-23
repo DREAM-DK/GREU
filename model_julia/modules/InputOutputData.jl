@@ -11,7 +11,7 @@ module InputOutputData
 using CSV
 using DataFrames
 import ..EurostatClient
-using ..Settings: calibration_year, country_code
+using ..Settings: calibration_year, country_code, first_data_year
 import ..InputOutputSettings:
   margin_services,
   cell_tolerance,
@@ -23,10 +23,12 @@ import ..InputOutputSettings:
   eurostat_unit,
   final_use_rename,
   input_output_data_dir,
-  nace_a64_to_a21
+  nace_a64_to_a21,
+  source_industry,
+  final_uses
 import ..DataUtils: long_format, sum_by
 
-const data_years = (calibration_year - 1):calibration_year
+const data_years = first_data_year:calibration_year
 const year_params = ["time" => string(y) for y in data_years]
 
 # Index of a purchaser-use cell, in the order the model reads it.
@@ -365,6 +367,17 @@ end
 
 function write_input_output_data!(data, dir = input_output_data_dir)
   mkpath(dir)
+  purchaser_use_p_u = sum_by(data.purchaser_use, [:product, :use, :year])
+  q_p_u = Dict((row.product, row.use, row.year) => row.value for row in eachrow(purchaser_use_p_u))
+  @assert Set((row.product, row.use, row.year) for row in eachrow(data.carried_margins)) ⊆ keys(q_p_u) "Each reported margin needs purchaser use"
+  @assert Set((row.product, row.use, row.year) for row in eachrow(data.net_product_taxes)) ⊆ keys(q_p_u) "Each net product tax needs purchaser use"
+  @assert all(abs(q_p_u[row.product, row.use, row.year]) > cell_tolerance for row in eachrow(data.net_product_taxes) if row.year == calibration_year) "Each net product tax needs non-zero purchaser use"
+  @assert all(abs(q_p_u[row.product, row.use, row.year]) > cell_tolerance for row in eachrow(data.carried_margins) if row.year == calibration_year) "Each margin rate needs non-zero purchaser use"
+  tax = Dict((row.use, row.year) => row.value for row in eachrow(data.net_product_tax_totals))
+  net_product_tax_u = DataFrame([
+    (use = u, year = year, value = get(tax, (u, year), 0.0))
+    for u in [source_industry; final_uses] for year in data_years
+  ])
 
   CSV.write(
     joinpath(dir, "input_output_supply.csv"),
@@ -372,28 +385,30 @@ function write_input_output_data!(data, dir = input_output_data_dir)
   )
   CSV.write(
     joinpath(dir, "input_output_purchaser_use.csv"),
-    long_format(:qPurchaserUse_p_u_o, data.purchaser_use, cell_index),
+    vcat(
+      long_format(:qPurchaserUse_p_u_o, data.purchaser_use, cell_index),
+      long_format(:qPurchaserUse_p_u, purchaser_use_p_u, [:product, :use, :year]),
+      long_format(:qM_p_i, rename(purchaser_use_p_u[in.(purchaser_use_p_u.use, Ref(Set(source_industry))), :], :use => :industry), [:product, :industry, :year]),
+      long_format(:qC_p, select(purchaser_use_p_u[purchaser_use_p_u.use .== :C, :], :product, :year, :value), [:product, :year]),
+      long_format(:qG_p, select(purchaser_use_p_u[purchaser_use_p_u.use .== :G, :], :product, :year, :value), [:product, :year]),
+      long_format(:qI_p, select(purchaser_use_p_u[purchaser_use_p_u.use .== :K, :], :product, :year, :value), [:product, :year]),
+      long_format(:qX_p, select(purchaser_use_p_u[purchaser_use_p_u.use .== :X, :], :product, :year, :value), [:product, :year]),
+      long_format(:qI, sum_by(purchaser_use_p_u[purchaser_use_p_u.use .== :K, :], [:year]), [:year]),
+    ),
   )
   CSV.write(
     joinpath(dir, "input_output_margins.csv"),
     vcat(
       long_format(:qMarginBundle_p_u, data.carried_margins, [:product, :use, :year]),
       long_format(:qMarginService_s_u_o, data.services, [:service, :use, :origin, :year]),
+      long_format(:qMarginService_s_u, sum_by(data.services, [:service, :use, :year]), [:service, :use, :year]),
     ),
   )
   CSV.write(
     joinpath(dir, "input_output_net_product_tax.csv"),
     vcat(
-      long_format(
-        :vNetProductTax_p_u,
-        data.net_product_taxes,
-        [:product, :use, :year],
-      ),
-      long_format(
-        :vNetProductTax_u,
-        data.net_product_tax_totals,
-        [:use, :year],
-      ),
+      long_format(:vNetProductTax_p_u, data.net_product_taxes, [:product, :use, :year]),
+      long_format(:vNetProductTax_u, net_product_tax_u, [:use, :year]),
     ),
   )
   CSV.write(

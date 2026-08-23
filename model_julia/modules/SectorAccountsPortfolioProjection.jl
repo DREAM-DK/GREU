@@ -27,7 +27,7 @@ import JuMP
 using SquareModels
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
 import ..SectorAccountsSettings: sector_accounts_data_dir
-import ..db
+import ..model
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
 import ..SectorAccounts: sector, fin_instrument, ass_liab,
@@ -41,7 +41,7 @@ const SectorAccountsPortfolioProjectionTag = Tag(:SectorAccountsPortfolioProject
 # ==========================================================================
 # Variables
 # ==========================================================================
-@variables db.model :: (SectorAccountsPortfolioProjectionTag, GrowthAdjusted, InflationAdjusted) begin
+@variables model :: (SectorAccountsPortfolioProjectionTag, GrowthAdjusted, InflationAdjusted) begin
   # -- By-instrument net positions --
   vNetDebtInstruments[sector,t], "Net debt instruments by sector (debt assets minus debt liabilities)."
   vNetEquity[sector,t], "Net equity by sector (equity assets minus equity liabilities)."
@@ -52,7 +52,7 @@ const SectorAccountsPortfolioProjectionTag = Tag(:SectorAccountsPortfolioProject
 end
 
 # Portfolio ratios (dimensionless; no growth or inflation adjustment; constant in forecast)
-@variables db.model :: (SectorAccountsPortfolioProjectionTag, ForecastConstant) begin
+@variables model :: (SectorAccountsPortfolioProjectionTag, ForecastConstant) begin
   rFinCorpDebtAssets2DomesticDebtLiabilities[t], "FinCorp debt asset ratio: debt assets relative to domestic debt liabilities of Hh, NonFinCorp, and Gov."
   rFinCorpDebtLiabilities2EquityLiabilities[t], "FinCorp capital structure: debt liabilities relative to own equity liabilities."
   rNonFinCorpEquityAssets2EquityLiabilities[t], "NonFinCorp equity asset ratio: equity assets relative to own equity liabilities."
@@ -89,7 +89,7 @@ end
 # Equations
 # ==========================================================================
 function define_equations()
-  return @block db begin
+  return @block model begin
     # ------------------------------------------------------------------------------------------
     # -- Projections of financial transctions by sector, instrument, and asset/liability side --
     # ------------------------------------------------------------------------------------------

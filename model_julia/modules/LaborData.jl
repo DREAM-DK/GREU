@@ -1,6 +1,6 @@
 # Fetch and write labor data for production.
 # Use employee pay as the labor quantity at the base price.
-# Keep capital data in CapitalData.jl.
+# Write the labor-type index and the implied supply total.
 include(joinpath(@__DIR__, "..", "Settings.jl"))
 include("InputOutputSettings.jl")
 include("ProductionSettings.jl")
@@ -17,10 +17,10 @@ import ..InputOutputSettings:
   eurostat_unit,
   eurostat_use_dataset,
   nace_a64_to_a21
-import ..ProductionSettings: production_data_dir
-import ..Settings: calibration_year, country_code
+import ..ProductionSettings: labor_type, production_data_dir
+import ..Settings: calibration_year, country_code, first_data_year
 
-const data_years = (calibration_year - 1):calibration_year
+const data_years = first_data_year:calibration_year
 const year_params = ["time" => string(year) for year in data_years]
 
 """Map employee pay from T1610 to model industries."""
@@ -48,9 +48,13 @@ fetch_labor_table() = labor_data(EurostatClient.fetch_table(
 
 function refresh_labor_data!(labor = fetch_labor_table(), dir = production_data_dir)
   mkpath(dir)
+  labor.l .= only(labor_type)
   CSV.write(
     joinpath(dir, "production_labor.csv"),
-    long_format(:qL_i, labor, [:industry, :year]),
+    vcat(
+      long_format(:qL_l_i, labor, [:l, :industry, :year]),
+      long_format(:qLSupply, sum_by(labor, [:year]), [:year]),
+    ),
   )
   return nothing
 end

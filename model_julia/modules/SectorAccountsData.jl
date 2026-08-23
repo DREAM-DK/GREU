@@ -301,6 +301,11 @@ end
 
 """All sector-account variables in a single file."""
 function write_sector_flows(dir, params)
+  sectors = sort(unique(params.vFinIncome.sector))
+  @assert all(any(row.sector == s && row.year == calibration_year for row in eachrow(params.vNetFinTransactions)) for s in sectors) "Each sector needs net financial transactions"
+  @assert all(any(row.sector == s && row.al == al && row.year == calibration_year for row in eachrow(params.vFinAssets)) for s in sectors, al in ("Assets", "Liab")) "Each sector needs financial assets and liabilities"
+  vGovBalance = select(params.vNetFinTransactions[params.vNetFinTransactions.sector .== "Gov", :], :year, :value)
+  vNetFinAssets = combine(groupby(params.vFinAssets, [:sector, :year]), sdf -> (; value = only(sdf.value[sdf.al .== "Assets"]) - only(sdf.value[sdf.al .== "Liab"])))
   CSV.write(joinpath(dir, "sector_accounts.csv"), vcat(
     long_format(:vFinIncome,                               params.vFinIncome,                               [:sector, :f, :al, :year]),
     long_format(:vNetFinTransactions,                      params.vNetFinTransactions,                      [:sector, :year]),
@@ -321,6 +326,8 @@ function write_sector_flows(dir, params)
     long_format(:vFinAssets,                               params.vFinAssets,                               [:sector, :al, :year]),
     long_format(:vOtherChangesInVolume,                    params.vOtherChangesInVolume,                         [:sector, :f, :al, :year]),
     long_format(:vFinReval,                                params.vFinReval,                                [:sector, :f, :al, :year]),
+    long_format(:vGovBalance,                              vGovBalance,                                     [:year]),
+    long_format(:vNetFinAssets,                            vNetFinAssets,                                   [:sector, :year]),
   ))
 end
 

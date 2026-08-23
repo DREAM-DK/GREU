@@ -1,6 +1,6 @@
 # Build the synthetic intermediate product split.
 # Assign energy products to energy and all other products to materials.
-# Write quantities for calibration; do not calculate model shares.
+# Write product cells and the implied type totals.
 include(joinpath(@__DIR__, "..", "Settings.jl"))
 include("InputOutputSettings.jl")
 include("ProductionSettings.jl")
@@ -12,7 +12,7 @@ using CSV
 using DataFrames
 import ..DataUtils: long_format, read_cells, sum_by
 import ..InputOutputSettings: cell_tolerance, input_output_data_dir, product, source_industry
-import ..ProductionSettings: energy_product, production_data_dir
+import ..ProductionSettings: energy_product, intermediate_type, production_data_dir
 import ..Settings: calibration_year
 
 const purchaser_use_file = joinpath(input_output_data_dir, "input_output_purchaser_use.csv")
@@ -37,10 +37,18 @@ end
 
 function refresh_intermediates_data!(dir = production_data_dir)
   mkpath(dir)
+  split = synthetic_intermediate_product_split()
+  split.year .= calibration_year
+  qM_m_i = sum_by(split, [:m, :industry, :year])
+  @assert Set(qM_m_i.m) == Set(intermediate_type) "Each intermediate type needs product data"
+  @assert all(>(cell_tolerance), qM_m_i.value) "Each intermediate type needs positive use"
   # Replace this synthetic table with direct energy data when it exists.
   CSV.write(
     joinpath(dir, "production_intermediate_product_split.csv"),
-    long_format(:qM_p_m_i, synthetic_intermediate_product_split(), [:product, :m, :industry]),
+    vcat(
+      long_format(:qM_p_m_i, split, [:product, :m, :industry, :year]),
+      long_format(:qM_m_i, qM_m_i, [:m, :industry, :year]),
+    ),
   )
   return nothing
 end

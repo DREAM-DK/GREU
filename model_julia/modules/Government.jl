@@ -8,7 +8,7 @@ module Government
 
 import JuMP
 using SquareModels
-import ..db
+import ..model
 import ..Time: t, t1, T
 import ..SectorAccounts: vPrimaryIncome, vNetTransfers, vFinalConsumption, vGrossCapitalFormation
 
@@ -35,7 +35,7 @@ end
 # Equations
 # ==========================================================================
 function define_equations()
-  return @block db begin
+  return @block model begin
   end
 end
 

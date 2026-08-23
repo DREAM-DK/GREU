@@ -4,7 +4,7 @@ include(joinpath(@__DIR__, "InputOutputSettings.jl"))
 module InputOutput
 
 using SquareModels
-import ..DataUtils: cell_value, fill_cells!, read_cells, read_series
+import ..DataUtils: fill_cells!, read_cells, read_series
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutputSettings:
   final_uses,
@@ -15,7 +15,7 @@ import ..InputOutputSettings:
   input_output_data_dir,
   margin_services
 import ..Settings: calibration_year
-import ..db
+import ..model
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
 
@@ -35,9 +35,17 @@ const aggregate_totals_file = joinpath(input_output_data_dir, "input_output_aggr
 const qY_p_i_data = read_cells(supply_file, "qY_p_i")
 const qMarginBundle_p_u_data = read_cells(margin_file, "qMarginBundle_p_u")
 const qMarginService_s_u_o_data = read_cells(margin_file, "qMarginService_s_u_o")
+const qMarginService_s_u_data = read_cells(margin_file, "qMarginService_s_u")
 const vNetProductTax_p_u_data = read_cells(net_product_tax_file, "vNetProductTax_p_u")
 const vNetProductTax_u_data = read_cells(net_product_tax_file, "vNetProductTax_u")
 const qPurchaserUse_p_u_o_data = read_cells(purchaser_use_file, "qPurchaserUse_p_u_o")
+const qPurchaserUse_p_u_data = read_cells(purchaser_use_file, "qPurchaserUse_p_u")
+const qM_p_i_data = read_cells(purchaser_use_file, "qM_p_i")
+const qC_p_data = read_cells(purchaser_use_file, "qC_p")
+const qG_p_data = read_cells(purchaser_use_file, "qG_p")
+const qI_p_data = read_cells(purchaser_use_file, "qI_p")
+const qX_p_data = read_cells(purchaser_use_file, "qX_p")
+const qI_data = read_cells(purchaser_use_file, "qI")
 
 # ============================================================================
 # Indices
@@ -76,6 +84,8 @@ const margin_only_s_u_o = Set(
   if u ∉ ordinary_uses || (s,u,o) ∉ purchaser_use_p_u_o
 )
 
+const purchaser_use_p_u = Set((p, u) for (p, u, _) in purchaser_use_p_u_o)
+
 # ============================================================================
 # Variables
 # ============================================================================
@@ -84,7 +94,7 @@ const InputOutputTag = Tag(:InputOutput)
 
 # Margin services are products, so the margin variables keep the full product
 # domain. Product clearing and import totals index them by any product.
-@variables db.model :: (InputOutputTag, GrowthAdjusted, InflationAdjusted) begin
+@variables model :: (InputOutputTag, GrowthAdjusted, InflationAdjusted) begin
   vY_p_i[p=product, i=industry, t=t; (p,i) in calibration_year_indices(qY_p_i_data)], "Basic-price output by product and industry"
   vPurchaserUse_p_u_o[p=product, u=use, o=origin, t=t; (p,u,o) in purchaser_use_p_u_o], "Purchaser spend by product, use, and origin"
   vPurchaserUse_p_u[(p,u,t)=select_axes(vPurchaserUse_p_u_o, 1, 2, 4)], "Purchaser spend by product and use"
@@ -108,7 +118,7 @@ const InputOutputTag = Tag(:InputOutput)
   vX[t], "Total exports"
 end
 
-@variables db.model :: (InputOutputTag, InflationAdjusted) begin
+@variables model :: (InputOutputTag, InflationAdjusted) begin
   pY_p_i[(p,i,t)=vY_p_i], "Domestic basic price by product and industry"
   pY_i[(i,t)=vY_i], "Domestic basic price by industry"
   pBasic[(p,u,o,t)=vUse_p_u_o], "Basic or border price by product, use, and origin"
@@ -127,7 +137,7 @@ end
   pX[t], "Total export price"
 end
 
-@variables db.model :: (InputOutputTag, GrowthAdjusted) begin
+@variables model :: (InputOutputTag, GrowthAdjusted) begin
   qY_p_i[(p,i,t)=vY_p_i], "Output by product and industry"
   qPurchaserUse_p_u[(p,u,t)=vPurchaserUse_p_u], "Purchaser use by product and use"
   qPurchaserUse_p_u_o[(p,u,o,t)=vPurchaserUse_p_u_o], "Purchaser use by product, use, and origin"
@@ -165,7 +175,7 @@ const vM = vSupply_o[import_origin,:]
 
 const pM_p_u = pBasic[:,:,import_origin,:]
 
-@variables db.model :: InputOutputTag begin
+@variables model :: InputOutputTag begin
   rIndustryShare[(p,i,t)=qY_p_i] :: ForecastConstant, "Fixed industry share for each product"
   rOriginShare[(p,u,o,t)=merge_indices(qPurchaserUse_p_u_o[:,ordinary_uses,:,:], qMarginService_s_u_o)] :: ForecastConstant, "Fixed origin share"
   rMarginServiceShare[(s,u,t)=qMarginService_s_u] :: ForecastConstant, "Fixed margin-service share"
@@ -174,49 +184,29 @@ const pM_p_u = pBasic[:,:,import_origin,:]
   tVAT[(p,u,o,t)=qPurchaserUse_p_u_o] :: ForecastConstant, "Separate VAT rate; zero while tNetProduct includes VAT"
 end
 
+@assert Set(p for (p, _, year) in keys(vY_p_i) if year == calibration_year) ==
+  Set(p for (p, o, year) in keys(vSupply_p_o) if o == domestic && year == calibration_year) "Domestic product supply must match industry output"
+@assert Set(o for (_, o, year) in keys(vSupply_p_o) if year == calibration_year) == Set(origin) "Each origin needs supply"
+
 # ============================================================================
 # Assign data
 # ============================================================================
 
 function assign_data!(db)
-  @assert all(key in keys(vPurchaserUse_p_u) for key in keys(qMarginBundle_p_u)) "Each reported margin needs purchaser use"
-  @assert all(key in keys(vPurchaserUse_p_u) for key in keys(vNetProductTax_p_u)) "Each net product tax needs purchaser use"
-  @assert Set(p for (p,_,tt) in keys(vY_p_i) if tt == t1) == Set(p for (p,o,tt) in keys(vSupply_p_o) if o == domestic && tt == t1) "Domestic product supply must match industry output"
-  @assert Set(o for (_,o,tt) in keys(vSupply_p_o) if tt == t1) == Set(origin) "Each origin needs supply"
-  @assert all(
-    abs(sum(cell_value(qPurchaserUse_p_u_o_data, p, u, o, calibration_year) for o in origin)) > cell_tolerance
-    for (p,u,tt) in keys(vNetProductTax_p_u) if tt == t1
-  ) "Each net product tax needs non-zero purchaser use"
-  @assert all(
-    abs(sum(cell_value(qPurchaserUse_p_u_o_data, p, u, o, calibration_year) for o in origin)) > cell_tolerance
-    for (p,u,tt) in keys(qMarginBundle_p_u) if tt == t1
-  ) "Each margin rate needs non-zero purchaser use"
-
   fill_cells!(db, qY_p_i, qY_p_i_data)
   fill_cells!(db, qMarginService_s_u_o, qMarginService_s_u_o_data)
   fill_cells!(db, qPurchaserUse_p_u_o, qPurchaserUse_p_u_o_data)
   fill_cells!(db, qMarginBundle_p_u, qMarginBundle_p_u_data)
   fill_cells!(db, vNetProductTax_p_u, vNetProductTax_p_u_data)
-
-  # Source-implied purchaser-use product cells and margin totals.
-  purchaser_use_years = Set(tt for (_,_,_,tt) in keys(qPurchaserUse_p_u_o_data))
-  margin_service_years = Set(tt for (_,_,_,tt) in keys(qMarginService_s_u_o_data))
-  purchaser_use_p_u(p, u, tt) = sum(cell_value(qPurchaserUse_p_u_o_data, p, u, o, tt) for o in origin)
-  db[qPurchaserUse_p_u] .= [tt in purchaser_use_years ? purchaser_use_p_u(p, u, tt) : nothing for (p,u,tt) in keys(qPurchaserUse_p_u)]
-  db[qM_p_i] .= [tt in purchaser_use_years ? purchaser_use_p_u(p, i, tt) : nothing for (p,i,tt) in keys(qM_p_i)]
-  db[qC_p] .= [tt in purchaser_use_years ? purchaser_use_p_u(p, :C, tt) : nothing for (p,tt) in keys(qC_p)]
-  db[qG_p] .= [tt in purchaser_use_years ? purchaser_use_p_u(p, :G, tt) : nothing for (p,tt) in keys(qG_p)]
-  db[qI_p] .= [tt in purchaser_use_years ? purchaser_use_p_u(p, :K, tt) : nothing for (p,tt) in keys(qI_p)]
-  db[qX_p] .= [tt in purchaser_use_years ? purchaser_use_p_u(p, :X, tt) : nothing for (p,tt) in keys(qX_p)]
-  db[qI] .= [tt in purchaser_use_years ? sum(purchaser_use_p_u(p, :K, tt) for p in product) : nothing for tt in t]
-  db[qMarginService_s_u] .= [tt in margin_service_years ? sum(cell_value(qMarginService_s_u_o_data, s, u, o, tt) for o in origin) : nothing for (s,u,tt) in keys(qMarginService_s_u)]
-
-  # The source omits uses with no product tax: zero in reported years, open after.
-  tax_years = Set(tt for (_,tt) in keys(vNetProductTax_u_data))
-  db[vNetProductTax_u] .= [
-    tt in tax_years ? get(vNetProductTax_u_data, (u,tt), 0.0) : nothing
-    for u in use, tt in t
-  ]
+  fill_cells!(db, qPurchaserUse_p_u, qPurchaserUse_p_u_data)
+  fill_cells!(db, qM_p_i, qM_p_i_data)
+  fill_cells!(db, qC_p, qC_p_data)
+  fill_cells!(db, qG_p, qG_p_data)
+  fill_cells!(db, qI_p, qI_p_data)
+  fill_cells!(db, qX_p, qX_p_data)
+  fill_cells!(db, qI, qI_data)
+  fill_cells!(db, qMarginService_s_u, qMarginService_s_u_data)
+  fill_cells!(db, vNetProductTax_u, vNetProductTax_u_data)
 
   # The T1630 split is net of product subsidies and includes VAT, tariffs, and
   # other product taxes. Keep it in tNetProduct until a tax module splits it.
@@ -243,7 +233,7 @@ end
 # ============================================================================
 
 function define_equations()
-  return @block db begin
+  return @block model begin
     # Direct product demand. Inventories bypass the module links.
     qPurchaserUse_p_u[(p,i,t) in keys(qM_p_i); t in t1:T], qPurchaserUse_p_u[p,i,t] == qM_p_i[p,i,t]
     qPurchaserUse_p_u[p=product, u=:C, t=t1:T], qPurchaserUse_p_u[p,u,t] == qC_p[p,t]

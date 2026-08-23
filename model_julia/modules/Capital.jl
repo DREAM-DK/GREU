@@ -21,9 +21,9 @@ import ..ProductionSettings:
   production_data_dir,
   production_nesting
 import ..Settings: calibration_year
-import ..db
+import ..model
 import ..Time: t, t1, T
-import ..Tags: ForecastConstant, ForecastZero
+import ..Tags: CapitalAdjustmentCostsTag, DynamicCalibration, ForecastConstant, ForecastZero
 
 # ============================================================================
 # Read data
@@ -31,8 +31,10 @@ import ..Tags: ForecastConstant, ForecastZero
 const capital_file = joinpath(production_data_dir, "production_capital.csv")
 const investment_product_split_file = joinpath(production_data_dir, "production_investment_product_split.csv")
 const qK_k_i_data = read_cells(capital_file, "qK_k_i")
-const vI_k_i_data = read_cells(capital_file, "vI_k_i")
+const qI_k_i_data = read_cells(capital_file, "qI_k_i")
 const qI_p_k_data = read_cells(investment_product_split_file, "qI_p_k")
+const qI_k_data = read_cells(investment_product_split_file, "qI_k")
+const pI_k_data = read_cells(investment_product_split_file, "pI_k")
 
 # ============================================================================
 # Indices
@@ -47,34 +49,34 @@ const capital_k_i = Set(
 )
 
 # The input-output data give products but not capital types. A separate table
-# gives the base-year product split for each capital type.
-const investment_product_k = Set(keys(qI_p_k_data))
+# gives the product split for each capital type.
+const investment_product_k = Set((p, k) for (p, k, _) in keys(qI_p_k_data))
 
 # ============================================================================
 # Variables
 # ============================================================================
 const CapitalTag = Tag(:Capital)
 
-@variables db.model :: (CapitalTag, GrowthAdjusted) begin
+@variables model :: (CapitalTag, GrowthAdjusted) begin
   qK_k_i[k=capital_type, i=industry, t = t; (k, i) in capital_k_i], "Capital stock by type and industry."
   qI_k_i[(k,i,t) = qK_k_i], "Capital flow by type and industry."
   qI_k[k=capital_type, t = t], "Investment by capital type."
   qI_p_k[p=product, k=capital_type, t = t; (p, k) in investment_product_k], "Investment by product and capital type."
 end
 
-@variables db.model :: (CapitalTag, InflationAdjusted) begin
+@variables model :: (CapitalTag, InflationAdjusted) begin
   pK_k_i[(k,i,t) = qK_k_i], "User cost of capital by type and industry."
   pI_k[k=capital_type, t = t], "Investment price by capital type."
   pMarginalCapitalTax_k_i[(k,i,t) = qK_k_i], "Marginal corporation tax per unit of capital."
-  pKAdjCost_k_i[(k,i,t) = qK_k_i] :: ForecastZero, "Added user cost from capital adjustment by type and industry."
-  pInvestmentShock_k_i[(k,i,t) = qK_k_i] :: ForecastZero, "Shock that increases investment by type and industry."
+  pKAdjCost_k_i[(k,i,t) = qK_k_i] :: (CapitalAdjustmentCostsTag, ForecastZero, DynamicCalibration), "Added user cost from capital adjustment by type and industry."
+  pInvestmentShock_k_i[(k,i,t) = qK_k_i] :: (ForecastZero, DynamicCalibration), "Shock that increases investment by type and industry."
 end
 
-@variables db.model :: (CapitalTag, GrowthAdjusted, InflationAdjusted) begin
+@variables model :: (CapitalTag, GrowthAdjusted, InflationAdjusted) begin
   vI_k_i[(k,i,t) = qK_k_i], "Investment value by capital type and industry."
 end
 
-@variables db.model :: CapitalTag begin
+@variables model :: CapitalTag begin
   rKDepr_k_i[(k,i,t) = qK_k_i] :: ForecastConstant, "Capital depreciation rate by type and industry."
   rHurdleRate_i[i=industry, t = t] :: ForecastConstant, "Investment hurdle rate by industry."
   rInvestmentProductShare[(p,k,t) = qI_p_k] :: ForecastConstant, "Fixed product share by capital type."
@@ -84,28 +86,14 @@ end
 # Assign data
 # ============================================================================
 function assign_data!(db)
-  @assert Set(
-    (k, i)
-    for k in capital_type, i in industry
-    if haskey(parent, (k, i)) && !haskey(production_nesting[i], k)
-  ) == capital_k_i "Capital data and the industry nest maps must agree"
-  @assert Set(first.(capital_k_i)) == Set(capital_type) "Each capital type needs a live stock"
-  @assert all(haskey(vI_k_i_data, (k,i,t1)) for (k, i) in capital_k_i) "Each capital stock needs calibration-year investment"
   fill_cells!(db, qK_k_i, qK_k_i_data)
-  fill_cells!(db, vI_k_i, vI_k_i_data)
+  fill_cells!(db, qI_k_i, qI_k_i_data)
+  fill_cells!(db, qI_p_k, qI_p_k_data)
+  fill_cells!(db, qI_k, qI_k_data)
+  fill_cells!(db, pI_k, pI_k_data)
   db[[pProd[k,i,t1] for (k, i) in capital_k_i]] .= 1.0
   db[rHurdleRate_i] .= 0.15
   db[pMarginalCapitalTax_k_i] .= 0.0
-  db[qI_p_k] .= [
-    year == t1 ? qI_p_k_data[p, k] : nothing
-    for (p,k,year) in keys(qI_p_k)
-  ]
-  # Keep the split-implied type totals fixed. The aggregation residual records
-  # gaps between the input-output and capital-flow sources.
-  db[qI_k] .= [
-    year == t1 ? sum(value for ((_,kk), value) in qI_p_k_data if kk == k) : nothing
-    for k in capital_type, year in t
-  ]
   return nothing
 end
 
@@ -113,14 +101,14 @@ end
 # Equations
 # ============================================================================
 function define_equations()
-  return @block db begin
+  return @block model begin
     # One-year time to build. Installed stock sets the shadow price.
     pProd[k=capital_type, i=industry, t=t1:T],
     qProd[k,i,t] == pK_k_i[k,i,t1] * qK_k_i[k,i,t-1]/fq
 
     # Expected user cost sets lagged capital. A positive shock raises investment.
     qK_k_i[k=capital_type, i=industry, t=t1:(T-1)],
-    pProd[k,i,t+1] * pK_k_i[k,i,t1] + pInvestmentShock_k_i[k,i,t+1] == pK_k_i[k,i,t+1]
+    pProd[k,i,t+1] * pK_k_i[k,i,t1] == pK_k_i[k,i,t+1] - pInvestmentShock_k_i[k,i,t+1]
 
     # Terminal condition
     qK_k_i[k=capital_type, i=industry, t=T; T > t1],
@@ -147,17 +135,12 @@ function define_equations()
     vI_k_i[k=capital_type, i=industry, t=t1:T],
     vI_k_i[k,i,t] == pI_k[k,t] * qI_k_i[k,i,t]
 
-    # Capital user cost. The adjustment term stays zero without its module.
-    pK_k_i[k=capital_type, i=industry, t=t1:(T-1)],
+    # Lagged investment sets the user cost of capital installed for this period.
+    pK_k_i[k=capital_type, i=industry, t=t1:T],
     pK_k_i[k,i,t] == (
-      pI_k[k,t] + pMarginalCapitalTax_k_i[k,i,t]
-      - (1 - rKDepr_k_i[k,i,t+1]) / (1 + rHurdleRate_i[i, t+1]) * (pI_k[k, t+1]*fp - pMarginalCapitalTax_k_i[k,i,t+1]*fp)
-      + pKAdjCost_k_i[k,i,t])
-
-    pK_k_i[k=capital_type, i=industry, t = T],
-    pK_k_i[k,i,t] == (
-      pI_k[k,t] + pMarginalCapitalTax_k_i[k,i,t]
-      - (1 - rKDepr_k_i[k,i,t]) / (1 + rHurdleRate_i[i, t]) * (pI_k[k, t]*fp - pMarginalCapitalTax_k_i[k,i,t]*fp)
+      pI_k[k,t-1] + pMarginalCapitalTax_k_i[k,i,t-1]
+      - (1 - rKDepr_k_i[k,i,t]) / (1 + rHurdleRate_i[i,t]) *
+        (pI_k[k,t]*fp - pMarginalCapitalTax_k_i[k,i,t]*fp)
       + pKAdjCost_k_i[k,i,t])
 
     @test_constraint("Capital investment values sum to fixed investment"; rtol = 1e-3)
@@ -173,7 +156,7 @@ function define_calibration()
 
   @endo_exo_swap! block begin
     qProd[k=capital_type, i=industry, t=t1], pProd[k=capital_type, i=industry, t=t1]
-    rKDepr_k_i[:,:,t1], vI_k_i[:,:,t1]
+    rKDepr_k_i[:,:,t1], qI_k_i[:,:,t1]
 
     rInvestmentProductShare[p=product, k=capital_type, t=t1], qI_p_k[p=product, k=capital_type, t=t1]
 
