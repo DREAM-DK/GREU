@@ -59,8 +59,6 @@ In this branch, we are working on a new version of the model implemented in Juli
 
 - Use short sentences with a final period for group comments, such as
   `# Government.`
-- Do not align assignment operators across lines. Use one space on each side of
-  `=`.
 - Use compact spacing in model indices. Put one space after a comma between
   index assignments, such as `[a=aaa, b=bbb]`. Use whitespace around operators,
   except for plus/minus 1 and multiplication or division by fq, fp or fv.
@@ -72,51 +70,23 @@ In this branch, we are working on a new version of the model implemented in Juli
   `SquareModels.@block` joins these lines to the prior equation. Do not use this
   form outside `@block`, where Julia treats them as separate expressions.
 - Keep short equations on one line. For a long equation, put each main term on its own line.
-- Write short but complete variable descriptions. End each description with a period.
-- Put a long comment above the code that it explains. A short, local comment can
-  follow the code on the same line.
 - Do not add a blank line just after `begin` or just before `end`. Use blank
   lines between logical groups. Add a short comment after `end` when its matching
   opening line is far away, for example `end # module`.
 - Group imports by their project source or layer. Preserve a useful order within
   each group; do not sort imports only for style.
-- Use one line-ending form in each file. Do not mix line endings or leave
-  trailing spaces.
 
 ## Repository Structure
-
-```
-model_julia/
-├── Model.jl                 # Shared container: settings, modules, base_model()
-├── Calibrate.jl             # Baseline solve, tests, export to Output/
-├── Calibration.jl           # Calibration rules and one-horizon solve
-├── DataUtils.jl             # Model data and data-table helpers
-├── Shock.jl                 # Load baseline, apply scenario, plot
-├── RefreshData.jl           # Refresh Eurostat-sourced CSV data
-├── Settings.jl              # Country, years, enabled_modules, solver backend
-├── Time.jl                  # t, t1, T, at_year, variable_year
-├── Tags.jl                  # ForecastConstant, ForecastZero
-├── Logging.jl               # Timing and error logging helpers
-├── GrowthInflationAdjustment.jl
-└── modules/
-    ├── ModuleTemplate.jl   # Template for new modules
-    ├── InputOutput.jl       # Example of a full module
-    ├── SectorAccounts.jl    # Accounting identities (layer 1)
-    ├── Households.jl, Government.jl, Corporations.jl, RestOfWorld.jl
-    ├── *Settings.jl         # Module-local constants / mappings
-    ├── *Data.jl             # Eurostat fetch + write checked-in CSV
-    └── EurostatClient.jl
-```
 
 Entry points:
 
 - `Calibrate.jl` — assemble via `Model.jl`, calibrate static then dynamic, run tests, write `Output/baseline.parquet`
-- `Shock.jl` — load that baseline, shock, solve `base_model()`, plot
-- `RefreshData.jl` — rebuild checked-in input-output and sector-accounts CSV from Eurostat
+- `Shock.jl` — load that baseline, shock, solve `base_model(model_modules)`, plot
+- `RefreshData.jl` — rebuild checked-in CSV from Eurostat
 
 `Settings.enabled_modules` selects which files under `modules/` are included. Copy `ModuleTemplate.jl` when adding a module, then add its symbol to `enabled_modules`.
 
-**SquareModels.jl** is an external dependency ([GitHub](https://github.com/MartinBonde/SquareModels)) that provides the modeling framework (Blocks, ModelDictionary, solve, etc.). We maintain it and can modify it freely.
+**SquareModels.jl** is an external dependency ([GitHub](https://github.com/MartinBonde/SquareModels)). It supplies Blocks, ModelDictionary, and solve. We maintain it and can change it.
 
 ## Core Concepts
 
@@ -154,13 +124,6 @@ db[vGDP] .= 2000.0
 end
 ```
 
-Calibration has two swap steps:
-
-1. In `define_calibration`, swap each parameter for the data that identifies it. The data variable stays at its loaded value. The solver finds the parameter (`r*`, `t*`, and similar).
-2. `endo_exo_data_residuals!` in `Calibration.jl` then swaps any remaining endogenous variable that has data (up through `t1`) for its residual. The data value stays fixed. The residual absorbs the gap.
-
-Load every series the source reports. Also load model totals that those series imply, such as `qD_p_u` from `∑ qD_p_u_o`. Do not compute parameters in `assign_data!`. Exogenizing the data hits the data exactly when the solver has rounding error, and puts inconsistent source totals on residuals.
-
 ### 4. Solving
 
 ```julia
@@ -168,77 +131,45 @@ solution = solve(block, data; replace_nothing=1.0)  # Returns new dict
 solve!(block, data)  # Updates in-place
 ```
 
-Baselines are persisted with `unload` / `load` (parquet).
+Baselines are persisted with `unload` / `load` (parquet). `assert_no_diff` and `assert_residuals_small` check a solve. `at_year` and `variable_year` in `Time.jl` read or shift the year index.
 
 ## GREU Architecture
 
-### Module Pattern
+### Submodule Pattern
 
-Each model component under `modules/` is a Julia module. See `ModuleTemplate.jl`. Typical API:
+Each model component under `modules/` is a Julia module. See `ModuleTemplate.jl`.
 
-- **Read data, Indices, Variables, Assign data**: Read files first, build indices from that data, declare variables, then copy values into `db`.
-- **`assign_data!(db)`**: Copy loaded series and the totals they imply into `db`. Do not compute parameters from data.
-- **`define_equations()`**: Return a Block with the model equations
-- **`define_calibration()`**: Return a Block used only for calibration. Start from `define_equations()`, then `@endo_exo_swap!` each parameter for the data that identifies it.
-- **`run_tests(db)`** (optional): Return a `Vector{String}` of failure messages
-- **`set_starting_values!(db)`** (optional): Starting values before solve
-- **`set_residual_tolerances!(tolerances)`** (optional): Per-residual `atol` overrides
-
-Use these sections in model modules, in this order:
+Use these sections in this order:
 
 1. **Read data** — read files once. Do not build indices or assign model values here.
 2. **Indices** — build sets and live-cell masks from the loaded data.
 3. **Variables** — declare variables after all indices exist.
-4. **Assign data** — implement `assign_data!` and copy loaded values into `db`.
+4. **Assign data** — `assign_data!` copies source series into `db`.
+
+Required functions: `define_equations()` and `define_calibration()`. Start calibration from `define_equations()`, then `@endo_exo_swap!` each parameter for the data that identifies it. Optional: `run_tests`, `set_starting_values!`, `set_residual_tolerances!`.
 
 Data refresh files (`*Data.jl`) have no required section layout. Group the code by the structure of that source. A small file needs no section headings.
 
-`Model.jl` builds `db`, includes enabled modules, calls each `assign_data!`, and defines:
-
-```julia
-base_model(modules) = sum(m.define_equations() for m in modules)
-```
+`Model.jl` includes enabled modules and calls each `assign_data!`. `base_model(modules)` sums `define_equations()` from those modules.
 
 ### Calibration (`Calibrate.jl` and `Calibration.jl`)
 
-**Concept**: Exogenize data. Endogenize parameters. Residuals absorb equation imbalances.
+Exogenize data. Endogenize parameters. Residuals absorb equation imbalances.
 
-- **Parameters** (`r*`, `t*`, and similar): endogenous in calibration. Identify each one by swapping it for the data it is fitted to. Do not set the parameter in `assign_data!`.
-- **Variables the source reports**, and **totals the model identities imply from that source** (for example `qD_p_u == ∑ qD_p_u_o`): assign them in `assign_data!` and keep them exogenous. This includes cells that an equation also determines. The residual then records inconsistent source totals, and the solver hits the data exactly when there is rounding error.
-- **Variables with no data**: solved by model equations.
+Load every series the source reports. Load a total only when the source reports that total and it can disagree with the bottom-up sum. Do not compute aggregates from their parts, except when a lag of that aggregate is needed, such as `pI_k`. Do not compute parameters in `assign_data!`.
 
-Do not skip a data series because an equation can infer it. Inference belongs in the equations. The loaded value belongs in the dictionary.
+Calibration has two swap steps:
 
-Flow:
+1. In `define_calibration`, swap each parameter for the data that identifies it. The data variable stays at its loaded value.
+2. `endo_exo_residuals!` then swaps any remaining endogenous variable that has data (up through `t1`) for its residual.
 
-1. Sum `define_calibration()` from all modules (includes parameter-for-data swaps)
-2. `forecast_constants!` — `ForecastConstant` vars: equations `var[t] == var[t1]` if endogenous at `t1`, else copy data forward
-3. `endo_exo_data_residuals!` — swap remaining data-backed endos for their residuals
-4. `exogenous_constant_forecast!` — fill missing future exogenous values from `t1`
-5. Optional `set_starting_values!`
-6. `solve`
+Variables with no data are solved by model equations.
 
-`calibration_modules` in `Calibrate.jl` selects the module set next to the solve. Calibration runs twice: static (`T = calibration_year`), then dynamic (`T = max_terminal_year`) using the static result as its start. The zero-shock test and module tests use the full model before export to `Output/baseline.parquet`.
-
-After calibration, residual values indicate data-model discrepancies.
+`Calibrate.jl` lists the modules next to the solve. It runs a static calibration, then a dynamic calibration from that result, then a zero-shock test, then writes `Output/baseline.parquet`.
 
 ### Shocks (`Shock.jl`)
 
-Loads the calibrated baseline into a copy, applies scenario changes, then `solve!(base_model(), scenario)`.
-
-## Key Functions
-
-| Function | Purpose |
-|----------|---------|
-| `@block db begin ... end` | Create equation block |
-| `@endo_exo_swap!(block, ...)` | Swap variable roles: first argument becomes endogenous, second becomes exogenous |
-| `endogenous(block)` | Get endogenous variables vector |
-| `residuals(block)` | Get matching residuals vector |
-| `solve(block, data)` / `solve!(...)` | Solve; return new dict or update in place |
-| `load` / `unload` | Read/write parquet ModelDictionary |
-| `assert_no_diff(a, b; atol)` | Compare two solutions |
-| `assert_residuals_small(data; atol, tolerances)` | Check residual magnitudes |
-| `at_year(var, year)` / `variable_year(var)` | Time-index helpers (`Time.jl`) |
+Loads the calibrated baseline into a copy, applies scenario changes, then `solve!(base_model(model_modules), scenario)`.
 
 ## Naming Conventions
 
@@ -247,6 +178,3 @@ Loads the calibrated baseline into a copy, applies scenario changes, then `solve
 - `p*` — Prices (adjusted for inflation only)
 - `r*` — Rates/shares (no adjustment)
 - `*_J` — Residual variables (auto-created)
-
-### Git Workflow
-**Never commit untracked files without asking the user first.** Untracked files may be intentionally excluded, contain sensitive data, or be work-in-progress. Always confirm before staging new files.
