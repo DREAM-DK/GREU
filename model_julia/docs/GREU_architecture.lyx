@@ -1039,11 +1039,22 @@ where
 \end_layout
 
 \begin_layout Standard
-The default full tree adds materials at
-\begin_inset Formula $KLBM$
+The default full tree pairs equipment and energy in the first nest
+\begin_inset Formula $KE$
 \end_inset
 
- and energy at the top nest
+,
+ then adds labor at
+\begin_inset Formula $KEL$
+\end_inset
+
+,
+ structures at
+\begin_inset Formula $KELB$
+\end_inset
+
+,
+ and materials at the top nest
 \begin_inset Formula $KELBM$
 \end_inset
 

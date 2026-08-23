@@ -42,21 +42,23 @@ const energy_product = [:B, :D]
 const intermediate_type = [:energy, :materials]
 @assert energy_product ⊆ product "Energy products must be input-output products"
 
-# Each industry owns its nest map and each nest owns its elasticity. Most
-# industries use the full tree. Household production has no live capital or
-# intermediate input in the source data.
-const full_capital_nesting = Dict(
-  :KL => (children = [:equipment, :labor], elasticity = 0.7),
-  :KLB => (children = [:KL, :structures], elasticity = 0.7),
-  :KLBM => (children = [:KLB, :materials], elasticity = 0.7),
-  :KELBM => (children = [:KLBM, :energy], elasticity = 0.7),
+# Each industry owns its nest map and each nest owns its elasticity. Equipment
+# and energy pair in the first nest, then labor, structures, and materials
+# enter one nest at a time. Most industries use this full tree.
+const full_nesting = Dict(
+  :KE => (children = [:equipment, :energy], elasticity = 0.7),
+  :KEL => (children = [:KE, :labor], elasticity = 0.7),
+  :KELB => (children = [:KEL, :structures], elasticity = 0.7),
+  :KELBM => (children = [:KELB, :materials], elasticity = 0.7),
 )
+
+# Industry T (households as employers) reports only labor, so its top nest holds labor alone.
 const production_nesting = Dict(
   i =>
     i == :iT ? Dict(
       :KELBM => (children = [:labor], elasticity = 0.7),
     ) :
-    Dict(full_capital_nesting)
+    Dict(full_nesting)
   for i in source_industry
 )
 
