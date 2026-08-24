@@ -86,6 +86,9 @@ const margin_only_s_u_o = Set(
 
 const purchaser_use_p_u = Set((p, u) for (p, u, _) in purchaser_use_p_u_o)
 
+# This product clears total consumption until a demand module sets all qC_p cells.
+const residual_consumption_product = first(sort(product))
+
 # ============================================================================
 # Variables
 # ============================================================================
@@ -215,6 +218,8 @@ function assign_data!(db)
   db[pM_p_u] .= 1.0
 
   db[vCTourist] .= read_series(aggregate_totals_file, "vCTourist", t)
+  # The source has no tourist volume before t1. Use its value as the lagged quantity.
+  db[qCTourist[t1-1]] = db[vCTourist[t1-1]]
   db[vM] .= read_series(aggregate_totals_file, "vM", t)
   db[vX] .= read_series(aggregate_totals_file, "vX", t)
   db[vY] .= read_series(aggregate_totals_file, "vY", t)
@@ -284,7 +289,8 @@ function define_equations()
 
     # Final-use totals.
     qX[t=t1:T], qX[t] == ∑(qX_p[p,t] for p in product) + qCTourist[t]
-    qC[t=t1:T], qC[t] == ∑(qC_p[p,t] for p in product) - qCTourist[t]
+    qC_p[p=[residual_consumption_product], t=t1:T],
+    qC[t] == ∑(qC_p[p,t] for p in product) - qCTourist[t]
     qG[t=t1:T], qG[t] == ∑(qG_p[p,t] for p in product)
     qINV[t=t1:T], qINV[t] == ∑(qPurchaserUse_p_u[p,:INV,t] for p in product)
 
@@ -424,6 +430,9 @@ function define_calibration()
     tNetProduct[:,:,t1], vNetProductTax_p_u[:,:,t1]
 
     qCTourist[t1], vCTourist[t1]
+
+    # Source product quantities set total consumption during calibration.
+    qC[t1], qC_p[residual_consumption_product,t1]
   end
 
   return block

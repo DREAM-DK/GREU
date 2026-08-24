@@ -35,6 +35,7 @@ const calibrated_modules = [
 
   SectorAccounts,
   Households,
+  ConsumptionSavingsDecision,
   Government,
   Corporations,
   RestOfWorld,
