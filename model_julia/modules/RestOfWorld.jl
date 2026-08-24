@@ -1,32 +1,80 @@
-# ==============================================================================
-# Rest of World (sector-accounts slice)
-# ==============================================================================
-# Populates the rest-of-world entries of the SectorAccounts interface
-# variables.
-#
-# In ESA the rest-of-world account is presented from RoW's point of view as
-# the counterparty of the domestic economy. The trade balance enters as
-# "primary income" of RoW: when the domestic economy imports more than it
-# exports, that is income to RoW (and RoW becomes a net lender to us).
-# RoW has no final consumption and no gross capital formation in this
-# framework; those are recorded only for resident sectors.
+# Populate rest-of-world entries of the SectorAccounts interface.
+# Keep the RoW budget identity and portfolio rules.
+# RoW has no final consumption and no gross capital formation.
 
 module RestOfWorld
 
-import JuMP
 using SquareModels
-import ..model
-import ..Time: t, t1, T
 import ..InputOutput: vM, vX
-import ..SectorAccounts: vPrimaryIncome, vNetTransfers, vFinalConsumption, vGrossCapitalFormation
+import ..model
+import ..SectorAccounts:
+  sector,
+  vNetFinTransactions,
+  vNetFinIncome,
+  vNonFinancialNonProducedAssets,
+  vRoWPrimaryIncomeCurrentBalanceOther,
+  vGoodsServicesBalance,
+  vRoWPrimaryIncomeCurrentBalance,
+  vFinAL
+import ..Time: t, t1, T
+import ..Tags: ForecastConstant
 
+# ============================================================================
+# Variables
+# ============================================================================
+const RestOfWorldTag = Tag(:RestOfWorld)
+
+@variables model :: (RestOfWorldTag, ForecastConstant) begin
+  rRoWDebtAssets2TotalDebtLiabilities[t], "RoW debt asset ratio: RoW debt assets relative to total domestic debt liabilities."
+  rRoWEquityAssets2DomesticEquityLiabilities[t], "RoW equity asset ratio: RoW equity assets relative to domestic equity liabilities of Hh and NonFinCorp."
+end
+
+# ============================================================================
+# Assign data
+# ============================================================================
+function assign_data!(db)
+  db[rRoWDebtAssets2TotalDebtLiabilities] .= 0.0
+  db[rRoWEquityAssets2DomesticEquityLiabilities] .= 0.0
+  return nothing
+end
+
+# ============================================================================
+# Equations
+# ============================================================================
 function define_equations()
   return @block model begin
-    # RoW's "primary income" with the domestic economy is the trade balance
-    # from the domestic side: imports minus exports (InputOutput vM, vX).
-    vPrimaryIncome[s=[:RoW], t=t1:T],
-    vPrimaryIncome[s,t] == vM[t] - vX[t]
+    # Budget identity.
+    vNetFinTransactions[s=[:RoW], t=t1:T],
+    vNetFinTransactions[s,t] == vGoodsServicesBalance[t]
+                                 + vRoWPrimaryIncomeCurrentBalance[t]
+                                 - vNonFinancialNonProducedAssets[s,t]
+
+    # Goods and services balance.
+    vGoodsServicesBalance[t=t1:T],
+    vGoodsServicesBalance[t] == vX[t] - vM[t]
+
+    # Primary and current income balance.
+    vRoWPrimaryIncomeCurrentBalance[t=t1:T],
+    vRoWPrimaryIncomeCurrentBalance[t] == vNetFinIncome[:RoW,t]
+                                           + vRoWPrimaryIncomeCurrentBalanceOther[t]
+
+    # Portfolio.
+
   end
+end
+
+# ============================================================================
+# Calibration
+# ============================================================================
+function define_calibration()
+  block = define_equations()
+
+  # At t1, swap each rate endogenous and the corresponding vFinAL cell exogenous,
+  # so calibration solves for the ratio implied by observed balance-sheet data.
+  @endo_exo_swap! block begin
+  end
+
+  return block
 end
 
 end # module

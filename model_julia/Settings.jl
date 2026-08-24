@@ -12,18 +12,29 @@ const terminal_year = 2025
 # File names to include. Model.jl loads these as model_modules.
 const module_names = [
   :ModuleTemplate,
+
   :InputOutput,
-  :FixedBasePriceAggregates,
-  :ImportSubstitution,
+
   :Production,
-  :Pricing,
   :Labor,
   :Intermediates,
   :Capital,
+
+  :Pricing,
+
   :CapitalAdjustmentCosts,
+
   :SectorAccounts,
+  :Households,
+  :Government,
+  :Corporations,
+  :RestOfWorld,
+
   :Exports,
-]
+  :ImportSubstitution,
+
+  :FixedBasePriceAggregates,
+  ]
 
 # JuMP `Model` configured as a square nonlinear system for the selected backend.
 # Importing the backend package activates the matching SquareModels extension.

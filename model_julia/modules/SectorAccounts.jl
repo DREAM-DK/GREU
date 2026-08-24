@@ -145,10 +145,10 @@ end # assign_data!
 function set_residual_tolerances!(tolerances)
   # Sector stock changes can differ from the sum of transactions,
   # revaluations, and other changes in volume. Sources also have round-off gaps.
-  tolerances[vNetFinAssets] = 250000.0
-  tolerances[vNetFinTransactions] = 250000.0
-  tolerances[vFinAL] = 1000000.0
-  tolerances[vFinTransactions] = 1000000.0
+  tolerances[vNetFinAssets] = 20000.0
+  tolerances[vNetFinTransactions] = 2.0
+  tolerances[vFinAL] = 40000.0
+  tolerances[vFinTransactions] = 40000.0
 end
 
 # ============================================================================
@@ -157,7 +157,7 @@ end
 
 function define_equations()
   return @block model begin
-    # Stock changes equal transactions, revaluations, and other volume changes.
+    # --- Stock changes equal transactions, revaluations, and other volume changes. ---
     vFinTransactions[s = sector, f = fin_instrument, al = ass_liab, t = t1:T],
     vFinAL[s,f,al,t] == vFinAL[s,f,al,t-1]/fv
                        + vFinTransactions[s,f,al,t]
@@ -170,57 +170,14 @@ function define_equations()
                          + vNetFinReval[s,t]
                          + vNetOtherChangesInVolume[s,t]
 
+    # --- Aggregating. ---
+    @test_constraint("Net financial transactions equals assets minus liabilities"; atol=1.0, rtol=1e-6)
+    vNetFinTransactions[s=sector, t=t1:T],
+    vNetFinTransactions[s,t] == vFinTransactions_al[s,:Assets,t] - vFinTransactions_al[s,:Liab,t]
+
     @test_constraint("Summing vNetFinAssets over sectors"; atol=1.0, rtol=1e-6)
     vNetFinAssets[s=[:Hh],t=t1:T],
       ∑(vNetFinAssets[s,t] for s in sector) == 0.0
-
-    # Sector balances.
-    # Government.
-    vGovPrimaryBalance[t=t1:T], vGovPrimaryBalance[t] == vGovBalance[t]-vNetFinIncome[:Gov,t]
-
-    vNetFinTransactions[s=[:Gov],t=t1:T],
-    vNetFinTransactions[s,t] == vGovPrimaryBalance[t]+vNetFinIncome[s,t]
-
-    # Households.
-    vNetFinTransactions[s=[:Hh],t=t1:T],
-    vNetFinTransactions[s,t] == vNetFinIncome[s,t]
-                                 + vNetTransfers2sector[s,t]
-                                 + vHhWages[t]
-                                 - vC[t]
-                                 + vCorrectionNonFinCorp2Hh[t]
-                                 - vGrossCapitalFormation[s,t]
-                                 - vNonFinancialNonProducedAssets[s,t]
-
-    # Financial firms.
-    vNetFinTransactions[s=[:FinCorp],t=t1:T],
-    vNetFinTransactions[s,t] == vNetFinIncome[s,t]
-                                 + vNetTransfers2sector[s,t]
-                                 - vGrossCapitalFormation[s,t]
-                                 - vNonFinancialNonProducedAssets[s,t]
-                                 + vGrossOpSurplusMixedIncome[s,t]
-
-    # Non-financial firms.
-    vNetFinTransactions[s=[:NonFinCorp],t=t1:T],
-    vNetFinTransactions[s,t] == vNetFinIncome[s,t]
-                                 + vNetTransfers2sector[s,t]
-                                 - vGrossCapitalFormation[s,t]
-                                 - vNonFinancialNonProducedAssets[s,t]
-                                 + vGrossOpSurplusMixedIncome[s,t]
-                                 - vCorrectionNonFinCorp2Hh[t]
-
-    # Rest of the world.
-    vNetFinTransactions[s=[:RoW],t=t1:T],
-    vNetFinTransactions[s,t] == vGoodsServicesBalance[t]
-                                 + vRoWPrimaryIncomeCurrentBalance[t]
-                                 - vNonFinancialNonProducedAssets[s,t]
-
-    # Goods and services balance (B.11 trade part).
-    vGoodsServicesBalance[t=t1:T], vGoodsServicesBalance[t] == vX[t]-vM[t]
-
-    # Add net property income (D.4) to the other income balance.
-    vRoWPrimaryIncomeCurrentBalance[t=t1:T],
-    vRoWPrimaryIncomeCurrentBalance[t] == vNetFinIncome[:RoW,t]
-                                           + vRoWPrimaryIncomeCurrentBalanceOther[t]
 
     @test_constraint("Summing vNetFinTransactions over sectors"; atol=1.0, rtol=1e-6)
     vNetFinTransactions[s=[:Hh],t=t1:T],

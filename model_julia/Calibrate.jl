@@ -19,19 +19,30 @@ data = assign_data!(ModelDictionary(model))
 # ============================================================================
 # Modules - modify the list to debug calibration
 # ============================================================================
-calibrated_modules = [
+const calibrated_modules = [
   ModuleTemplate,
+
   InputOutput,
-  FixedBasePriceAggregates,
-  ImportSubstitution,
+
   Production,
-  Pricing,
   Labor,
   Intermediates,
   Capital,
+
+  Pricing,
+
   CapitalAdjustmentCosts,
-  # SectorAccounts,
+
+  SectorAccounts,
+  Households,
+  Government,
+  Corporations,
+  RestOfWorld,
+
   Exports,
+  ImportSubstitution,
+
+  FixedBasePriceAggregates,
 ]
 
 # The full-horizon model tells calibration which variables are parameters.
