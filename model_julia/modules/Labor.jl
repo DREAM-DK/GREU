@@ -67,8 +67,10 @@ function assign_data!(db)
   db[pW[t1]] = 1.0
   fill_cells!(db, vHhWages, vHhWages_data)
   fill_cells!(db, vRoWNetWages, vRoWNetWages_data)
-  db[qLSupplyHh[t1]] = cell_value(vHhWages_data, t1) / db[pW[t1]]
-  db[qLSupplyRoW[t1]] = cell_value(vRoWNetWages_data, t1) / db[pW[t1]]
+  source_supply = cell_value(qLSupply_data, t1)
+  source_wages = cell_value(vHhWages_data, t1) + cell_value(vRoWNetWages_data, t1)
+  db[qLSupplyHh[t1]] = source_supply * cell_value(vHhWages_data, t1) / source_wages
+  db[qLSupplyRoW[t1]] = source_supply - db[qLSupplyHh[t1]]
   return nothing
 end
 
@@ -118,7 +120,7 @@ function run_tests(db)
   errors = String[]
   source_total = cell_value(qLSupply_data, t1)
   supplied_total = db[qLSupplyHh[t1]] + db[qLSupplyRoW[t1]]
-  isapprox(supplied_total, source_total; atol = 1.0, rtol = 0) ||
+  supplied_total == source_total ||
     push!(errors, "Household and rest-of-world labor supplies must match the source total")
   return errors
 end
