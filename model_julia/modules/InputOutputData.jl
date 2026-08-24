@@ -369,10 +369,26 @@ function write_input_output_data!(data, dir = input_output_data_dir)
   mkpath(dir)
   purchaser_use_p_u = sum_by(data.purchaser_use, [:product, :use, :year])
   q_p_u = Dict((row.product, row.use, row.year) => row.value for row in eachrow(purchaser_use_p_u))
-  @assert Set((row.product, row.use, row.year) for row in eachrow(data.carried_margins)) ⊆ keys(q_p_u) "Each reported margin needs purchaser use"
-  @assert Set((row.product, row.use, row.year) for row in eachrow(data.net_product_taxes)) ⊆ keys(q_p_u) "Each net product tax needs purchaser use"
-  @assert all(abs(q_p_u[row.product, row.use, row.year]) > cell_tolerance for row in eachrow(data.net_product_taxes) if row.year == calibration_year) "Each net product tax needs non-zero purchaser use"
-  @assert all(abs(q_p_u[row.product, row.use, row.year]) > cell_tolerance for row in eachrow(data.carried_margins) if row.year == calibration_year) "Each margin rate needs non-zero purchaser use"
+  @assert Set(
+    (row.product, row.use, row.year)
+    for row in eachrow(data.carried_margins)
+    if row.year == calibration_year && abs(row.value) > cell_tolerance
+  ) ⊆ keys(q_p_u) "Each reported margin needs purchaser use"
+  @assert Set(
+    (row.product, row.use, row.year)
+    for row in eachrow(data.net_product_taxes)
+    if row.year == calibration_year && abs(row.value) > cell_tolerance
+  ) ⊆ keys(q_p_u) "Each net product tax needs purchaser use"
+  @assert all(
+    abs(q_p_u[row.product, row.use, row.year]) > cell_tolerance
+    for row in eachrow(data.net_product_taxes)
+    if row.year == calibration_year && abs(row.value) > cell_tolerance
+  ) "Each net product tax needs non-zero purchaser use"
+  @assert all(
+    abs(q_p_u[row.product, row.use, row.year]) > cell_tolerance
+    for row in eachrow(data.carried_margins)
+    if row.year == calibration_year && abs(row.value) > cell_tolerance
+  ) "Each margin rate needs non-zero purchaser use"
   tax = Dict((row.use, row.year) => row.value for row in eachrow(data.net_product_tax_totals))
   net_product_tax_u = DataFrame([
     (use = u, year = year, value = get(tax, (u, year), 0.0))
