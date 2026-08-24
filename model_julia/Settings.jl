@@ -30,6 +30,7 @@ const module_names = [
   :ConsumptionGroups,
   :Government,
   :Corporations,
+  :FirmValue,
   :RestOfWorld,
 
   :Exports,
