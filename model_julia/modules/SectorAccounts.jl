@@ -101,8 +101,8 @@ const SectorAccountsTag = Tag(:SectorAccounts)
   # the input-output totals vX and vM.
   vExports[t], "Source total for exports of goods and services (P.6)."
   vImports[t], "Source total for imports of goods and services (P.7)."
-  vRoWPrimaryIncomeCurrentBalanceOther[t], "Rest-of-world income balance other than property income (D.1+D.2+D.3+D.5+D.6+D.7+D.8+D.9)."
-  vRoWPrimaryIncomeCurrentBalance[t], "Rest-of-world income balance: net D.4 plus other income."
+  vRoWPrimaryIncomeCurrentBalanceOther[t], "Rest-of-world nonwage income balance other than property income (D.2+D.3+D.5+D.6+D.7+D.8+D.9)."
+  vRoWPrimaryIncomeCurrentBalance[t], "Rest-of-world income balance: net wages, property income, and other income."
 
 end # @variables
 

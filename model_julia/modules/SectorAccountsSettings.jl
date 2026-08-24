@@ -74,6 +74,6 @@ const fin_bal_equity_na_items = ["F51"]
 # redistribution accounts.
 # ---------------------------------------------------------------------------
 const fin_transactions_transfer_items  = ["D5", "D61", "D62", "D7", "D8", "D9"]            # D.5 (current taxes), D.6 (social contributions/benefits), D.7 (other current transfers), D.8 (adjustment for pension entitlements), D.9 (capital transfers)
-const fin_transactions_row_other_items = ["D1", "D2", "D3", "D5", "D6", "D7", "D8", "D9"]  # Primary income and current transfers with the rest of the world, excluding property income (D.4)
+const fin_transactions_row_nonwage_items = ["D2", "D3", "D5", "D6", "D7", "D8", "D9"] # RoW primary income and current transfers, excluding wages (D.1) and property income (D.4)
 
 end # module

@@ -6,6 +6,7 @@ module RestOfWorld
 
 using SquareModels
 import ..InputOutput: vM, vX
+import ..Labor: vRoWNetWages
 import ..model
 import ..SectorAccounts:
   sector,
@@ -48,8 +49,13 @@ function define_equations()
 
     # Primary and current income balance.
     vRoWPrimaryIncomeCurrentBalance[t=t1:T],
-    vRoWPrimaryIncomeCurrentBalance[t] == vNetFinIncome[:RoW,t]
+    vRoWPrimaryIncomeCurrentBalance[t] == vRoWNetWages[t]
+                                           + vNetFinIncome[:RoW,t]
                                            + vRoWPrimaryIncomeCurrentBalanceOther[t]
+
+    # Nonwage income closes net financial transactions across sectors.
+    vRoWPrimaryIncomeCurrentBalanceOther[t=t1:T],
+    ∑(vNetFinTransactions[s,t] for s in sector) == 0.0
 
     # Portfolio.
     # Debt assets are a fixed share of domestic debt liabilities.

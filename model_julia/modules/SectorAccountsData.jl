@@ -21,7 +21,7 @@ import ..SectorAccountsSettings:
   fin_transactions_equity_income_items,
   fin_transactions_debt_income_items,
   fin_transactions_transfer_items,
-  fin_transactions_row_other_items,
+  fin_transactions_row_nonwage_items,
   fin_other_changes_dataset_code,
   fin_other_changes_unit,
   fin_revaluation_dataset_code,
@@ -266,7 +266,7 @@ function build_parameters(flow_df, tr_df, bal_df, oc_df, rev_df)
     vCorrectionNonFinCorp2Hh             = select(get_net_fin_transactions_item(flow_df, "B2A3G_correction", "RECV", ["Hh"]), :year, :value),
 
     # Rest of World
-    vRoWPrimaryIncomeCurrentBalanceOther = select(get_net_fin_transactions_item(flow_df, fin_transactions_row_other_items, "NET", ["RoW"]), :year, :value),
+    vRoWPrimaryIncomeCurrentBalanceOther = select(get_net_fin_transactions_item(flow_df, fin_transactions_row_nonwage_items, "NET", ["RoW"]), :year, :value),
     vExports                             = select(get_net_fin_transactions_item(flow_df, "P6", "PAID", ["RoW"]), :year, :value),
     vImports                             = select(get_net_fin_transactions_item(flow_df, "P7", "RECV", ["RoW"]), :year, :value),
     vRoWNetWages                         = select(get_net_fin_transactions_item(flow_df, "D1", "NET", ["RoW"]), :year, :value),
