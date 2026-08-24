@@ -27,6 +27,7 @@ const module_names = [
   :SectorAccounts,
   :Households,
   :ConsumptionSavingsDecision,
+  :ConsumptionGroups,
   :Government,
   :Corporations,
   :RestOfWorld,

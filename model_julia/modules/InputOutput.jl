@@ -86,9 +86,6 @@ const margin_only_s_u_o = Set(
 
 const purchaser_use_p_u = Set((p, u) for (p, u, _) in purchaser_use_p_u_o)
 
-# This product clears total consumption until a demand module sets all qC_p cells.
-const residual_consumption_product = first(sort(product))
-
 # ============================================================================
 # Variables
 # ============================================================================
@@ -289,8 +286,6 @@ function define_equations()
 
     # Final-use totals.
     qX[t=t1:T], qX[t] == ∑(qX_p[p,t] for p in product) + qCTourist[t]
-    qC_p[p=[residual_consumption_product], t=t1:T],
-    qC[t] == ∑(qC_p[p,t] for p in product) - qCTourist[t]
     qG[t=t1:T], qG[t] == ∑(qG_p[p,t] for p in product)
     qINV[t=t1:T], qINV[t] == ∑(qPurchaserUse_p_u[p,:INV,t] for p in product)
 
@@ -374,9 +369,7 @@ function define_equations()
     vX[t=t1:T], vX[t] == ∑(vPurchaserUse_p_u[p,:X,t] for p in product) + vCTourist[t]
     pX[t=t1:T], pX[t] * qX[t] == vX[t]
 
-    pC[t=t1:T], pC[t] * ∑(qC_p[p,t] for p in product) == ∑(vPurchaserUse_p_u[p,:C,t] for p in product)
     vC[t=t1:T], vC[t] == pC[t] * qC[t]
-    vCTourist[t=t1:T], vCTourist[t] == pC[t] * qCTourist[t]
     vG[t=t1:T], vG[t] == ∑(vPurchaserUse_p_u[p,:G,t] for p in product)
     pG[t=t1:T], pG[t] * qG[t] == vG[t]
     vI[t=t1:T], vI[t] == ∑(vPurchaserUse_p_u[p,:K,t] for p in product)
@@ -429,10 +422,6 @@ function define_calibration()
 
     tNetProduct[:,:,t1], vNetProductTax_p_u[:,:,t1]
 
-    qCTourist[t1], vCTourist[t1]
-
-    # Source product quantities set total consumption during calibration.
-    qC[t1], qC_p[residual_consumption_product,t1]
   end
 
   return block

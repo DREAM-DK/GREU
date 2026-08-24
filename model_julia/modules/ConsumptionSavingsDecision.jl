@@ -82,7 +82,7 @@ end
 # ============================================================================
 
 function set_starting_values!(start_values)
-  source_consumption = start_values[qC[t1-1]]
+  source_consumption = something(start_values[qC[t1]], start_values[qC[t1-1]])
   source_price = something(start_values[pC[t1]], 1.0)
   @assert source_price > 0 "The initial consumption price must be positive"
   source_wealth = start_values[vNetFinAssets[:Hh,t1]] / source_price
@@ -91,7 +91,7 @@ function set_starting_values!(start_values)
   start_values[qHhRealIncome[t1:T]] .= source_consumption
   start_values[qHhWealth[t1:T]] .= source_wealth
   start_values[qHhHandToMouthConsumption[t1:T]] .= start_values[rHhHandToMouth[t1]] * source_consumption
-  start_values[qHhExternalHabit[t1:T]] .= start_values[fHhExternalHabit[t1]] * source_consumption/fq
+  start_values[qHhExternalHabit[t1:T]] .= start_values[fHhExternalHabit[t1]] * start_values[qC[t1-1]]/fq
   start_values[qHhExcessReferenceConsumption[t1:T]] .=
     source_consumption .- start_values[qHhHandToMouthConsumption[t1:T]] .- start_values[qHhExternalHabit[t1:T]]
   @assert all(
