@@ -31,6 +31,7 @@ import ..Tags: ForecastConstant
 # Variables
 # ============================================================================
 const CorporationsTag = Tag(:Corporations)
+const corporation_sector = [:FinCorp, :NonFinCorp]
 const fin_corp_industry = [:iK]
 const public_industry = [:iO, :iP, :iQ]
 const non_fin_corp_industry = setdiff(industry, [fin_corp_industry; public_industry])
@@ -44,6 +45,8 @@ const non_fin_corp_industry = setdiff(industry, [fin_corp_industry; public_indus
   rNonFinCorpEquityAssets2EquityLiabilities[t], "NonFinCorp equity asset ratio: equity assets relative to own equity liabilities."
   rNonFinCorpDebtAssets2Expenses[t], "NonFinCorp debt asset ratio: debt assets relative to total expenses."
   rNonFinCorpDebtLiabilities2EquityLiabilities[t], "NonFinCorp capital structure: debt liabilities relative to own equity liabilities."
+  fGrossOpSurplus_s[s=corporation_sector, t=t], "Factor from modeled industry operating surplus to sector gross operating surplus."
+  fGrossCapitalFormation_s[s=corporation_sector, t=t], "Factor from modeled industry investment to sector gross capital formation."
 end
 
 @variables model :: (CorporationsTag, GrowthAdjusted, InflationAdjusted) begin
@@ -71,16 +74,16 @@ function define_equations()
                                 - vProductionTax_i[i,t]
 
     vGrossOpSurplusMixedIncome[s=[:FinCorp], t=t1:T],
-    vGrossOpSurplusMixedIncome[s,t] == ∑(vGrossOpSurplus_i[i,t] for i in fin_corp_industry)
+    vGrossOpSurplusMixedIncome[s,t] == fGrossOpSurplus_s[s,t] * ∑(vGrossOpSurplus_i[i,t] for i in fin_corp_industry)
 
     vGrossOpSurplusMixedIncome[s=[:NonFinCorp], t=t1:T],
-    vGrossOpSurplusMixedIncome[s,t] == ∑(vGrossOpSurplus_i[i,t] for i in non_fin_corp_industry)
+    vGrossOpSurplusMixedIncome[s,t] == fGrossOpSurplus_s[s,t] * ∑(vGrossOpSurplus_i[i,t] for i in non_fin_corp_industry)
 
     vGrossCapitalFormation[s=[:FinCorp], t=t1:T],
-    vGrossCapitalFormation[s,t] == ∑(vI_k_i[k,i,t] for k in capital_type, i in fin_corp_industry)
+    vGrossCapitalFormation[s,t] == fGrossCapitalFormation_s[s,t] * ∑(vI_k_i[k,i,t] for k in capital_type, i in fin_corp_industry)
 
     vGrossCapitalFormation[s=[:NonFinCorp], t=t1:T],
-    vGrossCapitalFormation[s,t] == ∑(vI_k_i[k,i,t] for k in capital_type, i in non_fin_corp_industry)
+    vGrossCapitalFormation[s,t] == fGrossCapitalFormation_s[s,t] * ∑(vI_k_i[k,i,t] for k in capital_type, i in non_fin_corp_industry)
 
     vNonFinCorpExpenses[t=t1:T],
     vNonFinCorpExpenses[t] == ∑(vPurchaserUse_p_u[p,i,t] for p in product, i in non_fin_corp_industry)
@@ -146,9 +149,11 @@ end
 function define_calibration()
   block = define_equations()
 
-  # At t1, swap each rate endogenous and the corresponding vFinAL cell exogenous,
-  # so calibration solves for the ratio implied by observed balance-sheet data.
+  # At t1, use source values to identify scale factors and portfolio ratios.
   @endo_exo_swap! block begin
+    fGrossOpSurplus_s[s=corporation_sector, t=[t1]], vGrossOpSurplusMixedIncome[s=corporation_sector, t=[t1]]
+    fGrossCapitalFormation_s[s=corporation_sector, t=[t1]], vGrossCapitalFormation[s=corporation_sector, t=[t1]]
+
     rFinCorpDebtAssets2DomesticDebtLiabilities[t1], vFinAL[:FinCorp,:Debt,:Assets,t1]
     rFinCorpDebtLiabilities2EquityLiabilities[t1], vFinAL[:FinCorp,:Debt,:Liab,t1]
     rNonFinCorpEquityAssets2EquityLiabilities[t1], vFinAL[:NonFinCorp,:Equity,:Assets,t1]
