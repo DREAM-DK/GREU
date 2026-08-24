@@ -29,6 +29,7 @@ modules = [
   Intermediates,
   CapitalAdjustmentCosts,
   # SectorAccounts,
+  Exports,
 ]
 
 # The full-horizon model tells calibration which variables are parameters.
