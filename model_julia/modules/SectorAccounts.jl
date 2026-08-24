@@ -102,7 +102,6 @@ const SectorAccountsTag = Tag(:SectorAccounts)
   vExports[t], "Source total for exports of goods and services (P.6)."
   vImports[t], "Source total for imports of goods and services (P.7)."
   vRoWPrimaryIncomeCurrentBalanceOther[t], "Rest-of-world income balance other than property income (D.1+D.2+D.3+D.5+D.6+D.7+D.8+D.9)."
-  vGoodsServicesBalance[t], "Goods and services balance (B.11 trade part)."
   vRoWPrimaryIncomeCurrentBalance[t], "Rest-of-world income balance: net D.4 plus other income."
 
   # Move wage accounts to LaborMarket.jl when that module is ready.

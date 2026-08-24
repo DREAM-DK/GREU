@@ -13,7 +13,6 @@ import ..SectorAccounts:
   vNetFinIncome,
   vNonFinancialNonProducedAssets,
   vRoWPrimaryIncomeCurrentBalanceOther,
-  vGoodsServicesBalance,
   vRoWPrimaryIncomeCurrentBalance,
   vFinAL
 import ..Time: t, t1, T
@@ -26,15 +25,13 @@ const RestOfWorldTag = Tag(:RestOfWorld)
 
 @variables model :: (RestOfWorldTag, ForecastConstant) begin
   rRoWDebtAssets2TotalDebtLiabilities[t], "RoW debt asset ratio: RoW debt assets relative to total domestic debt liabilities."
-  rRoWEquityAssets2DomesticEquityLiabilities[t], "RoW equity asset ratio: RoW equity assets relative to domestic equity liabilities of Hh and NonFinCorp."
+  rRoWEquityLiabilities2DomesticEquityAssets[t], "RoW equity liability ratio: RoW equity liabilities relative to total domestic equity assets."
 end
 
 # ============================================================================
 # Assign data
 # ============================================================================
 function assign_data!(db)
-  db[rRoWDebtAssets2TotalDebtLiabilities] .= 0.0
-  db[rRoWEquityAssets2DomesticEquityLiabilities] .= 0.0
   return nothing
 end
 
@@ -45,13 +42,9 @@ function define_equations()
   return @block model begin
     # Budget identity.
     vNetFinTransactions[s=[:RoW], t=t1:T],
-    vNetFinTransactions[s,t] == vGoodsServicesBalance[t]
+    vNetFinTransactions[s,t] == vM[t] - vX[t]
                                  + vRoWPrimaryIncomeCurrentBalance[t]
                                  - vNonFinancialNonProducedAssets[s,t]
-
-    # Goods and services balance.
-    vGoodsServicesBalance[t=t1:T],
-    vGoodsServicesBalance[t] == vX[t] - vM[t]
 
     # Primary and current income balance.
     vRoWPrimaryIncomeCurrentBalance[t=t1:T],
@@ -59,7 +52,21 @@ function define_equations()
                                            + vRoWPrimaryIncomeCurrentBalanceOther[t]
 
     # Portfolio.
+    # Debt assets are a fixed share of domestic debt liabilities.
+    vFinAL[s=[:RoW], f=[:Debt], al=[:Assets], t=t1:T],
+    vFinAL[s,f,al,t] == rRoWDebtAssets2TotalDebtLiabilities[t] * ∑(vFinAL[s2,:Debt,:Liab,t] for s2 in sector if s2 != :RoW)
 
+    # RoW debt liabilities clear the debt market.
+    vFinAL[s=[:RoW], f=[:Debt], al=[:Liab], t=t1:T],
+    ∑(vFinAL[s2,:Debt,:Assets,t] for s2 in sector) == ∑(vFinAL[s2,:Debt,:Liab,t] for s2 in sector)
+
+    # Equity liabilities are a fixed share of domestic equity assets.
+    vFinAL[s=[:RoW], f=[:Equity], al=[:Liab], t=t1:T],
+    vFinAL[s,f,al,t] == rRoWEquityLiabilities2DomesticEquityAssets[t] * ∑(vFinAL[s2,:Equity,:Assets,t] for s2 in sector if s2 != :RoW)
+
+    # RoW equity assets clear the equity market.
+    vFinAL[s=[:RoW], f=[:Equity], al=[:Assets], t=t1:T],
+    ∑(vFinAL[s2,:Equity,:Assets,t] for s2 in sector) == ∑(vFinAL[s2,:Equity,:Liab,t] for s2 in sector)
   end
 end
 
@@ -69,9 +76,11 @@ end
 function define_calibration()
   block = define_equations()
 
-  # At t1, swap each rate endogenous and the corresponding vFinAL cell exogenous,
+  # At t1, swap each ratio endogenous and the corresponding vFinAL cell exogenous,
   # so calibration solves for the ratio implied by observed balance-sheet data.
   @endo_exo_swap! block begin
+    rRoWDebtAssets2TotalDebtLiabilities[t1], vFinAL[:RoW,:Debt,:Assets,t1]
+    rRoWEquityLiabilities2DomesticEquityAssets[t1], vFinAL[:RoW,:Equity,:Liab,t1]
   end
 
   return block
