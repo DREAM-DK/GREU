@@ -56,6 +56,14 @@ function assign_data!(db)
 end
 
 # ============================================================================
+# Starting values
+# ============================================================================
+function set_starting_values!(start_values)
+  start_values[qProd[labor_type,:,:]] .= start_values[qL_l_i][labor_type,:,:]
+  return nothing
+end
+
+# ============================================================================
 # Equations
 # ============================================================================
 function define_equations()

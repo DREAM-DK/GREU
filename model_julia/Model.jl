@@ -20,7 +20,11 @@ const model = Settings.square_model()
 # ==============================================================================
 # Include modules
 # ==============================================================================
-const model_modules = [@log_time("include modules/$name.jl", include(joinpath("modules", "$name.jl"))) for name in Settings.enabled_modules]
+# Loaded module objects in dependency order.
+const model_modules = [
+  @log_time("include modules/$name.jl", include(joinpath("modules", "$name.jl")))
+  for name in Settings.module_names
+]
 
 function assign_data!(db)
   for m in model_modules

@@ -9,17 +9,18 @@ const base_year = 2019
 const calibration_year = 2019
 const terminal_year = 2025
 
-const enabled_modules = [
+# File names to include. Model.jl loads these as model_modules.
+const module_names = [
   :ModuleTemplate,
   :InputOutput,
   :ImportSubstitution,
-  :Exports,
   :Production,
   :Labor,
-  :Capital,
   :Intermediates,
+  :Capital,
   :CapitalAdjustmentCosts,
   :SectorAccounts,
+  :Exports,
 ]
 
 # JuMP `Model` configured as a square nonlinear system for the selected backend.

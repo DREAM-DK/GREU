@@ -25,7 +25,8 @@ In this branch, we are working on a new version of the model implemented in Juli
   control flow.
 - Avoid nested loops and `if` statements by using smaller functions,
   broadcasting, and multiple dispatch.
-- Inline simple expressions; avoid unnecessary auxiliary variables.
+- Inline simple expressions; avoid unnecessary auxiliary variables. Keep
+  economic derivatives and similar terms as named variables.
 - Assert invariants at mutation sites. When possible, validate constraints such
   as finiteness where a value is set, not where it is later consumed.
 - Do not silently clamp. Do not use `clamp`, `max`, or `min` to force invalid
@@ -84,7 +85,7 @@ Entry points:
 - `Shock.jl` — load that baseline, shock, solve `base_model(model_modules)`, plot
 - `RefreshData.jl` — rebuild checked-in CSV from Eurostat
 
-`Settings.enabled_modules` selects which files under `modules/` are included. Copy `ModuleTemplate.jl` when adding a module, then add its symbol to `enabled_modules`.
+`Settings.module_names` selects which files under `modules/` are included. Copy `ModuleTemplate.jl` when adding a module, then add its symbol to `module_names`.
 
 **SquareModels.jl** is an external dependency ([GitHub](https://github.com/MartinBonde/SquareModels)). It supplies Blocks, ModelDictionary, and solve. We maintain it and can change it.
 
@@ -133,7 +134,21 @@ solve!(block, data)  # Updates in-place
 
 Baselines are persisted with `unload` / `load` (parquet). `assert_no_diff` and `assert_residuals_small` check a solve. `at_year` and `variable_year` in `Time.jl` read or shift the year index.
 
+### 5. Tags
+
+`@variables` can carry tags. `ForecastConstant` holds a variable flat after `t1`. `ForecastZero` sets it to zero when no module claims it. `DynamicCalibration` keeps a parameter endogenous in the dynamic solve. `GrowthAdjusted` and `InflationAdjusted` mark stationarity.
+
 ## GREU Architecture
+
+### Modularity
+
+A module should solve as a partial equilibrium. Treat endogenous variables from other modules as given.
+
+Link modules through a named hook that starts at zero or as a fixed share. Another module can then make that hook endogenous. `pKAdjCost_k_i` and `qProductionLoss` are the live pattern.
+
+Keep derivatives as named variables, such as `dKAdjCost2dK`. Do not fold them into the user-cost equation. A second module can then change the functional form.
+
+Core equations are identities and fixed shares. A behavior module endogenizes the share or rate. Do not read a tax or friction from another peripheral module. Put a marginal rate or hook in the core.
 
 ### Submodule Pattern
 
@@ -173,8 +188,15 @@ Loads the calibrated baseline into a copy, applies scenario changes, then `solve
 
 ## Naming Conventions
 
-- `v*` — Nominal values (adjusted for growth+inflation)
-- `q*` — Real quantities (adjusted for growth only)
-- `p*` — Prices (adjusted for inflation only)
-- `r*` — Rates/shares (no adjustment)
-- `*_J` — Residual variables (auto-created)
+The most aggregate variable gets the shortest name. Add a suffix for each extra index: `vI`, then `vI_k`, then `vI_k_i`. Use `2` in a ratio or derivative: `qTop2qY`, `dKAdjCost2dK`. Multi-word names use CamelCase. Index letters must be unique across the model. In use: `i` industry, `k` capital type, `p` product, `t` time.
+
+- `v*` — value (growth and inflation)
+- `q*` — quantity (growth)
+- `p*` — price (inflation)
+- `r*` — rate or ratio
+- `t*` — tax rate
+- `e*` — elasticity
+- `u*` — calibrated share
+- `d*` — derivative
+- `f*` — factor
+- `j*` / `*_J` — residual

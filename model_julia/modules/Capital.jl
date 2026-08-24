@@ -15,11 +15,10 @@ import ..InputOutput:
   qI_p,
   vI
 import ..InputOutputSettings: cell_tolerance
-import ..Production: parent, pProd, qProd
+import ..Production: pProd, qProd
 import ..ProductionSettings:
   capital_type,
-  production_data_dir,
-  production_nesting
+  production_data_dir
 import ..Settings: calibration_year
 import ..model
 import ..Time: t, t1, T
@@ -101,6 +100,7 @@ end
 # Starting values
 # ============================================================================
 function set_starting_values!(start_values)
+  start_values[qProd[capital_type,:,:]] .= start_values[qK_k_i][capital_type,:,:]
   start_values[pKAdjCost_k_i] .= 0
   return nothing
 end
