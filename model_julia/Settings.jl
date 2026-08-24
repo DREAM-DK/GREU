@@ -20,6 +20,10 @@ const enabled_modules = [
   :Intermediates,
   :CapitalAdjustmentCosts,
   :SectorAccounts,
+  :Households,
+  :Government,
+  :Corporations,
+  :RestOfWorld,
 ]
 
 # JuMP `Model` configured as a square nonlinear system for the selected backend.

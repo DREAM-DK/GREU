@@ -28,7 +28,11 @@ modules = [
   Capital,
   Intermediates,
   CapitalAdjustmentCosts,
-  # SectorAccounts,
+  SectorAccounts,
+  Households,
+  Government,
+  Corporations,
+  RestOfWorld,
   Exports,
 ]
 
