@@ -8,4 +8,7 @@ const ForecastConstant = Tag(:forecast_constant)
 """Variables that are set to zero in the forecast"""
 const ForecastZero = Tag(:forecast_zero)
 
+"""Parameters that stay endogenous in the dynamic calibration."""
+const DynamicCalibration = Tag(:dynamic_calibration)
+
 end

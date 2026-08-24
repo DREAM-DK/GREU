@@ -1,12 +1,14 @@
 include(joinpath(@__DIR__, "..", "Settings.jl"))
 include("GovernmentSettings.jl")
 include("EurostatClient.jl")
+include(joinpath(@__DIR__, "..", "DataUtils.jl"))
 
 module GovernmentData
 
 using CSV
 using DataFrames
 import ..EurostatClient
+import ..DataUtils: long_format
 using ..Settings: calibration_year, country_code
 import ..GovernmentSettings:
   all_na_items,
@@ -15,10 +17,6 @@ import ..GovernmentSettings:
   government_sector,
   government_unit,
   na_item_to_var
-
-# ==========================================================================
-# Eurostat fetch
-# ==========================================================================
 
 """Fetch general government (S13) national accounts from gov_10a_main."""
 function fetch_government_accounts()
@@ -34,16 +32,6 @@ function fetch_government_accounts()
   df.year = parse.(Int, df.year)
   return df[:, [:na_item, :year, :value]]
 end
-
-# ==========================================================================
-# Output files
-# ==========================================================================
-
-long_format(varname, df, index_cols) = DataFrame(
-  variable = string(varname),
-  indices  = [join((string(row[col]) for col in index_cols), ",") for row in eachrow(df)],
-  value    = df.value,
-)
 
 """All government account variables in a single file, one row per (variable, year)."""
 function write_government_variables(dir, df)

@@ -6,9 +6,13 @@ module Corporations
 
 import JuMP
 using SquareModels
-import ..db
+import ..model
 import ..Time: t, t1, T
 import ..SectorAccounts: vPrimaryIncome, vNetTransfers, vFinalConsumption, vGrossCapitalFormation
+
+# ==========================================================================
+# Read data
+# ==========================================================================
 
 # ==========================================================================
 # Indices
@@ -19,9 +23,9 @@ import ..SectorAccounts: vPrimaryIncome, vNetTransfers, vFinalConsumption, vGros
 # ==========================================================================
 
 # ==========================================================================
-# Data
+# Assign data
 # ==========================================================================
-function set_data!(db)
+function assign_data!(db)
   return nothing
 end
 
@@ -29,7 +33,7 @@ end
 # Equations
 # ==========================================================================
 function define_equations()
-  return @block db begin
+  return @block model begin
   end
 end
 

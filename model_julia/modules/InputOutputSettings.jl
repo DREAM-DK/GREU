@@ -10,16 +10,17 @@ const eurostat_net_product_tax_dataset = "naio_10_cp1630"
 const eurostat_unit = "MIO_EUR"
 const cell_tolerance = 1e-6
 
-const model_sections = [
+const product = [
   :A, :B, :C, :D, :E, :F, :G, :H, :I, :J, :K,
   :L, :M, :N, :O, :P, :Q, :R, :S, :T, :U,
 ]
 
 # Products use CPA section labels. Industry labels need a prefix because final
 # uses use scalar national-account symbols such as :C and :G.
-const product = copy(model_sections)
-const section_to_industry = Dict(section => Symbol("i$section") for section in model_sections)
-const industry = [section_to_industry[section] for section in model_sections]
+const section_to_industry = Dict(
+  section => Symbol("i$section") for section in product
+)
+const source_industry = [section_to_industry[section] for section in product]
 
 # Wholesale and retail trade, and transport, supply the margin services.
 const margin_services = [:G, :H]
@@ -33,11 +34,6 @@ const final_uses = [
   :INV,
 ]
 const origin = [:domestic, :import]
-
-const use = [industry; final_uses]
-@assert allunique(use) "Industry and final-use labels must be distinct"
-# Inventory changes are signed and exogenous, so they bypass the fixed shares.
-const ordinary_uses = setdiff(use, [:INV])
 
 const final_use_rename = Dict(
   "P3_S14" => :C,
@@ -67,7 +63,7 @@ const cpa_p64_to_p21 = Dict(
   "CPA_$code" => Symbol(first(code))
   for code in sut_detail_codes
 )
-@assert Set(values(nace_a64_to_a21)) == Set(industry) "NACE map must cover each model industry"
+@assert Set(values(nace_a64_to_a21)) == Set(source_industry) "NACE map must cover each source industry"
 @assert Set(values(cpa_p64_to_p21)) == Set(product) "CPA map must cover each model product"
 
 end # module

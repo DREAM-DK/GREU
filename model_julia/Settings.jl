@@ -10,15 +10,22 @@ const calibration_year = 2019
 const terminal_year = 2025
 
 const enabled_modules = [
-  :SubmodelTemplate,
+  :ModuleTemplate,
   :InputOutput,
-  # :Production,
+  :ImportSubstitution,
+  :Exports,
+  :Production,
+  :Labor,
+  :Capital,
+  :Intermediates,
+  :CapitalAdjustmentCosts,
+  :SectorAccounts,
 ]
 
 # JuMP `Model` configured as a square nonlinear system for the selected backend.
 # Importing the backend package activates the matching SquareModels extension.
 import GAMS
-square_model() = SquareModels.square_model(; gamsdir="C:/GAMS/53")
+square_model() = SquareModels.square_model(; gamsdir="C:/GAMS/52")
 # Alternative backends:
 #   import Ipopt;  square_model() = SquareModels.square_model(Ipopt.Optimizer)
 #   import CONOPT; square_model() = SquareModels.square_model(CONOPT.Optimizer; lmmxsf=1)

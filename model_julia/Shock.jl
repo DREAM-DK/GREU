@@ -3,11 +3,11 @@
 include("Model.jl")
 import .Time: T
 
-baseline = load(joinpath(@__DIR__, "..", "Output", "baseline.parquet"), db.model)
+baseline = load(joinpath(@__DIR__, "..", "Output", "baseline.parquet"), model)
 
 scenario = copy(baseline)
-scenario[SubmodelTemplate.test_forecast[T-5:T]] .+= π
-@log_time solve!(base_model(), scenario)
+scenario[ModuleTemplate.test_forecast[T-5:T]] .+= π
+@log_time solve!(base_model(model_modules), scenario)
 
 using CairoMakie, SquareModels, DREAMMakieTheme
 

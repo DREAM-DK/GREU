@@ -6,12 +6,15 @@ const sector_accounts_data_dir = joinpath(@__DIR__, "..", "data", "sector_accoun
 # Eurostat dataset identifiers and units for the two source datasets.
 const fin_transactions_dataset_code   = "nasa_10_nf_tr"
 const fin_transactions_unit           = "CP_MEUR"
+const fin_transactions_dataset_code_2 = "nasa_10_f_tr"
+const fin_transactions_unit_2         = "MIO_EUR"
 const fin_other_changes_dataset_code  = "nasa_10_f_oc"
 const fin_other_changes_unit          = "MIO_EUR"
 const fin_revaluation_dataset_code    = "nasa_10_f_gl"
 const fin_revaluation_unit            = "MIO_EUR"
 const fin_bal_dataset_code            = "nasa_10_f_bs"
 const fin_bal_unit                    = "MIO_EUR"
+const cell_tolerance                  = 1e-6
 
 # ESA 2010 institutional sectors to download. S14 and S15 (non-profit institutions serving households)
 # are later merged into a single Households aggregate 
@@ -39,6 +42,7 @@ const fin_transactions_na_items = [
   "D41", "D42", "D43", "D44", "D45", "P6", "P7",
 ]
 const fin_bal_na_items = ["F", "F1", "F11", "F2", "F3", "F4", "F5", "F51", "F52", "F6", "F7", "F8"]
+const fin_tr_na_items  = replace(fin_bal_na_items, "F" => "F_TR") # nasa_10_f_tr publishes the F aggregate as F_TR rather than F.
 
 # ---------------------------------------------------------------------------
 # Property income (vFinIncome): D.4 receipts (al=Assets) or payments (al=Liab)
@@ -61,10 +65,9 @@ const fin_transactions_debt_income_items   = ["D41", "D43", "D44", "D45"]  # Int
 # because it has no domestic counterpart liability and distorts aggregates.
 #
 #   Equity ← F.51 (listed equity and investment fund shares)
-#   Debt   ← F.1 + F.2 + F.3 + F.4 + F.52 + F.6 + F.7 + F.8  (i.e. F − F.51)
+#   Debt   ← F − F.51 − F.11
 # ---------------------------------------------------------------------------
 const fin_bal_equity_na_items = ["F51"]
-const fin_bal_debt_na_items   = ["F1", "F2", "F3", "F4", "F52", "F6", "F7", "F8"]
 
 # ---------------------------------------------------------------------------
 # Transfer and cross-border income items used when constructing the sector 

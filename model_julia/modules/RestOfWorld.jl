@@ -15,13 +15,13 @@ module RestOfWorld
 
 import JuMP
 using SquareModels
-import ..db
+import ..model
 import ..Time: t, t1, T
 import ..InputOutput: vM, vX
 import ..SectorAccounts: vPrimaryIncome, vNetTransfers, vFinalConsumption, vGrossCapitalFormation
 
 function define_equations()
-  return @block db begin
+  return @block model begin
     # RoW's "primary income" with the domestic economy is the trade balance
     # from the domestic side: imports minus exports (InputOutput vM, vX).
     vPrimaryIncome[s=[:RoW], t=t1:T],
