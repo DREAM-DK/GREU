@@ -1,4 +1,4 @@
-# Template for a new model module. Copy this file and add it to enabled_modules.
+# Template for a new model module. Copy this file and add it to Settings.module_names.
 # Read data, then build indices, then declare variables, then assign values.
 
 module ModuleTemplate

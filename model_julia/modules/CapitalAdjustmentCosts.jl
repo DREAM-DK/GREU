@@ -5,16 +5,13 @@ module CapitalAdjustmentCosts
 
 using SquareModels
 import ..Capital:
-  capital_k_i,
   pKAdjCost_k_i,
   qK_k_i,
-  qK_k_i_data,
   rHurdleRate_i
 import ..GrowthInflationAdjustment: GrowthAdjusted, fp, fq
 import ..InputOutput: industry
 import ..Production: pProd, qProductionLoss, topNest
 import ..ProductionSettings: capital_type
-import ..Settings: calibration_year, first_data_year
 import ..model
 import ..Time: t1, T
 import ..Tags: ForecastConstant

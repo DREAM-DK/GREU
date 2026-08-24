@@ -8,7 +8,7 @@ module Production
 using SquareModels
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutput: industry, qY_i
-import ..ProductionSettings: capital_type, intermediate_type, labor_type, production_nesting
+import ..ProductionSettings: production_nesting
 import ..model
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant, ForecastZero, DynamicCalibration
@@ -68,16 +68,6 @@ function assign_data!(db)
   # All factor prices are calibrated to 1.0
   db[pProd] .= 1
 
-  return nothing
-end
-
-# ============================================================================
-# Starting values
-# ============================================================================
-function set_starting_values!(start_values)
-  start_values[qProd[capital_type,:,:]] .= start_values[:qK_k_i][capital_type,:,:]
-  start_values[qProd[labor_type,:,:]] .= start_values[:qL_l_i][labor_type,:,:]
-  start_values[qProd[intermediate_type,:,:]] .= start_values[:qM_m_i][intermediate_type,:,:]
   return nothing
 end
 

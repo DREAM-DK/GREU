@@ -63,6 +63,14 @@ function assign_data!(db)
 end
 
 # ============================================================================
+# Starting values
+# ============================================================================
+function set_starting_values!(start_values)
+  start_values[qProd[intermediate_type,:,:]] .= start_values[qM_m_i][intermediate_type,:,:]
+  return nothing
+end
+
+# ============================================================================
 # Equations
 # ============================================================================
 function define_equations()
