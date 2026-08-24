@@ -7,6 +7,7 @@ module Households
 using SquareModels
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutput: vC
+import ..Labor: vHhWages
 import ..model
 import ..SectorAccounts:
   vNetFinTransactions,
@@ -19,8 +20,7 @@ import ..SectorAccounts:
   vFinTransactions,
   vFinReval,
   vNetFinAssets,
-  vFinAssets_al,
-  vHhWages
+  vFinAssets_al
 import ..Time: t, t1, T
 
 # ============================================================================

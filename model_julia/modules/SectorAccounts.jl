@@ -104,9 +104,6 @@ const SectorAccountsTag = Tag(:SectorAccounts)
   vRoWPrimaryIncomeCurrentBalanceOther[t], "Rest-of-world income balance other than property income (D.1+D.2+D.3+D.5+D.6+D.7+D.8+D.9)."
   vRoWPrimaryIncomeCurrentBalance[t], "Rest-of-world income balance: net D.4 plus other income."
 
-  # Move wage accounts to LaborMarket.jl when that module is ready.
-  vRoWNetWages[t], "Rest-of-world net wages (D.1)."
-  vHhWages[t], "Household net wages (D.1)."
 end # @variables
 
 # ============================================================================
@@ -129,8 +126,6 @@ function assign_data!(db)
   db[vExports] .= read_series(sector_accounts_file, "vExports", t)
   db[vImports] .= read_series(sector_accounts_file, "vImports", t)
   db[vRoWPrimaryIncomeCurrentBalanceOther] .= read_series(sector_accounts_file, "vRoWPrimaryIncomeCurrentBalanceOther", t)
-  db[vRoWNetWages] .= read_series(sector_accounts_file, "vRoWNetWages", t)
-  db[vHhWages] .= read_series(sector_accounts_file, "vHhWages", t)
   db[vCorrectionNonFinCorp2Hh] .= read_series(sector_accounts_file, "vCorrectionNonFinCorp2Hh", t)
 
   # Until the government module supplies B.9, use the same source total as
