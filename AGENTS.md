@@ -2,7 +2,7 @@
 
 GREU (Green Reform EU) is a dynamic general equilibrium model for fiscal sustainability and climate policy analysis, being implemented using SquareModels.
 
-In this branch, we are working on a new version of the model implemented in Julia.
+In this branch, we are working on a new version of the model implemented in Julia. Model layers, module roles, and equations are in `model_julia/docs/GREU_architecture.lyx`.
 
 ## Writing Conventions
 
@@ -75,7 +75,8 @@ In this branch, we are working on a new version of the model implemented in Juli
   lines between logical groups. Add a short comment after `end` when its matching
   opening line is far away, for example `end # module`.
 - Group imports by their project source or layer. Preserve a useful order within
-  each group; do not sort imports only for style.
+  each group; do not sort imports only for style. Do not export from model
+  modules.
 
 ## Repository Structure
 
@@ -83,7 +84,7 @@ Entry points:
 
 - `Calibrate.jl` — assemble via `Model.jl`, calibrate static then dynamic, run tests, write `Output/baseline.parquet`
 - `Shock.jl` — load that baseline, shock, solve `base_model(model_modules)`, plot
-- `RefreshData.jl` — rebuild checked-in CSV from Eurostat
+- `RefreshData.jl` — rebuild checked-in CSV from Eurostat. Each section is self-contained; send one section to an interactive terminal.
 
 `Settings.module_names` selects which files under `modules/` are included. Copy `ModuleTemplate.jl` when adding a module, then add its symbol to `module_names`.
 
@@ -104,7 +105,7 @@ end
 
 Each line: `endogenous_var[indices], equation`
 
-**Residuals**: Each equation `endo == RHS` is transformed to `endo + endo_J == RHS`. The residual `endo_J` (suffix `_J`) is auto-created and initialized to 0. Blocks can be combined with `+`.
+**Residuals**: Each equation `endo == RHS` is transformed to `endo + endo_J == RHS`. The residual `endo_J` (suffix `_J`) is auto-created and initialized to 0. Blocks can be combined with `+`. Use `∑(...)` to sum over sparse indices; a missing cell is zero.
 
 ### 2. ModelDictionary
 
@@ -188,15 +189,25 @@ Loads the calibrated baseline into a copy, applies scenario changes, then `solve
 
 ## Naming Conventions
 
-The most aggregate variable gets the shortest name. Add a suffix for each extra index: `vI`, then `vI_k`, then `vI_k_i`. Use `2` in a ratio or derivative: `qTop2qY`, `dKAdjCost2dK`. Multi-word names use CamelCase. Index letters must be unique across the model. In use: `i` industry, `k` capital type, `p` product, `t` time.
+Balance short names that keep equations readable with names that are explicit. Use standard economic letters: `Y` is output, `C` is consumption. Do not spell Greek letters in Latin characters. Unicode symbols are acceptable in a limited scope as short-hand for long names.
 
-- `v*` — value (growth and inflation)
+The most aggregate variable gets the shortest name. Add a suffix for each extra index: `vI`, then `vI_k`, then `vI_k_i`. In documentation, drop the suffix and write the index as a subscript: `pC_c[c,t]` is \(p^C_{c,t}\). Drop the `q` prefix in documentation: `qC_c[c,t]` is \(C_{c,t}\). Use `2` in a ratio or derivative: `qX2qGDP`, `dY2dX` = \(\partial Y/\partial X\). Multi-word names use CamelCase.
+
+- `v*` — value (= p×q; growth and inflation)
 - `q*` — quantity (growth)
 - `p*` — price (inflation)
+- `nv*` — present value
+- `n*` — number of persons
+- `h*` — hours
 - `r*` — rate or ratio
 - `t*` — tax rate
+- `m*` — marginal rate when it differs from the average; prefer an explicit derivative
 - `e*` — elasticity
-- `u*` — calibrated share
+- `u*` — calibrated share (μ in documentation)
 - `d*` — derivative
-- `f*` — factor
-- `j*` / `*_J` — residual
+- `f*` — factor (unspecified multiplicative term)
+- `s*` — structural version of a variable
+- `j*` — additive adjustment that should normally be zero
+- `jf*` — multiplicative residual
+- `E*` — expectations operator (rare; leads are model-consistent expectations)
+- `*_J` — automatically created residual

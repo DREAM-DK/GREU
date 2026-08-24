@@ -27,9 +27,9 @@ calibrated_modules = [
   Labor,
   Intermediates,
   Capital,
-  # CapitalAdjustmentCosts,
-  # # SectorAccounts,
-  # Exports,
+  CapitalAdjustmentCosts,
+  # SectorAccounts,
+  Exports,
 ]
 
 # The full-horizon model tells calibration which variables are parameters.
@@ -47,15 +47,10 @@ static_calibrated_parameters = filter(
   var -> !has_tag(var, DynamicCalibration),
   setdiff(endogenous(static_calibration_block), endogenous(base_block)),
 )
-forecast_zeros!(static_calibration_block, exogenous_values)
+forecast_zeros!(static_calibration_block, exogenous_values) # Sets t1 values to zero if they are not calibrated.
 endo_exo_residuals!(static_calibration_block, exogenous_values)
-# An unused model module can still supply an exogenous start value.
-set_starting_values!(start_values, model_modules)
-fill_missing_t1_exogenous_start_values!(
-  static_calibration_block,
-  exogenous_values,
-  start_values,
-)
+set_starting_values!(start_values, model_modules) # An unused model module can still supply a start value, which is used as exogenous value if nothing else is provided.
+fill_missing_t1_exogenous_start_values!(static_calibration_block,exogenous_values,start_values)
 @log_time static_solution = solve(static_calibration_block, exogenous_values; start_values, replace_nothing=1.0)
 assert_residuals_small(static_solution; rtol=1e-4, tolerances=residual_tolerances(static_solution, calibrated_modules), msg="Large residuals after static calibration",)
 
@@ -74,11 +69,7 @@ exogenous_values[static_calibrated_parameters] .= static_solution[static_calibra
 forecast_zeros!(dynamic_calibration_block, exogenous_values)
 endo_exo_residuals!(dynamic_calibration_block, exogenous_values)
 set_starting_values!(start_values, model_modules)
-fill_missing_t1_exogenous_start_values!(
-  dynamic_calibration_block,
-  exogenous_values,
-  start_values,
-)
+fill_missing_t1_exogenous_start_values!(dynamic_calibration_block, exogenous_values, start_values)
 dynamic_calibration_block = forecast_constants!(dynamic_calibration_block, exogenous_values)
 fill_missing_exogenous_forecasts!(dynamic_calibration_block, exogenous_values, start_values)
 fill_missing_endogenous_start_values!(dynamic_calibration_block, start_values)
