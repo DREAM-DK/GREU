@@ -4,7 +4,6 @@
 module Government
 
 using SquareModels
-import ..GrowthInflationAdjustment: fv
 import ..model
 import ..SectorAccounts:
   ass_liab,
@@ -13,8 +12,7 @@ import ..SectorAccounts:
   vGovBalance,
   vGovPrimaryBalance,
   vFinAL,
-  vFinReval,
-  vOtherChangesInVolume,
+  vFinTransactions,
   vNetFinAssets,
   vFinAssets_al
 import ..Time: t, t1, T
@@ -42,15 +40,11 @@ function define_equations()
     # Portfolio.
     # Gov neither buys nor sells equity; existing equity stocks follow non-transaction changes.
     vFinAL[s=[:Gov], f=[:Equity], al=ass_liab, t=t1:T],
-    vFinAL[s,f,al,t] == vFinAL[s,f,al,t-1]/fv
-                       + vFinReval[s,f,al,t]
-                       + vOtherChangesInVolume[s,f,al,t]
+    vFinTransactions[s,f,al,t] == 0
 
     # Gov does not buy or sell debt assets; the stock follows non-transaction changes.
     vFinAL[s=[:Gov], f=[:Debt], al=[:Assets], t=t1:T],
-    vFinAL[s,f,al,t] == vFinAL[s,f,al,t-1]/fv
-                       + vFinReval[s,f,al,t]
-                       + vOtherChangesInVolume[s,f,al,t]
+    vFinTransactions[s,f,al,t] == 0
 
     # Gov debt liabilities are residual given net financial assets.
     vFinAL[s=[:Gov], f=[:Debt], al=[:Liab], t=t1:T],
