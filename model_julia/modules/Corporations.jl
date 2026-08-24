@@ -4,8 +4,13 @@
 module Corporations
 
 using SquareModels
-import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
+import ..Capital: vI_k_i
+import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
+import ..InputOutput: industry, product, vPurchaserUse_p_u, vY_i
+import ..Labor: vWages_i
 import ..model
+import ..Production: vProductionTax_i
+import ..ProductionSettings: capital_type
 import ..SectorAccounts:
   sector,
   vNetFinTransactions,
@@ -17,7 +22,6 @@ import ..SectorAccounts:
   vGrossOpSurplusMixedIncome,
   vFinAL,
   vFinTransactions,
-  vFinReval,
   vNetFinAssets,
   vFinAssets_al
 import ..Time: t, t1, T
@@ -27,27 +31,30 @@ import ..Tags: ForecastConstant
 # Variables
 # ============================================================================
 const CorporationsTag = Tag(:Corporations)
+const fin_corp_industry = [:iK]
+const public_industry = [:iO, :iP, :iQ]
+const non_fin_corp_industry = setdiff(industry, [fin_corp_industry; public_industry])
+
+@assert fin_corp_industry ⊆ industry "The financial corporation industry must be in the input-output data"
+@assert public_industry ⊆ industry "Each public industry must be in the input-output data"
 
 @variables model :: (CorporationsTag, ForecastConstant) begin
   rFinCorpDebtAssets2DomesticDebtLiabilities[t], "FinCorp debt asset ratio: debt assets relative to domestic debt liabilities of Hh, NonFinCorp, and Gov."
   rFinCorpDebtLiabilities2EquityLiabilities[t], "FinCorp capital structure: debt liabilities relative to own equity liabilities."
   rNonFinCorpEquityAssets2EquityLiabilities[t], "NonFinCorp equity asset ratio: equity assets relative to own equity liabilities."
   rNonFinCorpDebtAssets2Expenses[t], "NonFinCorp debt asset ratio: debt assets relative to total expenses."
-  rNonFinCorpDebtLiabilities2Capital[t], "NonFinCorp debt liability ratio: debt liabilities relative to total capital stock."
+  rNonFinCorpDebtLiabilities2EquityLiabilities[t], "NonFinCorp capital structure: debt liabilities relative to own equity liabilities."
 end
 
-# Filled by the IO module when it is connected.
 @variables model :: (CorporationsTag, GrowthAdjusted, InflationAdjusted) begin
-  vNonFinCorpExpenses[t], "NonFinCorp total expenses (wages + depreciation + user cost of capital)."
-  vNonFinCorpCapital[t], "NonFinCorp total capital stock."
+  vGrossOpSurplus_i[i=industry, t=t], "Gross operating surplus by industry."
+  vNonFinCorpExpenses[t], "NonFinCorp operating expenses: intermediate inputs, wages, and production taxes."
 end
 
 # ============================================================================
 # Assign data
 # ============================================================================
 function assign_data!(db)
-  db[vNonFinCorpExpenses] .= 1000.0 # TODO: replace with variable from IO module
-  db[vNonFinCorpCapital] .= 1000.0 # TODO: replace with variable from IO module
   return nothing
 end
 
@@ -56,6 +63,30 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
+    # Production and investment links.
+    vGrossOpSurplus_i[i=industry, t=t1:T],
+    vGrossOpSurplus_i[i,t] == vY_i[i,t]
+                                - ∑(vPurchaserUse_p_u[p,i,t] for p in product)
+                                - vWages_i[i,t]
+                                - vProductionTax_i[i,t]
+
+    vGrossOpSurplusMixedIncome[s=[:FinCorp], t=t1:T],
+    vGrossOpSurplusMixedIncome[s,t] == ∑(vGrossOpSurplus_i[i,t] for i in fin_corp_industry)
+
+    vGrossOpSurplusMixedIncome[s=[:NonFinCorp], t=t1:T],
+    vGrossOpSurplusMixedIncome[s,t] == ∑(vGrossOpSurplus_i[i,t] for i in non_fin_corp_industry)
+
+    vGrossCapitalFormation[s=[:FinCorp], t=t1:T],
+    vGrossCapitalFormation[s,t] == ∑(vI_k_i[k,i,t] for k in capital_type, i in fin_corp_industry)
+
+    vGrossCapitalFormation[s=[:NonFinCorp], t=t1:T],
+    vGrossCapitalFormation[s,t] == ∑(vI_k_i[k,i,t] for k in capital_type, i in non_fin_corp_industry)
+
+    vNonFinCorpExpenses[t=t1:T],
+    vNonFinCorpExpenses[t] == ∑(vPurchaserUse_p_u[p,i,t] for p in product, i in non_fin_corp_industry)
+                              + ∑(vWages_i[i,t] for i in non_fin_corp_industry)
+                              + ∑(vProductionTax_i[i,t] for i in non_fin_corp_industry)
+
     # Budget identity.
     vNetFinTransactions[s=[:FinCorp], t=t1:T],
     vNetFinTransactions[s,t] == vNetFinIncome[s,t]
@@ -95,15 +126,13 @@ function define_equations()
     vFinAL[s=[:NonFinCorp], f=[:Equity], al=[:Assets], t=t1:T],
     vFinAL[s,f,al,t] == rNonFinCorpEquityAssets2EquityLiabilities[t] * vFinAL[:NonFinCorp,:Equity,:Liab,t]
 
-    # Debt assets are a fixed fraction of total expenses (wages + depreciation + user cost of capital).
-    # TODO: replace vNonFinCorpExpenses with sum over IO industries once the IO module is connected.
+    # Debt assets are a fixed fraction of operating expenses.
     vFinAL[s=[:NonFinCorp], f=[:Debt], al=[:Assets], t=t1:T],
     vFinAL[s,f,al,t] == rNonFinCorpDebtAssets2Expenses[t] * vNonFinCorpExpenses[t]
 
-    # Debt liabilities are a fixed fraction of total capital.
-    # TODO: replace vNonFinCorpCapital with sum over IO capital types once the IO module is connected.
+    # Debt liabilities are a fixed fraction of equity liabilities.
     vFinAL[s=[:NonFinCorp], f=[:Debt], al=[:Liab], t=t1:T],
-    vFinAL[s,f,al,t] == rNonFinCorpDebtLiabilities2Capital[t] * vNonFinCorpCapital[t]
+    vFinAL[s,f,al,t] == rNonFinCorpDebtLiabilities2EquityLiabilities[t] * vFinAL[:NonFinCorp,:Equity,:Liab,t]
 
     # Equity liabilities are residual given net financial assets.
     vFinAL[s=[:NonFinCorp], f=[:Equity], al=[:Liab], t=t1:T],
@@ -124,7 +153,7 @@ function define_calibration()
     rFinCorpDebtLiabilities2EquityLiabilities[t1], vFinAL[:FinCorp,:Debt,:Liab,t1]
     rNonFinCorpEquityAssets2EquityLiabilities[t1], vFinAL[:NonFinCorp,:Equity,:Assets,t1]
     rNonFinCorpDebtAssets2Expenses[t1], vFinAL[:NonFinCorp,:Debt,:Assets,t1]
-    rNonFinCorpDebtLiabilities2Capital[t1], vFinAL[:NonFinCorp,:Debt,:Liab,t1]
+    rNonFinCorpDebtLiabilities2EquityLiabilities[t1], vFinAL[:NonFinCorp,:Debt,:Liab,t1]
   end
 
   return block
