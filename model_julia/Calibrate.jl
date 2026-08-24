@@ -22,8 +22,10 @@ data = assign_data!(ModelDictionary(model))
 calibrated_modules = [
   ModuleTemplate,
   InputOutput,
+  FixedBasePriceAggregates,
   ImportSubstitution,
   Production,
+  Pricing,
   Labor,
   Intermediates,
   Capital,

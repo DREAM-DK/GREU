@@ -13,8 +13,10 @@ const terminal_year = 2025
 const module_names = [
   :ModuleTemplate,
   :InputOutput,
+  :FixedBasePriceAggregates,
   :ImportSubstitution,
   :Production,
+  :Pricing,
   :Labor,
   :Intermediates,
   :Capital,
