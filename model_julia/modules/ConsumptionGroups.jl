@@ -106,7 +106,7 @@ function assign_data!(db)
     db[qC_p[p,t1]] / source_product_total
     for p in consumption_product, year in t
   ]
-  db[eCNest_n] .= 2.0
+  db[eCNest_n] .= 0.5
 
   db[qCNode_a[consumption_group,t1]] .= [
     source_consumption * sum(

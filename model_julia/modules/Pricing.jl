@@ -1,15 +1,20 @@
-# Set basic output prices from unit cost and one markup per industry.
-# Use the same unit cost for each product in the default production split.
+# Set basic output prices from marginal cost and one markup per industry.
+# Take the marginal markup as given and calibrate the fixed cost of Production.
+# Hold the fixed cost exogenous in a shock, so it changes no marginal decision.
 # Leave product-specific costs to a later CET module.
 module Pricing
 
 using SquareModels
-import ..InputOutput: industry, pY_p_i
-import ..InputOutputSettings: product, section_to_industry
-import ..Production: pY0
+import ..InputOutput: industry, pY_i, pY_p_i
+import ..Production: pMarginalCost_i, qFixedCost_i
 import ..model
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
+
+# The accounts report one cost per industry and cannot separate the marginal
+# markup from the fixed cost. This assumption sets the markup. The fixed cost of
+# each industry then takes the rest of the gap between price and unit cost.
+const marginal_markup = 0.20
 
 # ============================================================================
 # Variables
@@ -17,13 +22,15 @@ import ..Tags: ForecastConstant
 const PricingTag = Tag(:Pricing)
 
 @variables model :: PricingTag begin
-  rMarkup_i[i=industry, t=t] :: ForecastConstant, "Markup rate by industry."
+  rMarkup_i[i=industry, t=t] :: ForecastConstant, "Marginal markup rate by industry."
 end
 
 # ============================================================================
 # Assign data
 # ============================================================================
 function assign_data!(db)
+  db[rMarkup_i] .= marginal_markup
+  db[pY_i[:,t1]] .= 1.0
   return nothing
 end
 
@@ -31,7 +38,6 @@ end
 # Starting values
 # ============================================================================
 function set_starting_values!(start_values)
-  start_values[rMarkup_i] .= 0.0
   return nothing
 end
 
@@ -40,7 +46,11 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    pY_p_i[(p,i,t) in keys(pY_p_i); t in t1:T], pY_p_i[p,i,t] == (1 + rMarkup_i[i,t]) * pY0[i,t]
+    pY_p_i[(p,i,t) in keys(pY_p_i); t in t1:T],
+    pY_p_i[p,i,t] == pY_i[i,t]
+
+    pY_i[i=industry, t=t1:T],
+    pY_i[i,t] == (1 + rMarkup_i[i,t]) * pMarginalCost_i[i,t]
   end
 end
 
@@ -50,10 +60,8 @@ end
 function define_calibration()
   block = define_equations()
 
-  # The matching CPA product identifies the common markup for each NACE industry.
   @endo_exo_swap! block begin
-    rMarkup_i[i=industry, t=[t1]],
-    pY_p_i[p=product, i=industry, t=[t1]; section_to_industry[p] == i]
+    pMarginalCost_i[:,t1], pY_i[:,t1]
   end
 
   return block

@@ -331,8 +331,6 @@ function define_equations()
 
     vY_i[i=industry, t=t1:T], vY_i[i,t] == ∑(vY_p_i[p,i,t] for p in product)
 
-    pY_i[i=industry, t=t1:T], pY_i[i,t] * qY_i[i,t] == vY_i[i,t]
-
     vUse_u_o[u=use, o=origin, t=t1:T], vUse_u_o[u,o,t] == ∑(vUse_p_u_o[p,u,o,t] for p in product)
 
     pUse_u_o[u=ordinary_uses, o=origin, t=t1:T], pUse_u_o[u,o,t] * qUse_u_o[u,o,t] == vUse_u_o[u,o,t]

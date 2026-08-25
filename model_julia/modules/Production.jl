@@ -1,6 +1,4 @@
 # Define the common production tree and its CES equations.
-# Keep factor data, factor costs, and stock laws in factor modules.
-# Let factor modules set the price and quantity links for leaf nodes.
 include(joinpath(@__DIR__, "ProductionSettings.jl"))
 
 module Production
@@ -41,11 +39,12 @@ const ProductionTag = Tag(:Production)
 @variables model :: (ProductionTag, GrowthAdjusted) begin
   qProd[n=node, i=industry, t=t; haskey(parent, (n,i)) || n == topNest[i]], "Quantity by production node and industry."
   qProductionLoss[i=industry, t=t] :: ForecastZero, "Output used by added production costs by industry."
+  qFixedCost_i[i=industry, t=t] :: ForecastConstant, "Fixed use of the input bundle by industry."
 end
 
 @variables model :: (ProductionTag, InflationAdjusted) begin
   pProd[(n,i,t)=qProd], "Price by production node and industry."
-  pY0[i=industry, t=t], "Unit production cost by industry."
+  pMarginalCost_i[i=industry, t=t], "Marginal production cost by industry."
 end
 
 @variables model :: (ProductionTag, GrowthAdjusted, InflationAdjusted) begin
@@ -54,7 +53,7 @@ end
 
 @variables model :: ProductionTag begin
   uProd[n=node, i=industry, t=t; haskey(parent, (n,i))] :: (ForecastConstant, DynamicCalibration), "CES share by child node and industry."
-  qTop2qY[i=industry, t=t] :: ForecastConstant, "Ratio of top-nest quantity to output by industry."
+  qTop2qY[i=industry, t=t] :: ForecastConstant, "Marginal top-nest use per unit of output by industry."
   eProd[n=node, i=industry; haskey(production_nesting[i], n)], "Substitution elasticity by production nest and industry."
 end
 
@@ -77,19 +76,17 @@ end
 function define_equations()
   return @block model begin
     qProd[n=node, i=industry, t=t1:T; n == topNest[i]],
-    qProd[n,i,t] == qTop2qY[i,t] * qY_i[i,t] + qProductionLoss[i,t]
+    qProd[n,i,t] - qFixedCost_i[i,t] - qProductionLoss[i,t] == qTop2qY[i,t] * qY_i[i,t]
 
     qProd[n=node, i=industry, t=t1:T; haskey(parent, (n,i))],
     qProd[n,i,t] * pProd[n,i,t]^eProd[parent[n, i],i] ==
       uProd[n,i,t] * qProd[parent[n, i],i,t] * pProd[parent[n, i],i,t]^eProd[parent[n, i],i]
 
     pProd[n=node, i=industry, t=t1:T; haskey(production_nesting[i], n)],
-    pProd[n,i,t] * qProd[n,i,t] ==
-      ∑(pProd[child,i,t] * qProd[child,i,t] for child in production_nesting[i][n].children)
+    pProd[n,i,t] * qProd[n,i,t] == ∑(pProd[child,i,t] * qProd[child,i,t] for child in production_nesting[i][n].children)
 
-    pY0[i=industry, t=t1:T],
-    pY0[i,t] * qTop2qY[i,t] * qY_i[i,t] == pProd[topNest[i],i,t] * qProd[topNest[i],i,t]
-                                                   + vProductionTax_i[i,t]
+    pMarginalCost_i[i=industry, t=t1:T],
+    pMarginalCost_i[i,t] * qY_i[i,t] == pProd[topNest[i],i,t] * qTop2qY[i,t] * qY_i[i,t] + vProductionTax_i[i,t]
   end
 end
 
@@ -110,6 +107,10 @@ function define_calibration()
 
     qTop2qY[:,t1],
     pProd[(n,i,t) in keys(pProd); n == topNest[i] && t == t1]
+
+    # We use an exogenous marginal markup and calibrate an ad-hoc fixed cost to match cost/output in data
+    # A model of firm entry can endogenize the fixed cost.
+    qFixedCost_i[:,t1], pMarginalCost_i[:,t1]
   end
 
   return block

@@ -91,7 +91,8 @@ function assign_data!(db)
   fill_cells!(db, qI_k, qI_k_data)
   fill_cells!(db, pI_k, pI_k_data)
   db[[pProd[k,i,t1] for (k,i) in capital_k_i]] .= 1.0
-  db[rHurdleRate_i] .= 0.15
+  # A perceived cost of capital, so it covers debt as well as equity finance.
+  db[rHurdleRate_i] .= 0.10
   db[pMarginalCapitalTax_k_i] .= 0.0
   return nothing
 end
