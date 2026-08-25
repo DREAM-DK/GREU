@@ -57,28 +57,28 @@ const investment_product_k = Set((p, k) for (p, k, _) in keys(qI_p_k_data))
 const CapitalTag = Tag(:Capital)
 
 @variables model :: (CapitalTag, GrowthAdjusted) begin
-  qK_k_i[k=capital_type, i=industry, t = t; (k, i) in capital_k_i], "Capital stock by type and industry."
-  qI_k_i[(k,i,t) = qK_k_i], "Capital flow by type and industry."
-  qI_k[k=capital_type, t = t], "Investment by capital type."
-  qI_p_k[p=product, k=capital_type, t = t; (p, k) in investment_product_k], "Investment by product and capital type."
+  qK_k_i[k=capital_type, i=industry, t=t; (k,i) in capital_k_i], "Capital stock by type and industry."
+  qI_k_i[(k,i,t)=qK_k_i], "Capital flow by type and industry."
+  qI_k[k=capital_type, t=t], "Investment by capital type."
+  qI_p_k[p=product, k=capital_type, t=t; (p,k) in investment_product_k], "Investment by product and capital type."
 end
 
 @variables model :: (CapitalTag, InflationAdjusted) begin
-  pK_k_i[(k,i,t) = qK_k_i], "User cost of capital by type and industry."
-  pI_k[k=capital_type, t = t], "Investment price by capital type."
-  pMarginalCapitalTax_k_i[(k,i,t) = qK_k_i], "Marginal corporation tax per unit of capital."
-  pKAdjCost_k_i[(k,i,t) = qK_k_i] :: (ForecastZero, DynamicCalibration), "Added user cost from capital adjustment by type and industry."
-  pInvestmentShock_k_i[(k,i,t) = qK_k_i] :: (ForecastZero, DynamicCalibration), "Shock that increases investment by type and industry."
+  pK_k_i[(k,i,t)=qK_k_i], "User cost of capital by type and industry."
+  pI_k[k=capital_type, t=t], "Investment price by capital type."
+  pMarginalCapitalTax_k_i[(k,i,t)=qK_k_i], "Marginal corporation tax per unit of capital."
+  pKAdjCost_k_i[(k,i,t)=qK_k_i] :: (ForecastZero, DynamicCalibration), "Added user cost from capital adjustment by type and industry."
+  pInvestmentShock_k_i[(k,i,t)=qK_k_i] :: (ForecastZero, DynamicCalibration), "Shock that increases investment by type and industry."
 end
 
 @variables model :: (CapitalTag, GrowthAdjusted, InflationAdjusted) begin
-  vI_k_i[(k,i,t) = qK_k_i], "Investment value by capital type and industry."
+  vI_k_i[(k,i,t)=qK_k_i], "Investment value by capital type and industry."
 end
 
 @variables model :: CapitalTag begin
-  rKDepr_k_i[(k,i,t) = qK_k_i] :: ForecastConstant, "Capital depreciation rate by type and industry."
-  rHurdleRate_i[i=industry, t = t] :: ForecastConstant, "Investment hurdle rate by industry."
-  rInvestmentProductShare[(p,k,t) = qI_p_k] :: ForecastConstant, "Fixed product share by capital type."
+  rKDepr_k_i[(k,i,t)=qK_k_i] :: ForecastConstant, "Capital depreciation rate by type and industry."
+  rHurdleRate_i[i=industry, t=t] :: ForecastConstant, "Investment hurdle rate by industry."
+  rInvestmentProductShare[(p,k,t)=qI_p_k] :: ForecastConstant, "Fixed product share by capital type."
 end
 
 # ============================================================================
@@ -90,7 +90,7 @@ function assign_data!(db)
   fill_cells!(db, qI_p_k, qI_p_k_data)
   fill_cells!(db, qI_k, qI_k_data)
   fill_cells!(db, pI_k, pI_k_data)
-  db[[pProd[k,i,t1] for (k, i) in capital_k_i]] .= 1.0
+  db[[pProd[k,i,t1] for (k,i) in capital_k_i]] .= 1.0
   db[rHurdleRate_i] .= 0.15
   db[pMarginalCapitalTax_k_i] .= 0.0
   return nothing

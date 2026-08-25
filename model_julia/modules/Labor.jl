@@ -40,7 +40,7 @@ const labor_l_i = Set(
 const LaborTag = Tag(:Labor)
 
 @variables model :: (LaborTag, GrowthAdjusted) begin
-  qL_l_i[l = labor_type, i = industry, t = t; (l, i) in labor_l_i], "Labor in efficiency units by type and industry."
+  qL_l_i[l=labor_type, i=industry, t=t; (l,i) in labor_l_i], "Labor in efficiency units by type and industry."
 end
 
 @variables model :: (LaborTag, InflationAdjusted) begin
@@ -53,7 +53,7 @@ end
 end
 
 @variables model :: (LaborTag, GrowthAdjusted, InflationAdjusted) begin
-  vWages_i[i = industry, t = t], "Wages by industry."
+  vWages_i[i=industry, t=t], "Wages by industry."
   vWages[t], "Total wages."
   vHhWages[t], "Household wages."
   vRoWNetWages[t], "Rest-of-world net wages."
@@ -87,16 +87,16 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    qL_l_i[l = labor_type, i = industry, t = t1:T], qL_l_i[l, i, t] == qProd[l, i, t]
+    qL_l_i[l=labor_type, i=industry, t=t1:T], qL_l_i[l,i,t] == qProd[l,i,t]
 
-    pW[t = t1:T], qLSupplyHh[t] + qLSupplyRoW[t] == ∑(qL_l_i[l,i,t] for (l, i) in labor_l_i)
+    pW[t=t1:T], qLSupplyHh[t] + qLSupplyRoW[t] == ∑(qL_l_i[l,i,t] for (l, i) in labor_l_i)
 
-    pProd[l = labor_type, i = industry, t = t1:T], pProd[l, i, t] == pW[t]
+    pProd[l=labor_type, i=industry, t=t1:T], pProd[l,i,t] == pW[t]
 
-    vWages_i[i = industry, t = t1:T], vWages_i[i,t] == pW[t] * ∑(qL_l_i[l,i,t] for l in labor_type)
-    vWages[t = t1:T], vWages[t] == ∑(vWages_i[i,t] for i in industry)
-    vHhWages[t = t1:T], vHhWages[t] == pW[t] * qLSupplyHh[t]
-    vRoWNetWages[t = t1:T], vRoWNetWages[t] == pW[t] * qLSupplyRoW[t]
+    vWages_i[i=industry, t=t1:T], vWages_i[i,t] == pW[t] * ∑(qL_l_i[l,i,t] for l in labor_type)
+    vWages[t=t1:T], vWages[t] == ∑(vWages_i[i,t] for i in industry)
+    vHhWages[t=t1:T], vHhWages[t] == pW[t] * qLSupplyHh[t]
+    vRoWNetWages[t=t1:T], vRoWNetWages[t] == pW[t] * qLSupplyRoW[t]
 
     @test_constraint("Household and rest-of-world labor supplies must match the source total"; atol=0, rtol=0)
     qLSupplyHh[t=[t1]], qLSupplyHh[t] + qLSupplyRoW[t] == cell_value(qLSupply_data, t1)
@@ -110,7 +110,7 @@ function define_calibration()
   block = define_equations()
 
   @endo_exo_swap! block begin
-    qProd[l = labor_type, i = industry, t = t1], qL_l_i[l = labor_type, i = industry, t = t1]
+    qProd[l=labor_type, i=industry, t=t1], qL_l_i[l=labor_type, i=industry, t=t1]
   end
 
   return block

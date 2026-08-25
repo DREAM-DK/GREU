@@ -41,12 +41,12 @@ const intermediate_m_i = Set((m, i) for (_, m, i) in intermediate_product_m_i)
 const IntermediatesTag = Tag(:Intermediates)
 
 @variables model :: (IntermediatesTag, GrowthAdjusted) begin
-  qM_m_i[m=intermediate_type, i=industry, t=t; (m, i) in intermediate_m_i], "Intermediate input by type and industry."
-  qM_p_m_i[p=product, m=intermediate_type, i=industry, t=t; (p, m, i) in intermediate_product_m_i], "Intermediate input by product, type, and industry."
+  qM_m_i[m=intermediate_type, i=industry, t=t; (m,i) in intermediate_m_i], "Intermediate input by type and industry."
+  qM_p_m_i[p=product, m=intermediate_type, i=industry, t=t; (p,m,i) in intermediate_product_m_i], "Intermediate input by product, type, and industry."
 end
 
 @variables model :: (IntermediatesTag, InflationAdjusted) begin
-  pM_m_i[(m,i,t) = qM_m_i], "Intermediate input price by type and industry."
+  pM_m_i[(m,i,t)=qM_m_i], "Intermediate input price by type and industry."
 end
 
 @variables model :: IntermediatesTag begin

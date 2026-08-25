@@ -39,23 +39,23 @@ const node = sort(unique(
 const ProductionTag = Tag(:Production)
 
 @variables model :: (ProductionTag, GrowthAdjusted) begin
-  qProd[n = node, i = industry, t = t; haskey(parent, (n, i)) || n == topNest[i]], "Quantity by production node and industry."
-  qProductionLoss[i = industry, t = t] :: ForecastZero, "Output used by added production costs by industry."
+  qProd[n=node, i=industry, t=t; haskey(parent, (n,i)) || n == topNest[i]], "Quantity by production node and industry."
+  qProductionLoss[i=industry, t=t] :: ForecastZero, "Output used by added production costs by industry."
 end
 
 @variables model :: (ProductionTag, InflationAdjusted) begin
-  pProd[(n, i, t) = qProd], "Price by production node and industry."
-  pY0[i = industry, t = t], "Unit production cost by industry."
+  pProd[(n,i,t)=qProd], "Price by production node and industry."
+  pY0[i=industry, t=t], "Unit production cost by industry."
 end
 
 @variables model :: (ProductionTag, GrowthAdjusted, InflationAdjusted) begin
-  vProductionTax_i[i = industry, t = t], "Production taxes in marginal cost by industry."
+  vProductionTax_i[i=industry, t=t], "Production taxes in marginal cost by industry."
 end
 
 @variables model :: ProductionTag begin
-  uProd[n = node, i = industry, t = t; haskey(parent, (n, i))] :: (ForecastConstant, DynamicCalibration), "CES share by child node and industry."
-  qTop2qY[i = industry, t = t] :: ForecastConstant, "Ratio of top-nest quantity to output by industry."
-  eProd[n = node, i = industry; haskey(production_nesting[i], n)], "Substitution elasticity by production nest and industry."
+  uProd[n=node, i=industry, t=t; haskey(parent, (n,i))] :: (ForecastConstant, DynamicCalibration), "CES share by child node and industry."
+  qTop2qY[i=industry, t=t] :: ForecastConstant, "Ratio of top-nest quantity to output by industry."
+  eProd[n=node, i=industry; haskey(production_nesting[i], n)], "Substitution elasticity by production nest and industry."
 end
 
 # ============================================================================
@@ -76,20 +76,20 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    qProd[n = node, i = industry, t = t1:T; n == topNest[i]],
-    qProd[n, i, t] == qTop2qY[i, t] * qY_i[i, t] + qProductionLoss[i, t]
+    qProd[n=node, i=industry, t=t1:T; n == topNest[i]],
+    qProd[n,i,t] == qTop2qY[i,t] * qY_i[i,t] + qProductionLoss[i,t]
 
-    qProd[n = node, i = industry, t = t1:T; haskey(parent, (n, i))],
-    qProd[n, i, t] * pProd[n, i, t]^eProd[parent[n, i], i] ==
-      uProd[n, i, t] * qProd[parent[n, i], i, t] * pProd[parent[n, i], i, t]^eProd[parent[n, i], i]
+    qProd[n=node, i=industry, t=t1:T; haskey(parent, (n,i))],
+    qProd[n,i,t] * pProd[n,i,t]^eProd[parent[n, i],i] ==
+      uProd[n,i,t] * qProd[parent[n, i],i,t] * pProd[parent[n, i],i,t]^eProd[parent[n, i],i]
 
-    pProd[n = node, i = industry, t = t1:T; haskey(production_nesting[i], n)],
-    pProd[n, i, t] * qProd[n, i, t] ==
-      ∑(pProd[child, i, t] * qProd[child, i, t] for child in production_nesting[i][n].children)
+    pProd[n=node, i=industry, t=t1:T; haskey(production_nesting[i], n)],
+    pProd[n,i,t] * qProd[n,i,t] ==
+      ∑(pProd[child,i,t] * qProd[child,i,t] for child in production_nesting[i][n].children)
 
-    pY0[i = industry, t = t1:T],
-    pY0[i, t] * qTop2qY[i, t] * qY_i[i, t] == pProd[topNest[i], i, t] * qProd[topNest[i], i, t]
-                                                   + vProductionTax_i[i, t]
+    pY0[i=industry, t=t1:T],
+    pY0[i,t] * qTop2qY[i,t] * qY_i[i,t] == pProd[topNest[i],i,t] * qProd[topNest[i],i,t]
+                                                   + vProductionTax_i[i,t]
   end
 end
 
@@ -102,14 +102,14 @@ function define_calibration()
   block = define_equations()
 
   @endo_exo_swap! block begin
-    uProd[n = node, i = industry, t = t1; haskey(production_nesting[i], n)],
-    pProd[(n, i, t) in keys(uProd); haskey(production_nesting[i], n) && t == t1]
+    uProd[n=node, i=industry, t=t1; haskey(production_nesting[i], n)],
+    pProd[(n,i,t) in keys(uProd); haskey(production_nesting[i], n) && t == t1]
 
-    uProd[n = node, i = industry, t = t1; !haskey(production_nesting[i], n)],
-    qProd[(n, i, t) in keys(uProd); !haskey(production_nesting[i], n) && t == t1]
+    uProd[n=node, i=industry, t=t1; !haskey(production_nesting[i], n)],
+    qProd[(n,i,t) in keys(uProd); !haskey(production_nesting[i], n) && t == t1]
 
     qTop2qY[:,t1],
-    pProd[(n, i, t) in keys(pProd); n == topNest[i] && t == t1]
+    pProd[(n,i,t) in keys(pProd); n == topNest[i] && t == t1]
   end
 
   return block
