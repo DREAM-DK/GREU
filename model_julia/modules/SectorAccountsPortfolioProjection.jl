@@ -23,14 +23,13 @@ include(joinpath(@__DIR__, "SectorAccountsSettings.jl"))
 
 module SectorAccountsPortfolioProjection
 
-import JuMP
 using SquareModels
-import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
+import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..SectorAccountsSettings: sector_accounts_data_dir
 import ..model
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
-import ..SectorAccounts: sector, fin_instrument, ass_liab,
+import ..SectorAccounts: sector, ass_liab,
   vFinAL, vNetFinAssets, vFinAssets_al, vFinTransactions
 
 # ==========================================================================

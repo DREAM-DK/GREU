@@ -20,7 +20,6 @@ import ..SectorAccounts:
   vNonFinancialNonProducedAssets,
   vFinAL,
   vFinTransactions,
-  vFinReval,
   vNetFinAssets,
   vFinAssets_al
 import ..Time: t, t1, T

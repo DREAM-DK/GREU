@@ -3,7 +3,6 @@ module DataUtils
 using CSV
 using DataFrames
 import JuMP
-using SquareModels
 
 # ============================================================================
 # Model data

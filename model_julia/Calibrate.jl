@@ -23,30 +23,29 @@ const calibrated_modules = [
   ModuleTemplate,
 
   InputOutput,
+    ImportSubstitution,
+    FixedBasePriceAggregates,
 
   Production,
-  Labor,
-  Intermediates,
-  Capital,
+    Labor,
+    Intermediates,
+    Capital,
 
-  Pricing,
-
-  CapitalAdjustmentCosts,
+    Pricing,
 
   SectorAccounts,
-  Households,
-  ConsumptionSavingsDecision,
-  ConsumptionGroups,
-  Government,
-  Corporations,
-  FinancialIncome,
-  FirmValue,
-  RestOfWorld,
+    Households,
+      ConsumptionSavingsDecision,
+      # ConsumptionGroups,
+    Government,
+    Corporations,
+      FinancialIncome,
+      FirmValue,
+    RestOfWorld,
+      Exports,
 
-  Exports,
-  ImportSubstitution,
-
-  FixedBasePriceAggregates,
+  # Rigidities
+  CapitalAdjustmentCosts,
 ]
 
 # The full-horizon model tells calibration which variables are parameters.
@@ -92,7 +91,6 @@ fill_missing_exogenous_forecasts!(dynamic_calibration_block, exogenous_values, s
 fill_missing_endogenous_start_values!(dynamic_calibration_block, start_values)
 @log_time baseline = solve(dynamic_calibration_block, exogenous_values; start_values, replace_nothing=1.0)
 assert_residuals_small(baseline; rtol=1e-4, tolerances=residual_tolerances(baseline, calibrated_modules), msg="Large residuals after dynamic calibration",)
-SectorAccounts.warn_negative_financial_positions(baseline)
 
 # ==============================================================================
 # Tests

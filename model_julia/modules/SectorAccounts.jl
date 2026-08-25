@@ -12,7 +12,6 @@ module SectorAccounts
 using SquareModels
 import ..DataUtils: fill_cells!, read_cells, read_series
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
-import ..InputOutput: vC, vM, vX
 import ..SectorAccountsSettings: sector_accounts_data_dir, cell_tolerance
 import ..Settings: calibration_year
 import ..model
