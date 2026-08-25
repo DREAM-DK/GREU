@@ -100,15 +100,6 @@ baseline[filter(resid -> isnothing(baseline[resid]), residuals(base_block))] .= 
 zero_shock = solve(base_block, baseline)
 assert_no_diff(baseline, zero_shock; atol=1e-5, msg="Zero shock test failed")
 
-# Module-specific tests: collect failures from each calibrated module before raising.
-test_errors = String[]
-for m in calibrated_modules
-	isdefined(m, :run_tests) && append!(test_errors, m.run_tests(baseline))
-end
-isempty(test_errors) || error(
-	"$(length(test_errors)) module test(s) failed:\n" * join(("  " * e for e in test_errors), "\n")
-)
-
 # ==============================================================================
 # Export baseline
 # ==============================================================================

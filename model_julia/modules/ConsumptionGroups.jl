@@ -204,6 +204,16 @@ function define_equations()
       pPurchaserUse_p_u[p,:C,t] * uCTourist_p[p,t]
       for p in consumption_product
     )
+
+    # Post-solve identities and bounds.
+    @test_constraint("Tourist product shares must sum to one"; atol=1e-10, rtol=0)
+    qCTourist[t=t1:T], ∑(uCTourist_p[p,t] for p in consumption_product) == 1
+
+    @test_constraint("Resident product consumption must be positive"; atol=0, rtol=0)
+    qC_p[p=consumption_product, t=t1:T], qC_p[p,t] - qCTourist_p[p,t] >= 1e-12
+
+    @test_constraint("Consumption node prices must be positive"; atol=0, rtol=0)
+    pCNode_a[a=consumption_node, t=t1:T], pCNode_a[a,t] >= 1e-12
   end
 end
 
@@ -221,20 +231,6 @@ function define_calibration()
   end
 
   return block
-end
-
-# ============================================================================
-# Tests
-# ============================================================================
-
-function run_tests(db)
-  errors = String[]
-  isapprox(sum(db[uCTourist_p[:,t1]]), 1.0; atol=1e-10) ||
-    push!(errors, "Tourist product shares must sum to one")
-  all(db[qC_p[consumption_product,t1:T]] .- db[qCTourist_p[:,t1:T]] .> 0) ||
-    push!(errors, "Resident product consumption must be positive")
-  all(db[pCNode_a[:,t1:T]] .> 0) || push!(errors, "Consumption node prices must be positive")
-  return errors
 end
 
 end # module

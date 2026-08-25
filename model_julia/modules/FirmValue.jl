@@ -123,6 +123,17 @@ function define_equations()
     vFinReval[s=[:RoW], f=[:Equity], al=[:Assets], t=t1:T],
     ∑(vFinReval[s2,f,al,t] for s2 in equity_asset_sector) ==
       ∑(vFinReval[s2,f,:Liab,t] for s2 in equity_liability_sector)
+
+    # Post-solve bounds.
+    @test_constraint("Corporate equity values must be positive"; atol=0, rtol=0)
+    vFirmEquity_s[s=corporation_sector, t=t1:T], vFirmEquity_s[s,t] >= 1e-12
+
+    @test_constraint("Equity payout scales must be positive"; atol=0, rtol=0)
+    fFirmEquityPayout_s[s=corporation_sector], fFirmEquityPayout_s[s] >= 1e-12
+
+    @test_constraint("Required equity returns must exceed long-run nominal growth"; atol=0, rtol=0)
+    rFirmRequiredReturn_s[s=corporation_sector, t=t1:T],
+    rFirmRequiredReturn_s[s,t] - (fv-1) >= 1e-12
   end
 end
 
@@ -144,19 +155,6 @@ function define_calibration()
   end
 
   return block
-end
-
-# ============================================================================
-# Tests
-# ============================================================================
-
-function run_tests(db)
-  errors = String[]
-  all(db[vFirmEquity_s[:,t1:T]] .> 0) || push!(errors, "Corporate equity values must be positive")
-  all(db[fFirmEquityPayout_s] .> 0) || push!(errors, "Equity payout scales must be positive")
-  all(db[rFirmRequiredReturn_s[:,t1:T]] .> fv-1) ||
-    push!(errors, "Required equity returns must exceed long-run nominal growth")
-  return errors
 end
 
 end # module

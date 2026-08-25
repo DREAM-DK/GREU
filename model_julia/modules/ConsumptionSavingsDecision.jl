@@ -156,6 +156,19 @@ function define_equations()
       dHhUtility2dWealth[t] / dHhUtility2dConsumption[t]
       + βHh * (1 + rHhRequiredReturn[t])
     )
+
+    # Post-solve bounds.
+    @test_constraint("Real household income must be positive"; atol=0, rtol=0)
+    qHhRealIncome[t=t1:T], qHhRealIncome[t] >= 1e-12
+
+    @test_constraint("Real household wealth must be positive"; atol=0, rtol=0)
+    qHhWealth[t=t1:T], qHhWealth[t] >= 1e-12
+
+    @test_constraint("Consumption above the reference level must be positive"; atol=0, rtol=0)
+    qHhExcessReferenceConsumption[t=t1:T], qHhExcessReferenceConsumption[t] >= 1e-12
+
+    @test_constraint("The wealth preference must be positive"; atol=0, rtol=0)
+    fHhWealthPreference, fHhWealthPreference >= 1e-12
   end
 end
 
@@ -172,20 +185,6 @@ function define_calibration()
   end
 
   return block
-end
-
-# ============================================================================
-# Tests
-# ============================================================================
-
-function run_tests(db)
-  errors = String[]
-  all(db[qHhRealIncome[t1:T]] .> 0) || push!(errors, "Real household income must be positive")
-  all(db[qHhWealth[t1:T]] .> 0) || push!(errors, "Real household wealth must be positive")
-  all(db[qHhExcessReferenceConsumption[t1:T]] .> 0) ||
-    push!(errors, "Consumption above the reference level must be positive")
-  db[fHhWealthPreference] > 0 || push!(errors, "The wealth preference must be positive")
-  return errors
 end
 
 end # module

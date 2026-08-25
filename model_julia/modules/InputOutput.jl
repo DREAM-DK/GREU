@@ -427,13 +427,4 @@ function define_calibration()
   return block
 end
 
-# ============================================================================
-# Tests
-# ============================================================================
-
-function run_tests(db)
-  errors = String[]
-  return errors
-end
-
 end # module

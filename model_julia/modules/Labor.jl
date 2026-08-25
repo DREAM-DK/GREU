@@ -97,6 +97,9 @@ function define_equations()
     vWages[t = t1:T], vWages[t] == ∑(vWages_i[i,t] for i in industry)
     vHhWages[t = t1:T], vHhWages[t] == pW[t] * qLSupplyHh[t]
     vRoWNetWages[t = t1:T], vRoWNetWages[t] == pW[t] * qLSupplyRoW[t]
+
+    @test_constraint("Household and rest-of-world labor supplies must match the source total"; atol=0, rtol=0)
+    qLSupplyHh[t=[t1]], qLSupplyHh[t] + qLSupplyRoW[t] == cell_value(qLSupply_data, t1)
   end
 end
 
@@ -111,17 +114,5 @@ function define_calibration()
   end
 
   return block
-end
-
-# ============================================================================
-# Tests
-# ============================================================================
-function run_tests(db)
-  errors = String[]
-  source_total = cell_value(qLSupply_data, t1)
-  supplied_total = db[qLSupplyHh[t1]] + db[qLSupplyRoW[t1]]
-  supplied_total == source_total ||
-    push!(errors, "Household and rest-of-world labor supplies must match the source total")
-  return errors
 end
 end # module
