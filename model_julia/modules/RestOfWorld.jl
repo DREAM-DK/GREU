@@ -12,7 +12,8 @@ import ..SectorAccounts:
   vNetFinTransactions,
   vNetFinIncome,
   vNonFinancialNonProducedAssets,
-  vRoWPrimaryIncomeCurrentBalanceOther,
+  vRoWPrimaryIncome,
+  vNetTransfers2sector,
   vGoodsServicesBalance,
   vRoWPrimaryIncomeCurrentBalance,
   vFinAL
@@ -56,7 +57,8 @@ function define_equations()
     # Primary and current income balance.
     vRoWPrimaryIncomeCurrentBalance[t=t1:T],
     vRoWPrimaryIncomeCurrentBalance[t] == vNetFinIncome[:RoW,t]
-                                           + vRoWPrimaryIncomeCurrentBalanceOther[t]
+                                           + vRoWPrimaryIncome[t]
+                                           + vNetTransfers2sector[:RoW,t]
 
     # Portfolio.
 
