@@ -65,12 +65,12 @@ In this branch, we are working on a new version of the model implemented in Juli
   except for plus/minus 1 and multiplication or division by fq, fp or fv.
   Write `x[s,t-1]/fv * y`, not `x[s, t - 1] / fv * y`.
 - In a `SquareModels.@block`, put the endogenous variable and its equation on
-  one line when they fit. Split them when the row is long.
+  one line when the full row is less than 120 characters. For longer equations, put each
+  main term on its own line.
 - In a multiline `SquareModels.@block` equation, put `+` and `-` at the start of
   continuation lines and align them with the first term on the right-hand side.
   `SquareModels.@block` joins these lines to the prior equation. Do not use this
   form outside `@block`, where Julia treats them as separate expressions.
-- Keep short equations on one line. For a long equation, put each main term on its own line.
 - Do not add a blank line just after `begin` or just before `end`. Use blank
   lines between logical groups. Add a short comment after `end` when its matching
   opening line is far away, for example `end # module`.
