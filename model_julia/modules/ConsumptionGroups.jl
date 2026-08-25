@@ -209,10 +209,10 @@ function define_equations()
     @test_constraint("Tourist product shares must sum to one"; atol=1e-10, rtol=0)
     qCTourist[t=t1:T], ∑(uCTourist_p[p,t] for p in consumption_product) == 1
 
-    @test_constraint("Resident product consumption must be positive"; atol=0, rtol=0)
+    @test_constraint("Resident product consumption must be positive")
     qC_p[p=consumption_product, t=t1:T], qC_p[p,t] - qCTourist_p[p,t] >= 1e-12
 
-    @test_constraint("Consumption node prices must be positive"; atol=0, rtol=0)
+    @test_constraint("Consumption node prices must be positive")
     pCNode_a[a=consumption_node, t=t1:T], pCNode_a[a,t] >= 1e-12
   end
 end

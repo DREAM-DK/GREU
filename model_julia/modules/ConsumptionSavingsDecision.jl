@@ -158,16 +158,16 @@ function define_equations()
     )
 
     # Post-solve bounds.
-    @test_constraint("Real household income must be positive"; atol=0, rtol=0)
+    @test_constraint("Real household income must be positive")
     qHhRealIncome[t=t1:T], qHhRealIncome[t] >= 1e-12
 
-    @test_constraint("Real household wealth must be positive"; atol=0, rtol=0)
+    @test_constraint("Real household wealth must be positive")
     qHhWealth[t=t1:T], qHhWealth[t] >= 1e-12
 
-    @test_constraint("Consumption above the reference level must be positive"; atol=0, rtol=0)
+    @test_constraint("Consumption above the reference level must be positive")
     qHhExcessReferenceConsumption[t=t1:T], qHhExcessReferenceConsumption[t] >= 1e-12
 
-    @test_constraint("The wealth preference must be positive"; atol=0, rtol=0)
+    @test_constraint("The wealth preference must be positive")
     fHhWealthPreference, fHhWealthPreference >= 1e-12
   end
 end

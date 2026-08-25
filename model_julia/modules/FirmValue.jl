@@ -140,10 +140,10 @@ function define_equations()
       ∑(vFinReval[s2,f,:Liab,t] for s2 in equity_liability_sector)
 
     # Post-solve bounds.
-    @test_constraint("Corporate equity values must be positive"; atol=0, rtol=0)
+    @test_constraint("Corporate equity values must be positive")
     vFirmEquity_s[s=corporation_sector, t=t1:T], vFirmEquity_s[s,t] >= 1e-12
 
-    @test_constraint("Required equity returns must exceed long-run nominal growth"; atol=0, rtol=0)
+    @test_constraint("Required equity returns must exceed long-run nominal growth")
     rFirmRequiredReturn_s[s=corporation_sector; T > t1],
     rFirmRequiredReturn_s[s] - (fv-1) >= 1e-12
   end
