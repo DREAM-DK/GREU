@@ -55,8 +55,7 @@ end
 function define_equations()
   return @block model begin
     rKCapitalGrowthChange[k=capital_type, i=industry, t=t1:T],
-    rKCapitalGrowthChange[k,i,t] == (qK_k_i[k,i,t] / qK_k_i[k,i,t-1]*fq
-                                      - qK_k_i[k,i,t-1] / qK_k_i[k,i,t-2]*fq)
+    rKCapitalGrowthChange[k,i,t] == qK_k_i[k,i,t] / qK_k_i[k,i,t-1]*fq - qK_k_i[k,i,t-1] / qK_k_i[k,i,t-2]*fq
 
     qKAdjCost_k_i[k=capital_type, i=industry, t=t1:T],
     qKAdjCost_k_i[k,i,t] == fKAdjCost[k,i,t] / 2 * rKCapitalGrowthChange[k,i,t]^2 * qK_k_i[k,i,t-1]/fq

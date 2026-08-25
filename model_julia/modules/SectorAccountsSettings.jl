@@ -45,7 +45,7 @@ const fin_bal_na_items = ["F", "F1", "F11", "F2", "F3", "F4", "F5", "F51", "F52"
 const fin_tr_na_items  = replace(fin_bal_na_items, "F" => "F_TR") # nasa_10_f_tr publishes the F aggregate as F_TR rather than F.
 
 # ---------------------------------------------------------------------------
-# Property income (vFinIncome): D.4 receipts (al=Assets) or payments (al=Liab)
+# Property income (vFinIncome_f): D.4 receipts (al=Assets) or payments (al=Liab)
 # split by instrument category.
 #
 # Instrument–income mapping (ESA 2010 convention):
@@ -58,7 +58,7 @@ const fin_transactions_equity_income_items = ["D42"]                       # Dis
 const fin_transactions_debt_income_items   = ["D41", "D43", "D44", "D45"]  # Interest, reinvested earnings, investment fund income, rent; mapped to debt instruments
 
 # ---------------------------------------------------------------------------
-# Financial assets/liabilities (vFinAL): balance-sheet stocks by instrument,
+# Financial positions (vFinPosition_f): balance-sheet stocks by instrument,
 # split into Debt and Equity.
 #
 # Monetary gold (F.11, a subset of F.1) is excluded from all instrument totals

@@ -6,16 +6,11 @@ module ConsumptionSavingsDecision
 
 using SquareModels
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fq
-import ..InputOutput: pC, qC, qC_p, qCTourist
-import ..Labor: vHhWages
+import ..InputOutput: pC, qC, qC_p, qCTourist, vC
 import ..model
 import ..SectorAccounts:
-  vGrossCapitalFormation,
-  vGrossOpSurplusMixedIncome,
   vNetFinAssets,
-  vNetFinIncome,
-  vNetTransfers2sector,
-  vNonFinancialNonProducedAssets
+  vNetFinTransactions
 import ..Tags: DynamicCalibration, ForecastConstant
 import ..Time: t, t1, T
 
@@ -24,10 +19,6 @@ import ..Time: t, t1, T
 # ============================================================================
 
 const ConsumptionSavingsDecisionTag = Tag(:ConsumptionSavingsDecision)
-
-@variables model :: (ConsumptionSavingsDecisionTag, GrowthAdjusted, InflationAdjusted) begin
-  vHhResources[t], "Household resources before consumption and net financial transactions."
-end
 
 @variables model :: (ConsumptionSavingsDecisionTag, GrowthAdjusted) begin
   qHhRealIncome[t], "Real household resources before consumption."
@@ -87,7 +78,6 @@ function set_starting_values!(start_values)
   @assert source_price > 0 "The initial consumption price must be positive"
   source_wealth = start_values[vNetFinAssets[:Hh,t1]] / source_price
   start_values[qC[t1:T]] .= source_consumption
-  start_values[vHhResources[t1:T]] .= source_price * source_consumption
   start_values[qHhRealIncome[t1:T]] .= source_consumption
   start_values[qHhWealth[t1:T]] .= source_wealth
   start_values[qHhHandToMouthConsumption[t1:T]] .= start_values[rHhHandToMouth[t1]] * source_consumption
@@ -113,13 +103,9 @@ end
 
 function define_equations()
   return @block model begin
-    # These resources match the household budget just before private consumption.
-    vHhResources[t=t1:T],
-    vHhResources[t] == (vNetFinIncome[:Hh,t] + vNetTransfers2sector[:Hh,t] + vHhWages[t]
-                       + vGrossOpSurplusMixedIncome[:Hh,t] - vGrossCapitalFormation[:Hh,t]
-                       - vNonFinancialNonProducedAssets[:Hh,t])
-
-    qHhRealIncome[t=t1:T], pC[t] * qHhRealIncome[t] == vHhResources[t]
+    # Real income matches the household budget before private consumption.
+    qHhRealIncome[t=t1:T],
+    pC[t] * qHhRealIncome[t] == vNetFinTransactions[:Hh,t] + vC[t]
     qHhWealth[t=t1:T], pC[t] * qHhWealth[t] == vNetFinAssets[:Hh,t]
 
     qHhHandToMouthConsumption[t=t1:T], qHhHandToMouthConsumption[t] == rHhHandToMouth[t] * qHhRealIncome[t]

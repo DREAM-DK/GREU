@@ -7,14 +7,12 @@ using SquareModels
 import ..model
 import ..SectorAccounts:
   ass_liab,
+  fin_instrument,
   vNetFinTransactions,
-  vNetFinIncome,
   vGovBalance,
-  vGovPrimaryBalance,
-  vFinAL,
-  vFinTransactions,
-  vNetFinAssets,
-  vFinAssets_al
+  vFinPosition_f,
+  vFinTransactions_f,
+  vNetFinAssets
 import ..Time: t, t1, T
 
 # ============================================================================
@@ -30,20 +28,19 @@ end
 function define_equations()
   return @block model begin
     # Budget identity.
-    vGovPrimaryBalance[t=t1:T], vGovPrimaryBalance[t] == vGovBalance[t] - vNetFinIncome[:Gov,t]
-
-    vNetFinTransactions[s=[:Gov], t=t1:T], vNetFinTransactions[s,t] == vGovPrimaryBalance[t] + vNetFinIncome[s,t]
+    vNetFinTransactions[s=[:Gov], t=t1:T], vNetFinTransactions[s,t] == vGovBalance[t]
 
     # Portfolio.
     # Gov neither buys nor sells equity; existing equity stocks follow non-transaction changes.
-    vFinAL[s=[:Gov], f=[:Equity], al=ass_liab, t=t1:T], vFinTransactions[s,f,al,t] == 0
+    vFinPosition_f[s=[:Gov], f=[:Equity], al=ass_liab, t=t1:T], vFinTransactions_f[s,f,al,t] == 0
 
     # Gov does not buy or sell debt assets; the stock follows non-transaction changes.
-    vFinAL[s=[:Gov], f=[:Debt], al=[:Assets], t=t1:T], vFinTransactions[s,f,al,t] == 0
+    vFinPosition_f[s=[:Gov], f=[:Debt], al=[:Assets], t=t1:T], vFinTransactions_f[s,f,al,t] == 0
 
     # Gov debt liabilities are residual given net financial assets.
-    vFinAL[s=[:Gov], f=[:Debt], al=[:Liab], t=t1:T],
-    vNetFinAssets[s,t] == vFinAssets_al[s,:Assets,t] - vFinAssets_al[s,:Liab,t]
+    vFinPosition_f[s=[:Gov], f=[:Debt], al=[:Liab], t=t1:T],
+    vNetFinAssets[s,t] == ∑(vFinPosition_f[s,f,:Assets,t] for f in fin_instrument)
+                           - ∑(vFinPosition_f[s,f,:Liab,t] for f in fin_instrument)
   end
 end
 

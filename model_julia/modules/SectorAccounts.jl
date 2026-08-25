@@ -2,7 +2,8 @@
 # This layer has account identities and inputs for sector modules.
 # It has no rates for income, asset choice, revaluation, or capital structure.
 # Financial data splits debt and equity and omits monetary gold (F.11).
-# Names that end in `_al` split assets and liabilities.
+# Names that end in `_f` split by financial instrument. The `al` index selects
+# the asset or liability side.
 # See model/modules/financial_accounts.gms and SectorAccountsData.jl for maps.
 
 include(joinpath(@__DIR__, "SectorAccountsSettings.jl"))
@@ -27,17 +28,16 @@ const ass_liab = read_indices(joinpath(sector_accounts_data_dir, "sector_account
 
 const sector_accounts_file = joinpath(sector_accounts_data_dir, "sector_accounts.csv")
 
-const vFinIncome_data = read_cells(sector_accounts_file, "vFinIncome")
-const vFinAL_data = read_cells(sector_accounts_file, "vFinAL")
-const vFinTransactions_data = read_cells(sector_accounts_file, "vFinTransactions")
-const vFinAssets_al_data = read_cells(sector_accounts_file, "vFinAssets")
+const vFinIncome_f_data = read_cells(sector_accounts_file, "vFinIncome_f")
+const vFinPosition_f_data = read_cells(sector_accounts_file, "vFinPosition_f")
+const vFinTransactions_f_data = read_cells(sector_accounts_file, "vFinTransactions_f")
 const vNetFinTransactions_data = read_cells(sector_accounts_file, "vNetFinTransactions")
 const vGrossCapitalFormation_data = read_cells(sector_accounts_file, "vGrossCapitalFormation")
 const vNonFinancialNonProducedAssets_data = read_cells(sector_accounts_file, "vNonFinancialNonProducedAssets")
-const vNetTransfers2sector_data = read_cells(sector_accounts_file, "vNetTransfers2sector")
+const vNetTransfers_data = read_cells(sector_accounts_file, "vNetTransfers")
 const vGrossOpSurplusMixedIncome_data = read_cells(sector_accounts_file, "vGrossOpSurplusMixedIncome")
-const vFinReval_data = read_cells(sector_accounts_file, "vFinReval")
-const vOtherChangesInVolume_data = read_cells(sector_accounts_file, "vOtherChangesInVolume")
+const vFinReval_f_data = read_cells(sector_accounts_file, "vFinReval_f")
+const vOtherChangesInVolume_f_data = read_cells(sector_accounts_file, "vOtherChangesInVolume_f")
 const vGovBalance_data = read_cells(sector_accounts_file, "vGovBalance")
 const vNetFinAssets_data = read_cells(sector_accounts_file, "vNetFinAssets")
 
@@ -71,35 +71,22 @@ const SectorAccountsTag = Tag(:SectorAccounts)
 
   # Values by instrument and asset or liability. Each flow uses the stock mask
   # so each stock cell has one complete change identity.
-  vFinAL[s=sector, f=fin_instrument, al=ass_liab, t=t; (s,f,al) in calibration_year_indices(vFinAL_data)], "Financial assets or liabilities by sector, instrument, and asset or liability side (F)."
-  vFinTransactions[(s,f,al,t)=vFinAL], "Financial transactions by sector, instrument, and asset or liability side."
-  vFinReval[(s,f,al,t)=vFinAL], "Financial revaluations by sector, instrument, and asset or liability side."
-  vOtherChangesInVolume[(s,f,al,t)=vFinAL], "Other changes in volume by sector, instrument, and asset or liability side (K.1-K.6)."
-  vFinIncome[(s,f,al,t)=vFinAL], "Property income received on assets or paid on liabilities by sector and instrument (D.4)."
-
-  # Values by asset or liability. Each sector has both sides.
-  vFinTransactions_al[s=sector, al=ass_liab, t=t], "Financial transactions by sector and asset or liability."
-  vFinReval_al[s=sector, al=ass_liab, t=t], "Financial revaluations by sector and asset or liability."
-  vOtherChangesInVolume_al[s=sector, al=ass_liab, t=t], "Other changes in financial volume by sector and asset or liability."
-  vFinIncome_al[s=sector, al=ass_liab, t=t], "Property income by sector and asset or liability."
-  vFinAssets_al[s=sector, al=ass_liab, t=t], "Financial assets or liabilities by sector and asset or liability."
+  vFinPosition_f[s=sector, f=fin_instrument, al=ass_liab, t=t; (s,f,al) in calibration_year_indices(vFinPosition_f_data)], "Financial position by sector, instrument, and asset or liability side (F)."
+  vFinTransactions_f[(s,f,al,t)=vFinPosition_f], "Financial transactions by sector, instrument, and asset or liability side."
+  vFinReval_f[(s,f,al,t)=vFinPosition_f], "Financial revaluations by sector, instrument, and asset or liability side."
+  vOtherChangesInVolume_f[(s,f,al,t)=vFinPosition_f], "Other changes in volume by sector, instrument, and asset or liability side (K.1-K.6)."
+  vFinIncome_f[(s,f,al,t)=vFinPosition_f], "Property income received on assets or paid on liabilities by sector and instrument (D.4)."
 
   # Inputs for sector balances.
   vGrossCapitalFormation[s=sector, t=t; s in calibration_year_axis(vGrossCapitalFormation_data)], "Gross capital formation by sector (P.5)."
   vNonFinancialNonProducedAssets[s=sector, t=t; s in calibration_year_axis(vNonFinancialNonProducedAssets_data)], "Net purchases of non-produced non-financial assets by sector (NP)."
-  vNetTransfers2sector[s=sector, t=t; s in calibration_year_axis(vNetTransfers2sector_data)], "Net current and capital transfers received by sector (D.5+D.6+D.7+D.8+D.9)."
+  vNetTransfers[s=sector, t=t; s in calibration_year_axis(vNetTransfers_data)], "Net current and capital transfers received by sector (D.5+D.6+D.7+D.8+D.9)."
 
   vGovBalance[t], "Government net lending or borrowing (B.9)."
-  vGovPrimaryBalance[t], "Government balance less net property income."
   vGrossOpSurplusMixedIncome[s=sector, t=t; s in calibration_year_axis(vGrossOpSurplusMixedIncome_data)], "Gross operating surplus and mixed income by sector (B.2g+B.3g)."
 
   # Rest-of-world accounts.
-  # Keep the P.6 and P.7 source totals for later data checks. The equations use
-  # the input-output totals vX and vM.
-  vExports[t], "Source total for exports of goods and services (P.6)."
-  vImports[t], "Source total for imports of goods and services (P.7)."
   vRoWPrimaryIncomeCurrentBalanceOther[t], "Rest-of-world nonwage income balance other than property income (D.2+D.3+D.5+D.6+D.7+D.8+D.9)."
-  vRoWPrimaryIncomeCurrentBalance[t], "Rest-of-world income balance: net wages, property income, and other income."
 
 end # @variables
 
@@ -108,20 +95,17 @@ end # @variables
 # ============================================================================
 
 function assign_data!(db)
-  fill_cells!(db, vFinIncome, vFinIncome_data)
-  fill_cells!(db, vFinAL, vFinAL_data)
-  fill_cells!(db, vFinTransactions, vFinTransactions_data)
-  fill_cells!(db, vFinAssets_al, vFinAssets_al_data)
+  fill_cells!(db, vFinIncome_f, vFinIncome_f_data)
+  fill_cells!(db, vFinPosition_f, vFinPosition_f_data)
+  fill_cells!(db, vFinTransactions_f, vFinTransactions_f_data)
   fill_cells!(db, vNetFinTransactions, vNetFinTransactions_data)
   fill_cells!(db, vGrossCapitalFormation, vGrossCapitalFormation_data)
   fill_cells!(db, vNonFinancialNonProducedAssets, vNonFinancialNonProducedAssets_data)
-  fill_cells!(db, vNetTransfers2sector, vNetTransfers2sector_data)
+  fill_cells!(db, vNetTransfers, vNetTransfers_data)
   fill_cells!(db, vGrossOpSurplusMixedIncome, vGrossOpSurplusMixedIncome_data)
-  fill_cells!(db, vFinReval, vFinReval_data)
-  fill_cells!(db, vOtherChangesInVolume, vOtherChangesInVolume_data)
+  fill_cells!(db, vFinReval_f, vFinReval_f_data)
+  fill_cells!(db, vOtherChangesInVolume_f, vOtherChangesInVolume_f_data)
 
-  db[vExports] .= read_series(sector_accounts_file, "vExports", t)
-  db[vImports] .= read_series(sector_accounts_file, "vImports", t)
   db[vRoWPrimaryIncomeCurrentBalanceOther] .= read_series(sector_accounts_file, "vRoWPrimaryIncomeCurrentBalanceOther", t)
   # Until the government module supplies B.9, use the same source total as
   # government net financial transactions.
@@ -136,8 +120,8 @@ function set_residual_tolerances!(tolerances)
   # revaluations, and other changes in volume. Source income also has small gaps.
   tolerances[vNetFinAssets] = 20000.0
   tolerances[vNetFinTransactions] = 4.0
-  tolerances[vFinAL] = 40000.0
-  tolerances[vFinTransactions] = 40000.0
+  tolerances[vFinPosition_f] = 40000.0
+  tolerances[vFinTransactions_f] = 40000.0
 end
 
 # ============================================================================
@@ -147,9 +131,9 @@ end
 function define_equations()
   return @block model begin
     # --- Stock changes equal transactions, revaluations, and other volume changes. ---
-    vFinTransactions[s=sector, f=fin_instrument, al=ass_liab, t=t1:T],
-    vFinAL[s,f,al,t] == (vFinAL[s,f,al,t-1]/fv + vFinTransactions[s,f,al,t]
-                         + vFinReval[s,f,al,t] + vOtherChangesInVolume[s,f,al,t])
+    vFinTransactions_f[s=sector, f=fin_instrument, al=ass_liab, t=t1:T],
+    vFinPosition_f[s,f,al,t] == (vFinPosition_f[s,f,al,t-1]/fv + vFinTransactions_f[s,f,al,t]
+                                 + vFinReval_f[s,f,al,t] + vOtherChangesInVolume_f[s,f,al,t])
 
     vNetFinAssets[s=sector, t=t1:T],
     vNetFinAssets[s,t] == (vNetFinAssets[s,t-1]/fv + vNetFinTransactions[s,t]
@@ -158,7 +142,8 @@ function define_equations()
     # --- Aggregating. ---
     @test_constraint("Net financial transactions equals assets minus liabilities"; atol=1.0, rtol=1e-6)
     vNetFinTransactions[s=sector, t=t1:T],
-    vNetFinTransactions[s,t] == vFinTransactions_al[s,:Assets,t] - vFinTransactions_al[s,:Liab,t]
+    vNetFinTransactions[s,t] == ∑(vFinTransactions_f[s,f,:Assets,t] for f in fin_instrument)
+                                   - ∑(vFinTransactions_f[s,f,:Liab,t] for f in fin_instrument)
 
     @test_constraint("Summing vNetFinAssets over sectors"; atol=2.0, rtol=1e-6)
     vNetFinAssets[s=[:Hh], t=t1:T], ∑(vNetFinAssets[s,t] for s in sector) == 0.0
@@ -166,36 +151,26 @@ function define_equations()
     @test_constraint("Summing vNetFinTransactions over sectors"; atol=1.0, rtol=1e-6)
     vNetFinTransactions[s=[:Hh], t=t1:T], ∑(vNetFinTransactions[s2,t] for s2 in sector) == 0.0
 
-    # Totals by asset or liability.
-    vFinTransactions_al[s=sector, al=ass_liab, t=t1:T],
-    vFinTransactions_al[s,al,t] == ∑(vFinTransactions[s,f,al,t] for f in fin_instrument)
-
-    vFinAssets_al[s=sector, al=ass_liab, t=t1:T], vFinAssets_al[s,al,t] == ∑(vFinAL[s,f,al,t] for f in fin_instrument)
-
     # Net revaluation is the asset value less the liability value.
-    vNetFinReval[s=sector, t=t1:T], vNetFinReval[s,t] == vFinReval_al[s,:Assets,t]-vFinReval_al[s,:Liab,t]
-
-    vFinReval_al[s=sector, al=ass_liab, t=t1:T], vFinReval_al[s,al,t] == ∑(vFinReval[s,f,al,t] for f in fin_instrument)
+    vNetFinReval[s=sector, t=t1:T],
+    vNetFinReval[s,t] == ∑(vFinReval_f[s,f,:Assets,t] for f in fin_instrument)
+                           - ∑(vFinReval_f[s,f,:Liab,t] for f in fin_instrument)
 
     @test_constraint("Summing vNetFinReval over sectors"; atol=1.0, rtol=1e-6)
     vNetFinReval[s=[:Hh], t=t1:T], ∑(vNetFinReval[s,t] for s in sector) == 0.0
 
     # Net other volume change is the asset value less the liability value.
     vNetOtherChangesInVolume[s=sector, t=t1:T],
-    vNetOtherChangesInVolume[s,t] == vOtherChangesInVolume_al[s,:Assets,t]
-                                          - vOtherChangesInVolume_al[s,:Liab,t]
-
-    vOtherChangesInVolume_al[s=sector, al=ass_liab, t=t1:T],
-    vOtherChangesInVolume_al[s,al,t] == ∑(vOtherChangesInVolume[s,f,al,t] for f in fin_instrument)
+    vNetOtherChangesInVolume[s,t] == ∑(vOtherChangesInVolume_f[s,f,:Assets,t] for f in fin_instrument)
+                                         - ∑(vOtherChangesInVolume_f[s,f,:Liab,t] for f in fin_instrument)
 
     @test_constraint("Summing vNetOtherChangesInVolume over sectors"; atol=1.0, rtol=1e-6)
     vNetOtherChangesInVolume[s=[:Hh], t=t1:T], ∑(vNetOtherChangesInVolume[s,t] for s in sector) == 0.0
 
     # Property income is receipts less payments for each sector.
-    vNetFinIncome[s=sector, t=t1:T], vNetFinIncome[s,t] == vFinIncome_al[s,:Assets,t] - vFinIncome_al[s,:Liab,t]
-
-    vFinIncome_al[s=sector, al=ass_liab, t=t1:T],
-    vFinIncome_al[s,al,t] == ∑(vFinIncome[s,f,al,t] for f in fin_instrument)
+    vNetFinIncome[s=sector, t=t1:T],
+    vNetFinIncome[s,t] == ∑(vFinIncome_f[s,f,:Assets,t] for f in fin_instrument)
+                          - ∑(vFinIncome_f[s,f,:Liab,t] for f in fin_instrument)
 
     @test_constraint("Summing vNetFinIncome over sectors"; atol=1.0, rtol=1e-6)
     vNetFinIncome[s=[:Hh], t=t1:T], ∑(vNetFinIncome[s,t] for s in sector) == 0.0
