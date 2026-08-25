@@ -10,8 +10,8 @@ import ..InputOutput: pC, qC, qC_p, qCTourist
 import ..Labor: vHhWages
 import ..model
 import ..SectorAccounts:
-  vCorrectionNonFinCorp2Hh,
   vGrossCapitalFormation,
+  vGrossOpSurplusMixedIncome,
   vNetFinAssets,
   vNetFinIncome,
   vNetTransfers2sector,
@@ -118,7 +118,7 @@ function define_equations()
     vHhResources[t] == vNetFinIncome[:Hh,t]
                        + vNetTransfers2sector[:Hh,t]
                        + vHhWages[t]
-                       + vCorrectionNonFinCorp2Hh[t]
+                       + vGrossOpSurplusMixedIncome[:Hh,t]
                        - vGrossCapitalFormation[:Hh,t]
                        - vNonFinancialNonProducedAssets[:Hh,t]
 

@@ -92,8 +92,6 @@ const SectorAccountsTag = Tag(:SectorAccounts)
 
   vGovBalance[t], "Government net lending or borrowing (B.9)."
   vGovPrimaryBalance[t], "Government balance less net property income."
-  vCorrectionNonFinCorp2Hh[t], "Retained earnings moved from non-financial firms to households (D.422/D.72)."
-  # Replace this source value with the input-output B2A3G total when available.
   vGrossOpSurplusMixedIncome[s=sector,t=t; s in calibration_year_axis(vGrossOpSurplusMixedIncome_data)], "Gross operating surplus and mixed income by sector (B.2g+B.3g)."
 
   # Rest-of-world accounts.
@@ -126,8 +124,6 @@ function assign_data!(db)
   db[vExports] .= read_series(sector_accounts_file, "vExports", t)
   db[vImports] .= read_series(sector_accounts_file, "vImports", t)
   db[vRoWPrimaryIncomeCurrentBalanceOther] .= read_series(sector_accounts_file, "vRoWPrimaryIncomeCurrentBalanceOther", t)
-  db[vCorrectionNonFinCorp2Hh] .= read_series(sector_accounts_file, "vCorrectionNonFinCorp2Hh", t)
-
   # Until the government module supplies B.9, use the same source total as
   # government net financial transactions.
   fill_cells!(db, vGovBalance, vGovBalance_data)
@@ -143,16 +139,6 @@ function set_residual_tolerances!(tolerances)
   tolerances[vNetFinTransactions] = 4.0
   tolerances[vFinAL] = 40000.0
   tolerances[vFinTransactions] = 40000.0
-end
-
-function warn_negative_financial_positions(db)
-  negative_positions = [
-    (sector=s, instrument=f, side=al, year=year, value=db[vFinAL[s,f,al,year]])
-    for (s, f, al, year) in keys(vFinAL)
-    if year >= t1 && db[vFinAL[s,f,al,year]] < -cell_tolerance
-  ]
-  isempty(negative_positions) || @warn "Financial assets or liabilities are negative" positions=negative_positions
-  return nothing
 end
 
 # ============================================================================

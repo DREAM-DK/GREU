@@ -6,6 +6,7 @@ module Corporations
 using SquareModels
 import ..Capital: pI_k, qK_k_i, vI_k_i
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
+import ..Households: vKOwnerHousing
 import ..InputOutput: industry, product, vPurchaserUse_p_u, vY_i
 import ..Labor: vWages_i
 import ..model
@@ -16,7 +17,6 @@ import ..SectorAccounts:
   vNetFinTransactions,
   vNetFinIncome,
   vNetTransfers2sector,
-  vCorrectionNonFinCorp2Hh,
   vGrossCapitalFormation,
   vNonFinancialNonProducedAssets,
   vGrossOpSurplusMixedIncome,
@@ -45,7 +45,6 @@ const non_fin_corp_industry = setdiff(industry, [fin_corp_industry; public_indus
   rNonFinCorpDebtAssets2Expenses[t], "NonFinCorp debt asset ratio: debt assets relative to total expenses."
   rNonFinCorpDebtLiabilities2Capital[t], "NonFinCorp debt liability ratio relative to the replacement value of capital."
   fGrossOpSurplus_s[s=corporation_sector, t=t], "Factor from modeled industry operating surplus to sector gross operating surplus."
-  fGrossCapitalFormation_s[s=corporation_sector, t=t], "Factor from modeled industry investment to sector gross capital formation."
 end
 
 @variables model :: (CorporationsTag, GrowthAdjusted, InflationAdjusted) begin
@@ -57,6 +56,12 @@ end
 # Assign data
 # ============================================================================
 function assign_data!(db)
+  return nothing
+end
+
+function set_residual_tolerances!(tolerances)
+  # Activity and sector investment data can differ after the housing allocation.
+  tolerances[vGrossCapitalFormation] = 1100.0
   return nothing
 end
 
@@ -76,13 +81,16 @@ function define_equations()
     vGrossOpSurplusMixedIncome[s,t] == fGrossOpSurplus_s[s,t] * ∑(vGrossOpSurplus_i[i,t] for i in fin_corp_industry)
 
     vGrossOpSurplusMixedIncome[s=[:NonFinCorp], t=t1:T],
-    vGrossOpSurplusMixedIncome[s,t] == fGrossOpSurplus_s[s,t] * ∑(vGrossOpSurplus_i[i,t] for i in non_fin_corp_industry)
+    vGrossOpSurplusMixedIncome[s,t] == fGrossOpSurplus_s[s,t] * (
+      ∑(vGrossOpSurplus_i[i,t] for i in non_fin_corp_industry)
+      - vGrossOpSurplusMixedIncome[:Hh,t])
 
     vGrossCapitalFormation[s=[:FinCorp], t=t1:T],
-    vGrossCapitalFormation[s,t] == fGrossCapitalFormation_s[s,t] * ∑(vI_k_i[k,i,t] for k in capital_type, i in fin_corp_industry)
+    vGrossCapitalFormation[s,t] == ∑(vI_k_i[k,i,t] for k in capital_type, i in fin_corp_industry)
 
     vGrossCapitalFormation[s=[:NonFinCorp], t=t1:T],
-    vGrossCapitalFormation[s,t] == fGrossCapitalFormation_s[s,t] * ∑(vI_k_i[k,i,t] for k in capital_type, i in non_fin_corp_industry)
+    vGrossCapitalFormation[s,t] == ∑(vI_k_i[k,i,t] for k in capital_type, i in non_fin_corp_industry)
+                                    - vGrossCapitalFormation[:Hh,t]
 
     vNonFinCorpExpenses[t=t1:T],
     vNonFinCorpExpenses[t] == ∑(vPurchaserUse_p_u[p,i,t] for p in product, i in non_fin_corp_industry)
@@ -105,7 +113,6 @@ function define_equations()
                                  - vGrossCapitalFormation[s,t]
                                  - vNonFinancialNonProducedAssets[s,t]
                                  + vGrossOpSurplusMixedIncome[s,t]
-                                 - vCorrectionNonFinCorp2Hh[t]
 
     # Portfolio.
     # Financial corporations.
@@ -138,7 +145,8 @@ function define_equations()
     # Debt liabilities are a fixed fraction of the replacement value of capital.
     vFinAL[s=[:NonFinCorp], f=[:Debt], al=[:Liab], t=t1:T],
     vFinAL[s,f,al,t] == rNonFinCorpDebtLiabilities2Capital[t] *
-      ∑(pI_k[k,t] * qK_k_i[k,i,t] for k in capital_type, i in non_fin_corp_industry)
+      (∑(pI_k[k,t] * qK_k_i[k,i,t] for k in capital_type, i in non_fin_corp_industry)
+       - vKOwnerHousing[t])
 
     # Equity liabilities are residual given net financial assets.
     vFinAL[s=[:NonFinCorp], f=[:Equity], al=[:Liab], t=t1:T],
@@ -155,7 +163,6 @@ function define_calibration()
   # At t1, use source values to identify scale factors and portfolio ratios.
   @endo_exo_swap! block begin
     fGrossOpSurplus_s[s=corporation_sector, t=[t1]], vGrossOpSurplusMixedIncome[s=corporation_sector, t=[t1]]
-    fGrossCapitalFormation_s[s=corporation_sector, t=[t1]], vGrossCapitalFormation[s=corporation_sector, t=[t1]]
 
     rFinCorpDebtAssets2DebtLiabilities[t1], vFinAL[:FinCorp,:Debt,:Assets,t1]
     rNonFinCorpEquityAssets2EquityLiabilities[t1], vFinAL[:NonFinCorp,:Equity,:Assets,t1]

@@ -139,34 +139,7 @@ function process_net_fin_transactions(df)
   # Map Eurostat sector codes to model sectors (S14, S15 both → Hh)
   df.sector = [get(sector_map, s, s) for s in df.sector]
   # Aggregate Hh (S14 + S15) so (direct, na_item, sector, year) is unique
-  df = sum_by(df, [:direct, :na_item, :sector, :year])
-
-  # ------------------------------------------------------------------
-  # Reallocate Hh mixed income (B2A3G) to NonFinCorp.
-  # The B2A3G_correction item carries the offsetting transfer:
-  #   RECV for Hh  → used as vCorrectionNonFinCorp2Hh
-  #   PAID for NonFinCorp → appears as an outflow in transfer NET calculations
-  # ------------------------------------------------------------------
-  mask = (df.direct .== "RECV") .& (df.na_item .== "B2A3G") .& (df.sector .== "Hh")
-
-  correction_recv_hh = copy(df[mask, :])
-  correction_recv_hh.na_item .= "B2A3G_correction"
-
-  correction_paid_nonfincorp = copy(correction_recv_hh)
-  correction_paid_nonfincorp.sector .= "NonFinCorp"
-  correction_paid_nonfincorp.direct .= "PAID"
-
-  df = vcat(df, correction_recv_hh, correction_paid_nonfincorp)
-
-  # Add Hh mixed income into the existing (RECV, B2A3G, NonFinCorp) row so that
-  # vGrossOpSurplusMixedIncome[:NonFinCorp] = NonFinCorp operating surplus + Hh mixed income.
-  corr_key = select(correction_recv_hh, :year, :value => :corr)
-  insertcols!(corr_key, :direct => "RECV", :na_item => "B2A3G", :sector => "NonFinCorp")
-  df = leftjoin(df, corr_key, on = [:direct, :na_item, :sector, :year])
-  df.value .+= coalesce.(df.corr, 0.0)
-  select!(df, Not(:corr))
-
-  return df
+  return sum_by(df, [:direct, :na_item, :sector, :year])
 end
 
 # ==========================================================================
@@ -257,14 +230,12 @@ function build_parameters(flow_df, tr_df, bal_df, oc_df, rev_df)
     vNetFinTransactions                  = get_net_fin_transactions_item(flow_df, "B9",           "RECV"),
     vNetTransfers2sector                 = get_net_fin_transactions_item(flow_df, fin_transactions_transfer_items, "NET",  ["FinCorp", "NonFinCorp", "Hh"]),
     vGrossCapitalFormation               = get_net_fin_transactions_item(flow_df, "P5G",          "PAID", ["FinCorp", "NonFinCorp", "Hh"]),
-    vGrossOpSurplusMixedIncome           = get_net_fin_transactions_item(flow_df, "B2A3G",        "RECV", ["FinCorp", "NonFinCorp"]),
+    vGrossOpSurplusMixedIncome           = get_net_fin_transactions_item(flow_df, "B2A3G",        "RECV", ["FinCorp", "NonFinCorp", "Hh"]),
     vNonFinancialNonProducedAssets       = get_net_fin_transactions_item(flow_df, "NP",           "PAID", ["FinCorp", "NonFinCorp", "Hh", "RoW"]),
 
     # Households
     vHhConsumption                       = select(get_net_fin_transactions_item(flow_df, "P3",               "PAID", ["Hh"]), :year, :value),
     vHhWages                             = select(get_net_fin_transactions_item(flow_df, "D1",               "RECV", ["Hh"]), :year, :value),
-    vCorrectionNonFinCorp2Hh             = select(get_net_fin_transactions_item(flow_df, "B2A3G_correction", "RECV", ["Hh"]), :year, :value),
-
     # Rest of World
     vRoWPrimaryIncomeCurrentBalanceOther = select(get_net_fin_transactions_item(flow_df, fin_transactions_row_nonwage_items, "NET", ["RoW"]), :year, :value),
     vExports                             = select(get_net_fin_transactions_item(flow_df, "P6", "PAID", ["RoW"]), :year, :value),
@@ -316,7 +287,6 @@ function write_sector_flows(dir, params)
     long_format(:vNetTransfers2sector,                     params.vNetTransfers2sector,                     [:sector, :year]),
     long_format(:vHhConsumption,                           params.vHhConsumption,                           [:year]),
     long_format(:vHhWages,                                 params.vHhWages,                                 [:year]),
-    long_format(:vCorrectionNonFinCorp2Hh,                 params.vCorrectionNonFinCorp2Hh,                 [:year]),
     long_format(:vRoWPrimaryIncomeCurrentBalanceOther,     params.vRoWPrimaryIncomeCurrentBalanceOther,     [:year]),
     long_format(:vExports,                                 params.vExports,                                 [:year]),
     long_format(:vImports,                                 params.vImports,                                 [:year]),
