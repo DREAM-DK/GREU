@@ -49,6 +49,10 @@ end
   pM_m_i[(m,i,t)=qM_m_i], "Intermediate input price by type and industry."
 end
 
+@variables model :: (IntermediatesTag, GrowthAdjusted, InflationAdjusted) begin
+  vM_i[i=industry, t=t], "Intermediate input spend by industry."
+end
+
 @variables model :: IntermediatesTag begin
   rIntermediateProductShare[(p,m,i,t)=qM_p_m_i] :: ForecastConstant, "Fixed product share by intermediate type and industry."
 end
@@ -84,6 +88,8 @@ function define_equations()
 
     pM_m_i[m=intermediate_type, i=industry, t=t1:T],
     pM_m_i[m,i,t] == ∑(rIntermediateProductShare[p,m,i,t] * pPurchaserUse_p_u[p,i,t] for p in product)
+
+    vM_i[i=industry, t=t1:T], vM_i[i,t] == ∑(pM_m_i[m,i,t] * qM_m_i[m,i,t] for m in intermediate_type)
 
     pProd[m=intermediate_type, i=industry, t=t1:T], pProd[m,i,t] == pM_m_i[m,i,t] / pM_m_i[m,i,t1]
   end

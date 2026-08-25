@@ -7,7 +7,8 @@ using SquareModels
 import ..Capital: pI_k, qK_k_i, vI_k_i
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..Households: vKOwnerHousing
-import ..InputOutput: industry, product, vPurchaserUse_p_u, vY_i
+import ..InputOutput: industry, vY_i
+import ..Intermediates: vM_i
 import ..Labor: vWages_i
 import ..model
 import ..Production: vProductionTax_i
@@ -72,8 +73,7 @@ function define_equations()
   return @block model begin
     # Production and investment links.
     vGrossOpSurplus_i[i=industry, t=t1:T],
-    vGrossOpSurplus_i[i,t] == vY_i[i,t] - ∑(vPurchaserUse_p_u[p,i,t] for p in product)
-                              - vWages_i[i,t] - vProductionTax_i[i,t]
+    vGrossOpSurplus_i[i,t] == vY_i[i,t] - vM_i[i,t] - vWages_i[i,t] - vProductionTax_i[i,t]
 
     vGrossOpSurplusMixedIncome[s=[:FinCorp], t=t1:T],
     vGrossOpSurplusMixedIncome[s,t] == fGrossOpSurplus_s[s,t] * ∑(vGrossOpSurplus_i[i,t] for i in fin_corp_industry)
@@ -90,7 +90,7 @@ function define_equations()
                                     - vGrossCapitalFormation[:Hh,t]
 
     vNonFinCorpExpenses[t=t1:T],
-    vNonFinCorpExpenses[t] == ∑(vPurchaserUse_p_u[p,i,t] for p in product, i in non_fin_corp_industry)
+    vNonFinCorpExpenses[t] == ∑(vM_i[i,t] for i in non_fin_corp_industry)
                               + ∑(vWages_i[i,t] for i in non_fin_corp_industry)
                               + ∑(vProductionTax_i[i,t] for i in non_fin_corp_industry)
 
