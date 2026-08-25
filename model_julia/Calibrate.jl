@@ -39,6 +39,7 @@ const calibrated_modules = [
   ConsumptionGroups,
   Government,
   Corporations,
+  FinancialIncome,
   FirmValue,
   RestOfWorld,
 

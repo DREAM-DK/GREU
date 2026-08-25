@@ -138,9 +138,9 @@ end # assign_data!
 
 function set_residual_tolerances!(tolerances)
   # Sector stock changes can differ from the sum of transactions,
-  # revaluations, and other changes in volume. Sources also have round-off gaps.
+  # revaluations, and other changes in volume. Source income also has small gaps.
   tolerances[vNetFinAssets] = 20000.0
-  tolerances[vNetFinTransactions] = 3.0
+  tolerances[vNetFinTransactions] = 4.0
   tolerances[vFinAL] = 40000.0
   tolerances[vFinTransactions] = 40000.0
 end
@@ -217,13 +217,10 @@ function define_equations()
     vNetOtherChangesInVolume[s=[:Hh],t=t1:T],
       ∑(vNetOtherChangesInVolume[s,t] for s in sector) == 0.0
 
-    # Rest-of-world property income closes the sector total.
-    vNetFinIncome[s=filter(≠(:RoW), sector),t=t1:T],
+    # Property income is receipts less payments for each sector.
+    vNetFinIncome[s=sector,t=t1:T],
     vNetFinIncome[s,t] == vFinIncome_al[s,:Assets,t]
                           - vFinIncome_al[s,:Liab,t]
-
-    vNetFinIncome[s=[:RoW],t=t1:T],
-    vNetFinIncome[s,t] == -∑(vNetFinIncome[s2,t] for s2 in sector if s2 != :RoW)
 
     vFinIncome_al[s=sector,al=ass_liab,t=t1:T],
     vFinIncome_al[s,al,t] == ∑(vFinIncome[s,f,al,t] for f in fin_instrument)

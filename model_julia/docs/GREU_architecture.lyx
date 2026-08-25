@@ -717,12 +717,144 @@ L_{R,t}^{e}=\mu _{R}^{e}\sum_{s\ne R}A_{s,t}^{e},\qquad \sum_{s}A_{s,t}^{e}=\sum
 \end_layout
 
 \begin_layout Subsubsection
+Interest and dividend flows
+\end_layout
+
+\begin_layout Standard
+Let
+\begin_inset Formula $Y_{s,t}^{f,a}$
+\end_inset
+
+ be property income for sector
+\begin_inset Formula $s$
+\end_inset
+
+,
+ instrument
+\begin_inset Formula $f\in\{d,e\}$
+\end_inset
+
+,
+ and the asset or liability side
+\begin_inset Formula $a$
+\end_inset
+
+.
+ Debt income is interest and other income mapped to debt in the source data.
+ Equity income is dividends.
+ A fixed effective rate links interest and dividend flows to their opening stocks:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+Y_{s,t}^{f,a}=\rho _{s}^{f,a}\frac{X_{s,t-1}^{f,a}}{fv}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The rates can differ by sector and side because each aggregate contains claims with different rates and counterparties.
+ Calibration identifies each rate from the reported income flow and prior-year stock.
+ The forecast keeps each rate constant.
+ Corporate dividend payments are therefore a fixed share of opening corporate equity value.
+\end_layout
+
+\begin_layout Standard
+Rest-of-world asset income closes the income market for each instrument:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+Y_{R,t}^{f,A}=\sum_{s}Y_{s,t}^{f,L}-\sum_{s\ne R}Y_{s,t}^{f,A}+J_{t}^{f}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The source-gap term
+\begin_inset Formula $J_{t}^{f}$
+\end_inset
+
+ keeps all reported flows fixed in the calibration year.
+ It is zero in the forecast.
+ Thus,
+ total interest receipts equal total interest payments,
+ and total dividend receipts equal total dividend payments after the calibration year.
+ Corporate dividend payments enter the discounted equity-value equations.
+\end_layout
+
+\begin_layout Subsubsection
 Equity values and calibration
 \end_layout
 
 \begin_layout Standard
-Discounted future equity payouts set financial and non-financial corporation equity values.
+Let
+\begin_inset Formula $I_{s,t}^{e}$
+\end_inset
+
+ be net equity issues by a corporation.
+ A positive value is an issue.
+ A negative value is a buy-back.
+ Net financial transactions include asset purchases less liability issues.
+ Thus,
+ a positive equity issue adds funds to the corporate budget.
+ It is a financial transaction and not a revaluation.
+ Financial corporations have
+\begin_inset Formula $I_{F,t}^{e}=0$
+\end_inset
+
+ under the current portfolio rule.
+\end_layout
+
+\begin_layout Standard
+Discounted investor cash flows set financial and non-financial corporation equity values before the terminal year:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+V_{s,t}^{e}(1+r_{s,t+1})=fv\left(D_{s,t+1}-I_{s,t+1}^{e}+V_{s,t+1}^{e}\right).
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Investors receive dividends and cash from buy-backs.
+ They provide the funds for new issues.
+ The terminal condition uses the same required return as the earlier discounted cash flows.
+ It assumes that adjusted dividends and net issues stay constant after the terminal year:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+V_{s,T}^{e}(1+r_{s,T}-fv)=fv\left(D_{s,T}-I_{s,T}^{e}\right).
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The model applies this terminal equation only when the horizon extends past the calibration year.
+ Thus,
+ the source equity value stays exogenous in static calibration.
+ Dynamic calibration identifies one required return per corporate issuer from the source equity value.
+ The forecast keeps this return constant and uses it in all discount and terminal equations.
  Equity liability revaluation reconciles these values with the stock-flow identity.
+ Net issues remain in the transaction term and do not enter the revaluation equation.
  Holder revaluations then allocate the total change across equity assets.
 \end_layout
 

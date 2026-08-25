@@ -89,7 +89,9 @@ function define_equations()
                               + ∑(vWages_i[i,t] for i in non_fin_corp_industry)
                               + ∑(vProductionTax_i[i,t] for i in non_fin_corp_industry)
 
-    # Budget identity.
+    # Budget identity. Net financial transactions include asset purchases less
+    # debt and equity issues. A positive equity issue adds corporate funding;
+    # a negative issue is a buy-back and uses corporate funds.
     vNetFinTransactions[s=[:FinCorp], t=t1:T],
     vNetFinTransactions[s,t] == vNetFinIncome[s,t]
                                  + vNetTransfers2sector[s,t]

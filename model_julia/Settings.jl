@@ -1,6 +1,7 @@
 module Settings
 
 import SquareModels
+import JuMP
 
 const country_code = "DK"
 
@@ -30,6 +31,7 @@ const module_names = [
   :ConsumptionGroups,
   :Government,
   :Corporations,
+  :FinancialIncome,
   :FirmValue,
   :RestOfWorld,
 
@@ -42,7 +44,11 @@ const module_names = [
 # JuMP `Model` configured as a square nonlinear system for the selected backend.
 # Importing the backend package activates the matching SquareModels extension.
 import GAMS
-square_model() = SquareModels.square_model(; gamsdir="C:/GAMS/53")
+function square_model()
+  model = SquareModels.square_model(; gamsdir="C:/GAMS/53")
+  JuMP.set_time_limit_sec(model, 5 * 60)
+  return model
+end
 # Alternative backends:
 #   import Ipopt;  square_model() = SquareModels.square_model(Ipopt.Optimizer)
 #   import CONOPT; square_model() = SquareModels.square_model(CONOPT.Optimizer; lmmxsf=1)

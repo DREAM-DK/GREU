@@ -1,4 +1,4 @@
-# Set corporate equity values from discounted equity payouts.
+# Set corporate equity values from discounted investor cash flows.
 # Endogenize issuer and holder equity revaluations.
 # Keep portfolio stocks and transactions in the sector modules.
 
@@ -8,8 +8,12 @@ using SquareModels
 import ..Corporations: corporation_sector
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
 import ..model
-import ..SectorAccounts: vFinAL, vFinIncome, vFinReval
-import ..Tags: DynamicCalibration, ForecastConstant
+import ..SectorAccounts:
+  vFinAL,
+  vFinIncome,
+  vFinReval,
+  vFinTransactions
+import ..Tags: ForecastConstant
 import ..Time: t, t1, T
 
 # ============================================================================
@@ -40,9 +44,9 @@ const FirmValueTag = Tag(:FirmValue)
 end
 
 @variables model :: FirmValueTag begin
-  rFirmRequiredReturn_s[s=corporation_sector, t=t] :: ForecastConstant, "Required nominal equity return by issuer."
-  rEquityRevalAllocation_s[s=fixed_equity_reval_sector, t=t] :: ForecastConstant, "Equity revaluation allocation rate by holder."
-  fFirmEquityPayout_s[s=corporation_sector] :: DynamicCalibration, "Scale from source equity payouts to payouts valued by investors."
+  rFirmRequiredReturn_s[s=corporation_sector], "Required nominal equity return by issuer."
+  rEquityRevalAllocation_s[s=fixed_equity_reval_sector, t=t] :: ForecastConstant,
+    "Equity revaluation allocation rate by holder."
 end
 
 # ============================================================================
@@ -50,18 +54,16 @@ end
 # ============================================================================
 
 function assign_data!(db)
-  db[rFirmRequiredReturn_s] .= 0.08
   db[vFirmEquity_s[:,t1]] .= [
     db[vFinAL[s,:Equity,:Liab,t1]] for s in corporation_sector
   ]
 
-  @assert all(db[vFinAL[s,:Equity,:Liab,t1]] > 0 for s in corporation_sector) "Source corporate equity values must be positive"
-  @assert all(db[vFinIncome[s,:Equity,:Liab,t1]] > 0 for s in corporation_sector) "Source corporate equity payouts must be positive"
-  @assert all(db[rFirmRequiredReturn_s[s,t1]] > fv-1 for s in corporation_sector) "Each required return must exceed long-run nominal growth"
   @assert all(
-    isfinite(fv / (1 + db[rFirmRequiredReturn_s[s,t1]] - fv))
-    for s in corporation_sector
-  ) "Each terminal value factor must be finite"
+    db[vFinAL[s,:Equity,:Liab,t1]] > 0 for s in corporation_sector
+  ) "Source corporate equity values must be positive"
+  @assert all(
+    db[vFinIncome[s,:Equity,:Liab,t1]] > 0 for s in corporation_sector
+  ) "Source corporate equity payouts must be positive"
   return nothing
 end
 
@@ -70,30 +72,28 @@ end
 # ============================================================================
 
 function set_starting_values!(start_values)
+  start_values[rFirmRequiredReturn_s] .= 0.08
   start_values[vFirmEquity_s] .= [
     start_values[vFinAL[s,:Equity,:Liab,t1]]
     for s in corporation_sector, year in t
-  ]
-  start_values[fFirmEquityPayout_s] .= [
-    start_values[vFinAL[s,:Equity,:Liab,t1]] *
-      (1 + start_values[rFirmRequiredReturn_s[s,t1]] - fv) /
-      (fv * start_values[vFinIncome[s,:Equity,:Liab,t1]])
-    for s in corporation_sector
   ]
   total_liability_reval = sum(
     start_values[vFinReval[s,:Equity,:Liab,t1]] for s in equity_liability_sector
   )
   non_fin_corp_liability_reval = start_values[vFinReval[:NonFinCorp,:Equity,:Liab,t1]]
   @assert !iszero(total_liability_reval) "Source total equity liability revaluation must be nonzero"
-  @assert !iszero(non_fin_corp_liability_reval) "Source non-financial corporation equity liability revaluation must be nonzero"
+  @assert !iszero(
+    non_fin_corp_liability_reval
+  ) "Source non-financial corporation equity liability revaluation must be nonzero"
   start_values[rEquityRevalAllocation_s[aggregate_equity_reval_sector,:]] .= [
     start_values[vFinReval[s,:Equity,:Assets,t1]] / total_liability_reval
     for s in aggregate_equity_reval_sector, year in t
   ]
   start_values[rEquityRevalAllocation_s[:FinCorp,:]] .=
     start_values[vFinReval[:FinCorp,:Equity,:Assets,t1]] / non_fin_corp_liability_reval
-  @assert all(isfinite, start_values[fFirmEquityPayout_s]) "Initial equity payout scales must be finite"
-  @assert all(start_values[fFirmEquityPayout_s] .> 0) "Initial equity payout scales must be positive"
+  @assert all(
+    start_values[rFirmRequiredReturn_s] .> fv-1
+  ) "Initial required returns must exceed long-run nominal growth"
   @assert all(isfinite, start_values[rEquityRevalAllocation_s]) "Initial equity revaluation rates must be finite"
   return nothing
 end
@@ -104,17 +104,21 @@ end
 
 function define_equations()
   return @block model begin
-    # The current equity value is the discounted next payout and next value.
+    # Investors receive dividends and buy-back cash and fund new equity issues.
     vFirmEquity_s[s=corporation_sector, t=t1:(T-1); T > t1],
-    vFirmEquity_s[s,t] * (1 + rFirmRequiredReturn_s[s,t+1]) == fv * (
-      fFirmEquityPayout_s[s] * vFinIncome[s,:Equity,:Liab,t+1]
+    vFirmEquity_s[s,t] * (1 + rFirmRequiredReturn_s[s]) == fv * (
+      vFinIncome[s,:Equity,:Liab,t+1]
+      - vFinTransactions[s,:Equity,:Liab,t+1]
       + vFirmEquity_s[s,t+1]
     )
 
-    # Adjusted payouts and values stay constant after T.
-    vFirmEquity_s[s=corporation_sector, t=[T]],
-    vFirmEquity_s[s,t] * (1 + rFirmRequiredReturn_s[s,t] - fv) ==
-      fv * fFirmEquityPayout_s[s] * vFinIncome[s,:Equity,:Liab,t]
+    # Constant adjusted payouts after T give the terminal perpetuity value.
+    # Leave the calibration-year equity value exogenous in a static model.
+    vFirmEquity_s[s=corporation_sector, t=[T]; T > t1],
+    vFirmEquity_s[s,t] * (1 + rFirmRequiredReturn_s[s] - fv) == fv * (
+      vFinIncome[s,:Equity,:Liab,t]
+      - vFinTransactions[s,:Equity,:Liab,t]
+    )
 
     # The DCF value sets the issuer stock through its revaluation flow.
     vFinReval[s=corporation_sector, f=[:Equity], al=[:Liab], t=t1:T],
@@ -139,12 +143,9 @@ function define_equations()
     @test_constraint("Corporate equity values must be positive"; atol=0, rtol=0)
     vFirmEquity_s[s=corporation_sector, t=t1:T], vFirmEquity_s[s,t] >= 1e-12
 
-    @test_constraint("Equity payout scales must be positive"; atol=0, rtol=0)
-    fFirmEquityPayout_s[s=corporation_sector], fFirmEquityPayout_s[s] >= 1e-12
-
     @test_constraint("Required equity returns must exceed long-run nominal growth"; atol=0, rtol=0)
-    rFirmRequiredReturn_s[s=corporation_sector, t=t1:T],
-    rFirmRequiredReturn_s[s,t] - (fv-1) >= 1e-12
+    rFirmRequiredReturn_s[s=corporation_sector; T > t1],
+    rFirmRequiredReturn_s[s] - (fv-1) >= 1e-12
   end
 end
 
@@ -155,12 +156,17 @@ end
 function define_calibration()
   block = define_equations()
 
-  # Keep source equity values fixed and identify one payout scale per issuer.
-  # Generic residual calibration keeps source revaluations fixed in the tie equation.
-  @endo_exo_swap! block begin
-    fFirmEquityPayout_s[s=corporation_sector],
-    vFirmEquity_s[s=corporation_sector, t=[t1]]
+  # The dynamic solve identifies the required return from source equity values.
+  # A static solve has no equity-value equation and keeps source values exogenous.
+  if T > t1
+    @endo_exo_swap! block begin
+      rFirmRequiredReturn_s[s=corporation_sector],
+      vFirmEquity_s[s=corporation_sector, t=[t1]]
+    end
+  end
 
+  # Keep source holder revaluations fixed.
+  @endo_exo_swap! block begin
     rEquityRevalAllocation_s[s=fixed_equity_reval_sector, t=[t1]],
     vFinReval[s=fixed_equity_reval_sector, f=[:Equity], al=[:Assets], t=[t1]]
   end
