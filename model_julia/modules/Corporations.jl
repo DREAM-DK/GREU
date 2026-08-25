@@ -72,8 +72,8 @@ function define_equations()
   return @block model begin
     # Production and investment links.
     vGrossOpSurplus_i[i=industry, t=t1:T],
-    vGrossOpSurplus_i[i,t] == (vY_i[i,t] - ∑(vPurchaserUse_p_u[p,i,t] for p in product)
-                               - vWages_i[i,t] - vProductionTax_i[i,t])
+    vGrossOpSurplus_i[i,t] == vY_i[i,t] - ∑(vPurchaserUse_p_u[p,i,t] for p in product)
+                              - vWages_i[i,t] - vProductionTax_i[i,t]
 
     vGrossOpSurplusMixedIncome[s=[:FinCorp], t=t1:T],
     vGrossOpSurplusMixedIncome[s,t] == fGrossOpSurplus_s[s,t] * ∑(vGrossOpSurplus_i[i,t] for i in fin_corp_industry)
@@ -98,14 +98,14 @@ function define_equations()
     # debt and equity issues. A positive equity issue adds corporate funding;
     # a negative issue is a buy-back and uses corporate funds.
     vNetFinTransactions[s=[:FinCorp], t=t1:T],
-    vNetFinTransactions[s,t] == (vNetFinIncome[s,t]
-                                 + vNetTransfers[s,t] - vGrossCapitalFormation[s,t]
-                                 - vNonFinancialNonProducedAssets[s,t] + vGrossOpSurplusMixedIncome[s,t])
+    vNetFinTransactions[s,t] == vNetFinIncome[s,t]
+                                + vNetTransfers[s,t] - vGrossCapitalFormation[s,t]
+                                - vNonFinancialNonProducedAssets[s,t] + vGrossOpSurplusMixedIncome[s,t]
 
     vNetFinTransactions[s=[:NonFinCorp], t=t1:T],
-    vNetFinTransactions[s,t] == (vNetFinIncome[s,t]
-                                 + vNetTransfers[s,t] - vGrossCapitalFormation[s,t]
-                                 - vNonFinancialNonProducedAssets[s,t] + vGrossOpSurplusMixedIncome[s,t])
+    vNetFinTransactions[s,t] == vNetFinIncome[s,t]
+                                + vNetTransfers[s,t] - vGrossCapitalFormation[s,t]
+                                - vNonFinancialNonProducedAssets[s,t] + vGrossOpSurplusMixedIncome[s,t]
 
     # Portfolio.
     # Financial corporations.

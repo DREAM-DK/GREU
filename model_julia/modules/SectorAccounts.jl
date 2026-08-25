@@ -132,18 +132,33 @@ function define_equations()
   return @block model begin
     # --- Stock changes equal transactions, revaluations, and other volume changes. ---
     vFinTransactions_f[s=sector, f=fin_instrument, al=ass_liab, t=t1:T],
-    vFinPosition_f[s,f,al,t] == (vFinPosition_f[s,f,al,t-1]/fv + vFinTransactions_f[s,f,al,t]
-                                 + vFinReval_f[s,f,al,t] + vOtherChangesInVolume_f[s,f,al,t])
+    vFinPosition_f[s,f,al,t] == vFinPosition_f[s,f,al,t-1]/fv + vFinTransactions_f[s,f,al,t]
+                              + vFinReval_f[s,f,al,t] + vOtherChangesInVolume_f[s,f,al,t]
 
     vNetFinAssets[s=sector, t=t1:T],
-    vNetFinAssets[s,t] == (vNetFinAssets[s,t-1]/fv + vNetFinTransactions[s,t]
-                           + vNetFinReval[s,t] + vNetOtherChangesInVolume[s,t])
+    vNetFinAssets[s,t] == vNetFinAssets[s,t-1]/fv + vNetFinTransactions[s,t]
+                        + vNetFinReval[s,t] + vNetOtherChangesInVolume[s,t]
 
-    # --- Aggregating. ---
+    # Net revaluation is the asset value less the liability value.
+    vNetFinReval[s=sector, t=t1:T],
+    vNetFinReval[s,t] == ∑(vFinReval_f[s,f,:Assets,t] for f in fin_instrument)
+                       - ∑(vFinReval_f[s,f,:Liab,t] for f in fin_instrument)
+
+    # Net other volume change is the asset value less the liability value.
+    vNetOtherChangesInVolume[s=sector, t=t1:T],
+    vNetOtherChangesInVolume[s,t] == ∑(vOtherChangesInVolume_f[s,f,:Assets,t] for f in fin_instrument)
+                                   - ∑(vOtherChangesInVolume_f[s,f,:Liab,t] for f in fin_instrument)
+
+    # Property income is receipts less payments for each sector.
+    vNetFinIncome[s=sector, t=t1:T],
+    vNetFinIncome[s,t] == ∑(vFinIncome_f[s,f,:Assets,t] for f in fin_instrument)
+                        - ∑(vFinIncome_f[s,f,:Liab,t] for f in fin_instrument)
+
+    # --- Tests. ---
     @test_constraint("Net financial transactions equals assets minus liabilities"; atol=1.0, rtol=1e-6)
     vNetFinTransactions[s=sector, t=t1:T],
     vNetFinTransactions[s,t] == ∑(vFinTransactions_f[s,f,:Assets,t] for f in fin_instrument)
-                                   - ∑(vFinTransactions_f[s,f,:Liab,t] for f in fin_instrument)
+                              - ∑(vFinTransactions_f[s,f,:Liab,t] for f in fin_instrument)
 
     @test_constraint("Summing vNetFinAssets over sectors"; atol=2.0, rtol=1e-6)
     vNetFinAssets[s=[:Hh], t=t1:T], ∑(vNetFinAssets[s,t] for s in sector) == 0.0
@@ -151,26 +166,11 @@ function define_equations()
     @test_constraint("Summing vNetFinTransactions over sectors"; atol=1.0, rtol=1e-6)
     vNetFinTransactions[s=[:Hh], t=t1:T], ∑(vNetFinTransactions[s2,t] for s2 in sector) == 0.0
 
-    # Net revaluation is the asset value less the liability value.
-    vNetFinReval[s=sector, t=t1:T],
-    vNetFinReval[s,t] == ∑(vFinReval_f[s,f,:Assets,t] for f in fin_instrument)
-                           - ∑(vFinReval_f[s,f,:Liab,t] for f in fin_instrument)
-
     @test_constraint("Summing vNetFinReval over sectors"; atol=1.0, rtol=1e-6)
     vNetFinReval[s=[:Hh], t=t1:T], ∑(vNetFinReval[s,t] for s in sector) == 0.0
 
-    # Net other volume change is the asset value less the liability value.
-    vNetOtherChangesInVolume[s=sector, t=t1:T],
-    vNetOtherChangesInVolume[s,t] == ∑(vOtherChangesInVolume_f[s,f,:Assets,t] for f in fin_instrument)
-                                         - ∑(vOtherChangesInVolume_f[s,f,:Liab,t] for f in fin_instrument)
-
     @test_constraint("Summing vNetOtherChangesInVolume over sectors"; atol=1.0, rtol=1e-6)
     vNetOtherChangesInVolume[s=[:Hh], t=t1:T], ∑(vNetOtherChangesInVolume[s,t] for s in sector) == 0.0
-
-    # Property income is receipts less payments for each sector.
-    vNetFinIncome[s=sector, t=t1:T],
-    vNetFinIncome[s,t] == ∑(vFinIncome_f[s,f,:Assets,t] for f in fin_instrument)
-                          - ∑(vFinIncome_f[s,f,:Liab,t] for f in fin_instrument)
 
     @test_constraint("Summing vNetFinIncome over sectors"; atol=1.0, rtol=1e-6)
     vNetFinIncome[s=[:Hh], t=t1:T], ∑(vNetFinIncome[s,t] for s in sector) == 0.0

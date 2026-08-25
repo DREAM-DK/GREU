@@ -76,12 +76,12 @@ function define_equations()
     qProductionLoss[i=industry, t=t1:T], qProductionLoss[i,t] == ∑(qKAdjCost_k_i[k,i,t] for k in capital_type)
 
     pKAdjCost_k_i[k=capital_type, i=industry, t=(t1+1):(T-1)],
-    pKAdjCost_k_i[k,i,t] == (pProd[topNest[i],i,t-1] * dKAdjCost2dK[k,i,t-1]
-                               + dKAdjCost2dKLag[k,i,t-1] / (1 + rHurdleRate_i[i,t]) *
-                                 pProd[topNest[i],i,t] * fp
-                               + dKAdjCost2dKLag2[k,i,t-1] /
-                                 ((1 + rHurdleRate_i[i,t]) * (1 + rHurdleRate_i[i,t+1])) *
-                                 pProd[topNest[i],i,t+1]*fp^2)
+    pKAdjCost_k_i[k,i,t] == pProd[topNest[i],i,t-1] * dKAdjCost2dK[k,i,t-1]
+                              + dKAdjCost2dKLag[k,i,t-1] / (1 + rHurdleRate_i[i,t]) *
+                                pProd[topNest[i],i,t] * fp
+                              + dKAdjCost2dKLag2[k,i,t-1] /
+                                ((1 + rHurdleRate_i[i,t]) * (1 + rHurdleRate_i[i,t+1])) *
+                                pProd[topNest[i],i,t+1]*fp^2
 
     pKAdjCost_k_i[k=capital_type, i=industry, t=T; T > t1], pKAdjCost_k_i[k,i,t] == 0
   end

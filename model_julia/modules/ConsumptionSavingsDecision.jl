@@ -121,8 +121,8 @@ function define_equations()
 
     # The required return is an exogenous hook. A later return module can set it.
     qC[t=t1:(T-1); T > t1],
-    1 == (dHhUtility2dWealth[t] / dHhUtility2dConsumption[t]
-          + βHh * (1 + rHhRequiredReturn[t+1]) * dHhUtility2dConsumption[t+1] / dHhUtility2dConsumption[t])
+    1 == dHhUtility2dWealth[t] / dHhUtility2dConsumption[t]
+         + βHh * (1 + rHhRequiredReturn[t+1]) * dHhUtility2dConsumption[t+1] / dHhUtility2dConsumption[t]
 
     # Terminal marginal utility stays constant after T. The terminal return also stays constant.
     qC[t=[T]], 1 == (dHhUtility2dWealth[t] / dHhUtility2dConsumption[t] + βHh * (1 + rHhRequiredReturn[t]))

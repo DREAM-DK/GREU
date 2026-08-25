@@ -42,9 +42,9 @@ function define_equations()
   return @block model begin
     # Budget identity.
     vNetFinTransactions[s=[:RoW], t=t1:T],
-    vNetFinTransactions[s,t] == (vM[t] - vX[t] + vRoWNetWages[t] + vNetFinIncome[s,t]
-                                 + vRoWPrimaryIncomeCurrentBalanceOther[t]
-                                 - vNonFinancialNonProducedAssets[s,t])
+    vNetFinTransactions[s,t] == vM[t] - vX[t] + vRoWNetWages[t] + vNetFinIncome[s,t]
+                                + vRoWPrimaryIncomeCurrentBalanceOther[t]
+                                - vNonFinancialNonProducedAssets[s,t]
 
     # Nonwage income closes net financial transactions across sectors.
     vRoWPrimaryIncomeCurrentBalanceOther[t=t1:T], ∑(vNetFinTransactions[s,t] for s in sector) == 0.0

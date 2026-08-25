@@ -140,9 +140,9 @@ function define_equations()
 
     # Lagged investment sets the user cost of capital installed for this period.
     pK_k_i[k=capital_type, i=industry, t=t1:T],
-    pK_k_i[k,i,t] == (pI_k[k,t-1] + pMarginalCapitalTax_k_i[k,i,t-1]
+    pK_k_i[k,i,t] == pI_k[k,t-1] + pMarginalCapitalTax_k_i[k,i,t-1]
       - (1 - rKDepr_k_i[k,i,t]) / (1 + rHurdleRate_i[i,t]) * (pI_k[k,t]*fp - pMarginalCapitalTax_k_i[k,i,t]*fp)
-      + pKAdjCost_k_i[k,i,t])
+      + pKAdjCost_k_i[k,i,t]
 
     @test_constraint("Capital investment values sum to fixed investment"; rtol = 1e-3)
     vI[t=t1:T], vI[t] == ∑(vI_k_i[k,i,t] for k in capital_type, i in industry)

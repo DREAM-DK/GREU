@@ -89,9 +89,9 @@ function define_equations()
 
     # Budget identity.
     vNetFinTransactions[s=[:Hh], t=t1:T],
-    vNetFinTransactions[s,t] == (vNetFinIncome[s,t] + vNetTransfers[s,t]
-                                 + vHhWages[t] - vC[t] + vGrossOpSurplusMixedIncome[s,t] - vGrossCapitalFormation[s,t]
-                                 - vNonFinancialNonProducedAssets[s,t])
+    vNetFinTransactions[s,t] == vNetFinIncome[s,t] + vNetTransfers[s,t]
+                                + vHhWages[t] - vC[t] + vGrossOpSurplusMixedIncome[s,t] - vGrossCapitalFormation[s,t]
+                                - vNonFinancialNonProducedAssets[s,t]
 
     # Portfolio.
     # Equity assets have no transactions.
@@ -105,7 +105,7 @@ function define_equations()
     # Hh debt assets are residual given net financial assets.
     vFinPosition_f[s=[:Hh], f=[:Debt], al=[:Assets], t=t1:T],
     vNetFinAssets[s,t] == ∑(vFinPosition_f[s,f,:Assets,t] for f in fin_instrument)
-                           - ∑(vFinPosition_f[s,f,:Liab,t] for f in fin_instrument)
+                        - ∑(vFinPosition_f[s,f,:Liab,t] for f in fin_instrument)
 
     @test_constraint("The owner-housing share must be nonnegative")
     rOwnerHousing2RealEstateStructures[t=t1:T], rOwnerHousing2RealEstateStructures[t] >= 0
