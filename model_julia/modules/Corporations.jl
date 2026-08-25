@@ -19,7 +19,7 @@ import ..SectorAccounts:
   vNetFinTransactions,
   vNetFinIncome,
   vNetTransfers,
-  vGrossCapitalFormation,
+  vI_s,
   vNonFinancialNonProducedAssets,
   vGrossOpSurplusMixedIncome,
   vFinPosition_f,
@@ -62,7 +62,7 @@ end
 
 function set_residual_tolerances!(tolerances)
   # Activity and sector investment data can differ after the housing allocation.
-  tolerances[vGrossCapitalFormation] = 1100.0
+  tolerances[vI_s] = 1100.0
   return nothing
 end
 
@@ -82,29 +82,29 @@ function define_equations()
     vGrossOpSurplusMixedIncome[s,t] == fGrossOpSurplus_s[s,t] * (
       ∑(vGrossOpSurplus_i[i,t] for i in non_fin_corp_industry) - vGrossOpSurplusMixedIncome[:Hh,t])
 
-    vGrossCapitalFormation[s=[:FinCorp], t=t1:T],
-    vGrossCapitalFormation[s,t] == ∑(vI_k_i[k,i,t] for k in capital_type, i in fin_corp_industry)
+    vI_s[s=[:FinCorp], t=t1:T],
+    vI_s[s,t] == ∑(vI_k_i[k,i,t] for k in capital_type, i in fin_corp_industry)
 
-    vGrossCapitalFormation[s=[:NonFinCorp], t=t1:T],
-    vGrossCapitalFormation[s,t] == ∑(vI_k_i[k,i,t] for k in capital_type, i in non_fin_corp_industry)
-                                    - vGrossCapitalFormation[:Hh,t]
+    vI_s[s=[:NonFinCorp], t=t1:T],
+    vI_s[s,t] == ∑(vI_k_i[k,i,t] for k in capital_type, i in non_fin_corp_industry)
+                                    - vI_s[:Hh,t]
 
     vNonFinCorpExpenses[t=t1:T],
     vNonFinCorpExpenses[t] == ∑(vM_i[i,t] for i in non_fin_corp_industry)
-                              + ∑(vWages_i[i,t] for i in non_fin_corp_industry)
-                              + ∑(vProductionTax_i[i,t] for i in non_fin_corp_industry)
+                            + ∑(vWages_i[i,t] for i in non_fin_corp_industry)
+                            + ∑(vProductionTax_i[i,t] for i in non_fin_corp_industry)
 
     # Budget identity. Net financial transactions include asset purchases less
     # debt and equity issues. A positive equity issue adds corporate funding;
     # a negative issue is a buy-back and uses corporate funds.
     vNetFinTransactions[s=[:FinCorp], t=t1:T],
     vNetFinTransactions[s,t] == vNetFinIncome[s,t]
-                                + vNetTransfers[s,t] - vGrossCapitalFormation[s,t]
-                                - vNonFinancialNonProducedAssets[s,t] + vGrossOpSurplusMixedIncome[s,t]
+                              + vNetTransfers[s,t] - vI_s[s,t]
+                              - vNonFinancialNonProducedAssets[s,t] + vGrossOpSurplusMixedIncome[s,t]
 
     vNetFinTransactions[s=[:NonFinCorp], t=t1:T],
     vNetFinTransactions[s,t] == vNetFinIncome[s,t]
-                                + vNetTransfers[s,t] - vGrossCapitalFormation[s,t]
+                                + vNetTransfers[s,t] - vI_s[s,t]
                                 - vNonFinancialNonProducedAssets[s,t] + vGrossOpSurplusMixedIncome[s,t]
 
     # Portfolio.
@@ -143,7 +143,7 @@ function define_equations()
     # Equity liabilities are residual given net financial assets.
     vFinPosition_f[s=[:NonFinCorp], f=[:Equity], al=[:Liab], t=t1:T],
     vNetFinAssets[s,t] == ∑(vFinPosition_f[s,f,:Assets,t] for f in fin_instrument)
-                           - ∑(vFinPosition_f[s,f,:Liab,t] for f in fin_instrument)
+                        - ∑(vFinPosition_f[s,f,:Liab,t] for f in fin_instrument)
   end
 end
 

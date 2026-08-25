@@ -35,6 +35,11 @@ const flow_asset_to_capital_type = Dict(
 const capital_type = sort(unique(values(flow_asset_to_capital_type)))
 @assert Set(capital_type) == Set(values(stock_asset_to_capital_type)) "Stock and flow assets must use the same capital types"
 
+# Owner-occupied housing lives in one capital-type and industry cell.
+const owner_housing_k = :structures
+const owner_housing_i = :iL
+@assert owner_housing_k in capital_type && owner_housing_i in source_industry "Owner-occupied housing must be a capital type and a source industry"
+
 # Keep each factor class as a set, even when it has one member. The nests name
 # their factors directly and must change when either set changes.
 const labor_type = [:labor]

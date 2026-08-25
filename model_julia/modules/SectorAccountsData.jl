@@ -229,7 +229,7 @@ function build_parameters(flow_df, tr_df, bal_df, oc_df, rev_df)
     ]...),
     vNetFinTransactions                  = get_net_fin_transactions_item(flow_df, "B9",           "RECV"),
     vNetTransfers                        = get_net_fin_transactions_item(flow_df, fin_transactions_transfer_items, "NET",  ["FinCorp", "NonFinCorp", "Hh"]),
-    vGrossCapitalFormation               = get_net_fin_transactions_item(flow_df, "P5G",          "PAID", ["FinCorp", "NonFinCorp", "Hh"]),
+    vI_s                                 = get_net_fin_transactions_item(flow_df, "P5G",          "PAID", ["FinCorp", "NonFinCorp", "Hh"]),
     vGrossOpSurplusMixedIncome           = get_net_fin_transactions_item(flow_df, "B2A3G",        "RECV", ["FinCorp", "NonFinCorp", "Hh"]),
     vNonFinancialNonProducedAssets       = get_net_fin_transactions_item(flow_df, "NP",           "PAID", ["FinCorp", "NonFinCorp", "Hh", "RoW"]),
 
@@ -279,7 +279,7 @@ function write_sector_flows(dir, params)
     long_format(:vFinIncome_f,                             params.vFinIncome_f,                             [:sector, :f, :al, :year]),
     long_format(:vNetFinTransactions,                      params.vNetFinTransactions,                      [:sector, :year]),
     long_format(:vNetTransfers,                            params.vNetTransfers,                            [:sector, :year]),
-    long_format(:vGrossCapitalFormation,                   params.vGrossCapitalFormation,                   [:sector, :year]),
+    long_format(:vI_s,                                     params.vI_s,                                     [:sector, :year]),
     long_format(:vGrossOpSurplusMixedIncome,               params.vGrossOpSurplusMixedIncome,               [:sector, :year]),
     long_format(:vNonFinancialNonProducedAssets,           params.vNonFinancialNonProducedAssets,           [:sector, :year]),
     long_format(:vHhConsumption,                           params.vHhConsumption,                           [:year]),

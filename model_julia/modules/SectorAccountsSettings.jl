@@ -16,8 +16,8 @@ const fin_bal_dataset_code            = "nasa_10_f_bs"
 const fin_bal_unit                    = "MIO_EUR"
 const cell_tolerance                  = 1e-6
 
-# ESA 2010 institutional sectors to download. S14 and S15 (non-profit institutions serving households)
-# are later merged into a single Households aggregate 
+# ESA 2010 institutional sectors to download. S14 and S15 (NPISH) are merged
+# into a single Households aggregate.
 const raw_sectors = ["S11", "S12", "S13", "S14", "S15", "S2"]
 const sector_map  = Dict(
   "S11" => "NonFinCorp",  # Non-financial corporations

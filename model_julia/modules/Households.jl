@@ -1,7 +1,7 @@
 # Populate household entries of the SectorAccounts interface.
-# Allocate owner-occupied housing within real-estate structures.
 # Keep the household budget identity and simple portfolio rules.
-# Exclude a housing-demand function and a market house price.
+# Households include NPISH. Allocate owner-occupied housing within
+# owner_housing_k and owner_housing_i.
 
 module Households
 
@@ -11,12 +11,13 @@ import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
 import ..InputOutput: vC
 import ..Labor: vHhWages
 import ..model
+import ..ProductionSettings: owner_housing_i, owner_housing_k
 import ..SectorAccounts:
   fin_instrument,
   vNetFinTransactions,
   vNetFinIncome,
   vNetTransfers,
-  vGrossCapitalFormation,
+  vI_s,
   vGrossOpSurplusMixedIncome,
   vNonFinancialNonProducedAssets,
   vFinPosition_f,
@@ -34,7 +35,7 @@ const HouseholdsTag = Tag(:Households)
 @variables model :: (HouseholdsTag, ForecastConstant) begin
   rHhDebtLiabilities2Consumption[t], "Target household debt liability ratio relative to consumption."
   rHhDebtAdjustment[t], "Annual household debt adjustment rate."
-  rOwnerHousing2RealEstateStructures[t], "Owner-occupied housing share of real-estate structures."
+  rOwnerHousing2K[t], "Owner-occupied housing share of the owner-housing capital cell."
 end
 
 @variables model :: (HouseholdsTag, GrowthAdjusted) begin
@@ -43,7 +44,6 @@ end
 
 @variables model :: (HouseholdsTag, GrowthAdjusted, InflationAdjusted) begin
   vKOwnerHousing[t], "Replacement value of owner-occupied housing capital."
-  vHhNetWorth[t], "Household net worth including owner-occupied housing capital."
 end
 
 # ============================================================================
@@ -53,9 +53,9 @@ function assign_data!(db)
   db[rHhDebtAdjustment] .= 0.2
 
   @assert (
-    0 < db[vGrossCapitalFormation[:Hh,t1]] <
-      db[pI_k[:structures,t1]] * db[qI_k_i[:structures,:iL,t1]]
-  ) "Household capital formation must fit within real-estate structures investment"
+    0 < db[vI_s[:Hh,t1]] <
+      db[pI_k[owner_housing_k,t1]] * db[qI_k_i[owner_housing_k,owner_housing_i,t1]]
+  ) "Household investment must fit within owner-housing capital formation"
   return nothing
 end
 
@@ -63,12 +63,11 @@ end
 # Starting values
 # ============================================================================
 function set_starting_values!(start_values)
-  owner_share = start_values[vGrossCapitalFormation[:Hh,t1]] /
-    (start_values[pI_k[:structures,t1]] * start_values[qI_k_i[:structures,:iL,t1]])
-  start_values[rOwnerHousing2RealEstateStructures] .= owner_share
-  start_values[qKOwnerHousing[t1]] = owner_share * start_values[qK_k_i[:structures,:iL,t1]]
-  start_values[vKOwnerHousing[t1]] = start_values[pI_k[:structures,t1]] * start_values[qKOwnerHousing[t1]]
-  start_values[vHhNetWorth[t1]] = start_values[vNetFinAssets[:Hh,t1]] + start_values[vKOwnerHousing[t1]]
+  owner_share = start_values[vI_s[:Hh,t1]] /
+    (start_values[pI_k[owner_housing_k,t1]] * start_values[qI_k_i[owner_housing_k,owner_housing_i,t1]])
+  start_values[rOwnerHousing2K] .= owner_share
+  start_values[qKOwnerHousing[t1]] = owner_share * start_values[qK_k_i[owner_housing_k,owner_housing_i,t1]]
+  start_values[vKOwnerHousing[t1]] = start_values[pI_k[owner_housing_k,t1]] * start_values[qKOwnerHousing[t1]]
   return nothing
 end
 
@@ -77,21 +76,19 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    # Owner-occupied housing stays within real-estate production and capital.
-    # Treat all household P.5 as housing until sector P.51g data are added.
-    vGrossCapitalFormation[s=[:Hh], t=t1:T],
-    vGrossCapitalFormation[s,t] == rOwnerHousing2RealEstateStructures[t] * vI_k_i[:structures,:iL,t]
+    # Owner-occupied housing stays within the owner-housing capital cell.
+    # Treat all household P.5 as housing.
+    vI_s[s=[:Hh], t=t1:T],
+    vI_s[s,t] == rOwnerHousing2K[t] * vI_k_i[owner_housing_k,owner_housing_i,t]
 
-    qKOwnerHousing[t=t1:T], qKOwnerHousing[t] == rOwnerHousing2RealEstateStructures[t] * qK_k_i[:structures,:iL,t]
-
-    vKOwnerHousing[t=t1:T], vKOwnerHousing[t] == pI_k[:structures,t] * qKOwnerHousing[t]
-    vHhNetWorth[t=t1:T], vHhNetWorth[t] == vNetFinAssets[:Hh,t] + vKOwnerHousing[t]
+    qKOwnerHousing[t=t1:T], qKOwnerHousing[t] == rOwnerHousing2K[t] * qK_k_i[owner_housing_k,owner_housing_i,t]
+    vKOwnerHousing[t=t1:T], vKOwnerHousing[t] == pI_k[owner_housing_k,t] * qKOwnerHousing[t]
 
     # Budget identity.
     vNetFinTransactions[s=[:Hh], t=t1:T],
     vNetFinTransactions[s,t] == vNetFinIncome[s,t] + vNetTransfers[s,t]
-                                + vHhWages[t] - vC[t] + vGrossOpSurplusMixedIncome[s,t] - vGrossCapitalFormation[s,t]
-                                - vNonFinancialNonProducedAssets[s,t]
+                              + vHhWages[t] - vC[t] + vGrossOpSurplusMixedIncome[s,t] - vI_s[s,t]
+                              - vNonFinancialNonProducedAssets[s,t]
 
     # Portfolio.
     # Equity assets have no transactions.
@@ -100,18 +97,12 @@ function define_equations()
     # Debt liabilities move part of the way to a fixed share of consumption.
     vFinPosition_f[s=[:Hh], f=[:Debt], al=[:Liab], t=t1:T],
     vFinPosition_f[s,f,al,t] == (1 - rHhDebtAdjustment[t]) * vFinPosition_f[s,f,al,t-1]/fv
-                                      + (rHhDebtAdjustment[t] * rHhDebtLiabilities2Consumption[t] * vC[t])
+                              + rHhDebtAdjustment[t] * rHhDebtLiabilities2Consumption[t] * vC[t]
 
     # Hh debt assets are residual given net financial assets.
     vFinPosition_f[s=[:Hh], f=[:Debt], al=[:Assets], t=t1:T],
     vNetFinAssets[s,t] == ∑(vFinPosition_f[s,f,:Assets,t] for f in fin_instrument)
                         - ∑(vFinPosition_f[s,f,:Liab,t] for f in fin_instrument)
-
-    @test_constraint("The owner-housing share must be nonnegative")
-    rOwnerHousing2RealEstateStructures[t=t1:T], rOwnerHousing2RealEstateStructures[t] >= 0
-
-    @test_constraint("The owner-housing share must not exceed one")
-    rOwnerHousing2RealEstateStructures[t=t1:T], 1 - rOwnerHousing2RealEstateStructures[t] >= 0
   end
 end
 
@@ -122,7 +113,7 @@ function define_calibration()
   block = define_equations()
 
   @endo_exo_swap! block begin
-    rOwnerHousing2RealEstateStructures[t1], vGrossCapitalFormation[:Hh,t1]
+    rOwnerHousing2K[t1], vI_s[:Hh,t1]
     rHhDebtLiabilities2Consumption[t1], vFinPosition_f[:Hh,:Debt,:Liab,t1]
   end
 

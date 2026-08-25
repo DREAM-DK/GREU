@@ -32,7 +32,7 @@ const vFinIncome_f_data = read_cells(sector_accounts_file, "vFinIncome_f")
 const vFinPosition_f_data = read_cells(sector_accounts_file, "vFinPosition_f")
 const vFinTransactions_f_data = read_cells(sector_accounts_file, "vFinTransactions_f")
 const vNetFinTransactions_data = read_cells(sector_accounts_file, "vNetFinTransactions")
-const vGrossCapitalFormation_data = read_cells(sector_accounts_file, "vGrossCapitalFormation")
+const vI_s_data = read_cells(sector_accounts_file, "vI_s")
 const vNonFinancialNonProducedAssets_data = read_cells(sector_accounts_file, "vNonFinancialNonProducedAssets")
 const vNetTransfers_data = read_cells(sector_accounts_file, "vNetTransfers")
 const vGrossOpSurplusMixedIncome_data = read_cells(sector_accounts_file, "vGrossOpSurplusMixedIncome")
@@ -78,7 +78,7 @@ const SectorAccountsTag = Tag(:SectorAccounts)
   vFinIncome_f[(s,f,al,t)=vFinPosition_f], "Property income received on assets or paid on liabilities by sector and instrument (D.4)."
 
   # Inputs for sector balances.
-  vGrossCapitalFormation[s=sector, t=t; s in calibration_year_axis(vGrossCapitalFormation_data)], "Gross capital formation by sector (P.5)."
+  vI_s[s=sector, t=t; s in calibration_year_axis(vI_s_data)], "Gross capital formation by sector (P.5). Households include NPISH."
   vNonFinancialNonProducedAssets[s=sector, t=t; s in calibration_year_axis(vNonFinancialNonProducedAssets_data)], "Net purchases of non-produced non-financial assets by sector (NP)."
   vNetTransfers[s=sector, t=t; s in calibration_year_axis(vNetTransfers_data)], "Net current and capital transfers received by sector (D.5+D.6+D.7+D.8+D.9)."
 
@@ -99,7 +99,7 @@ function assign_data!(db)
   fill_cells!(db, vFinPosition_f, vFinPosition_f_data)
   fill_cells!(db, vFinTransactions_f, vFinTransactions_f_data)
   fill_cells!(db, vNetFinTransactions, vNetFinTransactions_data)
-  fill_cells!(db, vGrossCapitalFormation, vGrossCapitalFormation_data)
+  fill_cells!(db, vI_s, vI_s_data)
   fill_cells!(db, vNonFinancialNonProducedAssets, vNonFinancialNonProducedAssets_data)
   fill_cells!(db, vNetTransfers, vNetTransfers_data)
   fill_cells!(db, vGrossOpSurplusMixedIncome, vGrossOpSurplusMixedIncome_data)
