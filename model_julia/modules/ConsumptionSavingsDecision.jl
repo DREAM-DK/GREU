@@ -115,47 +115,31 @@ function define_equations()
   return @block model begin
     # These resources match the household budget just before private consumption.
     vHhResources[t=t1:T],
-    vHhResources[t] == vNetFinIncome[:Hh,t]
-                       + vNetTransfers2sector[:Hh,t]
-                       + vHhWages[t]
-                       + vGrossOpSurplusMixedIncome[:Hh,t]
-                       - vGrossCapitalFormation[:Hh,t]
-                       - vNonFinancialNonProducedAssets[:Hh,t]
+    vHhResources[t] == (vNetFinIncome[:Hh,t] + vNetTransfers2sector[:Hh,t] + vHhWages[t]
+                       + vGrossOpSurplusMixedIncome[:Hh,t] - vGrossCapitalFormation[:Hh,t]
+                       - vNonFinancialNonProducedAssets[:Hh,t])
 
     qHhRealIncome[t=t1:T], pC[t] * qHhRealIncome[t] == vHhResources[t]
     qHhWealth[t=t1:T], pC[t] * qHhWealth[t] == vNetFinAssets[:Hh,t]
 
-    qHhHandToMouthConsumption[t=t1:T],
-    qHhHandToMouthConsumption[t] == rHhHandToMouth[t] * qHhRealIncome[t]
+    qHhHandToMouthConsumption[t=t1:T], qHhHandToMouthConsumption[t] == rHhHandToMouth[t] * qHhRealIncome[t]
 
-    qHhExternalHabit[t=t1:T],
-    qHhExternalHabit[t] == fHhExternalHabit[t] * qC[t-1]/fq
+    qHhExternalHabit[t=t1:T], qHhExternalHabit[t] == fHhExternalHabit[t] * qC[t-1]/fq
 
     qHhExcessReferenceConsumption[t=t1:T],
-    qHhExcessReferenceConsumption[t] == qC[t]
-                                               - qHhExternalHabit[t]
-                                               - qHhHandToMouthConsumption[t]
+    qHhExcessReferenceConsumption[t] == qC[t] - qHhExternalHabit[t] - qHhHandToMouthConsumption[t]
 
-    dHhUtility2dConsumption[t=t1:T],
-    dHhUtility2dConsumption[t] * qHhExcessReferenceConsumption[t]^eHhConsumption == 1
+    dHhUtility2dConsumption[t=t1:T], dHhUtility2dConsumption[t] * qHhExcessReferenceConsumption[t]^eHhConsumption == 1
 
-    dHhUtility2dWealth[t=t1:T],
-    dHhUtility2dWealth[t] * qHhWealth[t]^eHhWealth == fHhWealthPreference
+    dHhUtility2dWealth[t=t1:T], dHhUtility2dWealth[t] * qHhWealth[t]^eHhWealth == fHhWealthPreference
 
     # The required return is an exogenous hook. A later return module can set it.
     qC[t=t1:(T-1); T > t1],
-    1 == (
-      dHhUtility2dWealth[t] / dHhUtility2dConsumption[t]
-      + βHh * (1 + rHhRequiredReturn[t+1]) *
-        dHhUtility2dConsumption[t+1] / dHhUtility2dConsumption[t]
-    )
+    1 == (dHhUtility2dWealth[t] / dHhUtility2dConsumption[t]
+          + βHh * (1 + rHhRequiredReturn[t+1]) * dHhUtility2dConsumption[t+1] / dHhUtility2dConsumption[t])
 
     # Terminal marginal utility stays constant after T. The terminal return also stays constant.
-    qC[t=[T]],
-    1 == (
-      dHhUtility2dWealth[t] / dHhUtility2dConsumption[t]
-      + βHh * (1 + rHhRequiredReturn[t])
-    )
+    qC[t=[T]], 1 == (dHhUtility2dWealth[t] / dHhUtility2dConsumption[t] + βHh * (1 + rHhRequiredReturn[t]))
 
     # Post-solve bounds.
     @test_constraint("Real household income must be positive")

@@ -93,13 +93,13 @@ function define_equations()
 
     # Rest-of-world receipts record source gaps in calibration and close each forecast market.
     vFinIncome[s=[:RoW], f=fin_instrument, al=[:Assets], t=t1:T],
-    vFinIncome[s,f,al,t] == ∑(vFinIncome[s2,f,:Liab,t] for s2 in sector)
-                            - ∑(vFinIncome[s2,f,:Assets,t] for s2 in sector if s2 != :RoW)
-                            + jFinIncomeMarketGap_f[f,t]
+    vFinIncome[s,f,al,t] == (∑(vFinIncome[s2,f,:Liab,t] for s2 in sector)
+                             - ∑(vFinIncome[s2,f,:Assets,t] for s2 in sector if s2 != :RoW)
+                             + jFinIncomeMarketGap_f[f,t])
 
     @test_constraint("Financial income market gap matches the source discrepancy"; atol=1e-6, rtol=1e-6)
     vFinIncome[s=[:RoW], f=fin_instrument, al=[:Assets], t=t1:T],
-      ∑(vFinIncome[s2,f,:Assets,t] for s2 in sector) ==
+    ∑(vFinIncome[s2,f,:Assets,t] for s2 in sector) ==
       ∑(vFinIncome[s2,f,:Liab,t] for s2 in sector) + jFinIncomeMarketGap_f[f,t]
   end
 end

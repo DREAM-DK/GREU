@@ -81,15 +81,15 @@ function define_equations()
 
     qProd[n = node, i = industry, t = t1:T; haskey(parent, (n, i))],
     qProd[n, i, t] * pProd[n, i, t]^eProd[parent[n, i], i] ==
-      uProd[n, i, t] *
-      qProd[parent[n, i], i, t] *
-      pProd[parent[n, i], i, t]^eProd[parent[n, i], i]
+      uProd[n, i, t] * qProd[parent[n, i], i, t] * pProd[parent[n, i], i, t]^eProd[parent[n, i], i]
 
     pProd[n = node, i = industry, t = t1:T; haskey(production_nesting[i], n)],
-    pProd[n, i, t] * qProd[n, i, t] == ∑(pProd[child, i, t] * qProd[child, i, t] for child in production_nesting[i][n].children)
+    pProd[n, i, t] * qProd[n, i, t] ==
+      ∑(pProd[child, i, t] * qProd[child, i, t] for child in production_nesting[i][n].children)
 
     pY0[i = industry, t = t1:T],
-    pY0[i, t] * qTop2qY[i, t] * qY_i[i, t] == pProd[topNest[i], i, t] * qProd[topNest[i], i, t] + vProductionTax_i[i, t]
+    pY0[i, t] * qTop2qY[i, t] * qY_i[i, t] == pProd[topNest[i], i, t] * qProd[topNest[i], i, t]
+                                                   + vProductionTax_i[i, t]
   end
 end
 

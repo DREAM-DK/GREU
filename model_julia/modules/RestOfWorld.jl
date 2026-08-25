@@ -43,19 +43,16 @@ function define_equations()
   return @block model begin
     # Budget identity.
     vNetFinTransactions[s=[:RoW], t=t1:T],
-    vNetFinTransactions[s,t] == vM[t] - vX[t]
-                                 + vRoWPrimaryIncomeCurrentBalance[t]
-                                 - vNonFinancialNonProducedAssets[s,t]
+    vNetFinTransactions[s,t] == (vM[t] - vX[t] + vRoWPrimaryIncomeCurrentBalance[t]
+                                 - vNonFinancialNonProducedAssets[s,t])
 
     # Primary and current income balance.
     vRoWPrimaryIncomeCurrentBalance[t=t1:T],
-    vRoWPrimaryIncomeCurrentBalance[t] == vRoWNetWages[t]
-                                           + vNetFinIncome[:RoW,t]
-                                           + vRoWPrimaryIncomeCurrentBalanceOther[t]
+    vRoWPrimaryIncomeCurrentBalance[t] == (vRoWNetWages[t] + vNetFinIncome[:RoW,t]
+                                           + vRoWPrimaryIncomeCurrentBalanceOther[t])
 
     # Nonwage income closes net financial transactions across sectors.
-    vRoWPrimaryIncomeCurrentBalanceOther[t=t1:T],
-    ∑(vNetFinTransactions[s,t] for s in sector) == 0.0
+    vRoWPrimaryIncomeCurrentBalanceOther[t=t1:T], ∑(vNetFinTransactions[s,t] for s in sector) == 0.0
 
     # Portfolio.
     # Debt assets clear the debt market.
@@ -73,7 +70,8 @@ function define_equations()
 
     # Equity liabilities are a fixed share of domestic equity assets.
     vFinAL[s=[:RoW], f=[:Equity], al=[:Liab], t=t1:T],
-    vFinAL[s,f,al,t] == rRoWEquityLiabilities2DomesticEquityAssets[t] * ∑(vFinAL[s2,:Equity,:Assets,t] for s2 in sector if s2 != :RoW)
+    vFinAL[s,f,al,t] == rRoWEquityLiabilities2DomesticEquityAssets[t] *
+      ∑(vFinAL[s2,:Equity,:Assets,t] for s2 in sector if s2 != :RoW)
 
     # RoW equity assets clear the equity market.
     vFinAL[s=[:RoW], f=[:Equity], al=[:Assets], t=t1:T],

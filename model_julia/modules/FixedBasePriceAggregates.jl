@@ -66,11 +66,9 @@ function define_equations()
     pGDP[t=t1:T], pGDP[t] * qGDP[t] == vGDP[t]
 
     # Gross value added at basic prices.
-    vGVA[t=t1:T],
-    vGVA[t] == vY[t] - ∑(vPurchaserUse_p_u[p,i,t] for p in product, i in industry)
+    vGVA[t=t1:T], vGVA[t] == vY[t] - ∑(vPurchaserUse_p_u[p,i,t] for p in product, i in industry)
 
-    qGVA[t=t1:T],
-    qGVA[t] == qSupply_o[domestic,t] - ∑(qPurchaserUse_p_u[p,i,t] for p in product, i in industry)
+    qGVA[t=t1:T], qGVA[t] == qSupply_o[domestic,t] - ∑(qPurchaserUse_p_u[p,i,t] for p in product, i in industry)
 
     pGVA[t=t1:T], pGVA[t] * qGVA[t] == vGVA[t]
   end

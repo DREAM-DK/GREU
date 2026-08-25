@@ -96,11 +96,9 @@ function define_equations()
 
     # -- Government --
     # Gov neither buys nor sells equity; both equity positions follow revaluation only.
-    vFinAL[s=[:Gov], f=[:Equity], al=ass_liab, t=t1:T], 
-    vFinTransactions[s,f,al,t] == 0
+    vFinAL[s=[:Gov], f=[:Equity], al=ass_liab, t=t1:T], vFinTransactions[s,f,al,t] == 0
     # Gov keeps a constant level of debt instruments; assets follow revaluation only.
-    vFinAL[s=[:Gov], f=[:Debt], al=[:Assets], t=t1:T], 
-    vFinTransactions[s,f,al,t] == 0
+    vFinAL[s=[:Gov], f=[:Debt], al=[:Assets], t=t1:T], vFinTransactions[s,f,al,t] == 0
 
     # Gov debt liabilities are residual given net financial assets.
     vFinAL[s=[:Gov], f=[:Debt], al=[:Liab], t=t1:T],
@@ -108,24 +106,22 @@ function define_equations()
     
     # -- Households --
     # Equity assets and debt liabilities follow revaluation.
-    vFinAL[s=[:Hh], f=[:Equity], al=[:Assets], t=t1:T], 
-    vFinTransactions[s,f,al,t] == 0
+    vFinAL[s=[:Hh], f=[:Equity], al=[:Assets], t=t1:T], vFinTransactions[s,f,al,t] == 0
 
-    vFinAL[s=[:Hh], f=[:Debt], al=[:Liab], t=t1:T], 
-    vFinTransactions[s,f,al,t] == 0
+    vFinAL[s=[:Hh], f=[:Debt], al=[:Liab], t=t1:T], vFinTransactions[s,f,al,t] == 0
 
     # Hh debt assets are residual given net financial assets.
-    vFinAL[s=[:Hh], f=[:Debt], al=[:Assets], t=t1:T], 
+    vFinAL[s=[:Hh], f=[:Debt], al=[:Assets], t=t1:T],
     vNetFinAssets[s,t] == vFinAssets_al[s,:Assets,t] - vFinAssets_al[s,:Liab,t]
 
     # -- Financial corporations --
     # Equity assets follow revaluation.
-    vFinAL[s=[:FinCorp], f=[:Equity], al=[:Assets], t=t1:T],
-    vFinTransactions[s,f,al,t] == 0
+    vFinAL[s=[:FinCorp], f=[:Equity], al=[:Assets], t=t1:T], vFinTransactions[s,f,al,t] == 0
 
     # Debt assets are a fixed fraction of the aggregate debt liabilities of domestic sectors.
     vFinAL[s=[:FinCorp], f=[:Debt], al=[:Assets], t=t1:T],
-    vFinAL[s,f,al,t] == rFinCorpDebtAssets2DomesticDebtLiabilities[t] * ∑(vFinAL[s2,:Debt,:Liab,t] for s2 in sector if s2 in (:Hh, :NonFinCorp, :Gov))
+    vFinAL[s,f,al,t] == rFinCorpDebtAssets2DomesticDebtLiabilities[t] *
+      ∑(vFinAL[s2,:Debt,:Liab,t] for s2 in sector if s2 in (:Hh, :NonFinCorp, :Gov))
 
     # Debt liabilities are a fixed fraction of equity liabilities (shareholder equity).
     vFinAL[s=[:FinCorp], f=[:Debt], al=[:Liab], t=t1:T],
@@ -157,7 +153,8 @@ function define_equations()
     # -- Rest of World -- 
     # Debt assets are a fixed fraction of total domestic debt liabilities.
     vFinAL[s=[:RoW], f=[:Debt], al=[:Assets], t=t1:T],
-    vFinAL[s,f,al,t] == rRoWDebtAssets2TotalDebtLiabilities[t] * ∑(vFinAL[s2,:Debt,:Liab,t] for s2 in sector if s2 != :RoW)
+    vFinAL[s,f,al,t] == rRoWDebtAssets2TotalDebtLiabilities[t] *
+      ∑(vFinAL[s2,:Debt,:Liab,t] for s2 in sector if s2 != :RoW)
 
     # Debt liabilities: residual so that net debt instruments sum to zero across sectors.
     vFinAL[s=[:RoW], f=[:Debt], al=[:Liab], t=t1:T],
@@ -165,7 +162,8 @@ function define_equations()
     
     # Equity assets are a fixed fraction of domestic equity liabilities (Hh and NonFinCorp).
     vFinAL[s=[:RoW], f=[:Equity], al=[:Assets], t=t1:T],
-    vFinAL[s,f,al,t] == rRoWEquityAssets2DomesticEquityLiabilities[t] * ∑(vFinAL[s2,:Equity,:Liab,t] for s2 in sector if s2 in (:Hh, :NonFinCorp))
+    vFinAL[s,f,al,t] == rRoWEquityAssets2DomesticEquityLiabilities[t] *
+      ∑(vFinAL[s2,:Equity,:Liab,t] for s2 in sector if s2 in (:Hh, :NonFinCorp))
 
     # Debt liabilities: residual so that net debt instruments sum to zero across sectors.
     vFinAL[s=[:RoW], f=[:Equity], al=[:Liab], t=t1:T],

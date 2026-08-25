@@ -40,8 +40,7 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    pY_p_i[(p,i,t) in keys(pY_p_i); t in t1:T],
-    pY_p_i[p,i,t] == (1 + rMarkup_i[i,t]) * pY0[i,t]
+    pY_p_i[(p,i,t) in keys(pY_p_i); t in t1:T], pY_p_i[p,i,t] == (1 + rMarkup_i[i,t]) * pY0[i,t]
   end
 end
 

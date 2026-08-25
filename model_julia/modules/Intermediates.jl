@@ -75,8 +75,7 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    qM_m_i[m=intermediate_type, i=industry, t=t1:T],
-    qM_m_i[m,i,t] == qProd[m,i,t] / pM_m_i[m,i,t1]
+    qM_m_i[m=intermediate_type, i=industry, t=t1:T], qM_m_i[m,i,t] == qProd[m,i,t] / pM_m_i[m,i,t1]
 
     qM_p_m_i[p=product, m=intermediate_type, i=industry, t=t1:T],
     qM_p_m_i[p,m,i,t] == rIntermediateProductShare[p,m,i,t] * qM_m_i[m,i,t]
@@ -86,8 +85,7 @@ function define_equations()
     pM_m_i[m=intermediate_type, i=industry, t=t1:T],
     pM_m_i[m,i,t] == ∑(rIntermediateProductShare[p,m,i,t] * pPurchaserUse_p_u[p,i,t] for p in product)
 
-    pProd[m=intermediate_type, i=industry, t=t1:T],
-    pProd[m,i,t] == pM_m_i[m,i,t] / pM_m_i[m,i,t1]
+    pProd[m=intermediate_type, i=industry, t=t1:T], pProd[m,i,t] == pM_m_i[m,i,t] / pM_m_i[m,i,t1]
   end
 end
 

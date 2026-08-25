@@ -111,44 +111,36 @@ end
 function define_equations()
   return @block model begin
     # One-year time to build. Installed stock sets the shadow price.
-    pProd[k=capital_type, i=industry, t=t1:T],
-    qProd[k,i,t] == pK_k_i[k,i,t1] * qK_k_i[k,i,t-1]/fq
+    pProd[k=capital_type, i=industry, t=t1:T], qProd[k,i,t] == pK_k_i[k,i,t1] * qK_k_i[k,i,t-1]/fq
 
     # Expected user cost sets lagged capital. A positive shock raises investment.
     qK_k_i[k=capital_type, i=industry, t=t1:(T-1)],
     pProd[k,i,t+1] * pK_k_i[k,i,t1] == pK_k_i[k,i,t+1] - pInvestmentShock_k_i[k,i,t+1]
 
     # Terminal condition
-    qK_k_i[k=capital_type, i=industry, t=T; T > t1],
-    qK_k_i[k,i,t] == qK_k_i[k,i,t-1]
+    qK_k_i[k=capital_type, i=industry, t=T; T > t1], qK_k_i[k,i,t] == qK_k_i[k,i,t-1]
 
     # Capital accumulation
     qI_k_i[k=capital_type, i=industry, t=t1:T],
     qI_k_i[k,i,t] == qK_k_i[k,i,t] - (1 - rKDepr_k_i[k,i,t]) * qK_k_i[k,i,t-1]/fq
 
-    qI_k[k=capital_type, t=t1:T],
-    qI_k[k,t] == ∑(qI_k_i[k,i,t] for i in industry)
+    qI_k[k=capital_type, t=t1:T], qI_k[k,t] == ∑(qI_k_i[k,i,t] for i in industry)
 
     # Product split.
-    qI_p_k[p=product, k=capital_type, t=t1:T],
-    qI_p_k[p,k,t] == rInvestmentProductShare[p,k,t] * qI_k[k,t]
+    qI_p_k[p=product, k=capital_type, t=t1:T], qI_p_k[p,k,t] == rInvestmentProductShare[p,k,t] * qI_k[k,t]
 
     qI_p[(p,t) in keys(qI_p); t in t1:T], qI_p[p,t] == ∑(qI_p_k[p,k,t] for k in capital_type)
 
     qI[t=t1:T], qI[t] == ∑(qI_k[k,t] for k in capital_type)
 
-    pI_k[k=capital_type, t=t1:T],
-    pI_k[k,t] * qI_k[k,t] == ∑(pPurchaserUse_p_u[p,:K,t] * qI_p_k[p,k,t] for p in product)
+    pI_k[k=capital_type, t=t1:T], pI_k[k,t] * qI_k[k,t] == ∑(pPurchaserUse_p_u[p,:K,t] * qI_p_k[p,k,t] for p in product)
 
-    vI_k_i[k=capital_type, i=industry, t=t1:T],
-    vI_k_i[k,i,t] == pI_k[k,t] * qI_k_i[k,i,t]
+    vI_k_i[k=capital_type, i=industry, t=t1:T], vI_k_i[k,i,t] == pI_k[k,t] * qI_k_i[k,i,t]
 
     # Lagged investment sets the user cost of capital installed for this period.
     pK_k_i[k=capital_type, i=industry, t=t1:T],
-    pK_k_i[k,i,t] == (
-      pI_k[k,t-1] + pMarginalCapitalTax_k_i[k,i,t-1]
-      - (1 - rKDepr_k_i[k,i,t]) / (1 + rHurdleRate_i[i,t]) *
-        (pI_k[k,t]*fp - pMarginalCapitalTax_k_i[k,i,t]*fp)
+    pK_k_i[k,i,t] == (pI_k[k,t-1] + pMarginalCapitalTax_k_i[k,i,t-1]
+      - (1 - rKDepr_k_i[k,i,t]) / (1 + rHurdleRate_i[i,t]) * (pI_k[k,t]*fp - pMarginalCapitalTax_k_i[k,i,t]*fp)
       + pKAdjCost_k_i[k,i,t])
 
     @test_constraint("Capital investment values sum to fixed investment"; rtol = 1e-3)

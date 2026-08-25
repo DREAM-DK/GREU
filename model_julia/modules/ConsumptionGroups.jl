@@ -165,33 +165,24 @@ function define_equations()
   return @block model begin
     # CES quantity demand from the root.
     qCNode_a[a=consumption_nest_children[top_consumption_nest], t=t1:T],
-    qCNode_a[a,t] / qC[t] *
-      (pCNode_a[a,t] / pC[t])^eCNest_n[top_consumption_nest] == uCNode_a[a,t]
+    qCNode_a[a,t] / qC[t] * (pCNode_a[a,t] / pC[t])^eCNest_n[top_consumption_nest] == uCNode_a[a,t]
 
     # CES quantity demand from each inner nest.
     qCNode_a[a=consumption_node, t=t1:T; consumption_parent[a] in inner_consumption_nest],
     qCNode_a[a,t] / qCNode_a[consumption_parent[a],t] *
-      (pCNode_a[a,t] / pCNode_a[consumption_parent[a],t])^eCNest_n[consumption_parent[a]] ==
-        uCNode_a[a,t]
+      (pCNode_a[a,t] / pCNode_a[consumption_parent[a],t])^eCNest_n[consumption_parent[a]] == uCNode_a[a,t]
 
     # Each nest value equals the value of its children.
     pC[t=t1:T],
-    pC[t] == ∑(
-      pCNode_a[a,t] * qCNode_a[a,t]
-      for a in consumption_nest_children[top_consumption_nest]
-    ) / qC[t]
+    pC[t] == ∑(pCNode_a[a,t] * qCNode_a[a,t] for a in consumption_nest_children[top_consumption_nest]) / qC[t]
 
     pCNode_a[n=inner_consumption_nest, t=t1:T],
-    pCNode_a[n,t] == ∑(
-      pCNode_a[a,t] * qCNode_a[a,t]
-      for a in consumption_nest_children[n]
-    ) / qCNode_a[n,t]
+    pCNode_a[n,t] == ∑(pCNode_a[a,t] * qCNode_a[a,t] for a in consumption_nest_children[n]) / qCNode_a[n,t]
 
     # A leaf price values its fixed resident product bundle.
     pCNode_a[g=consumption_group, t=t1:T],
     pCNode_a[g,t] == ∑(
-      pPurchaserUse_p_u[p,:C,t] * (qC_p[p,t] - qCTourist_p[p,t])
-      for p in active_product_by_consumption_group[g]
+      pPurchaserUse_p_u[p,:C,t] * (qC_p[p,t] - qCTourist_p[p,t]) for p in active_product_by_consumption_group[g]
     ) / qCNode_a[g,t]
 
     # Tourist demand uses a fixed product split outside the resident CES tree.
@@ -200,10 +191,7 @@ function define_equations()
     (qC_p[p,t] - qCTourist_p[p,t]) / qCNode_a[consumption_group_by_product[p],t] == uCProduct_p[p,t]
 
     vCTourist[t=t1:T],
-    vCTourist[t] / qCTourist[t] == ∑(
-      pPurchaserUse_p_u[p,:C,t] * uCTourist_p[p,t]
-      for p in consumption_product
-    )
+    vCTourist[t] / qCTourist[t] == ∑(pPurchaserUse_p_u[p,:C,t] * uCTourist_p[p,t] for p in consumption_product)
 
     # Post-solve identities and bounds.
     @test_constraint("Tourist product shares must sum to one"; atol=1e-10, rtol=0)

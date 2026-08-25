@@ -106,33 +106,25 @@ function define_equations()
   return @block model begin
     # Investors receive dividends and buy-back cash and fund new equity issues.
     vFirmEquity_s[s=corporation_sector, t=t1:(T-1); T > t1],
-    vFirmEquity_s[s,t] * (1 + rFirmRequiredReturn_s[s]) == fv * (
-      vFinIncome[s,:Equity,:Liab,t+1]
-      - vFinTransactions[s,:Equity,:Liab,t+1]
-      + vFirmEquity_s[s,t+1]
-    )
+    vFirmEquity_s[s,t] * (1 + rFirmRequiredReturn_s[s]) == fv * (vFinIncome[s,:Equity,:Liab,t+1]
+      - vFinTransactions[s,:Equity,:Liab,t+1] + vFirmEquity_s[s,t+1])
 
     # Constant adjusted payouts after T give the terminal perpetuity value.
     # Leave the calibration-year equity value exogenous in a static model.
     vFirmEquity_s[s=corporation_sector, t=[T]; T > t1],
-    vFirmEquity_s[s,t] * (1 + rFirmRequiredReturn_s[s] - fv) == fv * (
-      vFinIncome[s,:Equity,:Liab,t]
-      - vFinTransactions[s,:Equity,:Liab,t]
-    )
+    vFirmEquity_s[s,t] * (1 + rFirmRequiredReturn_s[s] - fv) == fv * (vFinIncome[s,:Equity,:Liab,t]
+      - vFinTransactions[s,:Equity,:Liab,t])
 
     # The DCF value sets the issuer stock through its revaluation flow.
-    vFinReval[s=corporation_sector, f=[:Equity], al=[:Liab], t=t1:T],
-    vFinAL[s,f,al,t] == vFirmEquity_s[s,t]
+    vFinReval[s=corporation_sector, f=[:Equity], al=[:Liab], t=t1:T], vFinAL[s,f,al,t] == vFirmEquity_s[s,t]
 
     # Financial corporations keep a fixed ownership position in non-financial corporations.
     vFinReval[s=[:FinCorp], f=[:Equity], al=[:Assets], t=t1:T],
-    vFinReval[s,f,al,t] == rEquityRevalAllocation_s[s,t] *
-      vFinReval[:NonFinCorp,f,:Liab,t]
+    vFinReval[s,f,al,t] == rEquityRevalAllocation_s[s,t] * vFinReval[:NonFinCorp,f,:Liab,t]
 
     # Fixed allocation rates set other domestic holder revaluations.
     vFinReval[s=aggregate_equity_reval_sector, f=[:Equity], al=[:Assets], t=t1:T],
-    vFinReval[s,f,al,t] == rEquityRevalAllocation_s[s,t] *
-      ∑(vFinReval[s2,f,:Liab,t] for s2 in equity_liability_sector)
+    vFinReval[s,f,al,t] == rEquityRevalAllocation_s[s,t] * ∑(vFinReval[s2,f,:Liab,t] for s2 in equity_liability_sector)
 
     # Rest-of-world holder revaluation clears the equity market.
     vFinReval[s=[:RoW], f=[:Equity], al=[:Assets], t=t1:T],
@@ -144,8 +136,7 @@ function define_equations()
     vFirmEquity_s[s=corporation_sector, t=t1:T], vFirmEquity_s[s,t] >= 1e-12
 
     @test_constraint("Required equity returns must exceed long-run nominal growth")
-    rFirmRequiredReturn_s[s=corporation_sector; T > t1],
-    rFirmRequiredReturn_s[s] - (fv-1) >= 1e-12
+    rFirmRequiredReturn_s[s=corporation_sector; T > t1], rFirmRequiredReturn_s[s] - (fv-1) >= 1e-12
   end
 end
 
