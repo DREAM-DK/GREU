@@ -1,7 +1,7 @@
 # Populate household entries of the SectorAccounts interface.
-# Keep the household budget identity and simple portfolio rules.
-# Households include NPISH. Allocate owner-occupied housing within
-# owner_housing_k and owner_housing_i.
+# Keep the household budget identity, simple portfolio rules, and the
+# marginal return on extra saving. Households include NPISH. Allocate
+# owner-occupied housing within owner_housing_k and owner_housing_i.
 
 module Households
 
@@ -16,6 +16,7 @@ import ..SectorAccounts:
   fin_instrument,
   vNetFinTransactions,
   vNetFinIncome,
+  vFinIncome_f,
   vNetTransfers,
   vI_s,
   vGrossOpSurplusMixedIncome,
@@ -31,6 +32,10 @@ import ..Tags: ForecastConstant
 # ============================================================================
 
 const HouseholdsTag = Tag(:Households)
+
+@variables model :: HouseholdsTag begin
+  mHhReturn[t], "Marginal household return, equal to the yield on household debt assets."
+end
 
 @variables model :: (HouseholdsTag, ForecastConstant) begin
   rHhDebtLiabilities2Consumption[t], "Target household debt liability ratio relative to consumption."
@@ -63,11 +68,6 @@ end
 # Starting values
 # ============================================================================
 function set_starting_values!(start_values)
-  owner_share = start_values[vI_s[:Hh,t1]] /
-    (start_values[pI_k[owner_housing_k,t1]] * start_values[qI_k_i[owner_housing_k,owner_housing_i,t1]])
-  start_values[rOwnerHousing2K] .= owner_share
-  start_values[qKOwnerHousing[t1]] = owner_share * start_values[qK_k_i[owner_housing_k,owner_housing_i,t1]]
-  start_values[vKOwnerHousing[t1]] = start_values[pI_k[owner_housing_k,t1]] * start_values[qKOwnerHousing[t1]]
   return nothing
 end
 
@@ -103,6 +103,10 @@ function define_equations()
     vFinPosition_f[s=[:Hh], f=[:Debt], al=[:Assets], t=t1:T],
     vNetFinAssets[s,t] == ∑(vFinPosition_f[s,f,:Assets,t] for f in fin_instrument)
                         - ∑(vFinPosition_f[s,f,:Liab,t] for f in fin_instrument)
+
+    # Extra household saving is held in debt assets.
+    mHhReturn[t=t1:T],
+    mHhReturn[t] * vFinPosition_f[:Hh,:Debt,:Assets,t-1]/fv == vFinIncome_f[:Hh,:Debt,:Assets,t]
   end
 end
 
