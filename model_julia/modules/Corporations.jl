@@ -4,7 +4,7 @@
 module Corporations
 
 using SquareModels
-import ..Capital: vI_k_i
+import ..Capital: pI_k, qK_k_i, vI_k_i
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutput: industry, product, vPurchaserUse_p_u, vY_i
 import ..Labor: vWages_i
@@ -40,11 +40,10 @@ const non_fin_corp_industry = setdiff(industry, [fin_corp_industry; public_indus
 @assert public_industry ⊆ industry "Each public industry must be in the input-output data"
 
 @variables model :: (CorporationsTag, ForecastConstant) begin
-  rFinCorpDebtAssets2DomesticDebtLiabilities[t], "FinCorp debt asset ratio: debt assets relative to domestic debt liabilities of Hh, NonFinCorp, and Gov."
-  rFinCorpDebtLiabilities2EquityLiabilities[t], "FinCorp capital structure: debt liabilities relative to own equity liabilities."
+  rFinCorpDebtAssets2DebtLiabilities[t], "FinCorp share of total debt liabilities held as debt assets."
   rNonFinCorpEquityAssets2EquityLiabilities[t], "NonFinCorp equity asset ratio: equity assets relative to own equity liabilities."
   rNonFinCorpDebtAssets2Expenses[t], "NonFinCorp debt asset ratio: debt assets relative to total expenses."
-  rNonFinCorpDebtLiabilities2EquityLiabilities[t], "NonFinCorp capital structure: debt liabilities relative to own equity liabilities."
+  rNonFinCorpDebtLiabilities2Capital[t], "NonFinCorp debt liability ratio relative to the replacement value of capital."
   fGrossOpSurplus_s[s=corporation_sector, t=t], "Factor from modeled industry operating surplus to sector gross operating surplus."
   fGrossCapitalFormation_s[s=corporation_sector, t=t], "Factor from modeled industry investment to sector gross capital formation."
 end
@@ -112,16 +111,17 @@ function define_equations()
     vFinAL[s=[:FinCorp], f=[:Equity], al=[:Assets], t=t1:T],
     vFinTransactions[s,f,al,t] == 0
 
-    # Debt assets are a fixed fraction of the aggregate debt liabilities of domestic sectors.
+    # Debt assets are a fixed share of all debt liabilities, including interbank liabilities.
     vFinAL[s=[:FinCorp], f=[:Debt], al=[:Assets], t=t1:T],
-    vFinAL[s,f,al,t] == rFinCorpDebtAssets2DomesticDebtLiabilities[t] * ∑(vFinAL[s2,:Debt,:Liab,t] for s2 in sector if s2 in (:Hh, :NonFinCorp, :Gov))
+    vFinAL[s,f,al,t] == rFinCorpDebtAssets2DebtLiabilities[t] *
+      ∑(vFinAL[s2,:Debt,:Liab,t] for s2 in sector)
 
-    # Debt liabilities are a fixed fraction of equity liabilities (shareholder equity).
-    vFinAL[s=[:FinCorp], f=[:Debt], al=[:Liab], t=t1:T],
-    vFinAL[s,f,al,t] == rFinCorpDebtLiabilities2EquityLiabilities[t] * vFinAL[:FinCorp,:Equity,:Liab,t]
-
-    # Equity liabilities are residual given net financial assets.
+    # Equity liabilities have no issues or buy-backs.
     vFinAL[s=[:FinCorp], f=[:Equity], al=[:Liab], t=t1:T],
+    vFinTransactions[s,f,al,t] == 0
+
+    # Debt liabilities are residual given net financial assets.
+    vFinAL[s=[:FinCorp], f=[:Debt], al=[:Liab], t=t1:T],
     vNetFinAssets[s,t] == vFinAssets_al[s,:Assets,t] - vFinAssets_al[s,:Liab,t]
 
     # Non-financial corporations.
@@ -133,9 +133,10 @@ function define_equations()
     vFinAL[s=[:NonFinCorp], f=[:Debt], al=[:Assets], t=t1:T],
     vFinAL[s,f,al,t] == rNonFinCorpDebtAssets2Expenses[t] * vNonFinCorpExpenses[t]
 
-    # Debt liabilities are a fixed fraction of equity liabilities.
+    # Debt liabilities are a fixed fraction of the replacement value of capital.
     vFinAL[s=[:NonFinCorp], f=[:Debt], al=[:Liab], t=t1:T],
-    vFinAL[s,f,al,t] == rNonFinCorpDebtLiabilities2EquityLiabilities[t] * vFinAL[:NonFinCorp,:Equity,:Liab,t]
+    vFinAL[s,f,al,t] == rNonFinCorpDebtLiabilities2Capital[t] *
+      ∑(pI_k[k,t] * qK_k_i[k,i,t] for k in capital_type, i in non_fin_corp_industry)
 
     # Equity liabilities are residual given net financial assets.
     vFinAL[s=[:NonFinCorp], f=[:Equity], al=[:Liab], t=t1:T],
@@ -154,11 +155,10 @@ function define_calibration()
     fGrossOpSurplus_s[s=corporation_sector, t=[t1]], vGrossOpSurplusMixedIncome[s=corporation_sector, t=[t1]]
     fGrossCapitalFormation_s[s=corporation_sector, t=[t1]], vGrossCapitalFormation[s=corporation_sector, t=[t1]]
 
-    rFinCorpDebtAssets2DomesticDebtLiabilities[t1], vFinAL[:FinCorp,:Debt,:Assets,t1]
-    rFinCorpDebtLiabilities2EquityLiabilities[t1], vFinAL[:FinCorp,:Debt,:Liab,t1]
+    rFinCorpDebtAssets2DebtLiabilities[t1], vFinAL[:FinCorp,:Debt,:Assets,t1]
     rNonFinCorpEquityAssets2EquityLiabilities[t1], vFinAL[:NonFinCorp,:Equity,:Assets,t1]
     rNonFinCorpDebtAssets2Expenses[t1], vFinAL[:NonFinCorp,:Debt,:Assets,t1]
-    rNonFinCorpDebtLiabilities2EquityLiabilities[t1], vFinAL[:NonFinCorp,:Debt,:Liab,t1]
+    rNonFinCorpDebtLiabilities2Capital[t1], vFinAL[:NonFinCorp,:Debt,:Liab,t1]
   end
 
   return block

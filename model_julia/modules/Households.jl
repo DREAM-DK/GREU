@@ -5,7 +5,7 @@
 module Households
 
 using SquareModels
-import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
+import ..GrowthInflationAdjustment: fv
 import ..InputOutput: vC
 import ..Labor: vHhWages
 import ..model
@@ -22,11 +22,24 @@ import ..SectorAccounts:
   vNetFinAssets,
   vFinAssets_al
 import ..Time: t, t1, T
+import ..Tags: ForecastConstant
+
+# ============================================================================
+# Variables
+# ============================================================================
+
+const HouseholdsTag = Tag(:Households)
+
+@variables model :: (HouseholdsTag, ForecastConstant) begin
+  rHhDebtLiabilities2Consumption[t], "Target household debt liability ratio relative to consumption."
+  rHhDebtAdjustment[t], "Annual household debt adjustment rate."
+end
 
 # ============================================================================
 # Assign data
 # ============================================================================
 function assign_data!(db)
+  db[rHhDebtAdjustment] .= 0.2
   return nothing
 end
 
@@ -46,12 +59,14 @@ function define_equations()
                                  - vNonFinancialNonProducedAssets[s,t]
 
     # Portfolio.
-    # Equity assets and debt liabilities follow revaluation.
+    # Equity assets have no transactions.
     vFinAL[s=[:Hh], f=[:Equity], al=[:Assets], t=t1:T], 
     vFinTransactions[s,f,al,t] == 0
 
+    # Debt liabilities move part of the way to a fixed share of consumption.
     vFinAL[s=[:Hh], f=[:Debt], al=[:Liab], t=t1:T], 
-    vFinTransactions[s,f,al,t] == 0
+    vFinAL[s,f,al,t] == (1 - rHhDebtAdjustment[t]) * vFinAL[s,f,al,t-1]/fv
+                          + (rHhDebtAdjustment[t] * rHhDebtLiabilities2Consumption[t] * vC[t])
 
     # Hh debt assets are residual given net financial assets.
     vFinAL[s=[:Hh], f=[:Debt], al=[:Assets], t=t1:T], 
@@ -63,7 +78,13 @@ end
 # Calibration
 # ============================================================================
 function define_calibration()
-  return define_equations()
+  block = define_equations()
+
+  @endo_exo_swap! block begin
+    rHhDebtLiabilities2Consumption[t1], vFinAL[:Hh,:Debt,:Liab,t1]
+  end
+
+  return block
 end
 
 end # module

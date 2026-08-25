@@ -25,7 +25,7 @@ import ..Tags: ForecastConstant
 const RestOfWorldTag = Tag(:RestOfWorld)
 
 @variables model :: (RestOfWorldTag, ForecastConstant) begin
-  rRoWDebtAssets2TotalDebtLiabilities[t], "RoW debt asset ratio: RoW debt assets relative to total domestic debt liabilities."
+  rRoWDebtLiabilities2FinCorpDebtAssets[t], "RoW debt liability ratio relative to FinCorp debt assets."
   rRoWEquityLiabilities2DomesticEquityAssets[t], "RoW equity liability ratio: RoW equity liabilities relative to total domestic equity assets."
 end
 
@@ -58,11 +58,16 @@ function define_equations()
     ∑(vNetFinTransactions[s,t] for s in sector) == 0.0
 
     # Portfolio.
-    # Debt assets are a fixed share of domestic debt liabilities.
+    # Debt assets clear the debt market.
     vFinAL[s=[:RoW], f=[:Debt], al=[:Assets], t=t1:T],
-    vFinAL[s,f,al,t] == rRoWDebtAssets2TotalDebtLiabilities[t] * ∑(vFinAL[s2,:Debt,:Liab,t] for s2 in sector if s2 != :RoW)
+    vFinAL[s,f,al,t] == ∑(vFinAL[s2,:Debt,:Liab,t] for s2 in sector)
+                         - ∑(vFinAL[s2,:Debt,:Assets,t] for s2 in sector if s2 != :RoW)
 
-    # RoW debt liabilities clear the debt market.
+    # Debt liabilities are a fixed share of FinCorp debt assets.
+    vFinAL[s=[:RoW], f=[:Debt], al=[:Liab], t=t1:T],
+    vFinAL[s,f,al,t] == rRoWDebtLiabilities2FinCorpDebtAssets[t] * vFinAL[:FinCorp,:Debt,:Assets,t]
+
+    @test_constraint("Debt assets equal debt liabilities"; atol=2.0, rtol=1e-6)
     vFinAL[s=[:RoW], f=[:Debt], al=[:Liab], t=t1:T],
     ∑(vFinAL[s2,:Debt,:Assets,t] for s2 in sector) == ∑(vFinAL[s2,:Debt,:Liab,t] for s2 in sector)
 
@@ -85,7 +90,7 @@ function define_calibration()
   # At t1, swap each ratio endogenous and the corresponding vFinAL cell exogenous,
   # so calibration solves for the ratio implied by observed balance-sheet data.
   @endo_exo_swap! block begin
-    rRoWDebtAssets2TotalDebtLiabilities[t1], vFinAL[:RoW,:Debt,:Assets,t1]
+    rRoWDebtLiabilities2FinCorpDebtAssets[t1], vFinAL[:RoW,:Debt,:Liab,t1]
     rRoWEquityLiabilities2DomesticEquityAssets[t1], vFinAL[:RoW,:Equity,:Liab,t1]
   end
 

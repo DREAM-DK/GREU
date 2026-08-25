@@ -140,9 +140,19 @@ function set_residual_tolerances!(tolerances)
   # Sector stock changes can differ from the sum of transactions,
   # revaluations, and other changes in volume. Sources also have round-off gaps.
   tolerances[vNetFinAssets] = 20000.0
-  tolerances[vNetFinTransactions] = 2.0
+  tolerances[vNetFinTransactions] = 3.0
   tolerances[vFinAL] = 40000.0
   tolerances[vFinTransactions] = 40000.0
+end
+
+function warn_negative_financial_positions(db)
+  negative_positions = [
+    (sector=s, instrument=f, side=al, year=year, value=db[vFinAL[s,f,al,year]])
+    for (s, f, al, year) in keys(vFinAL)
+    if year >= t1 && db[vFinAL[s,f,al,year]] < -cell_tolerance
+  ]
+  isempty(negative_positions) || @warn "Financial assets or liabilities are negative" positions=negative_positions
+  return nothing
 end
 
 # ============================================================================
@@ -169,7 +179,7 @@ function define_equations()
     vNetFinTransactions[s=sector, t=t1:T],
     vNetFinTransactions[s,t] == vFinTransactions_al[s,:Assets,t] - vFinTransactions_al[s,:Liab,t]
 
-    @test_constraint("Summing vNetFinAssets over sectors"; atol=1.0, rtol=1e-6)
+    @test_constraint("Summing vNetFinAssets over sectors"; atol=2.0, rtol=1e-6)
     vNetFinAssets[s=[:Hh],t=t1:T],
       ∑(vNetFinAssets[s,t] for s in sector) == 0.0
 

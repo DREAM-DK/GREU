@@ -386,6 +386,353 @@ Splitting net positions into assets and liabilities is practical,
  the equity liability of the rest-of-the-world equals the total foreign equity owned by domestic sectors.
 \end_layout
 
+\begin_layout Subsection
+Financial stocks and portfolio closure
+\end_layout
+
+\begin_layout Standard
+For each sector,
+ let
+\begin_inset Formula $A_{s}^{d}$
+\end_inset
+
+ and
+\begin_inset Formula $L_{s}^{d}$
+\end_inset
+
+ be debt assets and liabilities.
+ Let
+\begin_inset Formula $A_{s}^{e}$
+\end_inset
+
+ and
+\begin_inset Formula $L_{s}^{e}$
+\end_inset
+
+ be equity assets and liabilities.
+ Net financial assets are
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+N_{s,t}=A_{s,t}^{d}+A_{s,t}^{e}-L_{s,t}^{d}-L_{s,t}^{e}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Each financial stock follows the same stock-flow identity:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+X_{s,t}^{f,a}=\frac{X_{s,t-1}^{f,a}}{fv}+F_{s,t}^{f,a}+R_{s,t}^{f,a}+K_{s,t}^{f,a}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Here,
+\begin_inset Formula $F$
+\end_inset
+
+ is a financial transaction,
+\begin_inset Formula $R$
+\end_inset
+
+ is a revaluation,
+ and
+\begin_inset Formula $K$
+\end_inset
+
+ is another change in volume.
+ A zero transaction keeps the number of claims fixed.
+ Revaluation and other volume changes can still change the stock value.
+ A sector budget determines the change in net financial assets.
+ The portfolio equations below split this change across the four positions.
+\end_layout
+
+\begin_layout Subsubsection
+Households
+\end_layout
+
+\begin_layout Standard
+Household debt liabilities move part of the way to a fixed share of household consumption:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+L_{H,t}^{d}=(1-\lambda _{H})\frac{L_{H,t-1}^{d}}{fv}+\lambda _{H}\mu _{H}^{d}C_{t},\qquad 0<\lambda _{H}\leq 1.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The target ratio
+\begin_inset Formula $\mu _{H}^{d}$
+\end_inset
+
+ is constant in the forecast.
+ The adjustment rate
+\begin_inset Formula $\lambda _{H}$
+\end_inset
+
+ is 0.2 per year by default.
+ Household equity assets have zero transactions.
+ Debt assets close the household net financial asset identity:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+A_{H,t}^{d}=N_{H,t}-A_{H,t}^{e}+L_{H,t}^{d}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Households have no equity liability in the model.
+\end_layout
+
+\begin_layout Subsubsection
+Government
+\end_layout
+
+\begin_layout Standard
+Government debt assets and equity assets have zero transactions.
+ Government has no equity liability.
+ Debt liabilities close the government net financial asset identity:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+L_{G,t}^{d}=A_{G,t}^{d}+A_{G,t}^{e}-N_{G,t}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A fiscal surplus can make this liability negative.
+ The model gives a warning but does not change the value.
+\end_layout
+
+\begin_layout Subsubsection
+Non-financial corporations
+\end_layout
+
+\begin_layout Standard
+The replacement value of non-financial corporation capital is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+V_{N,t}^{K}=\sum_{k}\sum_{i\in N}p_{k,t}^{I}K_{k,i,t}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Debt liabilities are a fixed share of this value.
+ Debt assets are a fixed share of operating expenses.
+ Equity assets are a fixed share of equity liabilities:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+L_{N,t}^{d}=\mu _{N}^{K}V_{N,t}^{K},\qquad A_{N,t}^{d}=\mu _{N}^{D}E_{N,t},\qquad A_{N,t}^{e}=\mu _{N}^{e}L_{N,t}^{e}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Here,
+\begin_inset Formula $E_{N,t}$
+\end_inset
+
+ is operating expenses.
+ Equity liabilities close the sector net financial asset identity:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+L_{N,t}^{e}=A_{N,t}^{d}+A_{N,t}^{e}-L_{N,t}^{d}-N_{N,t}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Financial corporations
+\end_layout
+
+\begin_layout Standard
+Financial corporations hold a fixed share of total debt liabilities.
+ The total includes financial corporation liabilities and thus includes interbank finance:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+A_{F,t}^{d}=\mu _{F}^{d}\sum_{s}L_{s,t}^{d}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Financial corporation equity liabilities have zero transactions.
+ Their value changes through revaluation.
+ This assumption excludes endogenous equity issues and buy-backs.
+ Debt liabilities close the sector net financial asset identity:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+L_{F,t}^{d}=A_{F,t}^{d}+A_{F,t}^{e}-L_{F,t}^{e}-N_{F,t}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Financial corporation equity assets also have zero transactions.
+ Their revaluation is a fixed share of the revaluation of non-financial corporation equity liabilities:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+R_{F,t}^{e,A}=\mu _{F}^{e}R_{N,t}^{e,L}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This rule represents a fixed ownership position in non-financial corporations.
+ It does not make banks trade equity to keep a fixed value share.
+\end_layout
+
+\begin_layout Subsubsection
+Rest of the world
+\end_layout
+
+\begin_layout Standard
+Rest-of-world debt liabilities are a fixed share of financial corporation debt assets:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+L_{R,t}^{d}=\mu _{R}^{d}A_{F,t}^{d}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This ratio is the share of bank lending that goes abroad.
+ Rest-of-world debt assets close the full debt market:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+A_{R,t}^{d}=\sum_{s}L_{s,t}^{d}-\sum_{s\ne R}A_{s,t}^{d}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+These two debt rules make the debt market clear:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+\sum_{s}A_{s,t}^{d}=\sum_{s}L_{s,t}^{d}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The rest-of-world equity liability is a fixed share of domestic equity assets.
+ Rest-of-world equity assets close the equity market:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+L_{R,t}^{e}=\mu _{R}^{e}\sum_{s\ne R}A_{s,t}^{e},\qquad \sum_{s}A_{s,t}^{e}=\sum_{s}L_{s,t}^{e}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Equity values and calibration
+\end_layout
+
+\begin_layout Standard
+Discounted future equity payouts set financial and non-financial corporation equity values.
+ Equity liability revaluation reconciles these values with the stock-flow identity.
+ Holder revaluations then allocate the total change across equity assets.
+\end_layout
+
+\begin_layout Standard
+Calibration identifies each fixed portfolio ratio from the calibration-year financial stocks.
+ The forecast keeps these ratios constant.
+ Financial assets or liabilities can become negative after a large change in a sector balance.
+ The model reports a warning and keeps the solved value.
+\end_layout
+
 \begin_layout Section
 Input output
 \end_layout

@@ -23,8 +23,10 @@ const equity_liability_sector = sort(unique(
   s for (s, f, al, _) in keys(vFinAL) if f == :Equity && al == :Liab
 ))
 const fixed_equity_reval_sector = setdiff(equity_asset_sector, [:RoW])
+const aggregate_equity_reval_sector = setdiff(fixed_equity_reval_sector, [:FinCorp])
 
 @assert Set(corporation_sector) ⊆ Set(equity_liability_sector) "Each corporate sector must issue equity"
+@assert :FinCorp in fixed_equity_reval_sector "Financial corporations must hold equity assets"
 @assert :RoW in equity_asset_sector "Rest of world must hold the residual equity assets"
 
 # ============================================================================
@@ -81,11 +83,15 @@ function set_starting_values!(start_values)
   total_liability_reval = sum(
     start_values[vFinReval[s,:Equity,:Liab,t1]] for s in equity_liability_sector
   )
+  non_fin_corp_liability_reval = start_values[vFinReval[:NonFinCorp,:Equity,:Liab,t1]]
   @assert !iszero(total_liability_reval) "Source total equity liability revaluation must be nonzero"
-  start_values[rEquityRevalAllocation_s] .= [
+  @assert !iszero(non_fin_corp_liability_reval) "Source non-financial corporation equity liability revaluation must be nonzero"
+  start_values[rEquityRevalAllocation_s[aggregate_equity_reval_sector,:]] .= [
     start_values[vFinReval[s,:Equity,:Assets,t1]] / total_liability_reval
-    for s in fixed_equity_reval_sector, year in t
+    for s in aggregate_equity_reval_sector, year in t
   ]
+  start_values[rEquityRevalAllocation_s[:FinCorp,:]] .=
+    start_values[vFinReval[:FinCorp,:Equity,:Assets,t1]] / non_fin_corp_liability_reval
   @assert all(isfinite, start_values[fFirmEquityPayout_s]) "Initial equity payout scales must be finite"
   @assert all(start_values[fFirmEquityPayout_s] .> 0) "Initial equity payout scales must be positive"
   @assert all(isfinite, start_values[rEquityRevalAllocation_s]) "Initial equity revaluation rates must be finite"
@@ -114,8 +120,13 @@ function define_equations()
     vFinReval[s=corporation_sector, f=[:Equity], al=[:Liab], t=t1:T],
     vFinAL[s,f,al,t] == vFirmEquity_s[s,t]
 
-    # Fixed allocation rates set domestic holder revaluations.
-    vFinReval[s=fixed_equity_reval_sector, f=[:Equity], al=[:Assets], t=t1:T],
+    # Financial corporations keep a fixed ownership position in non-financial corporations.
+    vFinReval[s=[:FinCorp], f=[:Equity], al=[:Assets], t=t1:T],
+    vFinReval[s,f,al,t] == rEquityRevalAllocation_s[s,t] *
+      vFinReval[:NonFinCorp,f,:Liab,t]
+
+    # Fixed allocation rates set other domestic holder revaluations.
+    vFinReval[s=aggregate_equity_reval_sector, f=[:Equity], al=[:Assets], t=t1:T],
     vFinReval[s,f,al,t] == rEquityRevalAllocation_s[s,t] *
       ∑(vFinReval[s2,f,:Liab,t] for s2 in equity_liability_sector)
 
