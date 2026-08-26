@@ -222,6 +222,13 @@ function build_parameters(flow_df, tr_df, bal_df, oc_df, rev_df)
     # Non-financial transactions  (nasa_10_nf_tr)
     # ------------------------------------------------------------------
 
+    vFinIncome = vcat([
+      let d = get_non_financial_transaction(flow_df, "D4", dir); d.al .= al; d end
+      for (dir, al) in [
+        ("RECV", finpos_map["ASS"]),
+        ("PAID", finpos_map["LIAB"]),
+      ]
+    ]...),
     vFinIncome_f = vcat([
       let d = get_non_financial_transaction(flow_df, items, dir); d.f .= f; d.al .= al; d end
       for (items, dir, f, al) in [
@@ -242,7 +249,7 @@ function build_parameters(flow_df, tr_df, bal_df, oc_df, rev_df)
     vRoWNetWages                         = select(get_non_financial_transaction(flow_df, "D1", "NET", ["RoW"]), :year, :value),
 
     # Financial balance sheet  (nasa_10_f_bs)
-    vFinPosition_f = fin_bal_by_instrument(bal_df),
+    vFinPosition_s_f = fin_bal_by_instrument(bal_df),
 
     # Total financial assets/liabilities (F − F11 Monetary gold) by sector
     vFinAssets = rename!(fin_bal_sum_minus_f11(bal_df, "F"), :finpos => :al),
@@ -254,7 +261,7 @@ function build_parameters(flow_df, tr_df, bal_df, oc_df, rev_df)
     vOtherChangesInVolume_f = fin_bal_by_instrument(oc_df),
 
     # Revaluations / holding gains  (nasa_10_f_gl)
-    vFinReval_f = fin_bal_by_instrument(rev_df),
+    vFinReval_s_f = fin_bal_by_instrument(rev_df),
   )
 end
 
@@ -285,6 +292,7 @@ function write_sector_flows(dir, params)
   vGovBalance = select(params.vNetFinTransactions[params.vNetFinTransactions.sector .== "Gov", :], :year, :value)
   vNetFinAssets = combine(groupby(params.vFinAssets, [:sector, :year]), sdf -> (; value = only(sdf.value[sdf.al .== "Assets"]) - only(sdf.value[sdf.al .== "Liab"])))
   CSV.write(joinpath(dir, "sector_accounts.csv"), vcat(
+    long_format(:vFinIncome,                               params.vFinIncome,                               [:sector, :al, :year]),
     long_format(:vFinIncome_f,                             params.vFinIncome_f,                             [:sector, :f, :al, :year]),
     long_format(:vNetFinTransactions,                      params.vNetFinTransactions,                      [:sector, :year]),
     long_format(:vI_s,                                     params.vI_s,                                     [:sector, :year]),
@@ -293,9 +301,9 @@ function write_sector_flows(dir, params)
     long_format(:vHhWages,                                 params.vHhWages,                                 [:year]),
     long_format(:vRoWNetWages,                             params.vRoWNetWages,                             [:year]),
     long_format(:vFinTransactions_f,                       params.vFinTransactions_f,                       [:sector, :f, :al, :year]),
-    long_format(:vFinPosition_f,                           params.vFinPosition_f,                           [:sector, :f, :al, :year]),
+    long_format(:vFinPosition_s_f,                           params.vFinPosition_s_f,                           [:sector, :f, :al, :year]),
     long_format(:vOtherChangesInVolume_f,                  params.vOtherChangesInVolume_f,                  [:sector, :f, :al, :year]),
-    long_format(:vFinReval_f,                              params.vFinReval_f,                              [:sector, :f, :al, :year]),
+    long_format(:vFinReval_s_f,                              params.vFinReval_s_f,                              [:sector, :f, :al, :year]),
     long_format(:vGovBalance,                              vGovBalance,                                     [:year]),
     long_format(:vNetFinAssets,                            vNetFinAssets,                                   [:sector, :year]),
   ))

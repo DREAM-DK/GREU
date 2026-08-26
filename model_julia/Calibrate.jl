@@ -40,7 +40,7 @@ const calibrated_modules = [
     Government,
     Corporations,
       FinancialIncome,
-      FirmValue,
+      FinancialRevaluations,
     RestOfWorld,
       Exports,
 

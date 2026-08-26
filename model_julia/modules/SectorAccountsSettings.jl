@@ -58,7 +58,7 @@ const equity_income_items = ["D42"]                       # Distributed income o
 const debt_income_items   = ["D41", "D43", "D44", "D45"]  # Interest, reinvested earnings, investment fund income, rent; mapped to debt instruments
 
 # ---------------------------------------------------------------------------
-# Financial positions (vFinPosition_f): balance-sheet stocks by instrument,
+# Financial positions (vFinPosition_s_f): balance-sheet stocks by instrument,
 # split into Debt and Equity.
 #
 # Monetary gold (F.11, a subset of F.1) is excluded from all instrument totals

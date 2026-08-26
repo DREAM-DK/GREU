@@ -13,7 +13,8 @@ import ..model
 import ..SectorAccounts:
   ass_liab,
   fin_instrument,
-  vFinPosition_f,
+  vFinIncome,
+  vFinPosition_s_f,
   vFinTransactions_f,
   vGovBalance,
   vNetFinTransactions,
@@ -44,7 +45,6 @@ const GovernmentTag = Tag(:Government)
   vGovRevOther[t], "Other revenue of government."
   vGovSalesRev[t], "Revenue from sales (P.11+P.12+P.131)."
   vGovOthSubRev[t], "Revenue from other subsidies (D.39)."
-  vGovPropertyIncome[t], "Revenue from property income (D.4)."
   vGovSocialContRev[t], "Revenue from social contributions (D.61)."
   vGovOthCurrentTransRev[t], "Revenue from other current transfers (D.7)."
   vtCap[t], "Revenue from capital taxes (D.91)."
@@ -56,7 +56,6 @@ const GovernmentTag = Tag(:Government)
   vGovEmplComp[t], "Employment compensation of government (D.1)."
   vGovOthProdTax[t], "Other production taxes of government (D.29)."
   vGovSub[t], "Subsidies of government (D.3)."
-  vGovInterestPayments[t], "Interest payments of government (D.4)."
   vGovSocBenefitExp[t], "Social benefit expenditure of government (D.62+D.632)."
   vSocTransKind[t], "Social transfers in kind (D.632)."
   vGovOthCurrentTransExp[t], "Other current transfers expenditure of government (D.7)."
@@ -80,7 +79,6 @@ function assign_data!(db)
   db[vtCorp] .= read_series(government_file, "vtCorp", t)
   db[vGovSalesRev] .= read_series(government_file, "vGovSalesRev", t)
   db[vGovOthSubRev] .= read_series(government_file, "vGovOthSubRev", t)
-  db[vGovPropertyIncome] .= read_series(government_file, "vGovPropertyIncome", t)
   db[vGovSocialContRev] .= read_series(government_file, "vGovSocialContRev", t)
   db[vGovOthCurrentTransRev] .= read_series(government_file, "vGovOthCurrentTransRev", t)
   db[vtCap] .= read_series(government_file, "vtCap", t)
@@ -92,7 +90,6 @@ function assign_data!(db)
   db[vGovEmplComp] .= read_series(government_file, "vGovEmplComp", t)
   db[vGovOthProdTax] .= read_series(government_file, "vGovOthProdTax", t)
   db[vGovSub] .= read_series(government_file, "vGovSub", t)
-  db[vGovInterestPayments] .= read_series(government_file, "vGovInterestPayments", t)
   db[vGovSocBenefitExp] .= read_series(government_file, "vGovSocBenefitExp", t)
   db[vSocTransKind] .= read_series(government_file, "vSocTransKind", t)
   db[vGovOthCurrentTransExp] .= read_series(government_file, "vGovOthCurrentTransExp", t)
@@ -111,7 +108,7 @@ function define_equations()
   return @block model begin
     # Balances.
     vGovBalance[t=t1:T], vGovBalance[t] == vGovRevenue[t] - vGovExpenditure[t]
-    vGovPrimaryBalance[t=t1:T], vGovPrimaryBalance[t] == vGovBalance[t] + vGovInterestPayments[t]
+    vGovPrimaryBalance[t=t1:T], vGovPrimaryBalance[t] == vGovBalance[t] + vFinIncome[:Gov,:Liab,t]
     vNetFinTransactions[s=[:Gov], t=t1:T], vNetFinTransactions[s,t] == vGovBalance[t]
 
     # Revenue.
@@ -121,7 +118,7 @@ function define_equations()
     vGovRevOther[t=t1:T],
     vGovRevOther[t] == vGovSalesRev[t]
                        + vGovOthSubRev[t]
-                       + vGovPropertyIncome[t]
+                       + vFinIncome[:Gov,:Assets,t]
                        + vGovSocialContRev[t]
                        + vGovOthCurrentTransRev[t]
                        + vtCap[t]
@@ -134,7 +131,7 @@ function define_equations()
                           + vGovEmplComp[t]
                           + vGovOthProdTax[t]
                           + vGovSub[t]
-                          + vGovInterestPayments[t]
+                          + vFinIncome[:Gov,:Liab,t]
                           + vGovSocBenefitExp[t]
                           + vGovOthCurrentTransExp[t]
                           + vGovAdjExp[t]
@@ -144,15 +141,15 @@ function define_equations()
 
     # Portfolio.
     # Gov neither buys nor sells equity; existing equity stocks follow non-transaction changes.
-    vFinPosition_f[s=[:Gov], f=[:Equity], al=ass_liab, t=t1:T], vFinTransactions_f[s,f,al,t] == 0
+    vFinPosition_s_f[s=[:Gov], f=[:Equity], al=ass_liab, t=t1:T], vFinTransactions_f[s,f,al,t] == 0
 
     # Gov does not buy or sell debt assets; the stock follows non-transaction changes.
-    vFinPosition_f[s=[:Gov], f=[:Debt], al=[:Assets], t=t1:T], vFinTransactions_f[s,f,al,t] == 0
+    vFinPosition_s_f[s=[:Gov], f=[:Debt], al=[:Assets], t=t1:T], vFinTransactions_f[s,f,al,t] == 0
 
     # Gov debt liabilities are residual given net financial assets.
-    vFinPosition_f[s=[:Gov], f=[:Debt], al=[:Liab], t=t1:T],
-    vNetFinAssets[s,t] == ∑(vFinPosition_f[s,f,:Assets,t] for f in fin_instrument)
-                           - ∑(vFinPosition_f[s,f,:Liab,t] for f in fin_instrument)
+    vFinPosition_s_f[s=[:Gov], f=[:Debt], al=[:Liab], t=t1:T],
+    vNetFinAssets[s,t] == ∑(vFinPosition_s_f[s,f,:Assets,t] for f in fin_instrument)
+                           - ∑(vFinPosition_s_f[s,f,:Liab,t] for f in fin_instrument)
   end
 end
 

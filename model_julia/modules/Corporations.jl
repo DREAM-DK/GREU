@@ -22,7 +22,7 @@ import ..SectorAccounts:
   vNonProducedAssetAcquisitions,
   vI_s,
   vGrossOpSurplusMixedIncome,
-  vFinPosition_f,
+  vFinPosition_s_f,
   vFinTransactions_f,
   vNetFinAssets
 import ..Time: t, t1, T
@@ -32,7 +32,7 @@ import ..Tags: ForecastConstant
 # Variables
 # ============================================================================
 const CorporationsTag = Tag(:Corporations)
-const corporation_sector = [:FinCorp, :NonFinCorp]
+const corporations = [:FinCorp, :NonFinCorp]
 const fin_corp_industry = [:iK]
 const public_industry = [:iO, :iP, :iQ]
 const non_fin_corp_industry = setdiff(industry, [fin_corp_industry; public_industry])
@@ -45,7 +45,7 @@ const non_fin_corp_industry = setdiff(industry, [fin_corp_industry; public_indus
   rNonFinCorpEquityAssets2EquityLiabilities[t], "NonFinCorp equity asset ratio: equity assets relative to own equity liabilities."
   rNonFinCorpDebtAssets2Expenses[t], "NonFinCorp debt asset ratio: debt assets relative to total expenses."
   rNonFinCorpDebtLiabilities2Capital[t], "NonFinCorp debt liability ratio relative to the replacement value of capital."
-  fGrossOpSurplus_s[s=corporation_sector, t=t], "Factor from modeled industry operating surplus to sector gross operating surplus."
+  fGrossOpSurplus_s[s=corporations, t=t], "Factor from modeled industry operating surplus to sector gross operating surplus."
 end
 
 @variables model :: (CorporationsTag, GrowthAdjusted, InflationAdjusted) begin
@@ -110,40 +110,40 @@ function define_equations()
     # Portfolio.
     # Financial corporations.
     # Equity assets follow revaluation.
-    vFinPosition_f[s=[:FinCorp], f=[:Equity], al=[:Assets], t=t1:T], vFinTransactions_f[s,f,al,t] == 0
+    vFinPosition_s_f[s=[:FinCorp], f=[:Equity], al=[:Assets], t=t1:T], vFinTransactions_f[s,f,al,t] == 0
 
     # Debt assets are a fixed share of all debt liabilities, including interbank liabilities.
-    vFinPosition_f[s=[:FinCorp], f=[:Debt], al=[:Assets], t=t1:T],
-    vFinPosition_f[s,f,al,t] ==
-      rFinCorpDebtAssets2DebtLiabilities[t] * ∑(vFinPosition_f[s2,:Debt,:Liab,t] for s2 in sector)
+    vFinPosition_s_f[s=[:FinCorp], f=[:Debt], al=[:Assets], t=t1:T],
+    vFinPosition_s_f[s,f,al,t] ==
+      rFinCorpDebtAssets2DebtLiabilities[t] * ∑(vFinPosition_s_f[s2,:Debt,:Liab,t] for s2 in sector)
 
     # Equity liabilities have no issues or buy-backs.
-    vFinPosition_f[s=[:FinCorp], f=[:Equity], al=[:Liab], t=t1:T], vFinTransactions_f[s,f,al,t] == 0
+    vFinPosition_s_f[s=[:FinCorp], f=[:Equity], al=[:Liab], t=t1:T], vFinTransactions_f[s,f,al,t] == 0
 
     # Debt liabilities are residual given net financial assets.
-    vFinPosition_f[s=[:FinCorp], f=[:Debt], al=[:Liab], t=t1:T],
-    vNetFinAssets[s,t] == ∑(vFinPosition_f[s,f,:Assets,t] for f in fin_instrument)
-                           - ∑(vFinPosition_f[s,f,:Liab,t] for f in fin_instrument)
+    vFinPosition_s_f[s=[:FinCorp], f=[:Debt], al=[:Liab], t=t1:T],
+    vNetFinAssets[s,t] == ∑(vFinPosition_s_f[s,f,:Assets,t] for f in fin_instrument)
+                           - ∑(vFinPosition_s_f[s,f,:Liab,t] for f in fin_instrument)
 
     # Non-financial corporations.
     # Equity assets are a fixed fraction of equity liabilities.
-    vFinPosition_f[s=[:NonFinCorp], f=[:Equity], al=[:Assets], t=t1:T],
-    vFinPosition_f[s,f,al,t] ==
-      rNonFinCorpEquityAssets2EquityLiabilities[t] * vFinPosition_f[:NonFinCorp,:Equity,:Liab,t]
+    vFinPosition_s_f[s=[:NonFinCorp], f=[:Equity], al=[:Assets], t=t1:T],
+    vFinPosition_s_f[s,f,al,t] ==
+      rNonFinCorpEquityAssets2EquityLiabilities[t] * vFinPosition_s_f[:NonFinCorp,:Equity,:Liab,t]
 
     # Debt assets are a fixed fraction of operating expenses.
-    vFinPosition_f[s=[:NonFinCorp], f=[:Debt], al=[:Assets], t=t1:T],
-    vFinPosition_f[s,f,al,t] == rNonFinCorpDebtAssets2Expenses[t] * vNonFinCorpExpenses[t]
+    vFinPosition_s_f[s=[:NonFinCorp], f=[:Debt], al=[:Assets], t=t1:T],
+    vFinPosition_s_f[s,f,al,t] == rNonFinCorpDebtAssets2Expenses[t] * vNonFinCorpExpenses[t]
 
     # Debt liabilities are a fixed fraction of the replacement value of capital.
-    vFinPosition_f[s=[:NonFinCorp], f=[:Debt], al=[:Liab], t=t1:T],
-    vFinPosition_f[s,f,al,t] == rNonFinCorpDebtLiabilities2Capital[t] * (
+    vFinPosition_s_f[s=[:NonFinCorp], f=[:Debt], al=[:Liab], t=t1:T],
+    vFinPosition_s_f[s,f,al,t] == rNonFinCorpDebtLiabilities2Capital[t] * (
       ∑(pI_k[k,t] * qK_k_i[k,i,t] for k in capital_type, i in non_fin_corp_industry) - vKOwnerHousing[t])
 
     # Equity liabilities are residual given net financial assets.
-    vFinPosition_f[s=[:NonFinCorp], f=[:Equity], al=[:Liab], t=t1:T],
-    vNetFinAssets[s,t] == ∑(vFinPosition_f[s,f,:Assets,t] for f in fin_instrument)
-                        - ∑(vFinPosition_f[s,f,:Liab,t] for f in fin_instrument)
+    vFinPosition_s_f[s=[:NonFinCorp], f=[:Equity], al=[:Liab], t=t1:T],
+    vNetFinAssets[s,t] == ∑(vFinPosition_s_f[s,f,:Assets,t] for f in fin_instrument)
+                        - ∑(vFinPosition_s_f[s,f,:Liab,t] for f in fin_instrument)
   end
 end
 
@@ -155,12 +155,12 @@ function define_calibration()
 
   # At t1, use source values to identify scale factors and portfolio ratios.
   @endo_exo_swap! block begin
-    fGrossOpSurplus_s[s=corporation_sector, t=[t1]], vGrossOpSurplusMixedIncome[s=corporation_sector, t=[t1]]
+    fGrossOpSurplus_s[s=corporations, t=[t1]], vGrossOpSurplusMixedIncome[s=corporations, t=[t1]]
 
-    rFinCorpDebtAssets2DebtLiabilities[t1], vFinPosition_f[:FinCorp,:Debt,:Assets,t1]
-    rNonFinCorpEquityAssets2EquityLiabilities[t1], vFinPosition_f[:NonFinCorp,:Equity,:Assets,t1]
-    rNonFinCorpDebtAssets2Expenses[t1], vFinPosition_f[:NonFinCorp,:Debt,:Assets,t1]
-    rNonFinCorpDebtLiabilities2Capital[t1], vFinPosition_f[:NonFinCorp,:Debt,:Liab,t1]
+    rFinCorpDebtAssets2DebtLiabilities[t1], vFinPosition_s_f[:FinCorp,:Debt,:Assets,t1]
+    rNonFinCorpEquityAssets2EquityLiabilities[t1], vFinPosition_s_f[:NonFinCorp,:Equity,:Assets,t1]
+    rNonFinCorpDebtAssets2Expenses[t1], vFinPosition_s_f[:NonFinCorp,:Debt,:Assets,t1]
+    rNonFinCorpDebtLiabilities2Capital[t1], vFinPosition_s_f[:NonFinCorp,:Debt,:Liab,t1]
   end
 
   return block

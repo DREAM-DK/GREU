@@ -3,7 +3,7 @@ module DataUtils
 using CSV
 using DataFrames
 import JuMP
-import SquareModels: read_sparse_array
+import SquareModels: KeyedData, read_sparse_array
 
 # ============================================================================
 # Model data
@@ -31,6 +31,17 @@ fill_cells!(db, var, cells) =
 function read_series(file, variable, indices)
   cells = read_cells(file, variable)
   return [get(cells, (index,), nothing) for index in indices]
+end
+
+"""Sum keyed slices. A key stored in any slice is kept; a missing slice adds zero."""
+function sum_keyed(slices)
+  total = Dict()
+  for slice in slices
+    for (key, value) in slice
+      total[key] = get(total, key, 0.0) + value
+    end
+  end
+  return KeyedData(total)
 end
 
 # ============================================================================

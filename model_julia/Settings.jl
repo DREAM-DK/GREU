@@ -32,7 +32,7 @@ const module_names = [
   :Government,
   :Corporations,
   :FinancialIncome,
-  :FirmValue,
+  :FinancialRevaluations,
   :RestOfWorld,
 
   :Exports,

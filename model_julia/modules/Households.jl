@@ -21,7 +21,7 @@ import ..SectorAccounts:
   vNonProducedAssetAcquisitions,
   vI_s,
   vGrossOpSurplusMixedIncome,
-  vFinPosition_f,
+  vFinPosition_s_f,
   vFinTransactions_f,
   vNetFinAssets
 import ..Time: t, t1, T
@@ -92,21 +92,21 @@ function define_equations()
 
     # Portfolio.
     # Equity assets have no transactions.
-    vFinPosition_f[s=[:Hh], f=[:Equity], al=[:Assets], t=t1:T], vFinTransactions_f[s,f,al,t] == 0
+    vFinPosition_s_f[s=[:Hh], f=[:Equity], al=[:Assets], t=t1:T], vFinTransactions_f[s,f,al,t] == 0
 
     # Debt liabilities move part of the way to a fixed share of consumption.
-    vFinPosition_f[s=[:Hh], f=[:Debt], al=[:Liab], t=t1:T],
-    vFinPosition_f[s,f,al,t] == (1 - rHhDebtAdjustment[t]) * vFinPosition_f[s,f,al,t-1]/fv
+    vFinPosition_s_f[s=[:Hh], f=[:Debt], al=[:Liab], t=t1:T],
+    vFinPosition_s_f[s,f,al,t] == (1 - rHhDebtAdjustment[t]) * vFinPosition_s_f[s,f,al,t-1]/fv
                               + rHhDebtAdjustment[t] * rHhDebtLiabilities2Consumption[t] * vC[t]
 
     # Hh debt assets are residual given net financial assets.
-    vFinPosition_f[s=[:Hh], f=[:Debt], al=[:Assets], t=t1:T],
-    vNetFinAssets[s,t] == ∑(vFinPosition_f[s,f,:Assets,t] for f in fin_instrument)
-                        - ∑(vFinPosition_f[s,f,:Liab,t] for f in fin_instrument)
+    vFinPosition_s_f[s=[:Hh], f=[:Debt], al=[:Assets], t=t1:T],
+    vNetFinAssets[s,t] == ∑(vFinPosition_s_f[s,f,:Assets,t] for f in fin_instrument)
+                        - ∑(vFinPosition_s_f[s,f,:Liab,t] for f in fin_instrument)
 
     # Extra household saving is held in debt assets.
     mHhReturn[t=t1:T],
-    mHhReturn[t] * vFinPosition_f[:Hh,:Debt,:Assets,t-1]/fv == vFinIncome_f[:Hh,:Debt,:Assets,t]
+    mHhReturn[t] * vFinPosition_s_f[:Hh,:Debt,:Assets,t-1]/fv == vFinIncome_f[:Hh,:Debt,:Assets,t]
   end
 end
 
@@ -118,7 +118,7 @@ function define_calibration()
 
   @endo_exo_swap! block begin
     rOwnerHousing2K[t1], vI_s[:Hh,t1]
-    rHhDebtLiabilities2Consumption[t1], vFinPosition_f[:Hh,:Debt,:Liab,t1]
+    rHhDebtLiabilities2Consumption[t1], vFinPosition_s_f[:Hh,:Debt,:Liab,t1]
   end
 
   return block

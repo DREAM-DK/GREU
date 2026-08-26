@@ -1,17 +1,17 @@
 # Link interest and dividend flows to financial stocks.
-# Use fixed effective yields by sector, instrument, and side.
-# Keep source gaps in calibration and close each forecast market.
+# Split each rate into one instrument base and a position adjustment.
+# Make each side's stock-weighted adjustments sum to zero.
 
 module FinancialIncome
 
 using SquareModels
-import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
+import ..GrowthInflationAdjustment: fv
 import ..model
 import ..SectorAccounts:
   ass_liab,
   fin_instrument,
   sector,
-  vFinPosition_f,
+  vFinPosition_s_f,
   vFinIncome_f
 import ..Tags: ForecastConstant, ForecastZero
 import ..Time: t, t1, T
@@ -19,17 +19,18 @@ import ..Time: t, t1, T
 # ============================================================================
 # Indices
 # ============================================================================
-
-const fin_position = Set((s, f, al) for (s, f, al, _) in keys(vFinPosition_f))
-const income_rate_position = Set(
-  (s, f, al)
-  for (s, f, al) in fin_position
-  if !(s == :RoW && al == :Assets)
-)
+const fixed_debt_asset_sector = sort(unique(
+  s for (s, f, al, _) in keys(vFinPosition_s_f)
+  if f == :Debt && al == :Assets && !(s in [:FinCorp, :RoW])
+))
+const fixed_equity_asset_sector = sort(unique(
+  s for (s, f, al, _) in keys(vFinPosition_s_f)
+  if f == :Equity && al == :Assets && s != :FinCorp
+))
 
 @assert all(
-  (:RoW, f, :Assets) in fin_position for f in fin_instrument
-) "Rest of world must receive income on each asset instrument"
+  (:FinCorp, f, :Assets, t1) in keys(vFinPosition_s_f) for f in fin_instrument
+) "Financial corporations must hold each financial asset"
 
 # ============================================================================
 # Variables
@@ -38,13 +39,16 @@ const income_rate_position = Set(
 const FinancialIncomeTag = Tag(:FinancialIncome)
 
 @variables model :: FinancialIncomeTag begin
-  rFinIncome_f[
-    s=sector, f=fin_instrument, al=ass_liab, t=t; (s,f,al) in income_rate_position
-  ] :: ForecastConstant, "Effective property-income rate on the prior-year financial stock."
+  rFinIncome_f[f=fin_instrument, t=t], "Average property-income rate by instrument."
 end
 
-@variables model :: (FinancialIncomeTag, GrowthAdjusted, InflationAdjusted, ForecastZero) begin
-  jFinIncomeMarketGap_f[f=fin_instrument, t=t], "Reported asset income less liability income by instrument."
+@variables model :: (FinancialIncomeTag, ForecastConstant) begin
+  rFinIncome_s_f[(s,f,al,t)=vFinPosition_s_f], "Property-income rate by financial position."
+  jRoWDebtFinIncome[t], "Fixed RoW debt-asset rate adjustment."
+end
+
+@variables model :: (FinancialIncomeTag, ForecastZero) begin
+  jrFinIncome_s_f[(s,f,al,t)=vFinPosition_s_f], "Adjustment from the average property-income rate."
 end
 
 # ============================================================================
@@ -60,24 +64,10 @@ end
 # ============================================================================
 
 function set_starting_values!(start_values)
-  lagged_stocks = [
-    start_values[vFinPosition_f[s,f,al,t1-1]]/fv
-    for (s, f, al, _) in keys(rFinIncome_f)
-  ]
-  @assert all(!iszero, lagged_stocks) "Each income rate needs a nonzero prior-year financial stock"
-
-  start_values[rFinIncome_f] .= [
-    start_values[vFinIncome_f[s,f,al,t1]] / lagged_stock
-    for ((s, f, al, _), lagged_stock) in zip(keys(rFinIncome_f), lagged_stocks)
-  ]
-  start_values[jFinIncomeMarketGap_f] .= 0.0
-  start_values[jFinIncomeMarketGap_f[:,t1]] .= [
-    sum(start_values[vFinIncome_f[:,f,:Assets,t1]]) -
-      sum(start_values[vFinIncome_f[:,f,:Liab,t1]])
-    for f in fin_instrument
-  ]
-  @assert all(isfinite, start_values[rFinIncome_f]) "Initial financial income rates must be finite"
-  @assert all(isfinite, start_values[jFinIncomeMarketGap_f]) "Initial financial income market gaps must be finite"
+  start_values[rFinIncome_f] .= 0.01
+  start_values[rFinIncome_s_f] .= 0.01
+  start_values[jrFinIncome_s_f] .= 0.0
+  start_values[jRoWDebtFinIncome] .= 0.0
   return nothing
 end
 
@@ -86,22 +76,42 @@ end
 # ============================================================================
 
 function define_equations()
-  return @block model begin
-    # Fixed effective yields set interest and dividends.
-    vFinIncome_f[(s,f,al,t) in keys(rFinIncome_f); t in t1:T],
-    vFinIncome_f[s,f,al,t] == rFinIncome_f[s,f,al,t] * vFinPosition_f[s,f,al,t-1]/fv
+  block = @block model begin
+    # Rates set income on opening stocks.
+    vFinIncome_f[s=sector, f=fin_instrument, al=ass_liab, t=t1:T],
+    vFinIncome_f[s,f,al,t] == rFinIncome_s_f[s,f,al,t] * vFinPosition_s_f[s,f,al,t-1]/fv
 
-    # Rest-of-world receipts record source gaps in calibration and close each forecast market.
-    vFinIncome_f[s=[:RoW], f=fin_instrument, al=[:Assets], t=t1:T],
-    vFinIncome_f[s,f,al,t] == ∑(vFinIncome_f[s2,f,:Liab,t] for s2 in sector)
-                              - ∑(vFinIncome_f[s2,f,:Assets,t] for s2 in sector if s2 != :RoW)
-                              + jFinIncomeMarketGap_f[f,t]
+    # Each position rate equals the common instrument rate plus an adjustment.
+    rFinIncome_s_f[s=sector, f=fin_instrument, al=ass_liab, t=t1:T],
+    rFinIncome_s_f[s,f,al,t] == rFinIncome_f[f,t] + jrFinIncome_s_f[s,f,al,t]
 
-    @test_constraint("Financial income market gap matches the source discrepancy"; atol=1e-6, rtol=1e-6)
-    vFinIncome_f[s=[:RoW], f=fin_instrument, al=[:Assets], t=t1:T],
-    ∑(vFinIncome_f[s2,f,:Assets,t] for s2 in sector) ==
-      ∑(vFinIncome_f[s2,f,:Liab,t] for s2 in sector) + jFinIncomeMarketGap_f[f,t]
+    # FinCorp closes each side's stock-weighted adjustment sum.
+    jrFinIncome_s_f[:FinCorp, f=fin_instrument, al=ass_liab, t=t1:T],
+    ∑(jrFinIncome_s_f[s,f,al,t] * vFinPosition_s_f[s,f,al,t-1] for s in sector) == 0
+
+    # Keep the RoW debt-asset adjustment fixed.
+    jrFinIncome_s_f[s=[:RoW], f=[:Debt], al=[:Assets], t=t1:T],
+    jrFinIncome_s_f[s,f,al,t] == jRoWDebtFinIncome[t]
+
+    @test_constraint("Financial income markets close in the forecast"; atol=1e-6, rtol=1e-6)
+    rFinIncome_f[f=fin_instrument, t=(t1+1):T; T > t1],
+    ∑(vFinIncome_f[s,f,:Assets,t] for s in sector) == ∑(vFinIncome_f[s,f,:Liab,t] for s in sector)
   end
+
+  # Fixed liability rates set the common base and liability adjustments.
+  # Fixed debt-asset rates set their adjustments around the common base.
+  @endo_exo_swap! block begin
+    rFinIncome_f[f=fin_instrument, t=t1:T],
+    jrFinIncome_s_f[s=[:FinCorp], f=fin_instrument, al=[:Liab], t=t1:T]
+
+    jrFinIncome_s_f[s=sector, f=fin_instrument, al=[:Liab], t=t1:T],
+    rFinIncome_s_f[s=sector, f=fin_instrument, al=[:Liab], t=t1:T]
+
+    jrFinIncome_s_f[s=fixed_debt_asset_sector, f=[:Debt], al=[:Assets], t=t1:T],
+    rFinIncome_s_f[s=fixed_debt_asset_sector, f=[:Debt], al=[:Assets], t=t1:T]
+  end
+
+  return block
 end
 
 # ============================================================================
@@ -111,16 +121,22 @@ end
 function define_calibration()
   block = define_equations()
 
-  # Source flows identify each effective rate except the market-closing receipt.
+  # Source flows identify fixed rates and forecast adjustments.
   @endo_exo_swap! block begin
-    rFinIncome_f[(s,f,al,t) in keys(rFinIncome_f); t == t1],
-    vFinIncome_f[(s,f,al,t) in keys(rFinIncome_f); t == t1]
+    rFinIncome_s_f[s=sector, f=fin_instrument, al=[:Liab], t=[t1]],
+    vFinIncome_f[s=sector, f=fin_instrument, al=[:Liab], t=[t1]]
 
-    jFinIncomeMarketGap_f[f=fin_instrument, t=[t1]],
-    vFinIncome_f[s=[:RoW], f=fin_instrument, al=[:Assets], t=[t1]]
+    rFinIncome_s_f[s=fixed_debt_asset_sector, f=[:Debt], al=[:Assets], t=[t1]],
+    vFinIncome_f[s=fixed_debt_asset_sector, f=[:Debt], al=[:Assets], t=[t1]]
+
+    jRoWDebtFinIncome[t1], vFinIncome_f[:RoW,:Debt,:Assets,t1]
+
+    jrFinIncome_s_f[s=fixed_equity_asset_sector, f=[:Equity], al=[:Assets], t=[t1]],
+    vFinIncome_f[s=fixed_equity_asset_sector, f=[:Equity], al=[:Assets], t=[t1]]
   end
 
   return block
 end
+
 
 end # module

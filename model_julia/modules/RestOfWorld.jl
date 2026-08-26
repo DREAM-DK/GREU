@@ -14,7 +14,7 @@ import ..SectorAccounts:
   vNetFinIncome,
   vNetTransfers,
   vNonProducedAssetAcquisitions,
-  vFinPosition_f
+  vFinPosition_s_f
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
 
@@ -47,21 +47,21 @@ function define_equations()
 
     # Portfolio.
     # Debt assets clear the debt market. RoW is residual lender.
-    vFinPosition_f[s=[:RoW], f=[:Debt], al=[:Assets], t=t1:T],
-    vFinPosition_f[s,f,al,t] == ∑(vFinPosition_f[s2,:Debt,:Liab,t] for s2 in sector)
-                              - ∑(vFinPosition_f[s2,:Debt,:Assets,t] for s2 in sector if s2 != :RoW)
+    vFinPosition_s_f[s=[:RoW], f=[:Debt], al=[:Assets], t=t1:T],
+    vFinPosition_s_f[s,f,al,t] == ∑(vFinPosition_s_f[s2,:Debt,:Liab,t] for s2 in sector)
+                              - ∑(vFinPosition_s_f[s2,:Debt,:Assets,t] for s2 in sector if s2 != :RoW)
 
     # Debt liabilities are a fixed share of FinCorp debt assets.
-    vFinPosition_f[s=[:RoW], f=[:Debt], al=[:Liab], t=t1:T],
-    vFinPosition_f[s,f,al,t] == rForeignDebt[t] * vFinPosition_f[:FinCorp,:Debt,:Assets,t]
+    vFinPosition_s_f[s=[:RoW], f=[:Debt], al=[:Liab], t=t1:T],
+    vFinPosition_s_f[s,f,al,t] == rForeignDebt[t] * vFinPosition_s_f[:FinCorp,:Debt,:Assets,t]
 
     # Equity liabilities are a fixed share of domestic equity assets.
-    vFinPosition_f[s=[:RoW], f=[:Equity], al=[:Liab], t=t1:T],
-    vFinPosition_f[s,f,al,t] == rForeignEquity[t] * ∑(vFinPosition_f[s2,:Equity,:Assets,t] for s2 in sector if s2 != :RoW)
+    vFinPosition_s_f[s=[:RoW], f=[:Equity], al=[:Liab], t=t1:T],
+    vFinPosition_s_f[s,f,al,t] == rForeignEquity[t] * ∑(vFinPosition_s_f[s2,:Equity,:Assets,t] for s2 in sector if s2 != :RoW)
 
     # RoW equity assets clear the equity market. RoW is residual buyer/seller of domestic equity.
-    vFinPosition_f[s=[:RoW], f=[:Equity], al=[:Assets], t=t1:T],
-    ∑(vFinPosition_f[s2,:Equity,:Assets,t] for s2 in sector) == ∑(vFinPosition_f[s2,:Equity,:Liab,t] for s2 in sector)
+    vFinPosition_s_f[s=[:RoW], f=[:Equity], al=[:Assets], t=t1:T],
+    ∑(vFinPosition_s_f[s2,:Equity,:Assets,t] for s2 in sector) == ∑(vFinPosition_s_f[s2,:Equity,:Liab,t] for s2 in sector)
   end
 end
 
@@ -74,8 +74,8 @@ function define_calibration()
   # At t1, swap each ratio endogenous and the corresponding financial asset cell exogenous,
   # so calibration solves for the ratio implied by observed balance-sheet data.
   @endo_exo_swap! block begin
-    rForeignDebt[t1], vFinPosition_f[:RoW,:Debt,:Liab,t1]
-    rForeignEquity[t1], vFinPosition_f[:RoW,:Equity,:Liab,t1]
+    rForeignDebt[t1], vFinPosition_s_f[:RoW,:Debt,:Liab,t1]
+    rForeignEquity[t1], vFinPosition_s_f[:RoW,:Equity,:Liab,t1]
   end
 
   return block
