@@ -40,6 +40,9 @@ const government_file = joinpath(government_data_dir, "government_variables.csv"
 const GovernmentTag = Tag(:Government)
 
 @variables model :: (GovernmentTag, GrowthAdjusted, InflationAdjusted) begin
+  vGovPrimaryRevenue[t], "Primary revenue of government (TR less property income)."
+  vGovPrimaryExpenditure[t], "Primary expenditure of government (TE less interest)."
+
   vGovRevenue[t], "Revenue of government (TR)."
   vGovExpenditure[t], "Expenditure of government (TE)."
 
@@ -52,7 +55,7 @@ const GovernmentTag = Tag(:Government)
   vtCorp[t], "Tax on corporations (D.51B+D.51C2)."
   vtDirect_other[t], "Residual direct taxes."
 
-  vGovRevOther[t], "Other revenue of government."
+  vGovPrimaryRevOther[t], "Other revenue of government."
   vGovSalesRev[t], "Revenue from sales (P.11+P.12+P.131)."
   vGovOthSubRev[t], "Revenue from other subsidies (D.39)."
   vGovPropertyIncome[t], "Revenue from property income (D.4)."
@@ -144,32 +147,31 @@ end
 function define_equations()
   return @block model begin
     # Government balance.
-    vGovBalance[t=t1:T],
-    vGovBalance[t] == vGovRevenue[t] - vGovExpenditure[t]
-
     vGovPrimaryBalance[t=t1:T],
-    vGovPrimaryBalance[t] == vGovBalance[t] - vGovInterestPayments[t] # TODO:vNetFinIncome[:Gov,t]
+    vGovPrimaryBalance[t] == vGovPrimaryRevenue[t] - vGovPrimaryExpenditure[t]
+
+    vGovBalance[t=t1:T],
+    vGovBalance[t] == vGovPrimaryBalance[t] + vNetFinIncome[:Gov,t]
 
     vNetFinTransactions[s=[:Gov], t=t1:T],
     vNetFinTransactions[s,t] == vGovBalance[t]
 
     # Government revenues.
-    vGovRevenue[t=t1:T],
-    vGovRevenue[t] == vtIndirect[t]
+    vGovPrimaryRevenue[t=t1:T],
+    vGovPrimaryRevenue[t] == vtIndirect[t]
                       + vtDirect[t]
-                      + vGovRevOther[t]
+                      + vGovPrimaryRevOther[t]
     
-    vNetTransfers2sector[s=[:Gov], t=t1:T],
-    vNetTransfers2sector[s,t] == vtDirect[t] # D5
-                      + vGovSocialContRev[t] # D61
-                      + vGovOthCurrentTransRev[t] # D7
-                      + vtCap[t] # D91
-                      + vGovCapRev[t] # D92-D99
-                      - vGovSocBenefitExp[t]
-                      + vSocTransKind[t] ### TODO: Se på denne!!
-                      - vGovOthCurrentTransExp[t]
-                      - vGovAdjExp[t]
-                      - vGovCapTransExp[t]
+    # vNetTransfers2sector[s=[:Gov], t=t1:T],
+    # vNetTransfers2sector[s,t] == vtDirect[t] # D5
+    #                   + vGovSocialContRev[t] # D61
+    #                   + vGovOthCurrentTransRev[t] # D7
+    #                   + vtCap[t] # D91
+    #                   + vGovCapRev[t] # D92-D99
+    #                   - vGovSocBenefitExp[t]
+    #                   - vGovOthCurrentTransExp[t]
+    #                   - vGovAdjExp[t]
+    #                   - vGovCapTransExp[t]
 
     # vtIndirect[t=t1:T],
     # vtIndirect[t] == ∑(vNetProductTax_u[u,t] for u in use)
@@ -201,18 +203,15 @@ function define_equations()
     # vtDirect_other[t=t1:T],
     # vtDirect_other[t] == sDirect_other[t] * vtHhIncome[t]
 
-    vGovRevOther[t=t1:T],
-    vGovRevOther[t] == vGovSalesRev[t]
+    vGovPrimaryRevOther[t=t1:T],
+    vGovPrimaryRevOther[t] == vGovSalesRev[t]
                        + vGovOthSubRev[t]
-                       + vGovPropertyIncome[t] 
                        + vGovSocialContRev[t]
                        + vGovOthCurrentTransRev[t]
                        + vtCap[t]
                        + vGovCapRev[t]
 
-    vGovPropertyIncome[t=t1:T],
-    vGovPropertyIncome[t] == vFinIncome[:Gov,:Equity,:Assets,t] 
-                             + vFinIncome[:Gov,:Debt,:Assets,t]
+
     
     # vGovOthCurrentTransRev[t=t1:T],
     # vGovOthCurrentTransRev[t] == sGovOthCurrentTransRev[t] * ∑(vY_i[i,t] for i in industry)
@@ -224,19 +223,18 @@ function define_equations()
     # vGovCapRev[t] == sGovCapRev[t] * ∑(vY_i[i,t] for i in industry)
 
     # Government expenditure.
-    vGovExpenditure[t=t1:T],
-    vGovExpenditure[t] == vGovIntermediateCons[t]
-                          + vGovCapInv[t]
-                          + vGovEmplComp[t]
-                          + vGovOthProdTax[t]
-                          + vGovSub[t]
-                          + vFinIncome_al[:Gov,:Liab,t]
-                          + vGovSocBenefitExp[t] ###
-                          + vGovOthCurrentTransExp[t] ###
-                          + vGovAdjExp[t] ###
-                          + vGovCapTransExp[t] ###
-                          + vGovNetAcquisitions[t]
-                          + vLumpsum[t]
+    vGovPrimaryExpenditure[t=t1:T],
+    vGovPrimaryExpenditure[t] == vGovIntermediateCons[t]
+                                 + vGovCapInv[t]
+                                 + vGovEmplComp[t]
+                                 + vGovOthProdTax[t]
+                                 + vGovSub[t]
+                                 + vGovSocBenefitExp[t] ###
+                                 + vGovOthCurrentTransExp[t] ###
+                                 + vGovAdjExp[t] ###
+                                 + vGovCapTransExp[t] ###
+                                 + vGovNetAcquisitions[t]
+                                 + vLumpsum[t]
 
     
 
