@@ -13,7 +13,8 @@ import ..model
 import ..SectorAccounts:
   vNetFinAssets,
   vNetFinTransactions,
-  vNetTransfers
+  vNetTransfers,
+  vPensionSaving
 import ..Tags: DynamicCalibration, ForecastConstant
 import ..Time: t, t1, T
 
@@ -84,7 +85,7 @@ function define_equations()
   return @block model begin
     qHhWealth[t=t1:T], pC[t] * qHhWealth[t] == vNetFinAssets[:Hh,t]
 
-    vHtMIncome[t=t1:T], vHtMIncome[t] == vNetTransfers[:Hh,t] + vHhWages[t]
+    vHtMIncome[t=t1:T], vHtMIncome[t] == vNetTransfers[:Hh,t] - vPensionSaving[:Hh,t] + vHhWages[t]
 
     qCxRef[t=t1:T],
     qCxRef[t] == qC[t] - rCHabits[t] * qC[t-1]/fq - rHtM[t] * vHtMIncome[t] / pC[t]

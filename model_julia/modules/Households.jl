@@ -18,9 +18,9 @@ import ..SectorAccounts:
   vNetFinIncome,
   vFinIncome_f,
   vNetTransfers,
+  vNonProducedAssetAcquisitions,
   vI_s,
   vGrossOpSurplusMixedIncome,
-  vNonFinancialNonProducedAssets,
   vFinPosition_f,
   vFinTransactions_f,
   vNetFinAssets
@@ -86,9 +86,9 @@ function define_equations()
 
     # Budget identity.
     vNetFinTransactions[s=[:Hh], t=t1:T],
-    vNetFinTransactions[s,t] == vNetFinIncome[s,t] + vNetTransfers[s,t]
-                              + vHhWages[t] - vC[t] + vGrossOpSurplusMixedIncome[s,t] - vI_s[s,t]
-                              - vNonFinancialNonProducedAssets[s,t]
+    vNetFinTransactions[s,t] == vNetFinIncome[s,t] + vNetTransfers[s,t] + vHhWages[t] - vC[t]
+                              + vGrossOpSurplusMixedIncome[s,t] - vI_s[s,t]
+                              - vNonProducedAssetAcquisitions[s,t]
 
     # Portfolio.
     # Equity assets have no transactions.

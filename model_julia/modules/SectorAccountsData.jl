@@ -20,8 +20,6 @@ import ..SectorAccountsSettings:
   fin_transactions_na_items,
   fin_transactions_equity_income_items,
   fin_transactions_debt_income_items,
-  fin_transactions_transfer_items,
-  fin_transactions_row_nonwage_items,
   fin_other_changes_dataset_code,
   fin_other_changes_unit,
   fin_revaluation_dataset_code,
@@ -213,6 +211,8 @@ function fin_bal_by_instrument(df)
 end
 
 function build_parameters(flow_df, tr_df, bal_df, oc_df, rev_df)
+  sectors = ["FinCorp", "NonFinCorp", "Hh", "RoW"]
+
   return (;
     # ------------------------------------------------------------------
     # Non-financial transactions  (nasa_10_nf_tr)
@@ -227,17 +227,24 @@ function build_parameters(flow_df, tr_df, bal_df, oc_df, rev_df)
         (fin_transactions_debt_income_items,   "PAID", "Debt",   finpos_map["LIAB"]),
       ]
     ]...),
-    vNetFinTransactions                  = get_net_fin_transactions_item(flow_df, "B9",           "RECV"),
-    vNetTransfers                        = get_net_fin_transactions_item(flow_df, fin_transactions_transfer_items, "NET",  ["FinCorp", "NonFinCorp", "Hh"]),
-    vI_s                                 = get_net_fin_transactions_item(flow_df, "P5G",          "PAID", ["FinCorp", "NonFinCorp", "Hh"]),
-    vGrossOpSurplusMixedIncome           = get_net_fin_transactions_item(flow_df, "B2A3G",        "RECV", ["FinCorp", "NonFinCorp", "Hh"]),
-    vNonFinancialNonProducedAssets       = get_net_fin_transactions_item(flow_df, "NP",           "PAID", ["FinCorp", "NonFinCorp", "Hh", "RoW"]),
+    vNetFinTransactions                  = get_net_fin_transactions_item(flow_df, "B9", "RECV"),
+    vCurrentIncomeWealthTaxes            = get_net_fin_transactions_item(flow_df, "D5", "NET", sectors),
+    vInheritanceGiftWealthTaxes          = get_net_fin_transactions_item(flow_df, "D91", "NET", sectors),
+    vSocialContributions                 = get_net_fin_transactions_item(flow_df, "D61", "NET", sectors),
+    vSocialBenefits                      = get_net_fin_transactions_item(flow_df, "D62", "NET", sectors),
+    vPensionSaving                       = get_net_fin_transactions_item(flow_df, "D8", "NET", sectors),
+    vOtherTransfers                      = vcat(
+      get_net_fin_transactions_item(flow_df, ["D7", "D92", "D99"], "NET", ["FinCorp", "NonFinCorp", "Hh"]),
+      get_net_fin_transactions_item(flow_df, ["D2", "D3", "D7", "D92", "D99"], "NET", ["RoW"]),
+    ),
+    vNonProducedAssetAcquisitions        = get_net_fin_transactions_item(flow_df, "NP", "PAID", sectors),
+    vI_s                                 = get_net_fin_transactions_item(flow_df, "P5G", "PAID", ["FinCorp", "NonFinCorp", "Hh"]),
+    vGrossOpSurplusMixedIncome           = get_net_fin_transactions_item(flow_df, "B2A3G", "RECV", ["FinCorp", "NonFinCorp", "Hh"]),
 
     # Households
     vHhConsumption                       = select(get_net_fin_transactions_item(flow_df, "P3",               "PAID", ["Hh"]), :year, :value),
     vHhWages                             = select(get_net_fin_transactions_item(flow_df, "D1",               "RECV", ["Hh"]), :year, :value),
     # Rest of World
-    vRoWPrimaryIncomeCurrentBalanceOther = select(get_net_fin_transactions_item(flow_df, fin_transactions_row_nonwage_items, "NET", ["RoW"]), :year, :value),
     vRoWNetWages                         = select(get_net_fin_transactions_item(flow_df, "D1", "NET", ["RoW"]), :year, :value),
 
     # Financial balance sheet  (nasa_10_f_bs)
@@ -278,13 +285,17 @@ function write_sector_flows(dir, params)
   CSV.write(joinpath(dir, "sector_accounts.csv"), vcat(
     long_format(:vFinIncome_f,                             params.vFinIncome_f,                             [:sector, :f, :al, :year]),
     long_format(:vNetFinTransactions,                      params.vNetFinTransactions,                      [:sector, :year]),
-    long_format(:vNetTransfers,                            params.vNetTransfers,                            [:sector, :year]),
+    long_format(:vCurrentIncomeWealthTaxes,                params.vCurrentIncomeWealthTaxes,                [:sector, :year]),
+    long_format(:vInheritanceGiftWealthTaxes,              params.vInheritanceGiftWealthTaxes,              [:sector, :year]),
+    long_format(:vSocialContributions,                     params.vSocialContributions,                     [:sector, :year]),
+    long_format(:vSocialBenefits,                          params.vSocialBenefits,                          [:sector, :year]),
+    long_format(:vPensionSaving,                           params.vPensionSaving,                           [:sector, :year]),
+    long_format(:vOtherTransfers,                          params.vOtherTransfers,                          [:sector, :year]),
+    long_format(:vNonProducedAssetAcquisitions,            params.vNonProducedAssetAcquisitions,            [:sector, :year]),
     long_format(:vI_s,                                     params.vI_s,                                     [:sector, :year]),
     long_format(:vGrossOpSurplusMixedIncome,               params.vGrossOpSurplusMixedIncome,               [:sector, :year]),
-    long_format(:vNonFinancialNonProducedAssets,           params.vNonFinancialNonProducedAssets,           [:sector, :year]),
     long_format(:vHhConsumption,                           params.vHhConsumption,                           [:year]),
     long_format(:vHhWages,                                 params.vHhWages,                                 [:year]),
-    long_format(:vRoWPrimaryIncomeCurrentBalanceOther,     params.vRoWPrimaryIncomeCurrentBalanceOther,     [:year]),
     long_format(:vRoWNetWages,                             params.vRoWNetWages,                             [:year]),
     long_format(:vFinTransactions_f,                       params.vFinTransactions_f,                       [:sector, :f, :al, :year]),
     long_format(:vFinPosition_f,                           params.vFinPosition_f,                           [:sector, :f, :al, :year]),

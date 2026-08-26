@@ -19,8 +19,8 @@ import ..SectorAccounts:
   vNetFinTransactions,
   vNetFinIncome,
   vNetTransfers,
+  vNonProducedAssetAcquisitions,
   vI_s,
-  vNonFinancialNonProducedAssets,
   vGrossOpSurplusMixedIncome,
   vFinPosition_f,
   vFinTransactions_f,
@@ -99,13 +99,13 @@ function define_equations()
     # a negative issue is a buy-back and uses corporate funds.
     vNetFinTransactions[s=[:FinCorp], t=t1:T],
     vNetFinTransactions[s,t] == vNetFinIncome[s,t]
-                              + vNetTransfers[s,t] - vI_s[s,t]
-                              - vNonFinancialNonProducedAssets[s,t] + vGrossOpSurplusMixedIncome[s,t]
+                              + vNetTransfers[s,t] - vNonProducedAssetAcquisitions[s,t]
+                              - vI_s[s,t] + vGrossOpSurplusMixedIncome[s,t]
 
     vNetFinTransactions[s=[:NonFinCorp], t=t1:T],
     vNetFinTransactions[s,t] == vNetFinIncome[s,t]
-                                + vNetTransfers[s,t] - vI_s[s,t]
-                                - vNonFinancialNonProducedAssets[s,t] + vGrossOpSurplusMixedIncome[s,t]
+                                + vNetTransfers[s,t] - vNonProducedAssetAcquisitions[s,t]
+                                - vI_s[s,t] + vGrossOpSurplusMixedIncome[s,t]
 
     # Portfolio.
     # Financial corporations.
