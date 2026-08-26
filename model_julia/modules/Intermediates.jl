@@ -41,12 +41,16 @@ const intermediate_m_i = Set((m, i) for (_, m, i) in intermediate_product_m_i)
 const IntermediatesTag = Tag(:Intermediates)
 
 @variables model :: (IntermediatesTag, GrowthAdjusted) begin
-  qM_m_i[m=intermediate_type, i=industry, t=t; (m, i) in intermediate_m_i], "Intermediate input by type and industry."
-  qM_p_m_i[p=product, m=intermediate_type, i=industry, t=t; (p, m, i) in intermediate_product_m_i], "Intermediate input by product, type, and industry."
+  qM_m_i[m=intermediate_type, i=industry, t=t; (m,i) in intermediate_m_i], "Intermediate input by type and industry."
+  qM_p_m_i[p=product, m=intermediate_type, i=industry, t=t; (p,m,i) in intermediate_product_m_i], "Intermediate input by product, type, and industry."
 end
 
 @variables model :: (IntermediatesTag, InflationAdjusted) begin
-  pM_m_i[(m,i,t) = qM_m_i], "Intermediate input price by type and industry."
+  pM_m_i[(m,i,t)=qM_m_i], "Intermediate input price by type and industry."
+end
+
+@variables model :: (IntermediatesTag, GrowthAdjusted, InflationAdjusted) begin
+  vM_i[i=industry, t=t], "Intermediate input spend by industry."
 end
 
 @variables model :: IntermediatesTag begin
@@ -75,8 +79,7 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    qM_m_i[m=intermediate_type, i=industry, t=t1:T],
-    qM_m_i[m,i,t] == qProd[m,i,t] / pM_m_i[m,i,t1]
+    qM_m_i[m=intermediate_type, i=industry, t=t1:T], qM_m_i[m,i,t] == qProd[m,i,t] / pM_m_i[m,i,t1]
 
     qM_p_m_i[p=product, m=intermediate_type, i=industry, t=t1:T],
     qM_p_m_i[p,m,i,t] == rIntermediateProductShare[p,m,i,t] * qM_m_i[m,i,t]
@@ -86,8 +89,9 @@ function define_equations()
     pM_m_i[m=intermediate_type, i=industry, t=t1:T],
     pM_m_i[m,i,t] == ∑(rIntermediateProductShare[p,m,i,t] * pPurchaserUse_p_u[p,i,t] for p in product)
 
-    pProd[m=intermediate_type, i=industry, t=t1:T],
-    pProd[m,i,t] == pM_m_i[m,i,t] / pM_m_i[m,i,t1]
+    vM_i[i=industry, t=t1:T], vM_i[i,t] == ∑(pM_m_i[m,i,t] * qM_m_i[m,i,t] for m in intermediate_type)
+
+    pProd[m=intermediate_type, i=industry, t=t1:T], pProd[m,i,t] == pM_m_i[m,i,t] / pM_m_i[m,i,t1]
   end
 end
 

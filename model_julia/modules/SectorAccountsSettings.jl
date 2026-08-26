@@ -16,8 +16,8 @@ const fin_bal_dataset_code            = "nasa_10_f_bs"
 const fin_bal_unit                    = "MIO_EUR"
 const cell_tolerance                  = 1e-6
 
-# ESA 2010 institutional sectors to download. S14 and S15 (non-profit institutions serving households)
-# are later merged into a single Households aggregate 
+# ESA 2010 institutional sectors to download. S14 and S15 (NPISH) are merged
+# into a single Households aggregate.
 const raw_sectors = ["S11", "S12", "S13", "S14", "S15", "S2"]
 const sector_map  = Dict(
   "S11" => "NonFinCorp",  # Non-financial corporations
@@ -45,7 +45,7 @@ const fin_bal_na_items = ["F", "F1", "F11", "F2", "F3", "F4", "F5", "F51", "F52"
 const fin_tr_na_items  = replace(fin_bal_na_items, "F" => "F_TR") # nasa_10_f_tr publishes the F aggregate as F_TR rather than F.
 
 # ---------------------------------------------------------------------------
-# Property income (vFinIncome): D.4 receipts (al=Assets) or payments (al=Liab)
+# Property income (vFinIncome_f): D.4 receipts (al=Assets) or payments (al=Liab)
 # split by instrument category.
 #
 # Instrument–income mapping (ESA 2010 convention):
@@ -58,7 +58,7 @@ const fin_transactions_equity_income_items = ["D42"]                       # Dis
 const fin_transactions_debt_income_items   = ["D41", "D43", "D44", "D45"]  # Interest, reinvested earnings, investment fund income, rent; mapped to debt instruments
 
 # ---------------------------------------------------------------------------
-# Financial assets/liabilities (vFinAL): balance-sheet stocks by instrument,
+# Financial positions (vFinPosition_f): balance-sheet stocks by instrument,
 # split into Debt and Equity.
 #
 # Monetary gold (F.11, a subset of F.1) is excluded from all instrument totals
@@ -74,6 +74,6 @@ const fin_bal_equity_na_items = ["F51"]
 # redistribution accounts.
 # ---------------------------------------------------------------------------
 const fin_transactions_transfer_items  = ["D5", "D61", "D62", "D7", "D8", "D9"]            # D.5 (current taxes), D.6 (social contributions/benefits), D.7 (other current transfers), D.8 (adjustment for pension entitlements), D.9 (capital transfers)
-const fin_transactions_row_other_items = ["D1", "D2", "D3", "D5", "D6", "D7", "D8", "D9"]  # Primary income and current transfers with the rest of the world, excluding property income (D.4)
+const fin_transactions_row_nonwage_items = ["D2", "D3", "D5", "D6", "D7", "D8", "D9"] # RoW primary income and current transfers, excluding wages (D.1) and property income (D.4)
 
 end # module

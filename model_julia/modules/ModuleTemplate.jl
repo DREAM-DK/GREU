@@ -50,8 +50,10 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    test_variable[t = t1:T],
-    test_variable[t] == 1
+    test_variable[t=t1:T], test_variable[t] == 1
+
+    @test_constraint("test_forecast must be constant")
+    test_forecast[t=t1:T], test_forecast[t] == test_forecast[t1]
   end
 end
 
@@ -60,19 +62,9 @@ end
 # ============================================================================
 function define_calibration()
   block = define_equations() + @block model begin
-    test_forecast[t = t1:t1],
-    test_forecast[t] == 42.0
+    test_forecast[t=t1:t1], test_forecast[t] == 42.0
   end
   return block
-end
-
-# ============================================================================
-# Tests
-# ============================================================================
-function run_tests(db)
-  errors = String[]
-  all(db[test_forecast] .≈ db[test_forecast[t1]]) || push!(errors, "test_forecast should be constant")
-  return errors
 end
 
 end # module

@@ -101,7 +101,7 @@ const InputOutputTag = Tag(:InputOutput)
   vMarginService_s_u_o[s=product, u=use, o=origin, t=t; (s,u,o) in margin_s_u_o], "Margin-service value by service, use, and origin"
   vMarginService_s_u[(s,u,t)=select_axes(vMarginService_s_u_o[margin_services,:,:,:], 1, 2, 4)], "Margin-service value by service and use"
   vMarginBundle_u[(u,t)=select_axes(vMarginService_s_u, 2, 3)], "Margin-bundle value by use"
-  vUse_p_u_o[(p,u,o,t)=merge_indices(vPurchaserUse_p_u_o, vMarginService_s_u_o)], "Basic or border value by product, use, and origin"
+  vUse_p_u_o[(p,u,o,t)=merge_indices(vPurchaserUse_p_u_o,vMarginService_s_u_o)], "Basic or border value by product, use, and origin"
   vSupply_p_o[(p,o,t)=select_axes(vUse_p_u_o, 1, 3, 4)], "Supply value by product and origin"
   vUse_u_o[(u,o,t)=select_axes(vUse_p_u_o, 2, 3, 4)], "Basic or border value by use and origin"
   vSupply_o[o=origin, t=t], "Supply value by origin"
@@ -215,6 +215,8 @@ function assign_data!(db)
   db[pM_p_u] .= 1.0
 
   db[vCTourist] .= read_series(aggregate_totals_file, "vCTourist", t)
+  # The source has no tourist volume before t1. Use its value as the lagged quantity.
+  db[qCTourist[t1-1]] = db[vCTourist[t1-1]]
   db[vM] .= read_series(aggregate_totals_file, "vM", t)
   db[vX] .= read_series(aggregate_totals_file, "vX", t)
   db[vY] .= read_series(aggregate_totals_file, "vY", t)
@@ -241,136 +243,106 @@ function define_equations()
     qPurchaserUse_p_u[p=product, u=:K, t=t1:T], qPurchaserUse_p_u[p,u,t] == qI_p[p,t]
     qPurchaserUse_p_u[p=product, u=:X, t=t1:T], qPurchaserUse_p_u[p,u,t] == qX_p[p,t]
 
-    qPurchaserUse_p_u[p = product, u = :INV, t = t1:T],
+    qPurchaserUse_p_u[p=product, u=:INV, t=t1:T],
     qPurchaserUse_p_u[p,u,t] == ∑(qPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
-    qPurchaserUse_p_u_o[p = product, u = ordinary_uses, o = origin, t = t1:T],
+    qPurchaserUse_p_u_o[p=product, u=ordinary_uses, o=origin, t=t1:T],
     qPurchaserUse_p_u_o[p,u,o,t] == rOriginShare[p,u,o,t] * qPurchaserUse_p_u[p,u,t]
 
-    qPurchaserUse_p_u_o[p = product, u = :INV, o = origin, t = (t1+1):T],
-    qPurchaserUse_p_u_o[p,u,o,t] == 0
+    qPurchaserUse_p_u_o[p=product, u=:INV, o=origin, t=(t1+1):T], qPurchaserUse_p_u_o[p,u,o,t] == 0
 
     # Derived margin demand. Only uses with reported margins carry a bundle.
-    qMarginBundle_p_u[p = product, u = use, t = t1:T],
+    qMarginBundle_p_u[p=product, u=use, t=t1:T],
     qMarginBundle_p_u[p,u,t] == rMarginRate[p,u,t] * qPurchaserUse_p_u[p,u,t]
 
-    qMarginBundle_u[u = use, t = t1:T],
-    qMarginBundle_u[u,t] == ∑(qMarginBundle_p_u[p,u,t] for p in product)
+    qMarginBundle_u[u=use, t=t1:T], qMarginBundle_u[u,t] == ∑(qMarginBundle_p_u[p,u,t] for p in product)
 
-    qMarginService_s_u[s = margin_services, u = use, t = t1:T],
+    qMarginService_s_u[s=margin_services, u=use, t=t1:T],
     qMarginService_s_u[s,u,t] == rMarginServiceShare[s,u,t] * qMarginBundle_u[u,t]
 
-    qMarginService_s_u_o[s = product, u = use, o = origin, t = t1:T],
+    qMarginService_s_u_o[s=product, u=use, o=origin, t=t1:T],
     qMarginService_s_u_o[s,u,o,t] == rOriginShare[s,u,o,t] * qMarginService_s_u[s,u,t]
 
     # Use at basic or border prices adds margin services.
-    qUse_p_u_o[p = product, u = use, o = origin, t = t1:T],
+    qUse_p_u_o[p=product, u=use, o=origin, t=t1:T],
     qUse_p_u_o[p,u,o,t] == qPurchaserUse_p_u_o[p,u,o,t] + qMarginService_s_u_o[p,u,o,t]
 
-    qSupply_p_o[p = product, o = origin, t = t1:T],
-    qSupply_p_o[p,o,t] == ∑(qUse_p_u_o[p,u,o,t] for u in use)
+    qSupply_p_o[p=product, o=origin, t=t1:T], qSupply_p_o[p,o,t] == ∑(qUse_p_u_o[p,u,o,t] for u in use)
 
-    qUse_u_o[u = use, o = origin, t = t1:T],
-    qUse_u_o[u,o,t] == ∑(qUse_p_u_o[p,u,o,t] for p in product)
+    qUse_u_o[u=use, o=origin, t=t1:T], qUse_u_o[u,o,t] == ∑(qUse_p_u_o[p,u,o,t] for p in product)
 
-    qSupply_o[o=origin, t=t1:T],
-    qSupply_o[o,t] == ∑(qSupply_p_o[p,o,t] for p in product)
+    qSupply_o[o=origin, t=t1:T], qSupply_o[o,t] == ∑(qSupply_p_o[p,o,t] for p in product)
 
-    qY_p_i[p = product, i = industry, t = t1:T],
-    qY_p_i[p,i,t] == rIndustryShare[p,i,t] * qY_p[p,t]
+    qY_p_i[p=product, i=industry, t=t1:T], qY_p_i[p,i,t] == rIndustryShare[p,i,t] * qY_p[p,t]
 
-    qY_i[i = industry, t = t1:T],
-    qY_i[i,t] == ∑(qY_p_i[p,i,t] for p in product)
+    qY_i[i=industry, t=t1:T], qY_i[i,t] == ∑(qY_p_i[p,i,t] for p in product)
 
     # Final-use totals.
     qX[t=t1:T], qX[t] == ∑(qX_p[p,t] for p in product) + qCTourist[t]
-    qC[t=t1:T], qC[t] == ∑(qC_p[p,t] for p in product) - qCTourist[t]
     qG[t=t1:T], qG[t] == ∑(qG_p[p,t] for p in product)
     qINV[t=t1:T], qINV[t] == ∑(qPurchaserUse_p_u[p,:INV,t] for p in product)
 
     # Basic, border, margin, and purchaser prices.
-    pBasic[p = product, u = use, o = domestic, t = t1:T],
-    pBasic[p,u,o,t] == pSupply_p_o[p,o,t]
+    pBasic[p=product, u=use, o=domestic, t=t1:T], pBasic[p,u,o,t] == pSupply_p_o[p,o,t]
 
-    pMarginService_s_u[s = margin_services, u = use, t = t1:T],
+    pMarginService_s_u[s=margin_services, u=use, t=t1:T],
     pMarginService_s_u[s,u,t] == ∑(rOriginShare[s,u,o,t] * pBasic[s,u,o,t] for o in origin)
 
-    pMarginBundle_u[u = use, t = t1:T],
+    pMarginBundle_u[u=use, t=t1:T],
     pMarginBundle_u[u,t] == ∑(rMarginServiceShare[s,u,t] * pMarginService_s_u[s,u,t] for s in margin_services)
 
-    pPurchaserUse_p_u_o[p = product, u = use, o = origin, t = t1:T],
-    pPurchaserUse_p_u_o[p,u,o,t] == (
-      pBasic[p,u,o,t]
-      + tNetProduct[p,u,t]
-      + rMarginRate[p,u,t] * pMarginBundle_u[u,t]
-    ) * (1 + tVAT[p,u,o,t])
+    pPurchaserUse_p_u_o[p=product, u=use, o=origin, t=t1:T],
+    pPurchaserUse_p_u_o[p,u,o,t] == (pBasic[p,u,o,t] + tNetProduct[p,u,t]
+      + rMarginRate[p,u,t] * pMarginBundle_u[u,t]) * (1 + tVAT[p,u,o,t])
 
-    pPurchaserUse_p_u[p = product, u = ordinary_uses, t = t1:T],
+    pPurchaserUse_p_u[p=product, u=ordinary_uses, t=t1:T],
     pPurchaserUse_p_u[p,u,t] == ∑(rOriginShare[p,u,o,t] * pPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
     # Purchaser values include margin spend once through the purchaser price.
-    vPurchaserUse_p_u_o[p = product, u = use, o = origin, t = t1:T],
+    vPurchaserUse_p_u_o[p=product, u=use, o=origin, t=t1:T],
     vPurchaserUse_p_u_o[p,u,o,t] == pPurchaserUse_p_u_o[p,u,o,t] * qPurchaserUse_p_u_o[p,u,o,t]
 
-    vPurchaserUse_p_u[p = product, u = use, t = t1:T],
+    vPurchaserUse_p_u[p=product, u=use, t=t1:T],
     vPurchaserUse_p_u[p,u,t] == ∑(vPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
-    vNetProductTax_p_u[p = product, u = use, t = t1:T],
+    vNetProductTax_p_u[p=product, u=use, t=t1:T],
     vNetProductTax_p_u[p,u,t] ==
       tNetProduct[p,u,t] * ∑(qPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
-    vNetProductTax_u[u=use, t=t1:T],
-    vNetProductTax_u[u,t] ==
-      ∑(vNetProductTax_p_u[p,u,t] for p in product)
+    vNetProductTax_u[u=use, t=t1:T], vNetProductTax_u[u,t] == ∑(vNetProductTax_p_u[p,u,t] for p in product)
 
-    vMarginService_s_u_o[s = product, u = use, o = origin, t = t1:T],
+    vMarginService_s_u_o[s=product, u=use, o=origin, t=t1:T],
     vMarginService_s_u_o[s,u,o,t] == pBasic[s,u,o,t] * qMarginService_s_u_o[s,u,o,t]
 
-    vMarginService_s_u[s = margin_services, u = use, t = t1:T],
+    vMarginService_s_u[s=margin_services, u=use, t=t1:T],
     vMarginService_s_u[s,u,t] == ∑(vMarginService_s_u_o[s,u,o,t] for o in origin)
 
-    vMarginBundle_u[u = use, t = t1:T],
-    vMarginBundle_u[u,t] == ∑(vMarginService_s_u[s,u,t] for s in margin_services)
+    vMarginBundle_u[u=use, t=t1:T], vMarginBundle_u[u,t] == ∑(vMarginService_s_u[s,u,t] for s in margin_services)
 
-    vUse_p_u_o[p = product, u = use, o = origin, t = t1:T],
-    vUse_p_u_o[p,u,o,t] == pBasic[p,u,o,t] * qUse_p_u_o[p,u,o,t]
+    vUse_p_u_o[p=product, u=use, o=origin, t=t1:T], vUse_p_u_o[p,u,o,t] == pBasic[p,u,o,t] * qUse_p_u_o[p,u,o,t]
 
-    vY_p_i[p = product, i = industry, t = t1:T],
-    vY_p_i[p,i,t] == pY_p_i[p,i,t] * qY_p_i[p,i,t]
+    vY_p_i[p=product, i=industry, t=t1:T], vY_p_i[p,i,t] == pY_p_i[p,i,t] * qY_p_i[p,i,t]
 
-    vSupply_p_o[p = product, o = domestic, t = t1:T],
-    vSupply_p_o[p,o,t] == ∑(vY_p_i[p,i,t] for i in industry)
+    vSupply_p_o[p=product, o=domestic, t=t1:T], vSupply_p_o[p,o,t] == ∑(vY_p_i[p,i,t] for i in industry)
 
-    vSupply_p_o[p = product, o = import_origin, t = t1:T],
-    vSupply_p_o[p,o,t] == ∑(vUse_p_u_o[p,u,o,t] for u in use)
+    vSupply_p_o[p=product, o=import_origin, t=t1:T], vSupply_p_o[p,o,t] == ∑(vUse_p_u_o[p,u,o,t] for u in use)
 
-    pSupply_p_o[p = product, o = origin, t = t1:T],
-    pSupply_p_o[p,o,t] * qSupply_p_o[p,o,t] == vSupply_p_o[p,o,t]
+    pSupply_p_o[p=product, o=origin, t=t1:T], pSupply_p_o[p,o,t] * qSupply_p_o[p,o,t] == vSupply_p_o[p,o,t]
 
-    vY_i[i = industry, t = t1:T],
-    vY_i[i,t] == ∑(vY_p_i[p,i,t] for p in product)
+    vY_i[i=industry, t=t1:T], vY_i[i,t] == ∑(vY_p_i[p,i,t] for p in product)
 
-    pY_i[i = industry, t = t1:T],
-    pY_i[i,t] * qY_i[i,t] == vY_i[i,t]
+    vUse_u_o[u=use, o=origin, t=t1:T], vUse_u_o[u,o,t] == ∑(vUse_p_u_o[p,u,o,t] for p in product)
 
-    vUse_u_o[u = use, o = origin, t = t1:T],
-    vUse_u_o[u,o,t] == ∑(vUse_p_u_o[p,u,o,t] for p in product)
+    pUse_u_o[u=ordinary_uses, o=origin, t=t1:T], pUse_u_o[u,o,t] * qUse_u_o[u,o,t] == vUse_u_o[u,o,t]
 
-    pUse_u_o[u = ordinary_uses, o = origin, t = t1:T],
-    pUse_u_o[u,o,t] * qUse_u_o[u,o,t] == vUse_u_o[u,o,t]
+    vSupply_o[o=origin, t=t1:T], vSupply_o[o,t] == ∑(vSupply_p_o[p,o,t] for p in product)
 
-    vSupply_o[o=origin, t=t1:T],
-    vSupply_o[o,t] == ∑(vSupply_p_o[p,o,t] for p in product)
-
-    pSupply_o[o=origin, t=t1:T],
-    pSupply_o[o,t] * qSupply_o[o,t] == vSupply_o[o,t]
+    pSupply_o[o=origin, t=t1:T], pSupply_o[o,t] * qSupply_o[o,t] == vSupply_o[o,t]
 
     vX[t=t1:T], vX[t] == ∑(vPurchaserUse_p_u[p,:X,t] for p in product) + vCTourist[t]
     pX[t=t1:T], pX[t] * qX[t] == vX[t]
 
-    pC[t=t1:T], pC[t] * ∑(qC_p[p,t] for p in product) == ∑(vPurchaserUse_p_u[p,:C,t] for p in product)
     vC[t=t1:T], vC[t] == pC[t] * qC[t]
-    vCTourist[t=t1:T], vCTourist[t] == pC[t] * qCTourist[t]
     vG[t=t1:T], vG[t] == ∑(vPurchaserUse_p_u[p,:G,t] for p in product)
     pG[t=t1:T], pG[t] * qG[t] == vG[t]
     vI[t=t1:T], vI[t] == ∑(vPurchaserUse_p_u[p,:K,t] for p in product)
@@ -379,25 +351,22 @@ function define_equations()
 
     # Post-solve accounts that do not add rows to the square system.
     @test_constraint("Supply shares reproduce product output"; rtol=1e-3)
-    qSupply_p_o[p = product, o = domestic, t = t1:T],
-      qSupply_p_o[p,o,t] == ∑(qY_p_i[p,i,t] for i in industry)
+    qSupply_p_o[p=product, o=domestic, t=t1:T], qSupply_p_o[p,o,t] == ∑(qY_p_i[p,i,t] for i in industry)
 
     @test_constraint("Origin values sum to product use"; rtol=1e-3)
-    qPurchaserUse_p_u[p = product, u = ordinary_uses, t = t1:T],
-      pPurchaserUse_p_u[p,u,t] * qPurchaserUse_p_u[p,u,t] ==
+    qPurchaserUse_p_u[p=product, u=ordinary_uses, t=t1:T],
+    pPurchaserUse_p_u[p,u,t] * qPurchaserUse_p_u[p,u,t] ==
         ∑(vPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
     @test_constraint("Margin-service shares sum to the margin bundle"; rtol=1e-3)
-    qMarginBundle_u[u = use, t = t1:T],
-      qMarginBundle_u[u,t] == ∑(qMarginService_s_u[s,u,t] for s in margin_services)
+    qMarginBundle_u[u=use, t=t1:T], qMarginBundle_u[u,t] == ∑(qMarginService_s_u[s,u,t] for s in margin_services)
 
     @test_constraint("Margin origin shares sum to service demand"; rtol=1e-3)
-    qMarginService_s_u[s = margin_services, u = use, t = t1:T],
+    qMarginService_s_u[s=margin_services, u=use, t=t1:T],
       qMarginService_s_u[s,u,t] == ∑(qMarginService_s_u_o[s,u,o,t] for o in origin)
 
     @test_constraint("Imports sum by product and use"; rtol=1e-3)
-    qM[t=t1:T],
-      qM[t] == ∑(qM_u[u,t] for u in use)
+    qM[t=t1:T], qM[t] == ∑(qM_u[u,t] for u in use)
   end
 end
 
@@ -412,30 +381,20 @@ function define_calibration()
     rIndustryShare[:,:,t1], qY_p_i[:,:,t1]
 
     rOriginShare[(p,u,o,t) in keys(qPurchaserUse_p_u_o); u in ordinary_uses && t == t1],
-    qPurchaserUse_p_u_o[p = product, u = ordinary_uses, o = origin, t = t1]
+    qPurchaserUse_p_u_o[p=product, u=ordinary_uses, o=origin, t=t1]
 
     rMarginServiceShare[:,:,t1], qMarginService_s_u[:,:,t1]
 
     rMarginRate[:,:,t1], qMarginBundle_p_u[:,:,t1]
 
     rOriginShare[(s,u,o,t) in keys(qMarginService_s_u_o); (s,u,o) in margin_only_s_u_o && t == t1],
-    qMarginService_s_u_o[s = product, u = use, o = origin, t = t1; (s, u, o) in margin_only_s_u_o]
+    qMarginService_s_u_o[s=product, u=use, o=origin, t=t1; (s,u,o) in margin_only_s_u_o]
 
     tNetProduct[:,:,t1], vNetProductTax_p_u[:,:,t1]
 
-    qCTourist[t1], vCTourist[t1]
   end
 
   return block
-end
-
-# ============================================================================
-# Tests
-# ============================================================================
-
-function run_tests(db)
-  errors = String[]
-  return errors
 end
 
 end # module

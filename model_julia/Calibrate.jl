@@ -19,17 +19,33 @@ data = assign_data!(ModelDictionary(model))
 # ============================================================================
 # Modules - modify the list to debug calibration
 # ============================================================================
-calibrated_modules = [
+const calibrated_modules = [
   ModuleTemplate,
+
   InputOutput,
-  ImportSubstitution,
+    ImportSubstitution,
+    FixedBasePriceAggregates,
+
   Production,
-  Labor,
-  Intermediates,
-  Capital,
+    Labor,
+    Intermediates,
+    Capital,
+
+    Pricing,
+
+  SectorAccounts,
+    Households,
+      ConsumptionSavingsDecision,
+      ConsumptionGroups,
+    Government,
+    Corporations,
+      FinancialIncome,
+      FirmValue,
+    RestOfWorld,
+      Exports,
+
+  # Rigidities
   CapitalAdjustmentCosts,
-  # SectorAccounts,
-  Exports,
 ]
 
 # The full-horizon model tells calibration which variables are parameters.
@@ -83,15 +99,6 @@ assert_residuals_small(baseline; rtol=1e-4, tolerances=residual_tolerances(basel
 baseline[filter(resid -> isnothing(baseline[resid]), residuals(base_block))] .= 0.0
 zero_shock = solve(base_block, baseline)
 assert_no_diff(baseline, zero_shock; atol=1e-5, msg="Zero shock test failed")
-
-# Module-specific tests: collect failures from each calibrated module before raising.
-test_errors = String[]
-for m in calibrated_modules
-	isdefined(m, :run_tests) && append!(test_errors, m.run_tests(baseline))
-end
-isempty(test_errors) || error(
-	"$(length(test_errors)) module test(s) failed:\n" * join(("  " * e for e in test_errors), "\n")
-)
 
 # ==============================================================================
 # Export baseline

@@ -3,7 +3,7 @@ module DataUtils
 using CSV
 using DataFrames
 import JuMP
-using SquareModels
+import SquareModels: read_sparse_array
 
 # ============================================================================
 # Model data

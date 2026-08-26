@@ -10,7 +10,6 @@ include(joinpath(@__DIR__, "..", "DataUtils.jl"))
 module LaborData
 
 using CSV
-using DataFrames
 import ..EurostatClient
 import ..DataUtils: long_format, sum_by
 import ..InputOutputSettings:
