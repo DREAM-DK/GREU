@@ -4,7 +4,7 @@
 # Financial data splits debt and equity and omits monetary gold (F.11).
 # Names that end in `_f` split by financial instrument. The `al` index selects
 # the asset or liability side.
-# See model/modules/financial_accounts.gms and SectorAccountsData.jl for maps.
+# Non-financial source rows map to transfer inputs in assign_data!.
 
 include(joinpath(@__DIR__, "SectorAccountsSettings.jl"))
 
@@ -27,24 +27,21 @@ const fin_instrument = read_indices(joinpath(sector_accounts_data_dir, "sector_a
 const ass_liab = read_indices(joinpath(sector_accounts_data_dir, "sector_accounts_ass_liab.csv"))
 
 const sector_accounts_file = joinpath(sector_accounts_data_dir, "sector_accounts.csv")
+const non_financial_transactions_file = joinpath(sector_accounts_data_dir, "non_financial_transactions.csv")
 
 const vFinIncome_f_data = read_cells(sector_accounts_file, "vFinIncome_f")
 const vFinPosition_f_data = read_cells(sector_accounts_file, "vFinPosition_f")
 const vFinTransactions_f_data = read_cells(sector_accounts_file, "vFinTransactions_f")
 const vNetFinTransactions_data = read_cells(sector_accounts_file, "vNetFinTransactions")
 const vI_s_data = read_cells(sector_accounts_file, "vI_s")
-const vCurrentIncomeWealthTaxes_data = read_cells(sector_accounts_file, "vCurrentIncomeWealthTaxes")
-const vInheritanceGiftWealthTaxes_data = read_cells(sector_accounts_file, "vInheritanceGiftWealthTaxes")
-const vSocialContributions_data = read_cells(sector_accounts_file, "vSocialContributions")
-const vSocialBenefits_data = read_cells(sector_accounts_file, "vSocialBenefits")
-const vPensionSaving_data = read_cells(sector_accounts_file, "vPensionSaving")
-const vOtherTransfers_data = read_cells(sector_accounts_file, "vOtherTransfers")
-const vNonProducedAssetAcquisitions_data = read_cells(sector_accounts_file, "vNonProducedAssetAcquisitions")
 const vGrossOpSurplusMixedIncome_data = read_cells(sector_accounts_file, "vGrossOpSurplusMixedIncome")
 const vFinReval_f_data = read_cells(sector_accounts_file, "vFinReval_f")
 const vOtherChangesInVolume_f_data = read_cells(sector_accounts_file, "vOtherChangesInVolume_f")
 const vGovBalance_data = read_cells(sector_accounts_file, "vGovBalance")
 const vNetFinAssets_data = read_cells(sector_accounts_file, "vNetFinAssets")
+
+const NonFinancialTransactions = read_sparse_array(non_financial_transactions_file, "NonFinancialTransactions")
+const NetNonFinancialTransactions = read_sparse_array(non_financial_transactions_file, "NetNonFinancialTransactions")
 
 # ============================================================================
 # Indices
@@ -84,14 +81,14 @@ const SectorAccountsTag = Tag(:SectorAccounts)
 
   # Inputs for sector balances.
   vI_s[s=sector, t=t; s in calibration_year_axis(vI_s_data)], "Gross capital formation by sector (P.5). Households include NPISH."
-  vNetTransfers[s=sector, t=t; s in calibration_year_axis(vCurrentIncomeWealthTaxes_data)], "Transfer receipts less payments."
-  vCurrentIncomeWealthTaxes[(s,t)=vNetTransfers], "Current taxes on income, profits, capital gains, and wealth received less paid (D.5)."
-  vInheritanceGiftWealthTaxes[(s,t)=vNetTransfers], "Taxes on inheritances and gifts, and exceptional levies on assets or net wealth, received less paid (D.91)."
-  vSocialContributions[(s,t)=vNetTransfers], "Social insurance and pension contributions received less paid, after scheme service charges (D.61)."
-  vSocialBenefits[(s,t)=vNetTransfers], "Cash and other non-kind social benefits received less paid, including pension benefits (D.62)."
-  vPensionSaving[(s,t)=vNetTransfers], "Net pension saving received less paid: contributions and credited returns less fees and benefits (D.8)."
-  vOtherTransfers[(s,t)=vNetTransfers], "Other current and capital transfers received less paid (D.7, D.92, and D.99). RoW also includes D.2 and D.3."
-  vNonProducedAssetAcquisitions[(s,t)=vNetTransfers], "Purchases less sales of land, mineral and energy reserves, other natural resources, and transferable contracts, leases, and licences (NP)."
+  vNetTransfers[s=sector, t=t], "Transfer receipts less payments."
+  vCurrentIncomeWealthTaxes[s=sector, t=t], "Current taxes on income, profits, capital gains, and wealth received less paid (D.5)."
+  vInheritanceGiftWealthTaxes[s=sector, t=t], "Taxes on inheritances and gifts, and exceptional levies on assets or net wealth, received less paid (D.91)."
+  vSocialContributions[s=sector, t=t], "Social insurance and pension contributions received less paid, after scheme service charges (D.61)."
+  vSocialBenefits[s=sector, t=t], "Cash and other non-kind social benefits received less paid, including pension benefits (D.62)."
+  vPensionSaving[s=sector, t=t], "Net pension saving received less paid: contributions and credited returns less fees and benefits (D.8)."
+  vOtherTransfers[s=sector, t=t], "Other current and capital transfers received less paid (D.7, D.92, and D.99). RoW also includes D.2 and D.3."
+  vNonProducedAssetAcquisitions[s=sector, t=t], "Purchases less sales of land, mineral and energy reserves, other natural resources, and transferable contracts, leases, and licences (NP)."
 
   vGovBalance[t], "Government net lending or borrowing (B.9)."
   vGrossOpSurplusMixedIncome[s=sector, t=t; s in calibration_year_axis(vGrossOpSurplusMixedIncome_data)], "Gross operating surplus and mixed income by sector (B.2g+B.3g)."
@@ -108,13 +105,19 @@ function assign_data!(db)
   fill_cells!(db, vFinTransactions_f, vFinTransactions_f_data)
   fill_cells!(db, vNetFinTransactions, vNetFinTransactions_data)
   fill_cells!(db, vI_s, vI_s_data)
-  fill_cells!(db, vCurrentIncomeWealthTaxes, vCurrentIncomeWealthTaxes_data)
-  fill_cells!(db, vInheritanceGiftWealthTaxes, vInheritanceGiftWealthTaxes_data)
-  fill_cells!(db, vSocialContributions, vSocialContributions_data)
-  fill_cells!(db, vSocialBenefits, vSocialBenefits_data)
-  fill_cells!(db, vPensionSaving, vPensionSaving_data)
-  fill_cells!(db, vOtherTransfers, vOtherTransfers_data)
-  fill_cells!(db, vNonProducedAssetAcquisitions, vNonProducedAssetAcquisitions_data)
+
+  db[vCurrentIncomeWealthTaxes] .= NetNonFinancialTransactions[:,:D5,:]
+  db[vInheritanceGiftWealthTaxes] .= NetNonFinancialTransactions[:,:D91,:]
+  db[vSocialContributions] .= NetNonFinancialTransactions[:,:D61,:]
+  db[vSocialBenefits] .= NetNonFinancialTransactions[:,:D62,:]
+  db[vPensionSaving] .= NetNonFinancialTransactions[:,:D8,:]
+  db[vOtherTransfers] .= sum(NetNonFinancialTransactions[:,d,:] for d in [:D7, :D92, :D99])
+  db[vOtherTransfers[:RoW,:]] .= sum(
+    NetNonFinancialTransactions[:RoW,d,:]
+    for d in [:D2, :D3, :D7, :D92, :D99]
+  )
+  db[vNonProducedAssetAcquisitions] .= NonFinancialTransactions[:,:NP,:PAID,:]
+
   fill_cells!(db, vGrossOpSurplusMixedIncome, vGrossOpSurplusMixedIncome_data)
   fill_cells!(db, vFinReval_f, vFinReval_f_data)
   fill_cells!(db, vOtherChangesInVolume_f, vOtherChangesInVolume_f_data)
@@ -142,7 +145,7 @@ end
 
 function define_equations()
   return @block model begin
-    vNetTransfers[s=calibration_year_axis(vCurrentIncomeWealthTaxes_data), t=t1:T],
+    vNetTransfers[s=sector, t=t1:T],
     vNetTransfers[s,t] == vCurrentIncomeWealthTaxes[s,t] + vInheritanceGiftWealthTaxes[s,t]
                            + vSocialContributions[s,t] + vSocialBenefits[s,t] + vPensionSaving[s,t]
                            + vOtherTransfers[s,t]
