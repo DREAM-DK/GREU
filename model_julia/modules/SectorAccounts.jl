@@ -41,8 +41,34 @@ const vOtherChangesInVolume_f_data = read_cells(sector_accounts_file, "vOtherCha
 const vGovBalance_data = read_cells(sector_accounts_file, "vGovBalance")
 const vNetFinAssets_data = read_cells(sector_accounts_file, "vNetFinAssets")
 
-const NonFinancialTransactions = read_sparse_array(non_financial_transactions_file, "NonFinancialTransactions")
-const NetNonFinancialTransactions = read_sparse_array(non_financial_transactions_file, "NetNonFinancialTransactions")
+const NonFinancialTransactions_data = read_cells(non_financial_transactions_file, "NonFinancialTransactions")
+const NetNonFinancialTransactions_data = read_cells(non_financial_transactions_file, "NetNonFinancialTransactions")
+
+"""Net transactions summed over transaction codes, keyed by sector and year."""
+function net_transaction_cells(codes...)
+  cells = Dict{Tuple{Symbol,Int},Float64}()
+  for ((s, d, year), value) in NetNonFinancialTransactions_data
+    d in codes || continue
+    cells[(s, year)] = get(cells, (s, year), 0.0) + value
+  end
+  return cells
+end
+
+"""Other transfers. The rest of the world also nets taxes on products and imports."""
+function other_transfer_cells()
+  cells = net_transaction_cells(:D7, :D92, :D99)
+  for (key, value) in net_transaction_cells(:D2, :D3, :D7, :D92, :D99)
+    first(key) == :RoW && (cells[key] = value)
+  end
+  return cells
+end
+
+"""Paid transactions for one code, keyed by sector and year."""
+paid_transaction_cells(code) = Dict(
+  (s, year) => value
+  for ((s, d, al, year), value) in NonFinancialTransactions_data
+  if d == code && al == :PAID
+)
 
 # ============================================================================
 # Indices
