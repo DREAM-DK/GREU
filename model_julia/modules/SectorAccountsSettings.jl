@@ -45,7 +45,7 @@ const fin_bal_na_items = ["F", "F1", "F11", "F2", "F3", "F4", "F5", "F51", "F52"
 const fin_tr_na_items  = replace(fin_bal_na_items, "F" => "F_TR") # nasa_10_f_tr publishes the F aggregate as F_TR rather than F.
 
 # ---------------------------------------------------------------------------
-# Property income (vFinIncome_f): D.4 receipts (al=Assets) or payments (al=Liab)
+# Property income (vFinIncome_s_f): D.4 receipts (al=Assets) or payments (al=Liab)
 # split by instrument category.
 #
 # Instrument–income mapping (ESA 2010 convention):

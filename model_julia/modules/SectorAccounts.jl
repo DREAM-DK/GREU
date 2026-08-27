@@ -11,7 +11,7 @@ include(joinpath(@__DIR__, "SectorAccountsSettings.jl"))
 module SectorAccounts
 
 using SquareModels
-import ..DataUtils: fill_cells!, read_cells, sum_keyed
+import ..DataUtils: fill_cells!, read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
 import ..SectorAccountsSettings: sector_accounts_data_dir, cell_tolerance
 import ..Settings: calibration_year
@@ -30,7 +30,7 @@ const sector_accounts_file = joinpath(sector_accounts_data_dir, "sector_accounts
 const non_financial_transactions_file = joinpath(sector_accounts_data_dir, "non_financial_transactions.csv")
 
 const vFinIncome_data = read_cells(sector_accounts_file, "vFinIncome")
-const vFinIncome_f_data = read_cells(sector_accounts_file, "vFinIncome_f")
+const vFinIncome_s_f_data = read_cells(sector_accounts_file, "vFinIncome_s_f")
 const vFinPosition_s_f_data = read_cells(sector_accounts_file, "vFinPosition_s_f")
 const vFinTransactions_f_data = read_cells(sector_accounts_file, "vFinTransactions_f")
 const vNetFinTransactions_data = read_cells(sector_accounts_file, "vNetFinTransactions")
@@ -105,7 +105,7 @@ const SectorAccountsTag = Tag(:SectorAccounts)
   vFinTransactions_f[(s,f,al,t)=vFinPosition_s_f], "Financial transactions by sector, instrument, and asset or liability side."
   vFinReval_s_f[(s,f,al,t)=vFinPosition_s_f], "Financial revaluations by sector, instrument, and asset or liability side."
   vOtherChangesInVolume_f[(s,f,al,t)=vFinPosition_s_f], "Other changes in volume by sector, instrument, and asset or liability side (K.1-K.6)."
-  vFinIncome_f[(s,f,al,t)=vFinPosition_s_f], "Property income received on assets or paid on liabilities by sector and instrument (D.4)."
+  vFinIncome_s_f[(s,f,al,t)=vFinPosition_s_f], "Property income received on assets or paid on liabilities by sector and instrument (D.4)."
 
   # Inputs for sector balances.
   vI_s[s=sector, t=t; s in calibration_year_axis(vI_s_data)], "Gross capital formation by sector (P.5). Households include NPISH."
@@ -129,24 +129,19 @@ end # @variables
 
 function assign_data!(db)
   fill_cells!(db, vFinIncome, vFinIncome_data)
-  fill_cells!(db, vFinIncome_f, vFinIncome_f_data)
+  fill_cells!(db, vFinIncome_s_f, vFinIncome_s_f_data)
   fill_cells!(db, vFinPosition_s_f, vFinPosition_s_f_data)
   fill_cells!(db, vFinTransactions_f, vFinTransactions_f_data)
   fill_cells!(db, vNetFinTransactions, vNetFinTransactions_data)
   fill_cells!(db, vI_s, vI_s_data)
 
-  db[vCurrentIncomeWealthTaxes] .= NetNonFinancialTransactions[:,:D5,:]
-  db[vInheritanceGiftWealthTaxes] .= NetNonFinancialTransactions[:,:D91,:]
-  db[vSocialContributions] .= NetNonFinancialTransactions[:,:D61,:]
-  db[vSocialBenefits] .= NetNonFinancialTransactions[:,:D62,:]
-  db[vPensionSaving] .= NetNonFinancialTransactions[:,:D8,:]
-  db[vOtherTransfers] .= sum_keyed(
-    NetNonFinancialTransactions[:, d, :] for d in [:D7, :D92, :D99]
-  )
-  db[vOtherTransfers[:RoW,:]] .= sum_keyed(
-    NetNonFinancialTransactions[:RoW, d, :] for d in [:D2, :D3, :D7, :D92, :D99]
-  )
-  db[vNonProducedAssetAcquisitions] .= NonFinancialTransactions[:,:NP,:PAID,:]
+  fill_cells!(db, vCurrentIncomeWealthTaxes, net_transaction_cells(:D5))
+  fill_cells!(db, vInheritanceGiftWealthTaxes, net_transaction_cells(:D91))
+  fill_cells!(db, vSocialContributions, net_transaction_cells(:D61))
+  fill_cells!(db, vSocialBenefits, net_transaction_cells(:D62))
+  fill_cells!(db, vPensionSaving, net_transaction_cells(:D8))
+  fill_cells!(db, vOtherTransfers, other_transfer_cells())
+  fill_cells!(db, vNonProducedAssetAcquisitions, paid_transaction_cells(:NP))
 
   fill_cells!(db, vGrossOpSurplusMixedIncome, vGrossOpSurplusMixedIncome_data)
   fill_cells!(db, vFinReval_s_f, vFinReval_s_f_data)
@@ -201,7 +196,7 @@ function define_equations()
 
     # Property income sums instruments by asset or liability side.
     vFinIncome[s=sector, al=ass_liab, t=t1:T],
-    vFinIncome[s,al,t] == ∑(vFinIncome_f[s,f,al,t] for f in fin_instrument)
+    vFinIncome[s,al,t] == ∑(vFinIncome_s_f[s,f,al,t] for f in fin_instrument)
 
     # Net property income is receipts less payments.
     vNetFinIncome[s=sector, t=t1:T],

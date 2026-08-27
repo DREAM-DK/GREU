@@ -229,7 +229,7 @@ function build_parameters(flow_df, tr_df, bal_df, oc_df, rev_df)
         ("PAID", finpos_map["LIAB"]),
       ]
     ]...),
-    vFinIncome_f = vcat([
+    vFinIncome_s_f = vcat([
       let d = get_non_financial_transaction(flow_df, items, dir); d.f .= f; d.al .= al; d end
       for (items, dir, f, al) in [
         (equity_income_items, "RECV", "Equity", finpos_map["ASS"]),
@@ -270,7 +270,7 @@ end
 # ==========================================================================
 
 function write_indices(dir, params)
-  fin = params.vFinIncome_f
+  fin = params.vFinIncome_s_f
   write_index_set(joinpath(dir, "sector_accounts_sectors.csv"),        "sectors",         sort(unique(fin.sector)))
   write_index_set(joinpath(dir, "sector_accounts_ass_liab.csv"),       "ass_liab",        sort(unique(fin.al)))
   write_index_set(joinpath(dir, "sector_accounts_fin_instruments.csv"),"fin_instruments", sort(unique(fin.f)))
@@ -286,14 +286,14 @@ end
 
 """All sector-account variables in a single file."""
 function write_sector_flows(dir, params)
-  sectors = sort(unique(params.vFinIncome_f.sector))
+  sectors = sort(unique(params.vFinIncome_s_f.sector))
   @assert all(any(row.sector == s && row.year == calibration_year for row in eachrow(params.vNetFinTransactions)) for s in sectors) "Each sector needs net financial transactions"
   @assert all(any(row.sector == s && row.al == al && row.year == calibration_year for row in eachrow(params.vFinAssets)) for s in sectors, al in ("Assets", "Liab")) "Each sector needs financial assets and liabilities"
   vGovBalance = select(params.vNetFinTransactions[params.vNetFinTransactions.sector .== "Gov", :], :year, :value)
   vNetFinAssets = combine(groupby(params.vFinAssets, [:sector, :year]), sdf -> (; value = only(sdf.value[sdf.al .== "Assets"]) - only(sdf.value[sdf.al .== "Liab"])))
   CSV.write(joinpath(dir, "sector_accounts.csv"), vcat(
     long_format(:vFinIncome,                               params.vFinIncome,                               [:sector, :al, :year]),
-    long_format(:vFinIncome_f,                             params.vFinIncome_f,                             [:sector, :f, :al, :year]),
+    long_format(:vFinIncome_s_f,                             params.vFinIncome_s_f,                             [:sector, :f, :al, :year]),
     long_format(:vNetFinTransactions,                      params.vNetFinTransactions,                      [:sector, :year]),
     long_format(:vI_s,                                     params.vI_s,                                     [:sector, :year]),
     long_format(:vGrossOpSurplusMixedIncome,               params.vGrossOpSurplusMixedIncome,               [:sector, :year]),
