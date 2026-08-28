@@ -20,7 +20,6 @@ const revenue_na_items = [
   "P11_P12_P131",   # Market output and output for own final use / payments for non-market production
   "D2REC",          # Taxes on production and imports (received)
   "D39REC",         # Other subsidies on production (received)
-  "D4REC",          # Property income (received)
   "D5REC",          # Current taxes on income, wealth, etc. (received)
   "D61REC",         # Net social contributions (received)
   "D7REC",          # Other current transfers (received)
@@ -38,7 +37,6 @@ const expenditure_na_items = [
   "D1PAY",          # Compensation of employees (paid)
   "D29PAY",         # Other taxes on production (paid)
   "D3PAY",          # Subsidies (paid)
-  "D4PAY",          # Property income — interest payments (paid)
   "D62_D632PAY",    # Social benefits other than social transfers in kind (paid)
   "D632PAY",        # Social transfers in kind via market producers (paid)
   "D7PAY",          # Other current transfers (paid)
@@ -61,7 +59,6 @@ const na_item_to_var = Dict(
   "P11_P12_P131" => :vGovSalesRev,
   "D2REC"        => :vtIndirect,
   "D39REC"       => :vGovOthSubRev,
-  "D4REC"        => :vGovPropertyIncome,
   "D5REC"        => :vtDirect,
   "D61REC"       => :vGovSocialContRev,
   "D7REC"        => :vGovOthCurrentTransRev,
@@ -76,7 +73,6 @@ const na_item_to_var = Dict(
   "D1PAY"        => :vGovEmplComp,
   "D29PAY"       => :vGovOthProdTax,
   "D3PAY"        => :vGovSub,
-  "D4PAY"        => :vGovInterestPayments,
   "D62_D632PAY"  => :vGovSocBenefitExp,
   "D632PAY"      => :vSocTransKind,
   "D7PAY"        => :vGovOthCurrentTransExp,

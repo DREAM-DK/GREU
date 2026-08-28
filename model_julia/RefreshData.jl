@@ -37,3 +37,10 @@ LaborData.refresh_labor_data!()
 include(joinpath(@__DIR__, "modules", "SectorAccountsData.jl"))
 
 SectorAccountsData.refresh_sector_accounts_data!()
+
+# ==============================================================================
+# Government data
+# ==============================================================================
+include(joinpath(@__DIR__, "modules", "GovernmentData.jl"))
+
+GovernmentData.refresh_government_data!()

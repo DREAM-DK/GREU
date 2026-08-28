@@ -3,11 +3,11 @@ module SectorAccountsSettings
 
 const sector_accounts_data_dir = joinpath(@__DIR__, "..", "data", "sector_accounts")
 
-# Eurostat dataset identifiers and units for the two source datasets.
-const fin_transactions_dataset_code   = "nasa_10_nf_tr"
-const fin_transactions_unit           = "CP_MEUR"
-const fin_transactions_dataset_code_2 = "nasa_10_f_tr"
-const fin_transactions_unit_2         = "MIO_EUR"
+# Eurostat dataset identifiers and units.
+const non_financial_transactions_dataset_code = "nasa_10_nf_tr"
+const non_financial_transactions_unit         = "CP_MEUR"
+const financial_transactions_dataset_code     = "nasa_10_f_tr"
+const financial_transactions_unit             = "MIO_EUR"
 const fin_other_changes_dataset_code  = "nasa_10_f_oc"
 const fin_other_changes_unit          = "MIO_EUR"
 const fin_revaluation_dataset_code    = "nasa_10_f_gl"
@@ -36,16 +36,16 @@ const finpos_map = Dict(
 )
 
 # All ESA transaction and balance codes requested from Eurostat.
-const fin_transactions_na_items = [
-  "B9", "B8G", "D9", "P5G", "NP", "B6G", "P3", "D8", "B5G", "D5",
-  "D6", "D61", "D62", "D63", "D7", "B2A3G", "D1", "D2", "D3", "D4",
+const non_financial_transaction_items = [
+  "B9", "B8G", "D91", "D92", "D99", "P5G", "NP", "B6G", "P3", "D8", "B5G", "D5",
+  "D61", "D62", "D7", "B2A3G", "D1", "D2", "D3", "D4",
   "D41", "D42", "D43", "D44", "D45", "P6", "P7",
 ]
 const fin_bal_na_items = ["F", "F1", "F11", "F2", "F3", "F4", "F5", "F51", "F52", "F6", "F7", "F8"]
 const fin_tr_na_items  = replace(fin_bal_na_items, "F" => "F_TR") # nasa_10_f_tr publishes the F aggregate as F_TR rather than F.
 
 # ---------------------------------------------------------------------------
-# Property income (vFinIncome_f): D.4 receipts (al=Assets) or payments (al=Liab)
+# Property income (vFinIncome_s_f): D.4 receipts (al=Assets) or payments (al=Liab)
 # split by instrument category.
 #
 # Instrument–income mapping (ESA 2010 convention):
@@ -54,11 +54,11 @@ const fin_tr_na_items  = replace(fin_bal_na_items, "F" => "F_TR") # nasa_10_f_tr
 #   F.52/F.6             →  D.44 (investment fund income)
 #   F.7                  →  no associated income flow
 # ---------------------------------------------------------------------------
-const fin_transactions_equity_income_items = ["D42"]                       # Distributed income of corporations (ESA D.42); mapped to F51 (equity)
-const fin_transactions_debt_income_items   = ["D41", "D43", "D44", "D45"]  # Interest, reinvested earnings, investment fund income, rent; mapped to debt instruments
+const equity_income_items = ["D42"]                       # Distributed income of corporations (ESA D.42); mapped to F51 (equity)
+const debt_income_items   = ["D41", "D43", "D44", "D45"]  # Interest, reinvested earnings, investment fund income, rent; mapped to debt instruments
 
 # ---------------------------------------------------------------------------
-# Financial positions (vFinPosition_f): balance-sheet stocks by instrument,
+# Financial positions (vFinPosition_s_f): balance-sheet stocks by instrument,
 # split into Debt and Equity.
 #
 # Monetary gold (F.11, a subset of F.1) is excluded from all instrument totals
@@ -68,12 +68,5 @@ const fin_transactions_debt_income_items   = ["D41", "D43", "D44", "D45"]  # Int
 #   Debt   ← F − F.51 − F.11
 # ---------------------------------------------------------------------------
 const fin_bal_equity_na_items = ["F51"]
-
-# ---------------------------------------------------------------------------
-# Transfer and cross-border income items used when constructing the sector 
-# redistribution accounts.
-# ---------------------------------------------------------------------------
-const fin_transactions_transfer_items  = ["D5", "D61", "D62", "D7", "D8", "D9"]            # D.5 (current taxes), D.6 (social contributions/benefits), D.7 (other current transfers), D.8 (adjustment for pension entitlements), D.9 (capital transfers)
-const fin_transactions_row_nonwage_items = ["D2", "D3", "D5", "D6", "D7", "D8", "D9"] # RoW primary income and current transfers, excluding wages (D.1) and property income (D.4)
 
 end # module

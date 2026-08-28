@@ -32,6 +32,7 @@ modules = [
       Exports,
 
   CapitalAdjustmentCosts,
+  PhillipsCurve,
 ]
 
 # ==============================================================================

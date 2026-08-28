@@ -13,7 +13,7 @@ import ..ProductionSettings: labor_type, production_data_dir
 import ..Settings: calibration_year
 import ..model
 import ..Time: t, t1, T
-import ..Tags: ForecastConstant
+import ..Tags: DynamicCalibration, ForecastConstant, ForecastZero
 
 # ============================================================================
 # Read data
@@ -41,6 +41,7 @@ const LaborTag = Tag(:Labor)
 
 @variables model :: (LaborTag, GrowthAdjusted) begin
   qL_l_i[l=labor_type, i=industry, t=t; (l,i) in labor_l_i], "Labor in efficiency units by type and industry."
+  qLSlack[t] :: (ForecastZero, DynamicCalibration), "Labor supplied but not employed."
 end
 
 @variables model :: (LaborTag, InflationAdjusted) begin
@@ -65,6 +66,7 @@ end
 function assign_data!(db)
   fill_cells!(db, qL_l_i, qL_l_i_data)
   db[pW[t1]] = 1.0
+  db[pW[t1-1]] = 1.0
   fill_cells!(db, vHhWages, vHhWages_data)
   fill_cells!(db, vRoWNetWages, vRoWNetWages_data)
   source_supply = cell_value(qLSupply_data, t1)
@@ -79,6 +81,7 @@ end
 # ============================================================================
 function set_starting_values!(start_values)
   start_values[qProd[labor_type,:,:]] .= start_values[qL_l_i][labor_type,:,:]
+  start_values[qLSlack] .= 0
   return nothing
 end
 
@@ -89,14 +92,18 @@ function define_equations()
   return @block model begin
     qL_l_i[l=labor_type, i=industry, t=t1:T], qL_l_i[l,i,t] == qProd[l,i,t]
 
-    pW[t=t1:T], qLSupplyHh[t] + qLSupplyRoW[t] == ∑(qL_l_i[l,i,t] for (l, i) in labor_l_i)
+    # Labor supply less slack meets labor demand. Slack is zero without PhillipsCurve.
+    pW[t=t1:T], qLSupplyHh[t] + qLSupplyRoW[t] - qLSlack[t] == ∑(qL_l_i[l,i,t] for (l, i) in labor_l_i)
 
     pProd[l=labor_type, i=industry, t=t1:T], pProd[l,i,t] == pW[t]
 
     vWages_i[i=industry, t=t1:T], vWages_i[i,t] == pW[t] * ∑(qL_l_i[l,i,t] for l in labor_type)
     vWages[t=t1:T], vWages[t] == ∑(vWages_i[i,t] for i in industry)
-    vHhWages[t=t1:T], vHhWages[t] == pW[t] * qLSupplyHh[t]
-    vRoWNetWages[t=t1:T], vRoWNetWages[t] == pW[t] * qLSupplyRoW[t]
+
+    vHhWages[t=t1:T], vHhWages[t] ==
+      pW[t] * qLSupplyHh[t] * (1 - qLSlack[t] / (qLSupplyHh[t] + qLSupplyRoW[t]))
+    vRoWNetWages[t=t1:T], vRoWNetWages[t] ==
+      pW[t] * qLSupplyRoW[t] * (1 - qLSlack[t] / (qLSupplyHh[t] + qLSupplyRoW[t]))
 
     @test_constraint("Household and rest-of-world labor supplies must match the source total"; atol=0, rtol=0)
     qLSupplyHh[t=[t1]], qLSupplyHh[t] + qLSupplyRoW[t] == cell_value(qLSupply_data, t1)
