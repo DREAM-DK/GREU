@@ -103,6 +103,7 @@ end
 function set_starting_values!(start_values)
   start_values[qProd[capital_type,:,:]] .= start_values[qK_k_i][capital_type,:,:]
   start_values[pKAdjCost_k_i] .= 0
+  start_values[pInvestmentShock_k_i] .= 0
   return nothing
 end
 
