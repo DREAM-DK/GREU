@@ -2,6 +2,9 @@
 # The static result supplies start values for the dynamic solve.
 using SquareModels
 include("Model.jl")
+
+data = assign_data!(ModelDictionary(model))
+
 include("Calibration.jl")
 import .Calibration:
   residual_tolerances,
@@ -13,8 +16,6 @@ import .Calibration:
   fill_missing_exogenous_forecasts!,
   fill_missing_endogenous_start_values!
 import .Tags: DynamicCalibration
-
-data = assign_data!(ModelDictionary(model))
 
 # ============================================================================
 # Modules - modify the list to debug calibration

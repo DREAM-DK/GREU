@@ -1,35 +1,23 @@
 # Set financial revaluations from opening stocks and position rates.
-# Set corporate equity liabilities from discounted investor cash flows.
-# Keep portfolio stocks and transactions in the sector modules.
+# Set issuer equity rates from discounted investor cash flows.
+# Give all equity owners the average issuer rate.
 
 module FinancialRevaluations
 
 using SquareModels
-import ..Corporations: corporations
 import ..GrowthInflationAdjustment: fv
 import ..model
 import ..SectorAccounts:
+  ass_liab,
   fin_instrument,
   sector,
-  vFinIncome_f,
+  vFinIncome_s_f,
   vFinPosition_s_f,
   vFinReval_s_f,
   vFinTransactions_f
-import ..Tags: ForecastConstant, ForecastZero
+import ..Tags: ForecastZero
 import ..Time: t, t1, T
 
-# ============================================================================
-# Indices
-# ============================================================================
-
-const equity_liability_sector = sort(unique(
-  s for (s, f, al, _) in keys(vFinPosition_s_f) if f == :Equity && al == :Liab
-))
-const fixed_equity_liability_sector = setdiff(equity_liability_sector, corporations)
-const fixed_equity_asset_sector = setdiff(
-  sort(unique(s for (s, f, al, _) in keys(vFinPosition_s_f) if f == :Equity && al == :Assets)),
-  [:FinCorp],
-)
 # ============================================================================
 # Variables
 # ============================================================================
@@ -37,10 +25,9 @@ const fixed_equity_asset_sector = setdiff(
 const FinancialRevaluationsTag = Tag(:FinancialRevaluations)
 
 @variables model :: FinancialRevaluationsTag begin
-  rFirmRequiredReturn_s[s=corporations, t=t] :: ForecastConstant, "Required nominal equity return by issuer."
-  rFinReval_s_f[(s,f,al,t)=vFinPosition_s_f], "Financial revaluation rate by position."
-  rFinReval_f[f=fin_instrument, t=t] :: ForecastZero, "Average financial revaluation rate by instrument."
-  jFinReval_f[(s,f,al,t)=vFinPosition_s_f] :: ForecastZero, "Adjustment from the average financial revaluation rate."
+  rFirmRequiredReturn_s[(s,t)=vFinPosition_s_f[:,:Equity,:Liab,:]], "Required nominal equity return by issuer."
+  rFinReval_s_f[(s,f,al,t)=vFinPosition_s_f] :: ForecastZero, "Financial revaluation rate by position."
+  rFinReval_f[f=fin_instrument, t=t], "Average financial revaluation rate by instrument."
 end
 
 # ============================================================================
@@ -51,12 +38,17 @@ function assign_data!(db)
   return nothing
 end
 
+function set_residual_tolerances!(tolerances)
+  tolerances[rFinReval_s_f] = 0.2
+  return nothing
+end
+
+
 # ============================================================================
 # Starting values
 # ============================================================================
 
 function set_starting_values!(start_values)
-  start_values[rFirmRequiredReturn_s] .= 0.08
   return nothing
 end
 
@@ -64,57 +56,34 @@ end
 # Equations
 # ============================================================================
 function define_equations()
-  vDividends = vFinIncome_f[:,:Equity,:Liab,:]
+  vDividends = vFinIncome_s_f[:,:Equity,:Liab,:]
   vEquityIssues = vFinTransactions_f[:,:Equity,:Liab,:]
   vEquity = vFinPosition_s_f[:,:Equity,:Liab,:]
 
-  position_block = @block model begin
+  block = @block model begin
     # Position rates set revaluations on opening stocks.
-    vFinReval_s_f[(s,f,al,t) in keys(vFinPosition_s_f); t in t1:T],
+    vFinReval_s_f[s=sector, f=fin_instrument, al=ass_liab, t=t1:T],
     vFinReval_s_f[s,f,al,t] == rFinReval_s_f[s,f,al,t] * vFinPosition_s_f[s,f,al,t-1]/fv
 
-    # Each position rate equals its instrument rate plus an adjustment.
-    rFinReval_s_f[(s,f,al,t) in keys(vFinPosition_s_f); t in t1:T],
-    rFinReval_s_f[s,f,al,t] == rFinReval_f[f,t] + jFinReval_f[s,f,al,t]
+    # Set each instrument rate to the stock-weighted issuer average.
+    rFinReval_f[f=fin_instrument, t=t1:T],
+    ∑((rFinReval_s_f[s,f,:Liab,t] - rFinReval_f[f,t]) * vFinPosition_s_f[s,f,:Liab,t-1]/fv for s in sector) == 0
 
-    # FinCorp closes the asset-side adjustment sums.
-    jFinReval_f[s=[:FinCorp], f=fin_instrument, al=[:Assets], t=t1:T],
-    ∑(jFinReval_f[s,f,al,t] * vFinPosition_s_f[s,f,al,t-1] for s in sector) == 0
+    # Equity owners receive the average issuer revaluation rate.
+    rFinReval_s_f[s=sector, f=[:Equity], al=[:Assets], t=t1:T],
+    rFinReval_s_f[s,f,al,t] == rFinReval_f[f,t]
 
-    # FinCorp closes each non-equity liability adjustment sum.
-    jFinReval_f[s=[:FinCorp], f=setdiff(fin_instrument, [:Equity]), al=[:Liab], t=t1:T],
-    ∑(jFinReval_f[s,f,al,t] * vFinPosition_s_f[s,f,al,t-1] for s in sector) == 0
-
-    # The corporate liability adjustments identify the average equity rate.
-    rFinReval_f[f=[:Equity], t=t1:T],
-    ∑(jFinReval_f[s,f,:Liab,t] * vFinPosition_s_f[s,f,:Liab,t-1] for s in sector) == 0
-  end
-
-  # Equity liability rates set adjustments. Firm-value equations set corporate
-  # revaluations, so the position formulas set corporate equity liability rates.
-  @endo_exo_swap! position_block begin
-    jFinReval_f[(s,f,al,t) in keys(vFinPosition_s_f);
-      f == :Equity && al == :Liab && t in t1:T],
-    rFinReval_s_f[(s,f,al,t) in keys(vFinPosition_s_f);
-      f == :Equity && al == :Liab && t in t1:T]
-
-    rFinReval_s_f[s=corporations, f=[:Equity], al=[:Liab], t=t1:T],
-    vFinReval_s_f[s=corporations, f=[:Equity], al=[:Liab], t=t1:T]
-  end
-
-  firm_value_block = @block model begin
     # Firm value is the present value of future dividends less equity issues.
-    vFinReval_s_f[s=corporations, f=[:Equity], al=[:Liab], t=t1:(T-1)],
-    vEquity[s,t] * (1 + rFirmRequiredReturn_s[s,t]) ==
-      vDividends[s,t+1]*fv - vEquityIssues[s,t+1]*fv + vEquity[s,t+1]*fv
+    rFinReval_s_f[s=sector, f=[:Equity], al=[:Liab], t=t1:(T-1)],
+    vEquity[s,t] * (1+rFirmRequiredReturn_s[s,t+1]) ==
+    vDividends[s,t+1]*fv - vEquityIssues[s,t+1]*fv + vEquity[s,t+1]*fv
 
-    # Set the terminal value.
-    vFinReval_s_f[s=corporations, f=[:Equity], al=[:Liab], t=[T]; T > t1],
-    vEquity[s,t] * (1 + rFirmRequiredReturn_s[s,t]) ==
-      vDividends[s,t]*fv - vEquityIssues[s,t]*fv + vEquity[s,t]*fv
+    # Terminal value. Equation is left out of static calibration (T>t1).
+    rFinReval_s_f[s=sector, f=[:Equity], al=[:Liab], t=[T]; T > t1],
+    vEquity[s,t] * (1+rFirmRequiredReturn_s[s,t]) == vDividends[s,t]*fv - vEquityIssues[s,t]*fv + vEquity[s,t]*fv
   end
 
-  return position_block + firm_value_block
+  return block
 end
 
 # ============================================================================
@@ -122,30 +91,34 @@ end
 # ============================================================================
 
 function define_calibration()
-  block = define_equations()
+  block = define_equations() + @block model begin
+    # Keep required returns constant after t1+1.
+    rFirmRequiredReturn_s[s=sector, t=(t1+2):T],
+    rFirmRequiredReturn_s[s,t] == rFirmRequiredReturn_s[s,t1+1]
+  end
 
   @endo_exo_swap! block begin
-    # Source equity values identify the required returns in the dynamic solve.
-    rFirmRequiredReturn_s[s=corporations, t=[t1]; T > t1],
-    vFinReval_s_f[s=corporations, f=[:Equity], al=[:Liab], t=[t1]; T > t1]
+    rFinReval_s_f[s=sector, f=[:Debt], al=ass_liab, t=[t1]],
+    vFinReval_s_f[s=sector, f=[:Debt], al=ass_liab, t=[t1]]
 
-    rFinReval_f[f=[:Debt], t=[t1]],
-    jFinReval_f[s=[:FinCorp], f=[:Debt], al=[:Liab], t=[t1]]
+    residual(rFinReval_s_f)[s=sector, f=[:Equity], al=[:Assets], t=[t1]],
+    vFinReval_s_f[s=sector, f=[:Equity], al=[:Assets], t=[t1]]
+  end
 
-    jFinReval_f[(s,f,al,t) in keys(vFinPosition_s_f);
-      f == :Debt && (al == :Liab || (s != :FinCorp && al == :Assets)) && t == t1],
-    vFinReval_s_f[(s,f,al,t) in keys(vFinPosition_s_f);
-      f == :Debt && (al == :Liab || (s != :FinCorp && al == :Assets)) && t == t1]
+  # Static calibration only.
+  if T == t1
+    @endo_exo_swap! block begin
+      rFinReval_s_f[s=sector, f=[:Equity], al=[:Liab], t=[t1]],
+      vFinReval_s_f[s=sector, f=[:Equity], al=[:Liab], t=[t1]]
+    end
+  end
 
-    jFinReval_f[(s,f,al,t) in keys(vFinPosition_s_f);
-      s in fixed_equity_asset_sector && f == :Equity && al == :Assets && t == t1],
-    vFinReval_s_f[(s,f,al,t) in keys(vFinPosition_s_f);
-      s in fixed_equity_asset_sector && f == :Equity && al == :Assets && t == t1]
-
-    rFinReval_s_f[(s,f,al,t) in keys(vFinPosition_s_f);
-      s in fixed_equity_liability_sector && f == :Equity && al == :Liab && t == t1],
-    vFinReval_s_f[(s,f,al,t) in keys(vFinPosition_s_f);
-      s in fixed_equity_liability_sector && f == :Equity && al == :Liab && t == t1]
+  # Dynamic calibration only. The t1 valuation uses rFirmRequiredReturn_s[t1+1].
+  if T > t1
+    @endo_exo_swap! block begin
+      rFirmRequiredReturn_s[s=sector,t1+1],
+      rFinReval_s_f[s=sector,:Equity,:Liab,t1]
+    end
   end
 
   return block

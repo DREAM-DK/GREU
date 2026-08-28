@@ -16,7 +16,7 @@ import ..SectorAccounts:
   fin_instrument,
   vNetFinTransactions,
   vNetFinIncome,
-  vFinIncome_f,
+  vFinIncome_s_f,
   vNetTransfers,
   vNonProducedAssetAcquisitions,
   vI_s,
@@ -106,7 +106,7 @@ function define_equations()
 
     # Extra household saving is held in debt assets.
     mHhReturn[t=t1:T],
-    mHhReturn[t] * vFinPosition_s_f[:Hh,:Debt,:Assets,t-1]/fv == vFinIncome_f[:Hh,:Debt,:Assets,t]
+    mHhReturn[t] * vFinPosition_s_f[:Hh,:Debt,:Assets,t-1]/fv == vFinIncome_s_f[:Hh,:Debt,:Assets,t]
   end
 end
 
