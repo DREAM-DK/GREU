@@ -48,7 +48,7 @@ end
 end
 
 @variables model :: (ProductionTag, GrowthAdjusted, InflationAdjusted) begin
-  vProductionTax_i[i=industry, t=t], "Production taxes in marginal cost by industry."
+  vtProductionOther_i[i=industry, t=t], "Production taxes in marginal cost by industry."
 end
 
 @variables model :: ProductionTag begin
@@ -62,7 +62,7 @@ end
 # ============================================================================
 function assign_data!(db)
   db[eProd] .= [production_nesting[i][n].elasticity for (n, i) in keys(eProd)]
-  db[vProductionTax_i] .= 0.0
+  db[vtProductionOther_i] .= 0.0
 
   # All factor prices are calibrated to 1.0
   db[pProd] .= 1
@@ -86,7 +86,7 @@ function define_equations()
     pProd[n,i,t] * qProd[n,i,t] == ∑(pProd[child,i,t] * qProd[child,i,t] for child in production_nesting[i][n].children)
 
     pMarginalCost_i[i=industry, t=t1:T],
-    pMarginalCost_i[i,t] * qY_i[i,t] == pProd[topNest[i],i,t] * qTop2qY[i,t] * qY_i[i,t] + vProductionTax_i[i,t]
+    pMarginalCost_i[i,t] * qY_i[i,t] == pProd[topNest[i],i,t] * qTop2qY[i,t] * qY_i[i,t] + vtProductionOther_i[i,t]
   end
 end
 

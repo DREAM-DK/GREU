@@ -75,6 +75,7 @@ end
 # Calibration
 # ============================================================================
 function define_calibration()
+  return define_equations()
 end
 
 end # module

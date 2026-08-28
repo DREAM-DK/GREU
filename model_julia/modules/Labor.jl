@@ -68,11 +68,10 @@ function assign_data!(db)
   db[pW[t1-1]] = 1.0
   fill_cells!(db, vHhWages, vHhWages_data)
   fill_cells!(db, vRoWNetWages, vRoWNetWages_data)
-  source_employment = cell_value(qLSupply_data, t1)
+  source_supply = cell_value(qLSupply_data, t1)
   source_wages = cell_value(vHhWages_data, t1) + cell_value(vRoWNetWages_data, t1)
-  source_household_employment = source_employment * cell_value(vHhWages_data, t1) / source_wages
-  db[qLSupplyHh[t1]] = source_household_employment
-  db[qLSupplyRoW[t1]] = source_employment - db[qLSupplyHh[t1]]
+  db[qLSupplyHh[t1]] = source_supply * cell_value(vHhWages_data, t1) / source_wages
+  db[qLSupplyRoW[t1]] = source_supply - db[qLSupplyHh[t1]]
   return nothing
 end
 
