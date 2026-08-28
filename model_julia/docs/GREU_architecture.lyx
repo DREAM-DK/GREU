@@ -296,6 +296,10 @@ Capital adjustment costs
 \end_layout
 
 \begin_layout Itemize
+Export price rigidity
+\end_layout
+
+\begin_layout Itemize
 Consumption product substitution
 \end_layout
 
@@ -2286,11 +2290,12 @@ We model export demand directly for domestic production of each product,
 \end_inset
 
 ,
- using the final purchaser price 
-\begin_inset Formula $P^{D}_{p,X,\text{domestic}}$
+ using an effective relative price
+\begin_inset Formula $R_{p,t}$
 \end_inset
 
 .
+ That relative price equals the purchaser-to-foreign price ratio when the rigidity hook is zero.
 \end_layout
 
 \begin_layout Standard
@@ -2309,6 +2314,66 @@ Imports for re-export,
 
 ,
  is endogenized.
+\end_layout
+
+\begin_layout Subsubsection
+Price rigidity
+\end_layout
+
+\begin_layout Standard
+Armington demand uses the effective relative price
+\begin_inset Formula $R_{p,t}$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+D_{p,X,\mathrm{domestic},t}R_{p,t}^{E_{p}^{X}}=X_{p,t}^{\mathrm{Market}},\qquad R_{p,t}=\frac{P_{p,X,\mathrm{domestic},t}^{D}+J_{p,t}}{P_{p,t}^{F}}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The hook
+\begin_inset Formula $J_{p,t}$
+\end_inset
+
+ is zero without the rigidity module.
+ With the module,
+ a cost based on squared changes in the effective price gives
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula
+\[
+\frac{J_{p,t}}{P_{p,t}^{F}}=-\psi^{X}\left(R_{p,t}-R_{p,t-1}\right)+\psi^{X}\beta^{X}\left(R_{p,t+1}-R_{p,t}\right).
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This lowers the short-run price response while keeping
+\begin_inset Formula $E_{p}^{X}$
+\end_inset
+
+ as the long-run elasticity.
+ The future term makes the impact response depend on the duration of the shock.
+ Setting
+\begin_inset Formula $\beta^{X}=0$
+\end_inset
+
+ gives the backward-looking rule.
+ The initial state comes from calibration or the saved baseline,
+ so a new start year is not itself a shock.
 \end_layout
 
 \begin_layout Section
@@ -2352,7 +2417,8 @@ Labor market
 \end_layout
 
 \begin_layout Standard
-The default model is a forward-looking Phillips curve with exogenous labor supply.
+The default model uses a forward-looking Phillips curve to set household employment relative to structural labor supply.
+ Rest-of-world employment stays exogenous.
 \end_layout
 
 \begin_layout Section

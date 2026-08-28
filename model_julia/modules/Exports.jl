@@ -1,4 +1,5 @@
 # Set Armington demand for domestic direct exports and tourist demand.
+# Provide a zero price hook for an optional export-rigidity module.
 # Link imports for re-export to the same foreign market size.
 # Keep the tourist product split and value in the input-output accounts.
 module Exports
@@ -17,7 +18,7 @@ import ..InputOutput:
 import ..InputOutputSettings: product
 import ..model
 import ..Time: t, t1, T
-import ..Tags: ForecastConstant
+import ..Tags: ForecastConstant, ForecastZero
 
 # ============================================================================
 # Indices
@@ -44,6 +45,7 @@ end
 
 @variables model :: (ExportsTag, InflationAdjusted) begin
   pXForeign_p[p=export_product, t=t] :: ForecastConstant, "Price of competing foreign goods by product."
+  jXrigidity[p=export_product, t=t] :: ForecastZero, "Added price signal from export-price rigidity by product."
   pCTouristForeign[t] :: ForecastConstant, "Price of competing foreign tourist services."
 end
 
@@ -65,13 +67,23 @@ function assign_data!(db)
 end
 
 # ============================================================================
+# Starting values
+# ============================================================================
+function set_starting_values!(start_values)
+  start_values[jXrigidity] .= 0
+  return nothing
+end
+
+# ============================================================================
 # Equations
 # ============================================================================
 function define_equations()
+  pX_p = pPurchaserUse_p_u_o[:,:X,domestic,:]
+
   return @block model begin
     # Armington demand for domestic goods in the direct export column.
     rOriginShare[p=export_product, u=:X, o=domestic, t=t1:T],
-    qPurchaserUse_p_u_o[p,u,o,t] * pPurchaserUse_p_u_o[p,u,o,t]^eX_p[p] == qXMarket_p[p,t] * pXForeign_p[p,t]^eX_p[p]
+    qPurchaserUse_p_u_o[p,u,o,t] * (pX_p[p,t] + jXrigidity[p,t])^eX_p[p] == pXForeign_p[p,t]^eX_p[p] * qXMarket_p[p,t]
 
     # Imports for re-export do not respond to relative prices.
     rOriginShare[p=reexport_product, u=:X, o=import_origin, t=t1:T], qPurchaserUse_p_u_o[p,u,o,t] == qXReexport_p[p,t]

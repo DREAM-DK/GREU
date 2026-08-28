@@ -51,6 +51,7 @@ const macro_core_modules = [
 const macro_rigidity_modules = [
   :CapitalAdjustmentCosts,
   :PhillipsCurve,
+  :ExportRigidity,
 ]
 
 # Loaded modules define variables, assign data, and set start values.
