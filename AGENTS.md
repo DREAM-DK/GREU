@@ -82,11 +82,12 @@ In this branch, we are working on a new version of the model implemented in Juli
 
 Entry points:
 
-- `Calibrate.jl` — assemble via `Model.jl`, calibrate static then dynamic, run tests, write `Output/baseline.parquet`
+- `src/GREU.jl` — package entry point. It includes `Model.jl` and `Calibration.jl`.
+- `Calibrate.jl` — import GREU, calibrate static then dynamic, run tests, write `Output/baseline.parquet`
 - `Shock.jl` — load that baseline, shock, solve `base_model(model_modules)`, plot
 - `RefreshData.jl` — rebuild checked-in CSV from Eurostat. Each section is self-contained; send one section to an interactive terminal.
 
-`Settings.module_names` selects which files under `modules/` are included. Copy `ModuleTemplate.jl` when adding a module, then add its symbol to `module_names`.
+`Settings.loaded_modules` selects which files under `modules/` are included. `Settings.model_modules` selects the groups that add equations. Copy `ModuleTemplate.jl` when adding a module, then add its symbol to a group in `Settings.jl`.
 
 **SquareModels.jl** is an external dependency ([GitHub](https://github.com/MartinBonde/SquareModels)). It supplies Blocks, ModelDictionary, and solve. We maintain it and can change it.
 
@@ -166,7 +167,7 @@ Required functions: `define_equations()` and `define_calibration()`. Start calib
 
 Data refresh files (`*Data.jl`) have no required section layout. Group the code by the structure of that source. A small file needs no section headings.
 
-`Model.jl` includes enabled modules and calls each `assign_data!`. `base_model(modules)` sums `define_equations()` from those modules.
+`Model.jl` includes loaded modules and calls each `assign_data!`. `base_model(modules)` sums `define_equations()` from the selected model modules.
 
 ### Calibration (`Calibrate.jl` and `Calibration.jl`)
 
@@ -181,7 +182,7 @@ Calibration has two swap steps:
 
 Variables with no data are solved by model equations.
 
-`Calibrate.jl` lists the modules next to the solve. It runs a static calibration, then a dynamic calibration from that result, then a zero-shock test, then writes `Output/baseline.parquet`.
+`Settings.model_modules` sets one module list for the base model and both calibration solves. `Calibrate.jl` runs a static calibration, then a dynamic calibration from that result, then a zero-shock test, then writes `Output/baseline.parquet`.
 
 ### Shocks (`Shock.jl`)
 

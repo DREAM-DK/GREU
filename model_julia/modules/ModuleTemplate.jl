@@ -1,4 +1,4 @@
-# Template for a new model module. Copy this file and add it to Settings.module_names.
+# Template for a new model module. Copy it and add its name to a group in Settings.jl.
 # Read data, then build indices, then declare variables, then assign values.
 
 module ModuleTemplate
