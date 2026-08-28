@@ -32,10 +32,6 @@ end
 function assign_data!(db)
   db[uXrigidity] = 20.0
   db[βXrigidity] = 1/1.15
-
-  # Lagged price ratio enters the equation for the first period.
-  # Start calibration with no gap between the effective and spot price.
-  db[rXEffectivePrice_p] .= 1
   return nothing
 end
 
@@ -75,7 +71,14 @@ end
 # Calibration
 # ============================================================================
 function define_calibration()
-  return define_equations()
+  block = define_equations()
+
+  # Calibrate the prior-year state so the initial rigidity hook is zero.
+  @endo_exo_swap! block begin
+    rXEffectivePrice_p[:,t1-1], jXrigidity[:,t1]
+  end
+
+  return block
 end
 
 end # module
