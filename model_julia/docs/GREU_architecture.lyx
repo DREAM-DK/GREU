@@ -1,5 +1,5 @@
-#LyX 2.5 created this file. For more info see https://www.lyx.org/
-\lyxformat 643
+#LyX 2.4 created this file. For more info see https://www.lyx.org/
+\lyxformat 620
 \begin_document
 \begin_header
 \save_transient_properties true
@@ -14,6 +14,7 @@
 \definecolor{TemplateTableRow}{HTML}{E6E6E8}
 \definecolor{TemplateFrontPageBackground}{HTML}{EFFBF1}
 \definecolor{TemplateFrontPageShape}{HTML}{B3E1F3}
+\definecolor{GREUaccent}{HTML}{31B149}
 \newcommand{\TemplateModelLogo}{i:/Skabeloner/Icons/Modellogo_GREEN_REFORM_100mm_RGB.pdf}
 \newcommand{\TemplateDocumentType}{Working paper}
 
@@ -22,6 +23,10 @@
 \subtitle{}
 \end_preamble
 \use_default_options true
+\begin_modules
+tcolorbox
+graphicboxes
+\end_modules
 \maintain_unincluded_children no
 \language american
 \language_package default
@@ -80,18 +85,9 @@
 \paperorientation portrait
 \suppress_date false
 \justification false
-\crossref_package refstyle
-\use_formatted_ref 0
+\use_refstyle 1
 \use_minted 0
 \use_lineno 0
-\backgroundcolor none
-\fontcolor none
-\notefontcolor lightgray
-\boxbgcolor red
-\table_border_color default
-\table_odd_row_color default
-\table_even_row_color default
-\table_alt_row_colors_start 1
 \branch product_rows_columns
 \selected 0
 \filename_suffix 0
@@ -115,14 +111,11 @@
 \tablestyle default
 \tracking_changes false
 \output_changes false
-\change_bars false
-\postpone_fragile_content false
 \html_math_output 0
 \html_css_as_file 0
 \html_be_strict false
 \docbook_table_output 0
 \docbook_mathml_prefix 1
-\docbook_mathml_version 0
 \end_header
 
 \begin_body
@@ -140,12 +133,7 @@ August 2026
 \end_layout
 
 \begin_layout Standard
-In this document,
- I outline a new version of the GreenREFORM model system.
- The document is extremely terse —
- written to be readable by experts,
- without fluff or trivial details that make it harder to grasp the big picture.
- We assume close familiarity with optimizing representative agent models.
+In this document, I outline a new version of the GreenREFORM model system. The document is extremely terse — written to be readable by experts, without fluff or trivial details that make it harder to grasp the big picture. We assume close familiarity with optimizing representative agent models.
 \end_layout
 
 \begin_layout Section
@@ -153,27 +141,1372 @@ Notation
 \end_layout
 
 \begin_layout Standard
-We omit time indices,
- except where there is a lead or lag.
- We reuse variable names,
- where indices in subscripts can be used to distinguish.
- Accounting aggregates are equal to the sum of the same variables with an additional index,
- unless a CES or CET equation defines a quantity aggregate.
- E.g.,
- 
-\begin_inset Formula $Y=\sum_{i}Y_{i}$
+This section fixes the conventions used throughout the document. It is meant to be skimmed once and returned to; the index sets are collected in Table
+\begin_inset space ~
+
 \end_inset
 
- —
- we leave out simple accounting aggregates for brevity.
-\end_layout
 
-\begin_layout Standard
-Prices are implicitly aggregated as 
-\begin_inset Formula $P\cdot X=\sum_{x}P_{x}X_{x}$
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:index-sets"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ and the symbols most easily confused in Table
+\begin_inset space ~
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:symbol-clashes"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Subsection
+Conventions
+\end_layout
+
+\begin_layout Paragraph
+Time.
+\end_layout
+
+\begin_layout Standard
+We omit time indices except where an equation contains a lead or a lag. Where time appears it is a subscript on the variable, as in 
+\begin_inset Formula $W_{t}$
+\end_inset
+
+ or 
+\begin_inset Formula $r_{t+1}$
+\end_inset
+
+. In the source code every variable carries an explicit time index.
+\end_layout
+
+\begin_layout Paragraph
+Reuse of names across levels of aggregation.
+\end_layout
+
+\begin_layout Standard
+The same letter denotes the same economic object at different levels of detail, distinguished only by how many indices it carries. 
+\begin_inset Formula $Y$
+\end_inset
+
+ is total output, 
+\begin_inset Formula $Y_{p}$
+\end_inset
+
+ is output of product 
+\begin_inset Formula $p$
+\end_inset
+
+, and 
+\begin_inset Formula $Y_{p,i}$
+\end_inset
+
+ is output of product 
+\begin_inset Formula $p$
+\end_inset
+
+ by industry 
+\begin_inset Formula $i$
+\end_inset
+
+. We introduce a new letter only for a genuinely new object, not for a finer cut of an existing one.
+\end_layout
+
+\begin_layout Paragraph
+Sums versus quantity aggregates.
+\end_layout
+
+\begin_layout Standard
+A variable with fewer indices is by default the simple sum of the same variable with one more index, 
+\begin_inset Formula \[
+Y=\sum_{i}Y_i
+\]
+\end_inset
+
+and we omit such accounting identities for brevity. The exception matters: where a CES or CET equation defines a quantity aggregate, the aggregate is 
+\shape italic
+not
+\shape default
+ the sum of its components. In the production nest, 
+\begin_inset Formula $X_{N}$
+\end_inset
+
+ is a CES aggregate of the 
+\begin_inset Formula $X_{f}$
+\end_inset
+
+ for 
+\begin_inset Formula $f\in N$
+\end_inset
+
+, and in the CET block 
+\begin_inset Formula $Y_{i}$
+\end_inset
+
+ is a CET aggregate of the 
+\begin_inset Formula $Y_{p,i}$
+\end_inset
+
+. Adding the components of either will not reproduce the aggregate away from the base year. Where it is not obvious from context which of the two is meant, the surrounding text says so.
+\end_layout
+
+\begin_layout Paragraph
+Prices and values.
+\end_layout
+
+\begin_layout Standard
+Aggregate prices are defined implicitly by the value identity 
+\begin_inset Formula \[
+P\cdot X=\sum_{x}P_{x}X_{x}
+\]
+\end_inset
+
+so an aggregate price is an implicit deflator rather than an independent variable, and value additivity holds by construction even where quantity additivity does not. Base-year prices are set to one, so in the calibration year measured volumes equal values.
+\end_layout
+
+\begin_layout Paragraph
+Variables and parameters.
+\end_layout
+
+\begin_layout Standard
+Latin letters denote variables. Greek letters denote parameters calibrated in the base year – share parameters 
+\begin_inset Formula $\mu$
+\end_inset
+
+, elasticities 
+\begin_inset Formula $E$
+\end_inset
+
+, markups 
+\begin_inset Formula $\theta$
+\end_inset
+
+, unit-content coefficients 
+\begin_inset Formula $\kappa$
+\end_inset
+
+. Greek does not mean permanently fixed: as Section
+\begin_inset space ~
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:layers"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ sets out, a satellite module extends the core precisely by endogenising one of these parameters. A Greek letter is therefore best read at 
+\begin_inset Quotes eld
+\end_inset
+
+constant in the core, candidate for endogenisation in an extension
+\begin_inset Quotes erd
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Paragraph
+Superscripts and subscripts.
+\end_layout
+
+\begin_layout Standard
+Subscripts are indices. Superscripts are qualifiers naming a variant of the same object: 
+\begin_inset Formula $P^{Y}$
+\end_inset
+
+ is a basic price, 
+\begin_inset Formula $P^{D}$
+\end_inset
+
+ a purchaser price, 
+\begin_inset Formula $P^{I}$
+\end_inset
+
+ an investment price, 
+\begin_inset Formula $Q^{S}$
+\end_inset
+
+ physical supply against 
+\begin_inset Formula $Q^{D}$
+\end_inset
+
+ physical demand and 
+\begin_inset Formula $Q^{Y}$
+\end_inset
+
+ physical output, 
+\begin_inset Formula $C^{\mathrm{HtM}}$
+\end_inset
+
+ the hand-to-mouth part of consumption. A superscript is never an index: 
+\begin_inset Formula $\mu^{S}_{s,u}$
+\end_inset
+
+ is a margin-service share carrying the indices 
+\begin_inset Formula $s$
+\end_inset
+
+ and 
+\begin_inset Formula $u$
+\end_inset
+
+, not a share carrying a further index 
+\begin_inset Formula $S$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Paragraph
+Hats.
+\end_layout
+
+\begin_layout Standard
+A hat distinguishes a fixed weight from a realised share where the same letter denotes both. In the import-substitution equation, 
+\begin_inset Formula $\hat{\mu}_{p,u,o}$
+\end_inset
+
+ is the calibrated weight held fixed, while 
+\begin_inset Formula $\mu_{p,u,o}$
+\end_inset
+
+ is the origin share that the resulting allocation implies. Where only one of the two is ever needed – as in the production and consumption nests – the weight is written unhatted.
+\end_layout
+
+\begin_layout Paragraph
+Hooks.
+\end_layout
+
+\begin_layout Standard
+Core equations include friction terms that are identically zero unless a satellite module supplies an equation for them. They are written out in full rather than folded into the surrounding expression, so that a satellite can be attached without rewriting the core equation.
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
+
+\begin_layout Standard
+\align center
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Index sets used in this document, with the section that introduces each.
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:index-sets"
+
+\end_inset
+
+ 
+\begin_inset Flex Color Box
+status collapsed
+
+\begin_layout Standard
+
+\begin_inset Argument 1
+status collapsed
+
+
+\begin_layout Standard
+ colback=white, colframe=GREUaccent, boxrule=0.6pt, arc=2pt, left=6pt, right=6pt, top=6pt, bottom=6pt, width=
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+\backslash
+textwidth
+\end_layout
+
+\end_inset
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Tabular 
+<lyxtabular version="3" rows="16" columns="3">
+<features booktabs="true" tabularvalignment="middle" tabularwidth="100line%">
+<column alignment="none" valignment="top" special="@{}l">
+<column alignment="left" valignment="top" varwidth="true">
+<column alignment="none" valignment="top" special="l@{}">
+<row>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Index
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Set
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Introduced
+\series default
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $i$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+industries
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:io"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $p$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+products
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:io"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $u$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+uses, 
+\begin_inset Formula $i\cup\{C,G,X,K,\mathrm{INV}\}$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:io"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $o$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+origin, 
+\begin_inset Formula $\{\text{domestic},\text{import}\}$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:origin"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $e$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+energy products, 
+\begin_inset Formula $\mathcal{E}\subset p$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:energy-markets"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $s$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+institutional sectors
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:sector-accounts"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $\mathcal{S}$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+margin services, 
+\begin_inset Formula $\{$
+\end_inset
+
+wholesale, retail, transport
+\begin_inset Formula $\}\subset p$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:margins"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $m$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+purposes of intermediate use
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:purpose"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $c$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+household consumption types, 
+\begin_inset Formula $\mathcal{C}$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:cons-types"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $a$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $\mathcal{C}\cup$
+\end_inset
+
+ consumption nests
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:cons-types"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $k$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+capital types
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:production"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $r$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+intermediate input types
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:production"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $l$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+labour types
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:production"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $f$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+factors of production 
+\begin_inset Formula $\cup$
+\end_inset
+
+ nests, 
+\begin_inset Formula $k\cup r\cup l\cup$
+\end_inset
+
+ nests
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:production"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $N$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+a production or consumption nest
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:production"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Symbols with more than one meaning
+\end_layout
+
+\begin_layout Standard
+A few letters are reused across blocks. They never collide inside one equation, but the distinctions are worth stating.
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
+
+\begin_layout Standard
+\align center
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Overloaded symbols and how to tell them apart.
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:symbol-clashes"
+
+\end_inset
+
+ 
+\begin_inset Flex Color Box
+status collapsed
+
+\begin_layout Standard
+
+\begin_inset Argument 1
+status collapsed
+
+
+\begin_layout Standard
+ colback=white, colframe=GREUaccent, boxrule=0.6pt, arc=2pt, left=6pt, right=6pt, top=6pt, bottom=6pt, width=
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+\backslash
+textwidth
+\end_layout
+
+\end_inset
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Tabular 
+<lyxtabular version="3" rows="6" columns="3">
+<features booktabs="true" tabularvalignment="middle" tabularwidth="100line%">
+<column alignment="none" valignment="top" special="@{}l">
+<column alignment="left" valignment="top" varwidth="true">
+<column alignment="none" valignment="top" special=">{\raggedright\arraybackslash}X@{}" varwidth="true">
+<row>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Symbol
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Two meanings
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+How to tell
+\series default
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $X$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+export demand; a production factor or nest
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $X$
+\end_inset
+
+ or 
+\begin_inset Formula $D_{X}$
+\end_inset
+
+ is exports; 
+\begin_inset Formula $X_{f}$
+\end_inset
+
+, 
+\begin_inset Formula $X_{N}$
+\end_inset
+
+ is production
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topspace="default">
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $t$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+time; a tax rate
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+time is a subscript (
+\begin_inset Formula $W_{t}$
+\end_inset
+
+); a tax rate is the symbol itself (
+\begin_inset Formula $t_{p,u,o}$
+\end_inset
+
+)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topspace="default">
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $\lambda$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+energy origin scaling; hand-to-mouth income share
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $\lambda_{e,u}$
+\end_inset
+
+ is endogenous; 
+\begin_inset Formula $\lambda_{\mathrm{HtM}}$
+\end_inset
+
+ is a parameter
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topspace="default">
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $a$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+consumption index; margin-service requirement
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+bare 
+\begin_inset Formula $a$
+\end_inset
+
+ is the index; 
+\begin_inset Formula $a^{S}_{p,u}$
+\end_inset
+
+ is the coefficient
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topspace="default">
+<cell alignment="none" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\begin_inset Formula $M$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+purpose bundle 
+\begin_inset Formula $M_{m,i}$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+never imports – imports are carried by the origin index 
+\begin_inset Formula $o$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -181,159 +1514,10 @@ Model layers
 \end_layout
 
 \begin_layout Standard
-The model is built in three layers,
- with each layer depending on the previous layers existing.
-\end_layout
 
-\begin_layout Standard
-The core accounting layer is useful for testing if data is internally consistent and for basic input output analysis.
- This layer should be free of assumptions about economic behavior as far as possible.
- Demand modules send product demand to this layer directly.
-\end_layout
-
-\begin_layout Standard
-The macroeconomic core provides a New Keynesian model of demand for private consumption,
- exports,
- intermediate inputs in production,
- and capital investments.
-\end_layout
-
-\begin_layout Standard
-The Green transition core adds a model of production of energy,
- energy-markets,
- emissions inventory,
- and energy-taxation.
-\end_layout
-
-\begin_layout Standard
-Satellite modules do not define variables used in other modules.
- Instead,
- connections between modules should use core models as intermediaries in order to minimize linkages.
- Extensions attach to the core in two ways:
- they can endogenize core parameters,
- such as the share parameters,
- or they can provide equations for friction variables that core modules define as hooks and that default to zero.
-\end_layout
-
-\begin_layout Subsection
-Accounting core
-\end_layout
-
-\begin_layout Itemize
-Sector accounts
-\end_layout
-
-\begin_layout Itemize
-Input output
-\end_layout
-
-\begin_layout Subsection
-Macroeconomic core
-\end_layout
-
-\begin_layout Itemize
-Production
-\end_layout
-
-\begin_layout Itemize
-Pricing
-\end_layout
-
-\begin_layout Itemize
-Households
-\end_layout
-
-\begin_layout Itemize
-Government
-\end_layout
-
-\begin_layout Itemize
-Firms
-\end_layout
-
-\begin_layout Itemize
-Taxes
-\end_layout
-
-\begin_layout Itemize
-Exports
-\end_layout
-
-\begin_layout Itemize
-Import substitution
-\end_layout
-
-\begin_layout Itemize
-Labor market
-\end_layout
-
-\begin_layout Subsection
-Green transition core
-\end_layout
-
-\begin_layout Itemize
-CET production
-\end_layout
-
-\begin_layout Itemize
-Physical units
-\end_layout
-
-\begin_layout Itemize
-Emissions
-\end_layout
-
-\begin_layout Itemize
-Emission dependent taxes
-\end_layout
-
-\begin_layout Subsection
-Planned macroeconomic satellites
-\end_layout
-
-\begin_layout Itemize
-Capital adjustment costs
-\end_layout
-
-\begin_layout Itemize
-Consumption product substitution
-\end_layout
-
-\begin_layout Itemize
-Demographic demand for public consumption
-\end_layout
-
-\begin_layout Itemize
-Fiscal sustainability indicator
-\end_layout
-
-\begin_layout Itemize
-Endogenous migration (Faroe Islands takes lead)
-\end_layout
-
-\begin_layout Subsection
-Planned green transition satellites
-\end_layout
-
-\begin_layout Itemize
-Energy technologies
-\end_layout
-
-\begin_layout Section
-Sector accounts
-\end_layout
-
-\begin_layout Standard
-Our sector accounts match the national accounts,
- except we lump non-profit institutions serving households together with households.
- Each sector also corresponds to one or more agents in the model.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-\text{sectors}=\left\{ \text{Households},\text{Government},\text{Financial corporations},\text{Non-financial corporations},\text{Rest of the world}\right\} 
-\]
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:layers"
 
 \end_inset
 
@@ -341,19 +1525,777 @@ Our sector accounts match the national accounts,
 \end_layout
 
 \begin_layout Standard
-Sector accounting keeps track of the financial assets and liabilities of all sectors and all transfers between them.
- Non-financial assets are not part of the sector accounts.
+The model is built in three layers. Each layer assumes the layers below it are present, and adds a distinct kind of content: the accounting core adds book-keeping, the macroeconomic core adds optimising behaviour, and the green transition core adds physical energy and emissions. Satellite modules attach to the layers and are individually optional.
 \end_layout
 
 \begin_layout Standard
-A key feature of sector accounting is that all net variables sum to zero over sectors.
- E.g.
- total net debt is zero,
- as any debt liability has a corresponding debt asset.
- Net assets,
- financial income,
- financial transfers between sectors,
- and revaluations all sum to zero.
+The point of the layering is that each layer is separately useful and separately testable. The accounting core contains no behavioural assumptions at all, so it can be run against a dataset on its own: if the data are internally inconsistent – if shares do not sum to one, or supply does not match use – the core fails to solve, and it fails in a way that identifies the offending cell. Adding the macroeconomic core turns the same accounting identities into a closed general-equilibrium model; adding the green transition core attaches physical energy quantities and emissions to those flows.
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
+
+\begin_layout Standard
+\align center
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+The three layers and what each one adds.
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:layers"
+
+\end_inset
+
+ 
+\begin_inset Flex Color Box
+status collapsed
+
+\begin_layout Standard
+
+\begin_inset Argument 1
+status collapsed
+
+
+\begin_layout Standard
+ colback=white, colframe=GREUaccent, boxrule=0.6pt, arc=2pt, left=6pt, right=6pt, top=6pt, bottom=6pt, width=
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+\backslash
+textwidth
+\end_layout
+
+\end_inset
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Tabular 
+<lyxtabular version="3" rows="5" columns="3">
+<features booktabs="true" tabularvalignment="middle" tabularwidth="100line%">
+<column alignment="none" valignment="top" special="@{}l">
+<column alignment="left" valignment="top" varwidth="true">
+<column alignment="none" valignment="top" special=">{\raggedright\arraybackslash}X@{}" varwidth="true">
+<row>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Layer
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+What it adds
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+What it is good for alone
+\series default
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Accounting core
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Book-keeping identities; fixed shares as default closures
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Checking that a dataset is internally consistent; input–output analysis
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topspace="default">
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Macroeconomic core
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Optimising behaviour: demand, supply, prices, factor use
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+A closed macroeconomic model without energy or emissions detail
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topspace="default">
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Green transition core
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Physical energy units, emissions, energy and emission taxation
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Policy analysis involving a carbon price or an energy tax
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topspace="default">
+<cell alignment="none" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Satellites
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Optional detail, switched on one at a time
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Answering a question the core is too coarse for
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Accounting core
+\end_layout
+
+\begin_layout Standard
+Book-keeping only. This layer should be free of assumptions about economic behaviour as far as possible; its fixed shares are default closures that behavioural modules replace.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Sector accounts
+\series default
+ (§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:sector-accounts"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) — financial assets, liabilities and transfers between the five institutional sectors. Every net position sums to zero across sectors.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Input output
+\series default
+ (§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:io"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) — all flows of goods and services: who produces what, who buys it, and at what valuation.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Rest of the world
+\series default
+ (§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:row"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) — closure of the sector accounting system and of financial markets.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Aggregates
+\series default
+ (§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:aggregates"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) — accounting aggregates not owned by another module, such as GDP.
+\end_layout
+
+\begin_layout Subsection
+Macroeconomic core
+\end_layout
+
+\begin_layout Standard
+A new Keynesian model of demand for private consumption, exports, intermediate inputs in production, and capital investment.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Production
+\series default
+ (§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:production"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) – nested CES cost minimisation: input demands and marginal cost, given output.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Pricing
+\series default
+ (§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:pricing"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) – markup over marginal cost in basic prices, trade and transport margins, and the bridge from basic to purchaser prices.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Households
+\series default
+ (§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:households"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) – the consumption–savings decision, and the split of total consumption into types.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Government
+\series default
+ (§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:government"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) – public consumption and transfers. There is no fiscal closure by default.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Firms
+\series default
+ (§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:firms"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) – sector accounting for corporations, and the revaluation of equity through a discounted cash-flow valuation.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Taxes
+\series default
+ (§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:taxes"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) – tax revenue accounting, and the aggregate marginal rates that other modules consume.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Exports
+\series default
+ (§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:exports"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) – export demand for domestic production; imports for re-export are exogenous.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Import substitution
+\series default
+ (§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:import-sub"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) – endogenizes the origin shares 
+\begin_inset Formula $\mu_{p,u,o}$
+\end_inset
+
+ that the accounting core holds fixed.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Labor market
+\series default
+ (§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:labor"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) – a forward-looking Phillips curve with exogenous labour supply.
+\end_layout
+
+\begin_layout Subsection
+Green transition core
+\end_layout
+
+\begin_layout Standard
+Production of energy, energy markets, the emissions inventory, and energy taxation.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+CET production
+\series default
+ (§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:cet"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) – endogenous product mix within an industry, replacing the fixed supply-table shares.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Physical units
+\series default
+ (§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:energy-markets"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+) – the mapping from national-account quantities to petajoules, and physical market clearing for energy.
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Emissions
+\series default
+ – The inventory: greenhouse gases from physical fuel use at combustion or conversion, from non-energy processes, and from land use, reconciled to the published emission accounts. 
+\emph on
+Not yet written up in this document.
+\emph default
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+Emission dependent taxes
+\series default
+ – energy duties and carbon pricing levied on physical quantities or on emissions. 
+\emph on
+Not yet written up in this document.
+\emph default
+\end_layout
+
+\begin_layout Subsection
+How satellite modules attach
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:attachment"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A satellite module does not define variables that other modules read. Where two extensions need to communicate, they do so through a core module acting as intermediary, so that the number of direct linkages between modules stays small. The practical form of this rule: a labour-supply extension should not read a specific policy variable out of a tax extension. Instead the core carries a marginal labour income tax rate, the tax extension determines it, and the labour extension reads it – neither needs to know anything about the other.
+\end_layout
+
+\begin_layout Standard
+Extensions attach in two ways.
+\end_layout
+
+\begin_layout Paragraph
+Endogenising a core parameter.
+\end_layout
+
+\begin_layout Standard
+The core writes a calibrated share and treats it as constant; a satellite supplies an equation that determines it instead. The accounting core allocates demand across origins with fixed shares, 
+\begin_inset Formula $D_{p,u,o}=\mu_{p,u,o}D_{p,u}$
+\end_inset
+
+. the import-substitution module replaces that closure with a price-responsive equation for the same 
+\begin_inset Formula $\mu_{p,u,o}$
+\end_inset
+
+. No core equation is rewritten; a parameter simply becomes a variable.
+\end_layout
+
+\begin_layout Paragraph
+Filling a friction hook.
+\end_layout
+
+\begin_layout Standard
+The core writes a term that is identically zero unless something supplies it. The user-cost of capital contains a marginal capital adjustment cost, and output at the top nest is net of friction losses. With no adjustment-cost satellite attached, both terms are zero and the expressions collapse to their frictionless forms. Writing the hook out explicitly, rather than folding it into the surrounding algebra, is what makes the satellite attachable without touching the core.
+\end_layout
+
+\begin_layout Section
+Sector accounts
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:sector-accounts"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Sector accounting keeps track of the financial assets and liabilities of all sectors, and of all transfers between them. It belongs to the accounting core: the identities it enforces are ones any internally consistent dataset my satisfy, and the portfolio splits it needs beyond them are fixed base-year shares – default closures in the sense of §
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:layers"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+, which a satellite can replace.
+\end_layout
+
+\begin_layout Standard
+Our sectors match the national accounts, except that we lump non-profit institutions serving households together with households – the same treatment the input-output system gives the household consumption column.
+\end_layout
+
+\begin_layout Standard
+Sectors are not industries. An industry (Danish 
+\shape italic
+branche
+\shape default
+) groups establishments by what they produce and is classified by NACE; a sector groups institutional units by what they are – who owns them and how they are financed – and is classified by ESA. The two cut across each other: non-financial corporations operate in nearly every industry, and the education industry contains government units, corporations and non-profits alike. In this document, industries carry production and are indexed by 
+\begin_inset Formula $i$
+\end_inset
+
+; sectors carry financial positions and are indexed by 
+\begin_inset Formula $s$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset Formula \[
+\text{sectors}=\left\{ \text{Households},\text{Government},
+\text{Financial corporations},\text{Non-financial corporations},
+\text{Rest of the world}\right\}
+\]
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+What the accounts do and do not contain
+\end_layout
+
+\begin_layout Standard
+The accounts hold financial positions only. Non-financial assets are excluded: the capital stock lives in the production block, and the two are never consolidated into a single balance sheet. A sector's net worth in the ordinary sense cannot be read off this system.
+\end_layout
+
+\begin_layout Standard
+That exclusion is exactly what makes the system close. Every financial asset is some other sector's liability, whereas a building is nobody's liability. Once the rest of the world is included as a sector, every net variable therefore sums to zero across sectors – net assets, financial income, financial transfers, and revaluations alike.
+\end_layout
+
+\begin_layout Subsection
+Accounting identities
+\end_layout
+
+\begin_layout Standard
+Let 
+\begin_inset Formula $W_{s}$
+\end_inset
+
+ be net financial assets of sector 
+\begin_inset Formula $s$
+\end_inset
+
+, an end-of-period stock; let 
+\begin_inset Formula $A^{\bullet}_{s}$
+\end_inset
+
+ and 
+\begin_inset Formula $L^{\bullet}_{s}$
+\end_inset
+
+ be gross assets and gross liabilities in instrument 
+\begin_inset Formula $\bullet$
+\end_inset
+
+; let 
+\begin_inset Formula $\mathrm{NL}_{s}$
+\end_inset
+
+ be net financial transactions (net lending or borrowing), and 
+\begin_inset Formula $\mathrm{REV}_{s}$
+\end_inset
+
+ revaluations.
+\end_layout
+
+\begin_layout Standard
+The condensed budget constraint states that the change in net assets is what the sector lent plus what its existing holdings were revalued by: 
+\begin_inset Formula \[
+W_{s,t}-W_{s,t-1}=\mathrm{NL}_{s,t}+\mathrm{REV}_{s,t}
+\]
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Net positions decompose by instrument into debt and equity: 
+\begin_inset Formula \[
+W_{s}=\left(A^{\mathrm{debt}}_{s}-L^{\mathrm{debt}}_{s}\right)
+    +\left(A^{\mathrm{eq}}_{s}-L^{\mathrm{eq}}_{s}\right)
+\]
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Every net variable sums to zero over sectors, 
+\begin_inset Formula \[
+\sum_{s}W_{s}=0,\qquad
+\sum_{s}\mathrm{NL}_{s}=0,\qquad
+\sum_{s}\mathrm{REV}_{s}=0
+\]
+\end_inset
+
+and the same holds instrument by instrument, for example 
+\begin_inset Formula \[
+\sum_{s}\left(A^{\mathrm{eq}}_{s}-L^{\mathrm{eq}}_{s}\right)=0
+\]
+\end_inset
+
+Financial income closes for the same reason: interest received by one sector is interest paid by another, so it nets to zero economy-wide.
+\end_layout
+
+\begin_layout Standard
+Together these are the accounting core's test. A dataset that violates them leaves a residual, and the variable, sector and period on which it sits identify the inconsistency. Because the default closure makes the rest of the world the residual holder, the core has to report the imbalance before closing it – otherwise an inconsistent dataset solves and the error is hidden in the rest-of-the-world account.
 \end_layout
 
 \begin_layout Subsection
@@ -361,508 +2303,392 @@ Sector modules vs sector accounts
 \end_layout
 
 \begin_layout Standard
-Each sector,
- corresponding to one or more agents,
- has a dedicated module.
- These dedicated modules contain sector-specific specifications of the net financial transactions of the sectors —
- e.g.
- net income and expenditures in the budget constraint.
+Each sector corresponds to one or more agents, and each has a dedicated module. Those modules contain the sector-specific specification of net financial transactions – net income and expenditure in the sector's budget constraint. The sector accounts then reconcile those specifications against the condensed budget constraint above, which is deliberately the same identity for every sector.
 \end_layout
 
 \begin_layout Standard
-These are reconciled with a condensed budget constraint in the sector accounts file,
- which simply states that the period to period change in net assets equals the net financial transactions of the sector plus any revaluation of assets.
+The correspondence is not one-to-one, because one module covers both corporate sectors.
 \end_layout
 
 \begin_layout Standard
-Each sector modules must specify how net savings are split between assets and liabilities,
- and between different financial instruments (debt vs equity).
-\end_layout
+
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
 
 \begin_layout Standard
-Splitting net positions into assets and liabilities is practical,
- as the alternative is to introduce an additional asset type to distinguish between domestic and foreign equity.
- With explicit liabilities,
- the equity liability of the rest-of-the-world equals the total foreign equity owned by domestic sectors.
+\align center
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Sectors and the modules that specify their transactions.
 \end_layout
-
-\begin_layout Subsection
-Financial stocks and portfolio closure
-\end_layout
-
-\begin_layout Standard
-For each sector,
- let
-\begin_inset Formula $A_{s}^{d}$
-\end_inset
-
- and
-\begin_inset Formula $L_{s}^{d}$
-\end_inset
-
- be debt assets and liabilities.
- Let
-\begin_inset Formula $A_{s}^{e}$
-\end_inset
-
- and
-\begin_inset Formula $L_{s}^{e}$
-\end_inset
-
- be equity assets and liabilities.
- Net financial assets are
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula
-\[
-N_{s,t}=A_{s,t}^{d}+A_{s,t}^{e}-L_{s,t}^{d}-L_{s,t}^{e}.
-\]
 
 \end_inset
 
 
-\end_layout
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:sector-modules"
+
+\end_inset
+
+ 
+\begin_inset Flex Color Box
+status collapsed
 
 \begin_layout Standard
-Each financial stock follows the same stock-flow identity:
-\end_layout
+
+\begin_inset Argument 1
+status collapsed
+
 
 \begin_layout Standard
-\begin_inset Formula
-\[
-X_{s,t}^{f,a}=\frac{X_{s,t-1}^{f,a}}{fv}+F_{s,t}^{f,a}+R_{s,t}^{f,a}+K_{s,t}^{f,a}.
-\]
+ colback=white, colframe=GREUaccent, boxrule=0.6pt, arc=2pt, left=6pt, right=6pt, top=6pt, bottom=6pt, width=
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+\backslash
+textwidth
+\end_layout
+
+\end_inset
+
+\end_layout
 
 \end_inset
 
 
-\end_layout
+\begin_inset Tabular 
+<lyxtabular version="3" rows="6" columns="3">
+<features booktabs="true" tabularvalignment="middle" tabularwidth="100line%">
+<column alignment="none" valignment="top" special="@{}l">
+<column alignment="none" valignment="top" special="l">
+<column alignment="none" valignment="top" special=">{\raggedright\arraybackslash}X@{}" varwidth="true">
+<row>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-Here,
-\begin_inset Formula $F$
-\end_inset
 
- is a financial transaction,
-\begin_inset Formula $R$
-\end_inset
-
- is a revaluation,
- and
-\begin_inset Formula $K$
-\end_inset
-
- is another change in volume.
- A zero transaction keeps the number of claims fixed.
- Revaluation and other volume changes can still change the stock value.
- A sector budget determines the change in net financial assets.
- The portfolio equations below split this change across the four positions.
+\series bold
+Sector
+\series default
 \end_layout
 
-\begin_layout Subsubsection
-Households
-\end_layout
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-Household debt liabilities move part of the way to a fixed share of household consumption:
+
+\series bold
+Module
+\series default
 \end_layout
 
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
 \begin_layout Standard
-\begin_inset Formula
-\[
-L_{H,t}^{d}=(1-\lambda _{H})\frac{L_{H,t-1}^{d}}{fv}+\lambda _{H}\mu _{H}^{d}C_{t},\qquad 0<\lambda _{H}\leq 1.
-\]
+
+\series bold
+Note
+\series default
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Households (incl.
+\begin_inset space \space{}
 
 \end_inset
 
-
+NPISH)
 \end_layout
 
-\begin_layout Standard
-The target ratio
-\begin_inset Formula $\mu _{H}^{d}$
 \end_inset
-
- is constant in the forecast.
- The adjustment rate
-\begin_inset Formula $\lambda _{H}$
-\end_inset
-
- is 0.2 per year by default.
- Household equity assets have zero transactions.
- Debt assets close the household net financial asset identity:
-\end_layout
+</cell>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-\begin_inset Formula
-\[
-A_{H,t}^{d}=N_{H,t}-A_{H,t}^{e}+L_{H,t}^{d}.
-\]
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:households"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
 
 \end_inset
 
-
 \end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-Households have no equity liability in the model.
+
+\begin_inset Formula $W$
+\end_inset
+
+ in the consumption-savings problem is this sector's 
+\begin_inset Formula $W_{s}$
+\end_inset
+
 \end_layout
 
-\begin_layout Subsubsection
+\end_inset
+</cell>
+</row>
+<row topspace="default">
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
 Government
 \end_layout
 
-\begin_layout Standard
-Government debt assets and equity assets have zero transactions.
- Government has no equity liability.
- Debt liabilities close the government net financial asset identity:
-\end_layout
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-\begin_inset Formula
-\[
-L_{G,t}^{d}=A_{G,t}^{d}+A_{G,t}^{e}-N_{G,t}.
-\]
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:government"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
 
 \end_inset
 
-
 \end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-A fiscal surplus can make this liability negative.
- The model gives a warning but does not change the value.
+No fiscal closure by default; debt drifts
 \end_layout
 
-\begin_layout Subsubsection
+\end_inset
+</cell>
+</row>
+<row topspace="default">
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
 Non-financial corporations
 \end_layout
 
-\begin_layout Standard
-The replacement value of non-financial corporation capital is
-\end_layout
+\end_inset
+</cell>
+<cell multirow="3" alignment="none" valignment="top" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-\begin_inset Formula
-\[
-V_{N,t}^{K}=\sum_{k}\sum_{i\in N}p_{k,t}^{I}K_{k,i,t}.
-\]
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:firms"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
 
 \end_inset
 
 
 \end_layout
 
-\begin_layout Standard
-Debt liabilities are a fixed share of this value.
- Debt assets are a fixed share of operating expenses.
- Equity assets are a fixed share of equity liabilities:
-\end_layout
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-\begin_inset Formula
-\[
-L_{N,t}^{d}=\mu _{N}^{K}V_{N,t}^{K},\qquad A_{N,t}^{d}=\mu _{N}^{D}E_{N,t},\qquad A_{N,t}^{e}=\mu _{N}^{e}L_{N,t}^{e}.
-\]
+Profits summed over industries, then redistributed to owners
+\end_layout
 
 \end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Here,
-\begin_inset Formula $E_{N,t}$
-\end_inset
-
- is operating expenses.
- Equity liabilities close the sector net financial asset identity:
-\end_layout
+</cell>
+</row>
+<row>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-\begin_inset Formula
-\[
-L_{N,t}^{e}=A_{N,t}^{d}+A_{N,t}^{e}-L_{N,t}^{d}-N_{N,t}.
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsubsection
 Financial corporations
 \end_layout
 
-\begin_layout Standard
-Financial corporations hold a fixed share of total debt liabilities.
- The total includes financial corporation liabilities and thus includes interbank finance:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula
-\[
-A_{F,t}^{d}=\mu _{F}^{d}\sum_{s}L_{s,t}^{d}.
-\]
+\end_inset
+</cell>
+<cell multirow="4" alignment="center" valignment="top" usebox="none">
+\begin_inset Text
 
 \end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Financial corporation equity liabilities have zero transactions.
- Their value changes through revaluation.
- This assumption excludes endogenous equity issues and buy-backs.
- Debt liabilities close the sector net financial asset identity:
-\end_layout
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-\begin_inset Formula
-\[
-L_{F,t}^{d}=A_{F,t}^{d}+A_{F,t}^{e}-L_{F,t}^{e}-N_{F,t}.
-\]
+Covered by the same module
+\end_layout
 
 \end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Financial corporation equity assets also have zero transactions.
- Their revaluation is a fixed share of the revaluation of non-financial corporation equity liabilities:
-\end_layout
+</cell>
+</row>
+<row topspace="default">
+<cell alignment="none" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
 
 \begin_layout Standard
-\begin_inset Formula
-\[
-R_{F,t}^{e,A}=\mu _{F}^{e}R_{N,t}^{e,L}.
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-This rule represents a fixed ownership position in non-financial corporations.
- It does not make banks trade equity to keep a fixed value share.
-\end_layout
-
-\begin_layout Subsubsection
 Rest of the world
 \end_layout
 
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
 \begin_layout Standard
-Rest-of-world debt liabilities are a fixed share of financial corporation debt assets:
+§
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:row"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Closes the system; foreign prices and the interest rate sit here
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula
-\[
-L_{R,t}^{d}=\mu _{R}^{d}A_{F,t}^{d}.
+The household case is worth spelling out, because the same object appears twice under different names. Household wealth 
+\begin_inset Formula $W$
+\end_inset
+
+ in the consumption-savings problem is the household row of 
+\begin_inset Formula $W_{s}$
+\end_inset
+
+ here. There are not two accounting systems that must be made to agree – there is one budget constraint, written at two levels of detail, which is what 
+\begin_inset Quotes eld
+\end_inset
+
+reconciled
+\begin_inset Quotes erd
+\end_inset
+
+ means above.
+\end_layout
+
+\begin_layout Standard
+The return 
+\begin_inset Formula $r$
+\end_inset
+
+ in that constraint is interest and dividends per unit of wealth carried in from the previous period. Revaluations are not folded into it: they enter the budget constraint as a separate term, and the expected return the household optimises against excludes them. Capital gains are therefore unanticipated – realised wealth changes by more than the household planned for.
+\end_layout
+
+\begin_layout Standard
+Revaluations are exogenous by default. Each sector carries a revaluation rate calibrated in the base year and applied to its net financial position, and the sector accounts take the resulting revaluation as given. Making the equity revaluation rate endogenous – determined by a discounted cash-flow valuation of the firm, so that the sector accounts consume it rather than set it – is specified in §
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:firms"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+. The current implementation does not do it: revaluation rates are exogenous. It has one constraint to respect: revaluations must net to zero across sectors. A single rate applied to equity positions delivers that automatically, because equity nets to zero; sector-specific rates applied to net financial assets do not.
+\end_layout
+
+\begin_layout Subsection
+Splitting net positions into assets and liabilities
+\end_layout
+
+\begin_layout Standard
+Each sector module must specify how net saving is split between assets and liabilities, and between instruments. By default these portfolio shares are calibrated in the base year and are held fixed – a default closure in the sense of §
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:layers"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+, which a satellite could endogenise.
+\end_layout
+
+\begin_layout Standard
+Carrying gross assets and liabilities rather than net positions alone is a practical choice. The alternative is to introduce an extra asset type purely to distinguish domestic from foreign equity. With explicit liabilities that distinction comes for free: the equity liability of the rest of the world is, by construction, the total foreign equity owned by domestic sectors 
+\begin_inset Formula \[
+L^{\mathrm{eq}}_{\mathrm{RoW}}=\text{foreign equity held by resident sectors}
 \]
-
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-This ratio is the share of bank lending that goes abroad.
- Rest-of-world debt assets close the full debt market:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula
-\[
-A_{R,t}^{d}=\sum_{s}L_{s,t}^{d}-\sum_{s\ne R}A_{s,t}^{d}.
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-These two debt rules make the debt market clear:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula
-\[
-\sum_{s}A_{s,t}^{d}=\sum_{s}L_{s,t}^{d}.
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The rest-of-world equity liability is a fixed share of domestic equity assets.
- Rest-of-world equity assets close the equity market:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula
-\[
-L_{R,t}^{e}=\mu _{R}^{e}\sum_{s\ne R}A_{s,t}^{e},\qquad \sum_{s}A_{s,t}^{e}=\sum_{s}L_{s,t}^{e}.
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsubsection
-Interest and dividend flows
-\end_layout
-
-\begin_layout Standard
-Let
-\begin_inset Formula $Y_{s,t}^{f,a}$
-\end_inset
-
- be property income for sector
-\begin_inset Formula $s$
-\end_inset
-
-,
- instrument
-\begin_inset Formula $f\in\{d,e\}$
-\end_inset
-
-,
- and the asset or liability side
-\begin_inset Formula $a$
-\end_inset
-
-.
- Debt income is interest and other income mapped to debt in the source data.
- Equity income is dividends.
- A fixed effective rate links interest and dividend flows to their opening stocks:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula
-\[
-Y_{s,t}^{f,a}=\rho _{s}^{f,a}\frac{X_{s,t-1}^{f,a}}{fv}.
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The rates can differ by sector and side because each aggregate contains claims with different rates and counterparties.
- Calibration identifies each rate from the reported income flow and prior-year stock.
- The forecast keeps each rate constant.
- Corporate dividend payments are therefore a fixed share of opening corporate equity value.
-\end_layout
-
-\begin_layout Standard
-Rest-of-world asset income closes the income market for each instrument:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula
-\[
-Y_{R,t}^{f,A}=\sum_{s}Y_{s,t}^{f,L}-\sum_{s\ne R}Y_{s,t}^{f,A}+J_{t}^{f}.
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The source-gap term
-\begin_inset Formula $J_{t}^{f}$
-\end_inset
-
- keeps all reported flows fixed in the calibration year.
- It is zero in the forecast.
- Thus,
- total interest receipts equal total interest payments,
- and total dividend receipts equal total dividend payments after the calibration year.
- Corporate dividend payments enter the discounted equity-value equations.
-\end_layout
-
-\begin_layout Subsubsection
-Equity values and calibration
-\end_layout
-
-\begin_layout Standard
-Let
-\begin_inset Formula $I_{s,t}^{e}$
-\end_inset
-
- be net equity issues by a corporation.
- A positive value is an issue.
- A negative value is a buy-back.
- Net financial transactions include asset purchases less liability issues.
- Thus,
- a positive equity issue adds funds to the corporate budget.
- It is a financial transaction and not a revaluation.
- Financial corporations have
-\begin_inset Formula $I_{F,t}^{e}=0$
-\end_inset
-
- under the current portfolio rule.
-\end_layout
-
-\begin_layout Standard
-Discounted investor cash flows set financial and non-financial corporation equity values before the terminal year:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula
-\[
-V_{s,t}^{e}(1+r_{s,t+1})=fv\left(D_{s,t+1}-I_{s,t+1}^{e}+V_{s,t+1}^{e}\right).
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Investors receive dividends and cash from buy-backs.
- They provide the funds for new issues.
- The terminal condition uses the same required return as the earlier discounted cash flows.
- It assumes that adjusted dividends and net issues stay constant after the terminal year:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula
-\[
-V_{s,T}^{e}(1+r_{s,T}-fv)=fv\left(D_{s,T}-I_{s,T}^{e}\right).
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The model applies this terminal equation only when the horizon extends past the calibration year.
- Thus,
- the source equity value stays exogenous in static calibration.
- Dynamic calibration identifies one required return per corporate issuer from the source equity value.
- The forecast keeps this return constant and uses it in all discount and terminal equations.
- Equity liability revaluation reconciles these values with the stock-flow identity.
- Net issues remain in the transaction term and do not enter the revaluation equation.
- Holder revaluations then allocate the total change across equity assets.
-\end_layout
-
-\begin_layout Standard
-Calibration identifies each fixed portfolio ratio from the calibration-year financial stocks.
- The forecast keeps these ratios constant.
- Financial assets or liabilities can become negative after a large change in a sector balance.
- The model reports a warning and keeps the solved value.
+and no new asset dimension is needed.
 \end_layout
 
 \begin_layout Section
@@ -870,7 +2696,26 @@ Input output
 \end_layout
 
 \begin_layout Standard
-The input output system keeps track of all flows of goods and services.
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:io"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The input output system keeps track of all flows of goods and services. It belongs to the accounting core: it is calibrated directly to published tables and, as far as possible, contains no assumptions about economic behaviour. Its fixed shares are default closures that behavioural modules replace.
+\end_layout
+
+\begin_layout Standard
+Where a behavioural module needs more detail than the published tables carry, that detail enters as a 
+\shape italic
+satellite sub-table
+\shape default
+ which must aggregate back to the published cells – never as extra columns on the main table. The core can therefore always be run on the published table alone, and each extra split can be swtiched off independently.
 \end_layout
 
 \begin_layout Subsection
@@ -878,33 +2723,30 @@ Indices
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 i=\text{industries}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 p=\text{products}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 u=\text{uses}=i\cup\left\{ C,G,X,K,\mathrm{INV}\right\} 
 \]
-
 \end_inset
 
 
@@ -915,27 +2757,572 @@ Where
 \begin_inset Formula $G$
 \end_inset
 
- is government consumption,
- 
+ is government consumption, 
 \begin_inset Formula $C$
 \end_inset
 
- is consumption by households and non-profits,
- 
+ is consumption by households and non-profits, 
 \begin_inset Formula $X$
 \end_inset
 
- is export demand,
- and 
+ is export demand, and 
 \begin_inset Formula $K$
 \end_inset
 
- is fixed investment,
- while
+ is fixed investment, while 
 \begin_inset Formula $\mathrm{INV}$
 \end_inset
 
  is the change in inventories.
+\end_layout
+
+\begin_layout Standard
+
+\shape italic
+Notation warning.
+\shape default
+ The letters above label 
+\shape italic
+uses
+\shape default
+. They are not NACE section letters. In the stylised tables below individual industries are named in words, so that 
+\begin_inset Quotes eld
+\end_inset
+
+the manufacturing column
+\begin_inset Quotes erd
+\end_inset
+
+ is never confused with the consumption column 
+\begin_inset Formula $C$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+The published use table 
+\begin_inset Formula $D_{p,u}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The accounting core is calibrated to the published use table (FIGARO, or the national supply-use tables): products 
+\begin_inset Formula $p$
+\end_inset
+
+ by uses 
+\begin_inset Formula $u$
+\end_inset
+
+. One column per industry, plus households, government, exports, one single investment column, and inventories. Cells are flows in purchaser prices. The tables carries no purpose dimension, no consumption-type dimension, and no capital-type dimension.
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset Float table
+placement htbp
+wide false
+sideways false
+status open
+
+
+\begin_layout Standard
+\align center
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Stylised use table (illustrative units). Every cell is published data; the cells set in 
+\series bold
+bold
+\series default
+ are the ones the satellite sub-tables of Section
+\begin_inset space ~
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:satellites"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ open up.
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:stylised-use-table"
+
+\end_inset
+
+ 
+\begin_inset Flex Resizebox
+status collapsed
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status collapsed
+
+
+\begin_layout Standard
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+\backslash
+textwidth
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Argument 2
+status collapsed
+
+
+\begin_layout Standard
+!
+\end_layout
+
+\end_inset
+
+
+\begin_inset Tabular 
+<lyxtabular version="3" rows="4" columns="7">
+<features booktabs="true" tabularvalignment="middle" tabularwidth="0pt">
+<column alignment="left" valignment="top">
+<column alignment="right" valignment="top">
+<column alignment="right" valignment="top">
+<column alignment="right" valignment="top">
+<column alignment="right" valignment="top">
+<column alignment="right" valignment="top">
+<column alignment="right" valignment="top">
+<row>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Product 
+\begin_inset Formula $p$
+\end_inset
+
+
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Manufacturing
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Agriculture
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Households 
+\begin_inset Formula $C$
+\end_inset
+
+
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Government 
+\begin_inset Formula $G$
+\end_inset
+
+
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Investment 
+\begin_inset Formula $K$
+\end_inset
+
+
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Exports 
+\begin_inset Formula $X$
+\end_inset
+
+
+\series default
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Electricity
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+80
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+10
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+50
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+8
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+2
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Refined fuels
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+40
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+25
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+30
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+5
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Construction
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+15
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+120
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+0
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Read a column: manufacturing bought 80 of electricity and 40 of refined fuels. That is 
+\begin_inset Formula $D_{p,t}$
+\end_inset
+
+ for those products. Or, to be more specific, 
+\begin_inset Formula $D_{\text{electricity},\text{mfg}}$
+\end_inset
+
+ and 
+\begin_inset Formula $D_{\text{refined fuels},\text{mfg}}$
+\end_inset
+
+. Read the investment column: 120 of construction output was sold as capital formation, which is 
+\begin_inset Formula $D_{\text{construction},K}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+What the table does not say is equally important. It does not say whether manufacturing's electricity heated buildings or ran process equipment. It does not say how much of the household's 50 of electricity was space heating and how much charged a car. And it does not say which industry bought the 120 of construction, or whether that investment was a building or a vehicle. Those three questions are the subject of Section
+\begin_inset space ~
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:satellites"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Our default assumption for the product mix inside a use is fixed shares: 
+\begin_inset Formula \[
+D_{p,u}=\mu_{p,u}D_u
+\]
+\end_inset
+
+with 
+\begin_inset Formula $\mu_{p,u}$
+\end_inset
+
+ read off the published table. Other modules can endogenise these shares to allow substitution. Private consumption is the exception in one direction – the consumption-split of Section
+\begin_inset space ~
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:cons-types"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ replaces this use-level mapping – and inventories are the exception in the other, as set out below.
 \end_layout
 
 \begin_layout Subsection
@@ -943,15 +3330,14 @@ Industry split (supply table)
 \end_layout
 
 \begin_layout Standard
-Our default assumption is fixed industry shares for each product.
+The same product can be produced by more than one industry. Our default assumption is fixed industry shares for each product.
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 Y_{p,i}=\mu_{p,i}Y_{p}
 \]
-
 \end_inset
 
 
@@ -966,45 +3352,52 @@ CET split
 \end_layout
 
 \begin_layout Standard
-When industry shares are endogenous,
- perfect transformation determines
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:cet"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+When industry shares are endogenous, perfect transformation determines 
 \begin_inset Formula $\mu_{p,i}$
 \end_inset
 
- and sets
+ and sets 
 \begin_inset Formula $MC_{p,i}=MC_{i}$
 \end_inset
 
-.
- For selected cells,
- CET replaces this closure with
+. For selected cells, CET replaces this closure with
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 Y_{p,i}=\hat{\mu}^{CET}_{p,i}\left(\frac{MC_{p,i}}{MC_{i}}\right)^{E^{CET}_{i}}Y_{i}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
+where 
 \begin_inset Formula $Y_{i}$
 \end_inset
 
- is the CET aggregate.
- CET keeps
+ is the CET aggregate. CET keeps 
 \begin_inset Formula $\hat{\mu}^{CET}_{p,i}$
 \end_inset
 
- and
+ and 
 \begin_inset Formula $E^{CET}_{i}$
 \end_inset
 
- fixed and determines
+ fixed and determines 
 \begin_inset Formula $\mu_{p,i}$
 \end_inset
 
@@ -1012,10 +3405,11 @@ Y_{p,i}=\hat{\mu}^{CET}_{p,i}\left(\frac{MC_{p,i}}{MC_{i}}\right)^{E^{CET}_{i}}Y
 \end_layout
 
 \begin_layout Standard
+
 \begin_inset Formula $MC_{i}$
 \end_inset
 
- is marginal cost before the product split.
+ is marginal cost before the product split. 
 \begin_inset Formula $MC_{p,i}$
 \end_inset
 
@@ -1023,189 +3417,64 @@ Y_{p,i}=\hat{\mu}^{CET}_{p,i}\left(\frac{MC_{p,i}}{MC_{i}}\right)^{E^{CET}_{i}}Y
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 MC_{p,i}=MC^{\text{resource}}_{p,i}+\frac{\partial T^{\text{production}}_{i}}{\partial Y_{p,i}}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-User taxes,
- VAT,
- purchaser-price product taxes,
- and trade margins do not enter
+User taxes, VAT, purchaser-price product taxes, and trade margins do not enter 
 \begin_inset Formula $MC_{p,i}$
 \end_inset
 
-;
- they enter the purchaser price.
+; they enter the purchaser price. By construction,
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 \sum_{p}MC_{p,i}Y_{p,i}=MC_{i}Y_{i}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-Pricing uses
+Pricing uses 
 \begin_inset Formula $MC_{p,i}$
 \end_inset
 
-;
- CET adds no markup.
+; CET adds no markup.
 \end_layout
 
 \begin_layout Subsection
-Product demand
+Country of origin
 \end_layout
 
 \begin_layout Standard
-Demand modules set purchaser use by product directly.
-\end_layout
 
-\begin_layout Standard
-The input-output system has no use-level demand quantity or product-share parameter.
- A demand module can use fixed shares,
- substitution,
- or other rules to determine
-\begin_inset Formula $D_{p,u}$
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:origin"
+
 \end_inset
 
-.
- Inventories are the exception below.
-\end_layout
 
-\begin_layout Subsection
-Tourism
 \end_layout
 
 \begin_layout Standard
-Tourism needs a special entry because the household and trade accounts classify
- the same purchase in different ways.
- The household budget uses the resident concept.
- Thus,
- \begin_inset Formula $C$
-\end_inset
-
- covers purchases by resident households at home and abroad.
- National accounts count purchases in the country by non-resident households
- as exports.
-\end_layout
-
-\begin_layout Standard
-Eurostat reports the household product cells under the domestic concept.
- These cells include purchases in the country by resident and non-resident
- households.
- Eurostat gives only total adjustments for residents' purchases abroad and
- non-residents' purchases in the country.
- We add residents' purchases abroad to the private-consumption cells as travel
- imports.
- We leave non-residents' purchases in these cells and store their total as
- \begin_inset Formula $C^{\mathrm{Tourist}}$
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-The input-output private-consumption aggregate is therefore
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula
-\[
-D_{C}=C+C^{\mathrm{Tourist}}.
+We split all direct product demand by country of origin, 
+\begin_inset Formula \[
+D_{p,u,o}=\mu_{p,u,o}D_{p,u},\quad o=\left\{\text{domestic},\text{import}\right\}
 \]
-
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-The model also includes tourist demand in total exports:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula
-\[
-X=D_{X}+C^{\mathrm{Tourist}},
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-where
- \begin_inset Formula $D_{X}$
-\end_inset
-
- is the direct export column.
- Tourist demand enters the product balance once through
- \begin_inset Formula $D_{C}$
-\end_inset
-
-.
- The household budget includes only resident consumption
- \begin_inset Formula $C$
-\end_inset
-
-,
- while the rest-of-the-world account includes tourist demand in exports.
- The default uses the combined private-consumption product mix and price for
- resident and tourist demand because Eurostat does not give a separate tourist
- product split.
-\end_layout
-
-\begin_layout Subsection
-Country of origin split
-\end_layout
-
-\begin_layout Standard
-We split all direct product demand by country of origin:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-D_{p,u,o}=\mu_{p,u,o}D_{p,u}
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-where
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-o=\left\{ \text{domestic},\text{import}\right\} 
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Using an index for origin makes it easy to split imports later,
- for example into Euro-zone vs rest-of-the-world.
+Using an index for origin rather than a separate import tables makes it easy to split imports later, for example into euro-area and rest-of-the-world.
 \end_layout
 
 \begin_layout Subsubsection
@@ -1213,38 +3482,533 @@ Inventories
 \end_layout
 
 \begin_layout Standard
-Inventory demand by product and origin,
+Inventory demand by product and origin, 
 \begin_inset Formula $D_{p,\mathrm{INV},o}$
 \end_inset
 
-,
- is exogenous and can be positive or negative.
- It is zero after the calibration year.
- The fixed product and origin shares above do not apply.
+, may be positive or negative. Its level is a fixed share of the output of the industry holding it: the inventory-to-output ratio is calibrated in the base year and held fixed thereafter, so inventories move with output. The product and origin shares above apply to it as to any other use.
 \end_layout
 
 \begin_layout Subsubsection
-Import-substitution
+Import substitution
 \end_layout
 
 \begin_layout Standard
-To introduce import-substitution with a satellite model,
- endogenize 
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:import-sub"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To introduce import substitution with a satellite model, endogenise 
 \begin_inset Formula $\mu_{p,u,o}$
 \end_inset
 
-.
- Substitution by product,
- rather than also by use,
- might be enough.
- Demand responds to relative purchaser prices (see Trade margins):
+. Substitution by product, rather than also by use, may well be enough. Demand responds to relative purchaser prices: 
+\begin_inset Formula \[
+D_{p,u,o}=\hat{\mu}_{p,u,o}\left(\frac{P^{D}_{p,u,o}}{P^{D}_{p,u}}\right)^{-E_{p}}D_{p,u}
+\]
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Tourism
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
-D_{p,u,o}=\hat{\mu}_{p,u,o}\left(\frac{P^{D}_{p,u,o}}{P^{D}_{p,u}}\right)^{-E_{p}}D_{p,u}
+Tourism needs a special entry because the household and trade accounts classify the same purchase in different ways. The household budget uses the resident concept: 
+\begin_inset Formula $C$
+\end_inset
+
+ covers purchases by resident households at home and abroad. National accounts count purchases in the country by non-resident household as exports.
+\end_layout
+
+\begin_layout Standard
+Eurostat reports the household product cells under the domestic concept – purchases in the country by residents and non-residents alike – and gives only total adjustments for residents' purchases abroad (
+\family typewriter
+OP_RES
+\family default
+) and non-residents' purchases in the country (
+\family typewriter
+OP_NRES
+\family default
+). Neither adjustment is published by product, so tourist demand cannot be given its own product mix from published data.
+\end_layout
+
+\begin_layout Paragraph
+Current treatment.
+\end_layout
+
+\begin_layout Standard
+The two are not separated. Residents' purchases abroad are carried as a consumption type of their own; non-residents' purchases are added into the household cells, and the input-output private-consumption aggregate is their sum, 
+\begin_inset Formula \[
+D_{C}=C+C^{\mathrm{NonRes}}
 \]
+\end_inset
+
+The household budget uses 
+\begin_inset Formula $D_{C}$
+\end_inset
+
+ rather than 
+\begin_inset Formula $C$
+\end_inset
+
+, so resident consumption currently includes non-residents' purchases in the country.
+\end_layout
+
+\begin_layout Paragraph
+Proposed treatment.
+\end_layout
+
+\begin_layout Standard
+Carry 
+\begin_inset Formula $C^{\mathrm{NonRes}}$
+\end_inset
+
+ as its own column. The household budget then contains only 
+\begin_inset Formula $C$
+\end_inset
+
+, the rest-of-the-world account picks up 
+\begin_inset Formula $C^{\mathrm{NonRes}}$
+\end_inset
+
+ in exports, and tourist demand enters the product balance once, through 
+\begin_inset Formula $D_{C}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Note that the two trourism items are opposite flows: the tourism consumption type of §
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:cons-types"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ is resident's spending abroad, an import, while 
+\begin_inset Formula $C^{\mathrm{NonRes}}$
+\end_inset
+
+ is non-residents' spending here, an export.
+\end_layout
+
+\begin_layout Subsection
+Satellite sub-tables
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:satellites"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Three separate questions ask for detail the published use table does not carry. All three are handled the same way, and it is worth stating the pattern once before applying it three times.
+\end_layout
+
+\begin_layout Standard
+In each case we know a 
+\shape italic
+margin
+\shape default
+ – a published row or column total – and we do not know the 
+\shape italic
+interior
+\shape default
+ of the sub-table. The interior is filled from a prior (Danish accounts, JRC-IDEES process shares, or a pooled donor country) and then scaled so that it reproduces the published margin exactly. Nothing in the accounting core changes: turn the sub-table off and the core still balances against the published cells.
+\end_layout
+
+\begin_layout Standard
+The three applications are collected in Table
+\begin_inset space ~
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:three-splits"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+. They share an algorithm, but they concern entirely different cells.
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset Float table
+placement htbp
+wide false
+sideways false
+status open
+
+
+\begin_layout Standard
+\align center
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+The three satellite splits at a glance.
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:three-splits"
+
+\end_inset
+
+ 
+\begin_inset Flex Resizebox
+status collapsed
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status collapsed
+
+
+\begin_layout Standard
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+\backslash
+textwidth
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Argument 2
+status collapsed
+
+
+\begin_layout Standard
+!
+\end_layout
+
+\end_inset
+
+
+\begin_inset Tabular 
+<lyxtabular version="3" rows="6" columns="4">
+<features booktabs="true" tabularvalignment="middle" tabularwidth="0pt">
+<column alignment="left" valignment="top">
+<column alignment="left" valignment="top">
+<column alignment="left" valignment="top">
+<column alignment="left" valignment="top">
+<row>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Purpose 
+\begin_inset Formula $m$
+\end_inset
+
+
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Consumption type 
+\begin_inset Formula $c$
+\end_inset
+
+
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Capital type 
+\begin_inset Formula $k$
+\end_inset
+
+
+\series default
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Opens
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+an industry column 
+\begin_inset Formula $i$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+the household column 
+\begin_inset Formula $C$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+the investment column 
+\begin_inset Formula $K$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Question answered
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+what was the energy 
+\emph on
+for
+\emph default
+?
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+which household need?
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+building, vehicle or machine?
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Published margin
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+the cell 
+\begin_inset Formula $D_{p,i}$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+the cell 
+\begin_inset Formula $D_{p,C}$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+national totals by asset
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Interior
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+not published
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+partly published
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+partly published
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Main EU source
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+JRC-IDEES, PEFA control
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+COICOP 3-digit, PEFA household
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="left" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family typewriter
+nama_10_a64_p5
+\family default
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+\end_layout
 
 \end_inset
 
@@ -1252,31 +4016,1347 @@ D_{p,u,o}=\hat{\mu}_{p,u,o}\left(\frac{P^{D}_{p,u,o}}{P^{D}_{p,u}}\right)^{-E_{p
 \end_layout
 
 \begin_layout Subsubsection
+Purpose of intermediate use 
+\begin_inset Formula $m$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:purpose"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Each industry column in Table
+\begin_inset space ~
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:stylised-use-table"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ gives a single total per product. For energy and climate questions we often want that total split by purpose, 
+\begin_inset Formula \[
+m=\{\text{transport energy},\ \text{heating},\ \text{processing energy},\ \text{other intermediates}\}
+\]
+\end_inset
+
+so that 
+\begin_inset Formula \[
+D_{p,i}=\sum_m\mu_{p,m,i}M_{m,i}
+\]
+\end_inset
+
+Here 
+\begin_inset Formula $M_{m,i}$
+\end_inset
+
+ is industry 
+\begin_inset Formula $i$
+\end_inset
+
+'s demand for the purpose bundle 
+\begin_inset Formula $m$
+\end_inset
+
+, determined by cost minimisation in the production module, and 
+\begin_inset Formula $\mu_{p,m,i}$
+\end_inset
+
+ says which products make up that bundle. Summing over 
+\begin_inset Formula $m$
+\end_inset
+
+ must recover the published cell 
+\begin_inset Formula $D_{p,i}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+To fully understand, it helps to see this filled in once. Suppose the manufacturing column of Table
+\begin_inset space ~
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:stylised-use-table"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ is generated by three bundles: 
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
+
+\begin_layout Standard
+\align center
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Illustrative decomposition of the manufacturing column. The bundle sizes and recipes are a hypothesis; only the right-hand column is observed.
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:purpose-worked"
+
+\end_inset
+
+ 
+\begin_inset Flex Resizebox
+status collapsed
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status collapsed
+
+
+\begin_layout Standard
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+\backslash
+textwidth
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Argument 2
+status collapsed
+
+
+\begin_layout Standard
+!
+\end_layout
+
+\end_inset
+
+
+\begin_inset Tabular 
+<lyxtabular version="3" rows="6" columns="5">
+<features booktabs="true" tabularvalignment="middle" tabularwidth="0pt">
+<column alignment="left" valignment="top">
+<column alignment="right" valignment="top">
+<column alignment="right" valignment="top">
+<column alignment="right" valignment="top">
+<column alignment="right" valignment="top">
+<row>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Heating
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Processing
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Transport
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Observed 
+\begin_inset Formula $D_{p,\text{mfg}}$
+\end_inset
+
+
+\series default
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Bundle size 
+\begin_inset Formula $M_{m,\text{mfg}}$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+40
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+60
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+20
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Electricity recipe 
+\begin_inset Formula $\mu_{p,m,i}$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+0.5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+1.0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+0.0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Refined-fuel recipe 
+\begin_inset Formula $\mu_{p,m,i}$
+\end_inset
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+0.5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+0.0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+1.0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="none" valignment="top" usebox="none">
+\begin_inset Text
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Electricity used
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+20
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+60
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+80
+\series default
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Refined fuels used
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+20
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+20
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+40
+\series default
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The factory needed 40 of heat, produced half from a gas boiler and half from a heat pump; 60 of process energy, all electrici; and 20 of transport, all diesel. Adding across the bundles returns the two published cells. Recipe shares sum to one down each column, so with base-year prices of one a bundle's quantity is simply what was spent on it.
+\end_layout
+
+\begin_layout Standard
+This is a sub-table, not a set of new input-output columns. With the sub-table off, each industry has a single intermediate bundle. With it on, purposes substitute against each other when relative prices move.
+\end_layout
+
+\begin_layout Standard
+FIGARO and the national supply-use tables give the row totals. They do not give GREU's purposes. Eurostat's physical energy flow accounts (
+\family typewriter
+eng_ac_pefasu
+\family default
+) are industry 
+\begin_inset Formula $\times$
+\end_inset
+
+ energy product in physical units; they do not distinguish heating from process use, and they do not identify own-account transport by the industry that operates it. The practical route is to take process shares from JRC-IDEES, or Danish energy accounts, as a prior and scale to the published 
+\begin_inset Formula $D_{p,i}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Paragraph
+Why the shares carry an industry index.
+\end_layout
+
+\begin_layout Standard
+Dropping the 
+\begin_inset Formula $i$
+\end_inset
+
+ from 
+\begin_inset Formula $\mu_{p,m,i}$
+\end_inset
+
+ – giving every industry the same recipe for a given purpose – is neither needed nor helpful. Note that this is a different assumption from the fixed shares used elsewhere: fixed means constant over time, with each industry keeping its own. A common recipe makes every industry's intermediate column a mixture of the same 
+\begin_inset Formula $|m|$
+\end_inset
+
+ recipe vectors, so the published product 
+\begin_inset Formula $\times$
+\end_inset
+
+ industry matrix would have rank at most 
+\begin_inset Formula $|m|$
+\end_inset
+
+. With four purposes and sixty-odd industries, that is far below the rank the published table actually has, and the accounting core could not reproduce it. Nor would the restriction simplify anything. Purchaser prices are industry-specific, so no economy-wide energy price emerges either way; the compact nesting already indexes the CES shares by industry, so the extra index costs no equations and no unknowns; and the interior still needs a prior. Industry-specific shares are what let the accounting core reproduce the published table exactly.
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
+
+\begin_layout Standard
+\align center
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+The manufacturing column of Table
+\begin_inset space ~
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:stylised-use-table"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+, opened by purpose. The row totals are data. The interior is not published in GREU's categories.
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:stylised-purpose-table"
+
+\end_inset
+
+ 
+\begin_inset Flex Resizebox
+status collapsed
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status collapsed
+
+
+\begin_layout Standard
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+\backslash
+textwidth
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Argument 2
+status collapsed
+
+
+\begin_layout Standard
+!
+\end_layout
+
+\end_inset
+
+
+\begin_inset Tabular 
+<lyxtabular version="3" rows="3" columns="6">
+<features booktabs="true" tabularvalignment="middle" tabularwidth="0pt">
+<column alignment="left" valignment="top">
+<column alignment="right" valignment="top">
+<column alignment="right" valignment="top">
+<column alignment="right" valignment="top">
+<column alignment="right" valignment="top">
+<column alignment="right" valignment="top">
+<row>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Product
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Transport energy
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Heating
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Processing
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Other
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Row total 
+\begin_inset Formula $D_{p,\text{mfg}}$
+\end_inset
+
+
+\series default
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Electricity
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+?
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+?
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+?
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+?
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+80
+\series default
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Refined fuels
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+?
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+?
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+?
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+?
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+40
+\series default
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Household consumption types 
+\begin_inset Formula $c$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:cons-types"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Households are a single column 
+\begin_inset Formula $C$
+\end_inset
+
+ in the use table. The household module first determines total consumption; a satellite then splits that total into types 
+\begin_inset Formula $c$
+\end_inset
+
+ – housing energy, transport energy, food, and so on: 
+\begin_inset Formula \[
+D_{p,C}=\sum_{c}\mu_{p,c}C_{c}
+\]
+\end_inset
+
+The information position here is better than for industries, and the difference matters. Eurostat's household consumption by purpose (
+\family typewriter
+nama_10_co3_p3
+\family default
+) is coarser than GREU's twelve groups: at the published three-digit COICOP depth only three are uniquely identified – car purchases, housing energy, and food and beverages. Two separate collapses do the damage: 
+\family typewriter
+CP011
+\family default
+ folds four food groups into one, and services tie non-food, housing and car fuels together, so none of those can be recovered without four-digit COICOP.
+\end_layout
+
+\begin_layout Standard
+The two energy types are not taken from COICOP. Housing energy could be – 
+\family typewriter
+CP045
+\family default
+ identifies it – but car energy could not, because 
+\family typewriter
+CP072
+\family default
+ mixes motor fuels with spare parts and maintenance that belong to services. Both are instead filled from the physical energy accounts, which publish household heating, transport and other end use directly and reproduce the Danish household total to within 0.04 per cent. The division between heating and appliances differs from GREU's, but both fall inside housing energy and net to 
+\begin_inset Formula $-0.26$
+\end_inset
+
+
+\begin_inset space ~
+
+\end_inset
+
+PJ; household transport differs by 
+\begin_inset Formula $+0.36$
+\end_inset
+
+
+\begin_inset space ~
+
+\end_inset
+
+PJ. The tourism type has no COICOP row at all and is set from FIGARO's residents' expenditure abroad, which it matches exactly. All 27 member states publish 2020 at three-digit COICOP.
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset Float table
+placement htbp
+wide false
+sideways false
+status open
+
+
+\begin_layout Standard
+\align center
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Household electricity. The row total is the corresponding cell of Table
+\begin_inset space ~
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:stylised-use-table"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+; the split by type is the satellite. Unlike Table
+\begin_inset space ~
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:stylised-purpose-table"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+, the energy columns here are observed in the physical energy accounts.
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:stylised-household-table"
+
+\end_inset
+
+ 
+\begin_inset Flex Resizebox
+status collapsed
+
+\begin_layout Plain Layout
+
+\begin_inset Argument 1
+status collapsed
+
+
+\begin_layout Standard
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+\backslash
+textwidth
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Argument 2
+status collapsed
+
+
+\begin_layout Standard
+!
+\end_layout
+
+\end_inset
+
+
+\begin_inset Tabular 
+<lyxtabular version="3" rows="2" columns="5">
+<features booktabs="true" tabularvalignment="middle" tabularwidth="0pt">
+<column alignment="left" valignment="top">
+<column alignment="right" valignment="top">
+<column alignment="right" valignment="top">
+<column alignment="right" valignment="top">
+<column alignment="right" valignment="top">
+<row>
+<cell alignment="left" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Product
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Housing energy
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Transport energy
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Other
+\series default
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Row total 
+\begin_inset Formula $D_{p,C}$
+\end_inset
+
+
+\series default
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Electricity
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+(data)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+(data)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+(residual)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="right" valignment="top" topline="true" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+50
+\series default
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Capital types 
+\begin_inset Formula $k$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:capital-types"
+
+\end_inset
+
+ In the use table, fixed investment is a single column 
+\begin_inset Formula $K$
+\end_inset
+
+. Buildings, vehicles and other machinery are not energy purposes; they are types of capital 
+\begin_inset Formula $k$
+\end_inset
+
+, living in the production module or in a satellite attached to it: 
+\begin_inset Formula \[
+D_{K}=\sum_{k}I_k,\qquad I_{k}=\sum_{i}I_{k,i},\qquad I_{p,k}=\mu_{p,k}I_{k}
+\]
+\end_inset
+
+The load-bearing object is 
+\begin_inset Formula $I_{k,i}$
+\end_inset
+
+, the amount invested by type and by 
+\shape italic
+investing
+\shape default
+ industry. GREU does not use, and does not need, a matrix recording which industry produced the capital good for which investor: the model closes the capital market on 
+\begin_inset Formula $I_{k,i}$
+\end_inset
+
+ alone and redistributes the resulting demand across supplying industries through the ordinary input-output machinery.
+\end_layout
+
+\begin_layout Standard
+The use-side control is Eurostat gross fixed capital formation by asset and industry (
+\family typewriter
+nama_10_a64_p5
+\family default
+, transaction P51G, classification 
+\family typewriter
+asset10
+\family default
+). Buildings map to 
+\family typewriter
+N11KG
+\family default
+, transport equipment to 
+\family typewriter
+N1131G
+\family default
+, and other machinery is the remainder. For Denmark in 2020 these three national totals match the Danish investment file exactly. Thirteen member states publish the breakdown at NACE A64; fourteen publish only at A21. The product mix of the investment column itself still comes from FIGARO's P51G column, which is a concordance problem rather than an estimation problem.
+\end_layout
+
+\begin_layout Standard
+What remains to be constructed is the industry-by-asset interior inside A21 groups – together with the three GREU industries (
+\family typewriter
+55560
+\family default
+, 
+\family typewriter
+71000
+\family default
+, 
+\family typewriter
+off
+\family default
+) that cut across several A21 sections, so that the groups are not a partition. The cells are to be filled from a prior by cross-entropy minimisation, subject to known industry totals and the known group-by-asset aggregates; RAS is the one-year special case of that estimator. Whether identification holds is a rank check per A21 group, not only a count of industries per group. Two method choices are still open: whether Denmark is an acceptable donor, and whether shares may be held constant over time or need a smoothness penalty across years.
+\end_layout
+
+\begin_layout Standard
+Two cautions carry over from the Danish data: zeros in the prior stick, so a Denmark-specific zero must be distinguished from a structural one, and Denmark is a weak donor for vehicles, because leasing and registration tax 
+\shape italic
+park
+\shape default
+ them in the renting industry rather than the using one.
+\end_layout
+
+\begin_layout Subsubsection
+Which prior belongs to which table
+\end_layout
+
+\begin_layout Standard
+Section
+\begin_inset space ~
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:purpose"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:capital-types"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+ are easy to confuse, because both fill an unpublished interior from a Danish prior subject to known totals. They are not the same object and their priors are not interchangeable.
+\end_layout
+
+\begin_layout Quote
+The purpose split asks what a purchase was 
+\shape italic
+for
+\shape default
+. The capital split asks what 
+\shape italic
+kind of asset
+\shape default
+ was bought. A farm buys 100 if diesel: the purpose split asks whether it dried grain or ran the tractor. A farm buys a barn and a tractor: the capital split asks which was which.
+\end_layout
+
+\begin_layout Standard
+A heating-versus-process prior must never be used to fill 
+\begin_inset Formula $I_{k,i}$
+\end_inset
+
+, and a capital-type prior must never be used to fill Table
+\begin_inset space ~
+
+\end_inset
+
+
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:stylised-purpose-table"
+plural "false"
+caps "false"
+noprefix "false"
+nolink "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
 Physical energy markets
 \end_layout
 
 \begin_layout Standard
-Let
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:energy-markets"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Let 
 \begin_inset Formula $e\in\mathcal{E}\subset p$
 \end_inset
 
- denote an energy product.
- For a homogeneous energy product,
- use the origin choice above.
- Replace
+ denote an energy product. For a homogeneous energy product, use the origin choice above. Replace 
 \begin_inset Formula $\hat{\mu}_{e,u,o}$
 \end_inset
 
- with
+ with 
 \begin_inset Formula $\lambda_{e,u}\hat{\mu}_{e,u,o}$
 \end_inset
 
- and let physical market clearing determine
+ and let physical market clearing determine 
 \begin_inset Formula $\lambda_{e,u}$
 \end_inset
 
- for each use.
- CET or an energy-technology module allocates domestic output across industries through
+ for each use. CET or an energy-technology module allocates domestic output across industries through 
 \begin_inset Formula $\mu_{e,i}$
 \end_inset
 
@@ -1288,46 +5368,42 @@ National-account and physical units
 \end_layout
 
 \begin_layout Standard
-The national-account quantities
+The national-account quantities 
 \begin_inset Formula $D_{e,u,o}$
 \end_inset
 
- and
+ and 
 \begin_inset Formula $Y_{e,i}$
 \end_inset
 
- do not measure physical energy.
- Map them to PJ:
+ do not measure physical energy. Map them to PJ:
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 Q^{D}_{e,u,o}=\kappa^{D}_{e,u,o}D_{e,u,o}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 Q^{D}_{e,u}=\kappa^{D}_{e,u}D_{e,u}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 Q^{Y}_{e,i}=\kappa^{Y}_{e,i}Y_{e,i}
 \]
-
 \end_inset
 
 
@@ -1338,8 +5414,7 @@ Keep
 \begin_inset Formula $\kappa$
 \end_inset
 
- fixed unless technology changes physical unit content.
- Budgets still use price times national-account quantity.
+ fixed unless technology changes physical unit content. Budgets still use price times national-account quantity.
 \end_layout
 
 \begin_layout Standard
@@ -1347,11 +5422,10 @@ Total physical demand is
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 Q^{D}_{e}=\sum_{u}Q^{D}_{e,u}
 \]
-
 \end_inset
 
 
@@ -1362,33 +5436,29 @@ Quantity-preserving origin demand
 \end_layout
 
 \begin_layout Standard
-For energy,
- the physical balance for each use is
+For energy, the physical balance for each use is
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 \sum_{o}\kappa^{D}_{e,u,o}D_{e,u,o}=\kappa^{D}_{e,u}D_{e,u}=Q^{D}_{e,u}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-It determines
+It determines 
 \begin_inset Formula $\lambda_{e,u}$
 \end_inset
 
- in the origin-demand equation above.
- With fixed 
+ in the origin-demand equation above. With fixed 
 \begin_inset Formula $\kappa$
 \end_inset
 
-,
- using prices per PJ only rescales the calibrated CES weights.
+, using prices per PJ only rescales the calibrated CES weights.
 \end_layout
 
 \begin_layout Paragraph
@@ -1400,27 +5470,24 @@ Supply by origin is
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 Q^{S}_{e,o}=\sum_{u}Q^{D}_{e,u,o}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-Thus,
- the aggregate physical balance is
+Thus, the aggregate physical balance is
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 \sum_{o}Q^{S}_{e,o}=Q^{D}_{e}
 \]
-
 \end_inset
 
 
@@ -1431,44 +5498,37 @@ Domestic supply is
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 Q^{S}_{e,\text{domestic}}=\sum_{i}Q^{Y}_{e,i}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-A energy-technology module can endogenize the domestic industry mix,
- but needs to ensure that the supply mix does not break the physical balance.
- A network module can specify losses that need to be added to the balances above.
+A energy-technology module can endogenize the domestic industry mix, but needs to ensure that the supply mix does not break the physical balance. A network module can specify losses that need to be added to the balances above.
 \end_layout
 
 \begin_layout Standard
-Use-price differences per PJ come from
+Use-price differences per PJ come from 
 \begin_inset Formula $\kappa^{D}_{e,u,o}$
 \end_inset
 
-,
- taxes,
- margin services,
- and VAT.
+, taxes, margin services, and VAT.
 \end_layout
 
 \begin_layout Standard
-An energy tax
+An energy tax 
 \begin_inset Formula $\tau^{E}_{e,u,o}$
 \end_inset
 
- per PJ maps to
+ per PJ maps to 
 \begin_inset Formula $t^{E}_{e,u,o}=\tau^{E}_{e,u,o}\kappa^{D}_{e,u,o}$
 \end_inset
 
-.
- Emissions use physical fuel at combustion or conversion.
+. Emissions use physical fuel at combustion or conversion.
 \end_layout
 
 \begin_layout Section
@@ -1476,8 +5536,18 @@ Production (cost minimization)
 \end_layout
 
 \begin_layout Standard
-Given the output to be produced,
- the production module calculates a marginal cost of production and the demand for each input factor into production.
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:production"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Given the output to be produced, the production module calculates a marginal cost of production and the demand for each input factor into production.
 \end_layout
 
 \begin_layout Subsection
@@ -1489,11 +5559,10 @@ We assume a nested CES production function with
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 \text{factors of production}=k\cup r\cup l
 \]
-
 \end_inset
 
 
@@ -1504,13 +5573,11 @@ where
 \begin_inset Formula $k$
 \end_inset
 
- are types of capital,
- 
+ are types of capital, 
 \begin_inset Formula $r$
 \end_inset
 
- are types of intermediate inputs,
- and 
+ are types of intermediate inputs, and 
 \begin_inset Formula $l$
 \end_inset
 
@@ -1518,38 +5585,14 @@ where
 \end_layout
 
 \begin_layout Standard
-The default full tree pairs equipment and energy in the first nest
-\begin_inset Formula $KE$
-\end_inset
-
-,
- then adds labor at
-\begin_inset Formula $KEL$
-\end_inset
-
-,
- structures at
-\begin_inset Formula $KELB$
-\end_inset
-
-,
- and materials at the top nest
-\begin_inset Formula $KELBM$
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
 Let
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 f=\text{factors of production}\cup\text{nests}
 \]
-
 \end_inset
 
 
@@ -1568,11 +5611,10 @@ Demand for the factor or nest
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 X_{f}=\mu_{f}X_{N}\left(\frac{P_{f}}{P_{N}}\right)^{-E_{N}}\forall f\in N
 \]
-
 \end_inset
 
 
@@ -1591,26 +5633,21 @@ The usercost of a nest is given by the budget constraint
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 P_{N}X_{N}=\sum_{f\in N}P_{f}X_{f}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-Usercost of factors of production can either be simple spot prices,
- or come from complicated usercost expressions.
+Usercost of factors of production can either be simple spot prices, or come from complicated usercost expressions.
 \end_layout
 
 \begin_layout Standard
-We implement the nesting structure very compactly,
- using a single variable and demand equation for all factors of production,
- letting a mapping handle the nesting structure.
- The main upside is that this enables us to vary the nesting structure depending on the industry.
+We implement the nesting structure very compactly, using a single variable and demand equation for all factors of production, letting a mapping handle the nesting structure. The main upside is that this enables us to vary the nesting structure depending on the industry.
 \end_layout
 
 \begin_layout Subsection
@@ -1618,20 +5655,10 @@ Capital adjustment costs and other frictions
 \end_layout
 
 \begin_layout Standard
-Various frictions should be added to the simple usercost expressions,
- e.g.
-\end_layout
 
-\begin_layout Standard
-E.g.
- the usercost of capital is something like
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-P^{f}_{k}=P^{I}_{k}+\frac{\partial T^{\text{Corp}}}{\partial K_{k}}-\frac{1-\delta_{k,t+1}}{1+r_{t+1}}\left(P^{I}_{k,t+1}-\frac{\partial T^{\text{Corp}}_{t+1}}{\partial K_{k}}\right)+\text{marginal capital adjustment cost}
-\]
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:frictions"
 
 \end_inset
 
@@ -1639,14 +5666,29 @@ P^{f}_{k}=P^{I}_{k}+\frac{\partial T^{\text{Corp}}}{\partial K_{k}}-\frac{1-\del
 \end_layout
 
 \begin_layout Standard
-The friction itself should be detailed in a satellite model,
- not in the production module.
- Friction variables are hooks that default to zero when no satellite model provides them.
+Various frictions should be added to the simple usercost expressions, e.g.
 \end_layout
 
 \begin_layout Standard
-Similarly,
- marginal taxes (here 
+E.g. the usercost of capital is something like
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset Formula \[
+P^{f}_{k}=P^{I}_{k}+\frac{\partial T^{\text{Corp}}}{\partial K_{k}}-\frac{1-\delta_{k,t+1}}{1+r_{t+1}}\left(P^{I}_{k,t+1}-\frac{\partial T^{\text{Corp}}_{t+1}}{\partial K_{k}}\right)+\text{marginal capital adjustment cost}
+\]
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The friction itself should be detailed in a satellite model, not in the production module. Friction variables are hooks that default to zero when no satellite model provides them.
+\end_layout
+
+\begin_layout Standard
+Similarly, marginal taxes (here 
 \begin_inset Formula $\frac{\partial T^{\text{Corp}}}{\partial K_{k}}$
 \end_inset
 
@@ -1662,11 +5704,10 @@ Output is the top nest less friction losses
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 Y=X_{N=\text{TopNest}}-\text{friction losses}
 \]
-
 \end_inset
 
 
@@ -1681,32 +5722,25 @@ The marginal cost of production is
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 MC\cdot Y=P_{N=\text{TopNest}}Y+\text{production taxes}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-Frictions do not enter this equation directly.
- They affect the price through the usercosts inside the nest:
- the marginal capital adjustment cost enters the usercost of capital,
- and therefore 
+Frictions do not enter this equation directly. They affect the price through the usercosts inside the nest: the marginal capital adjustment cost enters the usercost of capital, and therefore 
 \begin_inset Formula $P_{N=\text{TopNest}}$
 \end_inset
 
-,
- while the average (total) capital adjustment cost is subtracted from output at the top.
- 
+, while the average (total) capital adjustment cost is subtracted from output at the top. 
 \begin_inset Formula $MC$
 \end_inset
 
- is therefore the cost of one more unit of output,
- and 
+ is therefore the cost of one more unit of output, and 
 \begin_inset Formula $MC\cdot Y$
 \end_inset
 
@@ -1718,21 +5752,11 @@ Behavior vs accounting
 \end_layout
 
 \begin_layout Standard
-Usercosts are behavior,
- not accounting.
- The usercost of capital contains the hurdle rate of the firm.
- Marginal cost and the markup derive from this subjective usercost,
- so they are model constructs,
- not neutral accounting.
- The sector account of firms records actual payments instead:
- revenue 
+Usercosts are behavior, not accounting. The usercost of capital contains the hurdle rate of the firm. Marginal cost and the markup derive from this subjective usercost, so they are model constructs, not neutral accounting. The sector account of firms records actual payments instead: revenue 
 \begin_inset Formula $P^{Y}_{i}Y_{i}$
 \end_inset
 
- less labor compensation,
- intermediate inputs,
- investments,
- and total (not marginal) taxes.
+ less labor compensation, intermediate inputs, investments, and total (not marginal) taxes.
 \end_layout
 
 \begin_layout Subsection
@@ -1740,11 +5764,7 @@ Multiple types of capital
 \end_layout
 
 \begin_layout Standard
-In the input-output system capital investments enter as a single column.
- In the production module,
- or in a satellite module,
- we split capital investments into multiple types of fixed assets,
- 
+In the input-output system capital investments enter as a single column. In the production module, or in a satellite module, we split capital investments into multiple types of fixed assets, 
 \begin_inset Formula $k$
 \end_inset
 
@@ -1752,59 +5772,59 @@ In the input-output system capital investments enter as a single column.
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 D_{K}=\sum_{k}I_{k}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 I_{k}=\sum_{i}I_{k,i}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-Fixed investment enters purchaser use by product:
+Endogenize 
+\begin_inset Formula $\mu_{p,K}$
+\end_inset
+
+ by
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 D_{p,K}=\sum_{k}I_{p,k}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-For each type of capital,
- we assume fixed product shares.
+For each type of capital, we assume fixed product shares.
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 I_{p,k}=\mu_{p,k}I_{k}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
+
 \begin_inset Formula $I_{k,i}$
 \end_inset
 
@@ -1820,22 +5840,13 @@ We can split use in production into different types of intermediate inputs
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 D_{p,i}=\sum_{m}\mu_{p,m,i}M_{m,i}
 \]
-
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-The resulting
-\begin_inset Formula $D_{p,i}$
-\end_inset
-
- enters input-output purchaser use directly.
 \end_layout
 
 \begin_layout Standard
@@ -1843,19 +5854,13 @@ where for example
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
-m=\left\{ \text{energy},\text{materials}\right\}
-\]
 
+\begin_inset Formula \[
+m=\left\{ \text{transport energy},\text{heating},\text{processing energy},\text{other intermediates}\right\} 
+\]
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-Until detailed energy data are added,
- synthetic data assign CPA sections B and D to energy and all other products to materials.
 \end_layout
 
 \begin_layout Standard
@@ -1874,6 +5879,17 @@ Note that assuming identical product shares for energy inputs across industries 
 Pricing
 \end_layout
 
+\begin_layout Standard
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:pricing"
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection
 Markups in basic prices
 \end_layout
@@ -1883,28 +5899,25 @@ We use one fixed markup for each industry:
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 P^{Y}_{p,i}=\theta_{i}\text{MC}_{p,i}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-The markup is the same for all products from industry
+The markup is the same for all products from industry 
 \begin_inset Formula $i$
 \end_inset
 
-.
- Under the default product split,
+. Under the default product split, 
 \begin_inset Formula $MC_{p,i}=MC_{i}$
 \end_inset
 
-.
- The CET module can give product-specific marginal costs.
+. The CET module can give product-specific marginal costs.
 \end_layout
 
 \begin_layout Standard
@@ -1912,31 +5925,27 @@ Basic-price values sum by product and industry:
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 P^{Y}_{p}Y_{p}=\sum_{i}P^{Y}_{p,i}Y_{p,i}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 P^{Y}_{i}Y_{i}=\sum_{p}P^{Y}_{p,i}Y_{p,i}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-Base-year prices equal one,
- so measured volumes equal values.
- Product-by-use cells therefore do not identify price gaps or markup levels.
+Base-year prices equal one, so measured volumes equal values. Product-by-use cells therefore do not identify price gaps or markup levels.
 \end_layout
 
 \begin_layout Subsection
@@ -1944,27 +5953,33 @@ Trade and transport margins
 \end_layout
 
 \begin_layout Standard
-Trade and transport margins are the wholesale,
- retail,
- and transport services needed to deliver a product to its user.
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:margins"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Trade and transport margins are the wholesale, retail, and transport services needed to deliver a product to its user.
 \end_layout
 
 \begin_layout Standard
 Let 
-\begin_inset Formula $s=\left\{ \text{wholesale},\text{retail},\text{transport}\right\} \subset p$
+\begin_inset Formula $\mathcal{S}=\left\{ \text{wholesale},\text{retail},\text{transport}\right\} \subset p$
 \end_inset
 
- index margin service products.
- Each user has a fixed-share margin-service bundle.
- We use the standard origin shares for each margin service:
+ index margin service products. Each user has a fixed-share margin-service bundle. We use the standard origin shares for each margin service:
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
-P^{S}_{u}=\sum_{s,o}\mu^{S}_{s,u}\mu_{s,u,o}P_{s,u,o}
-\]
 
+\begin_inset Formula \[
+P^{S}_{u}=\sum_{p\in\mathcal{S},o}\mu^{S}_{p,u}\mu_{p,u,o}P_{p,u,o}
+\]
 \end_inset
 
 
@@ -1975,8 +5990,7 @@ Let
 \begin_inset Formula $D_{p,u}$
 \end_inset
 
- be purchaser use.
- Each unit needs 
+ be purchaser use. Each unit needs 
 \begin_inset Formula $a^{S}_{p,u}$
 \end_inset
 
@@ -1984,65 +5998,69 @@ Let
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 S_{u}=\sum_{p}a^{S}_{p,u}D_{p,u}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
-S_{s,u,o}=\mu^{S}_{s,u}\mu_{s,u,o}S_{u}
+
+\begin_inset Formula \[
+S_{p,u,o}=\mu^{S}_{p,u}\mu_{p,u,o}S_{u}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
-S_{p,u,o}=0\quad\forall p\notin s
+
+\begin_inset Formula \[
+S_{p,u,o}=0\quad\forall p\notin \mathcal{S}
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-Let
+Let 
 \begin_inset Formula $P_{p,u,o}$
 \end_inset
 
- be the domestic basic price or import border price,
- with
+ be the domestic basic price or import border price, with 
 \begin_inset Formula $P_{p,u,\text{domestic}}=P^{Y}_{p}$
 \end_inset
 
-.
- The purchaser-use price is
+. The purchaser-use price is
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 P^{D}_{p,u,o}=\left(P_{p,u,o}+t_{p,u,o}+a^{S}_{p,u}P^{S}_{u}\right)\left(1+t^{\text{VAT}}_{p,u,o}\right)
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-This is the price that enters into any product substitution decision.
+This is the price that enters into any substitution decision and the purchaser-use aggregate:
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset Formula \[
+P^{D}_{u}D_{u}=\sum_{p,o}P^{D}_{p,u,o}D_{p,u,o}.
+\]
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -2050,20 +6068,21 @@ The product balance is
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 Y_{p,u}=D_{p,u,\text{domestic}}+S_{p,u,\text{domestic}}.
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-Margin demand enters the product balance but not the direct-demand quantity sum.
- Its value is already in the purchaser price of direct demand,
- so do not add
+Margin demand enters the product balance but not 
+\begin_inset Formula $D_{u}$
+\end_inset
+
+. Its value is already in the purchaser price of direct demand, so do not add 
 \begin_inset Formula $P^{S}_{u}S_{u}$
 \end_inset
 
@@ -2075,6 +6094,17 @@ Households
 \end_layout
 
 \begin_layout Standard
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:households"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 The household module determines total demand for private consumption (consumption savings decision).
 \end_layout
 
@@ -2083,51 +6113,44 @@ Consumption savings decision
 \end_layout
 
 \begin_layout Standard
-Our default has one forward-looking household.
- It chooses total consumption
+Our default has one forward-looking household. It chooses total consumption 
 \begin_inset Formula $C_{t}$
 \end_inset
 
- and end-of-period real wealth
+ and end-of-period real wealth 
 \begin_inset Formula $W_{t}$
 \end_inset
 
-.
- A fixed share of current real disposable income follows a hand-to-mouth rule:
+. A fixed share of current real disposable income follows a hand-to-mouth rule:
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 C^{\mathrm{HtM}}_{t}=\lambda_{\mathrm{HtM}}Y^{d}_{t},\qquad0\leq\lambda_{\mathrm{HtM}}\leq1.
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-Thus,
+Thus, 
 \begin_inset Formula $\lambda_{\mathrm{HtM}}$
 \end_inset
 
- is a share of income,
- not a share of households.
- The household takes the external habit
+ is a share of income, not a share of households. The household takes the external habit 
 \begin_inset Formula $H_{t}=h\bar{C}_{t-1}$
 \end_inset
 
- as given.
- Define consumption in excess of the reference level as
+ as given. Define consumption in excess of the reference level as
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 C^{\mathrm{xRef}}_{t}=C_{t}-H_{t}-C^{\mathrm{HtM}}_{t}.
 \]
-
 \end_inset
 
 
@@ -2138,11 +6161,10 @@ The household solves
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 \max_{\{C_{s},W_{s}\}^{\infty}_{s=t}}\sum^{\infty}_{s=t}\beta^{s-t}\left[\frac{(C^{\mathrm{xRef}}_{s})^{1-\sigma}}{1-\sigma}+\omega\frac{W^{1-\nu}_{s}}{1-\nu}\right].
 \]
-
 \end_inset
 
 
@@ -2153,31 +6175,28 @@ Use the simple budget constraint
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 W_{t}=(1+r_{t})W_{t-1}+Y^{d}_{t}-C_{t},
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-where
+where 
 \begin_inset Formula $r_{t}$
 \end_inset
 
- is the real interest rate.
- The first-order condition for saving gives the Euler equation
+ is the real interest rate. The first-order condition for saving gives the Euler equation
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 (C^{\mathrm{xRef}}_{t})^{-\sigma}=\omega W^{-\nu}_{t}+\beta(1+r_{t+1})(C^{\mathrm{xRef}}_{t+1})^{-\sigma}.
 \]
-
 \end_inset
 
 
@@ -2192,30 +6211,17 @@ We split private consumption into types
 \begin_inset Formula $c\in\mathcal{C}$
 \end_inset
 
-.
- The same product can enter more than one type,
- such as electricity for heating and transport.
- For each type,
- the default has fixed product shares:
+. The same product can enter more than one type, such as electricity for heating and transport. For each type, the default has fixed product shares:
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 D_{p,C}=\sum_{c\in\mathcal{C}}\mu_{p,c}C_{c}
 \]
-
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-The resulting
-\begin_inset Formula $D_{p,C}$
-\end_inset
-
- enters input-output purchaser use directly.
 \end_layout
 
 \begin_layout Standard
@@ -2223,38 +6229,34 @@ A type-specific module can replace the fixed product shares with technology choi
 \end_layout
 
 \begin_layout Standard
-Consumption types are the leaves of a CES tree.
- Let
+Consumption types are the leaves of a CES tree. Let
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 a=\mathcal{C}\cup\text{consumption nests}.
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 C_{a}=\mu_{a}C_{N}\left(\frac{P_{a}}{P_{N}}\right)^{-E_{N}}\quad\forall a\in N,
 \]
-
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 P_{N}C_{N}=\sum_{a\in N}P_{a}C_{a}.
 \]
-
 \end_inset
 
 
@@ -2265,11 +6267,10 @@ At the root,
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula 
-\[
+
+\begin_inset Formula \[
 C_{N=\mathrm{TopNest}}=C.
 \]
-
 \end_inset
 
 
@@ -2280,13 +6281,22 @@ Exports
 \end_layout
 
 \begin_layout Standard
-We model export demand directly for domestic production of each product,
- 
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:exports"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We model export demand directly for domestic production of each product, 
 \begin_inset Formula $Y_{p,X}$
 \end_inset
 
-,
- using the final purchaser price 
+, using the final purchaser price 
 \begin_inset Formula $P^{D}_{p,X,\text{domestic}}$
 \end_inset
 
@@ -2294,25 +6304,30 @@ We model export demand directly for domestic production of each product,
 \end_layout
 
 \begin_layout Standard
-Imports for re-export,
- 
+Imports for re-export, 
 \begin_inset Formula $D_{p,X,\text{import}}$
 \end_inset
 
-,
- are completely exogenous.
- To accommodate this,
- the import share of exports,
- 
+, are completely exogenous. To accommodate this, the import share of exports, 
 \begin_inset Formula $\mu_{p,X,o}$
 \end_inset
 
-,
- is endogenized.
+, is endogenized.
 \end_layout
 
 \begin_layout Section
 Government
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:government"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -2324,8 +6339,7 @@ Including basic demand for public consumption and government transfers to other 
 \end_layout
 
 \begin_layout Standard
-There is no fiscal closure by default:
- government debt drifts.
+There is no fiscal closure by default: government debt drifts.
 \end_layout
 
 \begin_layout Section
@@ -2333,22 +6347,37 @@ Taxes
 \end_layout
 
 \begin_layout Standard
-Tax accounting and marginal tax rates (derivatives of total revenues wrt.
- to various tax bases).
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:taxes"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-Ideally,
- other modules should only use aggregate marginal tax rates and aggregate tax revenues.
- E.g.,
- a household budget contains a total taxes paid variable,
- while a labor market decision equation uses only a marginal tax on labor income.
- The break down of marginal taxes into income brackets etc.
- is kept in the taxes module.
+Tax accounting and marginal tax rates (derivatives of total revenues wrt. to various tax bases).
+\end_layout
+
+\begin_layout Standard
+Ideally, other modules should only use aggregate marginal tax rates and aggregate tax revenues. E.g., a household budget contains a total taxes paid variable, while a labor market decision equation uses only a marginal tax on labor income. The break down of marginal taxes into income brackets etc. is kept in the taxes module.
 \end_layout
 
 \begin_layout Section
 Labor market
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:labor"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -2360,17 +6389,37 @@ Firms
 \end_layout
 
 \begin_layout Standard
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:firms"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 Sector accounting and endogenous revaluation rate of equity through a discounted cash flow valuation of the firm.
 \end_layout
 
 \begin_layout Standard
-One module covers both financial and non-financial corporations.
- The non-financial sector sums profits over industries;
- the sector accounting system redistributes them to owners.
+One module covers both financial and non-financial corporations. The non-financial sector sums profits over industries; the sector accounting system redistributes them to owners.
 \end_layout
 
 \begin_layout Section
 Rest of the world
+\end_layout
+
+\begin_layout Standard
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:row"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -2386,9 +6435,18 @@ Aggregates
 \end_layout
 
 \begin_layout Standard
-Accounting aggregates not covered by other parts of the model.
- E.g.
- GDP.
+
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:aggregates"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Accounting aggregates not covered by other parts of the model. E.g. GDP.
 \end_layout
 
 \end_body
