@@ -23,20 +23,21 @@ function fetch_government_accounts()
   df = EurostatClient.fetch_table(government_dataset_code,
     "unit"        => government_unit,
     "geo"         => country_code,
-    "sector"      => government_sector,
     "startPeriod" => string(calibration_year - 1),
     "endPeriod"   => string(calibration_year + 1),
+    "sector"      => government_sector,
     ("na_item" => it for it in all_na_items)...,
   )
   rename!(df, :time => :year)
   df.year = parse.(Int, df.year)
-  return df[:, [:na_item, :year, :value]]
+  return df[:, [:na_item, :sector, :year, :value]]
 end
 
-"""All government account variables in a single file, one row per (variable, year)."""
+"""General government account variables in a single file."""
 function write_government_variables(dir, df)
+  gov = df[df.sector .== government_sector, :]
   CSV.write(joinpath(dir, "government_variables.csv"), vcat([
-    long_format(na_item_to_var[code], df[df.na_item .== code, [:year, :value]], [:year])
+    long_format(na_item_to_var[code], gov[gov.na_item .== code, [:year, :value]], [:year])
     for code in all_na_items
   ]...))
 end

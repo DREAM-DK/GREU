@@ -25,6 +25,13 @@ include(joinpath(@__DIR__, "modules", "CapitalData.jl"))
 CapitalData.refresh_capital_data!()
 
 # ==============================================================================
+# Gross value added data
+# ==============================================================================
+include(joinpath(@__DIR__, "modules", "GrossValueAddedData.jl"))
+
+GrossValueAddedData.refresh_gross_value_added_data!()
+
+# ==============================================================================
 # Labor data
 # ==============================================================================
 include(joinpath(@__DIR__, "modules", "LaborData.jl"))

@@ -13,7 +13,7 @@ import ..model
 import ..SectorAccounts:
   ass_liab,
   fin_instrument,
-  vFinIncome,
+  vFinIncome_s_f,
   vFinPosition_s_f,
   vFinTransactions_f,
   vGovBalance,
@@ -35,14 +35,19 @@ const GovernmentTag = Tag(:Government)
 @variables model :: (GovernmentTag, GrowthAdjusted, InflationAdjusted) begin
   vGovRevenue[t], "Revenue of government (TR)."
   vGovExpenditure[t], "Expenditure of government (TE)."
+  vGovPrimaryRevenue[t], "Primary revenue of government (TR less interest income)."
+  vGovPrimaryExpenditure[t], "Primary expenditure of government (TE less interest payments)."
   vGovPrimaryBalance[t], "Government net lending or borrowing before interest payments."
 
   vtIndirect[t], "Revenue from indirect taxes (D.2)."
   vtDirect[t], "Revenue from direct taxes (D.5)."
   vtHhIncome[t], "Revenue from household income taxes (D.51A+D.51C1)."
   vtCorp[t], "Tax on corporations (D.51B+D.51C2)."
+  vGovProductTax[t], "Taxes on products (D.21)."
+  vGovOthProductionTax[t], "Other taxes on production (D.29)."
+  vtDirectOther[t], "Other direct taxes."
 
-  vGovRevOther[t], "Other revenue of government."
+  vGovPrimaryRevOther[t], "Other primary revenue of government."
   vGovSalesRev[t], "Revenue from sales (P.11+P.12+P.131)."
   vGovOthSubRev[t], "Revenue from other subsidies (D.39)."
   vGovSocialContRev[t], "Revenue from social contributions (D.61)."
@@ -77,6 +82,8 @@ function assign_data!(db)
   db[vtDirect] .= read_series(government_file, "vtDirect", t)
   db[vtHhIncome] .= read_series(government_file, "vtHhIncome", t)
   db[vtCorp] .= read_series(government_file, "vtCorp", t)
+  db[vGovProductTax] .= read_series(government_file, "vGovProductTax", t)
+  db[vGovOthProductionTax] .= read_series(government_file, "vGovOthProductionTax", t)
   db[vGovSalesRev] .= read_series(government_file, "vGovSalesRev", t)
   db[vGovOthSubRev] .= read_series(government_file, "vGovOthSubRev", t)
   db[vGovSocialContRev] .= read_series(government_file, "vGovSocialContRev", t)
@@ -107,37 +114,45 @@ end
 function define_equations()
   return @block model begin
     # Balances.
-    vGovBalance[t=t1:T], vGovBalance[t] == vGovRevenue[t] - vGovExpenditure[t]
-    vGovPrimaryBalance[t=t1:T], vGovPrimaryBalance[t] == vGovBalance[t] + vFinIncome[:Gov,:Liab,t]
+    vGovPrimaryBalance[t=t1:T],
+    vGovPrimaryBalance[t] == vGovPrimaryRevenue[t] - vGovPrimaryExpenditure[t]
+
+    vGovBalance[t=t1:T],
+    vGovBalance[t] == vGovPrimaryBalance[t]
+                       + vFinIncome_s_f[:Gov,:Debt,:Assets,t]
+                       - vFinIncome_s_f[:Gov,:Debt,:Liab,t]
+
     vNetFinTransactions[s=[:Gov], t=t1:T], vNetFinTransactions[s,t] == vGovBalance[t]
 
     # Revenue.
-    vGovRevenue[t=t1:T],
-    vGovRevenue[t] == vtIndirect[t] + vtDirect[t] + vGovRevOther[t]
+    vGovPrimaryRevenue[t=t1:T],
+    vGovPrimaryRevenue[t] == vtIndirect[t] + vtDirect[t] + vGovPrimaryRevOther[t]
 
-    vGovRevOther[t=t1:T],
-    vGovRevOther[t] == vGovSalesRev[t]
-                       + vGovOthSubRev[t]
-                       + vFinIncome[:Gov,:Assets,t]
-                       + vGovSocialContRev[t]
-                       + vGovOthCurrentTransRev[t]
-                       + vtCap[t]
-                       + vGovCapRev[t]
+    vtIndirect[t=t1:T], vtIndirect[t] == vGovProductTax[t] + vGovOthProductionTax[t]
+    vtDirect[t=t1:T], vtDirect[t] == vtHhIncome[t] + vtCorp[t] + vtDirectOther[t]
+
+    vGovPrimaryRevOther[t=t1:T],
+    vGovPrimaryRevOther[t] == vGovSalesRev[t]
+                              + vGovOthSubRev[t]
+                              + vFinIncome_s_f[:Gov,:Equity,:Assets,t]
+                              + vGovSocialContRev[t]
+                              + vGovOthCurrentTransRev[t]
+                              + vtCap[t]
+                              + vGovCapRev[t]
 
     # Expenditure.
-    vGovExpenditure[t=t1:T],
-    vGovExpenditure[t] == vGovIntermediateCons[t]
-                          + vGovCapInv[t]
-                          + vGovEmplComp[t]
-                          + vGovOthProdTax[t]
-                          + vGovSub[t]
-                          + vFinIncome[:Gov,:Liab,t]
-                          + vGovSocBenefitExp[t]
-                          + vGovOthCurrentTransExp[t]
-                          + vGovAdjExp[t]
-                          + vGovCapTransExp[t]
-                          + vGovNetAcquisitions[t]
-                          + vLumpsum[t]
+    vGovPrimaryExpenditure[t=t1:T],
+    vGovPrimaryExpenditure[t] == vGovIntermediateCons[t]
+                                  + vGovCapInv[t]
+                                  + vGovEmplComp[t]
+                                  + vGovOthProdTax[t]
+                                  + vGovSub[t]
+                                  + vGovSocBenefitExp[t]
+                                  + vGovOthCurrentTransExp[t]
+                                  + vGovAdjExp[t]
+                                  + vGovCapTransExp[t]
+                                  + vGovNetAcquisitions[t]
+                                  + vLumpsum[t]
 
     # Portfolio.
     # Gov neither buys nor sells equity; existing equity stocks follow non-transaction changes.
@@ -157,7 +172,13 @@ end
 # Calibration
 # ============================================================================
 function define_calibration()
-  return define_equations()
+  block = define_equations()
+
+  @endo_exo_swap! block begin
+    vtDirectOther[t1], vtDirect[t1]
+  end
+
+  return block
 end
 
 end # module
