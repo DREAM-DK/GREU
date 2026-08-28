@@ -4,12 +4,19 @@ include(joinpath(@__DIR__, "ProductionSettings.jl"))
 module Production
 
 using SquareModels
+import ..DataUtils: fill_cells!, read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutput: industry, qY_i
-import ..ProductionSettings: production_nesting
+import ..ProductionSettings: production_data_dir, production_nesting
 import ..model
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant, ForecastZero, DynamicCalibration
+
+# ============================================================================
+# Read data
+# ============================================================================
+const production_gva_file = joinpath(production_data_dir, "production_gva.csv")
+const vProductionTax_i_data = read_cells(production_gva_file, "vProductionTax_i")
 
 # ============================================================================
 # Indices
@@ -62,7 +69,7 @@ end
 # ============================================================================
 function assign_data!(db)
   db[eProd] .= [production_nesting[i][n].elasticity for (n, i) in keys(eProd)]
-  db[vProductionTax_i] .= 0.0
+  fill_cells!(db, vProductionTax_i, vProductionTax_i_data)
 
   # All factor prices are calibrated to 1.0
   db[pProd] .= 1

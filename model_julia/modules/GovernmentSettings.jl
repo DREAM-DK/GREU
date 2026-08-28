@@ -1,4 +1,4 @@
-# Static index definitions shared by Government.jl and GovernmentData.jl
+# Static index definitions shared by Government, GovernmentSubsectors, and their data files.
 module GovernmentSettings
 
 const government_data_dir = joinpath(@__DIR__, "..", "data", "government")
@@ -6,6 +6,16 @@ const government_data_dir = joinpath(@__DIR__, "..", "data", "government")
 const government_dataset_code = "gov_10a_main"
 const government_unit         = "MIO_EUR"
 const government_sector       = "S13"    # General government
+
+# Subsectors of government sector.
+const gov_subsectors = ["S1311", "S1312", "S1313"]
+const gov_subsector_map = Dict(
+  "S1311" => "CentralGov",
+  "S1312" => "StateGov",
+  "S1313" => "LocalGov",
+)
+const gov_subsector = [Symbol(gov_subsector_map[s]) for s in gov_subsectors]
+
 
 # ---------------------------------------------------------------------------
 # ESA 2010 na_item codes for general government accounts.
@@ -28,6 +38,8 @@ const revenue_na_items = [
   "D92_D99REC",     # Other capital transfers and investment grants (received)
   "D51A_C1REC",     # Taxes on individual income and profits paid by households (received)
   "D51B_C2REC",     # Taxes on income and profits paid by corporations (received)
+  "D21REC",         # Taxes on products (received)
+  "D29REC",         # Other taxes on production (received)
 ]
 
 # Expenditure components
@@ -69,6 +81,8 @@ const na_item_to_var = Dict(
   "D92_D99REC"   => :vGovCapRev,
   "D51A_C1REC"   => :vtHhIncome,
   "D51B_C2REC"   => :vtCorp,
+  "D21REC"       => :vGovProductTax,
+  "D29REC"       => :vGovOthProdctionTax,
   # Expenditure components
   "P2"           => :vGovIntermediateCons,
   "P5"           => :vGovCapInv,
