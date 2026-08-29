@@ -1,14 +1,15 @@
+# Fetch and write general-government accounts.
+# Map Eurostat items directly to model variables.
+# Keep government equations in Government.jl.
 include(joinpath(@__DIR__, "..", "Settings.jl"))
 include("GovernmentSettings.jl")
 include("EurostatClient.jl")
-include(joinpath(@__DIR__, "..", "DataUtils.jl"))
 
 module GovernmentData
 
 using CSV
-using DataFrames
+using DataFramesMeta
 import ..EurostatClient
-import ..DataUtils: long_format
 using ..Settings: calibration_year, country_code
 import ..GovernmentSettings:
   all_na_items,
@@ -18,8 +19,8 @@ import ..GovernmentSettings:
   government_unit,
   na_item_to_var
 
-"""Fetch general government (S13) national accounts from gov_10a_main."""
-function fetch_government_accounts()
+"""Fetch and map general government accounts to model variables."""
+function fetch_government_variables()
   df = EurostatClient.fetch_table(government_dataset_code,
     "unit"        => government_unit,
     "geo"         => country_code,
@@ -28,25 +29,17 @@ function fetch_government_accounts()
     "sector"      => government_sector,
     ("na_item" => it for it in all_na_items)...,
   )
-  rename!(df, :time => :year)
-  df.year = parse.(Int, df.year)
-  return df[:, [:na_item, :sector, :year, :value]]
-end
-
-"""General government account variables in a single file."""
-function write_government_variables(dir, df)
-  gov = df[df.sector .== government_sector, :]
-  CSV.write(joinpath(dir, "government_variables.csv"), vcat([
-    long_format(na_item_to_var[code], gov[gov.na_item .== code, [:year, :value]], [:year])
-    for code in all_na_items
-  ]...))
+  return @chain df begin
+    @rtransform(:variable = string(na_item_to_var[:na_item]))
+    @select(:variable, :indices = :time, :value)
+  end
 end
 
 function refresh_government_data!(dir = government_data_dir)
   mkpath(dir)
-  df = fetch_government_accounts()
-  write_government_variables(dir, df)
-  return df
+  variables = fetch_government_variables()
+  CSV.write(joinpath(dir, "government_variables.csv"), variables)
+  return variables
 end
 
 end # module

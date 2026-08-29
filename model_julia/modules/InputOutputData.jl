@@ -10,6 +10,7 @@ module InputOutputData
 
 using CSV
 using DataFrames
+using DataFramesMeta
 import ..EurostatClient
 using ..Settings: calibration_year, country_code, first_data_year
 import ..InputOutputSettings:
@@ -34,6 +35,8 @@ const year_params = ["time" => string(y) for y in data_years]
 # Index of a purchaser-use cell, in the order the model reads it.
 const cell_index = [:product, :use, :origin, :year]
 const cell_columns = [cell_index; :value]
+const use_map = merge(nace_a64_to_a21, final_use_rename)
+const origin_map = Dict("DOM" => :domestic, "IMP" => :import)
 sum_cells(parts...) = sum_by(vcat(parts...), cell_index)
 
 # ============================================================================
@@ -53,15 +56,15 @@ function fetch_supply_table(domestic_use)
     "geo" => country_code,
     year_params...,
   )
-  df.year = parse.(Int, df.time)
-  supply = df[
-    in.(df.prd_amo, Ref(Set(keys(cpa_p64_to_p21)))) .&
-    in.(df.ind_impv, Ref(Set(keys(nace_a64_to_a21)))),
-    :,
-  ]
-  supply.product = [cpa_p64_to_p21[code] for code in supply.prd_amo]
-  supply.industry = [nace_a64_to_a21[code] for code in supply.ind_impv]
-  supply = sum_by(supply, [:product, :industry, :year])
+  supply = @chain df begin
+    @rsubset(haskey(cpa_p64_to_p21, :prd_amo) && haskey(nace_a64_to_a21, :ind_impv))
+    @rtransform begin
+      :product = cpa_p64_to_p21[:prd_amo]
+      :industry = nace_a64_to_a21[:ind_impv]
+      :year = parse(Int, :time)
+    end
+    @by([:product, :industry, :year], :value = sum(skipmissing(:value); init = 0.0))
+  end
 
   reported = rename(
     sum_by(domestic_use[domestic_use.origin .== :domestic, :], [:product, :year]),
@@ -91,7 +94,7 @@ function fetch_use_table()
     "geo" => country_code,
     year_params...,
   )
-  df.year = parse.(Int, df.time)
+  df = @rtransform(df, :year = parse(Int, :time))
   @assert Set(df.year) == Set(data_years) "T1610 must report each input-output data year"
   return df
 end
@@ -105,16 +108,15 @@ function fetch_product_use_table(dataset)
     "geo" => country_code,
     year_params...,
   )
-  use_rename = merge(nace_a64_to_a21, final_use_rename)
-  df = df[
-    in.(df.cpa2_1, Ref(Set(keys(cpa_p64_to_p21)))) .&
-    in.(df.ind_use, Ref(Set(keys(use_rename)))),
-    :,
-  ]
-  df.product = [cpa_p64_to_p21[code] for code in df.cpa2_1]
-  df.use = [use_rename[code] for code in df.ind_use]
-  df.year = parse.(Int, df.time)
-  return sum_by(df, [:product, :use, :year])
+  return @chain df begin
+    @rsubset(haskey(cpa_p64_to_p21, :cpa2_1) && haskey(use_map, :ind_use))
+    @rtransform begin
+      :product = cpa_p64_to_p21[:cpa2_1]
+      :use = use_map[:ind_use]
+      :year = parse(Int, :time)
+    end
+    @by([:product, :use, :year], :value = sum(skipmissing(:value); init = 0.0))
+  end
 end
 
 """National trade and transport margins by product and use."""
@@ -137,31 +139,28 @@ end
 
 """Basic-price use by product, use, and domestic or import origin."""
 function reported_use(df)
-  use_rename = merge(nace_a64_to_a21, final_use_rename)
-  origin_rename = Dict("DOM" => :domestic, "IMP" => :import)
-  df = df[
-    in.(df.prd_ava, Ref(Set(keys(cpa_p64_to_p21)))) .&
-    in.(df.ind_use, Ref(Set(keys(use_rename)))) .&
-    in.(df.stk_flow, Ref(Set(keys(origin_rename)))),
-    :,
-  ]
-  df.product = [cpa_p64_to_p21[code] for code in df.prd_ava]
-  df.use = [use_rename[code] for code in df.ind_use]
-  df.origin = [origin_rename[code] for code in df.stk_flow]
-  return sum_by(df, cell_index)
+  return @chain df begin
+    @rsubset begin
+      haskey(cpa_p64_to_p21, :prd_ava) &&
+      haskey(use_map, :ind_use) &&
+      haskey(origin_map, :stk_flow)
+    end
+    @rtransform begin
+      :product = cpa_p64_to_p21[:prd_ava]
+      :use = use_map[:ind_use]
+      :origin = origin_map[:stk_flow]
+    end
+    @by([:product, :use, :origin, :year], :value = sum(skipmissing(:value); init = 0.0))
+  end
 end
 
 """One national-use accounting row by model use."""
 function accounting_table(df, row)
-  use_rename = merge(nace_a64_to_a21, final_use_rename)
-  df = df[
-    (df.stk_flow .== "TOTAL") .&
-    (df.prd_ava .== row) .&
-    in.(df.ind_use, Ref(Set(keys(use_rename)))),
-    :,
-  ]
-  df.use = [use_rename[code] for code in df.ind_use]
-  return sum_by(df, [:use, :year])
+  return @chain df begin
+    @rsubset(:stk_flow == "TOTAL" && :prd_ava == row && haskey(use_map, :ind_use))
+    @rtransform(:use = use_map[:ind_use])
+    @by([:use, :year], :value = sum(skipmissing(:value); init = 0.0))
+  end
 end
 
 """One source row and column by year."""

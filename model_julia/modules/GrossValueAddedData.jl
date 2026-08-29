@@ -11,8 +11,9 @@ module GrossValueAddedData
 
 using CSV
 using DataFrames
+using DataFramesMeta
 import ..EurostatClient
-import ..DataUtils: long_format, sum_by
+import ..DataUtils: long_format
 import ..ProductionSettings:
   gva_dataset,
   gva_deflator_unit,
@@ -57,10 +58,14 @@ function fetch_gva_items(unit, na_item)
     )
     for year in data_years
   ) "GVA A21 rows must sum to each source total"
-  df = df[in.(df.nace_r2, Ref(Set(keys(gva_nace_to_industry)))), :]
-  df.industry = [gva_nace_to_industry[code] for code in df.nace_r2]
-  df.year = parse.(Int, df.time)
-  return sum_by(df, [:industry, :year])
+  return @chain df begin
+    @rsubset(haskey(gva_nace_to_industry, :nace_r2))
+    @rtransform begin
+      :industry = gva_nace_to_industry[:nace_r2]
+      :year = parse(Int, :time)
+    end
+    @by([:industry, :year], :value = sum(skipmissing(:value); init = 0.0))
+  end
 end
 
 # CP values GVA at current prices. PYP values the same GVA at last year's
