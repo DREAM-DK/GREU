@@ -38,6 +38,13 @@ include(joinpath(@__DIR__, "modules", "LaborData.jl"))
 
 LaborData.refresh_labor_data!()
 
+# ============================================================================
+# Production tax and subsidy data
+# ============================================================================
+include(joinpath(@__DIR__, "modules", "TaxesData.jl"))
+
+TaxesData.refresh_taxes_data!()
+
 # ==============================================================================
 # Sector accounts data
 # ==============================================================================

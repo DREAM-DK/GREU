@@ -8,7 +8,7 @@ import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..IndustrySectors:
   vK_s,
   vM_s,
-  vtProductionOther_s,
+  vtProduction_s,
   vWages_s,
   vY_s
 import ..model
@@ -57,7 +57,7 @@ function define_equations()
     vNonFinCorpExpenses[t=t1:T],
     vNonFinCorpExpenses[t] == vM_s[:NonFinCorp,t]
                             + vWages_s[:NonFinCorp,t]
-                            + vtProductionOther_s[:NonFinCorp,t]
+                            + vtProduction_s[:NonFinCorp,t]
 
     # Budget identity. Net financial transactions include asset purchases less
     # debt and equity issues. A positive equity issue adds corporate funding;
@@ -66,13 +66,13 @@ function define_equations()
     vNetFinTransactions[s,t] == vNetFinIncome[s,t]
                               + vNetTransfers[s,t] - vNonProducedAssetAcquisitions[s,t]
                               - vI_s[s,t] + vY_s[s,t] - vM_s[s,t]
-                              - vWages_s[s,t] - vtProductionOther_s[s,t]
+                              - vWages_s[s,t] - vtProduction_s[s,t]
 
     vNetFinTransactions[s=[:NonFinCorp], t=t1:T],
     vNetFinTransactions[s,t] == vNetFinIncome[s,t]
                                 + vNetTransfers[s,t] - vNonProducedAssetAcquisitions[s,t]
                                 - vI_s[s,t] + vY_s[s,t] - vM_s[s,t]
-                                - vWages_s[s,t] - vtProductionOther_s[s,t]
+                                - vWages_s[s,t] - vtProduction_s[s,t]
 
     # Portfolio.
     # Financial corporations.

@@ -9,7 +9,7 @@ using SquareModels
 import ..DataUtils: read_series
 import ..GovernmentSettings: government_data_dir
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
-import ..IndustrySectors: vM_s, vtProductionOther_s, vWages_s
+import ..IndustrySectors: vM_s, vtProduction_s, vWages_s
 import ..model
 import ..SectorAccounts:
   ass_liab,
@@ -139,7 +139,7 @@ function define_equations()
     vGovPrimaryExpenditure[t] == vM_s[:Gov,t]
                                   + vI_s[:Gov,t]
                                   + vWages_s[:Gov,t]
-                                  + vtProductionOther_s[:Gov,t]
+                                  + vtProduction_s[:Gov,t]
                                   + vGovSub[t]
                                   + vGovSocBenefitExp[t]
                                   + vGovOthCurrentTransExp[t]

@@ -1,6 +1,7 @@
 # Define labor demand, employment, and the common wage.
+# Include production tax in the labor user cost and production link.
 # Link wages by industry to household and rest-of-world wage income.
-# Exclude payroll taxes, capital, intermediate inputs, and CES nests.
+# Keep capital, intermediate inputs, and CES nests in other modules.
 module Labor
 
 using SquareModels
@@ -45,6 +46,8 @@ end
 
 @variables model :: (LaborTag, InflationAdjusted) begin
   pW[t], "Wage per efficiency unit of labor."
+  pL_l_i[(l,i,t)=qL_l_i], "User cost of labor by type and industry."
+  tL_l_i[(l,i,t)=qL_l_i] :: ForecastConstant, "Production tax less subsidy per efficiency unit of labor."
 end
 
 @variables model :: (LaborTag, GrowthAdjusted, ForecastConstant) begin
@@ -80,6 +83,7 @@ end
 # ============================================================================
 function set_starting_values!(start_values)
   start_values[qProd[labor_type,:,:]] .= start_values[qL_l_i][labor_type,:,:]
+  start_values[tL_l_i] .= 0
   return nothing
 end
 
@@ -88,12 +92,14 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    qL_l_i[l=labor_type, i=industry, t=t1:T], qL_l_i[l,i,t] == qProd[l,i,t]
+    qL_l_i[l=labor_type, i=industry, t=t1:T], qL_l_i[l,i,t] == qProd[l,i,t] / pL_l_i[l,i,t1]
 
     # Total employment from households and the rest of the world meets labor demand.
     pW[t=t1:T], qLSupplyHh[t] + qLSupplyRoW[t] == ∑(qL_l_i[l,i,t] for (l, i) in labor_l_i)
 
-    pProd[l=labor_type, i=industry, t=t1:T], pProd[l,i,t] == pW[t]
+    pL_l_i[l=labor_type, i=industry, t=t1:T], pL_l_i[l,i,t] == pW[t] + tL_l_i[l,i,t]
+
+    pProd[l=labor_type, i=industry, t=t1:T], pProd[l,i,t] == pL_l_i[l,i,t] / pL_l_i[l,i,t1]
 
     vWages_i[i=industry, t=t1:T], vWages_i[i,t] == pW[t] * ∑(qL_l_i[l,i,t] for l in labor_type)
     vWages[t=t1:T], vWages[t] == ∑(vWages_i[i,t] for i in industry)

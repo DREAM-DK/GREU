@@ -1,5 +1,6 @@
 # Define intermediate use, its product split, and production-tree links.
-# Link industry input to purchaser use and normalize its calibration price.
+# Add production tax to the user cost and normalize its calibration price.
+# Keep intermediate input spend before production tax for the accounts.
 # Exclude capital, labor, and CES nest equations.
 module Intermediates
 
@@ -46,11 +47,12 @@ const IntermediatesTag = Tag(:Intermediates)
 end
 
 @variables model :: (IntermediatesTag, InflationAdjusted) begin
-  pM_m_i[(m,i,t)=qM_m_i], "Intermediate input price by type and industry."
+  pM_m_i[(m,i,t)=qM_m_i], "User cost of intermediate input by type and industry."
+  tM_m_i[(m,i,t)=qM_m_i] :: ForecastConstant, "Production tax less subsidy per unit of intermediate input."
 end
 
 @variables model :: (IntermediatesTag, GrowthAdjusted, InflationAdjusted) begin
-  vM_i[i=industry, t=t], "Intermediate input spend by industry."
+  vM_i[i=industry, t=t], "Intermediate input spend before production tax by industry."
 end
 
 @variables model :: IntermediatesTag begin
@@ -71,6 +73,7 @@ end
 # ============================================================================
 function set_starting_values!(start_values)
   start_values[qProd[intermediate_type,:,:]] .= start_values[qM_m_i][intermediate_type,:,:]
+  start_values[tM_m_i] .= 0
   return nothing
 end
 
@@ -87,11 +90,14 @@ function define_equations()
     qM_p_i[(p,i,t) in keys(qM_p_i); t in t1:T], qM_p_i[p,i,t] == ∑(qM_p_m_i[p,m,i,t] for m in intermediate_type)
 
     pM_m_i[m=intermediate_type, i=industry, t=t1:T],
-    pM_m_i[m,i,t] == ∑(rIntermediateProductShare[p,m,i,t] * pPurchaserUse_p_u[p,i,t] for p in product)
+    pM_m_i[m,i,t] ==
+      ∑(rIntermediateProductShare[p,m,i,t] * pPurchaserUse_p_u[p,i,t] for p in product) + tM_m_i[m,i,t]
 
-    vM_i[i=industry, t=t1:T], vM_i[i,t] == ∑(pM_m_i[m,i,t] * qM_m_i[m,i,t] for m in intermediate_type)
+    vM_i[i=industry, t=t1:T],
+    vM_i[i,t] == ∑((pM_m_i[m,i,t] - tM_m_i[m,i,t]) * qM_m_i[m,i,t] for m in intermediate_type)
 
-    pProd[m=intermediate_type, i=industry, t=t1:T], pProd[m,i,t] == pM_m_i[m,i,t] / pM_m_i[m,i,t1]
+    pProd[m=intermediate_type, i=industry, t=t1:T],
+    pProd[m,i,t] == pM_m_i[m,i,t] / pM_m_i[m,i,t1]
   end
 end
 

@@ -34,6 +34,7 @@ const macro_core_modules = [
   :Labor,
   :Intermediates,
   :Capital,
+  :Taxes,
   :IndustrySectors,
 
   :Pricing,

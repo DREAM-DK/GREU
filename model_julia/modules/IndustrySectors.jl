@@ -12,7 +12,7 @@ import ..InputOutput: industry, vINV, vY_i
 import ..Intermediates: vM_i
 import ..Labor: vWages_i
 import ..model
-import ..Production: vtProductionOther_i
+import ..Taxes: vtProduction_i
 import ..ProductionSettings: capital_type
 import ..SectorAccounts: vGrossOpSurplusMixedIncome, vI_s
 import ..SectorAccountsSettings: sector_accounts_data_dir
@@ -49,7 +49,6 @@ const share_year = sort(unique(year for ((_,_,year), _) in uIndustrySector_s_i_d
 const IndustrySectorsTag = Tag(:IndustrySectors)
 
 @variables model :: (IndustrySectorsTag, ForecastConstant) begin
-  fGrossOpSurplus_s[s=mapped_sector, t=t], "Factor from industry operating surplus to sector operating surplus."
   uIndustrySector_s_i[s=mapped_sector, i=industry, t=t], "Industry share assigned to each sector."
   uINV_s[s=mapped_sector, t=t], "Sector share of inventory investment."
 end
@@ -59,7 +58,7 @@ end
   vY_s[s=mapped_sector, t=t], "Output by sector."
   vM_s[s=mapped_sector, t=t], "Intermediate input spend by sector."
   vWages_s[s=mapped_sector, t=t], "Wages by sector."
-  vtProductionOther_s[s=mapped_sector, t=t], "Other production taxes less subsidies by sector."
+  vtProduction_s[s=mapped_sector, t=t], "Other production taxes less subsidies by sector."
   vK_s[s=mapped_sector, t=t], "Replacement value of capital by sector."
   vIFixed_s[s=mapped_sector, t=t], "Fixed investment by sector."
   vINV_s[s=mapped_sector, t=t], "Inventory investment by sector."
@@ -70,7 +69,6 @@ end
 # ============================================================================
 function assign_data!(db)
   fill_cells!(db, uIndustrySector_s_i, uIndustrySector_s_i_data)
-  db[fGrossOpSurplus_s] .= 1.0
   return nothing
 end
 
@@ -81,7 +79,7 @@ function define_equations()
   return @block model begin
     # Operating surplus.
     vGrossOpSurplus_i[i=industry, t=t1:T],
-    vGrossOpSurplus_i[i,t] == vY_i[i,t] - vM_i[i,t] - vWages_i[i,t] - vtProductionOther_i[i,t]
+    vGrossOpSurplus_i[i,t] == vY_i[i,t] - vM_i[i,t] - vWages_i[i,t] - vtProduction_i[i,t]
 
     vY_s[s=mapped_sector, t=t1:T],
     vY_s[s,t] == ∑(uIndustrySector_s_i[s,i,t] * vY_i[i,t] for i in industry)
@@ -92,13 +90,12 @@ function define_equations()
     vWages_s[s=mapped_sector, t=t1:T],
     vWages_s[s,t] == ∑(uIndustrySector_s_i[s,i,t] * vWages_i[i,t] for i in industry)
 
-    vtProductionOther_s[s=mapped_sector, t=t1:T],
-    vtProductionOther_s[s,t] ==
-      ∑(uIndustrySector_s_i[s,i,t] * vtProductionOther_i[i,t] for i in industry)
+    vtProduction_s[s=mapped_sector, t=t1:T],
+    vtProduction_s[s,t] ==
+      ∑(uIndustrySector_s_i[s,i,t] * vtProduction_i[i,t] for i in industry)
 
     vGrossOpSurplusMixedIncome[s=mapped_sector, t=t1:T],
-    vGrossOpSurplusMixedIncome[s,t] == fGrossOpSurplus_s[s,t] * (
-      vY_s[s,t] - vM_s[s,t] - vWages_s[s,t] - vtProductionOther_s[s,t])
+    vGrossOpSurplusMixedIncome[s,t] == vY_s[s,t] - vM_s[s,t] - vWages_s[s,t] - vtProduction_s[s,t]
 
     # Capital ownership uses the same industry shares as current activity.
     vK_s[s=mapped_sector, t=t1:T],
