@@ -37,8 +37,8 @@ const finpos_map = Dict(
 
 # All ESA transaction and balance codes requested from Eurostat.
 const non_financial_transaction_items = [
-  "B9", "B8G", "D9", "D91", "D92", "D99", "P5G", "NP", "B6G", "P3", "D8", "B5G", "D5",
-  "D6", "D61", "D62", "D63", "D7", "B2A3G", "D1", "D2", "D3", "D4",
+  "B9", "B8G", "D9", "D91", "D92", "D99", "P1", "P2", "P5G", "NP", "B6G", "P3", "D8", "B5G", "D5",
+  "D6", "D61", "D62", "D63", "D7", "B2A3G", "B2G", "B3G", "D1", "D2", "D29", "D3", "D39", "D4",
   "D41", "D42", "D43", "D44", "D45", "P6", "P7",
 ]
 const fin_bal_na_items = ["F", "F1", "F11", "F2", "F3", "F4", "F5", "F51", "F52", "F6", "F7", "F8"]

@@ -239,8 +239,8 @@ function build_parameters(flow_df, tr_df, bal_df, oc_df, rev_df)
       ]
     ]...),
     vNetFinTransactions                  = get_non_financial_transaction(flow_df, "B9", "RECV"),
-    vI_s                                 = get_non_financial_transaction(flow_df, "P5G", "PAID", ["FinCorp", "NonFinCorp", "Hh"]),
-    vGrossOpSurplusMixedIncome           = get_non_financial_transaction(flow_df, "B2A3G", "RECV", ["FinCorp", "NonFinCorp", "Hh"]),
+    vI_s                                 = get_non_financial_transaction(flow_df, "P5G", "PAID", ["FinCorp", "NonFinCorp", "Gov", "Hh"]),
+    vGrossOpSurplusMixedIncome           = get_non_financial_transaction(flow_df, "B2A3G", "RECV", ["FinCorp", "NonFinCorp", "Gov", "Hh"]),
 
     # Households
     vHhConsumption                       = select(get_non_financial_transaction(flow_df, "P3",               "PAID", ["Hh"]), :year, :value),

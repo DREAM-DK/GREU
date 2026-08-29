@@ -1,17 +1,13 @@
-# Populate household entries of the SectorAccounts interface.
-# Keep the household budget identity, simple portfolio rules, and the
-# marginal return on extra saving. Households include NPISH. Allocate
-# owner-occupied housing within owner_housing_k and owner_housing_i.
+# Define the household budget, portfolio rules, and marginal return.
+# Households include NPISH. IndustrySectors allocates their activity and capital.
 
 module Households
 
 using SquareModels
-import ..Capital: pI_k, qI_k_i, qK_k_i, vI_k_i
-import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
+import ..GrowthInflationAdjustment: fv
 import ..InputOutput: vC
 import ..Labor: vHhWages
 import ..model
-import ..ProductionSettings: owner_housing_i, owner_housing_k
 import ..SectorAccounts:
   fin_instrument,
   vNetFinTransactions,
@@ -40,15 +36,6 @@ end
 @variables model :: (HouseholdsTag, ForecastConstant) begin
   rHhDebtLiabilities2Consumption[t], "Target household debt liability ratio relative to consumption."
   rHhDebtAdjustment[t], "Annual household debt adjustment rate."
-  rOwnerHousing2K[t], "Owner-occupied housing share of the owner-housing capital cell."
-end
-
-@variables model :: (HouseholdsTag, GrowthAdjusted) begin
-  qKOwnerHousing[t], "Owner-occupied housing capital at replacement-cost prices."
-end
-
-@variables model :: (HouseholdsTag, GrowthAdjusted, InflationAdjusted) begin
-  vKOwnerHousing[t], "Replacement value of owner-occupied housing capital."
 end
 
 # ============================================================================
@@ -56,11 +43,6 @@ end
 # ============================================================================
 function assign_data!(db)
   db[rHhDebtAdjustment] .= 0.2
-
-  @assert (
-    0 < db[vI_s[:Hh,t1]] <
-      db[pI_k[owner_housing_k,t1]] * db[qI_k_i[owner_housing_k,owner_housing_i,t1]]
-  ) "Household investment must fit within owner-housing capital formation"
   return nothing
 end
 
@@ -76,14 +58,6 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    # Owner-occupied housing stays within the owner-housing capital cell.
-    # Treat all household P.5 as housing.
-    vI_s[s=[:Hh], t=t1:T],
-    vI_s[s,t] == rOwnerHousing2K[t] * vI_k_i[owner_housing_k,owner_housing_i,t]
-
-    qKOwnerHousing[t=t1:T], qKOwnerHousing[t] == rOwnerHousing2K[t] * qK_k_i[owner_housing_k,owner_housing_i,t]
-    vKOwnerHousing[t=t1:T], vKOwnerHousing[t] == pI_k[owner_housing_k,t] * qKOwnerHousing[t]
-
     # Budget identity.
     vNetFinTransactions[s=[:Hh], t=t1:T],
     vNetFinTransactions[s,t] == vNetFinIncome[s,t] + vNetTransfers[s,t] + vHhWages[t] - vC[t]
@@ -117,7 +91,6 @@ function define_calibration()
   block = define_equations()
 
   @endo_exo_swap! block begin
-    rOwnerHousing2K[t1], vI_s[:Hh,t1]
     rHhDebtLiabilities2Consumption[t1], vFinPosition_s_f[:Hh,:Debt,:Liab,t1]
   end
 

@@ -9,6 +9,7 @@ using SquareModels
 import ..DataUtils: read_series
 import ..GovernmentSettings: government_data_dir
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
+import ..IndustrySectors: vM_s, vtProductionOther_s, vWages_s
 import ..model
 import ..SectorAccounts:
   ass_liab,
@@ -17,6 +18,7 @@ import ..SectorAccounts:
   vFinPosition_s_f,
   vFinTransactions_f,
   vGovBalance,
+  vI_s,
   vNetFinTransactions,
   vNetFinAssets
 import ..Time: t, t1, T
@@ -55,11 +57,7 @@ const GovernmentTag = Tag(:Government)
   vtCap[t], "Revenue from capital taxes (D.91)."
   vGovCapRev[t], "Revenue from capital transfers (D.92+D.99)."
 
-  vGovIntermediateCons[t], "Intermediate consumption of government (P.2)."
-  vGovCapInv[t], "Capital investment of government (P.5)."
   vGovDepr[t], "Depreciation of government capital (P.51C)."
-  vGovEmplComp[t], "Employment compensation of government (D.1)."
-  vGovOthProdTax[t], "Other production taxes of government (D.29)."
   vGovSub[t], "Subsidies of government (D.3)."
   vGovSocBenefitExp[t], "Social benefit expenditure of government (D.62+D.632)."
   vSocTransKind[t], "Social transfers in kind (D.632)."
@@ -91,11 +89,7 @@ function assign_data!(db)
   db[vtCap] .= read_series(government_file, "vtCap", t)
   db[vGovCapRev] .= read_series(government_file, "vGovCapRev", t)
 
-  db[vGovIntermediateCons] .= read_series(government_file, "vGovIntermediateCons", t)
-  db[vGovCapInv] .= read_series(government_file, "vGovCapInv", t)
   db[vGovDepr] .= read_series(government_file, "vGovDepr", t)
-  db[vGovEmplComp] .= read_series(government_file, "vGovEmplComp", t)
-  db[vGovOthProdTax] .= read_series(government_file, "vGovOthProdTax", t)
   db[vGovSub] .= read_series(government_file, "vGovSub", t)
   db[vGovSocBenefitExp] .= read_series(government_file, "vGovSocBenefitExp", t)
   db[vSocTransKind] .= read_series(government_file, "vSocTransKind", t)
@@ -142,10 +136,10 @@ function define_equations()
 
     # Expenditure.
     vGovPrimaryExpenditure[t=t1:T],
-    vGovPrimaryExpenditure[t] == vGovIntermediateCons[t]
-                                  + vGovCapInv[t]
-                                  + vGovEmplComp[t]
-                                  + vGovOthProdTax[t]
+    vGovPrimaryExpenditure[t] == vM_s[:Gov,t]
+                                  + vI_s[:Gov,t]
+                                  + vWages_s[:Gov,t]
+                                  + vtProductionOther_s[:Gov,t]
                                   + vGovSub[t]
                                   + vGovSocBenefitExp[t]
                                   + vGovOthCurrentTransExp[t]

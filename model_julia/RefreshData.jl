@@ -51,3 +51,10 @@ SectorAccountsData.refresh_sector_accounts_data!()
 include(joinpath(@__DIR__, "modules", "GovernmentData.jl"))
 
 GovernmentData.refresh_government_data!()
+
+# ============================================================================
+# Industry-sector share data
+# ============================================================================
+include(joinpath(@__DIR__, "modules", "IndustrySectorsData.jl"))
+
+IndustrySectorsData.refresh_industry_sector_shares!()

@@ -1,18 +1,17 @@
-# Populate financial and non-financial corporation entries of the SectorAccounts interface.
-# Keep budget identities and portfolio rules for FinCorp and NonFinCorp.
+# Define budget identities and portfolio rules for corporate sectors.
+# Use IndustrySectors shares for non-financial corporation activity.
 
 module Corporations
 
 using SquareModels
-import ..Capital: pI_k, qK_k_i, vI_k_i
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
-import ..Households: vKOwnerHousing
-import ..InputOutput: industry, vY_i
-import ..Intermediates: vM_i
-import ..Labor: vWages_i
+import ..IndustrySectors:
+  vK_s,
+  vM_s,
+  vtProductionOther_s,
+  vWages_s,
+  vY_s
 import ..model
-import ..Production: vtProductionOther_i
-import ..ProductionSettings: capital_type
 import ..SectorAccounts:
   fin_instrument,
   sector,
@@ -21,7 +20,6 @@ import ..SectorAccounts:
   vNetTransfers,
   vNonProducedAssetAcquisitions,
   vI_s,
-  vGrossOpSurplusMixedIncome,
   vFinPosition_s_f,
   vFinTransactions_f,
   vNetFinAssets
@@ -32,24 +30,15 @@ import ..Tags: ForecastConstant
 # Variables
 # ============================================================================
 const CorporationsTag = Tag(:Corporations)
-const corporations = [:FinCorp, :NonFinCorp]
-const fin_corp_industry = [:iK]
-const public_industry = [:iO, :iP, :iQ]
-const non_fin_corp_industry = setdiff(industry, [fin_corp_industry; public_industry])
-
-@assert fin_corp_industry ⊆ industry "The financial corporation industry must be in the input-output data"
-@assert public_industry ⊆ industry "Each public industry must be in the input-output data"
 
 @variables model :: (CorporationsTag, ForecastConstant) begin
   rFinCorpDebtAssets2DebtLiabilities[t], "FinCorp share of total debt liabilities held as debt assets."
   rNonFinCorpEquityAssets2EquityLiabilities[t], "NonFinCorp equity asset ratio: equity assets relative to own equity liabilities."
   rNonFinCorpDebtAssets2Expenses[t], "NonFinCorp debt asset ratio: debt assets relative to total expenses."
   rNonFinCorpDebtLiabilities2Capital[t], "NonFinCorp debt liability ratio relative to the replacement value of capital."
-  fGrossOpSurplus_s[s=corporations, t=t], "Factor from modeled industry operating surplus to sector gross operating surplus."
 end
 
 @variables model :: (CorporationsTag, GrowthAdjusted, InflationAdjusted) begin
-  vGrossOpSurplus_i[i=industry, t=t], "Gross operating surplus by industry."
   vNonFinCorpExpenses[t], "NonFinCorp operating expenses: intermediate inputs, wages, and production taxes."
 end
 
@@ -60,39 +49,15 @@ function assign_data!(db)
   return nothing
 end
 
-function set_residual_tolerances!(tolerances)
-  # Activity and sector investment data can differ after the housing allocation.
-  tolerances[vI_s] = 1100.0
-  return nothing
-end
-
 # ============================================================================
 # Equations
 # ============================================================================
 function define_equations()
   return @block model begin
-    # Production and investment links.
-    vGrossOpSurplus_i[i=industry, t=t1:T],
-    vGrossOpSurplus_i[i,t] == vY_i[i,t] - vM_i[i,t] - vWages_i[i,t] - vtProductionOther_i[i,t]
-
-    vGrossOpSurplusMixedIncome[s=[:FinCorp], t=t1:T],
-    vGrossOpSurplusMixedIncome[s,t] == fGrossOpSurplus_s[s,t] * ∑(vGrossOpSurplus_i[i,t] for i in fin_corp_industry)
-
-    vGrossOpSurplusMixedIncome[s=[:NonFinCorp], t=t1:T],
-    vGrossOpSurplusMixedIncome[s,t] == fGrossOpSurplus_s[s,t] * (
-      ∑(vGrossOpSurplus_i[i,t] for i in non_fin_corp_industry) - vGrossOpSurplusMixedIncome[:Hh,t])
-
-    vI_s[s=[:FinCorp], t=t1:T],
-    vI_s[s,t] == ∑(vI_k_i[k,i,t] for k in capital_type, i in fin_corp_industry)
-
-    vI_s[s=[:NonFinCorp], t=t1:T],
-    vI_s[s,t] == ∑(vI_k_i[k,i,t] for k in capital_type, i in non_fin_corp_industry)
-                                    - vI_s[:Hh,t]
-
     vNonFinCorpExpenses[t=t1:T],
-    vNonFinCorpExpenses[t] == ∑(vM_i[i,t] for i in non_fin_corp_industry)
-                            + ∑(vWages_i[i,t] for i in non_fin_corp_industry)
-                            + ∑(vtProductionOther_i[i,t] for i in non_fin_corp_industry)
+    vNonFinCorpExpenses[t] == vM_s[:NonFinCorp,t]
+                            + vWages_s[:NonFinCorp,t]
+                            + vtProductionOther_s[:NonFinCorp,t]
 
     # Budget identity. Net financial transactions include asset purchases less
     # debt and equity issues. A positive equity issue adds corporate funding;
@@ -100,12 +65,14 @@ function define_equations()
     vNetFinTransactions[s=[:FinCorp], t=t1:T],
     vNetFinTransactions[s,t] == vNetFinIncome[s,t]
                               + vNetTransfers[s,t] - vNonProducedAssetAcquisitions[s,t]
-                              - vI_s[s,t] + vGrossOpSurplusMixedIncome[s,t]
+                              - vI_s[s,t] + vY_s[s,t] - vM_s[s,t]
+                              - vWages_s[s,t] - vtProductionOther_s[s,t]
 
     vNetFinTransactions[s=[:NonFinCorp], t=t1:T],
     vNetFinTransactions[s,t] == vNetFinIncome[s,t]
                                 + vNetTransfers[s,t] - vNonProducedAssetAcquisitions[s,t]
-                                - vI_s[s,t] + vGrossOpSurplusMixedIncome[s,t]
+                                - vI_s[s,t] + vY_s[s,t] - vM_s[s,t]
+                                - vWages_s[s,t] - vtProductionOther_s[s,t]
 
     # Portfolio.
     # Financial corporations.
@@ -137,8 +104,7 @@ function define_equations()
 
     # Debt liabilities are a fixed fraction of the replacement value of capital.
     vFinPosition_s_f[s=[:NonFinCorp], f=[:Debt], al=[:Liab], t=t1:T],
-    vFinPosition_s_f[s,f,al,t] == rNonFinCorpDebtLiabilities2Capital[t] * (
-      ∑(pI_k[k,t] * qK_k_i[k,i,t] for k in capital_type, i in non_fin_corp_industry) - vKOwnerHousing[t])
+    vFinPosition_s_f[s,f,al,t] == rNonFinCorpDebtLiabilities2Capital[t] * vK_s[:NonFinCorp,t]
 
     # Equity liabilities are residual given net financial assets.
     vFinPosition_s_f[s=[:NonFinCorp], f=[:Equity], al=[:Liab], t=t1:T],
@@ -153,10 +119,8 @@ end
 function define_calibration()
   block = define_equations()
 
-  # At t1, use source values to identify scale factors and portfolio ratios.
+  # At t1, use source values to identify portfolio ratios.
   @endo_exo_swap! block begin
-    fGrossOpSurplus_s[s=corporations, t=[t1]], vGrossOpSurplusMixedIncome[s=corporations, t=[t1]]
-
     rFinCorpDebtAssets2DebtLiabilities[t1], vFinPosition_s_f[:FinCorp,:Debt,:Assets,t1]
     rNonFinCorpEquityAssets2EquityLiabilities[t1], vFinPosition_s_f[:NonFinCorp,:Equity,:Assets,t1]
     rNonFinCorpDebtAssets2Expenses[t1], vFinPosition_s_f[:NonFinCorp,:Debt,:Assets,t1]

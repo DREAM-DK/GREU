@@ -27,7 +27,7 @@ const identity_na_items = ["B9", "TR", "TE"]
 
 # Revenue components
 const revenue_na_items = [
-  "P11_P12_P131",   # Market output and output for own final use / payments for non-market production
+  "P11_P12_P131",   # Market output, own-use output, and payments for non-market output
   "D2REC",          # Taxes on production and imports (received)
   "D39REC",         # Other subsidies on production (received)
   "D5REC",          # Current taxes on income, wealth, etc. (received)
@@ -43,11 +43,10 @@ const revenue_na_items = [
 
 # Expenditure components
 const expenditure_na_items = [
-  "P2",             # Intermediate consumption
-  "P5",             # Gross capital formation
+  "P2",             # Intermediate consumption; input for industry-sector shares
   "P51C",           # Consumption of fixed capital
-  "D1PAY",          # Compensation of employees (paid)
-  "D29PAY",         # Other taxes on production (paid)
+  "D1PAY",          # Employee compensation; input for industry-sector shares
+  "D29PAY",         # Other production taxes; input for industry-sector shares
   "D3PAY",          # Subsidies (paid)
   "D62_D632PAY",    # Social benefits other than social transfers in kind (paid)
   "D632PAY",        # Social transfers in kind via market producers (paid)
@@ -82,7 +81,6 @@ const na_item_to_var = Dict(
   "D29REC"       => :vGovOthProductionTax,
   # Expenditure components
   "P2"           => :vGovIntermediateCons,
-  "P5"           => :vGovCapInv,
   "P51C"         => :vGovDepr,
   "D1PAY"        => :vGovEmplComp,
   "D29PAY"       => :vGovOthProdTax,

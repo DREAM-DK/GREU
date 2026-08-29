@@ -109,7 +109,7 @@ function define_calibration()
     vFinReval_s_f[s=sector, f=[:Debt], al=ass_liab, t=[t1]]
 
     rFinReval_s_f[s=sector, f=[:Equity], al=[:Liab], t=[t1]; s ∉ equity_issuer],
-    vFinReval_s_f[s=sector, f=[:Equity], al=[:Liab], t=[t1]; s ∉ equity_issuer]]
+    vFinReval_s_f[s=sector, f=[:Equity], al=[:Liab], t=[t1]; s ∉ equity_issuer]
 
     residual(rFinReval_s_f)[s=sector, f=[:Equity], al=[:Assets], t=[t1]],
     vFinReval_s_f[s=sector, f=[:Equity], al=[:Assets], t=[t1]]
