@@ -33,6 +33,7 @@ const CorporationsTag = Tag(:Corporations)
 
 @variables model :: (CorporationsTag, ForecastConstant) begin
   rFinCorpDebtAssets2DebtLiabilities[t], "FinCorp share of total debt liabilities held as debt assets."
+  rFinCorpDebtLiabilities2EquityLiabilities[t], "FinCorp debt liability ratio relative to equity liabilities."
   rNonFinCorpEquityAssets2EquityLiabilities[t], "NonFinCorp equity asset ratio: equity assets relative to own equity liabilities."
   rNonFinCorpDebtAssets2Expenses[t], "NonFinCorp debt asset ratio: debt assets relative to total expenses."
   rNonFinCorpDebtLiabilities2Capital[t], "NonFinCorp debt liability ratio relative to the replacement value of capital."
@@ -70,9 +71,9 @@ function define_equations()
 
     vNetFinTransactions[s=[:NonFinCorp], t=t1:T],
     vNetFinTransactions[s,t] == vNetFinIncome[s,t]
-                                + vNetTransfers[s,t] - vNonProducedAssetAcquisitions[s,t]
-                                - vI_s[s,t] + vY_s[s,t] - vM_s[s,t]
-                                - vWages_s[s,t] - vtProduction_s[s,t]
+                              + vNetTransfers[s,t] - vNonProducedAssetAcquisitions[s,t]
+                              - vI_s[s,t] + vY_s[s,t] - vM_s[s,t]
+                              - vWages_s[s,t] - vtProduction_s[s,t]
 
     # Portfolio.
     # Financial corporations.
@@ -84,13 +85,14 @@ function define_equations()
     vFinPosition_s_f[s,f,al,t] ==
       rFinCorpDebtAssets2DebtLiabilities[t] * ∑(vFinPosition_s_f[s2,:Debt,:Liab,t] for s2 in sector)
 
-    # Equity liabilities have no issues or buy-backs.
-    vFinPosition_s_f[s=[:FinCorp], f=[:Equity], al=[:Liab], t=t1:T], vFinTransactions_f[s,f,al,t] == 0
-
-    # Debt liabilities are residual given net financial assets.
+    # Debt liabilities are a fixed share of equity liabilities.
     vFinPosition_s_f[s=[:FinCorp], f=[:Debt], al=[:Liab], t=t1:T],
+    vFinPosition_s_f[s,f,al,t] == rFinCorpDebtLiabilities2EquityLiabilities[t] * vFinPosition_s_f[s,:Equity,al,t]
+
+    # Equity liabilities are residual given net financial assets.
+    vFinPosition_s_f[s=[:FinCorp], f=[:Equity], al=[:Liab], t=t1:T],
     vNetFinAssets[s,t] == ∑(vFinPosition_s_f[s,f,:Assets,t] for f in fin_instrument)
-                           - ∑(vFinPosition_s_f[s,f,:Liab,t] for f in fin_instrument)
+                        - ∑(vFinPosition_s_f[s,f,:Liab,t] for f in fin_instrument)
 
     # Non-financial corporations.
     # Equity assets are a fixed fraction of equity liabilities.
@@ -122,6 +124,7 @@ function define_calibration()
   # At t1, use source values to identify portfolio ratios.
   @endo_exo_swap! block begin
     rFinCorpDebtAssets2DebtLiabilities[t1], vFinPosition_s_f[:FinCorp,:Debt,:Assets,t1]
+    rFinCorpDebtLiabilities2EquityLiabilities[t1], vFinPosition_s_f[:FinCorp,:Debt,:Liab,t1]
     rNonFinCorpEquityAssets2EquityLiabilities[t1], vFinPosition_s_f[:NonFinCorp,:Equity,:Assets,t1]
     rNonFinCorpDebtAssets2Expenses[t1], vFinPosition_s_f[:NonFinCorp,:Debt,:Assets,t1]
     rNonFinCorpDebtLiabilities2Capital[t1], vFinPosition_s_f[:NonFinCorp,:Debt,:Liab,t1]
