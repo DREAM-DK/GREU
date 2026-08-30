@@ -5,16 +5,19 @@
 module IndustrySectors
 
 using SquareModels
-import ..Capital: pI_k, qK_k_i, vI_k_i
+import ..Capital: pI_k, qK_k_i, rKDepr_k_i, vI_k_i
 import ..DataUtils: fill_cells!, read_cells
-import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
+import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fq
 import ..InputOutput: industry, vINV, vY_i
 import ..Intermediates: vM_i
 import ..Labor: vWages_i
 import ..model
 import ..Taxes: vtProduction_i
 import ..ProductionSettings: capital_type
-import ..SectorAccounts: vGrossOpSurplusMixedIncome, vI_s
+import ..SectorAccounts:
+  vConsumptionFixedCapital_s,
+  vGrossOpSurplusMixedIncome,
+  vI_s
 import ..SectorAccountsSettings: sector_accounts_data_dir
 import ..Settings: calibration_year
 import ..Time: t, t1, T
@@ -101,6 +104,12 @@ function define_equations()
     vK_s[s=mapped_sector, t=t1:T],
     vK_s[s,t] == ∑(
       uIndustrySector_s_i[s,i,t] * pI_k[k,t] * qK_k_i[k,i,t]
+      for k in capital_type, i in industry
+    )
+
+    vConsumptionFixedCapital_s[s=mapped_sector, t=t1:T],
+    vConsumptionFixedCapital_s[s,t] == ∑(
+      uIndustrySector_s_i[s,i,t] * pI_k[k,t] * rKDepr_k_i[k,i,t] * qK_k_i[k,i,t-1]/fq
       for k in capital_type, i in industry
     )
 

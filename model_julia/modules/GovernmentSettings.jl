@@ -81,7 +81,7 @@ const na_item_to_var = Dict(
   "D29REC"       => :vGovOthProductionTax,
   # Expenditure components
   "P2"           => :vGovIntermediateCons,
-  "P51C"         => :vGovDepr,
+  "P51C"         => :vGovConsumptionFixedCapital,
   "D1PAY"        => :vGovEmplComp,
   "D29PAY"       => :vGovOthProdTax,
   "D3PAY"        => :vGovSub,

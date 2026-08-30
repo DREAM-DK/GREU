@@ -6,7 +6,9 @@ module Pricing
 
 using SquareModels
 import ..InputOutput: industry, pY_i, pY_p_i
+import ..IndustrySectors: uIndustrySector_s_i_data
 import ..Production: pMarginalCost_i, qFixedCost_i
+import ..Settings: calibration_year
 import ..model
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
@@ -15,6 +17,9 @@ import ..Tags: ForecastConstant
 # markup from the fixed cost. This assumption sets the markup. The fixed cost of
 # each industry then takes the rest of the gap between price and unit cost.
 const marginal_markup = 0.20
+const mostly_public_industry = sort([
+  i for i in industry if uIndustrySector_s_i_data[:Gov,i,calibration_year] > 0.5
+])
 
 # ============================================================================
 # Variables
@@ -30,6 +35,7 @@ end
 # ============================================================================
 function assign_data!(db)
   db[rMarkup_i] .= marginal_markup
+  db[rMarkup_i[mostly_public_industry,:]] .= 0.0
   db[pY_i[:,t1]] .= 1.0
   return nothing
 end

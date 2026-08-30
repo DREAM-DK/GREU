@@ -15,6 +15,7 @@ import ..SectorAccounts:
   vNetTransfers,
   vNonProducedAssetAcquisitions,
   vFinPosition_s_f
+import ..Taxes: vRoWProductionSubsidy, vtRoWProduct
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
 
@@ -43,7 +44,8 @@ function define_equations()
     # Budget identity.
     vNetFinTransactions[s=[:RoW], t=t1:T],
     vNetFinTransactions[s,t] == vM[t] - vX[t] + vRoWNetWages[t] + vNetFinIncome[s,t]
-                                + vNetTransfers[s,t] - vNonProducedAssetAcquisitions[s,t]
+                                + vNetTransfers[s,t] + vtRoWProduct[t] - vRoWProductionSubsidy[t]
+                                - vNonProducedAssetAcquisitions[s,t]
 
     # Portfolio.
     # Debt assets clear the debt market. RoW is residual lender.

@@ -253,7 +253,7 @@ function define_equations()
 
     # Derived margin demand. Only uses with reported margins carry a bundle.
     qMarginBundle_p_u[p=product, u=use, t=t1:T],
-    qMarginBundle_p_u[p,u,t] == rMarginRate[p,u,t] * qPurchaserUse_p_u[p,u,t]
+    qMarginBundle_p_u[p,u,t] == rMarginRate[p,u,t] * ∑(qPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
     qMarginBundle_u[u=use, t=t1:T],
     qMarginBundle_u[u,t] == ∑(qMarginBundle_p_u[p,u,t] for p in product if (p,u,t) in keys(qMarginBundle_p_u))
@@ -371,7 +371,8 @@ function define_equations()
     @test_constraint("Margin-service shares sum to the margin bundle"; rtol=1e-3)
     qMarginBundle_u[u=use, t=t1:T], qMarginBundle_u[u,t] == ∑(qMarginService_s_u[s,u,t] for s in margin_services)
 
-    @test_constraint("Margin origin shares sum to service demand"; rtol=1e-3)
+    # Source origin quantities are additive; the purchaser quantity is a price index.
+    @test_constraint("Margin origin shares sum to service demand"; rtol=4e-3)
     qMarginService_s_u[s=margin_services, u=use, t=t1:T],
       qMarginService_s_u[s,u,t] == ∑(qMarginService_s_u_o[s,u,o,t] for o in origin)
 
