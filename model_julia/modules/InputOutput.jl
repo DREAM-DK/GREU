@@ -29,15 +29,12 @@ const import_origin = :import
 const supply_file = joinpath(input_output_data_dir, "input_output_supply.csv")
 const purchaser_use_file = joinpath(input_output_data_dir, "input_output_purchaser_use.csv")
 const margin_file = joinpath(input_output_data_dir, "input_output_margins.csv")
-const net_product_tax_file = joinpath(input_output_data_dir, "input_output_net_product_tax.csv")
 const aggregate_totals_file = joinpath(input_output_data_dir, "input_output_aggregate_totals.csv")
 
 const qY_p_i_data = read_cells(supply_file, "qY_p_i")
 const qMarginBundle_p_u_data = read_cells(margin_file, "qMarginBundle_p_u")
 const qMarginService_s_u_o_data = read_cells(margin_file, "qMarginService_s_u_o")
 const qMarginService_s_u_data = read_cells(margin_file, "qMarginService_s_u")
-const vNetProductTax_p_u_data = read_cells(net_product_tax_file, "vNetProductTax_p_u")
-const vNetProductTax_u_data = read_cells(net_product_tax_file, "vNetProductTax_u")
 const qPurchaserUse_p_u_o_data = read_cells(purchaser_use_file, "qPurchaserUse_p_u_o")
 const qPurchaserUse_p_u_data = read_cells(purchaser_use_file, "qPurchaserUse_p_u")
 const qM_p_i_data = read_cells(purchaser_use_file, "qM_p_i")
@@ -90,11 +87,6 @@ const product_tax_p_u = Set(
   for (p, u) in purchaser_use_p_u
   if abs(get(qPurchaserUse_p_u_data, (p, u, calibration_year), 0.0)) > cell_tolerance
 )
-@assert all(
-  (p, u) in product_tax_p_u
-  for ((p, u, year), value) in vNetProductTax_p_u_data
-  if year == calibration_year && abs(value) > cell_tolerance
-) "Each non-zero net product tax needs non-zero purchaser use"
 
 # ============================================================================
 # Variables

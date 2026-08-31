@@ -1,6 +1,6 @@
 # Set direct, capital, product, and production tax rules.
-# Map production tax and subsidy classes to factor inputs.
-# Keep classes with no factor link at the top of the production tree.
+# Read prepared gross tax and subsidy flows.
+# Keep data construction in TaxesData.jl.
 include("TaxesSettings.jl")
 
 module Taxes
@@ -9,7 +9,6 @@ using SquareModels
 import ..Capital:
   capital_k_i,
   qK_k_i,
-  qK_k_i_data,
   tK_k_i
 import ..DataUtils: fill_cells!, read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fq
@@ -18,21 +17,15 @@ import ..InputOutput:
   product,
   product_tax_p_u,
   qPurchaserUse_p_u,
-  qPurchaserUse_p_u_data,
   tNetProduct,
-  use,
-  vNetProductTax_p_u_data,
-  vNetProductTax_u_data
-import ..InputOutputSettings: cell_tolerance
+  use
 import ..Intermediates:
   intermediate_m_i,
   qM_m_i,
-  qM_m_i_data,
   tM_m_i
 import ..Labor:
   labor_l_i,
   qL_l_i,
-  qL_l_i_data,
   tL_l_i,
   vHhWages,
   vRoWNetWages
@@ -47,9 +40,7 @@ import ..TaxesSettings:
   production_subsidy_input_map,
   production_tax_input_map
 import ..model
-import ..Settings: calibration_year
 import ..SectorAccounts:
-  NetNonFinancialTransactions_data,
   fin_instrument,
   vtCorp,
   vtDirect,
@@ -67,26 +58,26 @@ import ..Tags: ForecastConstant
 # ============================================================================
 const production_gva_file = joinpath(production_data_dir, "production_gva.csv")
 const production_taxes_file = joinpath(production_data_dir, "production_taxes.csv")
-const government_file = joinpath(@__DIR__, "..", "data", "government", "government_variables.csv")
+const product_taxes_file = joinpath(production_data_dir, "product_taxes.csv")
 
 const vProductionTax_c_i_data = read_cells(production_taxes_file, "vProductionTax_c_i")
 const vProductionSubsidy_c_i_data = read_cells(production_taxes_file, "vProductionSubsidy_c_i")
 const vProductionSubsidy_c_data = read_cells(production_taxes_file, "vProductionSubsidy_c")
 const vProductionTax_data = read_cells(production_taxes_file, "vProductionTax")
+const vtK_k_i_data = read_cells(production_taxes_file, "vtK_k_i")
+const vtL_l_i_data = read_cells(production_taxes_file, "vtL_l_i")
+const vtM_m_i_data = read_cells(production_taxes_file, "vtM_m_i")
+const vtProductionOther_i_data = read_cells(production_taxes_file, "vtProductionOther_i")
 const vtProduction_i_data = read_cells(production_gva_file, "vProductionTax_i")
-# RoW accounts do not split D.2. Treat all RoW D.2 receipts as D.21.
-const vtRoWProduct_data = Dict(
-  (year,) => value
-  for ((s, d, year), value) in NetNonFinancialTransactions_data
-  if (s, d) == (:RoW, :D2)
-)
-const vRoWSubsidySource_data = Dict(
-  (year,) => -value
-  for ((s, d, year), value) in NetNonFinancialTransactions_data
-  if (s, d) == (:RoW, :D3)
-)
-const vGovProductTaxSource_data = read_cells(government_file, "vGovProductTaxSource")
-const vGovSubSource_data = read_cells(government_file, "vGovSubSource")
+const vtProduct_p_u_data = read_cells(product_taxes_file, "vtProduct_p_u")
+const vProductSubsidy_p_u_data = read_cells(product_taxes_file, "vProductSubsidy_p_u")
+const vNetProductTax_p_u_data = read_cells(product_taxes_file, "vNetProductTax_p_u")
+const vNetProductTax_u_data = read_cells(product_taxes_file, "vNetProductTax_u")
+const vtProduct_data = read_cells(product_taxes_file, "vtProduct")
+const vProductSubsidy_data = read_cells(product_taxes_file, "vProductSubsidy")
+const vtRoWProduct_data = read_cells(product_taxes_file, "vtRoWProduct")
+const vRoWProductSubsidy_data = read_cells(product_taxes_file, "vRoWProductSubsidy")
+const vRoWProductionSubsidy_data = read_cells(product_taxes_file, "vRoWProductionSubsidy")
 
 # ============================================================================
 # Indices
@@ -94,7 +85,6 @@ const vGovSubSource_data = read_cells(government_file, "vGovSubSource")
 const production_tax_class = sort(collect(keys(production_tax_input_map)))
 const production_subsidy_class = sort(collect(keys(production_subsidy_input_map)))
 const corporation_sector = [:FinCorp, :NonFinCorp]
-const matrix_year = sort(unique(year for (_, _, year) in keys(vProductionTax_c_i_data)))
 
 @assert(
   Set(first(key) for key in keys(vProductionTax_c_i_data)) == Set(production_tax_class),
@@ -107,175 +97,8 @@ const matrix_year = sort(unique(year for (_, _, year) in keys(vProductionTax_c_i
 @assert all(>=(0), values(vProductionTax_c_i_data)) "Production tax matrix values must be nonnegative"
 @assert all(>=(0), values(vProductionSubsidy_c_i_data)) "Production subsidy matrix values must be nonnegative"
 @assert all(>=(0), values(vtRoWProduct_data)) "RoW production and import tax receipts must be nonnegative"
-@assert all(>=(0), values(vRoWSubsidySource_data)) "RoW subsidy payments must be nonnegative"
-@assert all(
-  count(!isempty(intersect(targets, inputs)) for inputs in (capital_type, labor_type, intermediate_type)) <= 1
-  for targets in Iterators.flatten((values(production_tax_input_map), values(production_subsidy_input_map)))
-) "A tax or subsidy class cannot span factor modules with different units"
-
-function mapped_targets(mapping, class, factor_cells, factor_data, i, year)
-  return [
-    n
-    for n in mapping[class]
-    if (n, i) in factor_cells && get(factor_data, (n, i, year), 0.0) > 0
-  ]
-end
-
-function mapped_value(cells, mapping, factor_cells, factor_data, n, i, year)
-  return sum(
-    get(cells, (class, i, year), 0.0) *
-      factor_data[(n, i, year)] /
-      sum(
-        factor_data[(target, i, year)]
-        for target in mapped_targets(mapping, class, factor_cells, factor_data, i, year)
-      )
-    for class in keys(mapping)
-    if n in mapped_targets(mapping, class, factor_cells, factor_data, i, year)
-    ; init=0.0
-  )
-end
-
-function has_mapped_target(mapping, class, i, year)
-  return !isempty(mapped_targets(mapping, class, capital_k_i, qK_k_i_data, i, year)) ||
-    !isempty(mapped_targets(mapping, class, labor_l_i, qL_l_i_data, i, year)) ||
-    !isempty(mapped_targets(mapping, class, intermediate_m_i, qM_m_i_data, i, year))
-end
-
-function unmapped_value(cells, mapping, i, year)
-  return sum(
-    get(cells, (class, i, year), 0.0)
-    for class in keys(mapping)
-    if !has_mapped_target(mapping, class, i, year)
-    ; init=0.0
-  )
-end
-
-const vtK_k_i_data = Dict(
-  (k, i, year) =>
-    mapped_value(vProductionTax_c_i_data, production_tax_input_map, capital_k_i, qK_k_i_data, k, i, year) -
-    mapped_value(vProductionSubsidy_c_i_data, production_subsidy_input_map, capital_k_i, qK_k_i_data, k, i, year)
-  for (k, i) in capital_k_i, year in matrix_year
-)
-const vtL_l_i_data = Dict(
-  (l, i, year) =>
-    mapped_value(vProductionTax_c_i_data, production_tax_input_map, labor_l_i, qL_l_i_data, l, i, year) -
-    mapped_value(vProductionSubsidy_c_i_data, production_subsidy_input_map, labor_l_i, qL_l_i_data, l, i, year)
-  for (l, i) in labor_l_i, year in matrix_year
-)
-const vtM_m_i_data = Dict(
-  (m, i, year) =>
-    mapped_value(vProductionTax_c_i_data, production_tax_input_map, intermediate_m_i, qM_m_i_data, m, i, year) -
-    mapped_value(vProductionSubsidy_c_i_data, production_subsidy_input_map, intermediate_m_i, qM_m_i_data, m, i, year)
-  for (m, i) in intermediate_m_i, year in matrix_year
-)
-const vtProductionOther_i_data = Dict(
-  (i, year) =>
-    unmapped_value(vProductionTax_c_i_data, production_tax_input_map, i, year) -
-    unmapped_value(vProductionSubsidy_c_i_data, production_subsidy_input_map, i, year)
-  for i in industry, year in matrix_year
-)
-
-const vProductionSubsidySource_data = Dict(
-  (calibration_year,) => sum(
-    value
-    for ((_, year), value) in vProductionSubsidy_c_data
-    if year == calibration_year
-    ; init=0.0
-  ),
-)
-const vProductSubsidy_data = Dict(
-  (calibration_year,) =>
-    vGovSubSource_data[(calibration_year,)] + vRoWSubsidySource_data[(calibration_year,)] -
-    vProductionSubsidySource_data[(calibration_year,)],
-)
-const vtProduct_data = Dict(
-  (calibration_year,) =>
-    vGovProductTaxSource_data[(calibration_year,)] + vtRoWProduct_data[(calibration_year,)],
-)
-
-# RoW reports total D.3 only. Apply its payer share to D.31 and D.39.
-const uRoWSubsidyPayer_data = Dict(
-  (calibration_year,) =>
-    vRoWSubsidySource_data[(calibration_year,)] /
-    (vGovSubSource_data[(calibration_year,)] + vRoWSubsidySource_data[(calibration_year,)]),
-)
-const vRoWProductSubsidy_data = Dict(
-  (calibration_year,) => uRoWSubsidyPayer_data[(calibration_year,)] * vProductSubsidy_data[(calibration_year,)],
-)
-const vRoWProductionSubsidy_data = Dict(
-  (calibration_year,) =>
-    uRoWSubsidyPayer_data[(calibration_year,)] * vProductionSubsidySource_data[(calibration_year,)],
-)
-@assert all(>=(0), values(vProductSubsidy_data)) "Product subsidy payments must be nonnegative"
-@assert all(>=(0), values(vtProduct_data)) "Product tax receipts must be nonnegative"
-@assert all(0 <= share <= 1 for share in values(uRoWSubsidyPayer_data)) "RoW subsidy payer shares must be valid"
-@assert(
-  abs(
-    vRoWProductSubsidy_data[(calibration_year,)] +
-    vRoWProductionSubsidy_data[(calibration_year,)] -
-    vRoWSubsidySource_data[(calibration_year,)]
-  ) <= cell_tolerance,
-  "RoW product and production subsidies must sum to D.3",
-)
-
-function split_product_flows(year)
-  net_rate = Dict(
-    (p, u) =>
-      get(vNetProductTax_p_u_data, (p, u, year), 0.0) / qPurchaserUse_p_u_data[(p, u, year)]
-    for (p, u) in product_tax_p_u
-  )
-  minimum_subsidy_rate = Dict(
-    (p, u) => (abs(net_rate[(p, u)]) - net_rate[(p, u)])/2
-    for (p, u) in product_tax_p_u
-  )
-  minimum_subsidy = sum(
-    minimum_subsidy_rate[(p, u)] * qPurchaserUse_p_u_data[(p, u, year)]
-    for (p, u) in product_tax_p_u
-    ; init=0.0
-  )
-  total_subsidy = vProductSubsidy_data[(year,)]
-  @assert total_subsidy >= minimum_subsidy - cell_tolerance "Product subsidies must cover negative net rates"
-
-  positive_use = sum(
-    qPurchaserUse_p_u_data[(p, u, year)]
-    for (p, u) in product_tax_p_u
-    if qPurchaserUse_p_u_data[(p, u, year)] > 0
-    ; init=0.0
-  )
-  @assert positive_use > 0 "Product subsidies need positive purchaser use"
-  extra_rate = (total_subsidy - minimum_subsidy) / positive_use
-
-  subsidy = Dict(
-    (p, u, year) =>
-      qPurchaserUse_p_u_data[(p, u, year)] *
-      (minimum_subsidy_rate[(p, u)] + (qPurchaserUse_p_u_data[(p, u, year)] > 0 ? extra_rate : 0.0))
-    for (p, u) in product_tax_p_u
-  )
-  tax = Dict(
-    (p, u, year) => get(vNetProductTax_p_u_data, (p, u, year), 0.0) + subsidy[(p, u, year)]
-    for (p, u) in product_tax_p_u
-  )
-
-  @assert all(
-    tax[(p, u, year)] / qPurchaserUse_p_u_data[(p, u, year)] >= -cell_tolerance
-    for (p, u) in product_tax_p_u
-  ) "Gross product tax rates must be nonnegative"
-  @assert all(
-    subsidy[(p, u, year)] / qPurchaserUse_p_u_data[(p, u, year)] >= -cell_tolerance
-    for (p, u) in product_tax_p_u
-  ) "Gross product subsidy rates must be nonnegative"
-  return tax, subsidy
-end
-
-const vtProduct_p_u_data, vProductSubsidy_p_u_data = split_product_flows(calibration_year)
-@assert(
-  abs(sum(values(vtProduct_p_u_data)) - vtProduct_data[(calibration_year,)]) <= 1.2,
-  "Product tax sources disagree",
-)
-@assert(
-  abs(sum(values(vProductSubsidy_p_u_data)) - vProductSubsidy_data[(calibration_year,)]) <= cell_tolerance,
-  "Product subsidy sources disagree",
-)
+@assert all(>=(0), values(vRoWProductSubsidy_data)) "RoW product subsidy payments must be nonnegative"
+@assert all(>=(0), values(vRoWProductionSubsidy_data)) "RoW production subsidy payments must be nonnegative"
 
 # ============================================================================
 # Variables

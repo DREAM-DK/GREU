@@ -38,13 +38,6 @@ include(joinpath(@__DIR__, "modules", "LaborData.jl"))
 
 LaborData.refresh_labor_data!()
 
-# ============================================================================
-# Production tax and subsidy data
-# ============================================================================
-include(joinpath(@__DIR__, "modules", "TaxesData.jl"))
-
-TaxesData.refresh_taxes_data!()
-
 # ==============================================================================
 # Sector accounts data
 # ==============================================================================
@@ -58,6 +51,13 @@ SectorAccountsData.refresh_sector_accounts_data!()
 include(joinpath(@__DIR__, "modules", "GovernmentData.jl"))
 
 GovernmentData.refresh_government_data!()
+
+# ============================================================================
+# Tax and subsidy data
+# ============================================================================
+include(joinpath(@__DIR__, "modules", "TaxesData.jl"))
+
+TaxesData.refresh_taxes_data!()
 
 # ============================================================================
 # Industry-sector share data
