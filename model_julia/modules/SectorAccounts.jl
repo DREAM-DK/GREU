@@ -43,30 +43,6 @@ const vNetFinAssets_data = read_cells(sector_accounts_file, "vNetFinAssets")
 
 const NonFinancialTransactions_data = read_cells(non_financial_transactions_file, "NonFinancialTransactions")
 const NetNonFinancialTransactions_data = read_cells(non_financial_transactions_file, "NetNonFinancialTransactions")
-const vtDirect_data = Dict(
-  (year,) => value
-  for ((s, d, year), value) in NetNonFinancialTransactions_data
-  if (s, d) == (:Gov, :D5)
-)
-const vtHhIncome_data = Dict(
-  (year,) => -value
-  for ((s, d, year), value) in NetNonFinancialTransactions_data
-  if (s, d) == (:Hh, :D5)
-)
-const vtCorp_data = Dict(
-  (year,) => -sum(get(NetNonFinancialTransactions_data, (s, :D5, year), 0.0) for s in (:FinCorp, :NonFinCorp))
-  for year in unique(year for ((_, d, year), _) in NetNonFinancialTransactions_data if d == :D5)
-)
-const vtRoWIncome_data = Dict(
-  (year,) => -value
-  for ((s, d, year), value) in NetNonFinancialTransactions_data
-  if (s, d) == (:RoW, :D5)
-)
-const vNetPensionSaving_data = Dict(
-  (year,) => value
-  for ((s, d, year), value) in NetNonFinancialTransactions_data
-  if (s, d) == (:Hh, :D8)
-)
 @assert all(
   get(NetNonFinancialTransactions_data, (:Gov, :D91, year), 0.0) ==
     -get(NetNonFinancialTransactions_data, (:Hh, :D91, year), 0.0)
@@ -111,6 +87,8 @@ paid_transaction_cells(code) = Dict(
 # ============================================================================
 # Each mask is named after the indices it holds. Cells outside a mask have no
 # variable and no equation, so a mask change needs a model rebuild.
+
+const transaction_year = sort(unique(year for (_, _, year) in keys(NetNonFinancialTransactions_data)))
 
 """Indices with a non-negligible calibration-year value. The last index is the year."""
 calibration_year_indices(cells) = Set(
@@ -176,13 +154,23 @@ function assign_data!(db)
   fill_cells!(db, vI_s, vI_s_data)
 
   fill_cells!(db, vCurrentIncomeWealthTaxes, net_transaction_cells(:D5))
-  fill_cells!(db, vtDirect, vtDirect_data)
-  fill_cells!(db, vtHhIncome, vtHhIncome_data)
-  fill_cells!(db, vtCorp, vtCorp_data)
-  fill_cells!(db, vtRoWIncome, vtRoWIncome_data)
+  db[vtDirect[transaction_year]] .= [NetNonFinancialTransactions_data[(:Gov, :D5, year)] for year in transaction_year]
+  db[vtHhIncome[transaction_year]] .= [-NetNonFinancialTransactions_data[(:Hh, :D5, year)] for year in transaction_year]
+  db[vtCorp[transaction_year]] .= [
+    -sum(NetNonFinancialTransactions_data[(s, :D5, year)] for s in (:FinCorp, :NonFinCorp))
+    for year in transaction_year
+  ]
+  db[vtRoWIncome[transaction_year]] .= [
+    -NetNonFinancialTransactions_data[(:RoW, :D5, year)]
+    for year in transaction_year
+  ]
+  db[vtCap[transaction_year]] .= [NetNonFinancialTransactions_data[(:Gov, :D91, year)] for year in transaction_year]
   fill_cells!(db, vSocialContributions, net_transaction_cells(:D61))
   fill_cells!(db, vSocialBenefits, net_transaction_cells(:D62))
-  fill_cells!(db, vNetPensionSaving, vNetPensionSaving_data)
+  db[vNetPensionSaving[transaction_year]] .= [
+    NetNonFinancialTransactions_data[(:Hh, :D8, year)]
+    for year in transaction_year
+  ]
   fill_cells!(db, vOtherTransfers, other_transfer_cells())
   fill_cells!(db, vNonProducedAssetAcquisitions, paid_transaction_cells(:NP))
   db[vConsumptionFixedCapital_s[:RoW,:]] .= 0.0

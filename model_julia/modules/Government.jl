@@ -15,7 +15,6 @@ import ..SectorAccounts:
   ass_liab,
   fin_instrument,
   sector,
-  vtCap,
   vConsumptionFixedCapital_s,
   vFinIncome_s_f,
   vFinPosition_s_f,
@@ -68,7 +67,6 @@ function assign_data!(db)
   db[vGovExpenditure] .= read_series(government_file, "vGovExpenditure", t)
 
   db[vtIndirect] .= read_series(government_file, "vtIndirect", t)
-  db[vtCap] .= read_series(government_file, "vtCap", t)
 
   db[vM_s[:Gov,:]] .= read_series(government_file, "vGovIntermediateCons", t)
   db[vWages_s[:Gov,:]] .= read_series(government_file, "vGovEmplComp", t)
