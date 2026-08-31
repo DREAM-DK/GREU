@@ -10,3 +10,6 @@
 !.gitkeep
 !gamY_src/previous_baseline.gdx
 /model/saved
+
+user-specific-configs/*
+!user-specific-configs/*template*
