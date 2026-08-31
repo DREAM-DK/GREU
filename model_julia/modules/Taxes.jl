@@ -212,7 +212,7 @@ function define_equations()
     vProductSubsidy_p_u[p,u,t] == tProductSubsidy_p_u[p,u,t] * qPurchaserUse_p_u[p,u,t]
     vNetProductTax_p_u[p=product, u=use, t=t1:T; (p,u) in product_tax_p_u],
     vNetProductTax_p_u[p,u,t] == vtProduct_p_u[p,u,t] - vProductSubsidy_p_u[p,u,t]
-    tNetProduct[p=product, u=use, t=t1:T; (p,u) in product_tax_p_u],
+    tNetProduct[p=product, u=use, t=t1:T; (p,u) in product_tax_p_u && (u != :INV)],
     tNetProduct[p,u,t] * qPurchaserUse_p_u[p,u,t] == vNetProductTax_p_u[p,u,t]
 
     vNetProductTax_u[u=use, t=t1:T],

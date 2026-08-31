@@ -70,17 +70,11 @@ function assign_data!(db)
   fill_cells!(db, vHhWages, vHhWages_data)
   fill_cells!(db, vRoWNetWages, vRoWNetWages_data)
 
-  source_supply = cell_value(qLSupply_data, t1)
-  source_wages = cell_value(vHhWages_data, t1) + cell_value(vRoWNetWages_data, t1)
-  db[vWages[t1]] = source_wages
-  db[pW[t1-2]] = (
-    cell_value(vHhWages_data, t1-2) + cell_value(vRoWNetWages_data, t1-2)
-  ) / cell_value(qLSupply_data, t1-2)
-  db[pW[t1-1]] = (
-    cell_value(vHhWages_data, t1-1) + cell_value(vRoWNetWages_data, t1-1)
-  ) / cell_value(qLSupply_data, t1-1)
-  db[qLSupplyHh[t1]] = source_supply * cell_value(vHhWages_data, t1) / source_wages
-  db[qLSupplyRoW[t1]] = source_supply - db[qLSupplyHh[t1]]
+  db[pW[(t1-2):t1]] .= [
+    (cell_value(vHhWages_data, year) + cell_value(vRoWNetWages_data, year)) /
+      cell_value(qLSupply_data, year)
+    for year in (t1-2):t1
+  ]
   return nothing
 end
 
@@ -125,6 +119,8 @@ function define_calibration()
 
   @endo_exo_swap! block begin
     qProd[l=labor_type, i=industry, t=t1], qL_l_i[l=labor_type, i=industry, t=t1]
+    qLSupplyHh[t1], vHhWages[t1]
+    qLSupplyRoW[t1], vRoWNetWages[t1]
   end
 
   return block

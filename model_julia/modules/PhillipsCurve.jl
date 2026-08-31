@@ -31,8 +31,6 @@ end
 # Assign data
 # ============================================================================
 function assign_data!(db)
-  db[sqLSupplyHh[t1]] = db[qLSupplyHh[t1]]
-  db[sqLSupplyRoW[t1]] = db[qLSupplyRoW[t1]]
   db[uPhillipsCurveEmployment] .= 5.0
   db[uPhillipsCurveExpectedInflation] = 0.30
   return nothing
@@ -76,7 +74,10 @@ end
 # Calibration
 # ============================================================================
 function define_calibration()
-  return define_equations()
+  return define_equations() + @block model begin
+    sqLSupplyHh[t1], sqLSupplyHh[t1] == qLSupplyHh[t1]
+    sqLSupplyRoW[t1], sqLSupplyRoW[t1] == qLSupplyRoW[t1]
+  end
 end
 
 end # module
