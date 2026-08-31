@@ -124,7 +124,7 @@ const SectorAccountsTag = Tag(:SectorAccounts)
   # Inputs for sector balances.
   vI_s[s=sector, t=t; s in calibration_year_axis(vI_s_data)], "Gross capital formation by sector (P.5). Households include NPISH."
   vNetTransfers[s=sector, t=t], "Transfer receipts less payments."
-  vCurrentIncomeWealthTaxes[s=[:FinCorp, :NonFinCorp], t=t], "Current income and wealth taxes paid by corporations (D.5)."
+  vtCorp_s[s=[:FinCorp, :NonFinCorp], t=t], "Current income and wealth taxes paid by corporations (D.5)."
   vtDirect[t], "Current income and wealth taxes received by government (D.5)."
   vtHhIncome[t], "Current income and wealth taxes paid by households (D.5)."
   vtCorp[t], "Current income and wealth taxes paid by corporations (D.5)."
@@ -153,9 +153,19 @@ function assign_data!(db)
   fill_cells!(db, vNetFinTransactions, vNetFinTransactions_data)
   fill_cells!(db, vI_s, vI_s_data)
 
-  fill_cells!(db, vCurrentIncomeWealthTaxes, net_transaction_cells(:D5))
-  db[vtDirect[transaction_year]] .= [NetNonFinancialTransactions_data[(:Gov, :D5, year)] for year in transaction_year]
-  db[vtHhIncome[transaction_year]] .= [-NetNonFinancialTransactions_data[(:Hh, :D5, year)] for year in transaction_year]
+  fill_cells!(db, vtCorp_s, Dict(
+    (s, year) => -value
+    for ((s, year), value) in net_transaction_cells(:D5)
+    if s in (:FinCorp, :NonFinCorp)
+  ))
+  db[vtDirect[transaction_year]] .= [
+    NetNonFinancialTransactions_data[(:Gov, :D5, year)]
+    for year in transaction_year
+  ]
+  db[vtHhIncome[transaction_year]] .= [
+    -NetNonFinancialTransactions_data[(:Hh, :D5, year)]
+    for year in transaction_year
+  ]
   db[vtCorp[transaction_year]] .= [
     -sum(NetNonFinancialTransactions_data[(s, :D5, year)] for s in (:FinCorp, :NonFinCorp))
     for year in transaction_year
@@ -164,7 +174,10 @@ function assign_data!(db)
     -NetNonFinancialTransactions_data[(:RoW, :D5, year)]
     for year in transaction_year
   ]
-  db[vtCap[transaction_year]] .= [NetNonFinancialTransactions_data[(:Gov, :D91, year)] for year in transaction_year]
+  db[vtCap[transaction_year]] .= [
+    NetNonFinancialTransactions_data[(:Gov, :D91, year)]
+    for year in transaction_year
+  ]
   fill_cells!(db, vSocialContributions, net_transaction_cells(:D61))
   fill_cells!(db, vSocialBenefits, net_transaction_cells(:D62))
   db[vNetPensionSaving[transaction_year]] .= [
@@ -215,12 +228,12 @@ function define_equations()
                            + vSocialContributions[s,t] + vSocialBenefits[s,t] + vOtherTransfers[s,t]
 
     vNetTransfers[s=[:FinCorp], t=t1:T],
-    vNetTransfers[s,t] == vCurrentIncomeWealthTaxes[s,t]
+    vNetTransfers[s,t] == -vtCorp_s[s,t]
                            + vSocialContributions[s,t] + vSocialBenefits[s,t] - vNetPensionSaving[t]
                            + vOtherTransfers[s,t]
 
     vNetTransfers[s=[:NonFinCorp], t=t1:T],
-    vNetTransfers[s,t] == vCurrentIncomeWealthTaxes[s,t]
+    vNetTransfers[s,t] == -vtCorp_s[s,t]
                            + vSocialContributions[s,t] + vSocialBenefits[s,t] + vOtherTransfers[s,t]
 
     vNetTransfers[s=[:RoW], t=t1:T],

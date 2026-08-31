@@ -315,7 +315,7 @@ function refresh_industry_sector_shares!(dir = sector_accounts_data_dir)
   CSV.write(
     joinpath(dir, basename(share_file)),
     DataFrame(
-      variable = fill("uIndustrySector_s_i", nrow(shares)),
+      variable = fill("rIndustrySector_s_i", nrow(shares)),
       indices = ["$(row.sector),$(row.industry),$(row.year)" for row in eachrow(shares)],
       value = shares.value,
       assumption = shares.assumption,
