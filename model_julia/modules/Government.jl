@@ -24,10 +24,7 @@ import ..SectorAccounts:
   vNetFinAssets,
   vNetFinTransactions,
   vOtherTransfers
-import ..Taxes:
-  vGovProductTax,
-  vGovSub,
-  vtIndirect
+import ..Taxes: vtIndirect
 import ..Time: t, t1, T
 import ..Tags: ForecastZero
 
@@ -72,8 +69,6 @@ function assign_data!(db)
 
   db[vtIndirect] .= read_series(government_file, "vtIndirect", t)
   db[vtCap] .= read_series(government_file, "vtCap", t)
-  db[vGovProductTax] .= read_series(government_file, "vGovProductTax", t)
-  db[vGovSub] .= read_series(government_file, "vGovSub", t)
 
   db[vM_s[:Gov,:]] .= read_series(government_file, "vGovIntermediateCons", t)
   db[vWages_s[:Gov,:]] .= read_series(government_file, "vGovEmplComp", t)
