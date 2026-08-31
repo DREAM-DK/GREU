@@ -45,11 +45,11 @@ import ..SectorAccounts:
   vtHhIncome,
   vtRoWIncome,
   vtCap,
-  vCurrentIncomeWealthTaxes,
+  vtCorp_s,
   vFinPosition_s_f,
   vGrossOpSurplusMixedIncome
 import ..Time: t, t1, T
-import ..Tags: ForecastConstant
+import ..Tags: ForecastConstant, ForecastZero
 
 # ============================================================================
 # Read data
@@ -167,7 +167,7 @@ const TaxesTag = Tag(:Taxes)
 
 @variables model :: (TaxesTag, ForecastConstant) begin
   tHhIncome[t], "Average and marginal household income tax rate."
-  tCorp[t], "Average and marginal corporation tax rate."
+  tCorp_s[s=corporation_sector, t=t], "Average and marginal corporation tax rate by payer sector."
   tRoWIncome[t], "Average rest-of-world income tax rate on net wages."
   tCap[t], "Average and marginal capital tax rate on household financial assets."
   tProductSubsidy[t], "Average and marginal product subsidy rate on output."
@@ -181,6 +181,9 @@ end
 end
 
 @variables model :: (TaxesTag, GrowthAdjusted, InflationAdjusted) begin
+  vCorpIncomeBeforeTax_s[s=corporation_sector, t=t], "Corporation income before tax."
+  vCorpCapitalTaxDeduction_s[s=corporation_sector, t=t] :: ForecastZero, "Capital tax depreciation deduction."
+  vCorpDebtTaxDeduction_s[s=corporation_sector, t=t] :: ForecastZero, "Debt return deducted from taxable income."
   vProductSubsidy[t], "Subsidies on products (D.31)."
   vProductionSubsidy[t], "Subsidies on production implied by gross taxes and net factor-tax payments (D.39)."
   vtRoWProduct[t], "Taxes on products received by the rest of the world."
@@ -219,8 +222,6 @@ function set_residual_tolerances!(tolerances)
   # Sector accounts report whole EUR millions. Tax classes and industries use decimals.
   tolerances[vProductionTax] = 1.2
   tolerances[vProductionSubsidy_c] = 1.2
-  # A common corporation rate does not reproduce each sector source value.
-  tolerances[vCurrentIncomeWealthTaxes] = 2200.0
   # Government, sector-account, and production sources use different precision.
   tolerances[vGovProductTax] = 1.2
   return nothing
@@ -235,13 +236,17 @@ function define_equations()
     vtHhIncome[t=t1:T],
     vtHhIncome[t] == tHhIncome[t] * (vHhWages[t] + vGrossOpSurplusMixedIncome[:Hh,t])
 
-    vCurrentIncomeWealthTaxes[s=corporation_sector, t=t1:T],
-    vCurrentIncomeWealthTaxes[s,t] == -tCorp[t] * vGrossOpSurplusMixedIncome[s,t]
+    vCorpIncomeBeforeTax_s[s=corporation_sector, t=t1:T],
+    vCorpIncomeBeforeTax_s[s,t] == vGrossOpSurplusMixedIncome[s,t]
+      - vCorpCapitalTaxDeduction_s[s,t]
+      - vCorpDebtTaxDeduction_s[s,t]
 
-    vtCorp[t=t1:T],
-    vtCorp[t] == tCorp[t] * ∑(vGrossOpSurplusMixedIncome[s,t] for s in corporation_sector)
+    vtCorp_s[s=corporation_sector, t=t1:T], vtCorp_s[s,t] == tCorp_s[s,t] * vCorpIncomeBeforeTax_s[s,t]
+
+    vtCorp[t=t1:T], vtCorp[t] == ∑(vtCorp_s[s,t] for s in corporation_sector)
     @test_constraint("Corporation taxes sum over payer sectors"; atol=1e-6, rtol=1e-8)
-    vtCorp[t=t1:T], vtCorp[t] == -∑(vCurrentIncomeWealthTaxes[s,t] for s in corporation_sector)
+    vtCorp[t=t1:T],
+    vtCorp[t] == ∑(tCorp_s[s,t] * vCorpIncomeBeforeTax_s[s,t] for s in corporation_sector)
     vtRoWIncome[t=t1:T], vtRoWIncome[t] == tRoWIncome[t] * vRoWNetWages[t]
     vtDirect[t=t1:T], vtDirect[t] == vtHhIncome[t] + vtCorp[t] + vtRoWIncome[t]
 
@@ -302,7 +307,7 @@ function define_calibration()
 
   @endo_exo_swap! block begin
     tHhIncome[t1], vtHhIncome[t1]
-    tCorp[t1], vtCorp[t1]
+    tCorp_s[:,t1], vtCorp_s[:,t1]
     tRoWIncome[t1], vtRoWIncome[t1]
     tCap[t1], vtCap[t1]
     tProductSubsidy[t1], vGovSub[t1]

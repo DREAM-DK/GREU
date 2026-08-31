@@ -146,7 +146,7 @@ const SectorAccountsTag = Tag(:SectorAccounts)
   # Inputs for sector balances.
   vI_s[s=sector, t=t; s in calibration_year_axis(vI_s_data)], "Gross capital formation by sector (P.5). Households include NPISH."
   vNetTransfers[s=sector, t=t], "Transfer receipts less payments."
-  vCurrentIncomeWealthTaxes[s=[:FinCorp, :NonFinCorp], t=t], "Current income and wealth taxes paid by corporations (D.5)."
+  vtCorp_s[s=[:FinCorp, :NonFinCorp], t=t], "Current income and wealth taxes paid by corporations (D.5)."
   vtDirect[t], "Current income and wealth taxes received by government (D.5)."
   vtHhIncome[t], "Current income and wealth taxes paid by households (D.5)."
   vtCorp[t], "Current income and wealth taxes paid by corporations (D.5)."
@@ -175,7 +175,11 @@ function assign_data!(db)
   fill_cells!(db, vNetFinTransactions, vNetFinTransactions_data)
   fill_cells!(db, vI_s, vI_s_data)
 
-  fill_cells!(db, vCurrentIncomeWealthTaxes, net_transaction_cells(:D5))
+  fill_cells!(db, vtCorp_s, Dict(
+    (s, year) => -value
+    for ((s, year), value) in net_transaction_cells(:D5)
+    if s in (:FinCorp, :NonFinCorp)
+  ))
   fill_cells!(db, vtDirect, vtDirect_data)
   fill_cells!(db, vtHhIncome, vtHhIncome_data)
   fill_cells!(db, vtCorp, vtCorp_data)
@@ -227,12 +231,12 @@ function define_equations()
                            + vSocialContributions[s,t] + vSocialBenefits[s,t] + vOtherTransfers[s,t]
 
     vNetTransfers[s=[:FinCorp], t=t1:T],
-    vNetTransfers[s,t] == vCurrentIncomeWealthTaxes[s,t]
+    vNetTransfers[s,t] == -vtCorp_s[s,t]
                            + vSocialContributions[s,t] + vSocialBenefits[s,t] - vNetPensionSaving[t]
                            + vOtherTransfers[s,t]
 
     vNetTransfers[s=[:NonFinCorp], t=t1:T],
-    vNetTransfers[s,t] == vCurrentIncomeWealthTaxes[s,t]
+    vNetTransfers[s,t] == -vtCorp_s[s,t]
                            + vSocialContributions[s,t] + vSocialBenefits[s,t] + vOtherTransfers[s,t]
 
     vNetTransfers[s=[:RoW], t=t1:T],
