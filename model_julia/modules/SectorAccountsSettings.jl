@@ -37,8 +37,8 @@ const finpos_map = Dict(
 
 # All ESA transaction and balance codes requested from Eurostat.
 const non_financial_transaction_items = [
-  "B9", "B8G", "D91", "D92", "D99", "P5G", "NP", "B6G", "P3", "D8", "B5G", "D5",
-  "D61", "D62", "D7", "B2A3G", "D1", "D2", "D3", "D4",
+  "B9", "B8G", "D9", "D91", "D92", "D99", "P1", "P2", "P5G", "NP", "B6G", "P3", "D8", "B5G", "D5",
+  "D6", "D61", "D62", "D63", "D7", "B2A3G", "B2G", "B3G", "D1", "D2", "D29", "D3", "D39", "D4",
   "D41", "D42", "D43", "D44", "D45", "P6", "P7",
 ]
 const fin_bal_na_items = ["F", "F1", "F11", "F2", "F3", "F4", "F5", "F51", "F52", "F6", "F7", "F8"]
@@ -54,8 +54,8 @@ const fin_tr_na_items  = replace(fin_bal_na_items, "F" => "F_TR") # nasa_10_f_tr
 #   F.52/F.6             →  D.44 (investment fund income)
 #   F.7                  →  no associated income flow
 # ---------------------------------------------------------------------------
-const equity_income_items = ["D42"]                       # Distributed income of corporations (ESA D.42); mapped to F51 (equity)
-const debt_income_items   = ["D41", "D43", "D44", "D45"]  # Interest, reinvested earnings, investment fund income, rent; mapped to debt instruments
+const equity_income_items = ["D42", "D43", "D44", "D45"]
+const debt_income_items = ["D41"]
 
 # ---------------------------------------------------------------------------
 # Financial positions (vFinPosition_s_f): balance-sheet stocks by instrument,
@@ -64,9 +64,9 @@ const debt_income_items   = ["D41", "D43", "D44", "D45"]  # Interest, reinvested
 # Monetary gold (F.11, a subset of F.1) is excluded from all instrument totals
 # because it has no domestic counterpart liability and distorts aggregates.
 #
-#   Equity ← F.51 (listed equity and investment fund shares)
-#   Debt   ← F − F.51 − F.11
+#   Equity ← F.5 + F.6 + F.7
+#   Debt   ← F − F.5 − F.6 − F.7 − F.11
 # ---------------------------------------------------------------------------
-const fin_bal_equity_na_items = ["F51"]
+const fin_bal_equity_na_items = ["F5", "F6", "F7"]
 
 end # module

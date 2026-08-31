@@ -3,7 +3,7 @@
 # Keep equations and country data in their own modules.
 module ProductionSettings
 
-import ..InputOutputSettings: product, source_industry
+import ..InputOutputSettings: product, section_to_industry, source_industry
 
 const production_data_dir = joinpath(@__DIR__, "..", "data", "production")
 
@@ -16,6 +16,15 @@ const capital_flow_dataset = "nama_10_a64_p5"
 const stock_unit = "CRC_MEUR"
 const stock_deflator_unit = "PYR_MEUR"
 const flow_unit = "CP_MEUR"
+
+# Gross value added by industry.
+const gva_dataset = "nama_10_a64"
+const gva_na_item = "B1G"
+const production_tax_na_item = "D29X39"
+const gva_unit = "CP_MEUR"
+const gva_deflator_unit = "PYP_MEUR"
+const gva_nace_to_industry = Dict(string(section) => i for (section, i) in section_to_industry)
+@assert Set(values(gva_nace_to_industry)) == Set(source_industry) "GVA NACE map must cover each source industry"
 
 # These non-overlapping ESA asset groups add to total fixed assets.
 const stock_asset_to_capital_type = Dict(
@@ -34,11 +43,6 @@ const flow_asset_to_capital_type = Dict(
 
 const capital_type = sort(unique(values(flow_asset_to_capital_type)))
 @assert Set(capital_type) == Set(values(stock_asset_to_capital_type)) "Stock and flow assets must use the same capital types"
-
-# Owner-occupied housing lives in one capital-type and industry cell.
-const owner_housing_k = :structures
-const owner_housing_i = :iL
-@assert owner_housing_k in capital_type && owner_housing_i in source_industry "Owner-occupied housing must be a capital type and a source industry"
 
 # Keep each factor class as a set, even when it has one member. The nests name
 # their factors directly and must change when either set changes.

@@ -253,9 +253,10 @@ function define_equations()
 
     # Derived margin demand. Only uses with reported margins carry a bundle.
     qMarginBundle_p_u[p=product, u=use, t=t1:T],
-    qMarginBundle_p_u[p,u,t] == rMarginRate[p,u,t] * qPurchaserUse_p_u[p,u,t]
+    qMarginBundle_p_u[p,u,t] == rMarginRate[p,u,t] * ∑(qPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
-    qMarginBundle_u[u=use, t=t1:T], qMarginBundle_u[u,t] == ∑(qMarginBundle_p_u[p,u,t] for p in product)
+    qMarginBundle_u[u=use, t=t1:T],
+    qMarginBundle_u[u,t] == ∑(qMarginBundle_p_u[p,u,t] for p in product if (p,u,t) in keys(qMarginBundle_p_u))
 
     qMarginService_s_u[s=margin_services, u=use, t=t1:T],
     qMarginService_s_u[s,u,t] == rMarginServiceShare[s,u,t] * qMarginBundle_u[u,t]
@@ -267,15 +268,18 @@ function define_equations()
     qUse_p_u_o[p=product, u=use, o=origin, t=t1:T],
     qUse_p_u_o[p,u,o,t] == qPurchaserUse_p_u_o[p,u,o,t] + qMarginService_s_u_o[p,u,o,t]
 
-    qSupply_p_o[p=product, o=origin, t=t1:T], qSupply_p_o[p,o,t] == ∑(qUse_p_u_o[p,u,o,t] for u in use)
+    qSupply_p_o[p=product, o=origin, t=t1:T],
+    qSupply_p_o[p,o,t] == ∑(qUse_p_u_o[p,u,o,t] for u in use if (p,u,o,t) in keys(qUse_p_u_o))
 
-    qUse_u_o[u=use, o=origin, t=t1:T], qUse_u_o[u,o,t] == ∑(qUse_p_u_o[p,u,o,t] for p in product)
+    qUse_u_o[u=use, o=origin, t=t1:T],
+    qUse_u_o[u,o,t] == ∑(qUse_p_u_o[p,u,o,t] for p in product if (p,u,o,t) in keys(qUse_p_u_o))
 
     qSupply_o[o=origin, t=t1:T], qSupply_o[o,t] == ∑(qSupply_p_o[p,o,t] for p in product)
 
     qY_p_i[p=product, i=industry, t=t1:T], qY_p_i[p,i,t] == rIndustryShare[p,i,t] * qY_p[p,t]
 
-    qY_i[i=industry, t=t1:T], qY_i[i,t] == ∑(qY_p_i[p,i,t] for p in product)
+    qY_i[i=industry, t=t1:T],
+    qY_i[i,t] == ∑(qY_p_i[p,i,t] for p in product if (p,i,t) in keys(qY_p_i))
 
     # Final-use totals.
     qX[t=t1:T], qX[t] == ∑(qX_p[p,t] for p in product) + qCTourist[t]
@@ -309,7 +313,8 @@ function define_equations()
     vNetProductTax_p_u[p,u,t] ==
       tNetProduct[p,u,t] * ∑(qPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
-    vNetProductTax_u[u=use, t=t1:T], vNetProductTax_u[u,t] == ∑(vNetProductTax_p_u[p,u,t] for p in product)
+    vNetProductTax_u[u=use, t=t1:T],
+    vNetProductTax_u[u,t] == ∑(vNetProductTax_p_u[p,u,t] for p in product if (p,u,t) in keys(vNetProductTax_p_u))
 
     vMarginService_s_u_o[s=product, u=use, o=origin, t=t1:T],
     vMarginService_s_u_o[s,u,o,t] == pBasic[s,u,o,t] * qMarginService_s_u_o[s,u,o,t]
@@ -323,15 +328,19 @@ function define_equations()
 
     vY_p_i[p=product, i=industry, t=t1:T], vY_p_i[p,i,t] == pY_p_i[p,i,t] * qY_p_i[p,i,t]
 
-    vSupply_p_o[p=product, o=domestic, t=t1:T], vSupply_p_o[p,o,t] == ∑(vY_p_i[p,i,t] for i in industry)
+    vSupply_p_o[p=product, o=domestic, t=t1:T],
+    vSupply_p_o[p,o,t] == ∑(vY_p_i[p,i,t] for i in industry if (p,i,t) in keys(vY_p_i))
 
-    vSupply_p_o[p=product, o=import_origin, t=t1:T], vSupply_p_o[p,o,t] == ∑(vUse_p_u_o[p,u,o,t] for u in use)
+    vSupply_p_o[p=product, o=import_origin, t=t1:T],
+    vSupply_p_o[p,o,t] == ∑(vUse_p_u_o[p,u,o,t] for u in use if (p,u,o,t) in keys(vUse_p_u_o))
 
     pSupply_p_o[p=product, o=origin, t=t1:T], pSupply_p_o[p,o,t] * qSupply_p_o[p,o,t] == vSupply_p_o[p,o,t]
 
-    vY_i[i=industry, t=t1:T], vY_i[i,t] == ∑(vY_p_i[p,i,t] for p in product)
+    vY_i[i=industry, t=t1:T],
+    vY_i[i,t] == ∑(vY_p_i[p,i,t] for p in product if (p,i,t) in keys(vY_p_i))
 
-    vUse_u_o[u=use, o=origin, t=t1:T], vUse_u_o[u,o,t] == ∑(vUse_p_u_o[p,u,o,t] for p in product)
+    vUse_u_o[u=use, o=origin, t=t1:T],
+    vUse_u_o[u,o,t] == ∑(vUse_p_u_o[p,u,o,t] for p in product if (p,u,o,t) in keys(vUse_p_u_o))
 
     pUse_u_o[u=ordinary_uses, o=origin, t=t1:T], pUse_u_o[u,o,t] * qUse_u_o[u,o,t] == vUse_u_o[u,o,t]
 
@@ -351,7 +360,8 @@ function define_equations()
 
     # Post-solve accounts that do not add rows to the square system.
     @test_constraint("Supply shares reproduce product output"; rtol=1e-3)
-    qSupply_p_o[p=product, o=domestic, t=t1:T], qSupply_p_o[p,o,t] == ∑(qY_p_i[p,i,t] for i in industry)
+    qSupply_p_o[p=product, o=domestic, t=t1:T],
+    qSupply_p_o[p,o,t] == ∑(qY_p_i[p,i,t] for i in industry if (p,i,t) in keys(qY_p_i))
 
     @test_constraint("Origin values sum to product use"; rtol=1e-3)
     qPurchaserUse_p_u[p=product, u=ordinary_uses, t=t1:T],
@@ -361,7 +371,8 @@ function define_equations()
     @test_constraint("Margin-service shares sum to the margin bundle"; rtol=1e-3)
     qMarginBundle_u[u=use, t=t1:T], qMarginBundle_u[u,t] == ∑(qMarginService_s_u[s,u,t] for s in margin_services)
 
-    @test_constraint("Margin origin shares sum to service demand"; rtol=1e-3)
+    # Source origin quantities are additive; the purchaser quantity is a price index.
+    @test_constraint("Margin origin shares sum to service demand"; rtol=4e-3)
     qMarginService_s_u[s=margin_services, u=use, t=t1:T],
       qMarginService_s_u[s,u,t] == ∑(qMarginService_s_u_o[s,u,o,t] for o in origin)
 

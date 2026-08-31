@@ -66,6 +66,7 @@ end
 @variables model :: (CapitalTag, InflationAdjusted) begin
   pK_k_i[(k,i,t)=qK_k_i], "User cost of capital by type and industry."
   pI_k[k=capital_type, t=t], "Investment price by capital type."
+  tK_k_i[(k,i,t)=qK_k_i] :: ForecastConstant, "Production tax less subsidy per unit of capital stock."
   pMarginalCapitalTax_k_i[(k,i,t)=qK_k_i], "Marginal corporation tax per unit of capital."
   pKAdjCost_k_i[(k,i,t)=qK_k_i] :: (ForecastZero, DynamicCalibration), "Added user cost from capital adjustment by type and industry."
   pInvestmentShock_k_i[(k,i,t)=qK_k_i] :: (ForecastZero, DynamicCalibration), "Shock that increases investment by type and industry."
@@ -102,7 +103,9 @@ end
 # ============================================================================
 function set_starting_values!(start_values)
   start_values[qProd[capital_type,:,:]] .= start_values[qK_k_i][capital_type,:,:]
+  start_values[tK_k_i] .= 0
   start_values[pKAdjCost_k_i] .= 0
+  start_values[pInvestmentShock_k_i] .= 0
   return nothing
 end
 
@@ -142,6 +145,7 @@ function define_equations()
     pK_k_i[k=capital_type, i=industry, t=t1:T],
     pK_k_i[k,i,t] == pI_k[k,t-1] + pMarginalCapitalTax_k_i[k,i,t-1]
       - (1 - rKDepr_k_i[k,i,t]) / (1 + rHurdleRate_i[i,t]) * (pI_k[k,t]*fp - pMarginalCapitalTax_k_i[k,i,t]*fp)
+      + tK_k_i[k,i,t]
       + pKAdjCost_k_i[k,i,t]
 
     @test_constraint("Capital investment values sum to fixed investment"; rtol = 1e-3)

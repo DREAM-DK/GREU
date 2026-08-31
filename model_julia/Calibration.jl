@@ -95,7 +95,8 @@ function forecast_zeros!(block::Block, exogenous_values::ModelDictionary)
 end
 
 """
-Fill missing future exogenous values with the period-one start value.
+Set all future exogenous residuals to zero. Fill other missing exogenous
+values with the period-one start value.
 
 This is the default for exogenous variables without a forecast rule. It also supports
 smaller model setups: if an omitted module would make a variable endogenous, the
@@ -107,6 +108,12 @@ function fill_missing_exogenous_forecasts!(
   exogenous_values::ModelDictionary,
   start_values::ModelDictionary,
 )
+  forecast_residuals = filter(intersect(exogenous(block), residuals(block))) do var
+    year = variable_year(var)
+    !isnothing(year) && year > t1
+  end
+  exogenous_values[forecast_residuals] .= 0.0
+
   forecast_vars = filter(exogenous(block)) do var
     year = variable_year(var)
     !isnothing(year) && year > t1 && isnothing(exogenous_values[var])

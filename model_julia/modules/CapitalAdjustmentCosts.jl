@@ -45,7 +45,7 @@ end
 # Starting values
 # ============================================================================
 function set_starting_values!(start_values)
-  start_values[tagged(CapitalAdjustmentCostsTag)] = 0
+  start_values[tagged(model, CapitalAdjustmentCostsTag)] = 0
   return nothing
 end
 

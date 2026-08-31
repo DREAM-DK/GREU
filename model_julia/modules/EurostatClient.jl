@@ -1,3 +1,6 @@
+# Fetch Eurostat JSON-stat data.
+# Convert reported observations to long tables.
+# Do not apply model index maps here.
 module EurostatClient
 
 using DataFrames

@@ -1,39 +1,13 @@
 # Solve one shock scenario against the calibrated baseline and write its report.
 # To create another experiment, copy this file and change the marked settings
 # and shock definition below.
-include("Model.jl")
+using SquareModels
+import GREU: Settings, Time, model, loaded_module_by_name, base_model, Exports
+import GREU.Log: @log_time
+
 include("ShockReport.jl")
 
-# Use the same equation modules as Calibrate.jl. If that list changes, update
-# this list as well before running new shocks.
-modules = [
-  ModuleTemplate,
-
-  InputOutput,
-    ImportSubstitution,
-    FixedBasePriceAggregates,
-
-  Production,
-    Labor,
-    Intermediates,
-    Capital,
-
-    Pricing,
-
-  SectorAccounts,
-    Households,
-      ConsumptionSavingsDecision,
-      # ConsumptionGroups,
-    Government,
-    Corporations,
-      FinancialIncome,
-      FirmValue,
-    RestOfWorld,
-      Exports,
-
-  CapitalAdjustmentCosts,
-  PhillipsCurve,
-]
+model_modules = [loaded_module_by_name[name] for name in Settings.model_modules]
 
 # ==============================================================================
 # Shock settings
@@ -58,7 +32,7 @@ report_kind = :export
 report_file = "export_demand_shock_report.html"
 
 baseline = load(joinpath(@__DIR__, "..", "Output", "baseline.parquet"), model)
-block = base_model(modules)
+block = base_model(model_modules)
 
 # ==============================================================================
 # Shock definition - replace this line to shock another exogenous variable

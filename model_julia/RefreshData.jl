@@ -25,11 +25,25 @@ include(joinpath(@__DIR__, "modules", "CapitalData.jl"))
 CapitalData.refresh_capital_data!()
 
 # ==============================================================================
+# Gross value added data
+# ==============================================================================
+include(joinpath(@__DIR__, "modules", "GrossValueAddedData.jl"))
+
+GrossValueAddedData.refresh_gross_value_added_data!()
+
+# ==============================================================================
 # Labor data
 # ==============================================================================
 include(joinpath(@__DIR__, "modules", "LaborData.jl"))
 
 LaborData.refresh_labor_data!()
+
+# ============================================================================
+# Production tax and subsidy data
+# ============================================================================
+include(joinpath(@__DIR__, "modules", "TaxesData.jl"))
+
+TaxesData.refresh_taxes_data!()
 
 # ==============================================================================
 # Sector accounts data
@@ -44,3 +58,10 @@ SectorAccountsData.refresh_sector_accounts_data!()
 include(joinpath(@__DIR__, "modules", "GovernmentData.jl"))
 
 GovernmentData.refresh_government_data!()
+
+# ============================================================================
+# Industry-sector share data
+# ============================================================================
+include(joinpath(@__DIR__, "modules", "IndustrySectorsData.jl"))
+
+IndustrySectorsData.refresh_industry_sector_shares!()

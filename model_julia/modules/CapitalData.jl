@@ -11,6 +11,7 @@ module CapitalData
 
 using CSV
 using DataFrames
+using DataFramesMeta
 import ..EurostatClient
 import ..DataUtils: long_format, read_cells, sum_by
 import ..InputOutputSettings:
@@ -65,15 +66,15 @@ function fetch_capital_table(dataset, unit, asset_map, params...)
     )
     for asset in keys(asset_map), year in data_years
   ) "Capital A21 rows must sum to each source total"
-  df = df[
-    in.(df.asset10, Ref(Set(keys(asset_map)))) .&
-    in.(df.nace_r2, Ref(Set(keys(capital_nace_to_industry)))),
-    :,
-  ]
-  df.k = [asset_map[asset] for asset in df.asset10]
-  df.industry = [capital_nace_to_industry[code] for code in df.nace_r2]
-  df.year = parse.(Int, df.time)
-  return sum_by(df, [:k, :industry, :year])
+  return @chain df begin
+    @rsubset(haskey(asset_map, :asset10) && haskey(capital_nace_to_industry, :nace_r2))
+    @rtransform begin
+      :k = asset_map[:asset10]
+      :industry = capital_nace_to_industry[:nace_r2]
+      :year = parse(Int, :time)
+    end
+    @by([:k, :industry, :year], :value = sum(skipmissing(:value); init = 0.0))
+  end
 end
 
 # CRC values a stock at current prices. PYR values the same stock at last

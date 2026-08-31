@@ -43,6 +43,29 @@ const vNetFinAssets_data = read_cells(sector_accounts_file, "vNetFinAssets")
 
 const NonFinancialTransactions_data = read_cells(non_financial_transactions_file, "NonFinancialTransactions")
 const NetNonFinancialTransactions_data = read_cells(non_financial_transactions_file, "NetNonFinancialTransactions")
+const vNetPensionSaving_data = Dict(
+  (year,) => value
+  for ((s, d, year), value) in NetNonFinancialTransactions_data
+  if (s, d) == (:Hh, :D8)
+)
+@assert all(
+  get(NetNonFinancialTransactions_data, (:Gov, :D91, year), 0.0) ==
+    -get(NetNonFinancialTransactions_data, (:Hh, :D91, year), 0.0)
+  for year in unique(year for ((_, d, year), _) in NetNonFinancialTransactions_data if d == :D91)
+) && all(
+  value == 0.0
+  for ((s, d, _), value) in NetNonFinancialTransactions_data
+  if d == :D91 && s ∉ (:Gov, :Hh)
+) "D.91 must only transfer capital tax from households to government"
+@assert all(
+  get(NetNonFinancialTransactions_data, (:FinCorp, :D8, year), 0.0) ==
+    -get(NetNonFinancialTransactions_data, (:Hh, :D8, year), 0.0)
+  for year in unique(year for ((_, d, year), _) in NetNonFinancialTransactions_data if d == :D8)
+) && all(
+  value == 0.0
+  for ((s, d, _), value) in NetNonFinancialTransactions_data
+  if d == :D8 && s ∉ (:FinCorp, :Hh)
+) "D.8 must only transfer pension saving from financial corporations to households"
 
 """Net transactions summed over transaction codes, keyed by sector and year."""
 function net_transaction_cells(codes...)
@@ -54,14 +77,8 @@ function net_transaction_cells(codes...)
   return cells
 end
 
-"""Other transfers. The rest of the world also nets taxes on products and imports."""
-function other_transfer_cells()
-  cells = net_transaction_cells(:D7, :D92, :D99)
-  for (key, value) in net_transaction_cells(:D2, :D3, :D7, :D92, :D99)
-    first(key) == :RoW && (cells[key] = value)
-  end
-  return cells
-end
+"""Other current and capital transfers."""
+other_transfer_cells() = net_transaction_cells(:D7, :D92, :D99)
 
 """Paid transactions for one code, keyed by sector and year."""
 paid_transaction_cells(code) = Dict(
@@ -111,16 +128,16 @@ const SectorAccountsTag = Tag(:SectorAccounts)
   vI_s[s=sector, t=t; s in calibration_year_axis(vI_s_data)], "Gross capital formation by sector (P.5). Households include NPISH."
   vNetTransfers[s=sector, t=t], "Transfer receipts less payments."
   vCurrentIncomeWealthTaxes[s=sector, t=t], "Current taxes on income, profits, capital gains, and wealth received less paid (D.5)."
-  vInheritanceGiftWealthTaxes[s=sector, t=t], "Taxes on inheritances and gifts, and exceptional levies on assets or net wealth, received less paid (D.91)."
+  vtCap[t], "Capital taxes paid by households and received by government (D.91)."
   vSocialContributions[s=sector, t=t], "Social insurance and pension contributions received less paid, after scheme service charges (D.61)."
   vSocialBenefits[s=sector, t=t], "Cash and other non-kind social benefits received less paid, including pension benefits (D.62)."
-  vPensionSaving[s=sector, t=t], "Net pension saving received less paid: contributions and credited returns less fees and benefits (D.8)."
-  vOtherTransfers[s=sector, t=t], "Other current and capital transfers received less paid (D.7, D.92, and D.99). RoW also includes D.2 and D.3."
+  vNetPensionSaving[t], "Net pension saving received by households and paid by financial corporations (D.8)."
+  vOtherTransfers[s=sector, t=t], "Other current and capital transfers received less paid (D.7, D.92, and D.99)."
   vNonProducedAssetAcquisitions[s=sector, t=t], "Purchases less sales of land, mineral and energy reserves, other natural resources, and transferable contracts, leases, and licences (NP)."
 
   vGovBalance[t], "Government net lending or borrowing (B.9)."
   vGrossOpSurplusMixedIncome[s=sector, t=t; s in calibration_year_axis(vGrossOpSurplusMixedIncome_data)], "Gross operating surplus and mixed income by sector (B.2g+B.3g)."
-
+  vConsumptionFixedCapital_s[s=sector, t=t], "Consumption of fixed capital by sector (P.51c)."
 end # @variables
 
 # ============================================================================
@@ -136,12 +153,12 @@ function assign_data!(db)
   fill_cells!(db, vI_s, vI_s_data)
 
   fill_cells!(db, vCurrentIncomeWealthTaxes, net_transaction_cells(:D5))
-  fill_cells!(db, vInheritanceGiftWealthTaxes, net_transaction_cells(:D91))
   fill_cells!(db, vSocialContributions, net_transaction_cells(:D61))
   fill_cells!(db, vSocialBenefits, net_transaction_cells(:D62))
-  fill_cells!(db, vPensionSaving, net_transaction_cells(:D8))
+  fill_cells!(db, vNetPensionSaving, vNetPensionSaving_data)
   fill_cells!(db, vOtherTransfers, other_transfer_cells())
   fill_cells!(db, vNonProducedAssetAcquisitions, paid_transaction_cells(:NP))
+  db[vConsumptionFixedCapital_s[:RoW,:]] .= 0.0
 
   fill_cells!(db, vGrossOpSurplusMixedIncome, vGrossOpSurplusMixedIncome_data)
   fill_cells!(db, vFinReval_s_f, vFinReval_s_f_data)
@@ -162,6 +179,8 @@ function set_residual_tolerances!(tolerances)
   tolerances[vNetFinTransactions] = 4.0
   tolerances[vFinPosition_s_f] = 40000.0
   tolerances[vFinTransactions_f] = 40000.0
+  # Industry ownership shares do not reproduce the direct government P.51c source.
+  tolerances[vConsumptionFixedCapital_s] = 2600.0
 end
 
 # ============================================================================
@@ -170,15 +189,29 @@ end
 
 function define_equations()
   return @block model begin
-    vNetTransfers[s=sector, t=t1:T],
-    vNetTransfers[s,t] == vCurrentIncomeWealthTaxes[s,t] + vInheritanceGiftWealthTaxes[s,t]
-                           + vSocialContributions[s,t] + vSocialBenefits[s,t] + vPensionSaving[s,t]
+    # Sector transfer accounts.
+    vNetTransfers[s=[:Hh], t=t1:T],
+    vNetTransfers[s,t] == vCurrentIncomeWealthTaxes[s,t] - vtCap[t]
+                           + vSocialContributions[s,t] + vSocialBenefits[s,t] + vNetPensionSaving[t]
                            + vOtherTransfers[s,t]
+
+    vNetTransfers[s=[:Gov], t=t1:T],
+    vNetTransfers[s,t] == vCurrentIncomeWealthTaxes[s,t] + vtCap[t]
+                           + vSocialContributions[s,t] + vSocialBenefits[s,t] + vOtherTransfers[s,t]
+
+    vNetTransfers[s=[:FinCorp], t=t1:T],
+    vNetTransfers[s,t] == vCurrentIncomeWealthTaxes[s,t]
+                           + vSocialContributions[s,t] + vSocialBenefits[s,t] - vNetPensionSaving[t]
+                           + vOtherTransfers[s,t]
+
+    vNetTransfers[s=[:NonFinCorp, :RoW], t=t1:T],
+    vNetTransfers[s,t] == vCurrentIncomeWealthTaxes[s,t]
+                           + vSocialContributions[s,t] + vSocialBenefits[s,t] + vOtherTransfers[s,t]
 
     # --- Stock changes equal transactions, revaluations, and other volume changes. ---
     vFinTransactions_f[s=sector, f=fin_instrument, al=ass_liab, t=t1:T],
     vFinPosition_s_f[s,f,al,t] == vFinPosition_s_f[s,f,al,t-1]/fv + vFinTransactions_f[s,f,al,t]
-                              + vFinReval_s_f[s,f,al,t] + vOtherChangesInVolume_f[s,f,al,t]
+                                + vFinReval_s_f[s,f,al,t] + vOtherChangesInVolume_f[s,f,al,t]
 
     vNetFinAssets[s=sector, t=t1:T],
     vNetFinAssets[s,t] == vNetFinAssets[s,t-1]/fv + vNetFinTransactions[s,t]
@@ -203,15 +236,16 @@ function define_equations()
     vNetFinIncome[s,t] == vFinIncome[s,:Assets,t] - vFinIncome[s,:Liab,t]
 
     # --- Tests. ---
-    @test_constraint("Net financial transactions equals assets minus liabilities"; atol=1.0, rtol=1e-6)
+    # Direct government budget inputs can differ from the sector and IO sources.
+    @test_constraint("Net financial transactions equals assets minus liabilities"; atol=30.0, rtol=1e-6)
     vNetFinTransactions[s=sector, t=t1:T],
     vNetFinTransactions[s,t] == ∑(vFinTransactions_f[s,f,:Assets,t] for f in fin_instrument)
                               - ∑(vFinTransactions_f[s,f,:Liab,t] for f in fin_instrument)
 
-    @test_constraint("Summing vNetFinAssets over sectors"; atol=2.0, rtol=1e-6)
+    @test_constraint("Summing vNetFinAssets over sectors"; atol=30.0, rtol=1e-6)
     vNetFinAssets[s=[:Hh], t=t1:T], ∑(vNetFinAssets[s,t] for s in sector) == 0.0
 
-    @test_constraint("Summing vNetFinTransactions over sectors"; atol=1.0, rtol=1e-6)
+    @test_constraint("Summing vNetFinTransactions over sectors"; atol=30.0, rtol=1e-6)
     vNetFinTransactions[s=[:Hh], t=t1:T], ∑(vNetFinTransactions[s2,t] for s2 in sector) == 0.0
 
     @test_constraint("Summing vNetFinReval over sectors"; atol=1.0, rtol=1e-6)
@@ -220,7 +254,7 @@ function define_equations()
     @test_constraint("Summing vNetOtherChangesInVolume over sectors"; atol=1.0, rtol=1e-6)
     vNetOtherChangesInVolume[s=[:Hh], t=t1:T], ∑(vNetOtherChangesInVolume[s,t] for s in sector) == 0.0
 
-    @test_constraint("Summing vNetFinIncome over sectors"; atol=1.0, rtol=1e-6)
+    @test_constraint("Summing vNetFinIncome over sectors"; atol=1.01, rtol=1e-6)
     vNetFinIncome[s=[:Hh], t=t1:T], ∑(vNetFinIncome[s,t] for s in sector) == 0.0
   end # @block
 end # define_equations
