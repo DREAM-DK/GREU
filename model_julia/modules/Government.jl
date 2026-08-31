@@ -15,6 +15,7 @@ import ..SectorAccounts:
   ass_liab,
   fin_instrument,
   sector,
+  vtCap,
   vConsumptionFixedCapital_s,
   vFinIncome_s_f,
   vFinPosition_s_f,
@@ -24,13 +25,8 @@ import ..SectorAccounts:
   vNetFinTransactions,
   vOtherTransfers
 import ..Taxes:
-  vGovOthProductionTax,
   vGovProductTax,
   vGovSub,
-  vtCap,
-  vtCorp,
-  vtDirect,
-  vtHhIncome,
   vtIndirect
 import ..Time: t, t1, T
 import ..Tags: ForecastZero
@@ -50,22 +46,20 @@ const GovernmentTag = Tag(:Government)
   vGovExpenditure[t], "Expenditure of government (TE)."
   vGovPrimaryRevenue[t], "Primary revenue of government (TR less interest income)."
   vGovPrimaryExpenditure[t], "Primary expenditure of government (TE less interest payments)."
-  vGovPrimaryBalance[t], "Government net lending or borrowing before interest payments."
+  vGovPrimaryBalance[t], "Government net lending or borrowing before debt interest income and payments."
 
   vGovPrimaryRevOther[t], "Other primary revenue of government."
   vGovSalesRev[t], "Revenue from sales (P.11+P.12+P.131)."
   vGovOthSubRev[t], "Revenue from other subsidies (D.39)."
-  vGovSocialContRev[t], "Revenue from social contributions (D.61)."
   vGovOthCurrentTransRev[t], "Revenue from other current transfers (D.7)."
-  vGovCapRev[t], "Revenue from capital transfers (D.92+D.99)."
+  vGovCapTransfer[t], "Revenue from capital transfers (D.92+D.99)."
 
   vGovSocBenefitExp[t], "Social benefit expenditure of government (D.62+D.632)."
   vSocTransKind[t], "Social transfers in kind (D.632)."
   vGovOthCurrentTransExp[t], "Other current transfers expenditure of government (D.7)."
   vGovOthProdTax[t], "Other taxes on production paid by government (D.29)."
-  vGovAdjExp[t] :: ForecastZero, "Adjustments of government (D.8)."
+  vGovPensionEntitlementAdj[t] :: ForecastZero, "Adjustment for the change in government pension entitlements (D.8)."
   vGovCapTransExp[t], "Capital transfers expenditure of government (D.9)."
-  vGovNetAcquisitions[t], "Net acquisitions of non-produced non-financial assets of government (NP)."
 end
 
 # ============================================================================
@@ -77,12 +71,8 @@ function assign_data!(db)
   db[vGovExpenditure] .= read_series(government_file, "vGovExpenditure", t)
 
   db[vtIndirect] .= read_series(government_file, "vtIndirect", t)
-  db[vtDirect] .= read_series(government_file, "vtDirect", t)
-  db[vtHhIncome] .= read_series(government_file, "vtHhIncome", t)
-  db[vtCorp] .= read_series(government_file, "vtCorp", t)
   db[vtCap] .= read_series(government_file, "vtCap", t)
   db[vGovProductTax] .= read_series(government_file, "vGovProductTax", t)
-  db[vGovOthProductionTax] .= read_series(government_file, "vGovOthProductionTax", t)
   db[vGovSub] .= read_series(government_file, "vGovSub", t)
 
   db[vM_s[:Gov,:]] .= read_series(government_file, "vGovIntermediateCons", t)
@@ -91,18 +81,15 @@ function assign_data!(db)
 
   db[vGovSalesRev] .= read_series(government_file, "vGovSalesRev", t)
   db[vGovOthSubRev] .= read_series(government_file, "vGovOthSubRev", t)
-  db[vGovSocialContRev] .= read_series(government_file, "vGovSocialContRev", t)
   db[vGovOthCurrentTransRev] .= read_series(government_file, "vGovOthCurrentTransRev", t)
-  db[vGovCapRev] .= read_series(government_file, "vGovCapRev", t)
+  db[vGovCapTransfer] .= read_series(government_file, "vGovCapTransfer", t)
 
-  db[vConsumptionFixedCapital_s[:Gov,:]] .=
-    read_series(government_file, "vGovConsumptionFixedCapital", t)
+  db[vConsumptionFixedCapital_s[:Gov,:]] .= read_series(government_file, "vGovConsumptionFixedCapital", t)
   db[vGovSocBenefitExp] .= read_series(government_file, "vGovSocBenefitExp", t)
   db[vSocTransKind] .= read_series(government_file, "vSocTransKind", t)
   db[vGovOthCurrentTransExp] .= read_series(government_file, "vGovOthCurrentTransExp", t)
-  db[vGovAdjExp] .= read_series(government_file, "vGovAdjExp", t)
+  db[vGovPensionEntitlementAdj] .= read_series(government_file, "vGovPensionEntitlementAdj", t)
   db[vGovCapTransExp] .= read_series(government_file, "vGovCapTransExp", t)
-  db[vGovNetAcquisitions] .= read_series(government_file, "vGovNetAcquisitions", t)
 
   return nothing
 end
@@ -124,16 +111,14 @@ function define_equations()
     vGovPrimaryBalance[t] == vGovPrimaryRevenue[t] - vGovPrimaryExpenditure[t]
 
     vGovBalance[t=t1:T],
-    vGovBalance[t] == vGovPrimaryBalance[t]
-                       + vFinIncome_s_f[:Gov,:Debt,:Assets,t]
-                       - vFinIncome_s_f[:Gov,:Debt,:Liab,t]
+    vGovBalance[t] == vGovPrimaryBalance[t] + vFinIncome_s_f[:Gov,:Debt,:Assets,t] - vFinIncome_s_f[:Gov,:Debt,:Liab,t]
 
     vNetFinTransactions[s=[:Gov], t=t1:T], vNetFinTransactions[s,t] == vGovBalance[t]
 
     # Other transfers span primary revenue and expenditure.
     vOtherTransfers[s=[:Gov], t=t1:T],
-    vOtherTransfers[s,t] == vGovOthCurrentTransRev[t] + vGovCapRev[t]
-                           - vGovOthCurrentTransExp[t] - vGovCapTransExp[t]
+    vOtherTransfers[s,t] == vGovOthCurrentTransRev[t] + vGovCapTransfer[t] - vGovOthCurrentTransExp[t] - vGovCapTransExp[t]
+
     vOtherTransfers[s=[:Hh], t=t1:T], ∑(vOtherTransfers[s2,t] for s2 in sector) == 0
 
     # Portfolio.
@@ -146,7 +131,7 @@ function define_equations()
     # Gov debt liabilities are residual given net financial assets.
     vFinPosition_s_f[s=[:Gov], f=[:Debt], al=[:Liab], t=t1:T],
     vNetFinAssets[s,t] == ∑(vFinPosition_s_f[s,f,:Assets,t] for f in fin_instrument)
-                           - ∑(vFinPosition_s_f[s,f,:Liab,t] for f in fin_instrument)
+                        - ∑(vFinPosition_s_f[s,f,:Liab,t] for f in fin_instrument)
   end
 end
 

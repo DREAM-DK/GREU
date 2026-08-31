@@ -74,11 +74,11 @@ const na_item_to_var = Dict(
   "D61REC"       => :vGovSocialContRev,
   "D7REC"        => :vGovOthCurrentTransRev,
   "D91REC"       => :vtCap,
-  "D92_D99REC"   => :vGovCapRev,
-  "D51A_C1REC"   => :vtHhIncome,
-  "D51B_C2REC"   => :vtCorp,
+  "D92_D99REC"   => :vGovCapTransfer,
+  "D51A_C1REC"   => :vGovHhIncomeProfitTaxSource,
+  "D51B_C2REC"   => :vGovCorpIncomeProfitTaxSource,
   "D21REC"       => :vGovProductTax,
-  "D29REC"       => :vGovOthProductionTax,
+  "D29REC"       => :vGovOthProductionTaxSource,
   # Expenditure components
   "P2"           => :vGovIntermediateCons,
   "P51C"         => :vGovConsumptionFixedCapital,
@@ -88,9 +88,9 @@ const na_item_to_var = Dict(
   "D62_D632PAY"  => :vGovSocBenefitExp,
   "D632PAY"      => :vSocTransKind,
   "D7PAY"        => :vGovOthCurrentTransExp,
-  "D8"           => :vGovAdjExp,
+  "D8"           => :vGovPensionEntitlementAdj,
   "D9PAY"        => :vGovCapTransExp,
-  "NP"           => :vGovNetAcquisitions,
+  "NP"           => :vGovNonProducedAssetAcquisitions,
 )
 
 end # module
