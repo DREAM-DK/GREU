@@ -49,6 +49,7 @@ const capital_type = sort(unique(values(flow_asset_to_capital_type)))
 const labor_type = [:labor]
 const energy_product = [:B, :D]
 const intermediate_type = [:energy, :materials]
+const fixed_factor_type = [:fixed_factor]
 @assert energy_product ⊆ product "Energy products must be input-output products"
 
 # Each industry owns its nest map and each nest owns its elasticity. Equipment
@@ -59,19 +60,20 @@ const full_nesting = Dict(
   :KEL => (children = [:KE, :labor], elasticity = 0.7),
   :KELB => (children = [:KEL, :structures], elasticity = 0.7),
   :KELBM => (children = [:KELB, :materials], elasticity = 0.7),
+  :KELBMF => (children = [:KELBM, :fixed_factor], elasticity = 0.7),
 )
 
-# Industry T (households as employers) reports only labor, so its top nest holds labor alone.
+# Industry T reports only labor among observed inputs. Its top nest also holds the fixed factor.
 const production_nesting = Dict(
   i =>
     i == :iT ? Dict(
-      :KELBM => (children = [:labor], elasticity = 0.7),
+      :KELBM => (children = [:labor, :fixed_factor], elasticity = 0.7),
     ) :
     Dict(full_nesting)
   for i in source_industry
 )
 
-@assert allunique([capital_type; labor_type; intermediate_type]) "Production factor labels must be unique"
+@assert allunique([capital_type; labor_type; intermediate_type; fixed_factor_type]) "Production factor labels must be unique"
 
 @assert all(
   isfinite(spec.elasticity) && spec.elasticity > 0 && allunique(spec.children)
