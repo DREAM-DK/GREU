@@ -20,7 +20,7 @@ gamsnext.cmd
 *.gdx
 
 # Julia
-Manifest.toml
+# Manifest.toml
 *.jl.cov
 *.jl.*.cov
 *.jl.mem
