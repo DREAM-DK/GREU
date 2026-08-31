@@ -24,7 +24,11 @@ import ..SectorAccounts:
   vI_s,
   vNonProducedAssetAcquisitions,
   vSocialBenefits
-import ..Taxes: vGovSub
+import ..Taxes:
+  vProductSubsidy,
+  vProductionSubsidy,
+  vRoWProductSubsidy,
+  vRoWProductionSubsidy
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
 
@@ -65,7 +69,10 @@ function define_equations()
                                   + vI_s[:Gov,t]
                                   + vWages_s[:Gov,t]
                                   + vGovOthProdTax[t]
-                                  + vGovSub[t]
+                                  + vProductSubsidy[t]
+                                  - vRoWProductSubsidy[t]
+                                  + vProductionSubsidy[t]
+                                  - vRoWProductionSubsidy[t]
                                   + vGovSocBenefitExp[t]
                                   + vGovOthCurrentTransExp[t]
                                   + vGovPensionEntitlementAdj[t]
