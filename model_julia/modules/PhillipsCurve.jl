@@ -23,8 +23,8 @@ const PhillipsCurveTag = Tag(:PhillipsCurve)
 end
 
 @variables model :: (PhillipsCurveTag, GrowthAdjusted, ForecastConstant) begin
-  sqLSupplyHh[t], "Structural household labor supply in efficiency units."
-  sqLSupplyRoW[t], "Structural rest-of-world labor supply in efficiency units."
+  sqLSupplyHh[t], "Structural household employees."
+  sqLSupplyRoW[t], "Structural rest-of-world employees."
 end
 
 # ============================================================================

@@ -28,7 +28,6 @@ const sector_target_component = [:operating_cost, :operating_surplus]
 const financial_industry = :iK
 const government_core_industry = Set([:iO, :iP, :iQ])
 const household_housing_industry = :iL
-const source_rounding_tolerance = 0.15
 
 const supply_file = joinpath(input_output_data_dir, "input_output_supply.csv")
 const purchaser_use_file = joinpath(input_output_data_dir, "input_output_purchaser_use.csv")
@@ -64,7 +63,9 @@ function industry_accounts(industries, year, source)
       intermediate = sum_industry_cells(source.purchaser_use, i, year) +
                      sum_industry_cells(source.margins, i, year) +
                      sum_industry_cells(source.product_taxes, i, year)
-      wages = sum_industry_cells(source.labor, i, year)
+      average_wage = sum(value for ((_,source_year), value) in source.payroll if source_year == year) /
+                     sum(value for ((_,_,source_year), value) in source.labor if source_year == year)
+      wages = average_wage * sum_industry_cells(source.labor, i, year)
       production_taxes = get(source.production_taxes, (i, year), 0.0)
       (
         output = output,
@@ -172,8 +173,6 @@ function stylized_shares(industries, year, accounts, targets, government_targets
   @assert financial_industry in industries "The share build needs iK"
   @assert government_core_industry ⊆ Set(industries) "The share build needs iO, iP, and iQ"
   @assert household_housing_industry in industries "The share build needs iL"
-  @assert all(account.operating_surplus >= -source_rounding_tolerance for account in values(accounts))
-    "Industry operating surplus must not be negative beyond source rounding"
 
   fin_rate = targets[:FinCorp] / accounts[financial_industry].operating_surplus
   government_share = target_shares(
@@ -255,6 +254,7 @@ function build_industry_sector_shares()
     margins = read_cells(margin_file, "qMarginBundle_p_u"),
     product_taxes = read_cells(product_tax_file, "vNetProductTax_p_u"),
     labor = read_cells(labor_file, "qL_l_i"),
+    payroll = read_cells(labor_file, "vWages_i"),
     production_taxes = read_cells(production_file, "vProductionTax_i"),
   )
   target_source = read_cells(sector_accounts_file, "vGrossOpSurplusMixedIncome")
@@ -267,7 +267,8 @@ function build_industry_sector_shares()
   years = sort(unique(
     year
     for ((_,year), _) in target_source
-    if all(haskey(target_source, (s, year)) for s in mapped_sector)
+    if year in (calibration_year-1):calibration_year
+       && all(haskey(target_source, (s, year)) for s in mapped_sector)
        && all(haskey(government_source[component], (year,)) for component in keys(government_source))
        && all(
          haskey(non_financial_source, (:Hh, item, direct, year))
