@@ -14,6 +14,7 @@ import ..Capital:
   rHurdleRate_i,
   rKDepr_k_i,
   vI_k_i
+import ..FinancialIncome: rFinIncome_s_f
 import ..FinancialRevaluations: rFirmRequiredReturn_s
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fq, fv
 import ..IndustrySectors:
@@ -57,6 +58,7 @@ const CorporationsTag = Tag(:Corporations)
   rNonFinCorpEquityAssets2EquityLiabilities[t], "NonFinCorp equity asset ratio: equity assets relative to own equity liabilities."
   rNonFinCorpDebtAssets2Expenses[t], "NonFinCorp debt asset ratio: debt assets relative to total expenses."
   rNonFinCorpDebtLiabilities2Capital[t], "NonFinCorp debt liability ratio relative to the replacement value of capital."
+  mrFirmDebtFinance[t], "Exogenous marginal debt share of new non-financial corporate capital finance."
 end
 
 @variables model :: (CorporationsTag, GrowthAdjusted, InflationAdjusted) begin
@@ -75,6 +77,7 @@ end
 # Assign data
 # ============================================================================
 function assign_data!(db)
+  db[mrFirmDebtFinance] .= 0.5
   db[[vCapitalTaxValue_k_i[k,i,t1-1] for (k,i) in capital_k_i]] .= [
     db[pI_k[k,t1-1]] * db[qK_k_i[k,i,t1-1]]
     for (k,i) in capital_k_i
@@ -172,12 +175,10 @@ function define_equations()
     vCorpDebtTaxDeduction_s[s=[:NonFinCorp], t=t1:T],
     vCorpDebtTaxDeduction_s[s,t] == vFinIncome_s_f[s,:Debt,:Liab,t]
 
-    # Debt receives the corporation tax shield. Equity receives the required return.
-    rWACC[t=t1:T],
-    rWACC[t] * vK_s[:NonFinCorp,t-1]/fv ==
-      (1 - tCorp_s[:NonFinCorp,t]) * vFinIncome_s_f[:NonFinCorp,:Debt,:Liab,t]
-      + rFirmRequiredReturn_s[:NonFinCorp,t] *
-        (vK_s[:NonFinCorp,t-1] - vFinPosition_s_f[:NonFinCorp,:Debt,:Liab,t-1])/fv
+    # Marginal debt receives the corporation tax shield. Marginal equity receives the required return.
+    rWACC[t=t1:T], rWACC[t] ==
+      (1 - tCorp_s[:NonFinCorp,t]) * rFinIncome_s_f[:NonFinCorp,:Debt,:Liab,t] * mrFirmDebtFinance[t]
+      + rFirmRequiredReturn_s[:NonFinCorp,t] * (1 - mrFirmDebtFinance[t])
 
     # A hurdle premium is applied to the investment decisions
     rHurdleRate_i[i=industry, t=t1:T], rHurdleRate_i[i,t] == rWACC[t] + rHurdleRatePremium_i[i,t]
