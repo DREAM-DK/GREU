@@ -6,7 +6,7 @@ module Pricing
 
 using SquareModels
 import ..InputOutput: industry, pY_i, pY_p_i
-import ..IndustrySectors: uIndustrySector_s_i_data
+import ..IndustrySectors: rIndustrySector_s_i_data
 import ..Production: pMarginalCost_i, qFixedCost_i
 import ..Settings: calibration_year
 import ..model
@@ -18,7 +18,7 @@ import ..Tags: ForecastConstant
 # each industry then takes the rest of the gap between price and unit cost.
 const marginal_markup = 0.20
 const mostly_public_industry = sort([
-  i for i in industry if uIndustrySector_s_i_data[:Gov,i,calibration_year] > 0.5
+  i for i in industry if rIndustrySector_s_i_data[:Gov,i,calibration_year] > 0.5
 ])
 
 # ============================================================================

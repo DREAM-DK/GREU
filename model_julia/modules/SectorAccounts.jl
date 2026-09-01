@@ -43,11 +43,6 @@ const vNetFinAssets_data = read_cells(sector_accounts_file, "vNetFinAssets")
 
 const NonFinancialTransactions_data = read_cells(non_financial_transactions_file, "NonFinancialTransactions")
 const NetNonFinancialTransactions_data = read_cells(non_financial_transactions_file, "NetNonFinancialTransactions")
-const vNetPensionSaving_data = Dict(
-  (year,) => value
-  for ((s, d, year), value) in NetNonFinancialTransactions_data
-  if (s, d) == (:Hh, :D8)
-)
 @assert all(
   get(NetNonFinancialTransactions_data, (:Gov, :D91, year), 0.0) ==
     -get(NetNonFinancialTransactions_data, (:Hh, :D91, year), 0.0)
@@ -93,6 +88,8 @@ paid_transaction_cells(code) = Dict(
 # Each mask is named after the indices it holds. Cells outside a mask have no
 # variable and no equation, so a mask change needs a model rebuild.
 
+const transaction_year = sort(unique(year for (_, _, year) in keys(NetNonFinancialTransactions_data)))
+
 """Indices with a non-negligible calibration-year value. The last index is the year."""
 calibration_year_indices(cells) = Set(
   key[1:(end-1)]
@@ -127,7 +124,11 @@ const SectorAccountsTag = Tag(:SectorAccounts)
   # Inputs for sector balances.
   vI_s[s=sector, t=t; s in calibration_year_axis(vI_s_data)], "Gross capital formation by sector (P.5). Households include NPISH."
   vNetTransfers[s=sector, t=t], "Transfer receipts less payments."
-  vCurrentIncomeWealthTaxes[s=sector, t=t], "Current taxes on income, profits, capital gains, and wealth received less paid (D.5)."
+  vtCorp_s[s=[:FinCorp, :NonFinCorp], t=t], "Current income and wealth taxes paid by corporations (D.5)."
+  vtDirect[t], "Current income and wealth taxes received by government (D.5)."
+  vtHhIncome[t], "Current income and wealth taxes paid by households (D.5)."
+  vtCorp[t], "Current income and wealth taxes paid by corporations (D.5)."
+  vtRoWIncome[t], "Net current income and wealth taxes paid by the rest of the world (D.5)."
   vtCap[t], "Capital taxes paid by households and received by government (D.91)."
   vSocialContributions[s=sector, t=t], "Social insurance and pension contributions received less paid, after scheme service charges (D.61)."
   vSocialBenefits[s=sector, t=t], "Cash and other non-kind social benefits received less paid, including pension benefits (D.62)."
@@ -152,10 +153,37 @@ function assign_data!(db)
   fill_cells!(db, vNetFinTransactions, vNetFinTransactions_data)
   fill_cells!(db, vI_s, vI_s_data)
 
-  fill_cells!(db, vCurrentIncomeWealthTaxes, net_transaction_cells(:D5))
+  fill_cells!(db, vtCorp_s, Dict(
+    (s, year) => -value
+    for ((s, year), value) in net_transaction_cells(:D5)
+    if s in (:FinCorp, :NonFinCorp)
+  ))
+  db[vtDirect[transaction_year]] .= [
+    NetNonFinancialTransactions_data[(:Gov, :D5, year)]
+    for year in transaction_year
+  ]
+  db[vtHhIncome[transaction_year]] .= [
+    -NetNonFinancialTransactions_data[(:Hh, :D5, year)]
+    for year in transaction_year
+  ]
+  db[vtCorp[transaction_year]] .= [
+    -sum(NetNonFinancialTransactions_data[(s, :D5, year)] for s in (:FinCorp, :NonFinCorp))
+    for year in transaction_year
+  ]
+  db[vtRoWIncome[transaction_year]] .= [
+    -NetNonFinancialTransactions_data[(:RoW, :D5, year)]
+    for year in transaction_year
+  ]
+  db[vtCap[transaction_year]] .= [
+    NetNonFinancialTransactions_data[(:Gov, :D91, year)]
+    for year in transaction_year
+  ]
   fill_cells!(db, vSocialContributions, net_transaction_cells(:D61))
   fill_cells!(db, vSocialBenefits, net_transaction_cells(:D62))
-  fill_cells!(db, vNetPensionSaving, vNetPensionSaving_data)
+  db[vNetPensionSaving[transaction_year]] .= [
+    NetNonFinancialTransactions_data[(:Hh, :D8, year)]
+    for year in transaction_year
+  ]
   fill_cells!(db, vOtherTransfers, other_transfer_cells())
   fill_cells!(db, vNonProducedAssetAcquisitions, paid_transaction_cells(:NP))
   db[vConsumptionFixedCapital_s[:RoW,:]] .= 0.0
@@ -191,21 +219,25 @@ function define_equations()
   return @block model begin
     # Sector transfer accounts.
     vNetTransfers[s=[:Hh], t=t1:T],
-    vNetTransfers[s,t] == vCurrentIncomeWealthTaxes[s,t] - vtCap[t]
+    vNetTransfers[s,t] == -vtHhIncome[t] - vtCap[t]
                            + vSocialContributions[s,t] + vSocialBenefits[s,t] + vNetPensionSaving[t]
                            + vOtherTransfers[s,t]
 
     vNetTransfers[s=[:Gov], t=t1:T],
-    vNetTransfers[s,t] == vCurrentIncomeWealthTaxes[s,t] + vtCap[t]
+    vNetTransfers[s,t] == vtDirect[t] + vtCap[t]
                            + vSocialContributions[s,t] + vSocialBenefits[s,t] + vOtherTransfers[s,t]
 
     vNetTransfers[s=[:FinCorp], t=t1:T],
-    vNetTransfers[s,t] == vCurrentIncomeWealthTaxes[s,t]
+    vNetTransfers[s,t] == -vtCorp_s[s,t]
                            + vSocialContributions[s,t] + vSocialBenefits[s,t] - vNetPensionSaving[t]
                            + vOtherTransfers[s,t]
 
-    vNetTransfers[s=[:NonFinCorp, :RoW], t=t1:T],
-    vNetTransfers[s,t] == vCurrentIncomeWealthTaxes[s,t]
+    vNetTransfers[s=[:NonFinCorp], t=t1:T],
+    vNetTransfers[s,t] == -vtCorp_s[s,t]
+                           + vSocialContributions[s,t] + vSocialBenefits[s,t] + vOtherTransfers[s,t]
+
+    vNetTransfers[s=[:RoW], t=t1:T],
+    vNetTransfers[s,t] == -vtRoWIncome[t]
                            + vSocialContributions[s,t] + vSocialBenefits[s,t] + vOtherTransfers[s,t]
 
     # --- Stock changes equal transactions, revaluations, and other volume changes. ---

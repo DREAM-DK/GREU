@@ -422,8 +422,8 @@ function write_input_output_data!(data, dir = input_output_data_dir)
   CSV.write(
     joinpath(dir, "input_output_net_product_tax.csv"),
     vcat(
-      long_format(:vNetProductTax_p_u, data.net_product_taxes, [:product, :use, :year]),
-      long_format(:vNetProductTax_u, net_product_tax_u, [:use, :year]),
+      long_format(:vntProduct_p_u, data.net_product_taxes, [:product, :use, :year]),
+      long_format(:vntProduct_u, net_product_tax_u, [:use, :year]),
     ),
   )
   CSV.write(

@@ -7,23 +7,23 @@ module GovernmentRevenue
 using SquareModels
 import ..FixedBasePriceAggregates: vGVA
 import ..Government:
-  vGovCapRev,
+  vGovCapTransfer,
   vGovOthCurrentTransRev,
-  vGovOthSubRev,
   vGovPrimaryRevenue,
   vGovPrimaryRevOther,
   vGovSalesRev,
-  vGovSocialContRev,
   vSocTransKind
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
-import ..IndustrySectors: vY_s
+import ..IndustrySectors: vsProduction_s, vY_s
 import ..InputOutput: vG
 import ..model
 import ..SectorAccounts:
   sector,
+  vtCap,
+  vtDirect,
   vFinIncome_s_f,
   vSocialContributions
-import ..Taxes: vtCap, vtDirect, vtIndirect
+import ..Taxes: vtIndirect
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
 
@@ -33,9 +33,8 @@ import ..Tags: ForecastConstant
 const GovernmentRevenueTag = Tag(:GovernmentRevenue)
 
 @variables model :: (GovernmentRevenueTag, ForecastConstant) begin
-  rGovOthSubRev2GVA[t], "Other government subsidy revenue relative to GVA."
   rGovOthCurrentTransRev2GVA[t], "Other government current-transfer revenue relative to GVA."
-  rGovCapRev2GVA[t], "Government capital-transfer revenue relative to GVA."
+  rGovCapTransfer2GVA[t], "Government capital-transfer revenue relative to GVA."
 end
 
 # ============================================================================
@@ -62,25 +61,23 @@ function define_equations()
 
     vGovPrimaryRevOther[t=t1:T],
     vGovPrimaryRevOther[t] == vGovSalesRev[t]
-                              + vGovOthSubRev[t]
+                              + vsProduction_s[:Gov,t]
                               + vFinIncome_s_f[:Gov,:Equity,:Assets,t]
-                              + vGovSocialContRev[t]
+                              + vSocialContributions[:Gov,t]
                               + vGovOthCurrentTransRev[t]
                               + vtCap[t]
-                              + vGovCapRev[t]
+                              + vGovCapTransfer[t]
 
     # Public production revenue. Input-output demand determines output.
     vGovSalesRev[t=t1:T],
-    vGovSalesRev[t] == vY_s[:Gov,t] - vGovOthSubRev[t] + vSocTransKind[t] - vG[t]
+    vGovSalesRev[t] == vY_s[:Gov,t] + vSocTransKind[t] - vG[t]
 
     # Non-tax revenue without a detailed rule follows whole-economy GVA.
-    vGovOthSubRev[t=t1:T], vGovOthSubRev[t] == rGovOthSubRev2GVA[t] * vGVA[t]
     vGovOthCurrentTransRev[t=t1:T],
     vGovOthCurrentTransRev[t] == rGovOthCurrentTransRev2GVA[t] * vGVA[t]
-    vGovCapRev[t=t1:T], vGovCapRev[t] == rGovCapRev2GVA[t] * vGVA[t]
+    vGovCapTransfer[t=t1:T], vGovCapTransfer[t] == rGovCapTransfer2GVA[t] * vGVA[t]
 
-    # Social contributions use the government source flow and a household counterpart.
-    vSocialContributions[s=[:Gov], t=t1:T], vSocialContributions[s,t] == vGovSocialContRev[t]
+    # Social contributions use the sector-account government flow and a household counterpart.
     vSocialContributions[s=[:Hh], t=t1:T],
     ∑(vSocialContributions[s2,t] for s2 in sector) == 0
   end
@@ -93,9 +90,8 @@ function define_calibration()
   block = define_equations()
 
   @endo_exo_swap! block begin
-    rGovOthSubRev2GVA[t1], vGovOthSubRev[t1]
     rGovOthCurrentTransRev2GVA[t1], vGovOthCurrentTransRev[t1]
-    rGovCapRev2GVA[t1], vGovCapRev[t1]
+    rGovCapTransfer2GVA[t1], vGovCapTransfer[t1]
   end
 
   return block

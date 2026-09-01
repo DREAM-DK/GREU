@@ -11,6 +11,7 @@ import GREU:
   assign_data!,
   base_model
 import GREU.Log: @log_time
+import GREU.GrowthInflationAdjustment: adjust_growth_inflation!
 import GREU.Calibration:
   residual_tolerances,
   set_starting_values!,
@@ -23,6 +24,7 @@ import GREU.Calibration:
 import GREU.Tags: DynamicCalibration
 
 data = assign_data!(ModelDictionary(model))
+@log_time adjust_growth_inflation!(data)
 
 # ============================================================================
 # Model modules

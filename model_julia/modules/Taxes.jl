@@ -1,6 +1,6 @@
 # Set direct, capital, product, and production tax rules.
-# Map production tax and subsidy classes to factor inputs.
-# Keep classes with no factor link at the top of the production tree.
+# Read prepared gross tax and subsidy flows.
+# Keep data construction in TaxesData.jl.
 include("TaxesSettings.jl")
 
 module Taxes
@@ -9,24 +9,29 @@ using SquareModels
 import ..Capital:
   capital_k_i,
   qK_k_i,
-  qK_k_i_data,
-  tK_k_i
+  ntK_k_i
 import ..DataUtils: fill_cells!, read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fq
-import ..InputOutput: industry, use, vNetProductTax_u, vY
+import ..InputOutput:
+  industry,
+  ordinary_uses,
+  product,
+  product_tax_p_u,
+  qPurchaserUse_p_u,
+  ntProduct,
+  use
 import ..Intermediates:
   intermediate_m_i,
   qM_m_i,
-  qM_m_i_data,
-  tM_m_i
+  ntM_m_i
 import ..Labor:
   labor_l_i,
   qL_l_i,
-  qL_l_i_data,
-  tL_l_i,
-  vHhWages
+  ntL_l_i,
+  vHhWages,
+  vRoWNetWages
 import ..Production:
-  vtProductionOther_i
+  vntProductionOther_i
 import ..ProductionSettings:
   capital_type,
   intermediate_type,
@@ -37,37 +42,43 @@ import ..TaxesSettings:
   production_tax_input_map
 import ..model
 import ..SectorAccounts:
-  NetNonFinancialTransactions_data,
   fin_instrument,
-  sector,
+  vtCorp,
+  vtDirect,
+  vtHhIncome,
+  vtRoWIncome,
   vtCap,
-  vCurrentIncomeWealthTaxes,
+  vtCorp_s,
   vFinPosition_s_f,
   vGrossOpSurplusMixedIncome
 import ..Time: t, t1, T
-import ..Tags: ForecastConstant
+import ..Tags: ForecastConstant, ForecastZero
 
 # ============================================================================
 # Read data
 # ============================================================================
 const production_gva_file = joinpath(production_data_dir, "production_gva.csv")
 const production_taxes_file = joinpath(production_data_dir, "production_taxes.csv")
+const product_taxes_file = joinpath(production_data_dir, "product_taxes.csv")
 
-const vProductionTax_c_i_data = read_cells(production_taxes_file, "vProductionTax_c_i")
-const vProductionSubsidy_c_i_data = read_cells(production_taxes_file, "vProductionSubsidy_c_i")
-const vProductionSubsidy_c_data = read_cells(production_taxes_file, "vProductionSubsidy_c")
-const vProductionTax_data = read_cells(production_taxes_file, "vProductionTax")
-const vtProduction_i_data = read_cells(production_gva_file, "vProductionTax_i")
-const vtRoWProduct_data = Dict(
-  (year,) => value
-  for ((s, d, year), value) in NetNonFinancialTransactions_data
-  if (s, d) == (:RoW, :D2)
-)
-const vRoWProductionSubsidy_data = Dict(
-  (year,) => -value
-  for ((s, d, year), value) in NetNonFinancialTransactions_data
-  if (s, d) == (:RoW, :D3)
-)
+const vtProduction_c_i_data = read_cells(production_taxes_file, "vtProduction_c_i")
+const vsProduction_c_i_data = read_cells(production_taxes_file, "vsProduction_c_i")
+const vsProduction_c_data = read_cells(production_taxes_file, "vsProduction_c")
+const vtProduction_data = read_cells(production_taxes_file, "vtProduction")
+const vntK_k_i_data = read_cells(production_taxes_file, "vntK_k_i")
+const vntL_l_i_data = read_cells(production_taxes_file, "vntL_l_i")
+const vntM_m_i_data = read_cells(production_taxes_file, "vntM_m_i")
+const vntProductionOther_i_data = read_cells(production_taxes_file, "vntProductionOther_i")
+const vntProduction_i_data = read_cells(production_gva_file, "vntProduction_i")
+const vtProduct_p_u_data = read_cells(product_taxes_file, "vtProduct_p_u")
+const vsProduct_p_u_data = read_cells(product_taxes_file, "vsProduct_p_u")
+const vntProduct_p_u_data = read_cells(product_taxes_file, "vntProduct_p_u")
+const vntProduct_u_data = read_cells(product_taxes_file, "vntProduct_u")
+const vtProduct_data = read_cells(product_taxes_file, "vtProduct")
+const vsProduct_data = read_cells(product_taxes_file, "vsProduct")
+const vtRoWProduct_data = read_cells(product_taxes_file, "vtRoWProduct")
+const vsRoWProduct_data = read_cells(product_taxes_file, "vsRoWProduct")
+const vsRoWProduction_data = read_cells(product_taxes_file, "vsRoWProduction")
 
 # ============================================================================
 # Indices
@@ -75,86 +86,20 @@ const vRoWProductionSubsidy_data = Dict(
 const production_tax_class = sort(collect(keys(production_tax_input_map)))
 const production_subsidy_class = sort(collect(keys(production_subsidy_input_map)))
 const corporation_sector = [:FinCorp, :NonFinCorp]
-const matrix_year = sort(unique(year for (_, _, year) in keys(vProductionTax_c_i_data)))
 
 @assert(
-  Set(first(key) for key in keys(vProductionTax_c_i_data)) == Set(production_tax_class),
+  Set(first(key) for key in keys(vtProduction_c_i_data)) == Set(production_tax_class),
   "Tax matrix and settings must use the same classes",
 )
 @assert(
-  Set(first(key) for key in keys(vProductionSubsidy_c_i_data)) == Set(production_subsidy_class),
+  Set(first(key) for key in keys(vsProduction_c_i_data)) == Set(production_subsidy_class),
   "Subsidy matrix and settings must use the same classes",
 )
-@assert all(>=(0), values(vProductionTax_c_i_data)) "Production tax matrix values must be nonnegative"
-@assert all(>=(0), values(vProductionSubsidy_c_i_data)) "Production subsidy matrix values must be nonnegative"
+@assert all(>=(0), values(vtProduction_c_i_data)) "Production tax matrix values must be nonnegative"
+@assert all(>=(0), values(vsProduction_c_i_data)) "Production subsidy matrix values must be nonnegative"
 @assert all(>=(0), values(vtRoWProduct_data)) "RoW production and import tax receipts must be nonnegative"
-@assert all(>=(0), values(vRoWProductionSubsidy_data)) "RoW production subsidy payments must be nonnegative"
-@assert all(
-  count(!isempty(intersect(targets, inputs)) for inputs in (capital_type, labor_type, intermediate_type)) <= 1
-  for targets in Iterators.flatten((values(production_tax_input_map), values(production_subsidy_input_map)))
-) "A tax or subsidy class cannot span factor modules with different units"
-
-function mapped_targets(mapping, class, factor_cells, factor_data, i, year)
-  return [
-    n
-    for n in mapping[class]
-    if (n, i) in factor_cells && get(factor_data, (n, i, year), 0.0) > 0
-  ]
-end
-
-function mapped_value(cells, mapping, factor_cells, factor_data, n, i, year)
-  return sum(
-    get(cells, (class, i, year), 0.0) *
-      factor_data[(n, i, year)] /
-      sum(
-        factor_data[(target, i, year)]
-        for target in mapped_targets(mapping, class, factor_cells, factor_data, i, year)
-      )
-    for class in keys(mapping)
-    if n in mapped_targets(mapping, class, factor_cells, factor_data, i, year)
-    ; init=0.0
-  )
-end
-
-function has_mapped_target(mapping, class, i, year)
-  return !isempty(mapped_targets(mapping, class, capital_k_i, qK_k_i_data, i, year)) ||
-    !isempty(mapped_targets(mapping, class, labor_l_i, qL_l_i_data, i, year)) ||
-    !isempty(mapped_targets(mapping, class, intermediate_m_i, qM_m_i_data, i, year))
-end
-
-function unmapped_value(cells, mapping, i, year)
-  return sum(
-    get(cells, (class, i, year), 0.0)
-    for class in keys(mapping)
-    if !has_mapped_target(mapping, class, i, year)
-    ; init=0.0
-  )
-end
-
-const vtK_k_i_data = Dict(
-  (k, i, year) =>
-    mapped_value(vProductionTax_c_i_data, production_tax_input_map, capital_k_i, qK_k_i_data, k, i, year) -
-    mapped_value(vProductionSubsidy_c_i_data, production_subsidy_input_map, capital_k_i, qK_k_i_data, k, i, year)
-  for (k, i) in capital_k_i, year in matrix_year
-)
-const vtL_l_i_data = Dict(
-  (l, i, year) =>
-    mapped_value(vProductionTax_c_i_data, production_tax_input_map, labor_l_i, qL_l_i_data, l, i, year) -
-    mapped_value(vProductionSubsidy_c_i_data, production_subsidy_input_map, labor_l_i, qL_l_i_data, l, i, year)
-  for (l, i) in labor_l_i, year in matrix_year
-)
-const vtM_m_i_data = Dict(
-  (m, i, year) =>
-    mapped_value(vProductionTax_c_i_data, production_tax_input_map, intermediate_m_i, qM_m_i_data, m, i, year) -
-    mapped_value(vProductionSubsidy_c_i_data, production_subsidy_input_map, intermediate_m_i, qM_m_i_data, m, i, year)
-  for (m, i) in intermediate_m_i, year in matrix_year
-)
-const vtProductionOther_i_data = Dict(
-  (i, year) =>
-    unmapped_value(vProductionTax_c_i_data, production_tax_input_map, i, year) -
-    unmapped_value(vProductionSubsidy_c_i_data, production_subsidy_input_map, i, year)
-  for i in industry, year in matrix_year
-)
+@assert all(>=(0), values(vsRoWProduct_data)) "RoW product subsidy payments must be nonnegative"
+@assert all(>=(0), values(vsRoWProduction_data)) "RoW production subsidy payments must be nonnegative"
 
 # ============================================================================
 # Variables
@@ -163,68 +108,79 @@ const TaxesTag = Tag(:Taxes)
 
 @variables model :: (TaxesTag, ForecastConstant) begin
   tHhIncome[t], "Average and marginal household income tax rate."
-  tCorp[t], "Average and marginal corporation tax rate."
+  tCorp_s[s=corporation_sector, t=t], "Average and marginal corporation tax rate by payer sector."
+  tRoWIncome[t], "Average rest-of-world income tax rate on net wages."
   tCap[t], "Average and marginal capital tax rate on household financial assets."
-  tProductSubsidy[t], "Average and marginal product subsidy rate on output."
+  tProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Gross product tax per unit of purchaser use."
+  tsProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Gross product subsidy per unit."
   uRoWProductTaxRecipient[t], "Share of gross product taxes received by RoW."
+  uRoWProductSubsidyPayer[t], "Share of product subsidies paid by RoW."
   uRoWProductionSubsidyPayer[t], "Share of production subsidies paid by RoW."
 end
 
 @variables model :: (TaxesTag, GrowthAdjusted, InflationAdjusted, ForecastConstant) begin
-  vProductionTax_c_i[c=production_tax_class, i=industry, t=t], "Production tax by class and industry."
-  vProductionSubsidy_c_i[c=production_subsidy_class, i=industry, t=t], "Production subsidy by class and industry."
+  vtProduction_c_i[c=production_tax_class, i=industry, t=t], "Production tax by class and industry."
+  vsProduction_c_i[c=production_subsidy_class, i=industry, t=t], "Production subsidy by class and industry."
 end
 
 @variables model :: (TaxesTag, GrowthAdjusted, InflationAdjusted) begin
-  vtDirect[t], "Revenue from current taxes on income and wealth (D.5)."
-  vtHhIncome[t], "Current income and wealth taxes paid by households."
-  vtCorp[t], "Current income and wealth taxes paid by corporations."
-  vProductSubsidy[t], "Subsidies on products (D.31)."
-  vProductionSubsidy[t], "Subsidies on production implied by gross taxes and net factor-tax payments (D.39)."
+  vCorpIncomeBeforeTax_s[s=corporation_sector, t=t], "Corporation income before tax."
+  vCorpCapitalTaxDeduction_s[s=corporation_sector, t=t] :: ForecastZero, "Capital tax depreciation deduction."
+  vCorpDebtTaxDeduction_s[s=corporation_sector, t=t] :: ForecastZero, "Debt return deducted from taxable income."
+  vtProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Gross taxes on products by product and use (D.21)."
+  vsProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Product subsidies by product and use (D.31)."
+  vntProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Net product taxes by product and use."
+  vntProduct_u[u=use, t=t], "Net taxes on products by use (D.21 less D.31)."
+  vtProduct[t], "Gross taxes on products (D.21)."
+  vsProduct[t], "Subsidies on products (D.31)."
+  vsProduction[t], "Subsidies on production implied by gross taxes and net factor-tax payments (D.39)."
   vtRoWProduct[t], "Taxes on products received by the rest of the world."
-  vRoWProductionSubsidy[t], "Subsidies on production paid by the rest of the world."
-  vGovProductionSubsidy[t], "Subsidies on production paid by government."
-  vGovProductTax[t], "Government taxes on products (D.21)."
-  vGovOthProductionTax[t], "Government other taxes on production (D.29)."
-  vGovSub[t], "Government subsidies on products and production (D.3)."
+  vsRoWProduct[t], "Subsidies on products paid by the rest of the world."
+  vsRoWProduction[t], "Subsidies on production paid by the rest of the world."
   vtIndirect[t], "Government taxes on production and imports (D.2)."
 
-  vProductionSubsidy_c[c=production_subsidy_class, t=t], "Production subsidy by class."
-  vProductionTax[t=t], "Production taxes paid by resident producers."
-  vtK_k_i[(k,i,t)=tK_k_i], "Production tax less subsidy on capital stock."
-  vtL_l_i[(l,i,t)=tL_l_i], "Production tax less subsidy on labor."
-  vtM_m_i[(m,i,t)=tM_m_i], "Production tax less subsidy on intermediate inputs."
-  vtProduction_i[i=industry, t=t], "Other production taxes less subsidies by industry."
+  vsProduction_c[c=production_subsidy_class, t=t], "Production subsidy by class."
+  vtProduction[t=t], "Production taxes paid by resident producers."
+  vntK_k_i[(k,i,t)=ntK_k_i], "Production tax less subsidy on capital stock."
+  vntL_l_i[(l,i,t)=ntL_l_i], "Production tax less subsidy on labor."
+  vntM_m_i[(m,i,t)=ntM_m_i], "Production tax less subsidy on intermediate inputs."
+  vntProduction_i[i=industry, t=t], "Other production taxes less subsidies by industry."
 end
 
 # ============================================================================
 # Assign data
 # ============================================================================
 function assign_data!(db)
-  fill_cells!(db, vProductionTax_c_i, vProductionTax_c_i_data)
-  fill_cells!(db, vProductionSubsidy_c_i, vProductionSubsidy_c_i_data)
-  fill_cells!(db, vProductionSubsidy_c, vProductionSubsidy_c_data)
-  fill_cells!(db, vProductionTax, vProductionTax_data)
-  fill_cells!(db, vtK_k_i, vtK_k_i_data)
-  fill_cells!(db, vtL_l_i, vtL_l_i_data)
-  fill_cells!(db, vtM_m_i, vtM_m_i_data)
-  fill_cells!(db, vtProductionOther_i, vtProductionOther_i_data)
-  fill_cells!(db, vtProduction_i, vtProduction_i_data)
+  fill_cells!(db, vtProduct_p_u, vtProduct_p_u_data)
+  fill_cells!(db, vsProduct_p_u, vsProduct_p_u_data)
+  fill_cells!(db, vntProduct_p_u, vntProduct_p_u_data)
+  fill_cells!(db, vntProduct_u, vntProduct_u_data)
+  fill_cells!(db, vtProduct, vtProduct_data)
+  fill_cells!(db, vsProduct, vsProduct_data)
+  fill_cells!(db, vtProduction_c_i, vtProduction_c_i_data)
+  fill_cells!(db, vsProduction_c_i, vsProduction_c_i_data)
+  fill_cells!(db, vsProduction_c, vsProduction_c_data)
+  fill_cells!(db, vtProduction, vtProduction_data)
+  fill_cells!(db, vntK_k_i, vntK_k_i_data)
+  fill_cells!(db, vntL_l_i, vntL_l_i_data)
+  fill_cells!(db, vntM_m_i, vntM_m_i_data)
+  fill_cells!(db, vntProductionOther_i, vntProductionOther_i_data)
+  fill_cells!(db, vntProduction_i, vntProduction_i_data)
   fill_cells!(db, vtRoWProduct, vtRoWProduct_data)
-  fill_cells!(db, vRoWProductionSubsidy, vRoWProductionSubsidy_data)
+  fill_cells!(db, vsRoWProduct, vsRoWProduct_data)
+  fill_cells!(db, vsRoWProduction, vsRoWProduction_data)
   return nothing
 end
 
 function set_residual_tolerances!(tolerances)
   # Sector accounts report whole EUR millions. Tax classes and industries use decimals.
-  tolerances[vProductionTax] = 1.2
-  tolerances[vProductionSubsidy_c] = 1.2
-  # Direct D.5 also includes taxes outside the named household and corporation lines.
-  tolerances[vtDirect] = 3500.0
-  tolerances[vCurrentIncomeWealthTaxes] = 2200.0
+  tolerances[vtProduction] = 1.2
+  tolerances[vsProduction_c] = 1.2
+  tolerances[vntProduct_u] = 0.15
   # Government, sector-account, and production sources use different precision.
-  tolerances[vGovProductTax] = 1.2
-  tolerances[vGovOthProductionTax] = 1.2
+  tolerances[vtProduct] = 1.2
+  tolerances[vsProduct] = 1.2
+  tolerances[vtIndirect] = 1.2
   return nothing
 end
 
@@ -237,73 +193,74 @@ function define_equations()
     vtHhIncome[t=t1:T],
     vtHhIncome[t] == tHhIncome[t] * (vHhWages[t] + vGrossOpSurplusMixedIncome[:Hh,t])
 
-    vCurrentIncomeWealthTaxes[s=[:Hh], t=t1:T], vCurrentIncomeWealthTaxes[s,t] == -vtHhIncome[t]
-    vCurrentIncomeWealthTaxes[s=corporation_sector, t=t1:T],
-    vCurrentIncomeWealthTaxes[s,t] == -tCorp[t] * vGrossOpSurplusMixedIncome[s,t]
-    vCurrentIncomeWealthTaxes[s=[:RoW], t=t1:T], vCurrentIncomeWealthTaxes[s,t] == 0
+    vCorpIncomeBeforeTax_s[s=corporation_sector, t=t1:T],
+    vCorpIncomeBeforeTax_s[s,t] == vGrossOpSurplusMixedIncome[s,t]
+      - vCorpCapitalTaxDeduction_s[s,t]
+      - vCorpDebtTaxDeduction_s[s,t]
 
+    vtCorp_s[s=corporation_sector, t=t1:T], vtCorp_s[s,t] == tCorp_s[s,t] * vCorpIncomeBeforeTax_s[s,t]
+
+    vtCorp[t=t1:T], vtCorp[t] == ∑(vtCorp_s[s,t] for s in corporation_sector)
+    @test_constraint("Corporation taxes sum over payer sectors"; atol=1e-6, rtol=1e-8)
     vtCorp[t=t1:T],
-    vtCorp[t] == tCorp[t] * ∑(vGrossOpSurplusMixedIncome[s,t] for s in corporation_sector)
-    # Government and sector-account corporation tax sources differ by EUR 20.4 million.
-    @test_constraint("Corporation taxes sum over payer sectors"; atol=21.0, rtol=1e-8)
-    vtCorp[t=t1:T], vtCorp[t] == -∑(vCurrentIncomeWealthTaxes[s,t] for s in corporation_sector)
-    vtDirect[t=t1:T], vtDirect[t] == vtHhIncome[t] + vtCorp[t]
-    vCurrentIncomeWealthTaxes[s=[:Gov], t=t1:T], vCurrentIncomeWealthTaxes[s,t] == vtDirect[t]
-
-    @test_constraint("Current income and wealth taxes clear"; atol=1e-6, rtol=1e-8)
-    vCurrentIncomeWealthTaxes[s=[:Gov], t=t1:T],
-    ∑(vCurrentIncomeWealthTaxes[s2,t] for s2 in sector) == 0
+    vtCorp[t] == ∑(tCorp_s[s,t] * vCorpIncomeBeforeTax_s[s,t] for s in corporation_sector)
+    vtRoWIncome[t=t1:T], vtRoWIncome[t] == tRoWIncome[t] * vRoWNetWages[t]
+    vtDirect[t=t1:T], vtDirect[t] == vtHhIncome[t] + vtCorp[t] + vtRoWIncome[t]
 
     # Capital-transfer taxes. Household financial assets provide the simple base.
     vtCap[t=t1:T],
     vtCap[t] == tCap[t] * ∑(vFinPosition_s_f[:Hh,f,:Assets,t] for f in fin_instrument)
 
+    # Product taxes and subsidies. Gross rates yield the observed net rate.
+    vtProduct_p_u[p=product, u=use, t=t1:T],
+    vtProduct_p_u[p,u,t] == tProduct_p_u[p,u,t] * qPurchaserUse_p_u[p,u,t]
+    vsProduct_p_u[p=product, u=use, t=t1:T],
+    vsProduct_p_u[p,u,t] == tsProduct_p_u[p,u,t] * qPurchaserUse_p_u[p,u,t]
+    vntProduct_p_u[p=product, u=ordinary_uses, t=t1:T],
+    vntProduct_p_u[p,u,t] == vtProduct_p_u[p,u,t] - vsProduct_p_u[p,u,t]
+    ntProduct[p=product, u=use, t=t1:T],
+    ntProduct[p,u,t] * qPurchaserUse_p_u[p,u,t] == vntProduct_p_u[p,u,t]
+
+    vntProduct_u[u=use, t=t1:T],
+    vntProduct_u[u,t] == ∑(vntProduct_p_u[p,u,t] for p in product)
+    vtProduct[t=t1:T], vtProduct[t] == ∑(vtProduct_p_u[p,u,t] for (p,u) in product_tax_p_u)
+    vsProduct[t=t1:T],
+    vsProduct[t] == ∑(vsProduct_p_u[p,u,t] for (p,u) in product_tax_p_u)
+    vtRoWProduct[t=t1:T], vtRoWProduct[t] == uRoWProductTaxRecipient[t] * vtProduct[t]
+    vsRoWProduct[t=t1:T],
+    vsRoWProduct[t] == uRoWProductSubsidyPayer[t] * vsProduct[t]
+
     # Production taxes and subsidies.
-    vProductionSubsidy[t=t1:T],
-    vProductionSubsidy[t] == vProductionTax[t] - ∑(vtProduction_i[i,t] for i in industry)
-    vRoWProductionSubsidy[t=t1:T],
-    vRoWProductionSubsidy[t] == uRoWProductionSubsidyPayer[t] * vProductionSubsidy[t]
-    vGovProductionSubsidy[t=t1:T],
-    vGovProductionSubsidy[t] == vProductionSubsidy[t] - vRoWProductionSubsidy[t]
-
-    # Product taxes and subsidies.
-    vProductSubsidy[t=t1:T], vProductSubsidy[t] == tProductSubsidy[t] * vY[t]
-    vtRoWProduct[t=t1:T],
-    vtRoWProduct[t] ==
-      uRoWProductTaxRecipient[t] * (∑(vNetProductTax_u[u,t] for u in use) + vProductSubsidy[t])
-
-    # Government tax and subsidy totals.
-    vGovSub[t=t1:T],
-    vGovSub[t] == vProductSubsidy[t] + vGovProductionSubsidy[t]
-    vGovProductTax[t=t1:T],
-    vGovProductTax[t] ==
-      ∑(vNetProductTax_u[u,t] for u in use) + vProductSubsidy[t] - vtRoWProduct[t]
-    vGovOthProductionTax[t=t1:T], vGovOthProductionTax[t] == vProductionTax[t]
-    vtIndirect[t=t1:T], vtIndirect[t] == vGovProductTax[t] + vGovOthProductionTax[t]
+    vsProduction[t=t1:T],
+    vsProduction[t] == vtProduction[t] - ∑(vntProduction_i[i,t] for i in industry)
+    vsRoWProduction[t=t1:T],
+    vsRoWProduction[t] == uRoWProductionSubsidyPayer[t] * vsProduction[t]
+    # Government indirect tax revenue is the government share of D.21 plus resident D.29.
+    vtIndirect[t=t1:T], vtIndirect[t] == vtProduct[t] - vtRoWProduct[t] + vtProduction[t]
 
     # Production tax and subsidy inputs.
-    vProductionSubsidy_c[c=production_subsidy_class, t=t1:T],
-    vProductionSubsidy_c[c,t] == ∑(vProductionSubsidy_c_i[c,i,t] for i in industry)
+    vsProduction_c[c=production_subsidy_class, t=t1:T],
+    vsProduction_c[c,t] == ∑(vsProduction_c_i[c,i,t] for i in industry)
 
     @test_constraint("Production subsidies sum over classes"; atol=1.2, rtol=1e-8)
-    vProductionSubsidy[t=[t1]],
-    vProductionSubsidy[t] == ∑(vProductionSubsidy_c[c,t] for c in production_subsidy_class)
+    vsProduction[t=[t1]],
+    vsProduction[t] == ∑(vsProduction_c[c,t] for c in production_subsidy_class)
 
-    vProductionTax[t=t1:T],
-    vProductionTax[t] == ∑(vProductionTax_c_i[c,i,t] for c in production_tax_class, i in industry)
+    vtProduction[t=t1:T],
+    vtProduction[t] == ∑(vtProduction_c_i[c,i,t] for c in production_tax_class, i in industry)
 
-    vtK_k_i[k=capital_type, i=industry, t=t1:T],
-    vtK_k_i[k,i,t] == tK_k_i[k,i,t] * qK_k_i[k,i,t-1]/fq
+    vntK_k_i[k=capital_type, i=industry, t=t1:T],
+    vntK_k_i[k,i,t] == ntK_k_i[k,i,t] * qK_k_i[k,i,t-1]/fq
 
-    vtL_l_i[l=labor_type, i=industry, t=t1:T], vtL_l_i[l,i,t] == tL_l_i[l,i,t] * qL_l_i[l,i,t]
+    vntL_l_i[l=labor_type, i=industry, t=t1:T], vntL_l_i[l,i,t] == ntL_l_i[l,i,t] * qL_l_i[l,i,t]
 
-    vtM_m_i[m=intermediate_type, i=industry, t=t1:T], vtM_m_i[m,i,t] == tM_m_i[m,i,t] * qM_m_i[m,i,t]
+    vntM_m_i[m=intermediate_type, i=industry, t=t1:T], vntM_m_i[m,i,t] == ntM_m_i[m,i,t] * qM_m_i[m,i,t]
 
-    vtProduction_i[i=industry, t=t1:T],
-    vtProduction_i[i,t] == vtProductionOther_i[i,t]
-      + ∑(vtK_k_i[k,i,t] for k in capital_type)
-      + ∑(vtL_l_i[l,i,t] for l in labor_type)
-      + ∑(vtM_m_i[m,i,t] for m in intermediate_type)
+    vntProduction_i[i=industry, t=t1:T],
+    vntProduction_i[i,t] == vntProductionOther_i[i,t]
+      + ∑(vntK_k_i[k,i,t] for k in capital_type)
+      + ∑(vntL_l_i[l,i,t] for l in labor_type)
+      + ∑(vntM_m_i[m,i,t] for m in intermediate_type)
   end
 end
 
@@ -315,15 +272,18 @@ function define_calibration()
 
   @endo_exo_swap! block begin
     tHhIncome[t1], vtHhIncome[t1]
-    tCorp[t1], vtCorp[t1]
+    tCorp_s[:,t1], vtCorp_s[:,t1]
+    tRoWIncome[t1], vtRoWIncome[t1]
     tCap[t1], vtCap[t1]
-    tProductSubsidy[t1], vGovSub[t1]
+    tProduct_p_u[:,:,t1], vtProduct_p_u[:,:,t1]
+    tsProduct_p_u[:,:,t1], vsProduct_p_u[:,:,t1]
     uRoWProductTaxRecipient[t1], vtRoWProduct[t1]
-    uRoWProductionSubsidyPayer[t1], vRoWProductionSubsidy[t1]
+    uRoWProductSubsidyPayer[t1], vsRoWProduct[t1]
+    uRoWProductionSubsidyPayer[t1], vsRoWProduction[t1]
 
-    tK_k_i[:,:,t1], vtK_k_i[:,:,t1]
-    tL_l_i[:,:,t1], vtL_l_i[:,:,t1]
-    tM_m_i[:,:,t1], vtM_m_i[:,:,t1]
+    ntK_k_i[:,:,t1], vntK_k_i[:,:,t1]
+    ntL_l_i[:,:,t1], vntL_l_i[:,:,t1]
+    ntM_m_i[:,:,t1], vntM_m_i[:,:,t1]
   end
 
   return block

@@ -49,7 +49,7 @@ end
 end
 
 @variables model :: (ProductionTag, GrowthAdjusted, InflationAdjusted) begin
-  vtProductionOther_i[i=industry, t=t] :: ForecastConstant, "Net production taxes not assigned to a factor input."
+  vntProductionOther_i[i=industry, t=t] :: ForecastConstant, "Net production taxes not assigned to a factor input."
 end
 
 @variables model :: ProductionTag begin
@@ -87,7 +87,7 @@ function define_equations()
 
     pMarginalCost_i[i=industry, t=t1:T],
     pMarginalCost_i[i,t] * qY_i[i,t] ==
-      pProd[topNest[i],i,t] * qTop2qY[i,t] * qY_i[i,t] + vtProductionOther_i[i,t]
+      pProd[topNest[i],i,t] * qTop2qY[i,t] * qY_i[i,t] + vntProductionOther_i[i,t]
   end
 end
 

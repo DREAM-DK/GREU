@@ -41,18 +41,18 @@ const labor_l_i = Set(
 const LaborTag = Tag(:Labor)
 
 @variables model :: (LaborTag, GrowthAdjusted) begin
-  qL_l_i[l=labor_type, i=industry, t=t; (l,i) in labor_l_i], "Labor in efficiency units by type and industry."
+  qL_l_i[l=labor_type, i=industry, t=t; (l,i) in labor_l_i], "Employees by type and industry."
 end
 
 @variables model :: (LaborTag, InflationAdjusted) begin
-  pW[t], "Wage per efficiency unit of labor."
-  pL_l_i[(l,i,t)=qL_l_i], "User cost of labor by type and industry."
-  tL_l_i[(l,i,t)=qL_l_i] :: ForecastConstant, "Production tax less subsidy per efficiency unit of labor."
+  pW[t], "Payroll per employee."
+  pL_l_i[(l,i,t)=qL_l_i], "User cost per employee by type and industry."
+  ntL_l_i[(l,i,t)=qL_l_i] :: ForecastConstant, "Production tax less subsidy per employee."
 end
 
 @variables model :: (LaborTag, GrowthAdjusted, ForecastConstant) begin
-  qLSupplyHh[t], "Household employment in efficiency units."
-  qLSupplyRoW[t], "Rest-of-world employment in efficiency units."
+  qLSupplyHh[t], "Household employees."
+  qLSupplyRoW[t], "Rest-of-world employees."
 end
 
 @variables model :: (LaborTag, GrowthAdjusted, InflationAdjusted) begin
@@ -67,14 +67,14 @@ end
 # ============================================================================
 function assign_data!(db)
   fill_cells!(db, qL_l_i, qL_l_i_data)
-  db[pW[t1]] = 1.0
-  db[pW[t1-1]] = 1.0
   fill_cells!(db, vHhWages, vHhWages_data)
   fill_cells!(db, vRoWNetWages, vRoWNetWages_data)
-  source_supply = cell_value(qLSupply_data, t1)
-  source_wages = cell_value(vHhWages_data, t1) + cell_value(vRoWNetWages_data, t1)
-  db[qLSupplyHh[t1]] = source_supply * cell_value(vHhWages_data, t1) / source_wages
-  db[qLSupplyRoW[t1]] = source_supply - db[qLSupplyHh[t1]]
+
+  db[pW[(t1-2):t1]] .= [
+    (cell_value(vHhWages_data, year) + cell_value(vRoWNetWages_data, year)) /
+      cell_value(qLSupply_data, year)
+    for year in (t1-2):t1
+  ]
   return nothing
 end
 
@@ -83,7 +83,7 @@ end
 # ============================================================================
 function set_starting_values!(start_values)
   start_values[qProd[labor_type,:,:]] .= start_values[qL_l_i][labor_type,:,:]
-  start_values[tL_l_i] .= 0
+  start_values[ntL_l_i] .= 0
   return nothing
 end
 
@@ -97,14 +97,16 @@ function define_equations()
     # Total employment from households and the rest of the world meets labor demand.
     pW[t=t1:T], qLSupplyHh[t] + qLSupplyRoW[t] == ∑(qL_l_i[l,i,t] for (l, i) in labor_l_i)
 
-    pL_l_i[l=labor_type, i=industry, t=t1:T], pL_l_i[l,i,t] == pW[t] + tL_l_i[l,i,t]
+    pL_l_i[l=labor_type, i=industry, t=t1:T], pL_l_i[l,i,t] == pW[t] + ntL_l_i[l,i,t]
 
     pProd[l=labor_type, i=industry, t=t1:T], pProd[l,i,t] == pL_l_i[l,i,t] / pL_l_i[l,i,t1]
 
     vWages_i[i=industry, t=t1:T], vWages_i[i,t] == pW[t] * ∑(qL_l_i[l,i,t] for l in labor_type)
+
     vWages[t=t1:T], vWages[t] == ∑(vWages_i[i,t] for i in industry)
 
     vHhWages[t=t1:T], vHhWages[t] == pW[t] * qLSupplyHh[t]
+
     vRoWNetWages[t=t1:T], vRoWNetWages[t] == pW[t] * qLSupplyRoW[t]
   end
 end
@@ -117,6 +119,8 @@ function define_calibration()
 
   @endo_exo_swap! block begin
     qProd[l=labor_type, i=industry, t=t1], qL_l_i[l=labor_type, i=industry, t=t1]
+    qLSupplyHh[t1], vHhWages[t1]
+    qLSupplyRoW[t1], vRoWNetWages[t1]
   end
 
   return block
