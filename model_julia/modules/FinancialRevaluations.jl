@@ -42,6 +42,7 @@ end
 # ============================================================================
 
 function assign_data!(db)
+  db[rFirmRequiredReturn_s[:,t1]] .= 0.08
   return nothing
 end
 

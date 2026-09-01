@@ -179,7 +179,7 @@ const pM_p_u = pBasic[:,:,import_origin,:]
   rOriginShare[(p,u,o,t)=merge_indices(qPurchaserUse_p_u_o[:,ordinary_uses,:,:], qMarginService_s_u_o)] :: ForecastConstant, "Fixed origin share"
   rMarginServiceShare[(s,u,t)=qMarginService_s_u] :: ForecastConstant, "Fixed margin-service share"
   rMarginRate[(p,u,t)=qMarginBundle_p_u] :: ForecastConstant, "Margin-bundle units per unit of purchaser use"
-  tNetProduct[p=product, u=use, t=t; (p,u) in product_tax_p_u] :: ForecastConstant, "Net product tax per unit"
+  tNetProduct[p=product, u=use, t=t; (p,u) in product_tax_p_u && u != :INV] :: ForecastConstant, "Net product tax per unit"
   tVAT[(p,u,o,t)=qPurchaserUse_p_u_o] :: ForecastConstant, "Separate VAT rate; zero while tNetProduct includes VAT"
 end
 

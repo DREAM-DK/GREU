@@ -14,6 +14,7 @@ import ..DataUtils: fill_cells!, read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fq
 import ..InputOutput:
   industry,
+  ordinary_uses,
   product,
   product_tax_p_u,
   qPurchaserUse_p_u,
@@ -211,19 +212,17 @@ function define_equations()
     vtCap[t] == tCap[t] * ∑(vFinPosition_s_f[:Hh,f,:Assets,t] for f in fin_instrument)
 
     # Product taxes and subsidies. Gross rates yield the observed net rate.
-    vtProduct_p_u[p=product, u=use, t=t1:T; (p,u) in product_tax_p_u],
+    vtProduct_p_u[p=product, u=use, t=t1:T],
     vtProduct_p_u[p,u,t] == tProduct_p_u[p,u,t] * qPurchaserUse_p_u[p,u,t]
-    vProductSubsidy_p_u[p=product, u=use, t=t1:T; (p,u) in product_tax_p_u],
+    vProductSubsidy_p_u[p=product, u=use, t=t1:T],
     vProductSubsidy_p_u[p,u,t] == tProductSubsidy_p_u[p,u,t] * qPurchaserUse_p_u[p,u,t]
-    vNetProductTax_p_u[p=product, u=use, t=t1:T; (p,u) in product_tax_p_u],
+    vNetProductTax_p_u[p=product, u=ordinary_uses, t=t1:T],
     vNetProductTax_p_u[p,u,t] == vtProduct_p_u[p,u,t] - vProductSubsidy_p_u[p,u,t]
-    tNetProduct[p=product, u=use, t=t1:T; (p,u) in product_tax_p_u && (u != :INV)],
+    tNetProduct[p=product, u=use, t=t1:T],
     tNetProduct[p,u,t] * qPurchaserUse_p_u[p,u,t] == vNetProductTax_p_u[p,u,t]
 
     vNetProductTax_u[u=use, t=t1:T],
-    vNetProductTax_u[u,t] ==
-      ∑(vtProduct_p_u[p,u,t] for p in product if (p,u) in product_tax_p_u) -
-      ∑(vProductSubsidy_p_u[p,u,t] for p in product if (p,u) in product_tax_p_u)
+    vNetProductTax_u[u,t] == ∑(vNetProductTax_p_u[p,u,t] for p in product)
     vtProduct[t=t1:T], vtProduct[t] == ∑(vtProduct_p_u[p,u,t] for (p,u) in product_tax_p_u)
     vProductSubsidy[t=t1:T],
     vProductSubsidy[t] == ∑(vProductSubsidy_p_u[p,u,t] for (p,u) in product_tax_p_u)
