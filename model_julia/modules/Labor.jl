@@ -47,7 +47,7 @@ end
 @variables model :: (LaborTag, InflationAdjusted) begin
   pW[t], "Payroll per employee."
   pL_l_i[(l,i,t)=qL_l_i], "User cost per employee by type and industry."
-  tL_l_i[(l,i,t)=qL_l_i] :: ForecastConstant, "Production tax less subsidy per employee."
+  ntL_l_i[(l,i,t)=qL_l_i] :: ForecastConstant, "Production tax less subsidy per employee."
 end
 
 @variables model :: (LaborTag, GrowthAdjusted, ForecastConstant) begin
@@ -83,7 +83,7 @@ end
 # ============================================================================
 function set_starting_values!(start_values)
   start_values[qProd[labor_type,:,:]] .= start_values[qL_l_i][labor_type,:,:]
-  start_values[tL_l_i] .= 0
+  start_values[ntL_l_i] .= 0
   return nothing
 end
 
@@ -97,7 +97,7 @@ function define_equations()
     # Total employment from households and the rest of the world meets labor demand.
     pW[t=t1:T], qLSupplyHh[t] + qLSupplyRoW[t] == ∑(qL_l_i[l,i,t] for (l, i) in labor_l_i)
 
-    pL_l_i[l=labor_type, i=industry, t=t1:T], pL_l_i[l,i,t] == pW[t] + tL_l_i[l,i,t]
+    pL_l_i[l=labor_type, i=industry, t=t1:T], pL_l_i[l,i,t] == pW[t] + ntL_l_i[l,i,t]
 
     pProd[l=labor_type, i=industry, t=t1:T], pProd[l,i,t] == pL_l_i[l,i,t] / pL_l_i[l,i,t1]
 

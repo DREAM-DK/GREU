@@ -15,7 +15,7 @@ import ..SectorAccounts:
   vNetTransfers,
   vNonProducedAssetAcquisitions,
   vFinPosition_s_f
-import ..Taxes: vRoWProductSubsidy, vRoWProductionSubsidy, vtRoWProduct
+import ..Taxes: vsRoWProduct, vsRoWProduction, vtRoWProduct
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
 
@@ -45,7 +45,7 @@ function define_equations()
     vNetFinTransactions[s=[:RoW], t=t1:T],
     vNetFinTransactions[s,t] == vM[t] - vX[t] + vRoWNetWages[t] + vNetFinIncome[s,t]
                                 + vNetTransfers[s,t] + vtRoWProduct[t]
-                                - vRoWProductSubsidy[t] - vRoWProductionSubsidy[t]
+                                - vsRoWProduct[t] - vsRoWProduction[t]
                                 - vNonProducedAssetAcquisitions[s,t]
 
     # Portfolio.

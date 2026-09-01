@@ -66,7 +66,7 @@ end
 @variables model :: (CapitalTag, InflationAdjusted) begin
   pK_k_i[(k,i,t)=qK_k_i], "User cost of capital by type and industry."
   pI_k[k=capital_type, t=t], "Investment price by capital type."
-  tK_k_i[(k,i,t)=qK_k_i] :: ForecastConstant, "Production tax less subsidy per unit of capital stock."
+  ntK_k_i[(k,i,t)=qK_k_i] :: ForecastConstant, "Production tax less subsidy per unit of capital stock."
   dvCorpTax2dqI_k_i[(k,i,t)=qK_k_i] :: ForecastZero, "Corporation tax value derivative by investment quantity."
   dvCorpTax2dqK_k_i[(k,i,t)=qK_k_i] :: ForecastZero, "Corporation tax value derivative by opening capital quantity."
   pKAdjCost_k_i[(k,i,t)=qK_k_i] :: (ForecastZero, DynamicCalibration), "Added user cost from capital adjustment by type and industry."
@@ -103,7 +103,7 @@ end
 # ============================================================================
 function set_starting_values!(start_values)
   start_values[qProd[capital_type,:,:]] .= start_values[qK_k_i][capital_type,:,:]
-  start_values[tK_k_i] .= 0 # Calibrated in Taxes module
+  start_values[ntK_k_i] .= 0 # Calibrated in Taxes module
   start_values[pKAdjCost_k_i] .= 0 # Can be endogenized in CapitalAdjustmentCosts
   start_values[pInvestmentShock_k_i] .= 0
   return nothing
@@ -149,7 +149,7 @@ function define_equations()
           (pI_k[k,t] + dvCorpTax2dqI_k_i[k,i,t])
         + dvCorpTax2dqK_k_i[k,i,t]
       ) / (1 - mtCorp_i[i,t])
-      + tK_k_i[k,i,t]
+      + ntK_k_i[k,i,t]
       + pKAdjCost_k_i[k,i,t]
 
     @test_constraint("Capital investment values sum to fixed investment"; rtol = 1e-3)

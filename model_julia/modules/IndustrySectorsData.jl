@@ -252,17 +252,17 @@ function build_industry_sector_shares()
     output = read_cells(supply_file, "qY_p_i"),
     purchaser_use = read_cells(purchaser_use_file, "qPurchaserUse_p_u"),
     margins = read_cells(margin_file, "qMarginBundle_p_u"),
-    product_taxes = read_cells(product_tax_file, "vNetProductTax_p_u"),
+    product_taxes = read_cells(product_tax_file, "vntProduct_p_u"),
     labor = read_cells(labor_file, "qL_l_i"),
     payroll = read_cells(labor_file, "vWages_i"),
-    production_taxes = read_cells(production_file, "vProductionTax_i"),
+    production_taxes = read_cells(production_file, "vntProduction_i"),
   )
   target_source = read_cells(sector_accounts_file, "vGrossOpSurplusMixedIncome")
   non_financial_source = read_cells(non_financial_transactions_file, "NonFinancialTransactions")
   government_source = Dict(
     :intermediate => read_cells(government_file, "vGovIntermediateCons"),
     :wages => read_cells(government_file, "vGovEmplComp"),
-    :production_taxes => read_cells(government_file, "vGovOthProdTax"),
+    :production_taxes => read_cells(government_file, "vtGovOthProd"),
   )
   years = sort(unique(
     year

@@ -9,7 +9,7 @@ import ..FixedBasePriceAggregates: vGVA
 import ..Government:
   vGovCapTransfer,
   vGovOthCurrentTransRev,
-  vGovOthSubRev,
+  vsGovOthRev,
   vGovPrimaryRevenue,
   vGovPrimaryRevOther,
   vGovSalesRev,
@@ -34,7 +34,7 @@ import ..Tags: ForecastConstant
 const GovernmentRevenueTag = Tag(:GovernmentRevenue)
 
 @variables model :: (GovernmentRevenueTag, ForecastConstant) begin
-  rGovOthSubRev2GVA[t], "Other government subsidy revenue relative to GVA."
+  tsGovOthRev2GVA[t], "Other government subsidy revenue relative to GVA."
   rGovOthCurrentTransRev2GVA[t], "Other government current-transfer revenue relative to GVA."
   rGovCapTransfer2GVA[t], "Government capital-transfer revenue relative to GVA."
 end
@@ -63,7 +63,7 @@ function define_equations()
 
     vGovPrimaryRevOther[t=t1:T],
     vGovPrimaryRevOther[t] == vGovSalesRev[t]
-                              + vGovOthSubRev[t]
+                              + vsGovOthRev[t]
                               + vFinIncome_s_f[:Gov,:Equity,:Assets,t]
                               + vSocialContributions[:Gov,t]
                               + vGovOthCurrentTransRev[t]
@@ -72,10 +72,10 @@ function define_equations()
 
     # Public production revenue. Input-output demand determines output.
     vGovSalesRev[t=t1:T],
-    vGovSalesRev[t] == vY_s[:Gov,t] - vGovOthSubRev[t] + vSocTransKind[t] - vG[t]
+    vGovSalesRev[t] == vY_s[:Gov,t] - vsGovOthRev[t] + vSocTransKind[t] - vG[t]
 
     # Non-tax revenue without a detailed rule follows whole-economy GVA.
-    vGovOthSubRev[t=t1:T], vGovOthSubRev[t] == rGovOthSubRev2GVA[t] * vGVA[t]
+    vsGovOthRev[t=t1:T], vsGovOthRev[t] == tsGovOthRev2GVA[t] * vGVA[t]
     vGovOthCurrentTransRev[t=t1:T],
     vGovOthCurrentTransRev[t] == rGovOthCurrentTransRev2GVA[t] * vGVA[t]
     vGovCapTransfer[t=t1:T], vGovCapTransfer[t] == rGovCapTransfer2GVA[t] * vGVA[t]
@@ -93,7 +93,7 @@ function define_calibration()
   block = define_equations()
 
   @endo_exo_swap! block begin
-    rGovOthSubRev2GVA[t1], vGovOthSubRev[t1]
+    tsGovOthRev2GVA[t1], vsGovOthRev[t1]
     rGovOthCurrentTransRev2GVA[t1], vGovOthCurrentTransRev[t1]
     rGovCapTransfer2GVA[t1], vGovCapTransfer[t1]
   end

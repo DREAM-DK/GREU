@@ -349,12 +349,12 @@ end
 
 function product_tax_tables()
   q = read_cells(purchaser_use_file, "qPurchaserUse_p_u")
-  net = read_cells(net_product_tax_file, "vNetProductTax_p_u")
-  net_use = read_cells(net_product_tax_file, "vNetProductTax_u")
-  government_product_tax = read_cells(government_file, "vGovProductTaxSource")
-  government_subsidy = read_cells(government_file, "vGovSubSource")
+  net = read_cells(net_product_tax_file, "vntProduct_p_u")
+  net_use = read_cells(net_product_tax_file, "vntProduct_u")
+  government_product_tax = read_cells(government_file, "vtGovProductSource")
+  government_subsidy = read_cells(government_file, "vsGovSource")
   transactions = read_cells(non_financial_transactions_file, "NetNonFinancialTransactions")
-  production_subsidy_class = read_cells(production_taxes_file, "vProductionSubsidy_c")
+  production_subsidy_class = read_cells(production_taxes_file, "vsProduction_c")
 
   row_product_tax = Dict(
     (year,) => value
@@ -457,8 +457,8 @@ end
 # ============================================================================
 
 function refresh_factor_tax_data!(file=production_taxes_file)
-  tax_cells = read_cells(file, "vProductionTax_c_i")
-  subsidy_cells = read_cells(file, "vProductionSubsidy_c_i")
+  tax_cells = read_cells(file, "vtProduction_c_i")
+  subsidy_cells = read_cells(file, "vsProduction_c_i")
   taxes = DataFrame([
     (tax_class=class, industry=i, year=year, value=value)
     for ((class, i, year), value) in tax_cells
@@ -468,15 +468,15 @@ function refresh_factor_tax_data!(file=production_taxes_file)
     for ((class, i, year), value) in subsidy_cells
   ])
   factors = factor_tax_tables(taxes, subsidies)
-  mapped_variables = Set(["vtK_k_i", "vtL_l_i", "vtM_m_i", "vtProductionOther_i"])
+  mapped_variables = Set(["vntK_k_i", "vntL_l_i", "vntM_m_i", "vntProductionOther_i"])
   source = CSV.read(file, DataFrame)
   source = source[.!in.(source.variable, Ref(mapped_variables)), :]
   CSV.write(file, vcat(
     source,
-    long_format(:vtK_k_i, factors.capital, [:capital, :industry, :year]),
-    long_format(:vtL_l_i, factors.labor, [:labor, :industry, :year]),
-    long_format(:vtM_m_i, factors.intermediate, [:intermediate, :industry, :year]),
-    long_format(:vtProductionOther_i, factors.other, [:industry, :year]),
+    long_format(:vntK_k_i, factors.capital, [:capital, :industry, :year]),
+    long_format(:vntL_l_i, factors.labor, [:labor, :industry, :year]),
+    long_format(:vntM_m_i, factors.intermediate, [:intermediate, :industry, :year]),
+    long_format(:vntProductionOther_i, factors.other, [:industry, :year]),
   ))
   return nothing
 end
@@ -485,7 +485,7 @@ function refresh_production_taxes_data!(dir=production_data_dir)
   mkpath(dir)
   tax_totals = fetch_tax_class_totals()
   resident = fetch_resident_controls()
-  net_industry = read_cells(production_gva_file, "vProductionTax_i")
+  net_industry = read_cells(production_gva_file, "vntProduction_i")
   taxes, subsidies = proportional_matrices(
     tax_totals,
     net_industry,
@@ -497,10 +497,10 @@ function refresh_production_taxes_data!(dir=production_data_dir)
     value=resident.subsidy.value,
   )
   CSV.write(joinpath(dir, "production_taxes.csv"), vcat(
-    long_format(:vProductionTax_c_i, taxes, [:tax_class, :industry, :year]),
-    long_format(:vProductionSubsidy_c_i, subsidies, [:subsidy_class, :industry, :year]),
-    long_format(:vProductionSubsidy_c, subsidy_totals, [:subsidy_class, :year]),
-    long_format(:vProductionTax, resident.tax, [:year]),
+    long_format(:vtProduction_c_i, taxes, [:tax_class, :industry, :year]),
+    long_format(:vsProduction_c_i, subsidies, [:subsidy_class, :industry, :year]),
+    long_format(:vsProduction_c, subsidy_totals, [:subsidy_class, :year]),
+    long_format(:vtProduction, resident.tax, [:year]),
   ))
   refresh_factor_tax_data!(joinpath(dir, "production_taxes.csv"))
   return nothing
@@ -511,14 +511,14 @@ function refresh_product_taxes_data!(dir=production_data_dir)
   data = product_tax_tables()
   CSV.write(joinpath(dir, "product_taxes.csv"), vcat(
     long_format(:vtProduct_p_u, data.gross_tax_table, [:product, :use, :year]),
-    long_format(:vProductSubsidy_p_u, data.gross_subsidy_table, [:product, :use, :year]),
-    long_format(:vNetProductTax_p_u, data.net_table, [:product, :use, :year]),
-    long_format(:vNetProductTax_u, data.net_use_table, [:use, :year]),
+    long_format(:vsProduct_p_u, data.gross_subsidy_table, [:product, :use, :year]),
+    long_format(:vntProduct_p_u, data.net_table, [:product, :use, :year]),
+    long_format(:vntProduct_u, data.net_use_table, [:use, :year]),
     long_format(:vtProduct, data.product_tax, [:year]),
-    long_format(:vProductSubsidy, data.product_subsidy, [:year]),
+    long_format(:vsProduct, data.product_subsidy, [:year]),
     long_format(:vtRoWProduct, data.row_product_tax, [:year]),
-    long_format(:vRoWProductSubsidy, data.row_product_subsidy, [:year]),
-    long_format(:vRoWProductionSubsidy, data.row_production_subsidy, [:year]),
+    long_format(:vsRoWProduct, data.row_product_subsidy, [:year]),
+    long_format(:vsRoWProduction, data.row_production_subsidy, [:year]),
   ))
   return nothing
 end

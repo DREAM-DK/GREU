@@ -201,13 +201,21 @@ The most aggregate variable gets the shortest name. Add a suffix for each extra 
 - `n*` — number of persons
 - `h*` — hours
 - `r*` — rate or ratio
-- `t*` — tax rate
-- `m*` — marginal rate when it differs from the average; prefer an explicit derivative
+- `t*` — average gross tax rate
+- `mt*` — marginal gross tax rate
+- `vt*` — gross tax value
+- `ts*` — average subsidy rate
+- `mts*` — marginal subsidy rate
+- `vs*` — subsidy value
+- `nt*` — average net tax rate
+- `mnt*` — marginal net tax rate
+- `vnt*` — net tax value
+- Use a marginal prefix only when the average and marginal rates differ.
 - `e*` — elasticity
 - `u*` — calibrated share (μ in documentation)
 - `d*` — derivative
 - `f*` — factor (unspecified multiplicative term)
-- `s*` — structural version of a variable
+- `s*` — structural version of a variable. Put it first: `sqX`, `svX`, `stsX`, or `svsX`.
 - `j*` — additive adjustment that should normally be zero
 - `jf*` — multiplicative residual
 - `E*` — expectations operator (rare; leads are model-consistent expectations)

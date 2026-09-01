@@ -46,14 +46,14 @@ const GovernmentTag = Tag(:Government)
 
   vGovPrimaryRevOther[t], "Other primary revenue of government."
   vGovSalesRev[t], "Revenue from sales (P.11+P.12+P.131)."
-  vGovOthSubRev[t], "Revenue from other subsidies (D.39)."
+  vsGovOthRev[t], "Revenue from other subsidies (D.39)."
   vGovOthCurrentTransRev[t], "Revenue from other current transfers (D.7)."
   vGovCapTransfer[t], "Revenue from capital transfers (D.92+D.99)."
 
   vGovSocBenefitExp[t], "Social benefit expenditure of government (D.62+D.632)."
   vSocTransKind[t], "Social transfers in kind (D.632)."
   vGovOthCurrentTransExp[t], "Other current transfers expenditure of government (D.7)."
-  vGovOthProdTax[t], "Other taxes on production paid by government (D.29)."
+  vtGovOthProd[t], "Other taxes on production paid by government (D.29)."
   vGovPensionEntitlementAdj[t] :: ForecastZero, "Adjustment for the change in government pension entitlements (D.8)."
   vGovCapTransExp[t], "Capital transfers expenditure of government (D.9)."
 end
@@ -70,10 +70,10 @@ function assign_data!(db)
 
   db[vM_s[:Gov,:]] .= read_series(government_file, "vGovIntermediateCons", t)
   db[vWages_s[:Gov,:]] .= read_series(government_file, "vGovEmplComp", t)
-  db[vGovOthProdTax] .= read_series(government_file, "vGovOthProdTax", t)
+  db[vtGovOthProd] .= read_series(government_file, "vtGovOthProd", t)
 
   db[vGovSalesRev] .= read_series(government_file, "vGovSalesRev", t)
-  db[vGovOthSubRev] .= read_series(government_file, "vGovOthSubRev", t)
+  db[vsGovOthRev] .= read_series(government_file, "vsGovOthRev", t)
   db[vGovOthCurrentTransRev] .= read_series(government_file, "vGovOthCurrentTransRev", t)
   db[vGovCapTransfer] .= read_series(government_file, "vGovCapTransfer", t)
 

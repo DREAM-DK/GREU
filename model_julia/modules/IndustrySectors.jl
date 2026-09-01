@@ -12,7 +12,7 @@ import ..InputOutput: industry, vINV, vY_i
 import ..Intermediates: vM_i
 import ..Labor: vWages_i
 import ..model
-import ..Taxes: vtProduction_i
+import ..Taxes: vntProduction_i
 import ..ProductionSettings: capital_type
 import ..SectorAccounts:
   vConsumptionFixedCapital_s,
@@ -61,7 +61,7 @@ end
   vY_s[s=mapped_sector, t=t], "Output by sector."
   vM_s[s=mapped_sector, t=t], "Intermediate input spend by sector."
   vWages_s[s=mapped_sector, t=t], "Wages by sector."
-  vtProduction_s[s=mapped_sector, t=t], "Other production taxes less subsidies by sector."
+  vntProduction_s[s=mapped_sector, t=t], "Other production taxes less subsidies by sector."
   vK_s[s=mapped_sector, t=t], "Replacement value of capital by sector."
   vIFixed_s[s=mapped_sector, t=t], "Fixed investment by sector."
   vINV_s[s=mapped_sector, t=t], "Inventory investment by sector."
@@ -91,7 +91,7 @@ function define_equations()
   return @block model begin
     # Operating surplus.
     vGrossOpSurplus_i[i=industry, t=t1:T],
-    vGrossOpSurplus_i[i,t] == vY_i[i,t] - vM_i[i,t] - vWages_i[i,t] - vtProduction_i[i,t]
+    vGrossOpSurplus_i[i,t] == vY_i[i,t] - vM_i[i,t] - vWages_i[i,t] - vntProduction_i[i,t]
 
     vY_s[s=mapped_sector, t=t1:T],
     vY_s[s,t] == ∑(rIndustrySector_s_i[s,i,t] * vY_i[i,t] for i in industry)
@@ -102,12 +102,12 @@ function define_equations()
     vWages_s[s=mapped_sector, t=t1:T],
     vWages_s[s,t] == ∑(rIndustrySector_s_i[s,i,t] * vWages_i[i,t] for i in industry)
 
-    vtProduction_s[s=mapped_sector, t=t1:T],
-    vtProduction_s[s,t] ==
-      ∑(rIndustrySector_s_i[s,i,t] * vtProduction_i[i,t] for i in industry)
+    vntProduction_s[s=mapped_sector, t=t1:T],
+    vntProduction_s[s,t] ==
+      ∑(rIndustrySector_s_i[s,i,t] * vntProduction_i[i,t] for i in industry)
 
     vGrossOpSurplusMixedIncome[s=mapped_sector, t=t1:T],
-    vGrossOpSurplusMixedIncome[s,t] == vY_s[s,t] - vM_s[s,t] - vWages_s[s,t] - vtProduction_s[s,t]
+    vGrossOpSurplusMixedIncome[s,t] == vY_s[s,t] - vM_s[s,t] - vWages_s[s,t] - vntProduction_s[s,t]
 
     # Capital ownership uses the same industry shares as current activity.
     vK_s[s=mapped_sector, t=t1:T],

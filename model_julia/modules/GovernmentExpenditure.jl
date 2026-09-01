@@ -10,7 +10,7 @@ import ..Government:
   vGovPensionEntitlementAdj,
   vGovCapTransExp,
   vGovOthCurrentTransExp,
-  vGovOthProdTax,
+  vtGovOthProd,
   vGovPrimaryExpenditure,
   vGovSocBenefitExp,
   vSocTransKind
@@ -25,10 +25,10 @@ import ..SectorAccounts:
   vNonProducedAssetAcquisitions,
   vSocialBenefits
 import ..Taxes:
-  vProductSubsidy,
-  vProductionSubsidy,
-  vRoWProductSubsidy,
-  vRoWProductionSubsidy
+  vsProduct,
+  vsProduction,
+  vsRoWProduct,
+  vsRoWProduction
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
 
@@ -42,7 +42,7 @@ const GovernmentExpenditureTag = Tag(:GovernmentExpenditure)
   rRoWTransferIncome[t], "RoW net social benefit receipt relative to the transfer index."
   rSocTransKind2G[t], "Social transfers in kind relative to government consumption."
   rGovOthCurrentTransExp2GVA[t], "Other government current-transfer expense relative to GVA."
-  rGovOthProdTax2GVA[t], "Other production taxes paid by government relative to GVA."
+  tGovOthProd2GVA[t], "Other production taxes paid by government relative to GVA."
   rGovCapTransExp2GVA[t], "Government capital-transfer expense relative to GVA."
   rGovNonProducedAssetAcquisitions2GVA[t], "Government net acquisitions of non-produced assets relative to GVA."
 end
@@ -68,11 +68,11 @@ function define_equations()
     vGovPrimaryExpenditure[t] == vM_s[:Gov,t]
                                   + vI_s[:Gov,t]
                                   + vWages_s[:Gov,t]
-                                  + vGovOthProdTax[t]
-                                  + vProductSubsidy[t]
-                                  - vRoWProductSubsidy[t]
-                                  + vProductionSubsidy[t]
-                                  - vRoWProductionSubsidy[t]
+                                  + vtGovOthProd[t]
+                                  + vsProduct[t]
+                                  - vsRoWProduct[t]
+                                  + vsProduction[t]
+                                  - vsRoWProduction[t]
                                   + vGovSocBenefitExp[t]
                                   + vGovOthCurrentTransExp[t]
                                   + vGovPensionEntitlementAdj[t]
@@ -82,7 +82,7 @@ function define_equations()
     # Expenditure without a detailed rule follows GVA or government consumption.
     vGovOthCurrentTransExp[t=t1:T],
     vGovOthCurrentTransExp[t] == rGovOthCurrentTransExp2GVA[t] * vGVA[t]
-    vGovOthProdTax[t=t1:T], vGovOthProdTax[t] == rGovOthProdTax2GVA[t] * vGVA[t]
+    vtGovOthProd[t=t1:T], vtGovOthProd[t] == tGovOthProd2GVA[t] * vGVA[t]
     vGovCapTransExp[t=t1:T], vGovCapTransExp[t] == rGovCapTransExp2GVA[t] * vGVA[t]
     vNonProducedAssetAcquisitions[s=[:Gov], t=t1:T],
     vNonProducedAssetAcquisitions[s,t] == rGovNonProducedAssetAcquisitions2GVA[t] * vGVA[t]
@@ -118,7 +118,7 @@ function define_calibration()
     rRoWTransferIncome[t1], vSocialBenefits[:RoW,t1]
     rSocTransKind2G[t1], vSocTransKind[t1]
     rGovOthCurrentTransExp2GVA[t1], vGovOthCurrentTransExp[t1]
-    rGovOthProdTax2GVA[t1], vGovOthProdTax[t1]
+    tGovOthProd2GVA[t1], vtGovOthProd[t1]
     rGovCapTransExp2GVA[t1], vGovCapTransExp[t1]
     rGovNonProducedAssetAcquisitions2GVA[t1], vNonProducedAssetAcquisitions[:Gov,t1]
   end

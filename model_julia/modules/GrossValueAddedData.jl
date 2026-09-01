@@ -106,7 +106,7 @@ function refresh_gross_value_added_data!(dir = production_data_dir)
   CSV.write(joinpath(dir, "production_gva.csv"), vcat(
     long_format(:qGVA_i, quantity, [:industry, :year]),
     long_format(:vGVA_i, current, [:industry, :year]),
-    long_format(:vProductionTax_i, production_taxes, [:industry, :year]),
+    long_format(:vntProduction_i, production_taxes, [:industry, :year]),
   ))
   return nothing
 end
