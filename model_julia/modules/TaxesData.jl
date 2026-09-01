@@ -14,6 +14,8 @@ module TaxesData
 
 using CSV
 using DataFrames
+import Ipopt
+import JuMP
 import ..DataUtils: long_format, read_cells
 import ..EurostatClient
 import ..GovernmentSettings: government_data_dir
@@ -53,6 +55,7 @@ const purchaser_use_file = joinpath(input_output_data_dir, "input_output_purchas
 const net_product_tax_file = joinpath(input_output_data_dir, "input_output_net_product_tax.csv")
 const government_file = joinpath(government_data_dir, "government_variables.csv")
 const non_financial_transactions_file = joinpath(sector_accounts_data_dir, "non_financial_transactions.csv")
+const industry_sector_share_file = joinpath(sector_accounts_data_dir, "industry_sector_shares.csv")
 
 @assert Set(tax_class) == Set([reported_tax_class; residual_tax_class]) "Tax settings must cover each source class"
 @assert subsidy_class == [:D39] "The broad Eurostat source supports only the D39 subsidy class"
@@ -124,62 +127,138 @@ function fetch_resident_controls()
 end
 
 # ============================================================================
-# Proportional matrix
+# Industry matrix
 # ============================================================================
 
 positive_part(value) = value > 0 ? value : 0.0
 
-"""
-Allocate gross taxes across industries and tax classes.
+"""Build an industry base for each D29 class from its mapped production input."""
+function production_tax_bases(gva)
+  qK = read_cells(production_capital_file, "qK_k_i")
+  wages = read_cells(production_labor_file, "vWages_i")
+  qM = read_cells(production_intermediate_file, "qM_m_i")
+  @assert length(labor_type) == 1 "The wage base needs one model labor type"
 
-Each industry first gets its positive net tax plus a GVA share of the remaining
-gross tax. Subsidies close the gap to the reported net industry total. National
-tax-class shares apply in each industry.
-"""
-function proportional_matrices(tax_totals, net_industry, gva)
-  industries = sort(unique(i for (i, _) in keys(net_industry)))
+  input_base = merge(
+    Dict((k, i, year) => value for ((k, i, year), value) in qK),
+    Dict((only(labor_type), i, year) => value for ((i, year), value) in wages),
+    Dict((m, i, year) => value for ((m, i, year), value) in qM),
+  )
+  industries = sort(unique(i for (i, _) in keys(gva)))
+  bases = Dict(
+    (class, i, year) => isempty(production_tax_input_map[class]) ? gva[(i, year)] :
+      sum(get(input_base, (input, i, year), 0.0) for input in production_tax_input_map[class])
+    for class in tax_class, i in industries, year in data_years
+  )
+  @assert all(value >= 0 for value in values(bases)) "Production tax bases must be nonnegative"
+  return bases
+end
 
+"""Use the nearest available industry-sector share year."""
+function share_year(shares, year)
+  years = sort(unique(source_year for ((_, _, source_year), _) in shares))
+  earlier = filter(<=(year), years)
+  return isempty(earlier) ? first(years) : last(earlier)
+end
+
+"""Allocate one year of D29 classes and reduce allocation to government-owned activity."""
+function allocate_production_tax_year(tax_totals, net_industry, shares, bases, industries, year)
+  raw_tax_total = sum(tax_totals[(class, year)] for class in tax_class)
+  positive_net_total = sum(positive_part(net_industry[(i, year)]) for i in industries)
+  source_share_year = share_year(shares, year)
+  base_total = Dict(
+    class => sum(
+      bases[(class, i, year)] * (1 - shares[(:Gov, i, source_share_year)])
+      for i in industries
+    )
+    for class in tax_class
+  )
+  prior = Dict(
+    (class, i) => iszero(tax_totals[(class, year)]) ? 0.0 :
+      tax_totals[(class, year)] * bases[(class, i, year)] *
+        (1 - shares[(:Gov, i, source_share_year)]) / base_total[class]
+    for class in tax_class, i in industries
+  )
+
+  @assert raw_tax_total > 0 "Each year needs positive reported D29 classes"
+  @assert raw_tax_total >= positive_net_total "Gross D29 must cover positive net industry taxes"
+  @assert all(
+    iszero(tax_totals[(class, year)]) || base_total[class] > 0
+    for class in tax_class
+  ) "Each positive D29 class needs a positive industry base"
+  @assert all(0 <= shares[(:Gov, i, source_share_year)] <= 1 for i in industries)
+    "Government industry shares must be valid"
+
+  tax_model = JuMP.Model(Ipopt.Optimizer)
+  JuMP.set_silent(tax_model)
+  JuMP.set_optimizer_attribute(tax_model, "bound_relax_factor", 0.0)
+  JuMP.@variable(tax_model, gross[class in tax_class, i in industries] >= 0.0)
+  JuMP.@constraint(
+    tax_model,
+    [class in tax_class],
+    sum(gross[class, i] for i in industries) == tax_totals[(class, year)],
+  )
+  JuMP.@constraint(
+    tax_model,
+    [i in industries],
+    sum(gross[class, i] for class in tax_class) >= positive_part(net_industry[(i, year)]),
+  )
+  JuMP.@objective(
+    tax_model,
+    Min,
+    sum(
+      (gross[class, i] - prior[(class, i)])^2 /
+        (prior[(class, i)] + tax_totals[(class, year)] / length(industries))
+      for class in tax_class, i in industries
+      if tax_totals[(class, year)] > 0
+    ),
+  )
+  JuMP.set_start_value.(
+    [gross[class, i] for class in tax_class, i in industries],
+    [prior[(class, i)] for class in tax_class, i in industries],
+  )
+  JuMP.optimize!(tax_model)
+  @assert JuMP.is_solved_and_feasible(tax_model) "D29 allocation status: $(JuMP.termination_status(tax_model))"
+
+  cells = Dict(
+    (class, i, year) => iszero(tax_totals[(class, year)]) ? 0.0 : JuMP.value(gross[class, i])
+    for class in tax_class, i in industries
+  )
+  @assert all(
+    isapprox(
+      sum(cells[(class, i, year)] for i in industries),
+      tax_totals[(class, year)];
+      atol=cell_tolerance,
+      rtol=0,
+    )
+    for class in tax_class
+  ) "Industry D29 must retain each class total"
+  return cells
+end
+
+"""Allocate gross D29 by class bases and infer D39 from reported net industry values."""
+function production_tax_matrices(tax_totals, net_industry, gva, shares)
+  industries = sort(unique(i for ((_, i, _), _) in shares))
   @assert all(value >= 0 for value in values(tax_totals)) "Production tax class totals must be nonnegative"
   @assert all(value >= 0 for value in values(gva)) "Gross value added must be nonnegative"
-
-  raw_tax_total = Dict(
-    year => sum(tax_totals[(item, year)] for item in tax_class)
+  bases = production_tax_bases(gva)
+  tax_cells = merge((
+    allocate_production_tax_year(tax_totals, net_industry, shares, bases, industries, year)
     for year in data_years
-  )
-  positive_net_total = Dict(
-    year => sum(positive_part(net_industry[(i, year)]) for i in industries)
-    for year in data_years
-  )
-  remaining_tax = Dict(
-    year => raw_tax_total[year] - positive_net_total[year]
-    for year in data_years
-  )
-  gva_total = Dict(
-    year => sum(gva[(i, year)] for i in industries)
-    for year in data_years
-  )
-
-  @assert all(>(0), values(raw_tax_total)) "Each year needs positive reported D29 classes"
-  @assert all(>=(0), values(remaining_tax)) "Gross D29 must cover positive net industry taxes"
-  @assert all(>(0), values(gva_total)) "Each year needs positive gross value added"
-
-  industry_tax = Dict(
-    (i, year) => positive_part(net_industry[(i, year)]) +
-      remaining_tax[year] * gva[(i, year)] / gva_total[year]
-    for i in industries, year in data_years
-  )
+  )...)
   industry_subsidy = Dict(
-    (i, year) => industry_tax[(i, year)] - net_industry[(i, year)]
+    (i, year) => sum(tax_cells[(class, i, year)] for class in tax_class) - net_industry[(i, year)]
     for i in industries, year in data_years
   )
-  @assert all(value >= 0 for value in values(industry_subsidy)) "Implied production subsidies must be nonnegative"
+  @assert all(value >= -cell_tolerance for value in values(industry_subsidy))
+    "Implied production subsidies must be nonnegative"
 
   taxes = DataFrame(vec([
     (
       tax_class = item,
       industry = i,
       year = year,
-      value = industry_tax[(i, year)] * tax_totals[(item, year)] / raw_tax_total[year],
+      value = tax_cells[(item, i, year)],
     )
     for item in tax_class, i in industries, year in data_years
   ]))
@@ -287,6 +366,51 @@ function factor_tax_tables(taxes, subsidies)
       unmapped_value(subsidy_cells, production_subsidy_input_map, i, year, factors),
   ) for i in source_industry, year in data_years]))
   return (; capital, labor, intermediate, other)
+end
+
+"""Build a stable factor-incidence split from observed net industry D29 less D39."""
+function factor_incidence_matrices(taxes)
+  tax_totals = Dict(
+    (class, year) => sum(
+      row.value
+      for row in eachrow(taxes)
+      if row.tax_class == class && row.year == year
+    )
+    for class in tax_class, year in data_years
+  )
+  net_industry = read_cells(production_gva_file, "vntProduction_i")
+  gva = read_cells(production_gva_file, "vGVA_i")
+  industries = sort(unique(i for ((i, _), _) in net_industry if i in source_industry))
+  raw_tax_total = Dict(
+    year => sum(tax_totals[(class, year)] for class in tax_class)
+    for year in data_years
+  )
+  positive_net_total = Dict(
+    year => sum(positive_part(net_industry[(i, year)]) for i in industries)
+    for year in data_years
+  )
+  gva_total = Dict(
+    year => sum(gva[(i, year)] for i in industries)
+    for year in data_years
+  )
+  gross_industry = Dict(
+    (i, year) => positive_part(net_industry[(i, year)]) +
+      (raw_tax_total[year] - positive_net_total[year]) * gva[(i, year)] / gva_total[year]
+    for i in industries, year in data_years
+  )
+  factor_taxes = DataFrame(vec([(
+    tax_class=class,
+    industry=i,
+    year=year,
+    value=gross_industry[(i, year)] * tax_totals[(class, year)] / raw_tax_total[year],
+  ) for class in tax_class, i in industries, year in data_years]))
+  factor_subsidies = DataFrame(vec([(
+    subsidy_class=:D39,
+    industry=i,
+    year=year,
+    value=gross_industry[(i, year)] - net_industry[(i, year)],
+  ) for i in industries, year in data_years]))
+  return factor_taxes, factor_subsidies
 end
 
 # ============================================================================
@@ -458,16 +582,12 @@ end
 
 function refresh_factor_tax_data!(file=production_taxes_file)
   tax_cells = read_cells(file, "vtProduction_c_i")
-  subsidy_cells = read_cells(file, "vsProduction_c_i")
   taxes = DataFrame([
     (tax_class=class, industry=i, year=year, value=value)
     for ((class, i, year), value) in tax_cells
   ])
-  subsidies = DataFrame([
-    (subsidy_class=class, industry=i, year=year, value=value)
-    for ((class, i, year), value) in subsidy_cells
-  ])
-  factors = factor_tax_tables(taxes, subsidies)
+  factor_taxes, factor_subsidies = factor_incidence_matrices(taxes)
+  factors = factor_tax_tables(factor_taxes, factor_subsidies)
   mapped_variables = Set(["vntK_k_i", "vntL_l_i", "vntM_m_i", "vntProductionOther_i"])
   source = CSV.read(file, DataFrame)
   source = source[.!in.(source.variable, Ref(mapped_variables)), :]
@@ -486,11 +606,21 @@ function refresh_production_taxes_data!(dir=production_data_dir)
   tax_totals = fetch_tax_class_totals()
   resident = fetch_resident_controls()
   net_industry = read_cells(production_gva_file, "vntProduction_i")
-  taxes, subsidies = proportional_matrices(
+  taxes, subsidies = production_tax_matrices(
     tax_totals,
     net_industry,
     read_cells(production_gva_file, "vGVA_i"),
+    read_cells(industry_sector_share_file, "rIndustrySector_s_i"),
   )
+  @assert all(
+    isapprox(
+      sum(row.value for row in eachrow(subsidies) if row.year == year),
+      only(resident.subsidy.value[resident.subsidy.year .== year]);
+      atol=1.2,
+      rtol=0,
+    )
+    for year in data_years
+  ) "Industry D39 must match each resident total"
   subsidy_totals = DataFrame(
     subsidy_class=fill(:D39, length(data_years)),
     year=collect(data_years),

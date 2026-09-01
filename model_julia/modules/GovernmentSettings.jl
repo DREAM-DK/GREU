@@ -69,7 +69,7 @@ const na_item_to_var = Dict(
   # Revenue components
   "P11_P12_P131" => :vGovSalesRev,
   "D2REC"        => :vtIndirect,
-  "D39REC"       => :vsGovOthRev,
+  "D39REC"       => :vsGovProductionReceivedSource,
   "D5REC"        => :vtDirect,
   "D61REC"       => :vGovSocialContRev,
   "D7REC"        => :vGovOthCurrentTransRev,
@@ -83,7 +83,7 @@ const na_item_to_var = Dict(
   "P2"           => :vGovIntermediateCons,
   "P51C"         => :vGovConsumptionFixedCapital,
   "D1PAY"        => :vGovEmplComp,
-  "D29PAY"       => :vtGovOthProd,
+  "D29PAY"       => :vtGovProductionPaidSource,
   "D3PAY"        => :vsGovSource,
   "D62_D632PAY"  => :vGovSocBenefitExp,
   "D632PAY"      => :vSocTransKind,

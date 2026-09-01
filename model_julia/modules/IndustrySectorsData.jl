@@ -159,7 +159,7 @@ function share_assumption(sector, industry)
   sector == :Gov && industry in government_core_industry &&
     return "Start with iO, iP, and iQ; adjust shares to match Gov operating costs and operating surplus."
   sector == :Gov && industry == financial_industry && return "Assign no iK activity to Gov."
-  sector == :Gov && return "Adjust the prior to match Gov P2+D1+D29 and operating surplus."
+  sector == :Gov && return "Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus."
   sector == :Hh && industry == household_housing_industry &&
     return "Start from household operating surplus in iL, then match household costs and operating surplus."
   sector == :Hh && industry == financial_industry && return "Assign no iK activity to Hh."
@@ -259,10 +259,15 @@ function build_industry_sector_shares()
   )
   target_source = read_cells(sector_accounts_file, "vGrossOpSurplusMixedIncome")
   non_financial_source = read_cells(non_financial_transactions_file, "NonFinancialTransactions")
+  government_production_tax = read_cells(government_file, "vtGovProductionPaidSource")
+  government_production_subsidy = read_cells(government_file, "vsGovProductionReceivedSource")
   government_source = Dict(
     :intermediate => read_cells(government_file, "vGovIntermediateCons"),
     :wages => read_cells(government_file, "vGovEmplComp"),
-    :production_taxes => read_cells(government_file, "vtGovOthProd"),
+    :production_taxes => Dict(
+      key => value - government_production_subsidy[key]
+      for (key, value) in government_production_tax
+    ),
   )
   years = sort(unique(
     year
