@@ -65,10 +65,11 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   .. vI_k_i[k,i,t] =E= pD[k,t] * qI_k_i[k,i,t];
 
   # Installation costs for capital adjustments
-  .. qInstCost_k_i[k,i,t] =E= fInstCost_k_i[k,i] * sqr((qI_k_i[k,i,t] / qK_k_i[k,i,t-1])) * qK_k_i[k,i,t-1];
- 
+  $(not tEnd[t])
   .. dInstCost2dKLag_k_i[k,i,t] =E= -fInstCost_k_i[k,i] * (2*(1 - rKDepr_k_i[k,i,t]) + ((qI_k_i[k,i,t+1]*fq) / (qK_k_i[k,i,t]))) * ((qI_k_i[k,i,t+1]*fq) / (qK_k_i[k,i,t]));
   
+  dInstCost2dKLag_k_i&_tEnd[k,i,t]$(tEnd[t]).. dInstCost2dKLag_k_i[k,i,t] =E= -fInstCost_k_i[k,i] * (2*(1 - rKDepr_k_i[k,i,t]) + ((qI_k_i[k,i,t]*fq) / (qK_k_i[k,i,t]))) * ((qI_k_i[k,i,t]*fq) / (qK_k_i[k,i,t]));
+
   .. dInstCost2dK_k_i[k,i,t] =E= fInstCost_k_i[k,i] * 2 * (qI_k_i[k,i,t] / (qK_k_i[k,i,t-1]/fq));
 
   $(not tEnd[t])..
