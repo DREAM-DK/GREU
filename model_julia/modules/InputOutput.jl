@@ -178,10 +178,10 @@ const pM_p_u = pBasic[:,:,import_origin,:]
 
 @variables model :: InputOutputTag begin
   rIndustryShare[(p,i,t)=qY_p_i] :: ForecastConstant, "Fixed industry share for each product"
-  rOriginShare[(p,u,o,t)=merge_indices(qPurchaserUse_p_u_o[:,ordinary_uses,:,:], qMarginService_s_u_o)] :: ForecastConstant, "Conditional origin demand per unit of the parent quantity index"
+  rOriginShare[(p,u,o,t)=merge_indices(qPurchaserUse_p_u_o[:,ordinary_uses,:,:], qMarginService_s_u_o)] :: ForecastConstant, "Origin quantity per unit of the parent behavior index. These ratios need not sum to one."
   rMarginServiceShare[(s,u,t)=qMarginService_s_u] :: ForecastConstant, "Conditional margin-service demand per unit of the bundle index"
   rMarginRate[(p,u,t)=qMarginBundle_p_u] :: ForecastConstant, "Margin-bundle units per unit of purchaser use"
-  ntProduct[p=product, u=use, t=t; (p,u) in product_tax_p_u && u != :INV] :: ForecastConstant, "Net product tax per unit"
+  ntProduct[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o && u != :INV] :: ForecastConstant, "Net product tax per unit by origin"
   tVAT[(p,u,o,t)=qPurchaserUse_p_u_o] :: ForecastConstant, "Separate VAT rate; zero while ntProduct includes VAT"
 end
 
@@ -290,7 +290,7 @@ function define_equations()
     pMarginBundle_u[u,t] == ∑(rMarginServiceShare[s,u,t] * pMarginService_s_u[s,u,t] for s in margin_services)
 
     pPurchaserUse_p_u_o[p=product, u=use, o=origin, t=t1:T],
-    pPurchaserUse_p_u_o[p,u,o,t] == (pBasic[p,u,o,t] + ntProduct[p,u,t]
+    pPurchaserUse_p_u_o[p,u,o,t] == (pBasic[p,u,o,t] + ntProduct[p,u,o,t]
       + rMarginRate[p,u,t] * pMarginBundle_u[u,t]) * (1 + tVAT[p,u,o,t])
 
     pPurchaserUse_p_u[p=product, u=ordinary_uses, t=t1:T],
@@ -350,7 +350,7 @@ function define_equations()
     qSupply_p_o[p=product, o=domestic, t=t1:T],
     qSupply_p_o[p,o,t] == ∑(qY_p_i[p,i,t] for i in industry if (p,i,t) in keys(qY_p_i))
 
-    @test_constraint("Origin values sum to product use"; rtol=1e-3)
+    @test_constraint("Parent behavior value equals leaf values"; rtol=1e-3)
     qPurchaserUse_p_u[p=product, u=ordinary_uses, t=t1:T],
     pPurchaserUse_p_u[p,u,t] * qPurchaserUse_p_u[p,u,t] ==
         ∑(vPurchaserUse_p_u_o[p,u,o,t] for o in origin)

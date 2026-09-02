@@ -472,7 +472,15 @@ function split_product_flows(year, q, net, total_subsidy)
 end
 
 function product_tax_tables()
-  q = read_cells(purchaser_use_file, "qPurchaserUse_p_u")
+  q_o = read_cells(purchaser_use_file, "qPurchaserUse_p_u_o")
+  q = Dict(
+    (p, u, year) => sum(
+      value
+      for ((p2, u2, _, source_year), value) in q_o
+      if (p2, u2, source_year) == (p, u, year)
+    )
+    for (p, u, year) in Set((p, u, year) for (p, u, _, year) in keys(q_o))
+  )
   net = read_cells(net_product_tax_file, "vntProduct_p_u")
   net_use = read_cells(net_product_tax_file, "vntProduct_u")
   government_product_tax = read_cells(government_file, "vtGovProductSource")
@@ -528,6 +536,16 @@ function product_tax_tables()
   splits = Dict(year => split_product_flows(year, q, net, product_subsidy[(year,)]) for year in years)
   gross_tax = Dict(key => value for year in years for (key, value) in first(splits[year]))
   gross_subsidy = Dict(key => value for year in years for (key, value) in last(splits[year]))
+  function split_origins(flow)
+    return Dict(
+      (p, u, o, year) => flow[(p, u, year)] * value / q[(p, u, year)]
+      for ((p, u, o, year), value) in q_o
+      if haskey(flow, (p, u, year))
+    )
+  end
+  gross_tax_origin = split_origins(gross_tax)
+  gross_subsidy_origin = split_origins(gross_subsidy)
+  net_origin = Dict(key => gross_tax_origin[key] - gross_subsidy_origin[key] for key in keys(gross_tax_origin))
 
   @assert all(>=(0), values(product_subsidy)) "Product subsidy payments must be nonnegative"
   @assert all(>=(0), values(product_tax)) "Product tax receipts must be nonnegative"
@@ -549,6 +567,18 @@ function product_tax_tables()
     (product=p, use=u, year=year, value=value)
     for ((p, u, year), value) in gross_subsidy
   ])
+  gross_tax_origin_table = DataFrame([
+    (product=p, use=u, origin=o, year=year, value=value)
+    for ((p, u, o, year), value) in gross_tax_origin
+  ])
+  gross_subsidy_origin_table = DataFrame([
+    (product=p, use=u, origin=o, year=year, value=value)
+    for ((p, u, o, year), value) in gross_subsidy_origin
+  ])
+  net_origin_table = DataFrame([
+    (product=p, use=u, origin=o, year=year, value=value)
+    for ((p, u, o, year), value) in net_origin
+  ])
   net_table = DataFrame([
     (product=p, use=u, year=year, value=value)
     for ((p, u, year), value) in net
@@ -564,6 +594,9 @@ function product_tax_tables()
     for year in years
   ])
   return (;
+    gross_tax_origin_table,
+    gross_subsidy_origin_table,
+    net_origin_table,
     gross_tax_table,
     gross_subsidy_table,
     net_table,
@@ -640,6 +673,9 @@ function refresh_product_taxes_data!(dir=production_data_dir)
   mkpath(dir)
   data = product_tax_tables()
   CSV.write(joinpath(dir, "product_taxes.csv"), vcat(
+    long_format(:vtProduct_p_u_o, data.gross_tax_origin_table, [:product, :use, :origin, :year]),
+    long_format(:vsProduct_p_u_o, data.gross_subsidy_origin_table, [:product, :use, :origin, :year]),
+    long_format(:vntProduct_p_u_o, data.net_origin_table, [:product, :use, :origin, :year]),
     long_format(:vtProduct_p_u, data.gross_tax_table, [:product, :use, :year]),
     long_format(:vsProduct_p_u, data.gross_subsidy_table, [:product, :use, :year]),
     long_format(:vntProduct_p_u, data.net_table, [:product, :use, :year]),
