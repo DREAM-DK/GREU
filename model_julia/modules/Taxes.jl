@@ -14,10 +14,12 @@ import ..DataUtils: fill_cells!, read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fq
 import ..InputOutput:
   industry,
+  origin,
   ordinary_uses,
   product,
   product_tax_p_u,
-  qPurchaserUse_p_u,
+  purchaser_use_p_u_o,
+  qPurchaserUse_p_u_o,
   ntProduct,
   use
 import ..Intermediates:
@@ -70,6 +72,9 @@ const vntL_l_i_data = read_cells(production_taxes_file, "vntL_l_i")
 const vntM_m_i_data = read_cells(production_taxes_file, "vntM_m_i")
 const vntProductionOther_i_data = read_cells(production_taxes_file, "vntProductionOther_i")
 const vntProduction_i_data = read_cells(production_gva_file, "vntProduction_i")
+const vtProduct_p_u_o_data = read_cells(product_taxes_file, "vtProduct_p_u_o")
+const vsProduct_p_u_o_data = read_cells(product_taxes_file, "vsProduct_p_u_o")
+const vntProduct_p_u_o_data = read_cells(product_taxes_file, "vntProduct_p_u_o")
 const vtProduct_p_u_data = read_cells(product_taxes_file, "vtProduct_p_u")
 const vsProduct_p_u_data = read_cells(product_taxes_file, "vsProduct_p_u")
 const vntProduct_p_u_data = read_cells(product_taxes_file, "vntProduct_p_u")
@@ -111,8 +116,8 @@ const TaxesTag = Tag(:Taxes)
   tCorp_s[s=corporation_sector, t=t], "Average and marginal corporation tax rate by payer sector."
   tRoWIncome[t], "Average rest-of-world income tax rate on net wages."
   tCap[t], "Average and marginal capital tax rate on household financial assets."
-  tProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Gross product tax per unit of purchaser use."
-  tsProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Gross product subsidy per unit."
+  tProduct_p_u_o[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o], "Gross product tax per unit by origin."
+  tsProduct_p_u_o[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o], "Gross product subsidy per unit by origin."
   uRoWProductTaxRecipient[t], "Share of gross product taxes received by RoW."
   uRoWProductSubsidyPayer[t], "Share of product subsidies paid by RoW."
   uRoWProductionSubsidyPayer[t], "Share of production subsidies paid by RoW."
@@ -127,6 +132,9 @@ end
   vCorpIncomeBeforeTax_s[s=corporation_sector, t=t], "Corporation income before tax."
   vCorpCapitalTaxDeduction_s[s=corporation_sector, t=t] :: ForecastZero, "Capital tax depreciation deduction."
   vCorpDebtTaxDeduction_s[s=corporation_sector, t=t] :: ForecastZero, "Debt return deducted from taxable income."
+  vtProduct_p_u_o[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o], "Gross taxes on products by product, use, and origin (D.21)."
+  vsProduct_p_u_o[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o], "Product subsidies by product, use, and origin (D.31)."
+  vntProduct_p_u_o[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o], "Net product taxes by product, use, and origin."
   vtProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Gross taxes on products by product and use (D.21)."
   vsProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Product subsidies by product and use (D.31)."
   vntProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Net product taxes by product and use."
@@ -151,6 +159,9 @@ end
 # Assign data
 # ============================================================================
 function assign_data!(db)
+  fill_cells!(db, vtProduct_p_u_o, vtProduct_p_u_o_data)
+  fill_cells!(db, vsProduct_p_u_o, vsProduct_p_u_o_data)
+  fill_cells!(db, vntProduct_p_u_o, vntProduct_p_u_o_data)
   fill_cells!(db, vtProduct_p_u, vtProduct_p_u_data)
   fill_cells!(db, vsProduct_p_u, vsProduct_p_u_data)
   fill_cells!(db, vntProduct_p_u, vntProduct_p_u_data)
@@ -211,15 +222,22 @@ function define_equations()
     vtCap[t=t1:T],
     vtCap[t] == tCap[t] * ∑(vFinPosition_s_f[:Hh,f,:Assets,t] for f in fin_instrument)
 
-    # Product taxes and subsidies. Gross rates yield the observed net rate.
+    # Product taxes and subsidies. Only origin leaves enter flow accounts.
+    vtProduct_p_u_o[p=product, u=use, o=origin, t=t1:T],
+    vtProduct_p_u_o[p,u,o,t] == tProduct_p_u_o[p,u,o,t] * qPurchaserUse_p_u_o[p,u,o,t]
+    vsProduct_p_u_o[p=product, u=use, o=origin, t=t1:T],
+    vsProduct_p_u_o[p,u,o,t] == tsProduct_p_u_o[p,u,o,t] * qPurchaserUse_p_u_o[p,u,o,t]
+    vntProduct_p_u_o[p=product, u=use, o=origin, t=t1:T],
+    vntProduct_p_u_o[p,u,o,t] == vtProduct_p_u_o[p,u,o,t] - vsProduct_p_u_o[p,u,o,t]
+    ntProduct[p=product, u=ordinary_uses, o=origin, t=t1:T],
+    ntProduct[p,u,o,t] * qPurchaserUse_p_u_o[p,u,o,t] == vntProduct_p_u_o[p,u,o,t]
+
     vtProduct_p_u[p=product, u=use, t=t1:T],
-    vtProduct_p_u[p,u,t] == tProduct_p_u[p,u,t] * qPurchaserUse_p_u[p,u,t]
+    vtProduct_p_u[p,u,t] == ∑(vtProduct_p_u_o[p,u,o,t] for o in origin)
     vsProduct_p_u[p=product, u=use, t=t1:T],
-    vsProduct_p_u[p,u,t] == tsProduct_p_u[p,u,t] * qPurchaserUse_p_u[p,u,t]
-    vntProduct_p_u[p=product, u=ordinary_uses, t=t1:T],
-    vntProduct_p_u[p,u,t] == vtProduct_p_u[p,u,t] - vsProduct_p_u[p,u,t]
-    ntProduct[p=product, u=use, t=t1:T],
-    ntProduct[p,u,t] * qPurchaserUse_p_u[p,u,t] == vntProduct_p_u[p,u,t]
+    vsProduct_p_u[p,u,t] == ∑(vsProduct_p_u_o[p,u,o,t] for o in origin)
+    vntProduct_p_u[p=product, u=use, t=t1:T],
+    vntProduct_p_u[p,u,t] == ∑(vntProduct_p_u_o[p,u,o,t] for o in origin)
 
     vntProduct_u[u=use, t=t1:T],
     vntProduct_u[u,t] == ∑(vntProduct_p_u[p,u,t] for p in product)
@@ -275,8 +293,8 @@ function define_calibration()
     tCorp_s[:,t1], vtCorp_s[:,t1]
     tRoWIncome[t1], vtRoWIncome[t1]
     tCap[t1], vtCap[t1]
-    tProduct_p_u[:,:,t1], vtProduct_p_u[:,:,t1]
-    tsProduct_p_u[:,:,t1], vsProduct_p_u[:,:,t1]
+    tProduct_p_u_o[:,:,:,t1], vtProduct_p_u_o[:,:,:,t1]
+    tsProduct_p_u_o[:,:,:,t1], vsProduct_p_u_o[:,:,:,t1]
     uRoWProductTaxRecipient[t1], vtRoWProduct[t1]
     uRoWProductSubsidyPayer[t1], vsRoWProduct[t1]
     uRoWProductionSubsidyPayer[t1], vsRoWProduction[t1]

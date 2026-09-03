@@ -1,4 +1,6 @@
 # Product, use, origin, margin, and supply accounts.
+# Keep accounting balances at leaf cells.
+# Treat parent quantities as behavior indices.
 include(joinpath(@__DIR__, "InputOutputSettings.jl"))
 
 module InputOutput
@@ -138,12 +140,12 @@ end
 
 @variables model :: (InputOutputTag, GrowthAdjusted) begin
   qY_p_i[(p,i,t)=vY_p_i], "Output by product and industry"
-  qPurchaserUse_p_u[(p,u,t)=vPurchaserUse_p_u], "Purchaser use by product and use"
-  qPurchaserUse_p_u_o[(p,u,o,t)=vPurchaserUse_p_u_o], "Purchaser use by product, use, and origin"
-  qMarginBundle_u[(u,t)=vMarginBundle_u], "Margin-bundle demand by use"
+  qPurchaserUse_p_u[(p,u,t)=vPurchaserUse_p_u], "Purchaser-use quantity index by product and use"
+  qPurchaserUse_p_u_o[(p,u,o,t)=vPurchaserUse_p_u_o], "Purchaser-use flow by product, use, and origin"
+  qMarginBundle_u[(u,t)=vMarginBundle_u], "Margin-bundle quantity index by use"
   qMarginBundle_p_u[p=product, u=use, t=t; (p,u) in calibration_year_indices(qMarginBundle_p_u_data)], "Margin-bundle demand by product and use"
-  qMarginService_s_u[(s,u,t)=vMarginService_s_u], "Margin-service demand by service and use"
-  qMarginService_s_u_o[(s,u,o,t)=vMarginService_s_u_o], "Margin-service demand by service, use, and origin"
+  qMarginService_s_u[(s,u,t)=vMarginService_s_u], "Margin-service quantity index by service and use"
+  qMarginService_s_u_o[(s,u,o,t)=vMarginService_s_u_o], "Margin-service flow by service, use, and origin"
   qUse_p_u_o[(p,u,o,t)=vUse_p_u_o], "Basic-price use by product, use, and origin"
   qSupply_p_o[(p,o,t)=vSupply_p_o], "Supply by product and origin"
   qUse_u_o[(u,o,t)=vUse_u_o], "Basic-price use by use and origin"
@@ -176,10 +178,10 @@ const pM_p_u = pBasic[:,:,import_origin,:]
 
 @variables model :: InputOutputTag begin
   rIndustryShare[(p,i,t)=qY_p_i] :: ForecastConstant, "Fixed industry share for each product"
-  rOriginShare[(p,u,o,t)=merge_indices(qPurchaserUse_p_u_o[:,ordinary_uses,:,:], qMarginService_s_u_o)] :: ForecastConstant, "Fixed origin share"
-  rMarginServiceShare[(s,u,t)=qMarginService_s_u] :: ForecastConstant, "Fixed margin-service share"
+  rOriginShare[(p,u,o,t)=merge_indices(qPurchaserUse_p_u_o[:,ordinary_uses,:,:], qMarginService_s_u_o)] :: ForecastConstant, "Origin quantity per unit of the parent behavior index. These ratios need not sum to one."
+  rMarginServiceShare[(s,u,t)=qMarginService_s_u] :: ForecastConstant, "Conditional margin-service demand per unit of the bundle index"
   rMarginRate[(p,u,t)=qMarginBundle_p_u] :: ForecastConstant, "Margin-bundle units per unit of purchaser use"
-  ntProduct[p=product, u=use, t=t; (p,u) in product_tax_p_u && u != :INV] :: ForecastConstant, "Net product tax per unit"
+  ntProduct[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o && u != :INV] :: ForecastConstant, "Net product tax per unit by origin"
   tVAT[(p,u,o,t)=qPurchaserUse_p_u_o] :: ForecastConstant, "Separate VAT rate; zero while ntProduct includes VAT"
 end
 
@@ -288,7 +290,7 @@ function define_equations()
     pMarginBundle_u[u,t] == ∑(rMarginServiceShare[s,u,t] * pMarginService_s_u[s,u,t] for s in margin_services)
 
     pPurchaserUse_p_u_o[p=product, u=use, o=origin, t=t1:T],
-    pPurchaserUse_p_u_o[p,u,o,t] == (pBasic[p,u,o,t] + ntProduct[p,u,t]
+    pPurchaserUse_p_u_o[p,u,o,t] == (pBasic[p,u,o,t] + ntProduct[p,u,o,t]
       + rMarginRate[p,u,t] * pMarginBundle_u[u,t]) * (1 + tVAT[p,u,o,t])
 
     pPurchaserUse_p_u[p=product, u=ordinary_uses, t=t1:T],
@@ -348,18 +350,10 @@ function define_equations()
     qSupply_p_o[p=product, o=domestic, t=t1:T],
     qSupply_p_o[p,o,t] == ∑(qY_p_i[p,i,t] for i in industry if (p,i,t) in keys(qY_p_i))
 
-    @test_constraint("Origin values sum to product use"; rtol=1e-3)
+    @test_constraint("Parent behavior value equals leaf values"; rtol=1e-3)
     qPurchaserUse_p_u[p=product, u=ordinary_uses, t=t1:T],
     pPurchaserUse_p_u[p,u,t] * qPurchaserUse_p_u[p,u,t] ==
         ∑(vPurchaserUse_p_u_o[p,u,o,t] for o in origin)
-
-    @test_constraint("Margin-service shares sum to the margin bundle"; rtol=1e-3)
-    qMarginBundle_u[u=use, t=t1:T], qMarginBundle_u[u,t] == ∑(qMarginService_s_u[s,u,t] for s in margin_services)
-
-    # Source origin quantities are additive; the purchaser quantity is a price index.
-    @test_constraint("Margin origin shares sum to service demand"; rtol=4e-3)
-    qMarginService_s_u[s=margin_services, u=use, t=t1:T],
-      qMarginService_s_u[s,u,t] == ∑(qMarginService_s_u_o[s,u,o,t] for o in origin)
 
     @test_constraint("Imports sum by product and use"; rtol=1e-3)
     qM[t=t1:T], qM[t] == ∑(qM_u[u,t] for u in use)
