@@ -229,8 +229,10 @@ function define_equations()
     vsProduct_p_u_o[p,u,o,t] == tsProduct_p_u_o[p,u,o,t] * qPurchaserUse_p_u_o[p,u,o,t]
     vntProduct_p_u_o[p=product, u=use, o=origin, t=t1:T],
     vntProduct_p_u_o[p,u,o,t] == vtProduct_p_u_o[p,u,o,t] - vsProduct_p_u_o[p,u,o,t]
+    # The net rate is the difference of the two gross rates. Do not scale this row by the
+    # quantity: purchaser use is negative or near zero in some cells, which weakens the pivot.
     ntProduct[p=product, u=ordinary_uses, o=origin, t=t1:T],
-    ntProduct[p,u,o,t] * qPurchaserUse_p_u_o[p,u,o,t] == vntProduct_p_u_o[p,u,o,t]
+    ntProduct[p,u,o,t] == tProduct_p_u_o[p,u,o,t] - tsProduct_p_u_o[p,u,o,t]
 
     vtProduct_p_u[p=product, u=use, t=t1:T],
     vtProduct_p_u[p,u,t] == ∑(vtProduct_p_u_o[p,u,o,t] for o in origin)

@@ -10,7 +10,7 @@ const country_code = "DK"
 const first_data_year = 2015
 const base_year = 2019
 const calibration_year = 2019
-const terminal_year = 2030
+const terminal_year = 2075
 
 # ============================================================================
 # Module groups

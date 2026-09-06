@@ -20,6 +20,7 @@ import GREU.Calibration:
   forecast_constants!,
   fill_missing_t1_exogenous_start_values!,
   fill_missing_exogenous_forecasts!,
+  extend_start_values!,
   fill_missing_endogenous_start_values!
 import GREU.Tags: DynamicCalibration
 
@@ -57,23 +58,34 @@ assert_residuals_small(static_solution; rtol=1e-4, tolerances=residual_tolerance
 # ============================================================================
 # Dynamic calibration
 # ============================================================================
-# Solve the full horizon from the static result. Start from the source values again, so
+# Solve one horizon from an earlier result. Start from the source values again, so
 # zeros for hooks that have no equation in the static horizon do not carry over.
-Time.T = Time.max_terminal_year
-exogenous_values = copy(data)
-start_values = copy(static_solution)
-dynamic_calibration_block = sum(m.define_calibration() for m in model_modules);
-# Keep the static parameters. Their values make them exogenous in the swap below. The
-# residual of each identifying equation then records any conflict with the full horizon.
-exogenous_values[static_calibrated_parameters] .= static_solution[static_calibrated_parameters]
-forecast_zeros!(dynamic_calibration_block, exogenous_values)
-endo_exo_residuals!(dynamic_calibration_block, exogenous_values)
-set_starting_values!(start_values, loaded_modules)
-fill_missing_t1_exogenous_start_values!(dynamic_calibration_block, exogenous_values, start_values)
-dynamic_calibration_block = forecast_constants!(dynamic_calibration_block, exogenous_values)
-fill_missing_exogenous_forecasts!(dynamic_calibration_block, exogenous_values, start_values)
-fill_missing_endogenous_start_values!(dynamic_calibration_block, start_values)
-@log_time baseline = solve(dynamic_calibration_block, exogenous_values; start_values, replace_nothing=1.0)
+function dynamic_calibration(terminal_year, solved_through, start_values)
+  Time.T = terminal_year
+  exogenous_values = copy(data)
+  block = sum(m.define_calibration() for m in model_modules)
+  # Keep the static parameters. Their values make them exogenous in the swap below. The
+  # residual of each identifying equation then records any conflict with the full horizon.
+  exogenous_values[static_calibrated_parameters] .= static_solution[static_calibrated_parameters]
+  forecast_zeros!(block, exogenous_values)
+  endo_exo_residuals!(block, exogenous_values)
+  set_starting_values!(start_values, loaded_modules)
+  fill_missing_t1_exogenous_start_values!(block, exogenous_values, start_values)
+  block = forecast_constants!(block, exogenous_values)
+  fill_missing_exogenous_forecasts!(block, exogenous_values, start_values)
+  extend_start_values!(block, start_values, solved_through)
+  fill_missing_endogenous_start_values!(block, start_values)
+  return solve(block, exogenous_values; start_values, replace_nothing=1.0)
+end
+
+# Step the horizon out. The static result carries the solve about twelve years; past that the
+# start point is too far away and the solver stalls. Each later step adds five years and
+# starts from the previous result. The last step always lands on the terminal year.
+horizon_steps = unique([(Settings.calibration_year + 12):5:Time.max_terminal_year..., Time.max_terminal_year])
+baseline = static_solution
+for (solved_through, terminal_year) in zip([Settings.calibration_year; horizon_steps], horizon_steps)
+  global baseline = @log_time "dynamic calibration through $terminal_year" dynamic_calibration(terminal_year, solved_through, copy(baseline))
+end
 assert_residuals_small(baseline; rtol=1e-4, tolerances=residual_tolerances(baseline, model_modules), msg="Large residuals after dynamic calibration",)
 
 # ==============================================================================

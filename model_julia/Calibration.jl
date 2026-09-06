@@ -154,6 +154,22 @@ function set_starting_values!(start_values::ModelDictionary, modules)
 end
 
 """
+Carry start values past the terminal year of an earlier horizon.
+
+The model is growth and inflation adjusted, so the last solved year is close to the steady
+state. Copying it forward gives the next horizon a start point the model has reached, which
+is much nearer than the period-one fallback.
+"""
+function extend_start_values!(block::Block, start_values::ModelDictionary, solved_through::Int)
+  vars = filter(variables(block)) do var
+    year = variable_year(var)
+    !isnothing(year) && year > solved_through
+  end
+  start_values[vars] .= start_values[at_year.(vars, solved_through)]
+  return nothing
+end
+
+"""
 Fill missing future endogenous start values with the period-one value.
 
 These values are solver hints. They do not make the variables exogenous. Values set
