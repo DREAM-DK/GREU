@@ -1,0 +1,1 @@
+copy "%~dp0..\..\Output\baseline.parquet" "%~dp0previous_baseline.parquet"
