@@ -122,7 +122,7 @@ end
 @variables model :: (InputOutputTag, InflationAdjusted) begin
   pY_p_i[(p,i,t)=vY_p_i], "Domestic basic price by product and industry"
   pY_i[(i,t)=vY_i], "Domestic basic price by industry"
-  pBasic[(p,u,o,t)=vUse_p_u_o], "Basic or border price by product, use, and origin"
+  pBasic[(p,u,o,t)=vUse_p_u_o] :: ForecastConstant, "Basic or border price by product, use, and origin"
   pSupply_p_o[(p,o,t)=vSupply_p_o], "Supply price by product and origin"
   pUse_u_o[(u,o,t)=vUse_u_o[ordinary_uses,:,:]], "Basic or border price by use and origin"
   pSupply_o[o=origin, t=t], "Supply price by origin"
@@ -174,6 +174,7 @@ const qM = qSupply_o[import_origin,:]
 const vY = vSupply_o[domestic,:]
 const vM = vSupply_o[import_origin,:]
 
+const pM = pSupply_o[import_origin,:]
 const pM_p_u = pBasic[:,:,import_origin,:]
 
 @variables model :: InputOutputTag begin
@@ -183,6 +184,7 @@ const pM_p_u = pBasic[:,:,import_origin,:]
   rMarginRate[(p,u,t)=qMarginBundle_p_u] :: ForecastConstant, "Margin-bundle units per unit of purchaser use"
   ntProduct[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o && u != :INV] :: ForecastConstant, "Net product tax per unit by origin"
   tVAT[(p,u,o,t)=qPurchaserUse_p_u_o] :: ForecastConstant, "Separate VAT rate; zero while ntProduct includes VAT"
+  fG[t], "Scale factor on government consumption. One unless a module endogenizes it"
 end
 
 @assert Set(p for (p, _, year) in keys(vY_p_i) if year == calibration_year) ==
@@ -207,8 +209,11 @@ function assign_data!(db)
   fill_cells!(db, qI, qI_data)
   fill_cells!(db, qMarginService_s_u, qMarginService_s_u_data)
   db[tVAT] .= 0.0
+  db[fG] .= 1.0
   db[pY_p_i] .= 1.0
-  db[pM_p_u] .= 1.0
+  # Normalize the import price in the base year only. ForecastConstant holds it flat in
+  # adjusted units, so foreign prices grow at the same long-run rate as domestic prices.
+  db[pM_p_u[:,:,t1]] .= 1.0
 
   db[vCTourist] .= read_series(aggregate_totals_file, "vCTourist", t)
   # The source has no tourist volume before t1. Use its value as the lagged quantity.
@@ -233,7 +238,7 @@ function define_equations()
     # Direct product demand. Inventories bypass the module links.
     qPurchaserUse_p_u[(p,i,t) in keys(qM_p_i); t in t1:T], qPurchaserUse_p_u[p,i,t] == qM_p_i[p,i,t]
     qPurchaserUse_p_u[p=product, u=:C, t=t1:T], qPurchaserUse_p_u[p,u,t] == qC_p[p,t]
-    qPurchaserUse_p_u[p=product, u=:G, t=t1:T], qPurchaserUse_p_u[p,u,t] == qG_p[p,t]
+    qPurchaserUse_p_u[p=product, u=:G, t=t1:T], qPurchaserUse_p_u[p,u,t] == fG[t] * qG_p[p,t]
     qPurchaserUse_p_u[p=product, u=:K, t=t1:T], qPurchaserUse_p_u[p,u,t] == qI_p[p,t]
     qPurchaserUse_p_u[p=product, u=:X, t=t1:T], qPurchaserUse_p_u[p,u,t] == qX_p[p,t]
 
@@ -277,7 +282,7 @@ function define_equations()
 
     # Final-use totals.
     qX[t=t1:T], qX[t] == ∑(qX_p[p,t] for p in product) + qCTourist[t]
-    qG[t=t1:T], qG[t] == ∑(qG_p[p,t] for p in product)
+    qG[t=t1:T], qG[t] == ∑(qPurchaserUse_p_u[p,:G,t] for p in product)
     qINV[t=t1:T], qINV[t] == ∑(qPurchaserUse_p_u[p,:INV,t] for p in product)
 
     # Basic, border, margin, and purchaser prices.

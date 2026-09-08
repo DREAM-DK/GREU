@@ -6,6 +6,7 @@ include(joinpath(@__DIR__, "ProductionSettings.jl"))
 module Production
 
 using SquareModels
+import JuMP
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutput: industry, qY_i
 import ..ProductionSettings: production_nesting
@@ -57,6 +58,11 @@ end
   qTop2qY[i=industry, t=t] :: ForecastConstant, "Marginal top-nest use per unit of output by industry."
   eProd[n=node, i=industry; haskey(production_nesting[i], n)], "Substitution elasticity by production nest and industry."
 end
+
+# A node price is value per unit and is positive. CES demand raises it to the nest
+# elasticity, so a negative trial value stops the solver with a domain error. The bound keeps
+# the search in the domain. Prices calibrate to 1.0, so an active bound means a real error.
+JuMP.set_lower_bound.([pProd[key...] for key in keys(pProd)], 1e-4)
 
 # ============================================================================
 # Assign data

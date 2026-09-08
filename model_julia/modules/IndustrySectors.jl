@@ -10,13 +10,13 @@ import ..DataUtils: fill_cells!, read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fq
 import ..InputOutput: industry, vINV, vY_i
 import ..Intermediates: vM_i
-import ..Labor: vWages_i
+import ..Labor: qL_l_i, vWages_i
 import ..model
 import ..Taxes:
   production_subsidy_class,
   vntProduction_i,
   vsProduction_c_i
-import ..ProductionSettings: capital_type
+import ..ProductionSettings: capital_type, labor_type
 import ..SectorAccounts:
   vConsumptionFixedCapital_s,
   vGrossOpSurplusMixedIncome,
@@ -69,6 +69,10 @@ const IndustrySectorsTag = Tag(:IndustrySectors)
 @variables model :: (IndustrySectorsTag, ForecastConstant) begin
   rIndustrySector_s_i[s=mapped_sector, i=industry, t=t], "Industry share assigned to each sector."
   uINV_s[s=mapped_sector, t=t], "Sector share of inventory investment."
+end
+
+@variables model :: (IndustrySectorsTag, GrowthAdjusted) begin
+  qL_s[s=mapped_sector, t=t], "Employees by sector."
 end
 
 @variables model :: (IndustrySectorsTag, GrowthAdjusted, InflationAdjusted) begin
@@ -125,6 +129,9 @@ function define_equations()
 
     vWages_s[s=mapped_sector, t=t1:T],
     vWages_s[s,t] == ∑(rIndustrySector_s_i[s,i,t] * vWages_i[i,t] for i in industry)
+
+    qL_s[s=mapped_sector, t=t1:T],
+    qL_s[s,t] == ∑(rIndustrySector_s_i[s,i,t] * qL_l_i[l,i,t] for l in labor_type, i in industry)
 
     vntProduction_s[s=mapped_sector, t=t1:T],
     vntProduction_s[s,t] ==

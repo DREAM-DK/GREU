@@ -5,7 +5,7 @@
 
 # Data
 *.csv
-*.parquet
+#*.parquet
 
 # Calibration/scenario artifacts
 /model_julia/Output/
