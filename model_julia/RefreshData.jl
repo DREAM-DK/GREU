@@ -79,3 +79,10 @@ TaxesData.reconcile_net_production_taxes!()
 include(joinpath(@__DIR__, "modules", "IndustrySectorsData.jl"))
 
 IndustrySectorsData.refresh_industry_sector_shares!()
+
+# ============================================================================
+# Production and product tax tables
+# ============================================================================
+# TaxesData is included above for D29-D39 reconciliation. Rebuild the tax CSVs
+# after industry-sector shares, which the production-tax allocation uses.
+TaxesData.refresh_taxes_data!()
