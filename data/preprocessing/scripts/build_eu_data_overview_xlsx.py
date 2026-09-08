@@ -804,13 +804,19 @@ PROGRESS_ROWS = [
      "Totals match to 0.1%; re-exports and the 7 finer-than-NACE industry "
      "groups remain open",
      "figaro_dk2020_reconciliation.xlsx"),
-    ("io_energy_long_format.xlsx", "CONSTRUCTED", "BUILT", "2026-07-30/31",
+    ("io_energy_long_format.xlsx", "CONSTRUCTED", "BUILT", "2026-08-27",
      "Sweden 2020 package accepted; 0 monetary cells directly observed; "
-     "residuals disclosed and shown to be non-energy money",
+     "residuals disclosed and shown to be non-energy money. 2026-08-27 price "
+     "cross-check: public sources reproduce energy price totals to 8% "
+     "(transport fuels) and 8-21% (grid energy), but the basic/tax/VAT split "
+     "is 28-36% out on the basic price - controls, not cells",
      "energy_money_se2020_public_core_reconciliation.xlsx"),
-    ("energy_and_emissions.xlsx", "COARSER", "PILOT DONE", "2026-07-30",
+    ("energy_and_emissions.xlsx", "COARSER", "PILOT DONE", "2026-08-27",
      "Physical energy −0.611%; emissions −0.007% (CO2); purpose and "
-     "price/tax layers must be constructed",
+     "price/tax layers must be constructed. 2026-08-27 build findings: PEFA's "
+     "21 NACE sections are exactly the Julia industry grain (no concordance "
+     "needed) and the account closes supply=use per activity to 0.3 TJ; "
+     "file is 2020-only against a 2019 calibration year",
      "eurostat_energy_emissions_dk2020_reconciliation.xlsx"),
     ("non_energy_emissions.xlsx", "COARSER", "PILOT DONE", "2026-08-19",
      "Load-bearing qEmmxE; F-gases exact; ainah-energy tautological for "
@@ -935,6 +941,20 @@ DECISIONS_ROWS = [
      "Model owners", "2026-08-18",
      "Closing the institutional_financial_accounts row; household-wealth "
      "levels in calibration"),
+    ("22",
+     "Does the purpose dimension (es) survive into the Julia model? It is "
+     "the parent of five separate splits — the production function's three "
+     "energy branches, the capital-type pairing (es2k), the household "
+     "consumption groups (es2cf2d), the ETS emission categories and the "
+     "reporting grouping — so collapsing it in the data loses all five at "
+     "once. Sweden sets industrial purpose to 'unspecified', which the "
+     "model accepts but which routes all industrial energy to machine "
+     "capital, removing heating-with-buildings and transport-with-vehicles "
+     "substitution for industry. Acceptable?",
+     "Model owners", "2026-08-27",
+     "Schema freeze for the Julia energy account (open item 20); building "
+     "at finest grain with a separate aggregation step means the answer "
+     "can arrive late without rework"),
 ]
 
 HEADER_FILL = PatternFill("solid", fgColor="1F4E79")

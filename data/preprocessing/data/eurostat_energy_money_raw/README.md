@@ -71,6 +71,27 @@ These files are anonymously downloadable. No dataset-specific licence statement
 was found on the delivery pages; the audit therefore records the Commission
 legal notice/reuse policy rather than claiming CC BY.
 
+## Two traps in the `nrg_pc_2xx` price components (recorded 2026-08-27)
+
+**`TAX_FEE_LEV_CHRG` already includes VAT.** Verified exactly on both the gas
+and electricity datasets: `TAX_ENV + TAX_RNW + VAT = TAX_FEE_LEV_CHRG`
+(household gas 95.9621 = 95.9621). The all-in price is therefore
+`NRG_SUP + NETC + TAX_FEE_LEV_CHRG`; adding `VAT` again inflates it by roughly a
+fifth. This is a silent error — the result stays plausible.
+
+**The non-household `VAT` component cannot be VAT.** In `nrg_pc_205` it is
+97.9 kr./GJ against a pre-tax base of 152.3 kr./GJ, i.e. 64%. Unexplained; do
+not use that field until it is.
+
+Two further notes for anyone comparing these prices with national accounts.
+Gas is priced on **gross calorific value** (`GJ_GCV`), which alone shifts the
+level a few percent against the net-calorific-value convention in the Danish
+energy account. And Denmark reports national currency under the `NAT` code, not
+`NAC` — filtering on `NAC` returns nothing for DK.
+
+Quantitative comparison against the Danish implicit unit values is in
+`docs/eu_data_pilots.md`, entry "Implicit energy prices" (2026-08-27).
+
 ## Scope warning
 
 These sources supply valuable controls, but no source jointly identifies GREU

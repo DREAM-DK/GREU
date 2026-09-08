@@ -51,6 +51,9 @@ handoffs there so the next session can resume cold.
 | Which EU source replaces input X, and how good is it? | `docs/eu_data_mapping.md` (Mapping table) |
 | What exactly did pilot Y find? Which numbers? | `docs/eu_data_pilots.md` |
 | What do the Danish energy columns mean? | `data/preprocessing/data/energy_data_notes.md` |
+| Where does the Julia energy module stand? | `docs/eu_data_mapping.md` (open items 20–21, decision 22) |
+| How do I read `env_ac_pefasu`? Which codes are traps? | `data/preprocessing/data/eurostat_energy_emissions_raw/README.md` |
+| What does a petajoule cost, and can Eurostat confirm it? | `docs/eu_data_pilots.md` ("Implicit energy prices") |
 | How do I run a non-Danish country? | `data/Modules/energy_money/README.md` |
 | Where did a raw download come from? | the `README.md` inside that `*_raw/` directory |
 | Management traffic-light view | `docs/EU_data_overview.xlsx` (generated) |

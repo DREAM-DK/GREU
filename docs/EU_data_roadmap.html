@@ -101,7 +101,7 @@
     <h1>GREU → EU Framework</h1>
     <div class="subtitle">Data roadmap &amp; progress tracker — replacing Statistics Denmark with EU-wide sources</div>
   </div>
-  <div class="date">Status: 19 August 2026<br>DREAM · GREU</div>
+  <div class="date">Status: 27 August 2026<br>DREAM · GREU</div>
 </div>
 
 <p class="lead"><b>Goal:</b> a version of GREU that any EU member state can run, using only data
@@ -138,7 +138,13 @@ input), <b>fixed assets</b> (18 August, capital stocks match Eurostat net replac
 cost to rounding), and <b>non-energy emissions</b> (19 August, F-gases copy exactly;
 the methane gap is a documented agriculture difference, not a missing source — see §6), and <b>household consumption</b> (19 August, 3-digit COICOP uniquely identifies 3 of 12 purpose groups; tourism abroad matches FIGARO exactly; all 27 countries publish the split — see §6). Twelve of the thirteen
 inputs now have pilot or build evidence and none has proved infeasible — the binding
-constraint has shifted from data feasibility to the <b>open decisions in §7</b>.</div>
+constraint has shifted from data feasibility to the <b>open decisions in §7</b>.
+<b>Since 27 August the project has entered construction</b>: the model is being rewritten in
+Julia, and the energy and climate modules are being built there, physical account first.
+The same day's price work (Pilot 13, §6) put a number on the energy question that started
+it — industry pays 72 kr. per gigajoule and households 290, a fourfold gap made entirely of
+tax and VAT — and confirmed, from a new direction, that public price sources can reproduce
+energy price <i>totals</i> but not the <i>breakdown</i> the model actually consumes.</div>
 
 <div class="verified"><span class="tag v">Sweden package accepted · compatibility boundary only</span>
 The monetary-energy interface will use a <b>coarser public-EU core</b> with an
@@ -831,6 +837,69 @@ splitting keys, or a decision to run other EU countries at the aggregated level 
 </div>
 
 <div class="evidence">
+  <h3>✓ Pilot 13 · What a petajoule costs — and why the price total is not enough (27 August)</h3>
+  <p>The model runs on physical energy but settles accounts in money, so every
+  petajoule needs a price. Taking the Danish figures at face value: industry
+  pays <b>72 kr. per gigajoule</b>, households pay <b>290</b>. The same joule,
+  four times the price — and the difference is entirely tax and VAT, not
+  physics. That wedge is what a climate policy actually moves, which is why the
+  price layer is the heart of the energy module rather than a detail of it.</p>
+  <p style="margin-top:4pt">The calculation checks out against everyday
+  knowledge: household electricity works out to 2.21 kr./kWh, petrol to 10.00
+  kr./litre, diesel to 8.83 — the familiar Danish 2020 prices. Comparing these
+  with Eurostat's published prices, transport fuels agree to within 8%, while
+  electricity and gas are 8–21% apart. That gap is explainable: at the pump the
+  posted price <i>is</i> the average price, whereas electricity and gas tariffs
+  carry standing charges and consumption bands that a national-accounts average
+  does not.</p>
+  <p style="margin-top:4pt"><b>The finding that matters is one level down.</b>
+  Split the same price into its parts — the energy itself, the taxes, the VAT —
+  and the agreement collapses: taxes agree within 7%, but the underlying energy
+  price is 28–36% out, in the opposite direction, so the two errors partly
+  cancel in the total. The model cannot use the total: it has separate
+  instruments for taxes charged per krone and taxes charged per tonne, and a
+  carbon tax works through the second. <b>A reproducible total is not a usable
+  breakdown.</b> This confirms Pilot 5's verdict from a new direction — public
+  price sources are calibration controls, not cells.</p>
+  <p style="margin-top:4pt">Two traps were documented for future users. Eurostat's
+  "taxes, fees, levies and charges" component <i>already contains</i> VAT
+  (verified exactly), so adding VAT again inflates every price by about a fifth
+  — a silent error, because the result still looks plausible. And the VAT figure
+  in the business-electricity dataset is 64% of the pre-tax price, which cannot
+  be VAT; that field is unusable until explained. A separate observation kept
+  open: Denmark reports its hard coal under the <i>brown coal and peat</i> code,
+  a reminder that harmonized codes do not guarantee harmonized contents.</p>
+</div>
+
+<div class="evidence">
+  <h3>✓ Build start · The physical energy account moves to Julia (27 August)</h3>
+  <p>The model is being rewritten in Julia, and the energy and climate modules
+  are being built there now. The order is deliberate: <b>the physical account
+  first, money second</b>. The physical side is the half that is genuinely
+  observed — Eurostat's energy flow accounts reproduce the Danish total to
+  within 0.6% — while the money side has no directly observed cells at all. The
+  solid half is therefore built first, and it stands whatever is decided about
+  the constructed half.</p>
+  <p style="margin-top:4pt">Two structural findings make this cheaper than
+  expected. First, Eurostat's energy accounts are published by the same 21
+  broad industry sections the Julia model already uses, so <b>no translation
+  table is needed</b> — unlike the investment work, where industry
+  concordance is most of the effort. Second, the account carries a strong
+  self-check: because energy is physically conserved, everything an industry
+  takes in must come back out, so supply and use must match <i>for each
+  industry</i>. Measured on Denmark 2020 they match to 0.3 TJ out of
+  2,111,000 — an automatic quality test on every future country, for free.</p>
+  <p style="margin-top:4pt"><b>The scaling lesson has been taken.</b> A model
+  meant for 27 countries cannot be validated country by country. Every check
+  is therefore written as a rule the build enforces automatically, so a problem
+  surfaces the first time anyone builds that country rather than when someone
+  publishes a result from it. This matters because it has gone wrong before:
+  the Sweden package once silently treated unpublished figures as zeros and
+  lost 917 PJ of coal and crude oil. "Not published" and "genuinely zero" must
+  never look the same to the code.</p>
+</div>
+
+<div class="evidence">
   <h3>✓ Contribution · A colleague's Eurostat-only "core model" (received 17 August)</h3>
   <p>A colleague independently built a stripped-down GREU variant that solves on live
   Eurostat data — no energy, emissions or climate content, and industries aggregated to 19
@@ -899,7 +968,7 @@ territorial/UNFCCC scope—do not subtract bunker rows ad hoc.</div>
 
 <h2><span class="num">7</span>Decisions and open questions<span class="hint">what blocks the next stage</span></h2>
 
-<p><b>The decision register.</b> Data feasibility is no longer the bottleneck — these nine open
+<p><b>The decision register.</b> Data feasibility is no longer the bottleneck — these ten open
 items are. The table is the meeting view (mirrored as the <b>Decisions</b> sheet of
 <span class="src">docs/EU_data_overview.xlsx</span>); the numbered questions below give each
 item's full context. IDs follow the open-items list in
@@ -927,9 +996,11 @@ item's full context. IDs follow the open-items list in
       <td>Model owners / mgmt</td><td>7 Aug</td><td>Treating the estimator as the EU method; back-test A can still proceed</td></tr>
   <tr><td><b>18</b></td><td>Pension adjustment: replicate the Danish reallocation EU-wide, or adopt the unadjusted definition? (→ Q9)</td>
       <td>Model owners</td><td>18 Aug</td><td>Closing the financial-accounts row; household wealth levels in calibration</td></tr>
+  <tr><td><b>22</b></td><td>Does the energy <i>purpose</i> split (heating / transport / process) survive into the Julia model? It feeds five separate parts of the model at once, so dropping it in the data loses all five</td>
+      <td>Model owners</td><td>27 Aug</td><td>The shape of the new energy account — though building at full detail and aggregating separately means a late answer costs no rework</td></tr>
   </tbody>
 </table>
-<p class="caption">Three of the nine (6, 7, 11) block more than one work stream. Q2 and Q4 below
+<p class="caption">Three of the ten (6, 7, 11) block more than one work stream. Q2 and Q4 below
 are smaller repo-internal questions tracked outside the register.</p>
 
 <div class="q"><span class="status">☑ EUTL tested &nbsp; ☐ construction and GREU meaning confirmed</span>
@@ -1020,8 +1091,8 @@ infeasible.</p>
       <td>Totals ≤0.1%; re-exports and finer-than-NACE splits open (decisions 6, 7)</td></tr>
   <tr><td>Energy IO in money</td><td><span class="verdict ok">BUILT</span></td><td>30–31 Jul</td>
       <td>Sweden 2020 package accepted; residuals disclosed and characterized</td></tr>
-  <tr><td>Energy &amp; emissions</td><td><span class="verdict ok">PILOTED</span></td><td>30 Jul</td>
-      <td>Physical −0.61%, CO₂ −0.007%; purpose and price layers must be constructed (gap ②)</td></tr>
+  <tr><td>Energy &amp; emissions</td><td><span class="verdict ok">BUILDING</span></td><td>27 Aug</td>
+      <td>Physical −0.61%, CO₂ −0.007%; purpose and price layers must be constructed (gap ②). Now moving into Julia: industry detail needs no translation table, and the account self-checks to 0.3 TJ per industry</td></tr>
   <tr><td>Non-energy emissions</td><td><span class="verdict ok">PILOTED</span></td><td>19 Aug</td>
       <td>F-gases exact; methane residual is two documented A01 gaps, not a missing source; all 27 at fine industry detail</td></tr>
   <tr><td>Emissions bridge</td><td><span class="verdict ok">PILOTED</span></td><td>17 Aug</td>
@@ -1097,11 +1168,27 @@ infeasible.</p>
   <li><span class="cb done"></span><span class="done-txt">18 Aug: fifth input piloted: fixed_assets.xlsx vs nama_10_nfa_st + nama_10_a64_p5 (DK 2020). Headline: Danish capital stock is Eurostat net replacement cost, number-exact (7,624.010 vs 7,624.016 bn DKK; buildings/vehicles/machinery exact; 24/28 industry groups exact). All 27 countries publish 2020 net stocks including vehicles; Sweden is fine-detail and net-only. Same session closed the investment-split use-side <i>totals</i> (GFCF matches the Danish investment file exactly) and showed three GREU industries span several of the 21 coarse groups. The four industry-group gaps are the known housing/services boundary (decision 7)</span></li>
   <li><span class="cb done"></span><span class="done-txt">19 Aug: sixth input piloted: non_energy_emissions.xlsx vs env_ac_ainah_r2 + env_air_gge CRF1/2/3/5 (DK 2020). Headline: the spreadsheet is load-bearing; F-gases copy from Eurostat exactly; subtracting energy from the air-account total does not recover the Danish methane/N₂O figures — that is two documented agriculture gaps (Danish file below the current inventory; air accounts above it), not a missing source. All 27 countries publish 2020 air accounts at fine industry detail. Item 9 closed as a sourcing task</span></li>
   <li><span class="cb done"></span><span class="done-txt">19 Aug: seventh (last) input piloted: household consumption 12-group split vs nama_10_co3_p3 (DK 2020). Headline: the split is load-bearing for the household nest; 3-digit COICOP uniquely identifies 3 of 12 groups (cars and household energy match; beverages need a 1999 tobacco remap); the four food groups collapse to one code and still match to 2%; tourism abroad is missing from domestic COICOP but equals FIGARO's residents-abroad residual exactly. All 27 countries publish 2020 at 3-digit. Item 17 closed</span></li>
-  <li><span class="cb"></span><b>▶ next session:</b> item 19 — harden the live financial-accounts module (country/years currently hardcoded, no download provenance) — or the investment-split estimator and Denmark industry back-test A (method locked 20 Aug; see mapping-doc Handoff)</li>
+  <li><span class="cb done"></span><span class="done-txt">27 Aug: energy prices computed and cross-checked (Pilot 13, §6). Industry pays 72 kr./GJ, households 290 — a fourfold gap that is entirely tax and VAT. Public price sources reproduce the totals but not the breakdown the model needs, confirming Pilot 5 from the price side. Two Eurostat component traps documented</span></li>
   <li><span class="cb"></span>Generalize the remaining non-energy inputs before any full Sweden run; only then choose a second country</li>
   <li><span class="cb"></span>Hole-filling rules documented for countries with missing pieces</li>
   <li><span class="cb"></span>Full EU-27 data build; model runs on EU-sourced data</li>
 </ul>
+
+<p class="phase">Phase 4 — Julia translation: the energy and climate modules</p>
+<ul class="clean">
+  <li><span class="cb done"></span><span class="done-txt">27 Aug: build order settled — physical energy account first, money second, because the physical half is observed and the monetary half is constructed. Choices locked: account in petajoules; carry natural inputs, energy products and residuals together so the balance check works; keep industry purpose as an explicit "unspecified" placeholder rather than a blank; take the year from model settings but write year-generic code validated against 2020, since the Danish reference file exists only for that year. Physical and monetary stay in separate modules — that boundary is exactly the observed-versus-constructed line the project is asked to defend</span></li>
+  <li><span class="cb"></span><b>▶ next session:</b> write the static settings module (source codes, product groups, industry and household maps), then the data module that fetches, checks and writes the account. Copy the assertion technique from the input-output module: row-count checks after every join, so an unpublished figure stops the build instead of becoming a zero</li>
+  <li><span class="cb"></span>Country-genericity checks rather than country-by-country validation: extend the existing 27-country coverage probe from "does this country publish the dataset" to "which individual codes does it contain", and add the energy accounts to it</li>
+  <li><span class="cb"></span>One cross-source reconciliation of the energy accounts against Eurostat's energy balances for all 27 countries at once — to catch mis-filed products, which no arithmetic check can see (Denmark files hard coal under brown coal)</li>
+  <li><span class="cb"></span>Decision 22 (§7): does the purpose split survive into Julia? Not blocking — the account is built at full detail and aggregated separately</li>
+  <li><span class="cb"></span>Then the monetary layer, the emissions layer, and the model-side energy equations</li>
+</ul>
+
+<p class="caption">Note for whoever picks up Phase 4: two of the existing Julia data
+modules carry no automatic checks at all, and a third turns missing figures into
+zeros without distinguishing "not published" from "genuinely nothing". They
+share the same latent risk; the energy module is simply the first one built
+after that lesson was learned.</p>
 
 <div class="footer">
   <span>Canonical docs: docs/eu_data_mapping.md (status) · docs/eu_data_pilots.md (evidence) · data/preprocessing/data/energy_data_notes.md · AGENTS.md</span>

@@ -117,11 +117,54 @@ Accounting identity implied: for any use column,
 `purch = basic (dom + imp) + margins + product taxes + vat`, with margins
 rerouted to rows 45000/46000/47000 in the IO representation.
 
+## Year coverage, and how the model papers over it (2026-08-27)
+
+`energy_and_emissions.xlsx` contains **2020 only**. `io_energy_long_format.xlsx`
+contains **2019 and 2020**. So the file carrying `purp` and `pj` — the only
+source of the purpose dimension — is a single-year vintage.
+
+The GAMS model calibrates on 2019 and closes the gap by copying, in
+`model/modules/energy_markets.gms`:
+
+```gams
+pEpj_base.l[es,e,d,'2019'] = pEpj_base.l[es,e,d,'2020'];
+```
+
+The Julia translation inherits the same mismatch: `Settings.jl` has
+`calibration_year = 2019`, while every energy reconciliation in this repo is
+2020. The agreed handling (2026-08-27) is **year-generic code, validated at 2020
+and run at 2019** — same code path, so a 2020 validation validates the method.
+Do not build the year in as a constant, and do not reproduce the copy above.
+
+Also in that file, immediately below: a block commented
+`#HAND-HELD CORRECTION FOR DK` subtracting hardcoded amounts from three
+`qM_CET` products in industry `19000`. It is Denmark-specific and must not be
+carried into the EU-generic pipeline.
+
+## Model-side naming trap
+
+`model/modules/factor_demand_energy.gms` declares
+`d1E_re_i[re,i,t] "Does industry i use energy inputs for purpose re?"` — but
+`re` is **energy type** (`input_output.sets.gms`: "Intermediate energy-input"),
+not purpose. Purpose is `es` ("End-purpose of ergy", `output.sets.gms`). The
+comment is wrong and will mislead anyone translating the module.
+
+Related: the production function's three energy branches (`machine_energy`,
+`transport_energy`, `heating_energy`) are **written but disabled**. Both
+`production.sets.gms` and `output.sets.gms` carry the real mapping commented out
+beside a live one that collapses all three to a single `energy` node, marked
+`#£Temp until IO-split`. The model therefore has one substitution elasticity for
+all energy today. That is the concrete cost of the missing purpose split, and
+it is the strongest single argument for keeping `es` in the EU data.
+
 ## Open questions
 
 - **What `in_ETS` precisely covers** — colleagues are unsure and have asked
   onwards (as of 2026-07-27). It is confirmed mutually exclusive with the other
   purposes, so calculations summing over `purp` are safe meanwhile.
+  **2026-08-27 note:** this is not cosmetic. `in_ETS` drives
+  `map_emission_categories` in `report.sets.gms`, so its definition decides
+  which emissions land in ETS1 rather than ETS2.
 - Whether more years than 2020 will arrive (build scripts year-generic
   regardless).
 
@@ -143,7 +186,7 @@ once, which is a drift hazard and costs three times as much to read.
 - `docs/eu_data_mapping.md` — current verdicts per input, the four structural
   gaps, open questions and the next task.
 
-The four headline results, so you know whether you need to look:
+The headline results, so you know whether you need to look:
 
 - **Physical energy is well covered.** PEFA reproduces GREU's 2,251.550 PJ to
   within −0.611% on a like-for-like boundary. Do not compare against PEFA's
@@ -164,6 +207,13 @@ The four headline results, so you know whether you need to look:
   renewable natural inputs rather than P27 output heat, P10 derived gas
   unmapped. The pilots applied these as explicit adjustments and did **not**
   modify `metadata.xlsx`.
+- **Implicit prices are computable straight from this file** and are the bridge
+  the model needs: `purch / pj` in bn DKK per PJ is exactly 1,000 kr./GJ, the
+  unit of `pEpj`. DK 2020 is 72.4 kr./GJ for industry against 290.2 for
+  households, and 179.9 PJ of use has no monetary value at all. Public sources
+  reproduce the totals but not the basic/tax/VAT split. Numbers and the two
+  `nrg_pc_2xx` traps are in `docs/eu_data_pilots.md`, entry
+  "Implicit energy prices" (2026-08-27) — do not restate them here.
 - Product-label caveat: `energy_and_emissions.xlsx` uses the operational labels
   `natgas_incl_biongas` and `natgas_extraction` while the `metadata.xlsx`
   product list shows `natgas`.

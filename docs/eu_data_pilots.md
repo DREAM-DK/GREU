@@ -34,6 +34,9 @@ pilot results — do not copy them into other documents; link to this file.
 | Fixed assets (`nama_10_nfa_st` / `nama_10_a64_p5`) | 2026-08-18 | Net CRC number-exact (7,624.010 vs 7,624.016); GFCF 3-type totals exact; 24/28 clusters exact (decision 7); all 27 have net stocks |
 | Non-energy emissions (`env_ac_ainah_r2` / `env_air_gge`) | 2026-08-19 | Load-bearing `qEmmxE`; F-gases exact; `ainah−energy` tautological for CH4/N2O; item 9 = two A01 gaps; all 27 A64 |
 | Household consumption (`nama_10_co3_p3`) | 2026-08-19 | Load-bearing CES `c` nest; 3-digit uniquely identifies 3/12; food cluster and 1999 bev+tobacco pass; `cTou`=`OP_RES` exact; all 27 at 3-digit |
+| PEFA as Julia build source | 2026-08-27 | 21 NACE sections = Julia A21 grain, no concordance; supply=use per activity to 0.3 TJ; absence ≠ zero; DK files hard coal under `P09` |
+| Implicit energy prices | 2026-08-27 | 72.4 vs 290.2 kr./GJ industry/household; totals reproduce, basic/tax/VAT split does not; `TAX_FEE_LEV_CHRG` includes VAT |
+| Archived — gap-3 task record | 2026-08-07 | Full investment-split record, moved out of the live doc 2026-08-27; method locked, `qI_k_i` not a joint matrix |
 
 ## Architecture decision and first compatibility increment (2026-07-30)
 
@@ -408,6 +411,105 @@ industry-purpose split, no energy/non-energy split in the air account, loss of
 GREU industry subdivisions and explicit bunker products. These are
 classification/model-construction gaps; they do not undermine the strong
 aggregate physical match.
+
+## Country-genericity evidence — PEFA and air accounts EU-wide (2026-09-08)
+
+Measured live against the Eurostat API while building `EnergyBalanceData.jl` in
+the Julia repo. Probe scripts were scratch, not checked in; every figure below
+is reproducible from `env_ac_pefasu` and `env_ac_ainah_r2` with no filter on
+`prod_nrg` or `nace_r2`.
+
+### Coverage: the observed half of the account is complete EU-wide
+
+`env_ac_pefasu` and `env_ac_ainah_r2` both publish at NACE section grain with
+the same `HH_HEAT`/`HH_TRA`/`HH_OTH` household split. **All 27 member states
+publish both, complete for 2015–2019** — 31 geo codes including CH, IS, NO and
+`EU27_2020`. PEFA reports 35 geos in total; `AL` publishes no calibration year,
+and `MK`, `RS`, `TR` are partial. Air emissions cover 33 geos, all complete.
+Denmark publishes 2010–2023; the `time` dimension advertises 2000–2024, but a
+whole-table request for 2000, 2005, 2009 or 2024 returns zero cells.
+
+So **no concordance is needed on the activity dimension**, and the industry
+purpose gap is a construction gap, not a coverage gap: it is published by
+nobody, for either dataset.
+
+### `SD_IO` is required for the balance, and Denmark hides that
+
+PEFA's physical balance — supply equals use per resident activity — **only holds
+if `SD_IO` is inside the sum.** Tested for 2019 on all 34 reporting countries at
+`rtol = 1e-4`, `atol = 1e-3`:
+
+| | countries failing the per-activity balance |
+|---|---|
+| with `SD_IO` | **0 of 34** |
+| without `SD_IO` | **12 of 34** |
+
+The twelve are BG, CY, CZ, EL, ES, FI, IE, IS, LU, NO, PT and the `EU27_2020`
+aggregate. Sizes are far beyond rounding: Spain books 17.138 PJ of `SD_IO` in
+section `C`, Norway 47.563 PJ in `B` and fails on 18 of its 21 sections. In every
+case the discrepancy sits on the use side and equals the supply-minus-use gap to
+within 0.0002 PJ.
+
+**Denmark reports `SD_IO = 0` throughout**, so a Denmark-only check shows a clean
+0.0003 PJ worst gap and gives no hint that eleven other countries need the term.
+`SD_IO` is not a group total and double counts nothing — it is what makes the
+account close. It belongs inside the balance sum and outside the product set the
+model consumes.
+
+### Household purpose is real information — except in Denmark
+
+PEFA's household purpose split was checked for 2019 across twelve countries by
+counting products used under more than one purpose:
+
+| | |
+|---|---|
+| countries where at least one household product spans >1 purpose | **11 of 12** |
+| Denmark | **0 products span >1 purpose** |
+
+In Denmark each product maps to exactly one purpose (only `P14` in 2015 is
+split), so the purpose share is 1.0 in 1,432 of 1,433 cells and carries no
+information beyond a product-to-purpose lookup. Every other country tested
+splits several products, and **every country except Denmark books household
+electricity `P26` across purposes** — DE, FR, SE, NL, ES, IT, FI and EL across
+all three; PL, AT and NO across heating and other.
+
+This matters for the climate model: electric heating is visible in the account
+everywhere except Denmark, so an EU-wide purpose satellite is worth
+substantially more than the Danish file suggests.
+
+### `GHG` decomposes exactly, and `CO2_BIO` sits outside it
+
+`env_ac_ainah_r2`, Denmark 2019, `TOTAL_HH`, kilotonnes:
+
+```
+CO2          78,399.80011
+CH4_CO2E      9,362.65249
+N2O_CO2E      5,478.44467
+HFC_CO2E        319.54537
+PFC_CO2E          0.99412
+NF3_SF6_CO2E     73.41446
+             ------------
+sum          93,634.85122
+GHG reported 93,634.85121     gap 1e-5 kt
+```
+
+`CO2_BIO` is 16,707.63007 kt and is **not** part of `GHG`; `CO2` in this dataset
+is fossil only. Netting biogenic against fossil CO2 is the easiest way to break a
+combustion/process split. Implied global warming potentials are exactly AR5:
+`CH4_CO2E/CH4` = 28.0000 and `N2O_CO2E/N2O` = 265.0000, so they can be asserted
+against a documented constant rather than hard-coded.
+
+Two further activity-side identities hold exactly for Denmark 2019 CO2 and are
+usable as build-time invariants: `TOTAL_HH` = `TOTAL` + `HH`
+(78,399.80011 = 70,288.59884 + 8,111.20127), and `HH` = `HH_HEAT` + `HH_TRA` +
+`HH_OTH`. Note `TOTAL` excludes households in both datasets.
+
+### Negative cells are physical
+
+`CH_INV_PA` books a stock drawdown as negative use — Denmark 2017 shows −17.167
+PJ of `P19` and 2019 −16.051 PJ of `P23`. A positivity assertion copied from
+`IntermediatesData.jl` would stop the build on valid data. Energy carries sign
+where the monetary input-output table does not.
 
 ## Pilot results — JRC-IDEES for the purpose dimension (2026-07-30)
 
@@ -1552,3 +1654,408 @@ identify services/non-food/housing/car-energy at 3-digit because those
 groups share parents, and it does not contain tourism abroad. That is a
 digit-depth and concept limit, not a missing source.
 
+## Julia energy module — `env_ac_pefasu` as build source (2026-08-27)
+
+Pilot 2 asked whether PEFA can *reproduce* GREU's physical energy. It can
+(−0.611%). This entry asks a different question: what does PEFA look like as
+the **source a year-generic Julia energy account is built from**, for any EU-27
+country rather than for Denmark. All figures below are from the preserved
+`env_ac_pefasu_DK_2020.json` pull unless stated.
+
+### The industry grain already matches the Julia model
+
+PEFA publishes the 21 clean NACE sections `A`–`U` alongside its subsections.
+The Julia translation's input-output layer works at exactly that grain
+(`InputOutputSettings.section_to_industry`, labels `iA`…`iU`). **No concordance
+is needed between PEFA and the Julia industry set** — unlike the A64/A21 work
+that gap 3 required. This is the single largest structural advantage the
+energy account has over the other EU inputs.
+
+Match on a **positive list of the 21 sections**, not by filtering unwanted codes
+out. PEFA also carries `TOTAL`, `HH`, `ENV`, `ROW_ACT`, `SD_SU`, `NRG_FLOW`,
+`CH_INV_PA`, `G-U_X_H` and every NACE subsection; Eurostat adds codes over time,
+and a negative list would let new ones into the account unnoticed.
+
+### Household purpose is observed; industry purpose is not
+
+`HH_HEAT`, `HH_TRA` and `HH_OTH` map directly onto GREU `heating`, `transport`
+and `appliances`. Industry rows carry no purpose dimension at all. This is the
+same split Pilot 2 recorded from the reconciliation side, restated here as a
+build fact: three of GREU's six `purp` values arrive observed, and only for
+households.
+
+### Product codes are one continuous sequence
+
+The classification numbers run 01–31 once across all three groups, with the
+letter as a redundant group label and `00` reserved per letter for the group
+aggregate:
+
+| Group | Codes | Count |
+|---|---|---:|
+| Natural inputs | `N01`–`N07` | 7 |
+| Energy products | `P08`–`P27` | 20 |
+| Residuals | `R28`–`R31` | 4 |
+
+So the three groups partition the classification exactly, with no gaps and no
+overlap. Aggregates and memo items to keep out of the cells: `N00`, `P00`,
+`R00`, `N00_P00_R00`, `EPRD_OUSE`, `SD_IO`.
+
+### The build invariant: supply = use **per activity**
+
+PEFA is a physical flow account, so every resident activity conserves energy —
+what it takes in it must put out. Measured across all 21 sections and the three
+household activities for DK 2020, the largest absolute imbalance is **0.3 TJ**.
+
+This does **not** hold product by product: transformation moves energy between
+products and trade breaks the product balance. `P19` residual fuel oil alone
+supplies 55,345 TJ against 486,626 TJ of use.
+
+A tolerance on this check must be **relative to the activity's own throughput
+with an absolute floor**, not absolute. Denmark is ~2,111 PJ, Germany ~13,000,
+Malta ~30; and sections `T` and `U` are zero for Denmark, so a purely relative
+tolerance divides by zero.
+
+### Absence is not zero — and this has already cost this project once
+
+For DK 2020 every one of the 31 product codes is present in the response; five
+are reported as explicit zeros (`N02`, `N07`, `P08`, `P16`, `P22` — no nuclear,
+no naphtha, no hard coal). For another country a code may be **unpublished**, in
+which case it does not appear in the fetched table at all.
+
+The Sweden monetary builder made exactly this mistake, silently zeroing
+916.7847 PJ of Swedish coal and crude (see the 2026-07-31 defect record above).
+Two consequences for the Julia build:
+
+1. Fetch **without** filtering the product dimension server-side. Filtering to
+   the expected codes makes an unpublished code indistinguishable from a zero.
+2. Assert that the returned code set covers the expected products, and fail
+   naming the missing code.
+
+`SD_IO` is zero for DK 2020 but exists precisely because it is not zero
+everywhere. A non-zero value must be a stated policy — hard error or explicit
+carried residual — not an accident.
+
+### Open anomaly — Denmark files hard coal under brown coal
+
+`P08` (hard coal) is **zero** for DK 2020 while `P09` (brown coal and peat)
+carries 33,175.8 TJ. Denmark has no brown coal or peat resources;
+`energy_and_emissions.xlsx` reports 41.4 PJ of `coal` in intermediate use. This
+looks like a classification choice in the Danish PEFA submission and is
+**unresolved**.
+
+It is also the class of error no arithmetic invariant catches: the activity
+balance closes either way. The automatable substitute is cross-source
+reconciliation against `nrg_bal_c` per product group, run once for all 27
+countries — not a per-country inspection.
+
+### Year coverage
+
+`env_ac_pefasu` covers **DK 2000–2024** (live API check, 2026-08-27), so the EU
+side imposes no year constraint. The binding constraint is Danish and runs the
+other way: see the energy-file year note in
+`data/preprocessing/data/energy_data_notes.md`.
+
+## Implicit energy prices — DK 2020 kr./GJ and the price cross-check (2026-08-27)
+
+Pilot 5 established that **no** public source jointly identifies the monetary
+energy cells. This entry quantifies the same conclusion from the price side, and
+records two traps in Eurostat's price components.
+
+Method: implicit unit values from `energy_and_emissions.xlsx`, `bal = use`,
+2020. Because `purch` is in bn DKK and `pj` in petajoules, 1 bn DKK/PJ is
+exactly 1,000 kr./GJ — the unit the GAMS model already uses for `pEpj`.
+
+### Headline
+
+| Aggregate | PJ | Purchaser value | kr./GJ |
+|---|---:|---:|---:|
+| Intermediate use (`cons_inter`) | 1,535.6 | 111.16 bn | **72.4** |
+| Households (`cons_hh`) | 253.7 | 73.61 bn | **290.2** |
+
+The 4× gap is tax and VAT, not physics: households pay 21.57 bn in the five
+product taxes and 14.57 bn in VAT, against 11.29 bn and 2.65 bn for industry.
+
+**179.9 PJ of use carries no monetary value at all** — wind/solar/hydro (66.42),
+waste (41.59), ambient heat (13.14), wood waste, straw, and the district-heat
+and electricity transmission losses. These rows have no basic price anywhere.
+
+Three independent sanity checks confirm the calculation: household electricity
+615.0 kr./GJ = 2.21 kr./kWh; petrol 312.4 kr./GJ at 32.0 MJ/l = 10.00 kr./l;
+diesel 245.9 kr./GJ at 35.9 MJ/l = 8.83 kr./l. All three are the known Danish
+2020 levels.
+
+### Totals are reproducible; the component split is not
+
+Against Eurostat published prices, all-band annual averages, national currency,
+inclusive of every tax:
+
+| Product | User | GREU | Eurostat | Diff | Source |
+|---|---|---:|---:|---:|---|
+| Diesel | Households | 245.9 | 252.3 | +2.6% | Weekly Oil Bulletin |
+| Electricity | Industry | 231.6 | 250.2 | +8.0% | `nrg_pc_205` |
+| Petrol | Households | 312.4 | 337.6 | +8.1% | Weekly Oil Bulletin |
+| Electricity | Households | 615.0 | 507.7 | −17.4% | `nrg_pc_204` |
+| Natural gas | Households | 190.9 | 155.4 | −18.6% | `nrg_pc_202` |
+| Natural gas | Industry | 107.8 | 85.6 | −20.6% | `nrg_pc_203` |
+
+Transport fuels land within 8%; grid-bound energy is 8–21% off. That is
+coherent: for petrol and diesel the pump price *is* the unit value, while
+electricity and gas tariffs with fixed charges and consumption bands are a
+different object from a national-accounts unit value.
+
+Broken into components the agreement disappears — and the components are what
+the model needs, because `tpE` (ad valorem) and `tqE` (per unit) are separate
+instruments and a CO2 tax works through the second:
+
+| Component, kr./GJ | El: GREU | El: Eurostat | Gas: GREU | Gas: Eurostat |
+|---|---:|---:|---:|---:|
+| Basic price / energy + network | 268.4 | 192.3 | 92.1 | 59.4 |
+| Taxes excluding VAT | 224.3 | 213.9 | 60.8 | 64.9 |
+| VAT | 122.3 | 101.6 | 38.0 | 31.1 |
+| **Total** | **615.0** | **507.7** | **190.9** | **155.4** |
+
+Both columns are households.
+
+Taxes agree within 7%; the basic price is 28–36% out, in the opposite
+direction. The two errors partly cancel in the total. This is Pilot 5's
+"0 of 862 rows source-complete" seen from the price side: a reproducible total
+is not a usable decomposition.
+
+### Two traps in `nrg_pc_2xx`
+
+**`TAX_FEE_LEV_CHRG` includes VAT.** Verified exactly on both datasets:
+`TAX_ENV + TAX_RNW + VAT = TAX_FEE_LEV_CHRG` (household gas: 95.9621 =
+95.9621; household electricity: 1.1355 ≈ 1.1356). The all-in price is therefore
+`NRG_SUP + NETC + TAX_FEE_LEV_CHRG`. Adding VAT again inflates every price by
+roughly a fifth.
+
+**The non-household VAT component cannot be VAT.** In `nrg_pc_205` the VAT
+figure is 97.9 kr./GJ on a pre-tax base of 152.3 kr./GJ — 64%. Unresolved; do
+not use that field until it is explained.
+
+### Verdict
+
+**No change to the Pilot 5 verdict.** Public price sources reproduce
+energy price *totals* to within 8% for transport fuels and 8–21% for grid
+energy, and are usable as calibration controls at that level. They do not
+supply a defensible basic/tax/VAT decomposition at product × user, which is
+what the model consumes. Monetary energy cells stay modelled.
+
+## Archived task record — investment split / gap 3 (recorded 2026-08-07, archived 2026-08-27)
+
+Moved here from `docs/eu_data_mapping.md` on 2026-08-27 to keep the live
+working document near its size budget. The method is **locked**, so this is
+reference rather than status. Nothing was changed in the move.
+
+**Origin:** management discussion framed as a supply-table / use-table drawing.
+Denmark publishes investment split by investing industry *and* asset type
+(buildings / transport / other); no EU source publishes the equivalent. The
+proposal was a small Julia script using Denmark as a prior, with the hope that
+additional years would identify stable parameters. This record exists so the
+task can be resumed cold.
+
+### Correction to the gap-3 framing used elsewhere in this document
+
+The mapping-table row for `io_invest_long_format.xlsx` and structural gap 3
+both previously described the missing object as a full producing-industry ×
+investing-industry matrix. **Verified 2026-08-07 that the model never uses
+that joint table** (both places are now corrected). Evidence, read directly
+from source:
+
+- `read_data.py:305-311` drops the supplying dimension explicitly. The inline
+  comment reads: `atm we do not care abt. "sender" of capital, just building
+  qI_k_i`. It drops `row_l1`/`row_l2` and groups to `['k','i','year']`.
+- `read_data.py:684` writes the result as `qI_k_i` with domain `[k,d,t]` —
+  asset type × industry × year. No supplying dimension survives.
+- `factor_demand.gms:64` closes the market on that object alone:
+  `qD[k,t] =E= sum(i, qI_k_i[k,i,t])`.
+- `input_output.gms:209-210` redistributes `qD[k,t]` across supplying
+  industries via calibrated shares:
+  `qY_i_d[i,d,t] =E= (1-rM[i,d,t]) * rYM[i,d,t] * qD[d,t]`.
+- `read_data.py:87` and `read_data.py:204-210` map the IO columns
+  `invest_build` / `invest_trans` / `invest_other` to demand codes `iB` /
+  `iT` / `iM`.
+- `input_output.sets.gms:10` declares `Set k[d<] "Capital types."` — capital
+  types are demand components, so investment goods flow through the ordinary
+  IO machinery rather than a dedicated matrix.
+
+**Conclusion: GREU requires two margins, not the joint table.** Gap 3 is
+materially smaller than previously recorded, and the full-matrix RAS described
+in the old text is not needed. The only cross-margin condition is mutual
+consistency: the column total of the IO investment column for type `k` must
+equal `sum(i, qI_k_i[k,i,t])`.
+
+### The two estimation problems
+
+**1. Supply margin — which industries produce investment goods, by type.**
+FIGARO gives a single `P51G` final-demand column broken down by supplying CPA
+product (verified: DK 2020 `P51G` = 516.1 bn DKK, matching Danish
+`invest_build + invest_trans + invest_other` to ≤0.1%, see
+`reconcile_figaro_dk_2020.py:261-263`). This must be split three ways.
+
+This is mostly a concordance problem, not an estimation problem: construction
+products → `iB`, CPA C29-C30 → `iT`, machinery / ICT / intellectual property →
+`iM`. Only genuinely ambiguous products need estimating. Do **not** treat it as
+a free 64×3 estimation — the counting argument below shows that would not be
+identified, and it does not need to be.
+
+**2. Use margin — which industries buy investment goods, by type.**
+For 13/27 countries (incl. DK and SE) this is `nama_10_a64_p5` P51G at A64
+× asset — a concordance to GREU industries, not an estimation. DK 2020
+3-type totals match `io_invest_long_format.xlsx` exactly (2026-08-18
+pilot). For the other 14 countries the fallback is `nama_10_nfa_st` /
+`nama_10_a64_p5` at A21, and that *is* a within-group disaggregation.
+**Caveat (lookup 2026-08-18):** three GREU industries do not nest in one
+A21 section (`55560` → I,J,N,R,S,T; `71000` → J,M,N; `off` → O,P,Q,R), so
+the `n_g` identification arithmetic below is not a partition.
+
+**Probe 2026-08-17, confirmed against saved raw payloads 2026-08-18:**
+`nama_10_a64_p5` publishes GFCF (`P51G`, current prices) by `asset10` **at
+(near-)A64 industry detail** for 13/27 countries — AT, BG, CY, CZ, **DK**,
+EL, FI, HU, LV, PT, RO, **SE**, SK all populate ≥55 A64 industries for the
+three key asset groups (N11KG buildings, N1131G transport, N11MG machinery).
+The remaining 14 publish A21-level cells. Stocks (`nama_10_nfa_st` net CRC):
+all 27 have 2020 `N11N` + `N1131N`; 9/27 at A64 (AT, BG, CZ, DK, EL, FI, LV,
+SE, SK). Sweden publishes **net only** (no gross). PIM is not needed.
+
+**Asset concordance already exists for Denmark** at `read_data.py:89`, mapping
+7 ESA asset codes to the 3 GREU groups:
+`{'N11P':'iM', 'N1121':'iB', 'N1122_3':'iB', 'N1131':'iT', 'N115':'iM',
+'N117':'iM', 'N111':'iB'}`. Per the comment block at `read_data.py:90-97`:
+N11P = ICT equipment, other machinery, stocks and weapons systems;
+N1122_3 = facilities; N1131 = means of transport; N115 = stock of animals;
+N117 = intellectual rights; N111 = housing. These are standard ESA codes and
+should carry over to any member state unchanged.
+
+### Method lock (2026-08-20)
+
+**Split B, not Martin's purpose whiteboard.** The Danish-prior job is the
+**use** matrix: investing industry × asset type.
+`qI_k_i` is amounts; `s[k,i]` is only the share intermediate. The unpublished
+supplier × investor × asset ledger is still unpublished and still unused —
+do not reconstruct it.
+
+**Name:** cross-entropy matrix balancing with a Danish (or pooled) prior.
+RAS / IPF is the special case of one year's row and column totals. The
+actual constraints are industry totals `A[i,t]` plus **group × asset**
+cells `C[g,k,t]` (aggregation of several GREU industries), which is
+margins-plus-aggregation, not textbook RAS on a delivery table.
+
+EU-27 coverage was probed, not packaged: 13/27 have A64 × asset; 14/27
+have A21. Only DK 2020 3-type totals are number-exact. Adopter interface
+stays one `country = 'XX'` switch; A64 concordance vs A21+prior is inside
+the loader.
+
+### Identification — how many years are actually needed
+
+Let `x[k,i,t]` be investment of type `k` by industry `i` in year `t`. Assume
+time-invariant shares: `x[k,i,t] = s[k,i] * A[i,t]`, where `A[i,t]` is the
+industry's total investment (known) and `sum_k s[k,i] = 1`.
+
+Under this parameterization the industry totals are satisfied by construction
+and place **no** constraint on the shares. The binding constraints are the
+observed A21-group-by-asset cells from `nama_10_nfa_st`:
+`C[g,k,t] = sum_{i in g} s[k,i] * A[i,t]`.
+
+Within one A21 group `g` containing `n_g` GREU industries:
+
+- free parameters: `2 * n_g` (three shares per industry, summing to one)
+- independent constraints per year: 2 (three asset equations, one redundant
+  because they sum to the known group total)
+- therefore **years required ≈ `n_g`**
+
+**Consequences.** Groups mapping to few GREU industries identify within a few
+years. Groups mapping to many — manufacturing above all — will not identify
+from time variation alone within the available annual national-accounts span,
+and the Danish prior will continue to determine the answer there. The estimator
+should report, per group, whether it is data-identified or prior-determined —
+from a **rank / collinearity check** of the constraint Jacobian, not only
+the `n_g` count. If two industries in a group move proportionally, extra
+years add nothing and the estimator sits on the prior silently.
+
+**Caveat that applies throughout:** identification requires the `A[i,t]` to
+move *differently* across years within a group. If all industries in a group
+grow near-proportionally, extra years add near-collinear equations that
+contribute no information despite increasing the count. RAS **zeros stick**:
+a Danish zero stays zero in every country unless it is seeded as a
+Denmark-specific (not structural) zero.
+
+### Recommended first deliverable — Denmark back-test
+
+Two different tests; do not conflate them.
+
+**A (first, cheap).** Denmark has the true industry × asset table for many
+years. Withhold it, keep only the margins Denmark would have if it were an
+ordinary member state (FIGARO `P51G` by product; an A21-by-asset table
+aggregated from the Danish truth; industry investment totals), run the
+estimator **with a Danish prior**, and compare to the withheld table.
+
+This yields, with no new downloads and no dependency on other countries:
+
+- whether the method recovers a known answer at all, and with what error
+- how many years are needed in practice, per A21 group, against the `n_g` rule
+- whether Danish asset shares are in fact stable over time — the precondition
+  for Denmark being a defensible prior for anyone else
+- which groups remain prior-determined (rank check, not assumed)
+
+If Danish shares turn out to be unstable over time, the whole
+Denmark-as-prior approach needs rethinking, and this test finds that out first
+and cheaply. Back-test A mainly tests **share stability and A21 information
+loss**. Recovering Denmark from a Danish prior is too easy as a donor test.
+
+**B (follow-up, stricter).** Same coarsened Danish margins, but a
+**non-Danish** prior (another A64 publisher, or a pooled 13-country prior).
+That tests whether a donor structure travels. Open question 4.
+
+Implement the estimator to run A; A is not a substitute for the method.
+
+### Implementation notes
+
+Default to **Python** (SciPy) unless colleagues sign off on Julia as a new
+toolchain. There is currently no Julia anywhere in this repository — all
+model/script files are `.gms` or Python. JuMP + Ipopt suits constrained
+cross-entropy well but is a new dependency.
+
+Method: RAS / biproportional fitting for the plain one-year margin case;
+cross-entropy minimization against the Danish prior for the general case,
+which handles multi-year pooling and lets the prior's weight be set
+explicitly. Constraints are industry totals plus group × asset aggregation
+cells.
+
+The adopter still sets `country = 'XX'` (as in
+`data/read_eurostat_data/read_all_data.py`). A64 mapping vs A21+prior is
+internal to the loader, not two user-facing models.
+
+### Codes and facts verified 2026-08-18
+
+- **GFCF by asset type** is `nama_10_a64_p5` `P51G` (not `nama_10_a64`).
+  EU-27 coverage: 13/27 A64 × the three GREU types; 14/27 A21. DK 2020
+  3-type totals number-exact vs `io_invest_long_format.xlsx`. Year span
+  typically 1995–2024 (DK 1975–2025, SE 1993–2024).
+- **A21→GREU-57 lookup done.** Wholly-contained `n_g`: A=13, C=13, H=12,
+  E=7, G=3, D=2, B=F=K=L=1; I,J,M,N,O,P,Q,R,S,T = 0 because three GREU
+  industries span those sections (`55560`, `71000`, `off`). The
+  identification arithmetic is not a partition. Manufacturing (C, n_g=13)
+  still will not identify from time variation alone.
+
+### Open questions for colleagues
+
+1. Acceptance of Denmark-as-prior (already flagged as a method decision in the
+   gap-3 text). Denmark is a **suspicious donor for vehicles** (registration
+   tax / leasing can park vehicles in a rental industry rather than the using
+   industry); buildings and other machinery travel better.
+2. Whether time-invariant shares are defensible, or whether a smoothness
+   penalty across years is the better assumption. Extra years add nothing
+   without one of those.
+3. Julia as a new repository dependency (Python/SciPy is the default until
+   signed off).
+4. Whether pooling across member states that publish finer investment detail
+   could reduce or replace reliance on the Danish prior. Back-test B
+   (non-Danish prior, recover DK) is the donor-transfer test.
+5. How to report prior-determined groups in model output, so downstream users
+   know which parts of the investment split are data and which are assumption.
+   Identification should be a **rank/collinearity check per A21 group**, not
+   only the `n_g` count.
+6. RAS zeros stick: distinguish structural zeros from Denmark-specific zeros
+   and seed the latter. Single `country = 'XX'` switch; no separate A64 vs
+   A21 user path.

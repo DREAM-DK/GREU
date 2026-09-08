@@ -35,6 +35,41 @@ with HTTP status 200.
   from international operations of Danish-resident transport companies are
   included even when they occur abroad.
 
+## `env_ac_pefasu` response structure (recorded 2026-08-27)
+
+Dimensions: `freq`, `stk_flow`, `nace_r2`, `prod_nrg`, `unit`, `geo`, `time`.
+
+- **`stk_flow`** has five members. Use `SUP` and `USE` only: `USE_TRS`,
+  `USE_END` and `ER_USE` re-cut the same use flow and would double count.
+- **`nace_r2`** carries the 21 clean NACE sections `A`–`U`, their subsections,
+  the three household activities `HH_HEAT`/`HH_TRA`/`HH_OTH`, and several
+  non-NACE accounts: `TOTAL`, `HH`, `ENV`, `ROW_ACT`, `SD_SU`, `NRG_FLOW`,
+  `CH_INV_PA`, `G-U_X_H`. Only the sections and the three household activities
+  partition the resident economy. Select them with a **positive list**; Eurostat
+  adds codes over time and a negative filter would admit new ones silently.
+- **`prod_nrg`** numbers products in one continuous 01–31 sequence across three
+  groups — `N01`–`N07` natural inputs, `P08`–`P27` energy products, `R28`–`R31`
+  residuals — with the letter a redundant group label and `00` reserved per
+  letter for the group aggregate. Exclude `N00`, `P00`, `R00`, `N00_P00_R00`,
+  `EPRD_OUSE` and `SD_IO` from the cells.
+
+**Balance invariant:** supply equals use **per activity**, because PEFA is a
+physical flow account and every resident activity conserves energy. Worst case
+0.3 TJ across all 24 activities for DK 2020. It does **not** hold per product —
+transformation and trade break that.
+
+**Absence is not zero.** For DK 2020 all 31 product codes are present and five
+are explicit zeros (`N02`, `N07`, `P08`, `P16`, `P22`). Other countries may not
+publish a code at all, in which case it is simply missing from the response. Do
+not filter `prod_nrg` server-side, or the two cases become indistinguishable.
+
+**Open anomaly:** `P08` hard coal is zero for DK 2020 while `P09` brown coal and
+peat carries 33,175.8 TJ, though Denmark has no brown coal. Unresolved — see
+`docs/eu_data_pilots.md`, entry "PEFA as Julia build source".
+
+**Year coverage:** the live API offers DK 2000–2024 (checked 2026-08-27), so the
+preserved 2020 pull is a convenience snapshot, not the limit of the source.
+
 ## Downstream artifact
 
 `data/preprocessing/scripts/reconcile_eurostat_energy_emissions_dk_2020.py`
