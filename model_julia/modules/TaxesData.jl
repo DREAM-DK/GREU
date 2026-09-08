@@ -609,6 +609,71 @@ function product_tax_tables()
   )
 end
 
+
+"""Reconcile detailed industry D29-D39 to the aggregate D39 control used by Taxes.
+
+At finer A64-style resolution, Eurostat's detailed `D29X39` industry table can differ
+slightly from the resident-sector D39 control because the tables are compiled and
+rounded independently.  Taxes requires the accounting identity
+
+    sum_i(D29_i - D39_i) = gross_D29 - resident_D39.
+
+The discrepancy is spread across industries in proportion to GVA.  The reconciled
+`vntProduction_i` series is written back to `production_gva.csv`, so subsequent
+industry-sector shares and the model itself use the same reconciled values.
+"""
+function reconcile_net_production_taxes!(file=production_gva_file)
+  tax_totals = fetch_tax_class_totals()
+  resident = fetch_resident_controls()
+  net_industry = read_cells(file, "vntProduction_i")
+  gva = read_cells(file, "vGVA_i")
+  industries = sort(unique(i for ((i, year), _) in net_industry if year in data_years))
+
+  adjusted = copy(net_industry)
+  for year in data_years
+    gross_d29 = sum(tax_totals[(class, year)] for class in tax_class)
+    resident_d39 = only(resident.subsidy.value[resident.subsidy.year .== year])
+    resident_d29 = only(resident.tax.value[resident.tax.year .== year])
+    target_net = gross_d29 - resident_d39
+    source_net = sum(get(net_industry, (i, year), 0.0) for i in industries)
+    residual = target_net - source_net
+
+    # The two D29 aggregate sources should normally differ only by source rounding.
+    if !isapprox(gross_d29, resident_d29; atol=1.2, rtol=0)
+      @warn "Government D29 classes and resident D29 control differ" year gross_d29 resident_d29 difference=(gross_d29-resident_d29)
+    end
+
+    weights = Dict(i => max(get(gva, (i, year), 0.0), 0.0) for i in industries)
+    weight_total = sum(values(weights))
+    @assert weight_total > 0 "D29-D39 reconciliation needs positive GVA in $year"
+
+    @info "Reconciling detailed industry D29-D39 to resident D39 control" year=year source_net=source_net target_net=target_net residual=residual gross_d29=gross_d29 resident_d39=resident_d39
+
+    for i in industries
+      adjusted[(i, year)] = get(net_industry, (i, year), 0.0) + residual * weights[i] / weight_total
+    end
+
+    @assert isapprox(
+      sum(adjusted[(i, year)] for i in industries),
+      target_net;
+      atol=1e-8,
+      rtol=0,
+    ) "Reconciled industry D29-D39 must match the aggregate tax/subsidy identity"
+  end
+
+  source = CSV.read(file, DataFrame)
+  source = source[source.variable .!= "vntProduction_i", :]
+  reconciled = DataFrame(vec([
+    (industry=i, year=year, value=adjusted[(i, year)])
+    for i in industries, year in data_years
+  ]))
+  CSV.write(file, vcat(
+    source,
+    long_format(:vntProduction_i, reconciled, [:industry, :year]),
+  ))
+  return adjusted
+end
+
 # ============================================================================
 # Refresh
 # ============================================================================
@@ -636,6 +701,10 @@ end
 
 function refresh_production_taxes_data!(dir=production_data_dir)
   mkpath(dir)
+  # Keep standalone runs consistent as well. In a full RefreshData run this is
+  # idempotent because the reconciliation has already been performed before
+  # industry-sector shares are refreshed.
+  reconcile_net_production_taxes!()
   tax_totals = fetch_tax_class_totals()
   resident = fetch_resident_controls()
   net_industry = read_cells(production_gva_file, "vntProduction_i")

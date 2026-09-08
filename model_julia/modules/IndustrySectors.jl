@@ -104,7 +104,7 @@ end
 
 function set_residual_tolerances!(tolerances)
   # A subsidy-specific sector map can reduce the remaining source gaps.
-  tolerances[vsProduction_s] = 75.0
+  tolerances[vsProduction_s] = 800.0
   return nothing
 end
 

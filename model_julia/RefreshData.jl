@@ -4,6 +4,13 @@
 # and sent to an interactive terminal on its own.
 
 # ==============================================================================
+# Common Eurostat industry and product resolution
+# ==============================================================================
+include(joinpath(@__DIR__, "modules", "IndustryResolutionData.jl"))
+
+IndustryResolutionData.refresh_industry_resolution!()
+
+# ==============================================================================
 # Input-output data
 # ==============================================================================
 include(joinpath(@__DIR__, "modules", "InputOutputData.jl"))
@@ -53,15 +60,22 @@ include(joinpath(@__DIR__, "modules", "GovernmentData.jl"))
 GovernmentData.refresh_government_data!()
 
 # ============================================================================
+# Cross-source data consistency diagnostics (read-only; before reconciliation)
+# ============================================================================
+include(joinpath(@__DIR__, "modules", "DataConsistencyTests.jl"))
+
+DataConsistencyTests.run_all_tests()
+
+# ============================================================================
+# Reconcile detailed production taxes/subsidies before industry-sector shares
+# ============================================================================
+include(joinpath(@__DIR__, "modules", "TaxesData.jl"))
+
+TaxesData.reconcile_net_production_taxes!()
+
+# ============================================================================
 # Industry-sector share data
 # ============================================================================
 include(joinpath(@__DIR__, "modules", "IndustrySectorsData.jl"))
 
 IndustrySectorsData.refresh_industry_sector_shares!()
-
-# ============================================================================
-# Tax and subsidy data
-# ============================================================================
-include(joinpath(@__DIR__, "modules", "TaxesData.jl"))
-
-TaxesData.refresh_taxes_data!()

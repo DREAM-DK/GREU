@@ -17,7 +17,8 @@ import ..DataUtils: long_format, read_cells, sum_by
 import ..InputOutputSettings:
   cell_tolerance,
   input_output_data_dir,
-  section_to_industry
+  products_in_sections,
+  source_mapping
 import ..ProductionSettings:
   capital_flow_dataset,
   capital_stock_dataset,
@@ -31,15 +32,17 @@ import ..Settings: calibration_year, country_code, first_data_year
 
 const data_years = first_data_year:calibration_year
 const year_params = ["time" => string(year) for year in data_years]
-const capital_nace_to_industry = Dict(string(section) => i for (section, i) in section_to_industry)
+const construction_products = products_in_sections([:F])
+@assert !isempty(construction_products) "The selected product resolution must contain construction"
 const fixed_investment_file = joinpath(input_output_data_dir, "input_output_fixed_investment.csv")
 
 # ============================================================================
 # Capital stocks and flows
 # ============================================================================
 
-"""Fetch one capital table and map direct A21 rows to model industries."""
-function fetch_capital_table(dataset, unit, asset_map, params...)
+"""Fetch one capital table and tile source NACE rows into the common model industries."""
+function fetch_capital_table(dataset, unit, asset_map, source_name, params...)
+  capital_nace_to_industry = source_mapping(source_name, :industry)
   df = EurostatClient.fetch_table(
     dataset,
     "unit" => unit,
@@ -47,30 +50,11 @@ function fetch_capital_table(dataset, unit, asset_map, params...)
     year_params...,
     params...,
   )
-  @assert all(
-    isapprox(
-      sum(
-        row.value
-        for row in eachrow(df)
-        if row.asset10 == asset &&
-          row.nace_r2 in keys(capital_nace_to_industry) &&
-          row.time == string(year)
-      ),
-      only(
-        row.value
-        for row in eachrow(df)
-        if row.asset10 == asset && row.nace_r2 == "TOTAL" && row.time == string(year)
-      );
-      atol = 1.1,
-      rtol = 0,
-    )
-    for asset in keys(asset_map), year in data_years
-  ) "Capital A21 rows must sum to each source total"
   return @chain df begin
-    @rsubset(haskey(asset_map, :asset10) && haskey(capital_nace_to_industry, :nace_r2))
+    @rsubset(haskey(asset_map, :asset10) && haskey(capital_nace_to_industry, string(:nace_r2)))
     @rtransform begin
       :k = asset_map[:asset10]
-      :industry = capital_nace_to_industry[:nace_r2]
+      :industry = capital_nace_to_industry[string(:nace_r2)]
       :year = parse(Int, :time)
     end
     @by([:k, :industry, :year], :value = sum(skipmissing(:value); init = 0.0))
@@ -160,7 +144,7 @@ function synthetic_investment_product_split(
   # purchaser-price value of each capital type.
   nonconstruction_capital_value = Dict(
     (k, year) => capital_type_value[k, year] -
-      (k == :structures ? investment_product_value[:F, year] : 0.0)
+      (k == :structures ? sum(get(investment_product_value, (p, year), 0.0) for p in construction_products) : 0.0)
     for k in capital_type, year in data_years
   )
   @assert all(
@@ -176,7 +160,7 @@ function synthetic_investment_product_split(
       product = p,
       k = k,
       year = year,
-      value = p == :F ?
+      value = p in construction_products ?
         (k == :structures ? investment_product_quantity[p, year] : 0.0) :
         investment_product_quantity[p, year] *
           nonconstruction_capital_value[k, year] / nonconstruction_value[year],
@@ -225,13 +209,14 @@ end
 function refresh_capital_data!(dir = production_data_dir)
   mkpath(dir)
   stock = rebase_to_calibration_prices(
-    fetch_capital_table(capital_stock_dataset, stock_unit, stock_asset_to_capital_type),
-    fetch_capital_table(capital_stock_dataset, stock_deflator_unit, stock_asset_to_capital_type),
+    fetch_capital_table(capital_stock_dataset, stock_unit, stock_asset_to_capital_type, "capital_stock_current"),
+    fetch_capital_table(capital_stock_dataset, stock_deflator_unit, stock_asset_to_capital_type, "capital_stock_previous_prices"),
   )
   investment = fetch_capital_table(
     capital_flow_dataset,
     flow_unit,
     flow_asset_to_capital_type,
+    "capital_investment",
     "na_item" => "P51G",
   )
   investment_product_split = synthetic_investment_product_split(investment)

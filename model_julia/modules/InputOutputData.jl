@@ -16,7 +16,7 @@ using ..Settings: calibration_year, country_code, first_data_year
 import ..InputOutputSettings:
   margin_services,
   cell_tolerance,
-  cpa_p64_to_p21,
+  source_mapping,
   eurostat_supply_dataset,
   eurostat_use_dataset,
   eurostat_margin_dataset,
@@ -24,7 +24,6 @@ import ..InputOutputSettings:
   eurostat_unit,
   final_use_rename,
   input_output_data_dir,
-  nace_a64_to_a21,
   source_industry,
   final_uses
 import ..DataUtils: long_format, sum_by
@@ -35,7 +34,15 @@ const year_params = ["time" => string(y) for y in data_years]
 # Index of a purchaser-use cell, in the order the model reads it.
 const cell_index = [:product, :use, :origin, :year]
 const cell_columns = [cell_index; :value]
-const use_map = merge(nace_a64_to_a21, final_use_rename)
+const supply_industry_map = source_mapping("supply_industry", :industry)
+const supply_product_map = source_mapping("supply_product", :product)
+const use_industry_map = source_mapping("use_industry", :industry)
+const use_product_map = source_mapping("use_product", :product)
+const margin_industry_map = source_mapping("margin_industry", :industry)
+const margin_product_map = source_mapping("margin_product", :product)
+const tax_industry_map = source_mapping("net_product_tax_industry", :industry)
+const tax_product_map = source_mapping("net_product_tax_product", :product)
+const use_map = merge(use_industry_map, final_use_rename)
 const origin_map = Dict("DOM" => :domestic, "IMP" => :import)
 sum_cells(parts...) = sum_by(vcat(parts...), cell_index)
 
@@ -57,10 +64,10 @@ function fetch_supply_table(domestic_use)
     year_params...,
   )
   supply = @chain df begin
-    @rsubset(haskey(cpa_p64_to_p21, :prd_amo) && haskey(nace_a64_to_a21, :ind_impv))
+    @rsubset(haskey(supply_product_map, string(:prd_amo)) && haskey(supply_industry_map, string(:ind_impv)))
     @rtransform begin
-      :product = cpa_p64_to_p21[:prd_amo]
-      :industry = nace_a64_to_a21[:ind_impv]
+      :product = supply_product_map[string(:prd_amo)]
+      :industry = supply_industry_map[string(:ind_impv)]
       :year = parse(Int, :time)
     end
     @by([:product, :industry, :year], :value = sum(skipmissing(:value); init = 0.0))
@@ -100,7 +107,7 @@ function fetch_use_table()
 end
 
 """Fetch and map one national product-by-use table."""
-function fetch_product_use_table(dataset)
+function fetch_product_use_table(dataset, industry_map, product_map)
   df = EurostatClient.fetch_table(
     dataset,
     "unit" => eurostat_unit,
@@ -109,10 +116,10 @@ function fetch_product_use_table(dataset)
     year_params...,
   )
   return @chain df begin
-    @rsubset(haskey(cpa_p64_to_p21, :cpa2_1) && haskey(use_map, :ind_use))
+    @rsubset(haskey(product_map, string(:cpa2_1)) && (haskey(industry_map, string(:ind_use)) || haskey(final_use_rename, string(:ind_use))))
     @rtransform begin
-      :product = cpa_p64_to_p21[:cpa2_1]
-      :use = use_map[:ind_use]
+      :product = product_map[string(:cpa2_1)]
+      :use = haskey(industry_map, string(:ind_use)) ? industry_map[string(:ind_use)] : final_use_rename[string(:ind_use)]
       :year = parse(Int, :time)
     end
     @by([:product, :use, :year], :value = sum(skipmissing(:value); init = 0.0))
@@ -120,7 +127,7 @@ function fetch_product_use_table(dataset)
 end
 
 """National trade and transport margins by product and use."""
-fetch_margin_table() = fetch_product_use_table(eurostat_margin_dataset)
+fetch_margin_table() = fetch_product_use_table(eurostat_margin_dataset, margin_industry_map, margin_product_map)
 
 """Net product taxes by product and use.
 
@@ -128,7 +135,7 @@ T1630 includes D21 product taxes, such as VAT and tariffs, less D31 product
 subsidies. A tax module can split this net total into gross flows and tax types.
 """
 function fetch_net_product_tax_table()
-  taxes = fetch_product_use_table(eurostat_net_product_tax_dataset)
+  taxes = fetch_product_use_table(eurostat_net_product_tax_dataset, tax_industry_map, tax_product_map)
   @assert Set(taxes.year) == Set(data_years) "T1630 must report each input-output data year"
   return taxes
 end
@@ -141,13 +148,13 @@ end
 function reported_use(df)
   return @chain df begin
     @rsubset begin
-      haskey(cpa_p64_to_p21, :prd_ava) &&
-      haskey(use_map, :ind_use) &&
+      haskey(use_product_map, string(:prd_ava)) &&
+      (haskey(use_industry_map, string(:ind_use)) || haskey(final_use_rename, string(:ind_use))) &&
       haskey(origin_map, :stk_flow)
     end
     @rtransform begin
-      :product = cpa_p64_to_p21[:prd_ava]
-      :use = use_map[:ind_use]
+      :product = use_product_map[string(:prd_ava)]
+      :use = haskey(use_industry_map, string(:ind_use)) ? use_industry_map[string(:ind_use)] : final_use_rename[string(:ind_use)]
       :origin = origin_map[:stk_flow]
     end
     @by([:product, :use, :origin, :year], :value = sum(skipmissing(:value); init = 0.0))
@@ -157,8 +164,8 @@ end
 """One national-use accounting row by model use."""
 function accounting_table(df, row)
   return @chain df begin
-    @rsubset(:stk_flow == "TOTAL" && :prd_ava == row && haskey(use_map, :ind_use))
-    @rtransform(:use = use_map[:ind_use])
+    @rsubset(:stk_flow == "TOTAL" && :prd_ava == row && haskey(use_map, string(:ind_use)))
+    @rtransform(:use = use_map[string(:ind_use)])
     @by([:use, :year], :value = sum(skipmissing(:value); init = 0.0))
   end
 end
@@ -282,6 +289,75 @@ function purchaser_use_data(
   return sum_cells(before_margins, reclassification), services
 end
 
+
+"""Reconcile reported T1620 margins with the purchaser-use support.
+
+At detailed product resolution Eurostat can report a small non-zero margin for a
+product/use cell whose T1610 purchaser-use total is zero (typically because of
+source rounding). Such a cell cannot calibrate ``rMarginRate = margin/use``.
+Move only those orphan margins within the same use/year to products with
+non-zero purchaser use, proportional to absolute purchaser use. This preserves
+the reported T1620 margin total for every use/year and leaves all supported
+margin cells unchanged.
+"""
+function reconcile_carried_margins(carried_margins, purchaser_use)
+  use_totals = sum_by(purchaser_use, [:product, :use, :year])
+  q = Dict((row.product, row.use, row.year) => row.value for row in eachrow(use_totals))
+
+  margins = copy(carried_margins)
+  orphan = [
+    abs(row.value) > cell_tolerance &&
+    abs(get(q, (row.product, row.use, row.year), 0.0)) <= cell_tolerance
+    for row in eachrow(margins)
+  ]
+  any(orphan) || return margins
+
+  orphan_rows = margins[orphan, :]
+  @warn "Redistributing T1620 margins from zero purchaser-use cells" cells=nrow(orphan_rows) total=sum(orphan_rows.value)
+  for row in eachrow(orphan_rows)
+    @warn "Orphan margin cell" product=row.product use=row.use year=row.year margin=row.value purchaser_use=get(q, (row.product, row.use, row.year), 0.0)
+  end
+
+  # Remove the unsupported source cells first.
+  margins = margins[.!orphan, :]
+
+  orphan_totals = sum_by(orphan_rows, [:use, :year])
+  for total_row in eachrow(orphan_totals)
+    u, y, amount = total_row.use, total_row.year, total_row.value
+    abs(amount) <= cell_tolerance && continue
+
+    # Use only non-margin-service products with a genuine purchaser-use basis.
+    candidates = use_totals[
+      (use_totals.use .== u) .&
+      (use_totals.year .== y) .&
+      .!in.(use_totals.product, Ref(Set(margin_services))) .&
+      (use_totals.value .> cell_tolerance),
+      :
+    ]
+    @assert nrow(candidates) > 0 "Cannot redistribute orphan margins for use=$u, year=$y: no non-zero purchaser-use basis"
+
+    weights = abs.(candidates.value)
+    weight_total = sum(weights)
+    @assert weight_total > cell_tolerance "Cannot redistribute orphan margins for use=$u, year=$y: zero redistribution basis"
+
+    additions = DataFrame(
+      product = candidates.product,
+      use = fill(u, nrow(candidates)),
+      year = fill(y, nrow(candidates)),
+      value = amount .* weights ./ weight_total,
+    )
+    margins = sum_by(vcat(margins, additions), [:product, :use, :year])
+  end
+
+  # The reconciliation must preserve every T1620 use/year total exactly (up to floating point noise).
+  before = rename(sum_by(carried_margins, [:use, :year]), :value => :before)
+  after = rename(sum_by(margins, [:use, :year]), :value => :after)
+  check = outerjoin(before, after, on = [:use, :year])
+  @assert all(isapprox.(coalesce.(check.before, 0.0), coalesce.(check.after, 0.0); atol=1e-8, rtol=1e-10)) "Margin reconciliation must preserve each use/year total"
+
+  return margins
+end
+
 """Give fixed-investment quantity and purchaser value by product."""
 function fixed_investment_data(purchaser_use, carried_margins, net_product_taxes)
   quantity = rename(
@@ -327,6 +403,7 @@ function build_input_output_data()
     residents,
     margin_service_totals,
   )
+  carried_margins = reconcile_carried_margins(carried_margins, purchaser_use)
   imports = sum_by(
     vcat(
       accounting_series(use_table, "CPA_TOTAL", "TU"; stock_flow = "IMP"),
