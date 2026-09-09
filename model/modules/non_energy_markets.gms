@@ -27,10 +27,10 @@
 
 
 				#Non-energy production in energy-producing sectors
-					jfpY_i_d[i,d,t]$(d1Y_i_nepnei[i,t] and d1Y_i_d[i,d,t] and d_non_ene[d] and not i_energymargins[i] and t.val>t1.val)..
+					jfpY_i_d[i,d,t]$(d1Y_i_nepnei[i,t] and d1Y_i_d[i,d,t] and d_non_ene[d] and not i_energymargins[i] and t.val>tDataEnd.val)..
 							jfpY_i_d[i,d,t] =E= adj_jfpY_i_d[i,t];
 
-					adj_jfpY_i_d[i,t]$(d1Y_i_nepnei[i,t] and not i_energymargins[i] and t.val>t1.val)..
+					adj_jfpY_i_d[i,t]$(d1Y_i_nepnei[i,t] and not i_energymargins[i] and t.val>tDataEnd.val)..
 							sum(d_non_ene, pY_i_d_base[i,d_non_ene,t] * qY_i_d[i,d_non_ene,t]) =E= vY_CET['out_other',i,t];
 			
 
