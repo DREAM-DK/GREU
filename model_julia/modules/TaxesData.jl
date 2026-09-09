@@ -73,7 +73,8 @@ rounding_residual(value) = value >= 0 ? value : begin
   0.0
 end
 
-"""Fetch government D29 classes and retain any unclassified amount as D29R."""
+"""Fetch reported government D29 classes and retain the unclassified total as D29R.
+An omitted class has no separate allocation; it is not a reported zero."""
 function fetch_tax_class_totals()
   df = EurostatClient.fetch_table(
     tax_dataset,

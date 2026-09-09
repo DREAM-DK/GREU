@@ -31,7 +31,7 @@ PrimaryRevenue = vGovPrimaryRevenue
 PrimaryExpense = vGovPrimaryExpenditure
 GovNetFinAssets = vNetFinAssets[:Gov,:]
 GovEmployment = qL_s[:Gov,:]
-PrivEmployment = sum(qL_s[s,:] for (s,) in select_axes(qL_s, 1)) .- GovEmployment
+PrivEmployment = reduce(.+, (qL_s[s,:] for (s,) in select_axes(qL_s, 1))) .- GovEmployment
 RealWage = pW ./ pC
 
 report = @evalexpr (

@@ -123,9 +123,16 @@ const TaxesTag = Tag(:Taxes)
   uRoWProductionSubsidyPayer[t], "Share of production subsidies paid by RoW."
 end
 
+# Keep each pair with a nonzero value in any source year.
 @variables model :: (TaxesTag, GrowthAdjusted, InflationAdjusted, ForecastConstant) begin
-  vtProduction_c_i[c=production_tax_class, i=industry, t=t], "Production tax by class and industry."
-  vsProduction_c_i[c=production_subsidy_class, i=industry, t=t], "Production subsidy by class and industry."
+  vtProduction_c_i[
+    c=production_tax_class, i=industry, t=t;
+    (c,i) in select_axes((key for (key, value) in vtProduction_c_i_data if !iszero(value)), 1, 2)
+  ], "Production tax by class and industry."
+  vsProduction_c_i[
+    c=production_subsidy_class, i=industry, t=t;
+    (c,i) in select_axes((key for (key, value) in vsProduction_c_i_data if !iszero(value)), 1, 2)
+  ], "Production subsidy by class and industry."
 end
 
 @variables model :: (TaxesTag, GrowthAdjusted, InflationAdjusted) begin
