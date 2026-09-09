@@ -23,10 +23,6 @@ function shock_axes!(axis, series, shock_year; response=false)
   reference_line!(axis, shock_year)
   if response
     hlines!(axis, [0]; color=(colors().DarkGray, 0.3))
-    limit = maximum(abs, only(series).y)
-    # Give a zero response a visible axis range.
-    limit = iszero(limit) ? 0.05 : 1.15 * limit
-    ylims!(axis, -limit, limit)
   end
 end
 
@@ -56,7 +52,7 @@ function level_figures(kind, baseline, years, shock_year, label, color)
 end
 
 function response_figures(baseline, years, shock_year, color)
-  options = (; legend=false, color, axis=(ytickformat=values -> format_percent.(values),),
+  options = (; legend=false, color,
     decorate=(ax, series) -> shock_axes!(ax, series, shock_year; response=true))
   return [
     "Activity — Real GDP" => @plot(qGDP; options...),
