@@ -67,7 +67,7 @@ end
 # Dynamic calibration step by step
 # ============================================================================
 function dynamic_calibration_step_by_step(data, static_solution, static_calibrated_parameters)
-  horizon_steps = unique([(Settings.calibration_year + 12):5:Time.max_terminal_year..., Time.max_terminal_year])
+  horizon_steps = unique([(Settings.calibration_year + 6):5:Time.max_terminal_year..., Time.max_terminal_year])
   baseline = static_solution
 
   for (solved_through, terminal_year) in zip([Settings.calibration_year; horizon_steps], horizon_steps)
