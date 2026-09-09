@@ -37,7 +37,11 @@ $ENDLOOP
 
 # Create a block with equations for extending variables with "flat forecast" after last data year
 # This is useful where parameters need to be dynamically calibrated due to forward-looking expectations 
-$Group+ G_flat_after_last_data_year - calibration_endogenous;
+
+$Group+ G_flat_after_last_data_year 
+	-calibration_endogenous
+;
+
 $BLOCK flat_after_last_data_year_equations flat_after_last_data_year_endogenous $(t1.val < t.val and t.val <= tEnd.val)
 	$LOOP G_flat_after_last_data_year:
 		{name}&_flat{sets}$({conditions}).. {name}{sets} =E= {name}{sets}{$}[<t>t1];
@@ -48,6 +52,10 @@ $Group+ calibration_endogenous flat_after_last_data_year_endogenous;
 
 # For testing partial models only, we extend all data covered variables with "flat forecast" after last data year
 $Group+ G_flat_after_last_data_year all_variables_except_constants;
+
+$Group+ G_flat_after_last_data_year 
+	-G_non_flat_after_last_data_year
+;
 
 # Extending variables with "flat forecast" after last data year
 $LOOP G_flat_after_last_data_year:
