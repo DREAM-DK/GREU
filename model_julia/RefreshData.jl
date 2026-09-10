@@ -65,3 +65,12 @@ GovernmentData.refresh_government_data!()
 include(joinpath(@__DIR__, "modules", "IndustrySectorsData.jl"))
 
 IndustrySectorsData.refresh_industry_sector_shares!()
+
+
+# ==============================================================================
+# Physical energy account 
+# ==============================================================================
+include(joinpath(@__DIR__, "modules", "EnergyBalanceData.jl"))
+
+EnergyBalanceData.refresh_energy_balance_data!()
+
