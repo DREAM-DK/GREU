@@ -11,7 +11,7 @@ import ..Capital:
   qK_k_i,
   ntK_k_i
 import ..DataUtils: fill_cells!, read_cells
-import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fq
+import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, adjustment_factor, fq
 import ..InputOutput:
   industry,
   origin,
@@ -74,7 +74,6 @@ const vntProductionOther_i_data = read_cells(production_taxes_file, "vntProducti
 const vntProduction_i_data = read_cells(production_gva_file, "vntProduction_i")
 const vtProduct_p_u_o_data = read_cells(product_taxes_file, "vtProduct_p_u_o")
 const vsProduct_p_u_o_data = read_cells(product_taxes_file, "vsProduct_p_u_o")
-const vntProduct_p_u_o_data = read_cells(product_taxes_file, "vntProduct_p_u_o")
 const vtProduct_p_u_data = read_cells(product_taxes_file, "vtProduct_p_u")
 const vsProduct_p_u_data = read_cells(product_taxes_file, "vsProduct_p_u")
 const vntProduct_p_u_data = read_cells(product_taxes_file, "vntProduct_p_u")
@@ -141,7 +140,6 @@ end
   vCorpDebtTaxDeduction_s[s=corporation_sector, t=t] :: ForecastZero, "Debt return deducted from taxable income."
   vtProduct_p_u_o[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o], "Gross taxes on products by product, use, and origin (D.21)."
   vsProduct_p_u_o[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o], "Product subsidies by product, use, and origin (D.31)."
-  vntProduct_p_u_o[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o], "Net product taxes by product, use, and origin."
   vtProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Gross taxes on products by product and use (D.21)."
   vsProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Product subsidies by product and use (D.31)."
   vntProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Net product taxes by product and use."
@@ -168,7 +166,6 @@ end
 function assign_data!(db)
   fill_cells!(db, vtProduct_p_u_o, vtProduct_p_u_o_data)
   fill_cells!(db, vsProduct_p_u_o, vsProduct_p_u_o_data)
-  fill_cells!(db, vntProduct_p_u_o, vntProduct_p_u_o_data)
   fill_cells!(db, vtProduct_p_u, vtProduct_p_u_data)
   fill_cells!(db, vsProduct_p_u, vsProduct_p_u_data)
   fill_cells!(db, vntProduct_p_u, vntProduct_p_u_data)
@@ -204,6 +201,15 @@ function set_residual_tolerances!(tolerances, rtolerances)
   rtolerances[vtProduct_p_u[:,:,t1]] = 0.5
   rtolerances[vsProduct_p_u[:,:,t1]] = 0.5
   rtolerances[vntProduct_p_u[:,:,t1]] = 0.5
+  # A zero net parent can lose one side of an offsetting origin tax/subsidy pair.
+  tolerances[vntProduct_p_u[:,:,t1]] .= [
+    1e-6 + abs(sum(
+      get(vtProduct_p_u_o_data, (p, u, o, t1), 0.0) - get(vsProduct_p_u_o_data, (p, u, o, t1), 0.0)
+      for o in origin if (p, u, o) ∉ purchaser_use_p_u_o;
+      init=0.0,
+    )) / adjustment_factor(vntProduct_p_u[p,u,t1], t1)
+    for (p, u) in keys(vntProduct_p_u[:,:,t1])
+  ]
   rtolerances[vntProduct_u[:,t1]] = 1.0
   rtolerances[vtProduct[t1]] = 0.01
   rtolerances[vsProduct[t1]] = 0.01
@@ -242,8 +248,6 @@ function define_equations()
     vtProduct_p_u_o[p,u,o,t] == tProduct_p_u_o[p,u,o,t] * qPurchaserUse_p_u_o[p,u,o,t]
     vsProduct_p_u_o[p=product, u=use, o=origin, t=t1:T],
     vsProduct_p_u_o[p,u,o,t] == tsProduct_p_u_o[p,u,o,t] * qPurchaserUse_p_u_o[p,u,o,t]
-    vntProduct_p_u_o[p=product, u=use, o=origin, t=t1:T],
-    vntProduct_p_u_o[p,u,o,t] == vtProduct_p_u_o[p,u,o,t] - vsProduct_p_u_o[p,u,o,t]
     # The net rate is the difference of the two gross rates. Do not scale this row by the
     # quantity: purchaser use is negative or near zero in some cells, which weakens the pivot.
     ntProduct[p=product, u=ordinary_uses, o=origin, t=t1:T],
@@ -253,8 +257,9 @@ function define_equations()
     vtProduct_p_u[p,u,t] == ∑(vtProduct_p_u_o[p,u,o,t] for o in origin)
     vsProduct_p_u[p=product, u=use, t=t1:T],
     vsProduct_p_u[p,u,t] == ∑(vsProduct_p_u_o[p,u,o,t] for o in origin)
+    # Keep the gross origin amounts; sum their linear differences at the parent.
     vntProduct_p_u[p=product, u=use, t=t1:T],
-    vntProduct_p_u[p,u,t] == ∑(vntProduct_p_u_o[p,u,o,t] for o in origin)
+    vntProduct_p_u[p,u,t] == ∑(vtProduct_p_u_o[p,u,o,t] - vsProduct_p_u_o[p,u,o,t] for o in origin)
 
     vntProduct_u[u=use, t=t1:T],
     vntProduct_u[u,t] == ∑(vntProduct_p_u[p,u,t] for p in product)

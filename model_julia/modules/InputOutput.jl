@@ -1,6 +1,6 @@
 # Product, use, origin, margin, and supply accounts.
 # Drop small source cells from the model domains without changing source values.
-# Treat parent quantities as behavior indices.
+# Use one basic price per product and origin. Treat parent quantities as behavior indices.
 include(joinpath(@__DIR__, "InputOutputSettings.jl"))
 
 module InputOutput
@@ -166,10 +166,8 @@ const InputOutputTag = Tag(:InputOutput)
 end
 
 @variables model :: (InputOutputTag, InflationAdjusted) begin
-  pY_p_i[(p,i,t)=vY_p_i], "Domestic basic price by product and industry"
   pY_i[(i,t)=vY_i], "Domestic basic price by industry"
-  pBasic[(p,u,o,t)=vUse_p_u_o] :: ForecastConstant, "Basic or border price by product, use, and origin"
-  pSupply_p_o[(p,o,t)=vSupply_p_o], "Supply price by product and origin"
+  pSupply_p_o[(p,o,t)=vSupply_p_o] :: ForecastConstant, "Basic or border price by product and origin"
   pUse_u_o[(u,o,t)=vUse_u_o[ordinary_uses,:,:]], "Basic or border price by use and origin"
   pSupply_o[o=origin, t=t], "Supply price by origin"
 
@@ -221,7 +219,7 @@ const vY = vSupply_o[domestic,:]
 const vM = vSupply_o[import_origin,:]
 
 const pM = pSupply_o[import_origin,:]
-const pM_p_u = pBasic[:,:,import_origin,:]
+const pM_p = pSupply_p_o[:,import_origin,:]
 
 @variables model :: InputOutputTag begin
   rIndustryShare[(p,i,t)=qY_p_i] :: ForecastConstant, "Industry share of domestic product output. Shares sum to one for each product."
@@ -256,10 +254,10 @@ function assign_data!(db)
   fill_cells!(db, qMarginService_s_u, qMarginService_s_u_data)
   db[tVAT] .= 0.0
   db[fG] .= 1.0
-  db[pY_p_i] .= 1.0
+  db[pY_i] .= 1.0
   # Normalize the import price in the base year only. ForecastConstant holds it flat in
   # adjusted units, so foreign prices grow at the same long-run rate as domestic prices.
-  db[pM_p_u[:,:,t1]] .= 1.0
+  db[pM_p[:,t1]] .= 1.0
 
   db[vCTourist] .= read_series(aggregate_totals_file, "vCTourist", t)
   # The source has no tourist volume before t1. Use its value as the lagged quantity.
@@ -347,17 +345,15 @@ function define_equations()
     qINV[t=t1:T], qINV[t] == ∑(qPurchaserUse_p_u[p,:INV,t] for p in product)
 
     # Basic, border, margin, and purchaser prices.
-    pBasic[p=product, u=use, o=domestic, t=t1:T], pBasic[p,u,o,t] == pSupply_p_o[p,o,t]
-
     pMarginService_s_u[s=margin_services, u=use, t=t1:T],
     pMarginService_s_u[s,u,t] ==
-      ∑(rOriginShare[s,u,o,t] * pBasic[s,u,o,t] for o in origin if (s,u,o,t) in keys(qMarginService_s_u_o))
+      ∑(rOriginShare[s,u,o,t] * pSupply_p_o[s,o,t] for o in origin if (s,u,o,t) in keys(qMarginService_s_u_o))
 
     pMarginBundle_u[u=use, t=t1:T],
     pMarginBundle_u[u,t] == ∑(rMarginServiceShare[s,u,t] * pMarginService_s_u[s,u,t] for s in margin_services)
 
     pPurchaserUse_p_u_o[p=product, u=use, o=origin, t=t1:T],
-    pPurchaserUse_p_u_o[p,u,o,t] == (pBasic[p,u,o,t] + ntProduct[p,u,o,t]
+    pPurchaserUse_p_u_o[p,u,o,t] == (pSupply_p_o[p,o,t] + ntProduct[p,u,o,t]
       + rMarginRate[p,u,t] * pMarginBundle_u[u,t]) * (1 + tVAT[p,u,o,t])
 
     pPurchaserUse_p_u[p=product, u=ordinary_uses, t=t1:T],
@@ -371,16 +367,16 @@ function define_equations()
     vPurchaserUse_p_u[p,u,t] == ∑(vPurchaserUse_p_u_o[p,u,o,t] for o in origin)
 
     vMarginService_s_u_o[s=product, u=use, o=origin, t=t1:T],
-    vMarginService_s_u_o[s,u,o,t] == pBasic[s,u,o,t] * qMarginService_s_u_o[s,u,o,t]
+    vMarginService_s_u_o[s,u,o,t] == pSupply_p_o[s,o,t] * qMarginService_s_u_o[s,u,o,t]
 
     vMarginService_s_u[s=margin_services, u=use, t=t1:T],
     vMarginService_s_u[s,u,t] == ∑(vMarginService_s_u_o[s,u,o,t] for o in origin)
 
     vMarginBundle_u[u=use, t=t1:T], vMarginBundle_u[u,t] == ∑(vMarginService_s_u[s,u,t] for s in margin_services)
 
-    vUse_p_u_o[p=product, u=use, o=origin, t=t1:T], vUse_p_u_o[p,u,o,t] == pBasic[p,u,o,t] * qUse_p_u_o[p,u,o,t]
+    vUse_p_u_o[p=product, u=use, o=origin, t=t1:T], vUse_p_u_o[p,u,o,t] == pSupply_p_o[p,o,t] * qUse_p_u_o[p,u,o,t]
 
-    vY_p_i[p=product, i=industry, t=t1:T], vY_p_i[p,i,t] == pY_p_i[p,i,t] * qY_p_i[p,i,t]
+    vY_p_i[p=product, i=industry, t=t1:T], vY_p_i[p,i,t] == pY_i[i,t] * qY_p_i[p,i,t]
 
     vSupply_p_o[p=product, o=domestic, t=t1:T],
     vSupply_p_o[p,o,t] == ∑(vY_p_i[p,i,t] for i in industry if (p,i,t) in keys(vY_p_i))
@@ -388,7 +384,8 @@ function define_equations()
     vSupply_p_o[p=product, o=import_origin, t=t1:T],
     vSupply_p_o[p,o,t] == ∑(vUse_p_u_o[p,u,o,t] for u in use if (p,u,o,t) in keys(vUse_p_u_o))
 
-    pSupply_p_o[p=product, o=origin, t=t1:T], pSupply_p_o[p,o,t] * qSupply_p_o[p,o,t] == vSupply_p_o[p,o,t]
+    # Domestic prices clear supply. Import prices are exogenous foreign prices.
+    pSupply_p_o[p=product, o=domestic, t=t1:T], pSupply_p_o[p,o,t] * qSupply_p_o[p,o,t] == vSupply_p_o[p,o,t]
 
     vY_i[i=industry, t=t1:T],
     vY_i[i,t] == ∑(vY_p_i[p,i,t] for p in product if (p,i,t) in keys(vY_p_i))
