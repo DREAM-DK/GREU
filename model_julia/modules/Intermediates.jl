@@ -28,7 +28,9 @@ const qM_m_i_data = read_cells(intermediate_product_split_file, "qM_m_i")
 # ============================================================================
 # Indices
 # ============================================================================
-const intermediate_product_m_i = Set((p, m, i) for (p, m, i, _) in keys(qM_p_m_i_data))
+const intermediate_product_m_i = Set(
+  (p, m, i) for (p, m, i, year) in keys(qM_p_m_i_data) if (p, i, year) in keys(qM_p_i)
+)
 const intermediate_m_i = Set((m, i) for (_, m, i) in intermediate_product_m_i)
 @assert intermediate_m_i == Set(
   (m, i)

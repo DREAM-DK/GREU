@@ -116,9 +116,11 @@ function assign_data!(db)
   return nothing
 end
 
-function set_residual_tolerances!(tolerances)
+function set_residual_tolerances!(tolerances, rtolerances)
   # A subsidy-specific sector map can reduce the remaining source gaps.
   tolerances[vsProduction_s] = 800.0
+  rtolerances[vM_s[:,t1]] = 0.01
+  rtolerances[vGrossOpSurplusMixedIncome[:,t1]] = 0.01
   return nothing
 end
 

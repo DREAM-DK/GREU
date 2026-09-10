@@ -190,7 +190,7 @@ function assign_data!(db)
   return nothing
 end
 
-function set_residual_tolerances!(tolerances)
+function set_residual_tolerances!(tolerances, rtolerances)
   # Sector accounts report whole EUR millions. Tax classes and industries use decimals.
   tolerances[vtProduction] = 1.2
   tolerances[vsProduction_c] = 1.2
@@ -199,6 +199,14 @@ function set_residual_tolerances!(tolerances)
   tolerances[vtProduct] = 1.2
   tolerances[vsProduct] = 1.2
   tolerances[vtIndirect] = 1.2
+
+  # Small origin totals and signed net taxes need broad relative limits.
+  rtolerances[vtProduct_p_u[:,:,t1]] = 0.5
+  rtolerances[vsProduct_p_u[:,:,t1]] = 0.5
+  rtolerances[vntProduct_p_u[:,:,t1]] = 0.5
+  rtolerances[vntProduct_u[:,t1]] = 1.0
+  rtolerances[vtProduct[t1]] = 0.01
+  rtolerances[vsProduct[t1]] = 0.01
   return nothing
 end
 

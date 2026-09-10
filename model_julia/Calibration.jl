@@ -14,10 +14,11 @@ import ..Time: at_year, variable_year, t1
 
 function residual_tolerances(values::ModelDictionary, modules)
   tolerances = ModelDictionary(values.model)
+  rtolerances = ModelDictionary(values.model)
   for m in modules
-    isdefined(m, :set_residual_tolerances!) && m.set_residual_tolerances!(tolerances)
+    isdefined(m, :set_residual_tolerances!) && m.set_residual_tolerances!(tolerances, rtolerances)
   end
-  return tolerances
+  return (; tolerances, rtolerances)
 end
 
 """

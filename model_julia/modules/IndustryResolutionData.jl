@@ -313,9 +313,6 @@ function common_intervals(source_coverage)
   n = length(leaf_codes)
   intervals = Set{Tuple{Int,Int}}()
 
-  # Use explicit nested loops here. A dependent range such as
-  # `last_leaf in first_leaf:n` inside the previous generator expression
-  # can be evaluated before `first_leaf` is bound by Julia.
   for first_leaf in 1:n
     for last_leaf in first_leaf:n
       if all(can_tile(first_leaf, last_leaf, source.intervals) for source in source_coverage)

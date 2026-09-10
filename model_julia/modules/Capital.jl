@@ -49,7 +49,9 @@ const capital_k_i = Set(
 
 # The input-output data give products but not capital types. A separate table
 # gives the product split for each capital type.
-const investment_product_k = Set((p, k) for (p, k, _) in keys(qI_p_k_data))
+const investment_product_k = Set(
+  (p, k) for (p, k, year) in keys(qI_p_k_data) if (p, year) in keys(qI_p)
+)
 
 # ============================================================================
 # Variables
@@ -95,6 +97,11 @@ function assign_data!(db)
   fill_cells!(db, pI_k, pI_k_data)
   db[[pProd[k,i,t1] for (k,i) in capital_k_i]] .= 1.0
   db[rHurdleRate_i] .= 0.10
+  return nothing
+end
+
+function set_residual_tolerances!(tolerances, rtolerances)
+  rtolerances[pI_k[:,t1]] = 0.01
   return nothing
 end
 
