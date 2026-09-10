@@ -8,6 +8,7 @@ using DataFrames
 
 import ..InputOutputSettings:
   product,
+  product_members,
   product_sections,
   source_industry,
   industry_sections,
@@ -52,7 +53,7 @@ const capital_type = sort(unique(values(flow_asset_to_capital_type)))
 @assert Set(capital_type) == Set(values(stock_asset_to_capital_type)) "Stock and flow assets must use the same capital types"
 
 const labor_type = [:labor]
-const energy_product = products_in_sections([:B, :D])
+const energy_product = [p for p in product if all(in(("B", "C19", "D")), product_members[p])]
 const intermediate_type = [:energy, :materials]
 @assert !isempty(energy_product) && energy_product ⊆ product "Energy products must be input-output products"
 
