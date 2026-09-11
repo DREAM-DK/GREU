@@ -46,7 +46,7 @@ function assign_data!(db)
   return nothing
 end
 
-function set_residual_tolerances!(tolerances)
+function set_residual_tolerances!(tolerances, rtolerances)
   tolerances[rFinReval_s_f] = 0.2
   return nothing
 end

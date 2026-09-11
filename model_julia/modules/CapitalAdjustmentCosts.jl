@@ -45,7 +45,7 @@ end
 # Starting values
 # ============================================================================
 function set_starting_values!(start_values)
-  start_values[tagged(model, CapitalAdjustmentCostsTag)] = 0
+  setindex!.(Ref(start_values), 0, tagged(model, CapitalAdjustmentCostsTag))
   return nothing
 end
 

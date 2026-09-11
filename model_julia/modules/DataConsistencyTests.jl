@@ -265,8 +265,6 @@ function run_all_tests(; dir=diagnostics_dir)
   end
 
   # GVA: selected detailed mapping must sum to Eurostat's directly published TOTAL.
-  # This is same dataset but an independent aggregate observation and is useful for
-  # detecting source-code tiling/double-counting errors introduced by resolution changes.
   safe_test!(rows, "B1G detailed mapping vs published total") do
     result_rows(
       "B1G detailed mapping vs published total", "B1G",

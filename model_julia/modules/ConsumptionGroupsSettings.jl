@@ -8,7 +8,6 @@ const consumption_nesting = Dict(
   :total => (children = [:goods, :services], elasticity = 0.5),
 )
 
-# Preserve the old A21 split (A-H goods, I-U services) at the new resolution.
 # A selected common group must not straddle the goods/services boundary.
 const goods_sections = Set(Symbol(string(c)) for c in 'A':'H')
 const service_sections = Set(Symbol(string(c)) for c in 'I':'U')

@@ -38,7 +38,7 @@ function assign_data!(db)
   return nothing
 end
 
-function set_residual_tolerances!(tolerances)
+function set_residual_tolerances!(tolerances, rtolerances)
   tolerances[rFinIncome_s_f] = 0.1
   return nothing
 end

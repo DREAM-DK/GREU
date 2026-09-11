@@ -43,7 +43,8 @@ static_solution, static_calibrated_parameters = static_calibration(
                       base_block
                     )
 
-assert_residuals_small(static_solution; rtol=1e-4, tolerances=residual_tolerances(static_solution, model_modules), msg="Large residuals after static calibration",)
+assert_residuals_small(static_solution; rtol=1e-4, residual_tolerances(static_solution, model_modules)...,
+  msg="Large residuals after static calibration")
 
 # ============================================================================
 # Dynamic calibration
@@ -67,7 +68,8 @@ baseline = dynamic_calibration(
 #                    )
 
 
-assert_residuals_small(baseline; rtol=1e-4, tolerances=residual_tolerances(baseline, model_modules), msg="Large residuals after dynamic calibration",)
+assert_residuals_small(baseline; rtol=1e-4, residual_tolerances(baseline, model_modules)...,
+  msg="Large residuals after dynamic calibration")
 
 
 # ==============================================================================

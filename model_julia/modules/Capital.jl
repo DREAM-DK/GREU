@@ -14,12 +14,10 @@ import ..InputOutput:
   qI,
   qI_p,
   vI
-import ..InputOutputSettings: cell_tolerance
-import ..Production: pProd, qProd
+import ..Production: pProd, qProd, qK_k_i_data, capital_k_i
 import ..ProductionSettings:
   capital_type,
   production_data_dir
-import ..Settings: calibration_year
 import ..model
 import ..Time: t, t1, T
 import ..Tags: DynamicCalibration, ForecastConstant, ForecastZero
@@ -29,7 +27,6 @@ import ..Tags: DynamicCalibration, ForecastConstant, ForecastZero
 # ============================================================================
 const capital_file = joinpath(production_data_dir, "production_capital.csv")
 const investment_product_split_file = joinpath(production_data_dir, "production_investment_product_split.csv")
-const qK_k_i_data = read_cells(capital_file, "qK_k_i")
 const qI_k_i_data = read_cells(capital_file, "qI_k_i")
 const qI_p_k_data = read_cells(investment_product_split_file, "qI_p_k")
 const qI_k_data = read_cells(investment_product_split_file, "qI_k")
@@ -38,18 +35,11 @@ const pI_k_data = read_cells(investment_product_split_file, "pI_k")
 # ============================================================================
 # Indices
 # ============================================================================
-# A capital cell needs a positive current and lagged stock.
-const capital_k_i = Set(
-  (k, i)
-  for ((k,i,year), value) in qK_k_i_data
-  if year == calibration_year &&
-    value > cell_tolerance &&
-    get(qK_k_i_data, (k,i,calibration_year-1), 0.0) > cell_tolerance
-)
-
 # The input-output data give products but not capital types. A separate table
 # gives the product split for each capital type.
-const investment_product_k = Set((p, k) for (p, k, _) in keys(qI_p_k_data))
+const investment_product_k = Set(
+  (p, k) for (p, k, year) in keys(qI_p_k_data) if (p, year) in keys(qI_p)
+)
 
 # ============================================================================
 # Variables
@@ -60,7 +50,7 @@ const CapitalTag = Tag(:Capital)
   qK_k_i[k=capital_type, i=industry, t=t; (k,i) in capital_k_i], "Capital stock by type and industry."
   qI_k_i[(k,i,t)=qK_k_i], "Capital flow by type and industry."
   qI_k[k=capital_type, t=t], "Investment by capital type."
-  qI_p_k[p=product, k=capital_type, t=t; (p,k) in investment_product_k], "Investment by product and capital type."
+  qI_p_k[p=product, k=capital_type, t=t; (p,k) in investment_product_k && (p,t) in keys(qI_p)], "Investment by product and capital type."
 end
 
 @variables model :: (CapitalTag, InflationAdjusted) begin
@@ -133,7 +123,7 @@ function define_equations()
     # Product split.
     qI_p_k[p=product, k=capital_type, t=t1:T], qI_p_k[p,k,t] == rInvestmentProductShare[p,k,t] * qI_k[k,t]
 
-    qI_p[(p,t) in keys(qI_p); t in t1:T], qI_p[p,t] == ∑(qI_p_k[p,k,t] for k in capital_type)
+    qI_p[p=product, t=t1:T], qI_p[p,t] == ∑(qI_p_k[p,k,t] for k in capital_type)
 
     qI[t=t1:T], qI[t] == ∑(qI_k[k,t] for k in capital_type)
 
@@ -167,7 +157,7 @@ function define_calibration()
     qProd[k=capital_type, i=industry, t=t1], pProd[k=capital_type, i=industry, t=t1]
     rKDepr_k_i[:,:,t1], qI_k_i[:,:,t1]
 
-    rInvestmentProductShare[p=product, k=capital_type, t=t1], qI_p_k[p=product, k=capital_type, t=t1]
+    rInvestmentProductShare[:,:,t1], qI_p_k[:,:,t1]
 
     pInvestmentShock_k_i[k=capital_type, i=industry, t=t1+1; T > t1],
     qK_k_i[k=capital_type, i=industry, t=t1; T > t1]

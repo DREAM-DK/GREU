@@ -44,7 +44,7 @@ function assign_data!(db)
   return nothing
 end
 
-function set_residual_tolerances!(tolerances)
+function set_residual_tolerances!(tolerances, rtolerances)
   # Government data use one decimal; sector accounts report whole EUR millions.
   tolerances[vSocialContributions] = 1.0
   return nothing

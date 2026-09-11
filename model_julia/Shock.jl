@@ -31,8 +31,9 @@ report_period = (shock_year - 1):Time.T
 report_kind = :export
 report_file = "export_demand_shock_report.html"
 
-baseline = load(joinpath(@__DIR__, "..", "Output", "baseline.parquet"), model)
+# Create residual variables before loading their calibrated values.
 block = base_model(model_modules)
+baseline = load(joinpath(@__DIR__, "..", "Output", "baseline.parquet"), model)
 
 # ==============================================================================
 # Shock definition - replace this line to shock another exogenous variable

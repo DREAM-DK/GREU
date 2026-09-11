@@ -1,6 +1,6 @@
 # Build product and production tax source files.
 # Allocate gross taxes and subsidies before model construction.
-# Write factor mappings and product-use splits as model inputs.
+# Write factor mappings and product-use-origin splits as model inputs.
 include(joinpath(@__DIR__, "..", "Settings.jl"))
 include("InputOutputSettings.jl")
 include("ProductionSettings.jl")
@@ -51,6 +51,7 @@ const production_labor_file = joinpath(production_data_dir, "production_labor.cs
 const production_intermediate_file = joinpath(production_data_dir, "production_intermediate_product_split.csv")
 const production_taxes_file = joinpath(production_data_dir, "production_taxes.csv")
 const product_taxes_file = joinpath(production_data_dir, "product_taxes.csv")
+const import_product_taxes_file = joinpath(production_data_dir, "import_product_taxes.csv")
 const purchaser_use_file = joinpath(input_output_data_dir, "input_output_purchaser_use.csv")
 const net_product_tax_file = joinpath(input_output_data_dir, "input_output_net_product_tax.csv")
 const government_file = joinpath(government_data_dir, "government_variables.csv")
@@ -73,7 +74,8 @@ rounding_residual(value) = value >= 0 ? value : begin
   0.0
 end
 
-"""Fetch government D29 classes and retain any unclassified amount as D29R."""
+"""Fetch reported government D29 classes and retain the unclassified total as D29R.
+An omitted class has no separate allocation; it is not a reported zero."""
 function fetch_tax_class_totals()
   df = EurostatClient.fetch_table(
     tax_dataset,
@@ -417,6 +419,30 @@ end
 # Product taxes and subsidies
 # ============================================================================
 
+"""Read D212 import taxes and its D2121 duty component, including EU receipts."""
+function refresh_import_product_taxes_data!(dir=production_data_dir)
+  df = EurostatClient.fetch_table(
+    tax_dataset,
+    "unit" => tax_unit,
+    "sector" => "S13_S212",
+    "geo" => country_code,
+    year_params...,
+    "na_item" => "D212",
+    "na_item" => "D2121",
+  )
+  controls = Dict((Symbol(row.na_item), parse(Int, row.time)) => row.value for row in eachrow(df))
+  @assert all(
+    0 <= controls[(:D2121, year)] <= controls[(:D212, year)] for year in data_years
+  ) "Import duties must be nonnegative and no larger than import taxes"
+  CSV.write(joinpath(dir, "import_product_taxes.csv"), vcat((
+    long_format(variable, DataFrame(
+      year=collect(data_years), value=[controls[(item, year)] for year in data_years],
+    ), [:year])
+    for (variable, item) in ((:vtImportProductSource, :D212), (:vtImportDutySource, :D2121))
+  )...))
+  return Dict((year,) => controls[(:D212, year)] for year in data_years)
+end
+
 function split_product_flows(year, q, net, total_subsidy)
   product_use = Set(
     (p, u)
@@ -471,7 +497,56 @@ function split_product_flows(year, q, net, total_subsidy)
   return tax, subsidy
 end
 
-function product_tax_tables()
+"""Put reported import taxes on imports and preserve each product-use gross total.
+T1630 has no goods-origin split. Estimate D212 incidence from positive import
+use weighted by the gross product-use tax rate. Keep signed inventories and
+exports outside this allocation. Other taxes and subsidies use origin shares.
+"""
+function split_product_origins(gross_tax, gross_subsidy, q, q_o, import_tax)
+  import_base = Dict(
+    (p, u, year) => value * get(q_o, (p, u, :import, year), 0.0) / q[(p, u, year)]
+    for ((p, u, year), value) in gross_tax
+    if u ∉ (:INV, :X) && value > 0 && q[(p, u, year)] > 0 &&
+      get(q_o, (p, u, :domestic, year), 0.0) >= 0 &&
+      get(q_o, (p, u, :import, year), 0.0) > 0
+  )
+  import_share = Dict(
+    year => value / sum(base for ((_, _, source_year), base) in import_base if source_year == year; init=0.0)
+    for ((year,), value) in import_tax
+  )
+  @assert all(
+    isfinite(share) && 0 <= share <= 1 for share in values(import_share)
+  ) "Reported import taxes must fit the positive import-tax base"
+  import_allocation = Dict(key => import_share[last(key)] * base for (key, base) in import_base)
+  @assert all(
+    isapprox(sum(value for ((_, _, source_year), value) in import_allocation if source_year == year), total;
+      atol=cell_tolerance, rtol=0)
+    for ((year,), total) in import_tax
+  ) "Import allocations must retain each reported D212 total"
+  tax = Dict(
+    (p, u, o, year) =>
+      (gross_tax[(p, u, year)] - get(import_allocation, (p, u, year), 0.0)) * value / q[(p, u, year)] +
+      (o == :import ? get(import_allocation, (p, u, year), 0.0) : 0.0)
+    for ((p, u, o, year), value) in q_o
+    if haskey(gross_tax, (p, u, year))
+  )
+  subsidy = Dict(
+    (p, u, o, year) => gross_subsidy[(p, u, year)] * value / q[(p, u, year)]
+    for ((p, u, o, year), value) in q_o
+    if haskey(gross_subsidy, (p, u, year))
+  )
+  @assert all(
+    tax[key] / q_o[key] >= -cell_tolerance for key in keys(tax) if !iszero(q_o[key])
+  ) "Origin gross product tax rates must be nonnegative"
+  @assert all(
+    isapprox(sum(get(tax, (p, u, o, year), 0.0) for o in (:domestic, :import)), value;
+      atol=cell_tolerance, rtol=0)
+    for ((p, u, year), value) in gross_tax
+  ) "Origin gross product taxes must retain each product-use total"
+  return tax, subsidy
+end
+
+function product_tax_tables(import_tax=read_cells(import_product_taxes_file, "vtImportProductSource"))
   q_o = read_cells(purchaser_use_file, "qPurchaserUse_p_u_o")
   q = Dict(
     (p, u, year) => sum(
@@ -536,15 +611,9 @@ function product_tax_tables()
   splits = Dict(year => split_product_flows(year, q, net, product_subsidy[(year,)]) for year in years)
   gross_tax = Dict(key => value for year in years for (key, value) in first(splits[year]))
   gross_subsidy = Dict(key => value for year in years for (key, value) in last(splits[year]))
-  function split_origins(flow)
-    return Dict(
-      (p, u, o, year) => flow[(p, u, year)] * value / q[(p, u, year)]
-      for ((p, u, o, year), value) in q_o
-      if haskey(flow, (p, u, year))
-    )
-  end
-  gross_tax_origin = split_origins(gross_tax)
-  gross_subsidy_origin = split_origins(gross_subsidy)
+  gross_tax_origin, gross_subsidy_origin = split_product_origins(
+    gross_tax, gross_subsidy, q, q_o, Dict((year,) => import_tax[(year,)] for year in years),
+  )
   net_origin = Dict(key => gross_tax_origin[key] - gross_subsidy_origin[key] for key in keys(gross_tax_origin))
 
   @assert all(>=(0), values(product_subsidy)) "Product subsidy payments must be nonnegative"
@@ -740,7 +809,8 @@ end
 
 function refresh_product_taxes_data!(dir=production_data_dir)
   mkpath(dir)
-  data = product_tax_tables()
+  import_tax = refresh_import_product_taxes_data!(dir)
+  data = product_tax_tables(import_tax)
   CSV.write(joinpath(dir, "product_taxes.csv"), vcat(
     long_format(:vtProduct_p_u_o, data.gross_tax_origin_table, [:product, :use, :origin, :year]),
     long_format(:vsProduct_p_u_o, data.gross_subsidy_origin_table, [:product, :use, :origin, :year]),

@@ -200,7 +200,7 @@ function assign_data!(db)
   return nothing
 end # assign_data!
 
-function set_residual_tolerances!(tolerances)
+function set_residual_tolerances!(tolerances, rtolerances)
   # Sector stock changes can differ from the sum of transactions,
   # revaluations, and other changes in volume. Source income also has small gaps.
   tolerances[vNetFinAssets] = 20000.0

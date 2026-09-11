@@ -3,16 +3,7 @@
 # Keep equations and country data in their own modules.
 module ProductionSettings
 
-using CSV
-using DataFrames
-
-import ..InputOutputSettings:
-  product,
-  product_sections,
-  source_industry,
-  industry_sections,
-  products_in_sections
-import ..Settings: calibration_year
+import ..InputOutputSettings: product, product_members
 
 const production_data_dir = joinpath(@__DIR__, "..", "data", "production")
 
@@ -52,11 +43,10 @@ const capital_type = sort(unique(values(flow_asset_to_capital_type)))
 @assert Set(capital_type) == Set(values(stock_asset_to_capital_type)) "Stock and flow assets must use the same capital types"
 
 const labor_type = [:labor]
-# Energy is still defined economically as mining/quarrying and electricity/gas,
-# but the selected products may now be more detailed than A21.
-const energy_product = products_in_sections([:B, :D])
 const intermediate_type = [:energy, :materials]
-@assert !isempty(energy_product) && energy_product ⊆ product "Energy products must be input-output products"
+const product_to_intermediate_type = Dict(
+  p => (product_members[p] ⊆ ("B", "C19", "D") ? :energy : :materials) for p in product
+)
 
 const full_nesting = Dict(
   :KE => (children = [:equipment, :energy], elasticity = 0.7),
@@ -66,47 +56,12 @@ const full_nesting = Dict(
 )
 
 # ============================================================================
-# Data-driven nest pruning
+# Nest pruning
 # ============================================================================
-# A CES nest whose children all have zero base-year value cannot price itself:
-# pProd[n] * qProd[n] == 0 holds for any pProd[n], and the uProd calibration row
-# loses its derivative with respect to uProd. 
-const factor_leaf = [:equipment, :structures, :labor, :energy, :materials]
-const factor_tolerance = 1e-6
-
-# Each file stores (leaf, industry, year) in its `indices` column.
-const factor_sources = [
-  (joinpath(production_data_dir, "production_capital.csv"), "qK_k_i"),
-  (joinpath(production_data_dir, "production_labor.csv"), "qL_l_i"),
-  (joinpath(production_data_dir, "production_intermediate_product_split.csv"), "qM_m_i"),
-]
-
-"""Base-year value of each production leaf by industry.
-
-Return `nothing` when the production data has not been built yet, so that this
-module still loads during a data refresh and while the industry resolver runs.
-"""
-function base_factor_values()
-  values = Dict{Tuple{Symbol,Symbol},Float64}()
-  for (file, var) in factor_sources
-    isfile(file) || return nothing
-    for row in eachrow(CSV.read(file, DataFrame))
-      string(row.variable) == var || continue
-      parts = split(String(row.indices), ',')
-      length(parts) == 3 || continue
-      parse(Int, parts[3]) == calibration_year || continue
-      leaf = Symbol(parts[1])
-      leaf in factor_leaf || continue
-      key = (leaf, Symbol(parts[2]))
-      values[key] = get(values, key, 0.0) + Float64(row.value)
-    end
-  end
-  return values
-end
 
 """Prune a nest map to the leaves an industry actually uses.
 
-Drop leaves with no base-year value, drop nests that lose every child, and
+Drop leaves outside the retained factor set, drop nests that lose every child, and
 collapse a nest holding a single surviving child into that child. Always keep
 the outermost nest, because the model needs exactly one top node per industry.
 """
@@ -136,41 +91,10 @@ function prune_nesting(nests, live_leaf::Set{Symbol})
   return pruned
 end
 
-const base_factors = base_factor_values()
-
-live_leaves(i) =
-  isnothing(base_factors) ? Set(factor_leaf) :
-  Set(f for f in factor_leaf if abs(get(base_factors, (f, i), 0.0)) > factor_tolerance)
-
-  const production_nesting = Dict(
-    i => if isnothing(base_factors)
-      industry_sections[i] == Set([:T]) ?
-        Dict(:KELBM => (children = [:labor], elasticity = 0.7)) : Dict(full_nesting)
-    else
-      live = live_leaves(i)
-      isempty(live) ? Dict(:KELBM => (children = [:labor], elasticity = 0.7)) :
-                      prune_nesting(full_nesting, live)
-    end
-    for i in source_industry
-  )
-
-if !isnothing(base_factors)
-  collapsed = [i for i in source_industry if length(production_nesting[i]) < length(full_nesting)]
-  isempty(collapsed) ||
-    @info "Collapsed production nests for unused factors" industries = join(string.(collapsed), ", ")
-  # An industry with no factors at all cannot be given a well-posed tree here.
-  # It must be kept out of the model industry set; see InputOutput.jl.
-  empty_industries = [i for i in source_industry if isempty(live_leaves(i))]
-  isempty(empty_industries) ||
-    @warn "Industries with no production factors in the calibration year" industries = join(string.(empty_industries), ", ")
-end
-
-@assert all(!isempty(nests) for nests in values(production_nesting)) "Every industry needs at least one production nest"
-
 @assert allunique([capital_type; labor_type; intermediate_type]) "Production factor labels must be unique"
 @assert all(
   isfinite(spec.elasticity) && spec.elasticity > 0 && allunique(spec.children)
-  for spec in Iterators.flatten(values(nests) for nests in values(production_nesting))
+  for spec in values(full_nesting)
 ) "Each production nest needs a positive elasticity and unique children"
 
 end # module

@@ -5,31 +5,25 @@
 module Intermediates
 
 using SquareModels
-import ..DataUtils: fill_cells!, read_cells
-import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
+import ..DataUtils: fill_cells!
+import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, adjustment_factor
 import ..InputOutput:
   industry,
   pPurchaserUse_p_u,
-  qM_p_i
+  qM_p_i,
+  vPurchaserUse_p_u
 import ..InputOutputSettings: product
-import ..Production: parent, pProd, qProd
-import ..ProductionSettings: intermediate_type, production_data_dir, production_nesting
+import ..Production:
+  parent, pProd, qProd, production_nesting,
+  qM_p_m_i_data, qM_m_i_data, intermediate_product_m_i, intermediate_m_i
+import ..ProductionSettings: intermediate_type
 import ..model
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
 
 # ============================================================================
-# Read data
-# ============================================================================
-const intermediate_product_split_file = joinpath(production_data_dir, "production_intermediate_product_split.csv")
-const qM_p_m_i_data = read_cells(intermediate_product_split_file, "qM_p_m_i")
-const qM_m_i_data = read_cells(intermediate_product_split_file, "qM_m_i")
-
-# ============================================================================
 # Indices
 # ============================================================================
-const intermediate_product_m_i = Set((p, m, i) for (p, m, i, _) in keys(qM_p_m_i_data))
-const intermediate_m_i = Set((m, i) for (_, m, i) in intermediate_product_m_i)
 @assert intermediate_m_i == Set(
   (m, i)
   for m in intermediate_type, i in industry
@@ -68,6 +62,17 @@ function assign_data!(db)
   return nothing
 end
 
+# Base-year IO data retain inputs that the forecast production tree omits.
+function set_residual_tolerances!(tolerances, rtolerances)
+  for (p,i) in keys(qM_p_i[:,:,t1])
+    (p,i,t1+1) in keys(qM_p_i) && continue
+    tolerances[qM_p_i[p,i,t1]] = abs(sum(
+      get(qM_p_m_i_data, (p,m,i,t1), 0.0) for m in intermediate_type
+    )) / adjustment_factor(qM_p_i[p,i,t1], t1) + 1e-6
+  end
+  return nothing
+end
+
 # ============================================================================
 # Starting values
 # ============================================================================
@@ -87,14 +92,15 @@ function define_equations()
     qM_p_m_i[p=product, m=intermediate_type, i=industry, t=t1:T],
     qM_p_m_i[p,m,i,t] == rIntermediateProductShare[p,m,i,t] * qM_m_i[m,i,t]
 
-    qM_p_i[(p,i,t) in keys(qM_p_i); t in t1:T], qM_p_i[p,i,t] == ∑(qM_p_m_i[p,m,i,t] for m in intermediate_type)
+    qM_p_i[p=product, i=industry, t=t1:T], qM_p_i[p,i,t] == ∑(qM_p_m_i[p,m,i,t] for m in intermediate_type)
 
     pM_m_i[m=intermediate_type, i=industry, t=t1:T],
     pM_m_i[m,i,t] ==
       ∑(rIntermediateProductShare[p,m,i,t] * pPurchaserUse_p_u[p,i,t] for p in product) + ntM_m_i[m,i,t]
 
+    # IO accounts include base-year inputs that the forecast production tree omits.
     vM_i[i=industry, t=t1:T],
-    vM_i[i,t] == ∑((pM_m_i[m,i,t] - ntM_m_i[m,i,t]) * qM_m_i[m,i,t] for m in intermediate_type)
+    vM_i[i,t] == ∑(vPurchaserUse_p_u[p,i,t] for p in product)
 
     pProd[m=intermediate_type, i=industry, t=t1:T],
     pProd[m,i,t] == pM_m_i[m,i,t] / pM_m_i[m,i,t1]
@@ -108,8 +114,8 @@ function define_calibration()
   block = define_equations()
 
   @endo_exo_swap! block begin
-    qProd[m=intermediate_type, i=industry, t=t1], qM_m_i[m=intermediate_type, i=industry, t=t1]
-    rIntermediateProductShare[p=product, m=intermediate_type, i=industry, t=t1], qM_p_m_i[p=product, m=intermediate_type, i=industry, t=t1]
+    qProd[intermediate_type,:,t1], qM_m_i[:,:,t1]
+    rIntermediateProductShare[:,:,:,t1], qM_p_m_i[:,:,:,t1]
   end
 
   return block
