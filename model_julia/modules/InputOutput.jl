@@ -1,6 +1,7 @@
 # Product, use, origin, margin, and supply accounts.
-# Drop small source cells from the model domains without changing source values.
+# Keep full source cells through the base year; prune forecast domains only.
 # Use one basic price per product and origin. Treat parent quantities as behavior indices.
+# Keep key filters in sparse table sums to reduce model build time.
 include(joinpath(@__DIR__, "InputOutputSettings.jl"))
 
 module InputOutput
@@ -80,8 +81,8 @@ pruning_totals(cells, axis) = Dict(
   for group in unique(axis.(first.(cells)))
 )
 
-"""Drop small calibration-year cells within fixed row and column loss limits."""
-function calibration_year_indices(cells)
+"""Choose forecast cells from base-year data within row and column loss limits."""
+function forecast_indices(cells)
   magnitudes = sort([
     key[1:(end-1)] => abs(value) for (key, value) in cells
     if key[end] == calibration_year && abs(value) > cell_tolerance
@@ -110,30 +111,39 @@ function calibration_year_indices(cells)
   return retained
 end
 
-const margin_p_u = calibration_year_indices(qMarginBundle_p_u_data)
-const purchaser_use_p_u_o = let purchaser_mask = calibration_year_indices(qPurchaserUse_p_u_o_data)
-  # Restore the largest purchaser origin when a retained margin lacks purchaser use.
-  for (p, u) in margin_p_u
-    any((p, u, o) in purchaser_mask for o in origin) && continue
-    largest = argmax(o -> abs(get(qPurchaserUse_p_u_o_data, (p, u, o, calibration_year), 0.0)), origin)
-    push!(purchaser_mask, (p, u, largest))
-  end
-  purchaser_mask
-end
-const margin_s_u_o = calibration_year_indices(qMarginService_s_u_o_data)
-
-# Margin cells outside ordinary purchaser use need their own origin-share swap.
-const margin_only_s_u_o = Set(
-  (s,u,o)
-  for (s,u,o) in margin_s_u_o
-  if u ∉ ordinary_uses || (s,u,o) ∉ purchaser_use_p_u_o
+"""Keep nonzero base-year source cells before pruning starts."""
+source_indices(cells) = Set(
+  key[1:end-1] for (key, value) in cells
+  if last(key) == calibration_year && abs(value) > cell_tolerance
 )
 
-const purchaser_use_p_u = Set((p, u) for (p, u, _) in purchaser_use_p_u_o)
-const product_tax_p_u = Set(
-  (p, u)
-  for (p, u) in purchaser_use_p_u
-  if abs(get(qPurchaserUse_p_u_data, (p, u, calibration_year), 0.0)) > cell_tolerance
+"""Build a year-specific domain from full historical and retained forecast cells."""
+function model_indices(cells, retained=forecast_indices(cells))
+  source = source_indices(cells)
+  forecast = intersect(source, retained)
+  return Set((key..., year) for year in t for key in (year <= calibration_year ? source : forecast))
+end
+
+const output_p_i_t = model_indices(qY_p_i_data)
+# Purchaser and margin-service flows share origin weights. Keep their origin cuts aligned.
+const forecast_use_p_u_o = union(
+  forecast_indices(qPurchaserUse_p_u_o_data), forecast_indices(qMarginService_s_u_o_data),
+)
+const purchaser_use_p_u_o_t = model_indices(qPurchaserUse_p_u_o_data, forecast_use_p_u_o)
+const margin_s_u_o_t = model_indices(qMarginService_s_u_o_data, forecast_use_p_u_o)
+const purchaser_use_p_u_t = Set((p,u,year) for (p,u,_,year) in purchaser_use_p_u_o_t)
+# Carried margins follow purchaser support; they have no separate pruning rule.
+const margin_p_u_t = Set(
+  (p,u,year) for (p,u) in source_indices(qMarginBundle_p_u_data) for year in t
+  if (p,u,year) in purchaser_use_p_u_t
+)
+const product_tax_p_u_t = Set(
+  (p,u,year) for (p,u,year) in purchaser_use_p_u_t
+  if abs(get(qPurchaserUse_p_u_data, (p,u,calibration_year), 0.0)) > cell_tolerance
+)
+const margin_only_s_u_o_t = Set(
+  (s,u,o,year) for (s,u,o,year) in margin_s_u_o_t
+  if u ∉ ordinary_uses || (s,u,o,year) ∉ purchaser_use_p_u_o_t
 )
 
 # ============================================================================
@@ -145,10 +155,10 @@ const InputOutputTag = Tag(:InputOutput)
 # Margin services are products, so the margin variables keep the full product
 # domain. Product clearing and import totals index them by any product.
 @variables model :: (InputOutputTag, GrowthAdjusted, InflationAdjusted) begin
-  vY_p_i[p=product, i=industry, t=t; (p,i) in calibration_year_indices(qY_p_i_data)], "Basic-price output by product and industry"
-  vPurchaserUse_p_u_o[p=product, u=use, o=origin, t=t; (p,u,o) in purchaser_use_p_u_o], "Purchaser spend by product, use, and origin"
+  vY_p_i[p=product, i=industry, t=t; (p,i,t) in output_p_i_t], "Basic-price output by product and industry"
+  vPurchaserUse_p_u_o[p=product, u=use, o=origin, t=t; (p,u,o,t) in purchaser_use_p_u_o_t], "Purchaser spend by product, use, and origin"
   vPurchaserUse_p_u[(p,u,t)=select_axes(vPurchaserUse_p_u_o, 1, 2, 4)], "Purchaser spend by product and use"
-  vMarginService_s_u_o[s=product, u=use, o=origin, t=t; (s,u,o) in margin_s_u_o], "Margin-service value by service, use, and origin"
+  vMarginService_s_u_o[s=product, u=use, o=origin, t=t; (s,u,o,t) in margin_s_u_o_t], "Margin-service value by service, use, and origin"
   vMarginService_s_u[(s,u,t)=select_axes(vMarginService_s_u_o[margin_services,:,:,:], 1, 2, 4)], "Margin-service value by service and use"
   vMarginBundle_u[(u,t)=select_axes(vMarginService_s_u, 2, 3)], "Margin-bundle value by use"
   vUse_p_u_o[(p,u,o,t)=merge_indices(vPurchaserUse_p_u_o,vMarginService_s_u_o)], "Basic or border value by product, use, and origin"
@@ -187,7 +197,7 @@ end
   qPurchaserUse_p_u[(p,u,t)=vPurchaserUse_p_u], "Purchaser-use quantity index by product and use"
   qPurchaserUse_p_u_o[(p,u,o,t)=vPurchaserUse_p_u_o], "Purchaser-use flow by product, use, and origin"
   qMarginBundle_u[(u,t)=vMarginBundle_u], "Margin-bundle quantity index by use"
-  qMarginBundle_p_u[p=product, u=use, t=t; (p,u) in margin_p_u], "Margin-bundle demand by product and use"
+  qMarginBundle_p_u[p=product, u=use, t=t; (p,u,t) in margin_p_u_t], "Margin-bundle demand by product and use"
   qMarginService_s_u[(s,u,t)=vMarginService_s_u], "Margin-service quantity index by service and use"
   qMarginService_s_u_o[(s,u,o,t)=vMarginService_s_u_o], "Margin-service flow by service, use, and origin"
   qUse_p_u_o[(p,u,o,t)=vUse_p_u_o], "Basic-price use by product, use, and origin"
@@ -226,7 +236,7 @@ const pM_p = pSupply_p_o[:,import_origin,:]
   rOriginShare[(p,u,o,t)=merge_indices(qPurchaserUse_p_u_o[:,ordinary_uses,:,:], qMarginService_s_u_o)] :: ForecastConstant, "Origin quantity per unit of the parent behavior index. These ratios need not sum to one."
   rMarginServiceShare[(s,u,t)=qMarginService_s_u] :: ForecastConstant, "Conditional margin-service demand per unit of the bundle index"
   rMarginRate[(p,u,t)=qMarginBundle_p_u] :: ForecastConstant, "Margin-bundle units per unit of purchaser use"
-  ntProduct[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o && u != :INV] :: ForecastConstant, "Net product tax per unit by origin"
+  ntProduct[p=product, u=use, o=origin, t=t; (p,u,t) in product_tax_p_u_t && (p,u,o,t) in purchaser_use_p_u_o_t && u != :INV] :: ForecastConstant, "Net product tax per unit by origin"
   tVAT[(p,u,o,t)=qPurchaserUse_p_u_o] :: ForecastConstant, "Separate VAT rate; zero while ntProduct includes VAT"
   fG[t], "Scale factor on government consumption. One unless a module endogenizes it"
 end
@@ -269,22 +279,9 @@ function assign_data!(db)
 end
 
 function set_residual_tolerances!(tolerances, rtolerances)
-  rtolerances[vSupply_o[:,t1]] = 0.01
-  # Independent cuts to output and use leave a product-level quantity gap.
-  rtolerances[qSupply_p_o[:,domestic,t1]] = 0.01
-  # Inventory totals can be small because origin flows have opposite signs.
-  rtolerances[qPurchaserUse_p_u[:,:INV,t1]] = 0.5
-  return nothing
-end
-
-# ============================================================================
-# Starting values
-# ============================================================================
-
-function set_starting_values!(start_values)
-  for (p, _) in keys(qY_p[:,t1:t1])
-    start_values[qY_p[p,t1]] = sum(start_values[qY_p_i[p,:,t1]])
-  end
+  # Reported supply totals and source cells differ only by rounding.
+  tolerances[vM] = 0.15
+  tolerances[vY] = 0.15
   return nothing
 end
 
@@ -295,7 +292,7 @@ end
 function define_equations()
   return @block model begin
     # Direct product demand. Inventories bypass the module links.
-    qPurchaserUse_p_u[(p,i,t) in keys(qM_p_i); t in t1:T], qPurchaserUse_p_u[p,i,t] == qM_p_i[p,i,t]
+    qPurchaserUse_p_u[p=product, i=industry, t=t1:T], qPurchaserUse_p_u[p,i,t] == qM_p_i[p,i,t]
     qPurchaserUse_p_u[p=product, u=:C, t=t1:T], qPurchaserUse_p_u[p,u,t] == qC_p[p,t]
     qPurchaserUse_p_u[p=product, u=:G, t=t1:T], qPurchaserUse_p_u[p,u,t] == fG[t] * qG_p[p,t]
     qPurchaserUse_p_u[p=product, u=:K, t=t1:T], qPurchaserUse_p_u[p,u,t] == qI_p[p,t]
@@ -413,7 +410,7 @@ function define_equations()
     @test_constraint("Supply shares reproduce product output"; rtol=1e-3)
     qSupply_p_o[p=product, o=domestic, t=t1:T],
     qSupply_p_o[p,o,t] ==
-      ∑(qY_p_i[p,i,t] + residual(qY_p_i)[p,i,t] for i in industry if (p,i,t) in keys(qY_p_i))
+      ∑(qY_p_i[p,i,t] for i in industry if (p,i,t) in keys(qY_p_i))
 
     @test_constraint("Parent behavior value equals leaf values"; rtol=1e-3)
     qPurchaserUse_p_u[p=product, u=ordinary_uses, t=t1:T],
@@ -431,21 +428,28 @@ end
 
 function define_calibration()
   block = define_equations() + @block model begin
-    residual(qSupply_p_o)[p=product, o=domestic, t=t1], ∑(rIndustryShare[p,i,t] for i in industry) == 1.0
+    # Normalize base-year shares over the retained forecast cells.
+    rIndustryShare[p=product, i=industry, t=(t1+1):T],
+    rIndustryShare[p,i,t] == rIndustryShare[p,i,t1] /
+      ∑(rIndustryShare[p,j,t1] for j in industry if (p,j,t) in keys(rIndustryShare))
+
+    rMarginServiceShare[s=margin_services, u=use, t=(t1+1):T],
+    rMarginServiceShare[s,u,t] == rMarginServiceShare[s,u,t1] /
+      ∑(rMarginServiceShare[z,u,t1] for z in margin_services if (z,u,t) in keys(rMarginServiceShare))
   end
 
   @endo_exo_swap! block begin
     rIndustryShare[:,:,t1], qY_p_i[:,:,t1]
 
     rOriginShare[(p,u,o,t) in keys(qPurchaserUse_p_u_o); u in ordinary_uses && t == t1],
-    qPurchaserUse_p_u_o[p=product, u=ordinary_uses, o=origin, t=t1]
+    qPurchaserUse_p_u_o[:,ordinary_uses,:,t1]
 
     rMarginServiceShare[:,:,t1], qMarginService_s_u[:,:,t1]
 
     rMarginRate[:,:,t1], qMarginBundle_p_u[:,:,t1]
 
-    rOriginShare[(s,u,o,t) in keys(qMarginService_s_u_o); (s,u,o) in margin_only_s_u_o && t == t1],
-    qMarginService_s_u_o[s=product, u=use, o=origin, t=t1; (s,u,o) in margin_only_s_u_o]
+    rOriginShare[(s,u,o,t) in margin_only_s_u_o_t; t == t1],
+    qMarginService_s_u_o[(s,u,o,t) in margin_only_s_u_o_t; t == t1]
   end
 
   return block

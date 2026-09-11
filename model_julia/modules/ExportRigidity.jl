@@ -21,7 +21,7 @@ import ..Time: t, t1, T
 const ExportRigidityTag = Tag(:ExportRigidity)
 
 @variables model :: ExportRigidityTag begin
-  rXEffectivePrice_p[p=export_product, t=t] :: DynamicCalibration, "Effective domestic export price relative to the foreign price."
+  rXEffectivePrice_p[(p,t)=jXrigidity] :: DynamicCalibration, "Effective domestic export price relative to the foreign price."
   uXrigidity, "Weight on changes in the effective relative export price."
   βXrigidity, "Discount factor for the future export-price adjustment."
 end
@@ -54,7 +54,7 @@ function define_equations()
 
     # The first term is the gap between the effective and spot relative price.
     # The last term is the derivative of next year's adjustment cost. The
-    jXrigidity[p=export_product, t=t1:(T-1); T > t1],
+    jXrigidity[p=export_product, t=t1:(T-1)],
     jXrigidity[p,t] / pXForeign_p[p,t] ==
       - uXrigidity * (rXEffectivePrice_p[p,t] - rXEffectivePrice_p[p,t-1])
       + uXrigidity * βXrigidity * (rXEffectivePrice_p[p,t+1] - rXEffectivePrice_p[p,t])

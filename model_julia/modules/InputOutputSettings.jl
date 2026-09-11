@@ -18,8 +18,9 @@ const eurostat_net_product_tax_dataset = "naio_10_cp1630"
 const eurostat_unit = "MIO_EUR"
 const cell_tolerance = 1e-6
 
-# Bound each pruned cell as a share of reported domestic output plus imports.
-# Set this limit to zero to keep all cells above cell_tolerance.
+# Prune forecast cells only. Keep full nonzero source support through calibration_year.
+# Bound each removed cell as a share of reported domestic output plus imports.
+# Set this limit to zero to keep all forecast cells above cell_tolerance.
 const max_pruned_cell_supply_share = 1e-5
 # Bound each pruned cell as a share of both its row and its column total.
 const max_pruned_cell_row_column_share = 0.01

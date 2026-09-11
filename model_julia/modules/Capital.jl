@@ -50,7 +50,7 @@ const CapitalTag = Tag(:Capital)
   qK_k_i[k=capital_type, i=industry, t=t; (k,i) in capital_k_i], "Capital stock by type and industry."
   qI_k_i[(k,i,t)=qK_k_i], "Capital flow by type and industry."
   qI_k[k=capital_type, t=t], "Investment by capital type."
-  qI_p_k[p=product, k=capital_type, t=t; (p,k) in investment_product_k], "Investment by product and capital type."
+  qI_p_k[p=product, k=capital_type, t=t; (p,k) in investment_product_k && (p,t) in keys(qI_p)], "Investment by product and capital type."
 end
 
 @variables model :: (CapitalTag, InflationAdjusted) begin
@@ -85,11 +85,6 @@ function assign_data!(db)
   fill_cells!(db, pI_k, pI_k_data)
   db[[pProd[k,i,t1] for (k,i) in capital_k_i]] .= 1.0
   db[rHurdleRate_i] .= 0.10
-  return nothing
-end
-
-function set_residual_tolerances!(tolerances, rtolerances)
-  rtolerances[pI_k[:,t1]] = 0.01
   return nothing
 end
 
@@ -128,7 +123,7 @@ function define_equations()
     # Product split.
     qI_p_k[p=product, k=capital_type, t=t1:T], qI_p_k[p,k,t] == rInvestmentProductShare[p,k,t] * qI_k[k,t]
 
-    qI_p[(p,t) in keys(qI_p); t in t1:T], qI_p[p,t] == ∑(qI_p_k[p,k,t] for k in capital_type)
+    qI_p[p=product, t=t1:T], qI_p[p,t] == ∑(qI_p_k[p,k,t] for k in capital_type)
 
     qI[t=t1:T], qI[t] == ∑(qI_k[k,t] for k in capital_type)
 
@@ -162,7 +157,7 @@ function define_calibration()
     qProd[k=capital_type, i=industry, t=t1], pProd[k=capital_type, i=industry, t=t1]
     rKDepr_k_i[:,:,t1], qI_k_i[:,:,t1]
 
-    rInvestmentProductShare[p=product, k=capital_type, t=t1], qI_p_k[p=product, k=capital_type, t=t1]
+    rInvestmentProductShare[:,:,t1], qI_p_k[:,:,t1]
 
     pInvestmentShock_k_i[k=capital_type, i=industry, t=t1+1; T > t1],
     qK_k_i[k=capital_type, i=industry, t=t1; T > t1]

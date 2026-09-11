@@ -11,14 +11,14 @@ import ..Capital:
   qK_k_i,
   ntK_k_i
 import ..DataUtils: fill_cells!, read_cells
-import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, adjustment_factor, fq
+import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fq
 import ..InputOutput:
   industry,
   origin,
   ordinary_uses,
   product,
-  product_tax_p_u,
-  purchaser_use_p_u_o,
+  product_tax_p_u_t,
+  purchaser_use_p_u_o_t,
   qPurchaserUse_p_u_o,
   ntProduct,
   use
@@ -115,8 +115,8 @@ const TaxesTag = Tag(:Taxes)
   tCorp_s[s=corporation_sector, t=t], "Average and marginal corporation tax rate by payer sector."
   tRoWIncome[t], "Average rest-of-world income tax rate on net wages."
   tCap[t], "Average and marginal capital tax rate on household financial assets."
-  tProduct_p_u_o[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o], "Gross product tax per unit by origin."
-  tsProduct_p_u_o[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o], "Gross product subsidy per unit by origin."
+  tProduct_p_u_o[p=product, u=use, o=origin, t=t; (p,u,t) in product_tax_p_u_t && (p,u,o,t) in purchaser_use_p_u_o_t], "Gross product tax per unit by origin."
+  tsProduct_p_u_o[(p,u,o,t)=tProduct_p_u_o], "Gross product subsidy per unit by origin."
   uRoWProductTaxRecipient[t], "Share of gross product taxes received by RoW."
   uRoWProductSubsidyPayer[t], "Share of product subsidies paid by RoW."
   uRoWProductionSubsidyPayer[t], "Share of production subsidies paid by RoW."
@@ -138,11 +138,11 @@ end
   vCorpIncomeBeforeTax_s[s=corporation_sector, t=t], "Corporation income before tax."
   vCorpCapitalTaxDeduction_s[s=corporation_sector, t=t] :: ForecastZero, "Capital tax depreciation deduction."
   vCorpDebtTaxDeduction_s[s=corporation_sector, t=t] :: ForecastZero, "Debt return deducted from taxable income."
-  vtProduct_p_u_o[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o], "Gross taxes on products by product, use, and origin (D.21)."
-  vsProduct_p_u_o[p=product, u=use, o=origin, t=t; (p,u) in product_tax_p_u && (p,u,o) in purchaser_use_p_u_o], "Product subsidies by product, use, and origin (D.31)."
-  vtProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Gross taxes on products by product and use (D.21)."
-  vsProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Product subsidies by product and use (D.31)."
-  vntProduct_p_u[p=product, u=use, t=t; (p,u) in product_tax_p_u], "Net product taxes by product and use."
+  vtProduct_p_u_o[(p,u,o,t)=tProduct_p_u_o], "Gross taxes on products by product, use, and origin (D.21)."
+  vsProduct_p_u_o[(p,u,o,t)=tProduct_p_u_o], "Product subsidies by product, use, and origin (D.31)."
+  vtProduct_p_u[p=product, u=use, t=t; (p,u,t) in product_tax_p_u_t], "Gross taxes on products by product and use (D.21)."
+  vsProduct_p_u[(p,u,t)=vtProduct_p_u], "Product subsidies by product and use (D.31)."
+  vntProduct_p_u[(p,u,t)=vtProduct_p_u], "Net product taxes by product and use."
   vntProduct_u[u=use, t=t], "Net taxes on products by use (D.21 less D.31)."
   vtProduct[t], "Gross taxes on products (D.21)."
   vsProduct[t], "Subsidies on products (D.31)."
@@ -196,23 +196,6 @@ function set_residual_tolerances!(tolerances, rtolerances)
   tolerances[vtProduct] = 1.2
   tolerances[vsProduct] = 1.2
   tolerances[vtIndirect] = 1.2
-
-  # Small origin totals and signed net taxes need broad relative limits.
-  rtolerances[vtProduct_p_u[:,:,t1]] = 0.5
-  rtolerances[vsProduct_p_u[:,:,t1]] = 0.5
-  rtolerances[vntProduct_p_u[:,:,t1]] = 0.5
-  # A zero net parent can lose one side of an offsetting origin tax/subsidy pair.
-  tolerances[vntProduct_p_u[:,:,t1]] .= [
-    1e-6 + abs(sum(
-      get(vtProduct_p_u_o_data, (p, u, o, t1), 0.0) - get(vsProduct_p_u_o_data, (p, u, o, t1), 0.0)
-      for o in origin if (p, u, o) ∉ purchaser_use_p_u_o;
-      init=0.0,
-    )) / adjustment_factor(vntProduct_p_u[p,u,t1], t1)
-    for (p, u) in keys(vntProduct_p_u[:,:,t1])
-  ]
-  rtolerances[vntProduct_u[:,t1]] = 1.0
-  rtolerances[vtProduct[t1]] = 0.01
-  rtolerances[vsProduct[t1]] = 0.01
   return nothing
 end
 
@@ -263,9 +246,9 @@ function define_equations()
 
     vntProduct_u[u=use, t=t1:T],
     vntProduct_u[u,t] == ∑(vntProduct_p_u[p,u,t] for p in product)
-    vtProduct[t=t1:T], vtProduct[t] == ∑(vtProduct_p_u[p,u,t] for (p,u) in product_tax_p_u)
+    vtProduct[t=t1:T], vtProduct[t] == ∑(vtProduct_p_u[p,u,t] for p in product, u in use)
     vsProduct[t=t1:T],
-    vsProduct[t] == ∑(vsProduct_p_u[p,u,t] for (p,u) in product_tax_p_u)
+    vsProduct[t] == ∑(vsProduct_p_u[p,u,t] for p in product, u in use)
     vtRoWProduct[t=t1:T], vtRoWProduct[t] == uRoWProductTaxRecipient[t] * vtProduct[t]
     vsRoWProduct[t=t1:T],
     vsRoWProduct[t] == uRoWProductSubsidyPayer[t] * vsProduct[t]

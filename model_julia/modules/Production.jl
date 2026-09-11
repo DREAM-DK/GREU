@@ -1,4 +1,4 @@
-# Define the common production tree and its CES equations.
+# Define production trees from retained forecast inputs and their CES equations.
 # Provide one hook for taxes not assigned to a factor input.
 # Keep factor tax rates and tax data in their own modules.
 include(joinpath(@__DIR__, "ProductionSettings.jl"))
@@ -42,7 +42,7 @@ const labor_l_i = Set(
   if i in industry && year == calibration_year && value > cell_tolerance
 )
 const intermediate_product_m_i = Set(
-  (p, m, i) for (p, m, i, year) in keys(qM_p_m_i_data) if (p, i, year) in keys(qM_p_i)
+  (p, m, i) for (p, m, i, _) in keys(qM_p_m_i_data) if (p, i, calibration_year+1) in keys(qM_p_i)
 )
 @assert all(m == product_to_intermediate_type[p] for (p, m, _) in intermediate_product_m_i) "Refresh intermediate data for the current product groups"
 const intermediate_m_i = Set((m, i) for (_, m, i) in intermediate_product_m_i)

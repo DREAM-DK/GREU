@@ -64,7 +64,7 @@ const ConsumptionGroupsTag = Tag(:ConsumptionGroups)
 
 @variables model :: (ConsumptionGroupsTag, GrowthAdjusted) begin
   qCNode_a[a=node, t=t], "Resident consumption quantity by CES node."
-  qCTourist_p[p=consumption_product, t=t], "Tourist consumption quantity by product."
+  qCTourist_p[(p,t)=qC_p], "Tourist consumption quantity by product."
 end
 
 @variables model :: (ConsumptionGroupsTag, InflationAdjusted) begin
@@ -73,8 +73,8 @@ end
 
 @variables model :: ConsumptionGroupsTag begin
   uCNode_a[a=node, t=t] :: ForecastConstant, "CES share by non-root consumption node."
-  uCProduct_p[p=consumption_product, t=t] :: ForecastConstant, "Fixed product coefficient within its consumption group."
-  uCTourist_p[p=consumption_product, t=t] :: ForecastConstant, "Fixed product share of tourist consumption."
+  uCProduct_p[(p,t)=qC_p] :: ForecastConstant, "Fixed product coefficient within its consumption group."
+  uCTourist_p[(p,t)=qC_p] :: ForecastConstant, "Fixed product share of tourist consumption."
   eC[n=collect(keys(consumption_nesting))], "Substitution elasticity by consumption nest."
 end
 
@@ -92,7 +92,7 @@ function assign_data!(db)
   @assert source_product_total > 0 "Source product consumption must be positive"
   db[uCTourist_p] .= [
     db[qC_p[p,t1]] / source_product_total
-    for p in consumption_product, year in t
+    for (p,year) in keys(uCTourist_p)
   ]
   db[eC] .= only(values(consumption_nesting)).elasticity
 
@@ -144,11 +144,15 @@ end
 
 function define_calibration()
   # Identify CES shares while group prices set the base-year quantity units.
-  block = define_equations()
+  block = define_equations() + @block model begin
+    uCTourist_p[p=consumption_product, t=(t1+1):T],
+    uCTourist_p[p,t] == uCTourist_p[p,t1] /
+      ∑(uCTourist_p[z,t1] for z in consumption_product if (z,t) in keys(uCTourist_p))
+  end
 
   @endo_exo_swap! block begin
     uCNode_a[:,t1], pCNode_a[:,t1]
-    uCProduct_p[p=consumption_product, t=[t1]], qC_p[p=consumption_product, t=[t1]]
+    uCProduct_p[:,t1], qC_p[:,t1]
     qCTourist[t1], vCTourist[t1]
   end
 

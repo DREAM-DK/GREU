@@ -12,6 +12,7 @@ import ..Time: at_year, variable_year, t1
 # Residual settings
 # ============================================================================
 
+"""Collect module overrides for absolute and relative residual tolerances."""
 function residual_tolerances(values::ModelDictionary, modules)
   tolerances = ModelDictionary(values.model)
   rtolerances = ModelDictionary(values.model)
@@ -55,7 +56,7 @@ For parameters that are endogenous only at t1: create equations var[t] == var[t1
 For parameters that are exogenous at t1: copy the t1 exogenous value.
 Leave variables that a model equation already makes endogenous at t > t1 unchanged.
 
-Returns a Block with forecast constraints (to be merged with the main block).
+Return the combined block.
 """
 function forecast_constants!(block::Block, exogenous_values::ModelDictionary)
   forecast_block = Block(block.model)
