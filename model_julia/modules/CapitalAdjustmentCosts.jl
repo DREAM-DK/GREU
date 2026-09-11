@@ -45,7 +45,9 @@ end
 # Starting values
 # ============================================================================
 function set_starting_values!(start_values)
-  start_values[tagged(model, CapitalAdjustmentCostsTag)] = 0
+  for name in tagged(model, CapitalAdjustmentCostsTag)
+    start_values[getfield(@__MODULE__, name)] .= 0
+  end
   return nothing
 end
 
