@@ -17,6 +17,7 @@
 	],
 	"settings": {
 		"julia.environmentPath": "${workspaceFolder}",
+		"julia.additionalArgs": ["--gcthreads=4"],
 		"editor.codeActionsOnSave": {},
 		"editor.tabSize": 2,
 		"search.useIgnoreFiles": false,
