@@ -14,12 +14,10 @@ import ..InputOutput:
   qI,
   qI_p,
   vI
-import ..InputOutputSettings: cell_tolerance
-import ..Production: pProd, qProd
+import ..Production: pProd, qProd, qK_k_i_data, capital_k_i
 import ..ProductionSettings:
   capital_type,
   production_data_dir
-import ..Settings: calibration_year
 import ..model
 import ..Time: t, t1, T
 import ..Tags: DynamicCalibration, ForecastConstant, ForecastZero
@@ -29,7 +27,6 @@ import ..Tags: DynamicCalibration, ForecastConstant, ForecastZero
 # ============================================================================
 const capital_file = joinpath(production_data_dir, "production_capital.csv")
 const investment_product_split_file = joinpath(production_data_dir, "production_investment_product_split.csv")
-const qK_k_i_data = read_cells(capital_file, "qK_k_i")
 const qI_k_i_data = read_cells(capital_file, "qI_k_i")
 const qI_p_k_data = read_cells(investment_product_split_file, "qI_p_k")
 const qI_k_data = read_cells(investment_product_split_file, "qI_k")
@@ -38,15 +35,6 @@ const pI_k_data = read_cells(investment_product_split_file, "pI_k")
 # ============================================================================
 # Indices
 # ============================================================================
-# A capital cell needs a positive current and lagged stock.
-const capital_k_i = Set(
-  (k, i)
-  for ((k,i,year), value) in qK_k_i_data
-  if year == calibration_year &&
-    value > cell_tolerance &&
-    get(qK_k_i_data, (k,i,calibration_year-1), 0.0) > cell_tolerance
-)
-
 # The input-output data give products but not capital types. A separate table
 # gives the product split for each capital type.
 const investment_product_k = Set(

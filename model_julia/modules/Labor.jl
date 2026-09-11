@@ -8,10 +8,8 @@ using SquareModels
 import ..DataUtils: cell_value, fill_cells!, read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutput: industry
-import ..InputOutputSettings: cell_tolerance
-import ..Production: pProd, qProd
+import ..Production: pProd, qProd, qL_l_i_data, labor_l_i
 import ..ProductionSettings: labor_type, production_data_dir
-import ..Settings: calibration_year
 import ..model
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
@@ -21,19 +19,9 @@ import ..Tags: ForecastConstant
 # ============================================================================
 const labor_file = joinpath(production_data_dir, "production_labor.csv")
 const sector_accounts_file = joinpath(@__DIR__, "..", "data", "sector_accounts", "sector_accounts.csv")
-const qL_l_i_data = read_cells(labor_file, "qL_l_i")
 const qLSupply_data = read_cells(labor_file, "qLSupply")
 const vHhWages_data = read_cells(sector_accounts_file, "vHhWages")
 const vRoWNetWages_data = read_cells(sector_accounts_file, "vRoWNetWages")
-
-# ============================================================================
-# Indices
-# ============================================================================
-const labor_l_i = Set(
-  (l, i)
-  for ((l, i, year), value) in qL_l_i_data
-  if year == calibration_year && value > cell_tolerance
-)
 
 # ============================================================================
 # Variables

@@ -7,16 +7,51 @@ module Production
 
 using SquareModels
 import JuMP
+import ..DataUtils: read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
-import ..InputOutput: industry, qY_i
-import ..ProductionSettings: production_nesting
+import ..InputOutput: industry, qY_i, qM_p_i
+import ..InputOutputSettings: cell_tolerance
+import ..ProductionSettings: production_data_dir, full_nesting, prune_nesting, product_to_intermediate_type
+import ..Settings: calibration_year
 import ..model
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant, ForecastZero, DynamicCalibration
 
 # ============================================================================
+# Read data
+# ============================================================================
+const capital_file = joinpath(production_data_dir, "production_capital.csv")
+const labor_file = joinpath(production_data_dir, "production_labor.csv")
+const intermediate_product_split_file = joinpath(production_data_dir, "production_intermediate_product_split.csv")
+const qK_k_i_data = read_cells(capital_file, "qK_k_i")
+const qL_l_i_data = read_cells(labor_file, "qL_l_i")
+const qM_p_m_i_data = read_cells(intermediate_product_split_file, "qM_p_m_i")
+const qM_m_i_data = read_cells(intermediate_product_split_file, "qM_m_i")
+
+# ============================================================================
 # Indices
 # ============================================================================
+# Each factor module uses these same source values and retained cells.
+const capital_k_i = Set(
+  (k, i) for ((k, i, year), value) in qK_k_i_data
+  if i in industry && year == calibration_year && value > cell_tolerance &&
+    get(qK_k_i_data, (k, i, calibration_year-1), 0.0) > cell_tolerance
+)
+const labor_l_i = Set(
+  (l, i) for ((l, i, year), value) in qL_l_i_data
+  if i in industry && year == calibration_year && value > cell_tolerance
+)
+const intermediate_product_m_i = Set(
+  (p, m, i) for (p, m, i, year) in keys(qM_p_m_i_data) if (p, i, year) in keys(qM_p_i)
+)
+@assert all(m == product_to_intermediate_type[p] for (p, m, _) in intermediate_product_m_i) "Refresh intermediate data for the current product groups"
+const intermediate_m_i = Set((m, i) for (_, m, i) in intermediate_product_m_i)
+const factor_i = union(capital_k_i, labor_l_i, intermediate_m_i)
+const production_nesting = Dict(
+  i => prune_nesting(full_nesting, Set(f for (f, ind) in factor_i if ind == i)) for i in industry
+)
+@assert all(!isempty(nests) for nests in values(production_nesting)) "Each active industry needs production factors"
+
 const parent = Dict(
   (child, i) => n
   for i in industry

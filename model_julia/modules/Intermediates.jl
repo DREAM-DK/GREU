@@ -5,33 +5,24 @@
 module Intermediates
 
 using SquareModels
-import ..DataUtils: fill_cells!, read_cells
+import ..DataUtils: fill_cells!
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutput:
   industry,
   pPurchaserUse_p_u,
   qM_p_i
 import ..InputOutputSettings: product
-import ..Production: parent, pProd, qProd
-import ..ProductionSettings: intermediate_type, production_data_dir, production_nesting
+import ..Production:
+  parent, pProd, qProd, production_nesting,
+  qM_p_m_i_data, qM_m_i_data, intermediate_product_m_i, intermediate_m_i
+import ..ProductionSettings: intermediate_type
 import ..model
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
 
 # ============================================================================
-# Read data
-# ============================================================================
-const intermediate_product_split_file = joinpath(production_data_dir, "production_intermediate_product_split.csv")
-const qM_p_m_i_data = read_cells(intermediate_product_split_file, "qM_p_m_i")
-const qM_m_i_data = read_cells(intermediate_product_split_file, "qM_m_i")
-
-# ============================================================================
 # Indices
 # ============================================================================
-const intermediate_product_m_i = Set(
-  (p, m, i) for (p, m, i, year) in keys(qM_p_m_i_data) if (p, i, year) in keys(qM_p_i)
-)
-const intermediate_m_i = Set((m, i) for (_, m, i) in intermediate_product_m_i)
 @assert intermediate_m_i == Set(
   (m, i)
   for m in intermediate_type, i in industry

@@ -12,7 +12,7 @@ using CSV
 using DataFrames
 import ..DataUtils: long_format, read_cells, sum_by
 import ..InputOutputSettings: cell_tolerance, input_output_data_dir, product, source_industry
-import ..ProductionSettings: energy_product, intermediate_type, production_data_dir
+import ..ProductionSettings: intermediate_type, production_data_dir, product_to_intermediate_type
 import ..Settings: calibration_year
 
 const purchaser_use_file = joinpath(input_output_data_dir, "input_output_purchaser_use.csv")
@@ -29,7 +29,7 @@ function synthetic_intermediate_product_split(
   split = split[abs.(split.value) .> cell_tolerance, :]
   @assert all(>(cell_tolerance), split.value) "Intermediate product use must be positive"
   @assert Set(split.product) ⊆ Set(product) "Intermediate data contain an unknown product"
-  split.m = [p in energy_product ? :energy : :materials for p in split.product]
+  split.m = [product_to_intermediate_type[p] for p in split.product]
   select!(split, :product, :m, :industry, :value)
   sort!(split, [:industry, :m, :product])
   return split
