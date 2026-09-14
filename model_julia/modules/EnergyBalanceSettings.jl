@@ -99,7 +99,7 @@ const section = [
 ]
 
 # Industry labels take a prefix so they never collide with the scalar national-account symbols on the use side. 
-# InputOutputSettings builds its labels by the same rule, and the two must agree - assert that in EnergyBalanceData.jl,
+# InputOutputSettings builds its labels by the same rule, and the two must agree - assert that in EnergyBalance.jl,
 # where both modules are in scope.
 const section_to_industry = Dict(s => Symbol("i$s") for s in section)
 const source_industry = [section_to_industry[s] for s in section]

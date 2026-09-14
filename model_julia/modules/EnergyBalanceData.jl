@@ -136,6 +136,12 @@ end
 # 402.3 PJ, which is a real gap and not an error.
 const resident_account = Set([source_industry; households])
 
+# The deepest lag in the model is two periods (qK_k_i[t-2] in CapitalAdjustmentCosts.jl:58), so an equation
+# at t1 reads back to calibration_year - 2. Earlier years are fetched and loaded, but no equation reads them, so a 
+# source defect there must not stop the build. Sweden 2015 is an example: 52 PJ of use rows are unpublished.
+# If a module adds a deeper lag, this number must follow it.
+const first_checked_year = calibration_year - 2
+
 """ 
 Assert that supply equals use for each resident account.
 
@@ -144,10 +150,12 @@ each of the three balances on its own, so summing the purposes away first would 
 cover  another one's gap.
 
 `SD_IO` is inside the sum. Without it 12 of 34 countries fail in all sections.
+
+Years before first_checked_year are loaded, but not checked.
 """
 function assert_activity_balance(mapped)
   sides = @chain mapped begin
-    @rsubset(:activity in resident_account)
+    @rsubset(:activity in resident_account && :year >= first_checked_year)
     @by([:activity, :purpose, :year, :balance], :value = sum(:value))
   end
   supply = @chain sides begin
@@ -169,6 +177,39 @@ end
 # ==========================================
 # Refresh
 # ==========================================
+
+"""
+Net SD_IO per resident account: supply minus use.
+
+PEFA books SD_IO where a country's supply and use do not close, so it is what
+makes the account balance. `assert_activity_balance` counts it. The model must
+count it too, or the two functions assert different things: without it, 3 of
+the 13 target countries fail the model test, the largest by 17.1 PJ in `iC`.
+Denmark reports zero everywhere, which is why a Denmark-only build cannot see
+the difference.
+
+The table is dense, with zeros. The discrepancy is a correction per account
+rather than a sparse flow, and a dense table makes Denmark run the same path as
+the countries that need it.
+"""
+function discrepancy_by_account(mapped)
+  signed = @chain mapped begin
+    @rsubset(:activity in resident_account && :product == Symbol(discrepancy_product))
+    @rtransform(:value = :balance == Symbol("supply") ? :value : -:value)
+    sum_by([:activity, :year])
+  end
+  account = sort!(unique(a for a in mapped.activity if a in resident_account))
+  year = sort!(unique(mapped.year))
+  dense = DataFrame(
+    activity = repeat(account, inner = length(year)),
+    year = repeat(year, outer = length(account)),
+  )
+  discrepancy = leftjoin(dense, signed, on = [:activity, :year])
+  discrepancy.value = coalesce.(discrepancy.value, 0.0)
+  sort!(discrepancy, [:activity, :year])
+  return discrepancy
+end
+
 
 """
 Split the mapped account into the four variables the model reads.
@@ -206,6 +247,7 @@ function refresh_energy_balance_data!(dir = energy_balance_data_dir)
   mapped = map_to_model(fetch_pefa())
   assert_activity_balance(mapped)
   cells = energy_balance_variables(mapped)
+  discrepancy = discrepancy_by_account(mapped)
   # Index letters: `e` is the energy product, `m` the purpose, `d` the account —
   # the 21 industries, households, and the three boundary accounts. `d` follows
   # the legacy GAMS model, where `qEpj[es,e,d,t]` indexes the same set. `a` is
@@ -215,6 +257,7 @@ function refresh_energy_balance_data!(dir = energy_balance_data_dir)
     long_format(:qEUse_e_d, cells.use, [:product, :activity, :year]),
     long_format(:qEUse_e_m_d, cells.use_by_purpose, [:product, :purpose, :activity, :year]),
     long_format(:uEPurpose_e_m_d, cells.shares, [:product, :purpose, :activity, :year]),
+    long_format(:qEDiscrepancy_d, discrepancy, [:activity, :year]),
   ))
   return nothing
 end
