@@ -504,12 +504,186 @@ usable as build-time invariants: `TOTAL_HH` = `TOTAL` + `HH`
 (78,399.80011 = 70,288.59884 + 8,111.20127), and `HH` = `HH_HEAT` + `HH_TRA` +
 `HH_OTH`. Note `TOTAL` excludes households in both datasets.
 
+### Country-genericity: the module runs unchanged, and the assertions are calibrated right
+
+The Julia module was run for one country at a time in a fresh process, swapping
+only `Settings.country_code`. Nine of eleven produced a CSV with no code change:
+DE 4,807 rows, FR 6,015, ES 5,489, NO 4,356, PL 5,474, EL 4,418, CY 3,353,
+LU 3,256, MT 2,730. Each covers all five calibration years, so those nine are
+confirmed over 120 account-years each. `TR` failed correctly, naming the two
+years it does not publish.
+
+**Coverage assertions, all 35 reporting geos.** 31 pass. The four failures —
+`AL`, `MK`, `RS`, `TR` — are *year* coverage only, all non-EU candidates. **No
+geo is missing any of the 31 products, or any of the 24 resident accounts and 3
+boundary accounts.** The fail-fast decision on products therefore costs nothing:
+no real country is rejected for lacking a product code.
+
+**Balance assertion, the 27 member states × 24 accounts × 5 years = 3,240
+checks.** 25 member states pass every one. Two fail, both from defects in the
+source rather than the method, and both confined to 2015–2016:
+
+| geo | failing | cause |
+|---|---|---|
+| CZ | 2015 `A C D E`, 2016 `A C D E` | the supply side of section `A` is not reported. `P23` biomass shows 0.00 PJ in 2015–2016 against 110.20–122.29 PJ in 2017–2019, and `P25` biogas 0.00 against ~21. Use is unchanged across all five years, so roughly 130 PJ of output is simply absent. |
+| SE | 2015 `B C D` | 2015 is internally inconsistent; `C` is out by 51.5 PJ. 2016–2019 close to exactly 0.00. No single missing block — a bad vintage rather than a reporting gap. |
+
+**Every one of the 27 member states balances on 2017–2019.** So the constraint
+is `Settings.first_data_year = 2015`, not the energy module: a run that starts in
+2017 builds all 27, and one that starts in 2015 builds 25 and stops with a named
+account and year for the other two. That is the assertion working, not failing.
+
+**`EU27_2020` fails, and does not matter.** The aggregate is out by 3,201 PJ in
+section `A` in 2015 and 2016 — 65% relative — and by 2,192 PJ in `C`. It is not
+a model target; recorded only so nobody spends a morning on it. Every member
+state that composes it is clean in those sections.
+
+**No Danish constant survives in the code.** `EnergyBalanceSettings.jl` and
+`EnergyBalanceData.jl` between them hold four numeric literals: the TJ→PJ factor,
+two balance tolerances and a share-sum tolerance. There is no hard-coded `"DK"`.
+Country and years come from `Settings.jl`.
+
+**Where Denmark did leak in, it leaked into the *sets*, not the code.** Both
+defects found on 2026-09-04 — `SD_IO` excluded, and the purpose split judged
+worthless — were decisions taken on Danish evidence and written into
+`EnergyBalanceSettings.jl`. Neither is visible by reading the code. The
+generalisable lesson is that set membership and tolerances are the Denmark-risk
+surface, and that a single-year cross-country probe is not the same test as the
+calibration window: the 2019-only sweep passed `CZ` and `SE`, which fail in 2015.
+
 ### Negative cells are physical
 
 `CH_INV_PA` books a stock drawdown as negative use — Denmark 2017 shows −17.167
 PJ of `P19` and 2019 −16.051 PJ of `P23`. A positivity assertion copied from
 `IntermediatesData.jl` would stop the build on valid data. Energy carries sign
 where the monetary input-output table does not.
+
+### The model-level balance is a different invariant from the data-level one (2026-09-11)
+
+Swept live across all 27 member states. **The data step asserts the balance with
+`SD_IO` inside the sum, then drops `SD_IO` when it writes the CSV. The model
+module asserts the same balance on those cells, so it asserts it without
+`SD_IO`.** Those are two different statements, and the second is exactly the
+configuration already measured to fail in 12 of 34 countries on 2026-09-04.
+
+Nine countries fail the model's test constraint at t1 = 2019, tolerance
+`max(1e-3, 1e-4 · throughput)`:
+
+| geo | account | supply PJ | use PJ | gap PJ | gap % |
+|---|---|---|---|---|---|
+| ES | iC | 5820.23 | 5803.09 | +17.14 | 0.295 |
+| FI | iC | 1545.31 | 1545.99 | −0.68 | 0.044 |
+| EL | iC | 1552.16 | 1552.61 | −0.45 | 0.029 |
+| LU | iD | 16.49 | 16.79 | −0.30 | 1.807 |
+| PT | iC | 927.87 | 927.73 | +0.14 | 0.016 |
+| BG | iC | 518.10 | 518.16 | −0.058 | 0.011 |
+| CZ | iH | 129.37 | 129.31 | +0.052 | 0.040 |
+| IE | iC | 254.72 | 254.70 | +0.027 | 0.010 |
+| CY | iC | 11.50 | 11.50 | −0.0014 | 0.012 |
+
+Over 2015–2019, 15 countries fail at least one account-year this way; only the
+2019 column bites, because the model's equations run `t1:T`. `SD_IO` is almost
+always booked against section `C`, twice elsewhere (`LU`/`iD`, `CZ`/`iH`).
+
+**Mechanism confirmed numerically:** for every model-level gap in every country
+outside the known CZ/SE source defects, `gap_without_SD_IO + SD_IO_net = 0` to
+within 3e-4 PJ. The discrepancy is the entire explanation. Denmark hides it
+exactly, because Denmark books `SD_IO = 0`.
+
+This is the **third** time the same lesson has bitten, and the third time it sat
+in a set-level decision rather than in the logic: first `SD_IO` excluded from the
+product list, then the household purpose split judged worthless on Danish
+evidence, now `SD_IO` dropped at the CSV boundary.
+
+### After the fix: all 13 in-scope countries pass (2026-09-14)
+
+Scope is now 13 countries (Martin, 2026-09-11; see `eu_data_mapping.md`). With
+`SD_IO` carried into the model as `qEDiscrepancy_d` on the supply side, and the
+data-step balance asserted from `calibration_year - 2` = 2017, the logic was
+re-run against the same raw pulls:
+
+| check | result |
+|---|---|
+| data-step balance, 2017–2019 | **13 of 13** |
+| model test at t1 = 2019, `SD_IO` included | **13 of 13**, worst gap 0.0003 PJ in any account |
+| ES `iC`, the sharpest case | 0.0002 PJ, down from 17.14 without the fix |
+| data-step balance, 2015–2016 (loaded, not asserted) | SE fails 2015 in `B` (+4.18), `C` (+51.51), `D` — the known unpublished rows |
+
+The worst gap across all 13 after the fix is the same order as Denmark's has
+always been, which is the rounding floor of the source.
+
+**Confirmed on the real code the same day.** `EnergyBalanceData.jl` was run once
+per country in a fresh process, and every one of the 13 wrote its CSV — SE
+included, because the balance is now asserted from 2017. Reading the model's
+balance off each real CSV gives 13 of 13 at t1 and on 2017–2018, worst gap
+0.0003 PJ. This was the first run of `discrepancy_by_account` on non-zero
+`SD_IO`, and the sign is right: ES `iC` 2019 carries `qEDiscrepancy_d = −17.14`,
+exactly closing supply 5820.23 against use 5803.09. Countries with non-zero
+discrepancy cells: ES 8, FI 5, FR 5, PT 5, IT 3; the other eight are zero
+throughout. CSV sizes run from 4,235 rows (PT) to 6,125 (FR).
+
+### The mask fill invents nothing (2026-09-11)
+
+The model's index mask is over `(product, account)` pairs while the data is
+`(product, account, year)`, so a pair reported in any year gets a variable in
+every year and the module fills `0.0` where the source has no row. Checked cell
+by cell for all 27 member states: **every filled cell is a reported zero in the
+source, not an unpublished one** — except CZ (16 cells) and SE (9 cells), which
+are the known 2015–2016 source defects. The largest value behind any
+unpublished-in-2019 cell is 0.0 PJ. Use pairs absent in 2019 range from 2 (CY,
+EL, SI) to 53 (BG); supply pairs from 0 (EL, FI, FR, LU, MT, SE, SI, SK) to 19
+(EE).
+
+Mask sizes span supply 42 (MT) to 133 (IT), use 200 (LU) to 373 (PL). No
+resident account in any country has zero supply pairs or zero use pairs.
+Sections `T` and `U` do not enter the mask at all — `iU` absent in 15 countries,
+`iT` in 14 — and stay inside the permitted set, so no assertion fires.
+
+### Supply equals use per product across the whole economy (2026-09-11)
+
+Denmark 2015–2019: **130 of 131 product-years close to under 0.001 PJ**, worst
+`P21` 2015 at 0.0086 PJ. `P26` electricity 2019 is 150.001 against 150.001.
+
+This is the market-clearing identity the GAMS model writes as `qEtot[e,t]`
+(`energy_markets.gms:230`). The earlier note that "the invariant does not hold
+per product" is true **within an activity** and false **across all accounts** —
+transformation and trade cancel once every account is summed. Not yet verified
+outside Denmark.
+
+### What the module puts on disk (read back 2026-09-10)
+
+`model_julia/data/energy_balance/energy_balance.csv`, Denmark 2015–2019, 4,714
+rows: `qESupply_e_d` 416, `qEUse_e_d` 1,432, `qEUse_e_m_d` 1,433,
+`uEPurpose_e_m_d` 1,433. Byte-identical across runs.
+
+Control sums for 2019, in PJ, read back from the file rather than from the
+fetch:
+
+| account | supply | use | |
+|---|---|---|---|
+| resident, all 19 | 2,407.04 | 2,407.04 | balance holds account by account |
+| `iH` | 659.16 | 659.16 | 484 PJ of it is international bunkers |
+| `iC` | 456.00 | 456.00 | |
+| `iD` | 412.22 | 412.22 | |
+| `iB` | 356.91 | 356.91 | |
+| households | 271.84 | 271.84 | the only account with a purpose split |
+| `environment` | 498.27 | 1,295.80 | natural inputs in, R30 losses out |
+| `rest_of_world` | 1,248.82 | 501.79 | supply is import, use is export |
+| `inventories` | 44.85 | −5.65 | negative use is a stock drawdown |
+
+The three boundary accounts are asymmetric by construction. If they balanced,
+something would be wrong.
+
+**Only 19 of the 21 NACE sections appear.** Sections `T` (households as
+employers) and `U` (extraterritorial bodies) report zero energy, and the module
+drops exact zeros. This is why `activity_balance_atol` exists: a purely relative
+tolerance would divide by zero on those two.
+
+Largest products by use in 2019: `R30` losses 1,295.80, `P19` residual fuel oil
+644.91, `P12` crude oil 423.32, `N01` fossil natural inputs 334.24, `P13`
+natural gas 298.82, `P18` heating gasoil 157.26, `P26` electricity 150.00, `P23`
+solid biomass 122.17. `R30` being the single largest flow in the account is
+expected — it is where every conversion loss in the economy lands.
 
 ## Pilot results — JRC-IDEES for the purpose dimension (2026-07-30)
 

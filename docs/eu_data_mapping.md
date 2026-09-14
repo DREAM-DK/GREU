@@ -21,6 +21,23 @@ is, and what to do next.
 This file is searched far more often than it is read end to end. Use grep for
 the input name or dataset code you care about rather than reading it whole.
 
+## Scope: 13 countries, not 27 (Martin, 2026-09-11)
+
+The model only has to run for **AT, BE, DE, DK, EE, ES, FI, FR, IT, LV, NL, PT,
+SE**. Denmark stays the reference, not the target.
+
+This narrows every country-genericity question in this repo. A defect that only
+touches a country outside the list is **recorded, not fixed**, and must not block
+a build or drive a design decision. Country sweeps should report the 13
+separately from the rest — earlier sweeps in `eu_data_pilots.md` cover all 27
+because they were run before this decision, and their verdicts have to be re-read
+against the shorter list.
+
+First consequence, energy: `CZ` aborts the PEFA refresh in 2015–2016 on
+unpublished supply rows and was the only country forcing
+`first_data_year = 2017`. It is out of scope. `SE` fails 2015 alone, so **2016 is
+enough** for all 13.
+
 ## Current status (2026-08-27)
 
 - **Monetary-energy core: architecture chosen and proven.** Sweden 2020 is the
@@ -355,7 +372,7 @@ are kept stable so older notes and the roadmap still resolve.
   `EnergyBalanceSettings.jl` and `EnergyBalanceData.jl` are built and wired into
   `RefreshData.jl` in the Julia repo, writing
   `model_julia/data/energy_balance/energy_balance.csv`: 4,714 rows over
-  `qESupply_e_a`, `qEUse_e_a`, `qEUse_e_m_a` and `uEPurpose_e_m_a`, all in PJ,
+  `qESupply_e_d`, `qEUse_e_d`, `qEUse_e_m_d` and `uEPurpose_e_m_d`, all in PJ,
   2015–2019. Two build-time invariants stop the build — code coverage against the
   published dimensions, and supply-equals-use over 24 resident accounts, each
   verified by making it fail on purpose. Evidence and the country-genericity
@@ -483,7 +500,11 @@ records only what the next session needs to act on.
 ### Julia energy module — where it stands (2026-09-08)
 
 Phase A of `model_julia/docs/energy_module_plan.md` is complete: the physical
-energy account is built, checked and refreshable. **Next task is the emissions
+energy account is built, checked and refreshable, and **tested across countries**
+— 25 of 27 member states balance on all 120 account-years, and all 27 balance on
+2017–2019. The two exceptions, `CZ` 2015–2016 and `SE` 2015, are source defects
+the assertion names precisely; the binding constraint is
+`Settings.first_data_year = 2015`, not the module. **Next task is the emissions
 half**, steps 5–6 of that plan — `EmissionsSettings.jl` and `EmissionsData.jl`
 from `env_ac_ainah_r2`, which reads `energy_balance.csv` back in to split CO2 by
 fuel. The plan carries the invariants and the trap list; do not re-derive them.
@@ -495,6 +516,51 @@ the household purpose split. Test the invariant across countries before trusting
 it. And note Martin's Split A memo already predicted the second one: "electricity
 can sit in heating **and** transport" is true in every country tested except
 Denmark.
+
+#### `energy_and_emissions.xlsx` → what the Julia module now holds
+
+The spreadsheet is the specification, not the target. Its keys are
+`year, bal, flow, indu, purp, product`, and it bundles three contents of very
+different evidence quality. **One of the three is built.**
+
+| spreadsheet | Julia module | status |
+|---|---|---|
+| `year` | `:year` | 1:1 |
+| `indu` | `:activity`, index `d` | 21 NACE sections + households + 3 boundary accounts |
+| `purp` | `:purpose`, index `m` | observed for households, `:unspecified` for industry |
+| `product` | `:product`, index `e` | PEFA's 31 codes, **not** the spreadsheet's product list |
+| `bal` | `qESupply_e_d` / `qEUse_e_d` | deliberately two variables, not one index |
+| `flow` | — | **derived, not stored** (see below) |
+| `pj` | the value | ✅ **this is what phase A built** |
+| `ch4`, `co2_bio`, `co2_xbio`, `n2o`, `co2_eq` | — | steps 5–6, source `env_ac_ainah_r2`, coverage confirmed |
+| `basic`, margins, 5 taxes, `vat`, `purch` | — | **0 of 862 cells observed in any source**; `EnergyMoney*`, construction job |
+
+Two deliberate departures from the spreadsheet's shape:
+
+**`bal` is not an index.** The model never sums across supply and use, and an
+index invites exactly that mistake. Two variables instead.
+
+**`flow` is a view, not data.** `import`, `export`, `invent_change`,
+`other_supply`, `cons_inter`, `cons_hh` are not a PEFA dimension. They are
+encoded in which account is the counterparty: `ROW_ACT` supply is import,
+`ROW_ACT` use is export, `ENV` supply is other_supply, `CH_INV_PA` is
+invent_change. So the finest grain is
+`(balance, activity, purpose, product, year) → PJ`, and `flow` is built in an
+aggregation step by whoever needs it.
+
+Still open on the product dimension: `pefa_to_cpa`. The "no concordance needed"
+finding applies to **activities**, not products — CPA `D` holds `P13`, `P26` and
+`P27` at once. It is first needed when the physical account is multiplied onto
+the monetary input-output table.
+
+**Progress workbook for Martin (2026-09-14):**
+`data/preprocessing/data/energy_and_emissions_julia_dk2019.xlsx` — the Julia
+energy account for Denmark 2019 in the Danish file's exact 23-column shape, so
+progress shows as columns filling in. Today only `pj` is filled (373 rows,
+4,199 PJ, the whole account including `N01` natural inputs and `R30` losses).
+Rebuild with `data/preprocessing/scripts/build_energy_and_emissions_julia_dk2019.py`
+**whenever a Julia module fills another column** — the emissions phase is next.
+Not an input: the pipeline reads `energy_and_emissions.xlsx` by exact name.
 
 ### Catch-up: two different splits (2026-08-21)
 
