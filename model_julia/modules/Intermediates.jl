@@ -77,7 +77,9 @@ end
 # Starting values
 # ============================================================================
 function set_starting_values!(start_values)
-  start_values[qProd[intermediate_type,:,:]] .= start_values[qM_m_i][intermediate_type,:,:]
+  # Keep calibrated production quantities; seed only missing leaves.
+  q_start = start_values[qProd[intermediate_type,:,:]]
+  q_start .= ifelse.(isnothing.(q_start), start_values[qM_m_i][intermediate_type,:,:], q_start)
   start_values[ntM_m_i] .= 0
   return nothing
 end

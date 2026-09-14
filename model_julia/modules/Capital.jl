@@ -92,7 +92,9 @@ end
 # Starting values
 # ============================================================================
 function set_starting_values!(start_values)
-  start_values[qProd[capital_type,:,:]] .= start_values[qK_k_i][capital_type,:,:]
+  # Keep calibrated production quantities; seed only missing leaves.
+  q_start = start_values[qProd[capital_type,:,:]]
+  q_start .= ifelse.(isnothing.(q_start), start_values[qK_k_i][capital_type,:,:], q_start)
   start_values[ntK_k_i] .= 0 # Calibrated in Taxes module
   start_values[pKAdjCost_k_i] .= 0 # Can be endogenized in CapitalAdjustmentCosts
   start_values[pInvestmentShock_k_i] .= 0

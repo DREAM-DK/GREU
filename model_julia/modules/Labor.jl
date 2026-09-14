@@ -70,7 +70,9 @@ end
 # Starting values
 # ============================================================================
 function set_starting_values!(start_values)
-  start_values[qProd[labor_type,:,:]] .= start_values[qL_l_i][labor_type,:,:]
+  # Keep calibrated production quantities; seed only missing leaves.
+  q_start = start_values[qProd[labor_type,:,:]]
+  q_start .= ifelse.(isnothing.(q_start), start_values[qL_l_i][labor_type,:,:], q_start)
   start_values[ntL_l_i] .= 0
   return nothing
 end
