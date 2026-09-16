@@ -54,7 +54,7 @@ end
 """ 
 Fetch the PEFA supply and use table in petajoules.
 
-Filter only what every row must share. A server-side `prod_nrg` or `nace_r2`
+Filter only what every row must share. A server-side `prod_nrg` (product code) or `nace_r2` (activity code)
 filter returns an empty response for a code the country omits, which is then indistinguishable 
 from a zero.
 """
@@ -81,21 +81,24 @@ end
 
 # PEFA names an account, not a purpose. Households appear three times, once per purpose.
 # Every other account appears once and takes :unspecified.
+# The model wants to know the activity and purpose of each cell, so we build a lookup table.
 const activity_purpose = merge(
-  Dict(string(s) => (activity = section_to_industry[s], purpose = unspecified) for s in section),
+  Dict(string(s) => (activity = section_to_industry[s], purpose = unspecified) for s in section), 
   Dict(code => (activity = households, purpose = p) for (code, p) in household_purpose),
   Dict(code => (activity = a, purpose = unspecified) for (code, a) in boundary_account),
 )
 @assert length(activity_purpose) == length(source_activity) + length(source_boundary) "each source account needs one label"
 
 
+# Just to map the flow names to the model labels.
 const balance_name = Dict(supply_flow => :supply, use_flow => :use)
 
 # SD_IO is not an energy product, so it stays out of source_product. The balance
 # needs it: it is where a country books the gap when supply and use do not close.
 const balance_product = [source_product; discrepancy_product]
 
-# Membership runs once per row, so a Set rather than the ordered vector.
+# Membership runs once per row, so a Set rather than the ordered vector for speed.
+# Membership here means "is this element in the set?".
 const wanted_product = Set(balance_product)
 
 const model_activity = [source_industry; households; collect(values(boundary_account))]
@@ -106,15 +109,15 @@ Map PEFA codes to model labels and drop what the account does not use.
 The 61 NACE sub-details and the five product aggregates fall out here, because
 neither lookup holds them. PEFA reports them beside the cells, so keeping them
 would count the same energy twice. `SD_IO` is kept: it is a discrepancy, not an
-aggregate, and the balance does not close without it outside Denmark.
+aggregate, and the balance does not close without (except for Denmark which has SD_IO = 0).
 """
 function map_to_model(df)
-  mapped = @chain df begin
-    @rsubset(haskey(activity_purpose, :nace_r2) && :prod_nrg in wanted_product)
-    @rtransform begin
+  mapped = @chain df begin # Function from DataFramesMeta that sends tabel through a chain of operations multiple times.
+    @rsubset(haskey(activity_purpose, :nace_r2) && :prod_nrg in wanted_product) # Filters unwanted rows (e.g. totals or NACE sub-details like A01)
+    @rtransform begin # Transforms the remaining rows into 5 new columns: balance, product, activity, purpose, and year. 
       :balance = balance_name[:stk_flow]
       :product = Symbol(:prod_nrg)
-      :activity = activity_purpose[:nace_r2].activity
+      :activity = activity_purpose[:nace_r2].activity 
       :purpose = activity_purpose[:nace_r2].purpose
       :year = parse(Int, :time)
     end
@@ -149,14 +152,14 @@ The check runs per purpose, not per activity. PEFA publishes households three ti
 each of the three balances on its own, so summing the purposes away first would let one purpose
 cover  another one's gap.
 
-`SD_IO` is inside the sum. Without it 12 of 34 countries fail in all sections.
+`SD_IO` is inside the sum. Without it some countries fail in all sections.
 
 Years before first_checked_year are loaded, but not checked.
 """
 function assert_activity_balance(mapped)
   sides = @chain mapped begin
     @rsubset(:activity in resident_account && :year >= first_checked_year)
-    @by([:activity, :purpose, :year, :balance], :value = sum(:value))
+    @by([:activity, :purpose, :year, :balance], :value = sum(:value)) # Groups by activity, purpose, year, and balance, and sums the values.
   end
   supply = @chain sides begin
     @rsubset(:balance == Symbol("supply"))
@@ -195,9 +198,10 @@ the countries that need it.
 function discrepancy_by_account(mapped)
   signed = @chain mapped begin
     @rsubset(:activity in resident_account && :product == Symbol(discrepancy_product))
-    @rtransform(:value = :balance == Symbol("supply") ? :value : -:value)
+    @rtransform(:value = :balance == Symbol("supply") ? :value : -:value) # Julia's if statement; If this row is supply, keep the value, otherwise make it negative since it is use.
     sum_by([:activity, :year])
   end
+  # Build empty grid with all possible combinations of activity and year.
   account = sort!(unique(a for a in mapped.activity if a in resident_account))
   year = sort!(unique(mapped.year))
   dense = DataFrame(
@@ -219,7 +223,7 @@ Exacy zeros go out too: PEFA reports them, and a cell with no flow needs no vari
 Negative cells stay - `CH_INV_PA` books a stock drawdown as negative use, which is physical, not an error.
 """
 function energy_balance_variables(mapped)
-  cells = @rsubset(mapped, :product != Symbol(discrepancy_product) && !iszero(:value))
+  cells = @rsubset(mapped, :product != Symbol(discrepancy_product) && !iszero(:value)) # Filters out discrepancy product and zero values.
   supply = @chain cells begin
     @rsubset(:balance == Symbol("supply"))
     sum_by([:product, :activity, :year])

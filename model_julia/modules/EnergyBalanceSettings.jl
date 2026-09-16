@@ -1,10 +1,11 @@
-# Static energy-account sets and PEFA source mappings
+# Static energy-account sets and PEFA source mappings.
 # Keep the fetch and the balance checks in EnergyBalanceData.jl.
 
 module EnergyBalanceSettings
 
 const energy_balance_data_dir = joinpath(@__DIR__, "..", "data", "energy_balance")
 
+# Point to the PEFA dataset in Eurostat's data portal.
 const eurostat_pefa_dataset = "env_ac_pefasu"
 
 # PEFA publishes terajoules. The model wants petajoules.
@@ -15,14 +16,16 @@ const pj_per_source_unit = 1e-3
 # PEFA is a physical flow account, so every resident activity conserves energy:
 # what is taken in must come out again (Thermodynamics!). 
 # Total input therefore equals total output for each activity - but only when also accounting for residuals.
-# This is why R30 transformation losses sit in source_product beside the energy prodcts.
+# This is why R30 transformation losses sit in source_product beside the energy prodocts.
 
 # Individual products do not balance within an activity, because activities transform
 # one product into another: a factory takes in coal and transforms it into electricity.
 
-# The balance holds for resident activities only. The boundary accounts below
+# The balance holds for resident activities (agriculture, industry, transport, etc.) only. 
+# The boundary accounts (environment, rest of world, inventories) below
 # are where energy enters and leaves the economy, so they do not balance and
-# must not be checked.
+# must not be checked. This is because boundary accounts are more like bookkeeping
+# entries than like activities.
 
 # Tolerance is relative to the activity's own throughput, with an absolute floor:
 # NACE sections T (households as employers) and U (extraterritorial bodies) report
@@ -53,6 +56,7 @@ const residual = ["R28", "R29", "R30", "R31"]
 
 const source_product = [natural_input; energy_product; residual]
 
+# Build lookup table for product groups.
 const product_group = Dict(
   vcat(
     [code => :natural_input for code in natural_input],
@@ -70,12 +74,16 @@ const source_product_aggregate = [
 @assert isempty(intersect(source_product, source_product_aggregate)) "aggregates must stay out of the cells"
 
 
-# Not an aggregate. SD_IO is the discrepancy PEFA books when a country's supply and
-# use do not close, so adding it double counts nothing: it is what makes them close.
-# Denmark reports SD_IO = 0.
-# Without it 12 of 34 countries fail the balance.
-# Keep it out of source_product, because no model variable uses it, and inside the
-# balance sum, because the account does not close without it.
+# Not an aggregate. SD_IO is the discrepancy PEFA books when a country's supply
+# and use do not close (supply - use ≠ 0). It adds the missing amount, so it
+# double counts nothing: it is what makes the account close.
+# Denmark reports SD_IO = 0, so a check on Denmark alone cannot show it. Other
+# countries fail the balance without it (12 of 34 on the last check, 2026-09-04).
+# Keep it out of source_product: it is not an energy product, so it gets no
+# product variable, price or emission factor. Keep it in the balance sum: the
+# account does not close without it. The model reads it once per account, as
+# qEDiscrepancy_d on the supply side, so the model asserts the same balance as
+# the data step.
 const discrepancy_product = "SD_IO"
 @assert discrepancy_product ∉ [source_product; source_product_aggregate] "the discrepancy is neither a product nor an aggregate"
 
@@ -126,6 +134,7 @@ const purpose = [
 @assert Set(values(household_purpose)) ⊆ Set(purpose) "household purposes must be in the purpose set"
 
 
+# source_activity = all valid activity codes from Eurostat, as strings collected so we can validate them against data.
 const source_section = [string(s) for s in section]
 const source_household = collect(keys(household_purpose))
 const source_activity = [source_section; source_household]
@@ -141,10 +150,10 @@ const source_activity = [source_section; source_household]
 # takes in wind gets it from ENV, and one that gives off waste heat gives it to
 # ENV. They do not balance, and must stay out of the activity balance check.
 #
-# The model needs them. energy_and_emissions has flow = other_supply, import,
+# The model needs them. energy_and_emissions (data from Statistics Denmark) has flow = other_supply, import,
 # export and invent_change, and the GAMS model has demand codes xEne and
-# invt_ene. Denmark 2020 confirms the fit: ROW_ACT use is 402.5 PJ against the
-# Danish export of 402.3 PJ.
+# invt_ene. Denmark 2020 confirms the fit: ROW_ACT (energy_and_emissions) use is 402.5 PJ against the
+# Danish export of 402.3 PJ (Eurostat data).
 #
 # ENV supply is wider than the Danish other_supply: it also carries fossil
 # natural inputs. The matching subset is the renewable natural inputs
@@ -166,6 +175,11 @@ const source_boundary = collect(keys(boundary_account))
 # NRG_FLOW is the all-flow total. It adds the boundary accounts to the resident
 # throughput: 2111.0 + ENV 379.7 + ROW_ACT 1167.7 + CH_INV_PA 44.5 = 3702.8 PJ.
 # Nothing the model uses is comparable with it.
+#
+# G-U_X_H is "Services (except transportation and storage), so G to U except H".
+# SD_SU is not a total. It is the discrepancy PEFA books per product for the whole economy,
+# as SD_IO is per account. It belongs to no account, so it stays out the account set.
+# But economy-wide supply only equals use per product with SD_SU in the sum.
 const source_activity_aggregate = [
   "TOTAL", "HH", "NRG_FLOW", "G-U_X_H", "SD_SU",
 ]
