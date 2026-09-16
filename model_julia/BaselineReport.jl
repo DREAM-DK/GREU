@@ -35,6 +35,10 @@ const a21_names = Dict(
   :iU => "Extraterritorial organisations",
 )
 
+# Detailed industry codes are not necessarily present in the A*21 label map.
+# Keep those codes as readable row labels instead of failing the report.
+industry_row_label(i) = haskey(a21_names, i) ? "$i · $(a21_names[i])" : string(i)
+
 checked_values(::Nothing, name) = nothing
 report_number(::Nothing, name) = NaN
 function report_number(value::Real, name)
@@ -206,7 +210,7 @@ function screening_table(series; color_scale=5.0)
   labels = [[s.block for s in series]; "Maximum"]
   columns = [[s.column for s in series]; "Max"]
   return report_table(data; column_labels=[labels, columns], merge_column_label_cells=:auto,
-    row_labels=["$i · $(a21_names[i])" for i in collect(industry)[order]], stubhead_label="Industry",
+    row_labels=industry_row_label.(collect(industry)[order]), stubhead_label="Industry",
     format=format_percent, shade=(data, i, j) -> data[i, j] === nothing ? nothing : abs(data[i, j]),
     shade_scale=color_scale)
 end

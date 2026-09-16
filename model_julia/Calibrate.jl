@@ -1,6 +1,6 @@
 # Calibrate selected modules, test them with zero shock, and export the baseline.
 # The static result supplies start values for the dynamic solve.
-# Load Revise before GREU in an interactive session.
+using Revise
 using SquareModels
 import GREU:
   Settings,
@@ -31,9 +31,14 @@ model_modules = [loaded_module_by_name[name] for name in Settings.model_modules]
 
 # The full-horizon model tells calibration which variables are parameters.
 Time.T = Time.max_terminal_year
-base_block = base_model(model_modules)
-previous_solution_file = joinpath(@__DIR__, "data", "previous_baseline.parquet")
-previous_solution = isfile(previous_solution_file) ? load(previous_solution_file, model) : nothing
+module_blocks = @log_time "define_equations" Dict(m => m.define_equations() for m in model_modules)
+base_block = sum(copy(module_blocks[m]) for m in model_modules)
+shared_solution_dir = raw"P:\GREU"
+previous_solution_file = joinpath(shared_solution_dir, "previous_baseline.parquet")
+
+previous_solution = isfile(previous_solution_file) ?
+                    load(previous_solution_file, model) :
+                    nothing
 
 # ============================================================================
 # Static calibration
