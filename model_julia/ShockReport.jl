@@ -10,7 +10,7 @@ using SquareModels: ModelDictionary, @plot, @evalexpr,
 
 import GREU.Capital: capital_k_i, pK_k_i, qK_k_i
 import GREU.FixedBasePriceAggregates: pGDP, qGDP, qGVA
-import GREU.InputOutput: industry, pI, pX, qI, qX, qY_i
+import GREU.InputOutput: industry, pI, pX, pC, pG, qI, qX, qY_i, qC, qG
 import GREU.Intermediates: intermediate_m_i, qM_m_i
 import GREU.Labor: labor_l_i, pW, qL_l_i
 
@@ -57,6 +57,8 @@ function response_figures(baseline, years, shock_year, color)
   return [
     "Activity — Real GDP" => @plot(qGDP; options...),
     "Activity — Real gross value added" => @plot(qGVA; options...),
+    "Final demand — Real household consumption" => @plot(qC; options...),
+    "Final demand — Real government consumption" => @plot(qG; options...),
     "Final demand — Real exports" => @plot(qX; options...),
     "Final demand — Real investment" => @plot(qI; options...),
     "Labour — Employment" => @plot(sum(qL_l_i[l,i,:] for (l, i) in labor_l_i); options...),
@@ -67,6 +69,8 @@ function response_figures(baseline, years, shock_year, color)
       sum(pK_k_i[k,i,:] * $(baseline[qK_k_i[k,i,years]]) for (k, i) in capital_k_i) /
       sum($(baseline[qK_k_i[k,i,years]]) for (k, i) in capital_k_i); options...),
     "Prices — GDP price level" => @plot(pGDP; options...),
+    "Prices — Consumption price level" => @plot(pC; options...),
+    "Prices — Government consumption price level" => @plot(pG; options...),
     "Prices — Investment price level" => @plot(pI; options...),
     "Prices — Export price level" => @plot(pX; options...),
     "Production — Gross output" => @plot(sum(qY_i[i,:] for i in industry); options...),

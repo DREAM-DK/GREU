@@ -120,7 +120,10 @@ function define_equations()
 
     # Portfolio.
     # Financial corporations.
-    # Equity assets follow revaluation.
+    # Equity assets follow revaluation. A share of total issued equity would put
+    # FinCorp equity on both sides of one period: its own liability is the balance
+    # sheet residual and sits inside that total. Solving then inverts a factor
+    # near zero, given large cross holdings and high leverage.
     vFinPosition_s_f[s=[:FinCorp], f=[:Equity], al=[:Assets], t=t1:T], vFinTransactions_f[s,f,al,t] == 0
 
     # Debt assets are a fixed share of all debt liabilities, including interbank liabilities.

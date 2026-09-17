@@ -10,6 +10,7 @@ import ..Labor: vHhWages
 import ..model
 import ..SectorAccounts:
   fin_instrument,
+  sector,
   vNetFinTransactions,
   vNetFinIncome,
   vFinIncome_s_f,
@@ -18,7 +19,6 @@ import ..SectorAccounts:
   vI_s,
   vGrossOpSurplusMixedIncome,
   vFinPosition_s_f,
-  vFinTransactions_f,
   vNetFinAssets
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
@@ -36,6 +36,7 @@ end
 @variables model :: (HouseholdsTag, ForecastConstant) begin
   rHhDebtLiabilities2Consumption[t], "Target household debt liability ratio relative to consumption."
   rHhDebtAdjustment[t], "Annual household debt adjustment rate."
+  rHhEquityAssets2TotalEquity[t], "Household equity assets relative to all issued equity."
 end
 
 # ============================================================================
@@ -65,8 +66,14 @@ function define_equations()
                               - vNonProducedAssetAcquisitions[s,t]
 
     # Portfolio.
-    # Equity assets have no transactions.
-    vFinPosition_s_f[s=[:Hh], f=[:Equity], al=[:Assets], t=t1:T], vFinTransactions_f[s,f,al,t] == 0
+    # Equity assets are a fixed share of all issued equity. Households buy their
+    # share of new issues, so issuance leaves the value of their holding alone.
+    # Transactions are then the residual of the stock change identity, which is
+    # what those purchases are. Zero transactions would instead give the adjusted
+    # stock a unit root, because the revaluation rate only offsets fv.
+    vFinPosition_s_f[s=[:Hh], f=[:Equity], al=[:Assets], t=t1:T],
+    vFinPosition_s_f[s,f,al,t] ==
+      rHhEquityAssets2TotalEquity[t] * ∑(vFinPosition_s_f[s2,f,:Liab,t] for s2 in sector)
 
     # Debt liabilities move part of the way to a fixed share of consumption.
     vFinPosition_s_f[s=[:Hh], f=[:Debt], al=[:Liab], t=t1:T],
@@ -92,6 +99,7 @@ function define_calibration()
 
   @endo_exo_swap! block begin
     rHhDebtLiabilities2Consumption[t1], vFinPosition_s_f[:Hh,:Debt,:Liab,t1]
+    rHhEquityAssets2TotalEquity[t1], vFinPosition_s_f[:Hh,:Equity,:Assets,t1]
   end
 
   return block
