@@ -12,12 +12,14 @@ import ..Time: at_year, variable_year, t1
 # Residual settings
 # ============================================================================
 
+"""Collect module overrides for absolute and relative residual tolerances."""
 function residual_tolerances(values::ModelDictionary, modules)
   tolerances = ModelDictionary(values.model)
+  rtolerances = ModelDictionary(values.model)
   for m in modules
-    isdefined(m, :set_residual_tolerances!) && m.set_residual_tolerances!(tolerances)
+    isdefined(m, :set_residual_tolerances!) && m.set_residual_tolerances!(tolerances, rtolerances)
   end
-  return tolerances
+  return (; tolerances, rtolerances)
 end
 
 """
@@ -54,7 +56,7 @@ For parameters that are endogenous only at t1: create equations var[t] == var[t1
 For parameters that are exogenous at t1: copy the t1 exogenous value.
 Leave variables that a model equation already makes endogenous at t > t1 unchanged.
 
-Returns a Block with forecast constraints (to be merged with the main block).
+Return the combined block.
 """
 function forecast_constants!(block::Block, exogenous_values::ModelDictionary)
   forecast_block = Block(block.model)
@@ -150,6 +152,22 @@ function set_starting_values!(start_values::ModelDictionary, modules)
   for m in modules
     isdefined(m, :set_starting_values!) && m.set_starting_values!(start_values)
   end
+  return nothing
+end
+
+"""
+Carry start values past the terminal year of an earlier horizon.
+
+The model is growth and inflation adjusted, so the last solved year is close to the steady
+state. Copying it forward gives the next horizon a start point the model has reached, which
+is much nearer than the period-one fallback.
+"""
+function extend_start_values!(block::Block, start_values::ModelDictionary, solved_through::Int)
+  vars = filter(variables(block)) do var
+    year = variable_year(var)
+    !isnothing(year) && year > solved_through
+  end
+  start_values[vars] .= start_values[at_year.(vars, solved_through)]
   return nothing
 end
 

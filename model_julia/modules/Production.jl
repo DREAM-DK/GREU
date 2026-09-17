@@ -1,4 +1,4 @@
-# Define the common production tree and its CES equations.
+# Define production trees from retained forecast inputs and their CES equations.
 # Provide one hook for taxes not assigned to a factor input.
 # Keep factor tax rates and tax data in their own modules.
 include(joinpath(@__DIR__, "ProductionSettings.jl"))
@@ -6,16 +6,52 @@ include(joinpath(@__DIR__, "ProductionSettings.jl"))
 module Production
 
 using SquareModels
+import JuMP
+import ..DataUtils: read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
-import ..InputOutput: industry, qY_i
-import ..ProductionSettings: production_nesting
+import ..InputOutput: industry, qY_i, qM_p_i
+import ..InputOutputSettings: cell_tolerance
+import ..ProductionSettings: production_data_dir, full_nesting, prune_nesting, product_to_intermediate_type
+import ..Settings: calibration_year
 import ..model
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant, ForecastZero, DynamicCalibration
 
 # ============================================================================
+# Read data
+# ============================================================================
+const capital_file = joinpath(production_data_dir, "production_capital.csv")
+const labor_file = joinpath(production_data_dir, "production_labor.csv")
+const intermediate_product_split_file = joinpath(production_data_dir, "production_intermediate_product_split.csv")
+const qK_k_i_data = read_cells(capital_file, "qK_k_i")
+const qL_l_i_data = read_cells(labor_file, "qL_l_i")
+const qM_p_m_i_data = read_cells(intermediate_product_split_file, "qM_p_m_i")
+const qM_m_i_data = read_cells(intermediate_product_split_file, "qM_m_i")
+
+# ============================================================================
 # Indices
 # ============================================================================
+# Each factor module uses these same source values and retained cells.
+const capital_k_i = Set(
+  (k, i) for ((k, i, year), value) in qK_k_i_data
+  if i in industry && year == calibration_year && value > cell_tolerance &&
+    get(qK_k_i_data, (k, i, calibration_year-1), 0.0) > cell_tolerance
+)
+const labor_l_i = Set(
+  (l, i) for ((l, i, year), value) in qL_l_i_data
+  if i in industry && year == calibration_year && value > cell_tolerance
+)
+const intermediate_product_m_i = Set(
+  (p, m, i) for (p, m, i, _) in keys(qM_p_m_i_data) if (p, i, calibration_year+1) in keys(qM_p_i)
+)
+@assert all(m == product_to_intermediate_type[p] for (p, m, _) in intermediate_product_m_i) "Refresh intermediate data for the current product groups"
+const intermediate_m_i = Set((m, i) for (_, m, i) in intermediate_product_m_i)
+const factor_i = union(capital_k_i, labor_l_i, intermediate_m_i)
+const production_nesting = Dict(
+  i => prune_nesting(full_nesting, Set(f for (f, ind) in factor_i if ind == i)) for i in industry
+)
+@assert all(!isempty(nests) for nests in values(production_nesting)) "Each active industry needs production factors"
+
 const parent = Dict(
   (child, i) => n
   for i in industry
@@ -49,7 +85,7 @@ end
 end
 
 @variables model :: (ProductionTag, GrowthAdjusted, InflationAdjusted) begin
-  vtProductionOther_i[i=industry, t=t] :: ForecastConstant, "Net production taxes not assigned to a factor input."
+  vntProductionOther_i[i=industry, t=t] :: ForecastConstant, "Net production taxes not assigned to a factor input."
 end
 
 @variables model :: ProductionTag begin
@@ -57,6 +93,11 @@ end
   qTop2qY[i=industry, t=t] :: ForecastConstant, "Marginal top-nest use per unit of output by industry."
   eProd[n=node, i=industry; haskey(production_nesting[i], n)], "Substitution elasticity by production nest and industry."
 end
+
+# A node price is value per unit and is positive. CES demand raises it to the nest
+# elasticity, so a negative trial value stops the solver with a domain error. The bound keeps
+# the search in the domain. Prices calibrate to 1.0, so an active bound means a real error.
+JuMP.set_lower_bound.([pProd[key...] for key in keys(pProd)], 1e-4)
 
 # ============================================================================
 # Assign data
@@ -87,7 +128,7 @@ function define_equations()
 
     pMarginalCost_i[i=industry, t=t1:T],
     pMarginalCost_i[i,t] * qY_i[i,t] ==
-      pProd[topNest[i],i,t] * qTop2qY[i,t] * qY_i[i,t] + vtProductionOther_i[i,t]
+      pProd[topNest[i],i,t] * qTop2qY[i,t] * qY_i[i,t] + vntProductionOther_i[i,t]
   end
 end
 

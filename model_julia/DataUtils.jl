@@ -11,6 +11,7 @@ import SquareModels: KeyedData, read_sparse_array
 
 """Read one variable into a dictionary keyed by its index tuple."""
 function read_cells(file, variable)
+  Base.include_dependency(file)
   data = read_sparse_array(file; variable)
   cells = Dict(key => data[key...] for key in eachindex(data))
   @assert all(isfinite, values(cells)) "$variable in $file must be finite"

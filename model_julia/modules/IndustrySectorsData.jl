@@ -17,7 +17,7 @@ import Ipopt
 import JuMP
 import ..DataUtils: read_cells
 import ..GovernmentSettings: government_data_dir
-import ..InputOutputSettings: cell_tolerance, input_output_data_dir
+import ..InputOutputSettings: cell_tolerance, input_output_data_dir, industries_in_sections
 import ..ProductionSettings: production_data_dir
 import ..SectorAccountsSettings: sector_accounts_data_dir
 import ..Settings: calibration_year
@@ -25,10 +25,9 @@ import ..Settings: calibration_year
 const mapped_sector = [:FinCorp, :NonFinCorp, :Gov, :Hh]
 const source_component = [:intermediate, :wages, :production_taxes]
 const sector_target_component = [:operating_cost, :operating_surplus]
-const financial_industry = :iK
-const government_core_industry = Set([:iO, :iP, :iQ])
-const household_housing_industry = :iL
-const source_rounding_tolerance = 0.15
+const financial_industries = Set(industries_in_sections([:K]))
+const government_core_industries = Set(industries_in_sections([:O, :P, :Q]))
+const household_housing_industries = Set(industries_in_sections([:L]))
 
 const supply_file = joinpath(input_output_data_dir, "input_output_supply.csv")
 const purchaser_use_file = joinpath(input_output_data_dir, "input_output_purchaser_use.csv")
@@ -64,7 +63,9 @@ function industry_accounts(industries, year, source)
       intermediate = sum_industry_cells(source.purchaser_use, i, year) +
                      sum_industry_cells(source.margins, i, year) +
                      sum_industry_cells(source.product_taxes, i, year)
-      wages = sum_industry_cells(source.labor, i, year)
+      average_wage = sum(value for ((_,source_year), value) in source.payroll if source_year == year) /
+                     sum(value for ((_,_,source_year), value) in source.labor if source_year == year)
+      wages = average_wage * sum_industry_cells(source.labor, i, year)
       production_taxes = get(source.production_taxes, (i, year), 0.0)
       (
         output = output,
@@ -92,26 +93,32 @@ end
 
 """Return a clear prior before the government component targets adjust the shares."""
 function government_prior(industries, accounts, target)
-  core_total = sum(accounts[i].operating_surplus for i in government_core_industry)
-  other_industries = setdiff(industries, [financial_industry; collect(government_core_industry)])
+  core = intersect(government_core_industries, Set(industries))
+  financial = intersect(financial_industries, Set(industries))
+  core_total = sum(accounts[i].operating_surplus for i in core)
+  other_industries = setdiff(industries, [collect(financial); collect(core)])
   other_total = sum(accounts[i].operating_surplus for i in other_industries)
   rate = government_rates(target, core_total, other_total)
   return Dict(
-    i => i in government_core_industry ? rate.core :
-         i == financial_industry ? 0.0 : rate.other
+    i => i in core ? rate.core :
+         i in financial ? 0.0 : rate.other
     for i in industries
   )
 end
 
 """Use household operating surplus for housing first and spread mixed income across other industries."""
 function household_prior(industries, accounts, source, year)
-  other_industries = setdiff(industries, [financial_industry, household_housing_industry])
+  financial = intersect(financial_industries, Set(industries))
+  housing = intersect(household_housing_industries, Set(industries))
+  other_industries = setdiff(industries, [collect(financial); collect(housing)])
   housing_target = source[:Hh,:B2G,:RECV,year]
   mixed_income_target = source[:Hh,:B3G,:RECV,year]
+  housing_surplus = sum(accounts[i].operating_surplus for i in housing)
+  other_surplus = sum(accounts[j].operating_surplus for j in other_industries)
   return Dict(
-    i => i == household_housing_industry ? housing_target / accounts[i].operating_surplus :
-         i == financial_industry ? 0.0 :
-         mixed_income_target / sum(accounts[j].operating_surplus for j in other_industries)
+    i => i in housing ? housing_target / housing_surplus :
+         i in financial ? 0.0 :
+         mixed_income_target / other_surplus
     for i in industries
   )
 end
@@ -152,46 +159,48 @@ end
 
 """Explain each temporary share assumption in the output file."""
 function share_assumption(sector, industry)
-  sector == :FinCorp && industry == financial_industry &&
-    return "Target FinCorp operating surplus within iK."
+  sector == :FinCorp && industry in financial_industries &&
+    return "Target FinCorp operating surplus within the selected section-K industries."
   sector == :FinCorp && return "Assign no other industry to FinCorp."
-  sector == :Gov && industry in government_core_industry &&
-    return "Start with iO, iP, and iQ; adjust shares to match Gov operating costs and operating surplus."
-  sector == :Gov && industry == financial_industry && return "Assign no iK activity to Gov."
-  sector == :Gov && return "Adjust the prior to match Gov P2+D1+D29 and operating surplus."
-  sector == :Hh && industry == household_housing_industry &&
-    return "Start from household operating surplus in iL, then match household costs and operating surplus."
-  sector == :Hh && industry == financial_industry && return "Assign no iK activity to Hh."
+  sector == :Gov && industry in government_core_industries &&
+    return "Start with the selected O/P/Q industries; adjust shares to match Gov operating costs and operating surplus."
+  sector == :Gov && industry in financial_industries && return "Assign no section-K activity to Gov."
+  sector == :Gov && return "Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus."
+  sector == :Hh && industry in household_housing_industries &&
+    return "Start from household operating surplus in the selected section-L industries, then match household costs and operating surplus."
+  sector == :Hh && industry in financial_industries && return "Assign no section-K activity to Hh."
   sector == :Hh && return "Spread household mixed income across other industries, then match household targets."
-  industry == financial_industry && return "Assign the iK remainder to NonFinCorp."
+  industry in financial_industries && return "Assign the section-K remainder to NonFinCorp."
   return "Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
 end
 
 """Build one year of shares and check all sector targets."""
 function stylized_shares(industries, year, accounts, targets, government_targets, household_targets, source)
-  @assert financial_industry in industries "The share build needs iK"
-  @assert government_core_industry ⊆ Set(industries) "The share build needs iO, iP, and iQ"
-  @assert household_housing_industry in industries "The share build needs iL"
-  @assert all(account.operating_surplus >= -source_rounding_tolerance for account in values(accounts))
-    "Industry operating surplus must not be negative beyond source rounding"
+  financial = intersect(financial_industries, Set(industries))
+  government_core = intersect(government_core_industries, Set(industries))
+  housing = intersect(household_housing_industries, Set(industries))
+  @assert !isempty(financial) "The share build needs at least one section-K industry"
+  @assert !isempty(government_core) "The share build needs selected O/P/Q industries"
+  @assert !isempty(housing) "The share build needs at least one section-L industry"
 
-  fin_rate = targets[:FinCorp] / accounts[financial_industry].operating_surplus
+  fin_surplus = sum(accounts[i].operating_surplus for i in financial)
+  fin_rate = targets[:FinCorp] / fin_surplus
   government_share = target_shares(
     industries,
     accounts,
     government_targets,
     government_prior(industries, accounts, targets[:Gov]),
-    Dict(i => i == financial_industry ? 0.0 : 1.0 for i in industries),
+    Dict(i => i in financial ? 0.0 : 1.0 for i in industries),
   )
 
-  fin_share(i) = i == financial_industry ? fin_rate : 0.0
+  fin_share(i) = i in financial ? fin_rate : 0.0
   household_share = target_shares(
     industries,
     accounts,
     household_targets,
     household_prior(industries, accounts, source, year),
     Dict(
-      i => i == financial_industry ? 0.0 : 1.0 - fin_share(i) - government_share[i]
+      i => i in financial ? 0.0 : 1.0 - fin_share(i) - government_share[i]
       for i in industries
     ),
   )
@@ -253,21 +262,28 @@ function build_industry_sector_shares()
     output = read_cells(supply_file, "qY_p_i"),
     purchaser_use = read_cells(purchaser_use_file, "qPurchaserUse_p_u"),
     margins = read_cells(margin_file, "qMarginBundle_p_u"),
-    product_taxes = read_cells(product_tax_file, "vNetProductTax_p_u"),
+    product_taxes = read_cells(product_tax_file, "vntProduct_p_u"),
     labor = read_cells(labor_file, "qL_l_i"),
-    production_taxes = read_cells(production_file, "vProductionTax_i"),
+    payroll = read_cells(labor_file, "vWages_i"),
+    production_taxes = read_cells(production_file, "vntProduction_i"),
   )
   target_source = read_cells(sector_accounts_file, "vGrossOpSurplusMixedIncome")
   non_financial_source = read_cells(non_financial_transactions_file, "NonFinancialTransactions")
+  government_production_tax = read_cells(government_file, "vtGovProductionPaidSource")
+  government_production_subsidy = read_cells(government_file, "vsGovProductionReceivedSource")
   government_source = Dict(
     :intermediate => read_cells(government_file, "vGovIntermediateCons"),
     :wages => read_cells(government_file, "vGovEmplComp"),
-    :production_taxes => read_cells(government_file, "vGovOthProdTax"),
+    :production_taxes => Dict(
+      key => value - government_production_subsidy[key]
+      for (key, value) in government_production_tax
+    ),
   )
   years = sort(unique(
     year
     for ((_,year), _) in target_source
-    if all(haskey(target_source, (s, year)) for s in mapped_sector)
+    if year in (calibration_year-1):calibration_year
+       && all(haskey(target_source, (s, year)) for s in mapped_sector)
        && all(haskey(government_source[component], (year,)) for component in keys(government_source))
        && all(
          haskey(non_financial_source, (:Hh, item, direct, year))
@@ -314,7 +330,7 @@ function refresh_industry_sector_shares!(dir = sector_accounts_data_dir)
   CSV.write(
     joinpath(dir, basename(share_file)),
     DataFrame(
-      variable = fill("uIndustrySector_s_i", nrow(shares)),
+      variable = fill("rIndustrySector_s_i", nrow(shares)),
       indices = ["$(row.sector),$(row.industry),$(row.year)" for row in eachrow(shares)],
       value = shares.value,
       assumption = shares.assumption,

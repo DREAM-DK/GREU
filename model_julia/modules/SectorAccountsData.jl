@@ -76,7 +76,7 @@ function fetch_non_financial_table()
   df = EurostatClient.fetch_table(non_financial_transactions_dataset_code,
     "unit"        => non_financial_transactions_unit,
     "geo"         => country_code,
-    "startPeriod" => string(calibration_year - 1),
+    "startPeriod" => string(calibration_year - 2),
     "endPeriod"   => string(calibration_year + 1),
     ("sector"  => sector for sector in raw_sectors)...,
     ("na_item" => item   for item in non_financial_transaction_items)...,

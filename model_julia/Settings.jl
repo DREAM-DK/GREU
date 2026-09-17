@@ -10,7 +10,7 @@ const country_code = "DK"
 const first_data_year = 2015
 const base_year = 2019
 const calibration_year = 2019
-const terminal_year = 2025
+const terminal_year = 2075
 
 # ============================================================================
 # Module groups
@@ -43,6 +43,7 @@ const macro_core_modules = [
   :Government,
   :GovernmentRevenue,
   :GovernmentExpenditure,
+  :GovernmentEmployment,
   :Corporations,
   :RestOfWorld,
 
@@ -83,7 +84,9 @@ model_modules::Vector{Symbol} = [
 # JuMP `Model` configured as a square nonlinear system for the selected backend.
 # Importing the backend package activates the matching SquareModels extension.
 import GAMS
-function square_model(model=SquareModels.square_model(; gamsdir="C:/GAMS/53"))
+gams_system_dir() = dirname(something(Sys.which("gams"), "C:/GAMS/51/gams.exe"))
+
+function square_model(model=SquareModels.square_model(; gamsdir=gams_system_dir()))
   GAMS.check_system_dir(JuMP.get_optimizer_attribute(model, "sysdir"))
   JuMP.set_optimizer_attribute(model, "workdir", mktempdir())
   JuMP.set_time_limit_sec(model, 5 * 60)

@@ -3,7 +3,7 @@
 # Keep equations and country data in their own modules.
 module ProductionSettings
 
-import ..InputOutputSettings: product, section_to_industry, source_industry
+import ..InputOutputSettings: product, product_members
 
 const production_data_dir = joinpath(@__DIR__, "..", "data", "production")
 
@@ -23,8 +23,6 @@ const gva_na_item = "B1G"
 const production_tax_na_item = "D29X39"
 const gva_unit = "CP_MEUR"
 const gva_deflator_unit = "PYP_MEUR"
-const gva_nace_to_industry = Dict(string(section) => i for (section, i) in section_to_industry)
-@assert Set(values(gva_nace_to_industry)) == Set(source_industry) "GVA NACE map must cover each source industry"
 
 # These non-overlapping ESA asset groups add to total fixed assets.
 const stock_asset_to_capital_type = Dict(
@@ -44,16 +42,12 @@ const flow_asset_to_capital_type = Dict(
 const capital_type = sort(unique(values(flow_asset_to_capital_type)))
 @assert Set(capital_type) == Set(values(stock_asset_to_capital_type)) "Stock and flow assets must use the same capital types"
 
-# Keep each factor class as a set, even when it has one member. The nests name
-# their factors directly and must change when either set changes.
 const labor_type = [:labor]
-const energy_product = [:B, :D]
 const intermediate_type = [:energy, :materials]
-@assert energy_product ⊆ product "Energy products must be input-output products"
+const product_to_intermediate_type = Dict(
+  p => (product_members[p] ⊆ ("B", "C19", "D") ? :energy : :materials) for p in product
+)
 
-# Each industry owns its nest map and each nest owns its elasticity. Equipment
-# and energy pair in the first nest, then labor, structures, and materials
-# enter one nest at a time. Most industries use this full tree.
 const full_nesting = Dict(
   :KE => (children = [:equipment, :energy], elasticity = 0.7),
   :KEL => (children = [:KE, :labor], elasticity = 0.7),
@@ -61,21 +55,46 @@ const full_nesting = Dict(
   :KELBM => (children = [:KELB, :materials], elasticity = 0.7),
 )
 
-# Industry T (households as employers) reports only labor, so its top nest holds labor alone.
-const production_nesting = Dict(
-  i =>
-    i == :iT ? Dict(
-      :KELBM => (children = [:labor], elasticity = 0.7),
-    ) :
-    Dict(full_nesting)
-  for i in source_industry
-)
+# ============================================================================
+# Nest pruning
+# ============================================================================
+
+"""Prune a nest map to the leaves an industry actually uses.
+
+Drop leaves outside the retained factor set, drop nests that lose every child, and
+collapse a nest holding a single surviving child into that child. Always keep
+the outermost nest, because the model needs exactly one top node per industry.
+"""
+function prune_nesting(nests, live_leaf::Set{Symbol})
+  parent_of = Dict(c => n for (n, spec) in nests for c in spec.children)
+  top = only(n for n in keys(nests) if !haskey(parent_of, n))
+
+  resolved = Dict{Symbol,Union{Nothing,Symbol}}()
+  function resolve(n)
+    haskey(resolved, n) && return resolved[n]
+    haskey(nests, n) || return resolved[n] = (n in live_leaf ? n : nothing)
+    kept = [c for c in (resolve(c) for c in nests[n].children) if !isnothing(c)]
+    return resolved[n] =
+      isempty(kept) ? nothing :
+      (length(kept) == 1 && n != top) ? only(kept) : n
+  end
+  for n in keys(nests)
+    resolve(n)
+  end
+
+  pruned = Dict{Symbol,NamedTuple{(:children, :elasticity),Tuple{Vector{Symbol},Float64}}}()
+  for (n, spec) in nests
+    resolved[n] === n || continue
+    kept = Symbol[c for c in (resolved[c] for c in spec.children) if !isnothing(c)]
+    pruned[n] = (children = kept, elasticity = spec.elasticity)
+  end
+  return pruned
+end
 
 @assert allunique([capital_type; labor_type; intermediate_type]) "Production factor labels must be unique"
-
 @assert all(
   isfinite(spec.elasticity) && spec.elasticity > 0 && allunique(spec.children)
-  for spec in Iterators.flatten(values(nests) for nests in values(production_nesting))
+  for spec in values(full_nesting)
 ) "Each production nest needs a positive elasticity and unique children"
 
 end # module
