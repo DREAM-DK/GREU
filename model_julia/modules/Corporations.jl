@@ -28,7 +28,6 @@ import ..InputOutput: industry
 import ..model
 import ..ProductionSettings: capital_type
 import ..SectorAccounts:
-  fin_instrument,
   sector,
   vNetFinTransactions,
   vNetFinIncome,
@@ -36,6 +35,7 @@ import ..SectorAccounts:
   vNonProducedAssetAcquisitions,
   vI_s,
   vFinIncome_s_f,
+  vFinPosition,
   vFinPosition_s_f,
   vFinTransactions_f,
   vNetFinAssets
@@ -134,8 +134,7 @@ function define_equations()
 
     # Equity liabilities are residual given net financial assets.
     vFinPosition_s_f[s=[:FinCorp], f=[:Equity], al=[:Liab], t=t1:T],
-    vNetFinAssets[s,t] == ∑(vFinPosition_s_f[s,f,:Assets,t] for f in fin_instrument)
-                        - ∑(vFinPosition_s_f[s,f,:Liab,t] for f in fin_instrument)
+    vNetFinAssets[s,t] == vFinPosition[s,:Assets,t] - vFinPosition[s,:Liab,t]
 
     # Non-financial corporations.
     # Equity assets are a fixed fraction of equity liabilities.
@@ -153,8 +152,7 @@ function define_equations()
 
     # Equity liabilities are residual given net financial assets.
     vFinPosition_s_f[s=[:NonFinCorp], f=[:Equity], al=[:Liab], t=t1:T],
-    vNetFinAssets[s,t] == ∑(vFinPosition_s_f[s,f,:Assets,t] for f in fin_instrument)
-                        - ∑(vFinPosition_s_f[s,f,:Liab,t] for f in fin_instrument)
+    vNetFinAssets[s,t] == vFinPosition[s,:Assets,t] - vFinPosition[s,:Liab,t]
 
     # Tax and financing behavior.
     # Current-price investment adds to the tax value. Tax depreciation applies
