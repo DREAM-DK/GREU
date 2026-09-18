@@ -8,7 +8,7 @@ using SquareModels
 import ..DataUtils: cell_value, fill_cells!, read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutput: industry
-import ..Production: pProd, qProd, qL_l_i_data, labor_l_i
+import ..Production: pProd, qProd, nL_l_i_data, labor_l_i
 import ..ProductionSettings: labor_type, production_data_dir
 import ..model
 import ..Time: t, t1, T
@@ -19,7 +19,7 @@ import ..Tags: ForecastConstant
 # ============================================================================
 const labor_file = joinpath(production_data_dir, "production_labor.csv")
 const sector_accounts_file = joinpath(@__DIR__, "..", "data", "sector_accounts", "sector_accounts.csv")
-const qLSupply_data = read_cells(labor_file, "qLSupply")
+const nLSupply_data = read_cells(labor_file, "nLSupply")
 const vHhWages_data = read_cells(sector_accounts_file, "vHhWages")
 const vRoWNetWages_data = read_cells(sector_accounts_file, "vRoWNetWages")
 
@@ -28,22 +28,25 @@ const vRoWNetWages_data = read_cells(sector_accounts_file, "vRoWNetWages")
 # ============================================================================
 const LaborTag = Tag(:Labor)
 
+@variables model :: LaborTag begin
+  nL_l_i[l=labor_type, i=industry, t=t; (l,i) in labor_l_i], "Persons by type and industry."
+  nLSupplyHh[t] :: ForecastConstant, "Household persons."
+  nLSupplyRoW[t] :: ForecastConstant, "Rest-of-world persons."
+end
+
 @variables model :: (LaborTag, GrowthAdjusted) begin
-  qL_l_i[l=labor_type, i=industry, t=t; (l,i) in labor_l_i], "Employees by type and industry."
+  qL_l_i[(l,i,t)=nL_l_i], "Labor in efficiency units by type and industry."
+  qL2nL[t] :: ForecastConstant, "Efficiency units per person."
 end
 
 @variables model :: (LaborTag, InflationAdjusted) begin
-  pW[t], "Payroll per employee."
-  pL_l_i[(l,i,t)=qL_l_i], "User cost per employee by type and industry."
-  ntL_l_i[(l,i,t)=qL_l_i] :: ForecastConstant, "Production tax less subsidy per employee."
-end
-
-@variables model :: (LaborTag, GrowthAdjusted, ForecastConstant) begin
-  qLSupplyHh[t], "Household employees."
-  qLSupplyRoW[t], "Rest-of-world employees."
+  pW[t], "Wage per efficiency unit."
+  pL_l_i[(l,i,t)=nL_l_i], "User cost per efficiency unit by type and industry."
+  ntL_l_i[(l,i,t)=nL_l_i] :: ForecastConstant, "Production tax less subsidy per efficiency unit."
 end
 
 @variables model :: (LaborTag, GrowthAdjusted, InflationAdjusted) begin
+  vW[t], "Wage per person."
   vWages_i[i=industry, t=t], "Wages by industry."
   vWages[t], "Total wages."
   vHhWages[t], "Household wages."
@@ -54,13 +57,14 @@ end
 # Assign data
 # ============================================================================
 function assign_data!(db)
-  fill_cells!(db, qL_l_i, qL_l_i_data)
+  fill_cells!(db, nL_l_i, nL_l_i_data)
   fill_cells!(db, vHhWages, vHhWages_data)
   fill_cells!(db, vRoWNetWages, vRoWNetWages_data)
 
-  db[pW[(t1-2):t1]] .= [
+  db[pW] .= 1
+  db[vW[(t1-2):t1]] .= [
     (cell_value(vHhWages_data, year) + cell_value(vRoWNetWages_data, year)) /
-      cell_value(qLSupply_data, year)
+      cell_value(nLSupply_data, year)
     for year in (t1-2):t1
   ]
   return nothing
@@ -84,20 +88,24 @@ function define_equations()
   return @block model begin
     qL_l_i[l=labor_type, i=industry, t=t1:T], qL_l_i[l,i,t] == qProd[l,i,t] / pL_l_i[l,i,t1]
 
-    # Total employment from households and the rest of the world meets labor demand.
-    pW[t=t1:T], qLSupplyHh[t] + qLSupplyRoW[t] == ∑(qL_l_i[l,i,t] for (l, i) in labor_l_i)
+    nL_l_i[l=labor_type, i=industry, t=t1:T], qL_l_i[l,i,t] == nL_l_i[l,i,t] * qL2nL[t]
+
+    # Total persons from households and the rest of the world meet labor demand.
+    pW[t=t1:T], nLSupplyHh[t] + nLSupplyRoW[t] == ∑(nL_l_i[l,i,t] for (l, i) in labor_l_i)
+
+    vW[t=t1:T], vW[t] == pW[t] * qL2nL[t]
 
     pL_l_i[l=labor_type, i=industry, t=t1:T], pL_l_i[l,i,t] == pW[t] + ntL_l_i[l,i,t]
 
     pProd[l=labor_type, i=industry, t=t1:T], pProd[l,i,t] == pL_l_i[l,i,t] / pL_l_i[l,i,t1]
 
-    vWages_i[i=industry, t=t1:T], vWages_i[i,t] == pW[t] * ∑(qL_l_i[l,i,t] for l in labor_type)
+    vWages_i[i=industry, t=t1:T], vWages_i[i,t] == vW[t] * ∑(nL_l_i[l,i,t] for l in labor_type)
 
     vWages[t=t1:T], vWages[t] == ∑(vWages_i[i,t] for i in industry)
 
-    vHhWages[t=t1:T], vHhWages[t] == pW[t] * qLSupplyHh[t]
+    vHhWages[t=t1:T], vHhWages[t] == vW[t] * nLSupplyHh[t]
 
-    vRoWNetWages[t=t1:T], vRoWNetWages[t] == pW[t] * qLSupplyRoW[t]
+    vRoWNetWages[t=t1:T], vRoWNetWages[t] == vW[t] * nLSupplyRoW[t]
   end
 end
 
@@ -108,9 +116,10 @@ function define_calibration()
   block = define_equations()
 
   @endo_exo_swap! block begin
-    qProd[l=labor_type, i=industry, t=t1], qL_l_i[l=labor_type, i=industry, t=t1]
-    qLSupplyHh[t1], vHhWages[t1]
-    qLSupplyRoW[t1], vRoWNetWages[t1]
+    qProd[l=labor_type, i=industry, t=t1], nL_l_i[l=labor_type, i=industry, t=t1]
+    qL2nL[t1], pW[t1]
+    nLSupplyHh[t1], vHhWages[t1]
+    nLSupplyRoW[t1], vRoWNetWages[t1]
   end
 
   return block

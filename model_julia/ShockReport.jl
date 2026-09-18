@@ -12,7 +12,7 @@ import GREU.Capital: capital_k_i, pK_k_i, qK_k_i
 import GREU.FixedBasePriceAggregates: pGDP, qGDP, qGVA
 import GREU.InputOutput: industry, pI, pX, qI, qX, qY_i
 import GREU.Intermediates: intermediate_m_i, qM_m_i
-import GREU.Labor: labor_l_i, pW, qL_l_i
+import GREU.Labor: labor_l_i, vW, nL_l_i
 
 # ============================================================================
 # Figures
@@ -44,8 +44,8 @@ function level_figures(kind, baseline, years, shock_year, label, color)
     push!(figures, "Real exports" => @plot(:an, 100 * qX / $(baseline[qX[first_year]]); options...))
   end
   if kind in (:labor_supply, :labour_supply)
-    labor = @evalexpr :n baseline sum(qL_l_i[l,i,first_year] for (l, i) in labor_l_i)
-    push!(figures, "Employment" => @plot(:an, 100 * sum(qL_l_i[l,i,:] for (l, i) in labor_l_i) / $labor; options...))
+    labor = @evalexpr :n baseline sum(nL_l_i[l,i,first_year] for (l, i) in labor_l_i)
+    push!(figures, "Employment" => @plot(:an, 100 * sum(nL_l_i[l,i,:] for (l, i) in labor_l_i) / $labor; options...))
     return figures[[1, 5, 2, 3, 4]]
   end
   return kind == :export ? figures[[1, 4, 2, 3]] : figures
@@ -59,8 +59,8 @@ function response_figures(baseline, years, shock_year, color)
     "Activity — Real gross value added" => @plot(qGVA; options...),
     "Final demand — Real exports" => @plot(qX; options...),
     "Final demand — Real investment" => @plot(qI; options...),
-    "Labour — Employment" => @plot(sum(qL_l_i[l,i,:] for (l, i) in labor_l_i); options...),
-    "Labour — Nominal wage" => @plot(pW; options...),
+    "Labour — Employment" => @plot(sum(nL_l_i[l,i,:] for (l, i) in labor_l_i); options...),
+    "Labour — Nominal wage" => @plot(vW; options...),
     "Capital — Stock" => @plot(sum(qK_k_i[k,i,:] for (k, i) in capital_k_i); options...),
     # Hold the capital mix at the baseline value in each year for both sources.
     "Capital — User cost" => @plot(

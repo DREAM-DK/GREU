@@ -14,7 +14,7 @@ import GREU.FixedBasePriceAggregates: pGDP, qGDP, qGVA, vGDP
 import GREU.GrowthInflationAdjustment: fq, gq
 import GREU.InputOutput: industry, pI, pX, qC, qG, qI, qINV, qM, qX, qY_i, vC, vY_i
 import GREU.Intermediates: vM_i
-import GREU.Labor: labor_l_i, pL_l_i, pW, qL_l_i, vWages_i
+import GREU.Labor: labor_l_i, pL_l_i, vW, nL_l_i, qL_l_i, vWages_i
 import GREU.PhillipsCurve: rLEmploymentGap, rWInflation
 import GREU.SectorAccounts: sector, vFinPosition_s_f, vNetFinAssets, vNetFinTransactions
 import GREU.Time
@@ -73,6 +73,7 @@ function industry_values(i)
     vVA=vY .- plot_values(@evalexpr vM_i[i,:]),
     vWages=plot_values(@evalexpr vWages_i[i,:]),
     pI=plot_values(@evalexpr pI),
+    nL=factor_sum(l -> @evalexpr(nL_l_i[l,i,:]), l),
     qL=factor_sum(l -> @evalexpr(qL_l_i[l,i,:]), l),
     vL=factor_sum(l -> @evalexpr(pL_l_i[l,i,:] * qL_l_i[l,i,:]), l),
     qK=factor_sum(k -> @evalexpr(qK_k_i[k,i,:]), k),
@@ -95,6 +96,8 @@ function industry_series()
       description="Output less intermediate input spend, before production taxes.", panels=panels(v -> v.vVA)),
     (block="Production", label="Output price", column="pY",
       description="Basic-price output price.", panels=panels(v -> v.vY ./ v.qY)),
+    (block="Labour", label="Persons", column="nL",
+      description="Persons, summed over labour types.", panels=panels(v -> v.nL)),
     (block="Labour", label="Employment", column="qL",
       description="Labour in efficiency units, summed over labour types.", panels=panels(v -> v.qL)),
     (block="Labour", label="Labour share", column="wL/VA",
@@ -140,6 +143,7 @@ aggregate_panels() = [Panel(name, values) for (name, values) in [
   "Exports" => @evalexpr(qX),
   "Imports" => @evalexpr(qM),
   "Gross output" => @evalexpr(sum(qY_i[i,:] for i in industry)),
+  "Persons" => @evalexpr(sum(nL_l_i[l,i,:] for (l, i) in labor_l_i)),
   "Employment" => @evalexpr(sum(qL_l_i[l,i,:] for (l, i) in labor_l_i)),
   "Capital stock" => @evalexpr(sum(qK_k_i[k,i,:] for (k, i) in capital_k_i)),
   "Investment" => @evalexpr(sum(qI_k_i[k,i,:] for (k, i) in capital_k_i)),
@@ -149,7 +153,7 @@ aggregate_panels() = [Panel(name, values) for (name, values) in [
   "Investment rate" => @evalexpr([sum(qI_k_i[k,i,t] for (k, i) in capital_k_i) /
     (sum(qK_k_i[k,i,t-1] for (k, i) in capital_k_i) / fq) for t in default_periods()]),
   "GDP price level" => @evalexpr(pGDP),
-  "Wage" => @evalexpr(pW),
+  "Wage" => @evalexpr(vW),
   "Investment price level" => @evalexpr(pI),
   "Export price level" => @evalexpr(pX),
 ]]

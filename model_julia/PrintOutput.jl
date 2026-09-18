@@ -11,9 +11,9 @@ using SquareModels: load, select_axes, @evalexpr, @prt,
 import GREU: Settings, model
 import GREU.Capital: capital_k_i, pK_k_i, qK_k_i
 import GREU.Government: vGovPrimaryBalance, vGovPrimaryExpenditure, vGovPrimaryRevenue
-import GREU.IndustrySectors: qL_s
+import GREU.IndustrySectors: nL_s
 import GREU.InputOutput: pC, pM, qM
-import GREU.Labor: pW
+import GREU.Labor: vW
 import GREU.SectorAccounts: vNetFinAssets
 import GREU.Time: t
 
@@ -30,9 +30,9 @@ PrimaryBalance = vGovPrimaryBalance
 PrimaryRevenue = vGovPrimaryRevenue
 PrimaryExpense = vGovPrimaryExpenditure
 GovNetFinAssets = vNetFinAssets[:Gov,:]
-GovEmployment = qL_s[:Gov,:]
-PrivEmployment = reduce(.+, (qL_s[s,:] for (s,) in select_axes(qL_s, 1))) .- GovEmployment
-RealWage = pW ./ pC
+GovEmployment = nL_s[:Gov,:]
+PrivEmployment = reduce(.+, (nL_s[s,:] for (s,) in select_axes(nL_s, 1))) .- GovEmployment
+RealWage = vW ./ pC
 
 report = @evalexpr (
   qGDP, qC, qI, qK, qG, qX, qM,

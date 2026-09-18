@@ -263,7 +263,7 @@ function build_industry_sector_shares()
     purchaser_use = read_cells(purchaser_use_file, "qPurchaserUse_p_u"),
     margins = read_cells(margin_file, "qMarginBundle_p_u"),
     product_taxes = read_cells(product_tax_file, "vntProduct_p_u"),
-    labor = read_cells(labor_file, "qL_l_i"),
+    labor = read_cells(labor_file, "nL_l_i"),
     payroll = read_cells(labor_file, "vWages_i"),
     production_taxes = read_cells(production_file, "vntProduction_i"),
   )
