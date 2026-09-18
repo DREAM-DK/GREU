@@ -117,7 +117,7 @@ function define_calibration()
 
   @endo_exo_swap! block begin
     qProd[l=labor_type, i=industry, t=t1], nL_l_i[l=labor_type, i=industry, t=t1]
-    qL2nL[t1], pW[t1]
+    qL2nL[t1], vW[t1]
     nLSupplyHh[t1], vHhWages[t1]
     nLSupplyRoW[t1], vRoWNetWages[t1]
   end
