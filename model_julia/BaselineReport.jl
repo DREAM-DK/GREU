@@ -52,8 +52,7 @@ struct Panel
   change::Union{Nothing,Float64}
   target::Union{Missing,Float64}
   function Panel(name, values, years; window=10, target=missing)
-    y = Float64[ismissing(v) ? NaN : v for v in report_values(values)]
-    @assert length(y) == length(years) "Series '$name' needs one value for each report year."
+    y = LabeledSeries(years, report_values(values), String(name)).y
     return new(String(name), y, closing_change(years, y; window), report_value(target))
   end
 end
@@ -167,12 +166,7 @@ aggregate_panels(years) = [Panel(name, values, years) for (name, values) in [
 # Figures and table
 # ============================================================================
 function reference_axes!(axis, series, targets)
-  if isempty(series) || all(isnan, only(series).y)
-    hidedecorations!(axis)
-    hidespines!(axis)
-    text!(axis, 0.5, 0.5; text="no data", space=:relative, align=(:center, :center))
-    return
-  end
+  all(s -> all(isnan, s.y), series) && return
   line = only(series)
   hlines!(axis, [opening(line.y)]; color=(colors().DarkGray, 0.3), linestyle=:dash)
   target = targets[line.label]
@@ -184,7 +178,7 @@ function panel_figure(panels, years; show_change=false)
   titles = [show_change ? "$(p.name)  $(format_percent(p.change))" : replace(p.name, " over " => "\nover ") for p in panels]
   return with_dream_theme(:slide_small) do
     plotseries([LabeledSeries(years, p.y, p.name) for p in panels];
-      layout=isempty(panels) ? :overlay : :trellis, columns=3, panel_titles=titles,
+      layout=:trellis, columns=3, panel_titles=titles,
       ylabel="", legend=false, decorate=(ax, lines) -> reference_axes!(ax, lines, targets))
   end
 end
