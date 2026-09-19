@@ -1,25 +1,13 @@
-# Set basic output prices from marginal cost and one markup per industry.
-# Take the marginal markup as given and calibrate the fixed cost of Production.
-# Hold the fixed cost exogenous in a shock, so it changes no marginal decision.
+# Set output prices from marginal cost and one markup per industry.
 # Use the same industry price for each product that the industry supplies.
 module Pricing
 
 using SquareModels
 import ..InputOutput: industry, pY_i
-import ..IndustrySectors: rIndustrySector_s_i_data
 import ..Production: pMarginalCost_i, qFixedCost_i
-import ..Settings: calibration_year
 import ..model
 import ..Time: t, t1, T
-import ..Tags: ForecastConstant
-
-# The accounts report one cost per industry and cannot separate the marginal
-# markup from the fixed cost. This assumption sets the markup. The fixed cost of
-# each industry then takes the rest of the gap between price and unit cost.
-const marginal_markup = 0.20
-const mostly_public_industry = sort([
-  i for i in industry if rIndustrySector_s_i_data[:Gov,i,calibration_year] > 0.5
-])
+import ..Tags: ForecastConstant, DynamicCalibration
 
 # ============================================================================
 # Variables
@@ -27,22 +15,24 @@ const mostly_public_industry = sort([
 const PricingTag = Tag(:Pricing)
 
 @variables model :: PricingTag begin
-  rMarkup_i[i=industry, t=t] :: ForecastConstant, "Marginal markup rate by industry."
+  rMarkup_i[i=industry, t=t] :: (ForecastConstant, DynamicCalibration), "Marginal markup rate by industry."
 end
 
 # ============================================================================
 # Assign data
 # ============================================================================
 function assign_data!(db)
-  db[rMarkup_i] .= marginal_markup
-  db[rMarkup_i[mostly_public_industry,:]] .= 0.0
   return nothing
 end
 
 # ============================================================================
 # Starting values
 # ============================================================================
+# The dynamic calibration reads the static markup here and uses it as its exogenous
+# value. A price below unit cost gives a negative markup, which we take to zero.
 function set_starting_values!(start_values)
+  markup = start_values[rMarkup_i[:,t1]]
+  markup .= [isnothing(rate) ? rate : max(rate, 0.0) for rate in markup]
   return nothing
 end
 
@@ -62,8 +52,16 @@ end
 function define_calibration()
   block = define_equations()
 
-  @endo_exo_swap! block begin
-    pMarginalCost_i[:,t1], pY_i[:,t1]
+  if T == t1
+    @endo_exo_swap! block begin
+      rMarkup_i[:,t1], pY_i[:,t1]
+    end
+  end
+
+  if T > t1
+    @endo_exo_swap! block begin
+      pMarginalCost_i[:,t1], pY_i[:,t1]
+    end
   end
 
   return block

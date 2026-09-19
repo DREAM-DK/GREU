@@ -90,7 +90,7 @@ end
 
 @variables model :: ProductionTag begin
   uProd[n=node, i=industry, t=t; haskey(parent, (n,i))] :: (ForecastConstant, DynamicCalibration), "CES share by child node and industry."
-  qTop2qY[i=industry, t=t] :: ForecastConstant, "Marginal top-nest use per unit of output by industry."
+  qTop2qY[i=industry, t=t] :: (ForecastConstant, DynamicCalibration), "Marginal top-nest use per unit of output by industry."
   eProd[n=node, i=industry; haskey(production_nesting[i], n)], "Substitution elasticity by production nest and industry."
 end
 
@@ -108,6 +108,15 @@ function assign_data!(db)
   # All factor prices are calibrated to 1.0
   db[pProd] .= 1
 
+  return nothing
+end
+
+# ============================================================================
+# Starting values
+# ============================================================================
+# The static calibration holds the fixed cost at zero and solves the markup instead.
+function set_starting_values!(start_values)
+  start_values[qFixedCost_i[:,t1]] .= 0.0
   return nothing
 end
 
@@ -149,10 +158,14 @@ function define_calibration()
 
     qTop2qY[:,t1],
     pProd[(n,i,t) in keys(pProd); n == topNest[i] && t == t1]
+  end
 
-    # We use an exogenous marginal markup and calibrate an ad-hoc fixed cost to match cost/output in data
-    # A model of firm entry can endogenize the fixed cost.
-    qFixedCost_i[:,t1], pMarginalCost_i[:,t1]
+  # Dynamic calibration only. The markup from the static calibration sets the marginal
+  # cost, so qTop2qY takes the marginal use and the fixed cost takes the rest.
+  if T > t1
+    @endo_exo_swap! block begin
+      qFixedCost_i[:,t1], pMarginalCost_i[:,t1]
+    end
   end
 
   return block
