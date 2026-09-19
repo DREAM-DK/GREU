@@ -1,6 +1,6 @@
 # Define capital stocks, investment, and the capital user cost.
 # Split fixed investment across assets and input-output products.
-# Normalize each capital leaf price in the calibration year.
+# Normalize each capital leaf price in the base year.
 # Exclude capital adjustment costs, which enter through a zero-cost hook.
 module Capital
 
@@ -19,7 +19,7 @@ import ..ProductionSettings:
   capital_type,
   production_data_dir
 import ..model
-import ..Time: t, t1, T
+import ..Time: t, t1, T, tBase
 import ..Tags: DynamicCalibration, ForecastConstant, ForecastZero
 
 # ============================================================================
@@ -83,7 +83,7 @@ function assign_data!(db)
   fill_cells!(db, qI_p_k, qI_p_k_data)
   fill_cells!(db, qI_k, qI_k_data)
   fill_cells!(db, pI_k, pI_k_data)
-  db[[pProd[k,i,t1] for (k,i) in capital_k_i]] .= 1.0
+  db[[pProd[k,i,tBase] for (k,i) in capital_k_i]] .= 1.0
   db[rHurdleRate_i] .= 0.10
   return nothing
 end
@@ -107,11 +107,11 @@ end
 function define_equations()
   return @block model begin
     # One-year time to build. Installed stock sets the shadow price.
-    pProd[k=capital_type, i=industry, t=t1:T], qProd[k,i,t] == pK_k_i[k,i,t1] * qK_k_i[k,i,t-1]/fq
+    pProd[k=capital_type, i=industry, t=t1:T], qProd[k,i,t] == pK_k_i[k,i,tBase] * qK_k_i[k,i,t-1]/fq
 
     # Expected user cost sets lagged capital. A positive shock raises investment.
     qK_k_i[k=capital_type, i=industry, t=t1:(T-1)],
-    pProd[k,i,t+1] * pK_k_i[k,i,t1] == pK_k_i[k,i,t+1] - pInvestmentShock_k_i[k,i,t+1]
+    pProd[k,i,t+1] * pK_k_i[k,i,tBase] == pK_k_i[k,i,t+1] - pInvestmentShock_k_i[k,i,t+1]
 
     # Terminal condition
     qK_k_i[k=capital_type, i=industry, t=T; T > t1], qK_k_i[k,i,t] == qK_k_i[k,i,t-1]
