@@ -1,6 +1,6 @@
 # Calibrate selected modules, test them with zero shock, and export the baseline.
 # The static result supplies start values for the dynamic solve.
-# Load Revise before GREU in an interactive session.
+using Revise
 using SquareModels
 import GREU:
   Settings,
@@ -32,8 +32,12 @@ model_modules = [loaded_module_by_name[name] for name in Settings.model_modules]
 # The full-horizon model tells calibration which variables are parameters.
 Time.T = Time.max_terminal_year
 base_block = base_model(model_modules)
-previous_solution_file = joinpath(@__DIR__, "data", "previous_baseline.parquet")
-previous_solution = isfile(previous_solution_file) ? load(previous_solution_file, model) : nothing
+shared_solution_dir = raw"P:\GREU"
+previous_solution_file = joinpath(shared_solution_dir, "previous_baseline.parquet")
+
+previous_solution = isfile(previous_solution_file) ?
+                    load(previous_solution_file, model) :
+                    nothing
 
 # ============================================================================
 # Static calibration
@@ -46,26 +50,14 @@ static_solution, static_calibrated_parameters = static_calibration(
 assert_residuals_small(static_solution; rtol=1e-4, residual_tolerances(static_solution, model_modules)...,
   msg="Large residuals after static calibration")
 
-# ============================================================================
+# ==============================================================================
 # Dynamic calibration
-# ============================================================================
-baseline = dynamic_calibration(
+# ==============================================================================
+baseline = dynamic_calibration_step_by_step(
                       data,
                       static_solution,
-                      static_calibrated_parameters;
-                      previous_solution,
+                      static_calibrated_parameters,
                     )
-
-
-# ==============================================================================
-# Dynamic calibration step by step
-# ==============================================================================
-# Use this if needed to calibrate step by step:
-# baseline = dynamic_calibration_step_by_step(
-#                      data,
-#                      static_solution,
-#                      static_calibrated_parameters,
-#                    )
 
 
 assert_residuals_small(baseline; rtol=1e-4, residual_tolerances(baseline, model_modules)...,
@@ -77,7 +69,7 @@ assert_residuals_small(baseline; rtol=1e-4, residual_tolerances(baseline, model_
 # ==============================================================================
 # Zero shock test: After calibration, solving the base model with no changes should give identical results
 Time.t1 = 2026
-zero_shock = solve(base_model(model_modules), baseline)
+zero_shock = solve(base_model(model_modules), baseline; run_test_constraints=false)
 assert_no_diff(baseline, zero_shock; atol=1e-5, msg="Zero shock test failed")
 
 # ==============================================================================

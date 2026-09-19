@@ -22,6 +22,19 @@ import GREU.Time
 # ============================================================================
 # Panels
 # ============================================================================
+const a21_names = Dict(
+  :iA => "Agriculture, forestry, fishing", :iB => "Mining and quarrying",
+  :iC => "Manufacturing", :iD => "Electricity, gas, steam", :iE => "Water, waste",
+  :iF => "Construction", :iG => "Wholesale and retail trade", :iH => "Transport and storage",
+  :iI => "Accommodation and food", :iJ => "Information and communication",
+  :iK => "Finance and insurance", :iL => "Real estate",
+  :iM => "Professional, scientific, technical", :iN => "Administrative and support",
+  :iO => "Public administration and defence", :iP => "Education", :iQ => "Health and social work",
+  :iR => "Arts and recreation", :iS => "Other services", :iT => "Households as employers",
+  :iU => "Extraterritorial organisations",
+)
+industry_row_label(i) = haskey(a21_names, i) ? "$i · $(a21_names[i])" : string(i)
+
 # Keep gaps distinct from invalid numeric results until the plot is built.
 report_value(::Union{Nothing,Missing}) = missing
 function report_value(value::Real)
@@ -206,7 +219,8 @@ function screening_table(series; color_scale=5.0)
   data = hcat(changes, [isfinite(v) ? v : nothing for v in largest])[order, :]
   return report_table(data;
     column_labels=[[[s.block for s in series]; "Maximum"], [[s.column for s in series]; "Max"]],
-    merge_column_label_cells=:auto, stubhead_label="Industry", row_labels=string.(industry[order]),
+    merge_column_label_cells=:auto, stubhead_label="Industry",
+    row_labels=industry_row_label.(collect(industry)[order]),
     format=format_percent, shade_scale=color_scale,
     shade=(data, i, j) -> data[i, j] === nothing ? nothing : abs(data[i, j]))
 end
