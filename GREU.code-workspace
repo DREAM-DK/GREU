@@ -16,7 +16,6 @@
 		},
 	],
 	"settings": {
-		"julia.environmentPath": "${workspaceFolder}",
 		"editor.codeActionsOnSave": {},
 		"editor.tabSize": 2,
 		"search.useIgnoreFiles": false,

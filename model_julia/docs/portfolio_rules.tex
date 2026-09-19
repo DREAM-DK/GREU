@@ -1,0 +1,414 @@
+% Portfolio rules in the GREU financial block.
+% Describes the position rules for each sector and instrument.
+% Explains the accounting concepts the rules depend on.
+% Compile with lualatex.
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fontspec}
+\setmainfont{Latin Modern Roman}
+\setmonofont{DejaVu Sans Mono}[Scale=MatchLowercase]
+
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{fancyvrb}
+\usepackage{parskip}
+\usepackage{amsmath}
+\usepackage[hidelinks]{hyperref}
+
+% Long code identifiers in running text cannot hyphenate. Give the paragraph
+% builder a little slack rather than let a line run into the margin.
+\emergencystretch=2em
+
+\newenvironment{code}[1]
+  {\par\vspace{0.4em}\noindent\texttt{\footnotesize #1}\par\vspace{-0.2em}
+   \VerbatimEnvironment\begin{Verbatim}[fontsize=\scriptsize,frame=leftline,framesep=6pt,xleftmargin=6pt]}
+  {\end{Verbatim}\vspace{0.2em}}
+
+\title{Portfolio rules in the GREU financial block}
+\author{}
+\date{18 September 2026}
+
+\begin{document}
+\maketitle
+
+This note describes how the model decides what each sector holds and what each
+sector owes. It covers households, corporations, government, and the rest of the
+world.
+
+Section~\ref{sec:concepts} explains the accounting the rules rest on. Skip it if
+you already know the European System of Accounts (ESA) and the growth adjustment.
+The rest of the note reports the rules as they stand in the code, and then states
+what follows from them.
+
+\section{The concepts}
+\label{sec:concepts}
+
+\subsection{Sectors, instruments, and sides}
+\label{sec:sectors}
+
+The model splits the economy into five \emph{institutional sectors}: households
+(\texttt{:Hh}), non-financial corporations (\texttt{:NonFinCorp}), financial
+corporations (\texttt{:FinCorp}), government (\texttt{:Gov}), and the rest of the
+world (\texttt{:RoW}). The last one holds everything outside the country.
+
+Financial claims come in two \emph{instruments}. \texttt{:Debt} is lending and
+borrowing. \texttt{:Equity} is ownership, mostly shares. Each sector can be on
+either \emph{side} of an instrument. \texttt{:Assets} means it owns the claim,
+\texttt{:Liab} means it owes it.
+
+Five sectors, two instruments, two sides gives up to twenty stock cells per year.
+The variable \texttt{vFinPosition\_s\_f[s,f,al,t]} holds them, and a mask keeps
+only the cells the source reports in the calibration year.
+
+Every claim has two ends. If a firm issues a share, some sector owns it. So for
+each instrument, the total across sectors on the asset side must equal the total on
+the liability side. This is the accounting fact behind the market clearing
+equations in Section~\ref{sec:row}.
+
+\subsection{How a stock changes}
+\label{sec:stockchange}
+
+A financial stock can change for three separate reasons, and ESA keeps them apart.
+
+A \emph{transaction} is a purchase or a sale. Someone acts. If a household buys
+shares for 100, its equity assets rise by 100 through a transaction.
+
+A \emph{revaluation} is a price change on what the sector already holds. Nobody
+acts. If the shares a household already owns gain 5 percent, its equity assets rise
+through a revaluation. This is the capital gain.
+
+An \emph{other change in volume} covers reclassification, write-off, and similar
+bookkeeping events. The model takes these as given from the source.
+
+The closing stock is the opening stock plus all three:
+
+\begin{code}{SectorAccounts.jl:244--246}
+vFinTransactions_f[s=sector, f=fin_instrument, al=ass_liab, t=t1:T],
+vFinPosition_s_f[s,f,al,t] == vFinPosition_s_f[s,f,al,t-1]/fv + vFinTransactions_f[s,f,al,t]
+                            + vFinReval_s_f[s,f,al,t] + vOtherChangesInVolume_f[s,f,al,t]
+\end{code}
+
+The distinction matters for this note. A sector that never transacts in an
+instrument can still see its stock move, through revaluation alone. Three sectors
+do exactly that with equity.
+
+\subsection{Growth adjusted units and \texttt{fv}}
+
+The model does not carry money values in current prices. It divides them by a
+trend, so that a variable on a balanced growth path is flat. The trend factors are
+in \texttt{GrowthInflationAdjustment.jl}: real growth \texttt{gq = 0.01},
+inflation \texttt{gp = 0.02}, and the value factor
+\[
+  f_v = (1+g_q)(1+g_p) = 1.01 \times 1.02 = 1.0302 .
+\]
+
+So a value that is constant in these units grows 3.02 percent a year in money
+terms. When an equation needs last year's stock measured in this year's units, it
+writes \texttt{position[t-1]/fv}. That is what the division by \texttt{fv} in the
+identity above means. It is not a discount and not a depreciation.
+
+This has one consequence used throughout the note. In a steady state every
+adjusted variable is flat. If a stock is still drifting at the end of the horizon,
+the model has not reached a steady state, whatever the level says.
+
+\subsection{Net financial assets}
+
+A sector's \emph{net financial assets} are its total financial assets less its
+total financial liabilities, in \texttt{vNetFinAssets[s,t]}. It is the sector's net
+financial position: positive means it is a net creditor, negative a net debtor.
+
+Because every liability is somebody's asset, the sum of net financial assets over
+all five sectors must be zero. The model does not impose that as an equation. It
+checks it, which Section~\ref{sec:row} returns to.
+
+Net financial assets build up over time from the sector's own budget. If a sector
+spends less than it earns, it lends the difference, and its net position improves.
+
+\subsection{What a ``rule'' is, and what a ``residual'' is}
+
+The model is a \emph{square} system: it has as many equations as unknowns, and it
+solves them together. Each unknown needs exactly one equation to pin it down.
+
+For each stock cell, the identity in Section~\ref{sec:stockchange} already determines the
+transaction, and the revaluation identity determines the revaluation. So one more
+equation is needed to determine the \emph{position} itself. That equation is what
+this note calls the \textbf{rule} for the cell. In a
+\texttt{SquareModels.@block}, the variable named before the comma is the one the
+equation determines.
+
+A sector module therefore never sets a transaction directly. It sets the position,
+and the transaction comes out of the identity. This is why a rule that freezes a
+stock has to be written as \texttt{vFinTransactions\_f == 0}. That is how you say
+``this position moves only by revaluation''.
+
+One cell per sector usually gets a special rule: its own balance sheet identity,
+net financial assets equals assets less liabilities. That cell is not chosen by
+anything. It absorbs whatever the other cells and the sector's net financial
+assets leave over. This note calls it the \textbf{residual}, or the sector's
+\textbf{plug}. Which cell a sector plugs with is a modelling choice, and it carries
+most of the economics.
+
+\subsection{Unit root}
+\label{sec:unitroot}
+
+A \emph{unit root} means a shock never fades. Take a stock that moves only by
+revaluation, at rate $r$, in adjusted units:
+\[
+  V_t = \frac{V_{t-1}}{f_v} + r\,\frac{V_{t-1}}{f_v}
+      = \frac{1+r}{f_v}\,V_{t-1}.
+\]
+For the adjusted stock to hold still, the model needs $r = f_v - 1$. Then the
+coefficient on $V_{t-1}$ is exactly one. Nothing pulls the stock back toward
+anything. A one-off hit of any size stays forever, and it compounds: a smaller
+stock earns a smaller revaluation, which keeps the stock smaller.
+
+This is the property that the companion note
+\texttt{wealth\_channel\_diagnosis.md} measures for household equity.
+
+\section{The rules, all of them}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}lXXXX@{}}
+\toprule
+Sector & Debt assets & Debt liabilities & Equity assets & Equity liabilities \\
+\midrule
+\texttt{:Hh}
+  & \textbf{residual}
+  & partial adjustment toward a share of consumption
+  & share of all issued equity
+  & no rule, exogenous \\
+\addlinespace
+\texttt{:NonFinCorp}
+  & share of operating expenses
+  & share of the capital replacement value
+  & share of own equity liabilities
+  & \textbf{residual} \\
+\addlinespace
+\texttt{:FinCorp}
+  & share of all debt liabilities
+  & share of own equity liabilities
+  & zero transactions
+  & \textbf{residual} \\
+\addlinespace
+\texttt{:Gov}
+  & zero transactions
+  & \textbf{residual}
+  & zero transactions, both sides
+  & zero transactions, both sides \\
+\addlinespace
+\texttt{:RoW}
+  & market clearing
+  & share of FinCorp debt assets
+  & market clearing
+  & share of domestic equity assets \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Each sector's net financial assets come from its own budget identity plus
+accumulation, independently of these rules.
+
+\section{Households}
+
+The budget identity gives net financial transactions, and accumulation gives net
+financial assets. Within that total, debt liabilities follow a \emph{partial
+adjustment} rule. The stock does not jump to its target. It closes a fixed
+fraction of the gap each year, here one fifth, since
+\texttt{rHhDebtAdjustment = 0.2}. The target is a fixed share of consumption, which
+stands in for borrowing capacity.
+
+\begin{code}{Households.jl:78--81}
+# Debt liabilities move part of the way to a fixed share of consumption.
+vFinPosition_s_f[s=[:Hh], f=[:Debt], al=[:Liab], t=t1:T],
+vFinPosition_s_f[s,f,al,t] == (1 - rHhDebtAdjustment[t]) * vFinPosition_s_f[s,f,al,t-1]/fv
+                          + rHhDebtAdjustment[t] * rHhDebtLiabilities2Consumption[t] * vC[t]
+\end{code}
+
+That is the only rule in the whole financial block with its own dynamics. Every
+other rule holds within the year.
+
+Households plug with debt assets. Extra saving becomes lending, which the code
+comment states plainly. Equity was frozen at zero transactions until the change
+described in the diagnosis note.
+
+\texttt{mHhReturn} needs care, because the name suggests more than the equation
+does.
+
+\begin{code}{Households.jl:88--90}
+# Extra household saving is held in debt assets.
+mHhReturn[t=t1:T],
+mHhReturn[t] * vFinPosition_s_f[:Hh,:Debt,:Assets,t-1]/fv == vFinIncome_s_f[:Hh,:Debt,:Assets,t]
+\end{code}
+
+It \textbf{reports} a number: interest received divided by the opening stock of
+debt assets. It does not allocate anything. It enters the consumption Euler
+equation, which is the condition that sets how much a household saves by comparing
+utility today against utility tomorrow. So this return affects how much households
+save, never what they hold it in.
+
+\section{Corporations}
+
+Both corporate sectors work the same way. Three cells follow fixed ratios, and
+equity liabilities are the residual.
+
+The ratios differ by what each sector is for. Non-financial corporations tie debt
+liabilities to the replacement value of their capital, which is what a firm can
+borrow against, and debt assets to operating expenses, which is working cash.
+Financial corporations tie debt assets to all debt liabilities in the economy,
+because lending to everyone else is their business, and their own debt liabilities
+to their own equity liabilities, which is a \emph{leverage} ratio: how much a bank
+borrows for each unit of its own capital.
+
+The consequence is that \textbf{firm value is not a price, it is a plug}. Equity
+liabilities absorb whatever the rest of the balance sheet leaves over. The present
+value equation in \texttt{FinancialRevaluations.jl}, lines 85 to 88, does not set
+the level of firm value. It sets the revaluation rate, and the equity issuance flow
+absorbs the difference.
+
+This shows up as a contradiction that is worth naming. \emph{Tobin's q} is the
+market value of a firm divided by the replacement cost of its capital. When $q$
+rises, capital is cheap next to what the market pays for it, so a firm should
+invest more. In the productivity shock runs, investment rose while firm value fell
+against the capital stock, so $q$ fell. Those two cannot both be right.
+
+\section{Government}
+
+Government differs from the other sectors in two ways.
+
+First, it does not build its net financial transactions from a detailed budget
+identity. It takes the net lending or borrowing balance directly. The
+\emph{primary} balance is revenue less expenditure with interest left out. Adding
+interest received and subtracting interest paid turns it into the full balance.
+
+\begin{code}{Government.jl:102--105}
+vGovBalance[t=t1:T],
+vGovBalance[t] == vGovPrimaryBalance[t] + vFinIncome_s_f[:Gov,:Debt,:Assets,t] - vFinIncome_s_f[:Gov,:Debt,:Liab,t]
+
+vNetFinTransactions[s=[:Gov], t=t1:T], vNetFinTransactions[s,t] == vGovBalance[t]
+\end{code}
+
+Second, it has the least portfolio freedom of any sector. Three of its four cells
+are frozen. The equity rule covers both sides in one equation, because it is
+written with \texttt{al=ass\_liab} instead of a single side.
+
+\begin{code}{Government.jl:113--123}
+# Gov neither buys nor sells equity; existing equity stocks follow non-transaction changes.
+vFinPosition_s_f[s=[:Gov], f=[:Equity], al=ass_liab, t=t1:T], vFinTransactions_f[s,f,al,t] == 0
+
+# Gov does not buy or sell debt assets; the stock follows non-transaction changes.
+vFinPosition_s_f[s=[:Gov], f=[:Debt], al=[:Assets], t=t1:T], vFinTransactions_f[s,f,al,t] == 0
+
+# Gov debt liabilities are residual given net financial assets.
+vFinPosition_s_f[s=[:Gov], f=[:Debt], al=[:Liab], t=t1:T],
+vNetFinAssets[s,t] == ∑(vFinPosition_s_f[s,f,:Assets,t] for f in fin_instrument)
+                    - ∑(vFinPosition_s_f[s,f,:Liab,t] for f in fin_instrument)
+\end{code}
+
+Government plugs with debt liabilities. That is the right economics: a government
+finances a deficit by issuing debt. It also means that holding net financial assets
+fixed in a scenario holds gross debt close to fixed as well, because the asset side
+cannot respond. A closure on net worth is therefore nearly a closure on gross debt.
+
+Two consequences follow for scenario work.
+
+The interest feedback is live. Debt interest enters the balance above, and the
+balance drives the debt stock through accumulation. More debt raises interest,
+which worsens the balance, which raises debt again. The core has no tax or spending
+rule to break that loop, so a shock that moves the primary balance puts debt on a
+permanent drift and no stock settles. Each scenario needs its own fiscal closure.
+The productivity shock runs used one: hold \texttt{vNetFinAssets[:Gov]} on its
+baseline path and let \texttt{tHhIncome} carry the adjustment.
+
+Government equity has the same unit root as the other frozen equity cells. The
+position is small, and a closure that fixes net financial assets makes the debt
+side absorb it, so it does not drive results. It is listed for completeness.
+
+\section{Rest of the world}
+\label{sec:row}
+
+The rest of the world is the residual counterparty in both markets. Two of its
+four cells are \emph{market clearing} conditions. Market clearing here is not a
+behavioural statement about prices. It is the accounting fact from Section~\ref{sec:sectors}:
+every claim has a holder, so total assets must equal total liabilities for each
+instrument. The rest of the world takes whatever the domestic sectors do not.
+
+\begin{code}{RestOfWorld.jl:52--67}
+# Debt assets clear the debt market. RoW is residual lender.
+vFinPosition_s_f[s=[:RoW], f=[:Debt], al=[:Assets], t=t1:T],
+vFinPosition_s_f[s,f,al,t] == ∑(vFinPosition_s_f[s2,:Debt,:Liab,t] for s2 in sector)
+                          - ∑(vFinPosition_s_f[s2,:Debt,:Assets,t] for s2 in sector if s2 != :RoW)
+
+# Debt liabilities are a fixed share of FinCorp debt assets.
+vFinPosition_s_f[s=[:RoW], f=[:Debt], al=[:Liab], t=t1:T],
+vFinPosition_s_f[s,f,al,t] == rForeignDebt[t] * vFinPosition_s_f[:FinCorp,:Debt,:Assets,t]
+
+# Equity liabilities are a fixed share of domestic equity assets.
+vFinPosition_s_f[s=[:RoW], f=[:Equity], al=[:Liab], t=t1:T],
+vFinPosition_s_f[s,f,al,t] ==
+  rForeignEquity[t] * ∑(vFinPosition_s_f[s2,:Equity,:Assets,t] for s2 in sector if s2 != :RoW)
+
+# RoW equity assets clear the equity market.
+vFinPosition_s_f[s=[:RoW], f=[:Equity], al=[:Assets], t=t1:T],
+∑(vFinPosition_s_f[s2,:Equity,:Assets,t] for s2 in sector) ==
+  ∑(vFinPosition_s_f[s2,:Equity,:Liab,t] for s2 in sector)
+\end{code}
+
+Read the two ratio rules as the foreign share of each portfolio.
+\texttt{rForeignDebt} is the part of bank lending that goes abroad.
+\texttt{rForeignEquity} is the foreign part of resident equity portfolios.
+
+Now note what keeps the block square. Every other sector uses its own balance sheet
+identity as the rule for one cell. The rest of the world does not. Its four
+positions come from the four rules above, and its net financial assets come from
+its budget identity, all independently. So for this one sector the identity is not
+imposed. It is only checked:
+
+\begin{code}{SectorAccounts.jl:277--278}
+@test_constraint("Summing vNetFinAssets over sectors"; atol=30.0, rtol=1e-6)
+vNetFinAssets[s=[:Hh], t=t1:T], ∑(vNetFinAssets[s,t] for s in sector) == 0.0
+\end{code}
+
+A \texttt{@test\_constraint} is not solved. It is verified after the solve, within
+the tolerance given. This one is the only check that the financial block adds up
+across sectors, so it is not decoration. In the productivity shock runs the sum came
+out near $-1$ MEUR against a tolerance of 30, so it holds. The identity for the
+rest of the world is then implied by the other four sectors plus the two clearing
+conditions, rather than assumed.
+
+\section{What this means}
+
+\textbf{There is no portfolio choice anywhere in the model}, in the economic sense.
+No sector compares the return on debt against the return on equity and shifts
+between them. Every allocation is a fixed ratio, a frozen stock, or an accounting
+residual. For a model built on national accounts that is a defensible starting
+point, but it should be said out loud, because the variable names suggest
+otherwise.
+
+\textbf{The choice of plug carries the economics.} Households plug with debt
+assets, so extra saving becomes lending. Government plugs with debt liabilities, so
+a deficit becomes debt. Both are sound. Both corporate sectors plug with equity
+liabilities, so anything the balance sheet leaves over lands on their market value.
+That is the one we would question, because it makes firm value an accounting
+residual instead of a price.
+
+\textbf{Frozen equity brings a unit root.} Equity sits under a zero transaction
+rule for households before the change, for financial corporations, and for
+government on both sides. By Section~\ref{sec:unitroot} each of those stocks has a unit root, so
+any hit to its revaluation rate is permanent. Consumption in this model depends on
+the level of household financial wealth, so that permanence reaches the real
+economy. The diagnosis note gives the measurements.
+
+\textbf{One loop deserves attention when reading a shock.} Household equity assets
+are part of domestic equity assets. Domestic equity assets form the base for
+\texttt{rForeignEquity}, which sets the equity liability of the rest of the world.
+That liability is part of total issued equity, which is what the household share
+rule reads. So the rule feeds back into its own right hand side within the same
+year. The strength of that feedback, its \emph{loop gain}, is near
+\texttt{rHhEquityAssets2TotalEquity} times \texttt{rForeignEquity}. Two small
+shares multiplied give a small number, so the loop is weak, but it is not zero, and
+it sits in the same year as the two clearing conditions.
+
+\end{document}
