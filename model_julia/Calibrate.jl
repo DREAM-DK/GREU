@@ -39,7 +39,7 @@ previous_solution = isfile(previous_solution_file) ? load(previous_solution_file
 # Static calibration
 # ============================================================================
 static_solution, static_calibrated_parameters = static_calibration(
-                      data, 
+                      data,
                       base_block
                     )
 
@@ -76,8 +76,8 @@ assert_residuals_small(baseline; rtol=1e-4, residual_tolerances(baseline, model_
 # Tests
 # ==============================================================================
 # Zero shock test: After calibration, solving the base model with no changes should give identical results
-baseline[filter(resid -> isnothing(baseline[resid]), residuals(base_block))] .= 0.0
-zero_shock = solve(base_block, baseline)
+Time.t1 = 2026
+zero_shock = solve(base_model(model_modules), baseline)
 assert_no_diff(baseline, zero_shock; atol=1e-5, msg="Zero shock test failed")
 
 # ==============================================================================
