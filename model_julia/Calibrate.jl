@@ -17,10 +17,11 @@ import GREU.Calibration:
 
 include("helper.jl") # Helper functions
 
+const output_dir = joinpath(@__DIR__, "..", "Output")
+
 # ==============================================================================
 # Data
 # ==============================================================================
-
 data = assign_data!(ModelDictionary(model))
 @log_time adjust_growth_inflation!(data)
 
@@ -32,12 +33,6 @@ model_modules = [loaded_module_by_name[name] for name in Settings.model_modules]
 # The full-horizon model tells calibration which variables are parameters.
 Time.T = Time.max_terminal_year
 base_block = base_model(model_modules)
-shared_solution_dir = raw"P:\GREU"
-previous_solution_file = joinpath(shared_solution_dir, "previous_baseline.parquet")
-
-previous_solution = isfile(previous_solution_file) ?
-                    load(previous_solution_file, model) :
-                    nothing
 
 # ============================================================================
 # Static calibration
@@ -53,16 +48,16 @@ assert_residuals_small(static_solution; rtol=1e-4, residual_tolerances(static_so
 # ==============================================================================
 # Dynamic calibration
 # ==============================================================================
-baseline = dynamic_calibration_step_by_step(
-                      data,
-                      static_solution,
-                      static_calibrated_parameters,
-                    )
+previous_solution_path = joinpath(output_dir, "previous_baseline.parquet")
+previous_solution = isfile(previous_solution_path) ? load(previous_solution_path, model) : nothing
 
+# Step by step is used only when no previous solution is available as start values.
+baseline = isnothing(previous_solution) ?
+  dynamic_calibration_step_by_step(data, static_solution, static_calibrated_parameters) :
+  dynamic_calibration(data, static_solution, static_calibrated_parameters; previous_solution)
 
 assert_residuals_small(baseline; rtol=1e-4, residual_tolerances(baseline, model_modules)...,
   msg="Large residuals after dynamic calibration")
-
 
 # ==============================================================================
 # Tests
@@ -75,7 +70,6 @@ assert_no_diff(baseline, zero_shock; atol=1e-5, msg="Zero shock test failed")
 # ==============================================================================
 # Export baseline
 # ==============================================================================
-const output_dir = joinpath(@__DIR__, "..", "Output")
 mkpath(output_dir)
 unload(joinpath(output_dir, "baseline.parquet"), baseline)
 
