@@ -323,7 +323,7 @@ function factor_tax_tables(taxes, subsidies)
     for row in eachrow(subsidies)
   )
   qK = read_cells(production_capital_file, "qK_k_i")
-  qL = read_cells(production_labor_file, "qL_l_i")
+  qL = read_cells(production_labor_file, "nL_l_i")
   qM = read_cells(production_intermediate_file, "qM_m_i")
   capital_cells = Set(
     (k, i)

@@ -9,7 +9,6 @@ import ..InputOutput: vC
 import ..Labor: vHhWages
 import ..model
 import ..SectorAccounts:
-  fin_instrument,
   vNetFinTransactions,
   vNetFinIncome,
   vFinIncome_s_f,
@@ -17,8 +16,8 @@ import ..SectorAccounts:
   vNonProducedAssetAcquisitions,
   vI_s,
   vGrossOpSurplusMixedIncome,
+  vFinPosition,
   vFinPosition_s_f,
-  vFinTransactions_f,
   vNetFinAssets
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
@@ -36,6 +35,7 @@ end
 @variables model :: (HouseholdsTag, ForecastConstant) begin
   rHhDebtLiabilities2Consumption[t], "Target household debt liability ratio relative to consumption."
   rHhDebtAdjustment[t], "Annual household debt adjustment rate."
+  rHhEquity2Assets[t], "Household equity share of financial assets."
 end
 
 # ============================================================================
@@ -65,8 +65,9 @@ function define_equations()
                               - vNonProducedAssetAcquisitions[s,t]
 
     # Portfolio.
-    # Equity assets have no transactions.
-    vFinPosition_s_f[s=[:Hh], f=[:Equity], al=[:Assets], t=t1:T], vFinTransactions_f[s,f,al,t] == 0
+    # Equity assets are a fixed share of household financial assets.
+    vFinPosition_s_f[s=[:Hh], f=[:Equity], al=[:Assets], t=t1:T],
+    vFinPosition_s_f[s,f,al,t] == rHhEquity2Assets[t] * vFinPosition[s,al,t]
 
     # Debt liabilities move part of the way to a fixed share of consumption.
     vFinPosition_s_f[s=[:Hh], f=[:Debt], al=[:Liab], t=t1:T],
@@ -75,8 +76,7 @@ function define_equations()
 
     # Hh debt assets are residual given net financial assets.
     vFinPosition_s_f[s=[:Hh], f=[:Debt], al=[:Assets], t=t1:T],
-    vNetFinAssets[s,t] == ∑(vFinPosition_s_f[s,f,:Assets,t] for f in fin_instrument)
-                        - ∑(vFinPosition_s_f[s,f,:Liab,t] for f in fin_instrument)
+    vNetFinAssets[s,t] == vFinPosition[s,:Assets,t] - vFinPosition[s,:Liab,t]
 
     # Extra household saving is held in debt assets.
     mHhReturn[t=t1:T],
@@ -92,6 +92,7 @@ function define_calibration()
 
   @endo_exo_swap! block begin
     rHhDebtLiabilities2Consumption[t1], vFinPosition_s_f[:Hh,:Debt,:Liab,t1]
+    rHhEquity2Assets[t1], vFinPosition_s_f[:Hh,:Equity,:Assets,t1]
   end
 
   return block

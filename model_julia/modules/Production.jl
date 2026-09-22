@@ -24,7 +24,7 @@ const capital_file = joinpath(production_data_dir, "production_capital.csv")
 const labor_file = joinpath(production_data_dir, "production_labor.csv")
 const intermediate_product_split_file = joinpath(production_data_dir, "production_intermediate_product_split.csv")
 const qK_k_i_data = read_cells(capital_file, "qK_k_i")
-const qL_l_i_data = read_cells(labor_file, "qL_l_i")
+const nL_l_i_data = read_cells(labor_file, "nL_l_i")
 const qM_p_m_i_data = read_cells(intermediate_product_split_file, "qM_p_m_i")
 const qM_m_i_data = read_cells(intermediate_product_split_file, "qM_m_i")
 
@@ -38,7 +38,7 @@ const capital_k_i = Set(
     get(qK_k_i_data, (k, i, calibration_year-1), 0.0) > cell_tolerance
 )
 const labor_l_i = Set(
-  (l, i) for ((l, i, year), value) in qL_l_i_data
+  (l, i) for ((l, i, year), value) in nL_l_i_data
   if i in industry && year == calibration_year && value > cell_tolerance
 )
 const intermediate_product_m_i = Set(
@@ -90,7 +90,7 @@ end
 
 @variables model :: ProductionTag begin
   uProd[n=node, i=industry, t=t; haskey(parent, (n,i))] :: (ForecastConstant, DynamicCalibration), "CES share by child node and industry."
-  qTop2qY[i=industry, t=t] :: ForecastConstant, "Marginal top-nest use per unit of output by industry."
+  qTop2qY[i=industry, t=t] :: (ForecastConstant, DynamicCalibration), "Marginal top-nest use per unit of output by industry."
   eProd[n=node, i=industry; haskey(production_nesting[i], n)], "Substitution elasticity by production nest and industry."
 end
 
@@ -108,6 +108,15 @@ function assign_data!(db)
   # All factor prices are calibrated to 1.0
   db[pProd] .= 1
 
+  return nothing
+end
+
+# ============================================================================
+# Starting values
+# ============================================================================
+# The static calibration holds the fixed cost at zero and solves the markup instead.
+function set_starting_values!(start_values)
+  start_values[qFixedCost_i[:,t1]] .= 0.0
   return nothing
 end
 
@@ -149,10 +158,14 @@ function define_calibration()
 
     qTop2qY[:,t1],
     pProd[(n,i,t) in keys(pProd); n == topNest[i] && t == t1]
+  end
 
-    # We use an exogenous marginal markup and calibrate an ad-hoc fixed cost to match cost/output in data
-    # A model of firm entry can endogenize the fixed cost.
-    qFixedCost_i[:,t1], pMarginalCost_i[:,t1]
+  # Dynamic calibration only. The markup from the static calibration sets the marginal
+  # cost, so qTop2qY takes the marginal use and the fixed cost takes the rest.
+  if T > t1
+    @endo_exo_swap! block begin
+      qFixedCost_i[:,t1], pMarginalCost_i[:,t1]
+    end
   end
 
   return block

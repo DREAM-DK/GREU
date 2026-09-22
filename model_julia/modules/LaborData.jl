@@ -63,8 +63,8 @@ function refresh_labor_data!(employment = fetch_employment_table(), payroll = fe
   mkpath(dir)
   employment.l .= only(labor_type)
   CSV.write(joinpath(dir, "production_labor.csv"), vcat(
-    long_format(:qL_l_i, employment, [:l, :industry, :year]),
-    long_format(:qLSupply, sum_by(employment, [:year]), [:year]),
+    long_format(:nL_l_i, employment, [:l, :industry, :year]),
+    long_format(:nLSupply, sum_by(employment, [:year]), [:year]),
     long_format(:vWages_i, payroll, [:industry, :year]),
   ))
   return nothing

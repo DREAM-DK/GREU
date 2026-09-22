@@ -1,5 +1,5 @@
 # Define intermediate use, its product split, and production-tree links.
-# Add production tax to the user cost and normalize its calibration price.
+# Add production tax to the user cost and normalize its base-year price.
 # Keep intermediate input spend before production tax for the accounts.
 # Exclude capital, labor, and CES nest equations.
 module Intermediates
@@ -18,7 +18,7 @@ import ..Production:
   qM_p_m_i_data, qM_m_i_data, intermediate_product_m_i, intermediate_m_i
 import ..ProductionSettings: intermediate_type
 import ..model
-import ..Time: t, t1, T
+import ..Time: t, t1, T, tBase
 import ..Tags: ForecastConstant
 
 # ============================================================================
@@ -77,7 +77,9 @@ end
 # Starting values
 # ============================================================================
 function set_starting_values!(start_values)
-  start_values[qProd[intermediate_type,:,:]] .= start_values[qM_m_i][intermediate_type,:,:]
+  # Keep calibrated production quantities; seed only missing leaves.
+  q_start = start_values[qProd[intermediate_type,:,:]]
+  q_start .= ifelse.(isnothing.(q_start), start_values[qM_m_i][intermediate_type,:,:], q_start)
   start_values[ntM_m_i] .= 0
   return nothing
 end
@@ -87,7 +89,7 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    qM_m_i[m=intermediate_type, i=industry, t=t1:T], qM_m_i[m,i,t] == qProd[m,i,t] / pM_m_i[m,i,t1]
+    qM_m_i[m=intermediate_type, i=industry, t=t1:T], qM_m_i[m,i,t] == qProd[m,i,t] / pM_m_i[m,i,tBase]
 
     qM_p_m_i[p=product, m=intermediate_type, i=industry, t=t1:T],
     qM_p_m_i[p,m,i,t] == rIntermediateProductShare[p,m,i,t] * qM_m_i[m,i,t]
@@ -103,7 +105,7 @@ function define_equations()
     vM_i[i,t] == ∑(vPurchaserUse_p_u[p,i,t] for p in product)
 
     pProd[m=intermediate_type, i=industry, t=t1:T],
-    pProd[m,i,t] == pM_m_i[m,i,t] / pM_m_i[m,i,t1]
+    pProd[m,i,t] == pM_m_i[m,i,t] / pM_m_i[m,i,tBase]
   end
 end
 

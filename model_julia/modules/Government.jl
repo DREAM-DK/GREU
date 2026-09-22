@@ -13,10 +13,10 @@ import ..IndustrySectors: vM_s, vWages_s
 import ..model
 import ..SectorAccounts:
   ass_liab,
-  fin_instrument,
   sector,
   vConsumptionFixedCapital_s,
   vFinIncome_s_f,
+  vFinPosition,
   vFinPosition_s_f,
   vFinTransactions_f,
   vGovBalance,
@@ -119,8 +119,7 @@ function define_equations()
 
     # Gov debt liabilities are residual given net financial assets.
     vFinPosition_s_f[s=[:Gov], f=[:Debt], al=[:Liab], t=t1:T],
-    vNetFinAssets[s,t] == ∑(vFinPosition_s_f[s,f,:Assets,t] for f in fin_instrument)
-                        - ∑(vFinPosition_s_f[s,f,:Liab,t] for f in fin_instrument)
+    vNetFinAssets[s,t] == vFinPosition[s,:Assets,t] - vFinPosition[s,:Liab,t]
   end
 end
 

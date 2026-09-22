@@ -44,14 +44,13 @@ import ..TaxesSettings:
   production_tax_input_map
 import ..model
 import ..SectorAccounts:
-  fin_instrument,
   vtCorp,
   vtDirect,
   vtHhIncome,
   vtRoWIncome,
   vtCap,
   vtCorp_s,
-  vFinPosition_s_f,
+  vFinPosition,
   vGrossOpSurplusMixedIncome
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant, ForecastZero
@@ -224,7 +223,7 @@ function define_equations()
 
     # Capital-transfer taxes. Household financial assets provide the simple base.
     vtCap[t=t1:T],
-    vtCap[t] == tCap[t] * ∑(vFinPosition_s_f[:Hh,f,:Assets,t] for f in fin_instrument)
+    vtCap[t] == tCap[t] * vFinPosition[:Hh,:Assets,t]
 
     # Product taxes and subsidies. Only origin leaves enter flow accounts.
     vtProduct_p_u_o[p=product, u=use, o=origin, t=t1:T],

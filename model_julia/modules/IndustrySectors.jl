@@ -10,7 +10,7 @@ import ..DataUtils: fill_cells!, read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fq
 import ..InputOutput: industry, vINV, vY_i
 import ..Intermediates: vM_i
-import ..Labor: qL_l_i, vWages_i
+import ..Labor: nL_l_i, vWages_i
 import ..model
 import ..Taxes:
   production_subsidy_class,
@@ -93,8 +93,8 @@ end
   uINV_s[(s,t)=vY_s], "Sector share of inventory investment."
 end
 
-@variables model :: (IndustrySectorsTag, GrowthAdjusted) begin
-  qL_s[(s,t)=vY_s], "Employees by sector."
+@variables model :: IndustrySectorsTag begin
+  nL_s[(s,t)=vY_s], "Persons by sector."
 end
 
 # ============================================================================
@@ -140,8 +140,8 @@ function define_equations()
     vWages_s[s=sector, t=t1:T],
     vWages_s[s,t] == ∑(rIndustrySector_s_i[s,i,t] * vWages_i[i,t] for i in industry)
 
-    qL_s[s=sector, t=t1:T],
-    qL_s[s,t] == ∑(rIndustrySector_s_i[s,i,t] * qL_l_i[l,i,t] for l in labor_type, i in industry)
+    nL_s[s=sector, t=t1:T],
+    nL_s[s,t] == ∑(rIndustrySector_s_i[s,i,t] * nL_l_i[l,i,t] for l in labor_type, i in industry)
 
     vntProduction_s[s=sector, t=t1:T],
     vntProduction_s[s,t] ==

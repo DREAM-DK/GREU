@@ -63,7 +63,7 @@ baseline = dynamic_calibration(
 
 Press `Shift+Enter`.
 
-This rebuilds the equation blocks and reruns the static and dynamic calibration with the updated code. 
+This rebuilds the equation blocks and reruns the static and dynamic calibration with the updated code.
 
 ### After changing data assignment
 
@@ -100,4 +100,4 @@ After restarting Julia, activate the GREU environment and run `Calibrate.jl` fro
 
 During development, it is sufficient to run only the sections needed to test the current change.
 
-Before committing or sharing the changes, select the entire `Calibrate.jl` file with `Ctrl+A` and run it with `Shift+Enter`. This checks the complete calibration, residual tests, zero-shock test, baseline export and reports. Before pushing a change to Julia-implementation please update the solution in shared folder using save_solution_as_previous.md in the data folder. 
+Before committing or sharing the changes, select the entire `Calibrate.jl` file with `Ctrl+A` and run it with `Shift+Enter`. This checks the complete calibration, residual tests, zero-shock test, baseline export and reports. Use `Output/save_solution_as_previous.cmd` to keep the local previous solution. Use `Output/copy_previous_to_pdrive.cmd` to share it on `P:\GREU`, and `Output/copy_previous_from_pdrive.cmd` to copy the shared file back.
