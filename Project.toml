@@ -22,10 +22,10 @@ SquareModels = "8f61fe60-8cc6-11ec-3043-2171a73045bd"
 [sources]
 CONOPT = {url = "https://github.com/GAMS-dev/CONOPT.jl"}
 DREAMMakieTheme = {url = "https://github.com/DREAM-DK/DREAMMakieTheme"}
-SquareModels = {url = "https://github.com/MartinBonde/SquareModels"}
 
 [compat]
 CairoMakie = "0.15"
 DataFramesMeta = "0.15.6"
 Revise = "3.17.1"
+SquareModels = "0.9"
 julia = "1.12"
