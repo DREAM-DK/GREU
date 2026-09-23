@@ -276,10 +276,6 @@ $Group+ G_flat_after_last_data_year
   tCap[t]
 ;
 
-$Group+ G_zero_after_last_data_year
-  vGovRevGovCorpCorrection[t]
-  vGovDeprCorrection[t]
-;
 
 $Group+ G_zero_t1_after_static_calibration
   vLumpsum[t]
