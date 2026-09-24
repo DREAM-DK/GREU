@@ -5,62 +5,46 @@ module ShockReport
 
 using CairoMakie
 using DREAMMakieTheme
-using SquareModels: ModelDictionary, @plot, @evalexpr,
+using SquareModels: ModelDictionary, @plot,
   set_default_source!, set_default_periods!, set_default_operator!
 
 import GREU.Capital: capital_k_i, pK_k_i, qK_k_i
 import GREU.FixedBasePriceAggregates: pGDP, qGDP, qGVA
 import GREU.InputOutput: industry, pI, pX, qI, qX, qY_i
 import GREU.Intermediates: intermediate_m_i, qM_m_i
-import GREU.Labor: labor_l_i, pW, qL_l_i
+import GREU.Labor: labor_l_i, vW, nL_l_i
 
 # ============================================================================
 # Figures
 # ============================================================================
-
-function shock_axes!(axis, series, shock_year; response=false)
-  @assert all(s -> all(isfinite, s.y), series) "Shock paths must be finite; percentage responses need a nonzero baseline."
-  reference_line!(axis, shock_year)
-  if response
-    hlines!(axis, [0]; color=(colors().DarkGray, 0.3))
-  end
-end
-
-function level_figures(kind, baseline, years, shock_year, label, color)
-  first_year = first(years)
-  capital = @evalexpr :n baseline sum(qK_k_i[k,i,first_year] for (k, i) in capital_k_i)
+function level_figures(baseline, years, shock_title, extra_figures)
+  set_default_operator!([:i, :an])
   options = (
-    labels=[label, "Baseline"],
-    styles=[(color=color,), (color=colors().DarkGray, linestyle=:dash)],
-    ylabel="Index (baseline $first_year = 100)",
-    decorate=(ax, series) -> shock_axes!(ax, series, shock_year),
+    labels=[shock_title, "Baseline"],
+    alternating_dash=true,
+    ylabel="Index ($(years[1]) = 100)",
+    decorate=(ax, series) -> reference_line!(ax, years[1]),
   )
-  figures = [
-    "Real GDP" => @plot(:an, 100 * qGDP / $(baseline[qGDP[first_year]]); options...),
-    "Real investment" => @plot(:an, 100 * qI / $(baseline[qI[first_year]]); options...),
-    "Capital stock" => @plot(:an, 100 * sum(qK_k_i[k,i,:] for (k, i) in capital_k_i) / $capital; options...),
+  extras = [figure(baseline, years, options) for figure in extra_figures]
+  return [
+    "Real GDP" => @plot(qGDP; options...),
+    extras...,
+    "Real investment" => @plot(qI; options...),
+    "Capital stock" => @plot(sum(qK_k_i[k,i,:] for (k, i) in capital_k_i); options...),
   ]
-  if kind in (:export, :labor_supply, :labour_supply)
-    push!(figures, "Real exports" => @plot(:an, 100 * qX / $(baseline[qX[first_year]]); options...))
-  end
-  if kind in (:labor_supply, :labour_supply)
-    labor = @evalexpr :n baseline sum(qL_l_i[l,i,first_year] for (l, i) in labor_l_i)
-    push!(figures, "Employment" => @plot(:an, 100 * sum(qL_l_i[l,i,:] for (l, i) in labor_l_i) / $labor; options...))
-    return figures[[1, 5, 2, 3, 4]]
-  end
-  return kind == :export ? figures[[1, 4, 2, 3]] : figures
 end
 
-function response_figures(baseline, years, shock_year, color)
-  options = (; legend=false, color,
-    decorate=(ax, series) -> shock_axes!(ax, series, shock_year; response=true))
+function response_figures(baseline, years)
+  set_default_operator!(:q)
+  options = (; legend=false,
+    decorate=(ax, series) -> reference_line!(ax, years[1]))
   return [
     "Activity — Real GDP" => @plot(qGDP; options...),
     "Activity — Real gross value added" => @plot(qGVA; options...),
     "Final demand — Real exports" => @plot(qX; options...),
     "Final demand — Real investment" => @plot(qI; options...),
-    "Labour — Employment" => @plot(sum(qL_l_i[l,i,:] for (l, i) in labor_l_i); options...),
-    "Labour — Nominal wage" => @plot(pW; options...),
+    "Labour — Employment" => @plot(sum(nL_l_i[l,i,:] for (l, i) in labor_l_i); options...),
+    "Labour — Nominal wage" => @plot(vW; options...),
     "Capital — Stock" => @plot(sum(qK_k_i[k,i,:] for (k, i) in capital_k_i); options...),
     # Hold the capital mix at the baseline value in each year for both sources.
     "Capital — User cost" => @plot(
@@ -80,25 +64,20 @@ end
 
 """Write a DREAM HTML report. Set the session's source, periods, and operator for this shock."""
 function write_report(path::AbstractString, baseline::ModelDictionary, scenario::ModelDictionary;
-  periods, shock_year::Integer, kind::Symbol=:standard,
+  extra_figures=(), shock_title="", periods,
 )
   years = collect(periods)
-  @assert !isempty(years) "Shock report periods cannot be empty."
-  @assert shock_year in years "The shock year must be in the report periods."
   set_default_source!(baseline => scenario)
   set_default_periods!(years)
-  set_default_operator!(:q)
-  labor = kind in (:labor_supply, :labour_supply)
-  label = labor ? "Labour-supply shock" : "$(titlecase(replace(string(kind), "_" => " "))) shock"
-  color = labor ? colors().SMILE : colors().REFORM
   return with_dream_theme(:slide_large) do
     sections = [
-      report_section("Baseline and shock paths", level_figures(kind, baseline, years, shock_year, label, color);
-        description="Both lines use the baseline value in $(first(years)) as 100. This preserves anticipatory movements."),
-      report_section("Detailed model responses", response_figures(baseline, years, shock_year, color);
+      report_section("Baseline and shock paths",
+        level_figures(baseline, years, shock_title, extra_figures);
+        description="Each line uses its value in $(periods[1]) as 100."),
+      report_section("Detailed model responses", response_figures(baseline, years);
         description="Percentage deviations from the calibrated baseline."),
     ]
-    write_html_report(path, sections; title="$label report", subtitle="$(first(years))–$(last(years))")
+    write_html_report(path, sections; title="$shock_title report", subtitle="$(periods[1])–$(last(periods))")
   end
 end
 

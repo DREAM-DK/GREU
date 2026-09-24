@@ -7,7 +7,8 @@ include(joinpath(@__DIR__, "ConsumptionGroupsSettings.jl"))
 module ConsumptionGroups
 
 using SquareModels
-import ..ConsumptionGroupsSettings: consumption_nesting, product_by_consumption_group
+import ..ConsumptionGroupsSettings: full_consumption_nesting, product_by_consumption_leaf, consumption_leaf_by_product
+import ..ProductionSettings: prune_nesting
 import ..DataUtils: read_series
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutput:
@@ -33,6 +34,18 @@ const vHhConsumption_data = read_series(sector_accounts_file, "vHhConsumption", 
 # Indices
 # ============================================================================
 
+const consumption_product = sort(unique(p for (p, year) in keys(qC_p)))
+
+const active_product_by_consumption_leaf = Dict(
+  leaf => intersect(products, consumption_product)
+  for (leaf, products) in product_by_consumption_leaf
+)
+
+# Drop leaves without products at this resolution, and collapse a nest left with one child.
+const consumption_nesting = prune_nesting(
+  full_consumption_nesting,
+  Set(leaf for (leaf, products) in active_product_by_consumption_leaf if !isempty(products)),
+)
 const parent = Dict(
   child => nest
   for (nest, spec) in consumption_nesting
@@ -40,21 +53,10 @@ const parent = Dict(
 )
 const topNest = only(n for n in keys(consumption_nesting) if !haskey(parent, n))
 const node = sort(unique(
-  child
-  for spec in values(consumption_nesting)
-  for child in spec.children
+  v
+  for (n, spec) in consumption_nesting
+  for v in (n, spec.children...)
 ))
-const consumption_product = sort(unique(p for (p, year) in keys(qC_p)))
-
-const active_product_by_consumption_group = Dict(
-  group => intersect(products, consumption_product)
-  for (group, products) in product_by_consumption_group
-)
-const consumption_group_by_product = Dict(
-  p => group
-  for (group, products) in product_by_consumption_group
-  for p in products
-)
 
 # ============================================================================
 # Variables
@@ -72,10 +74,10 @@ end
 end
 
 @variables model :: ConsumptionGroupsTag begin
-  uCNode_a[a=node, t=t] :: ForecastConstant, "CES share by non-root consumption node."
-  uCProduct_p[(p,t)=qC_p] :: ForecastConstant, "Fixed product coefficient within its consumption group."
+  uCNode_a[a=node, t=t; haskey(parent, a)] :: ForecastConstant, "CES share by child node."
+  uCProduct_p[(p,t)=qC_p] :: ForecastConstant, "Fixed product coefficient within its leaf."
   uCTourist_p[(p,t)=qC_p] :: ForecastConstant, "Fixed product share of tourist consumption."
-  eC[n=collect(keys(consumption_nesting))], "Substitution elasticity by consumption nest."
+  eC[n=node; haskey(consumption_nesting, n)], "Substitution elasticity by consumption nest."
 end
 
 # ============================================================================
@@ -94,7 +96,7 @@ function assign_data!(db)
     db[qC_p[p,t1]] / source_product_total
     for (p,year) in keys(uCTourist_p)
   ]
-  db[eC] .= only(values(consumption_nesting)).elasticity
+  db[eC] .= [consumption_nesting[n].elasticity for n in node if haskey(consumption_nesting, n)]
 
   # Group prices set the quantity units for calibration.
   db[pCNode_a] .= 1.0
@@ -107,25 +109,29 @@ end
 
 function define_equations()
   return @block model begin
-    qCNode_a[a=node, t=t1:T],
+    qCNode_a[a=node, t=t1:T; haskey(parent, a)],
     qCNode_a[a,t] * pCNode_a[a,t]^eC[parent[a]] ==
-      uCNode_a[a,t] * qC[t] * pC[t]^eC[parent[a]]
+      uCNode_a[a,t] * qCNode_a[parent[a],t] * pCNode_a[parent[a],t]^eC[parent[a]]
 
-    pC[t=t1:T],
-    pC[t] * qC[t] == ∑(pCNode_a[a,t] * qCNode_a[a,t] for a in consumption_nesting[topNest].children)
+    pCNode_a[n=node, t=t1:T; haskey(consumption_nesting, n)],
+    pCNode_a[n,t] * qCNode_a[n,t] == ∑(pCNode_a[c,t] * qCNode_a[c,t] for c in consumption_nesting[n].children)
+
+    # Link the top of the tree to total consumption.
+    qCNode_a[a=node, t=t1:T; a == topNest], qCNode_a[a,t] == qC[t]
+    pC[t=t1:T], pC[t] == pCNode_a[topNest,t]
 
     # A leaf price values its fixed resident product bundle.
-    pCNode_a[g=node, t=t1:T],
+    pCNode_a[g=node, t=t1:T; !haskey(consumption_nesting, g)],
     pCNode_a[g,t] * qCNode_a[g,t] == ∑(
       pPurchaserUse_p_u[p,:C,t] * (qC_p[p,t] - qCTourist_p[p,t])
-      for p in active_product_by_consumption_group[g]
+      for p in active_product_by_consumption_leaf[g]
     )
 
     # Tourist demand uses a fixed product split outside the resident CES tree.
     qCTourist_p[p=consumption_product, t=t1:T],
     qCTourist_p[p,t] == uCTourist_p[p,t] * qCTourist[t]
     qC_p[p=consumption_product, t=t1:T],
-    qC_p[p,t] - qCTourist_p[p,t] == uCProduct_p[p,t] * qCNode_a[consumption_group_by_product[p],t]
+    qC_p[p,t] - qCTourist_p[p,t] == uCProduct_p[p,t] * qCNode_a[consumption_leaf_by_product[p],t]
 
     vCTourist[t=t1:T],
     vCTourist[t] == qCTourist[t] * ∑(
@@ -151,7 +157,7 @@ function define_calibration()
   end
 
   @endo_exo_swap! block begin
-    uCNode_a[:,t1], pCNode_a[:,t1]
+    uCNode_a[(a,t) in keys(uCNode_a); t == t1], pCNode_a[(a,t) in keys(uCNode_a); t == t1]
     uCProduct_p[:,t1], qC_p[:,t1]
     qCTourist[t1], vCTourist[t1]
   end

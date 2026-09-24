@@ -17,10 +17,11 @@ import GREU.Calibration:
 
 include("helper.jl") # Helper functions
 
+const output_dir = joinpath(@__DIR__, "..", "Output")
+
 # ==============================================================================
 # Data
 # ==============================================================================
-
 data = assign_data!(ModelDictionary(model))
 @log_time adjust_growth_inflation!(data)
 
@@ -31,64 +32,44 @@ model_modules = [loaded_module_by_name[name] for name in Settings.model_modules]
 
 # The full-horizon model tells calibration which variables are parameters.
 Time.T = Time.max_terminal_year
-module_blocks = @log_time "define_equations" Dict(m => m.define_equations() for m in model_modules)
-base_block = sum(copy(module_blocks[m]) for m in model_modules)
-shared_solution_dir = raw"P:\GREU"
-previous_solution_file = joinpath(shared_solution_dir, "previous_baseline.parquet")
-
-previous_solution = isfile(previous_solution_file) ?
-                    load(previous_solution_file, model) :
-                    nothing
+base_block = base_model(model_modules)
 
 # ============================================================================
 # Static calibration
 # ============================================================================
 static_solution, static_calibrated_parameters = static_calibration(
-                      data, 
+                      data,
                       base_block
                     )
 
 assert_residuals_small(static_solution; rtol=1e-4, residual_tolerances(static_solution, model_modules)...,
   msg="Large residuals after static calibration")
 
-# ============================================================================
+# ==============================================================================
 # Dynamic calibration
-# ============================================================================
-baseline = dynamic_calibration(
-                      data,
-                      static_solution,
-                      static_calibrated_parameters;
-                      previous_solution,
-                    )
-
-
 # ==============================================================================
-# Dynamic calibration step by step
-# ==============================================================================
-# Use this if needed to calibrate step by step:
-# baseline = dynamic_calibration_step_by_step(
-#                      data,
-#                      static_solution,
-#                      static_calibrated_parameters,
-#                    )
+previous_solution_path = joinpath(output_dir, "previous_baseline.parquet")
+previous_solution = isfile(previous_solution_path) ? load(previous_solution_path, model) : nothing
 
+# Step by step is used only when no previous solution is available as start values.
+baseline = isnothing(previous_solution) ?
+  dynamic_calibration_step_by_step(data, static_solution, static_calibrated_parameters) :
+  dynamic_calibration(data, static_solution, static_calibrated_parameters; previous_solution)
 
 assert_residuals_small(baseline; rtol=1e-4, residual_tolerances(baseline, model_modules)...,
   msg="Large residuals after dynamic calibration")
-
 
 # ==============================================================================
 # Tests
 # ==============================================================================
 # Zero shock test: After calibration, solving the base model with no changes should give identical results
-baseline[filter(resid -> isnothing(baseline[resid]), residuals(base_block))] .= 0.0
-zero_shock = solve(base_block, baseline)
+Time.t1 = 2026
+zero_shock = solve(base_model(model_modules), baseline; run_test_constraints=false)
 assert_no_diff(baseline, zero_shock; atol=1e-5, msg="Zero shock test failed")
 
 # ==============================================================================
 # Export baseline
 # ==============================================================================
-const output_dir = joinpath(@__DIR__, "..", "Output")
 mkpath(output_dir)
 unload(joinpath(output_dir, "baseline.parquet"), baseline)
 

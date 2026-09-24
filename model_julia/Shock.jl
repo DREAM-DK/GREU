@@ -2,7 +2,9 @@
 # To create another experiment, copy this file and change the marked settings
 # and shock definition below.
 using SquareModels
-import GREU: Settings, Time, model, loaded_module_by_name, base_model, Exports
+import GREU: Settings, Time, loaded_module_by_name, base_model, Exports, Labor
+import GREU.Labor: labor_l_i, nL_l_i
+import GREU.Time: T
 import GREU.Log: @log_time
 
 include("ShockReport.jl")
@@ -12,43 +14,31 @@ model_modules = [loaded_module_by_name[name] for name in Settings.model_modules]
 # ==============================================================================
 # Shock settings
 # ==============================================================================
-# Choose the first shocked year. A calendar year can also be entered directly.
-shock_year = Time.t1 + 5
-
-# Enter percentage shocks as decimal changes: 0.01 is +1% and -0.01 is -1%.
-shock_size = 0.01
-
-# Ending at Time.T makes the shock permanent. For a one-year shock, use
-# `shock_period = shock_year:shock_year` instead.
-shock_period = shock_year:Time.T
-
-# Start the report one year earlier to display anticipatory responses.
-report_period = (shock_year - 1):Time.T
-
-# Change the report type and file name when defining another shock. The report
-# has tailored overview figures for :export and :labor_supply; other symbols use
-# the standard overview figures.
-report_kind = :export
-report_file = "export_demand_shock_report.html"
+# Choose the first shocked year
+t1 = Time.t1 = 2026
 
 # Create residual variables before loading their calibrated values.
 block = base_model(model_modules)
-baseline = load(joinpath(@__DIR__, "..", "Output", "baseline.parquet"), model)
+baseline = load(joinpath(@__DIR__, "..", "Output", "baseline.parquet"), block.model)
 
 # ==============================================================================
-# Shock definition - replace this line to shock another exogenous variable
+# Shock definition
 # ==============================================================================
-# This example permanently increases foreign demand for direct exports by 1%.
 scenario = copy(baseline)
-scenario[Exports.qXMarket_p[:,shock_period]] .*= 1 + shock_size
+scenario[Labor.qL2nL[t1:T]] .*= 1.01 # replace this line to shock another exogenous variable
 @log_time solve!(block, scenario; run_test_constraints=false)
 
+# Report settings
+report_file = "shock_report.html"
+shock_title = "Labour productivity shock"
+extra_figures=[(_, _, options) -> "Employment" => @plot(sum(nL_l_i[l,i,:] for (l, i) in labor_l_i); options...)]
+
+# ==============================================================================
 # Write one HTML report for the solved scenario.
+# ==============================================================================
 shock_report = ShockReport.write_report(
-  joinpath(@__DIR__, "..", "Output", report_file),
-  baseline,
-  scenario;
-  periods=report_period,
-  shock_year,
-  kind=report_kind,
+  joinpath(@__DIR__, "..", "Output", report_file), baseline, scenario;
+  extra_figures,
+  shock_title,
+  periods=(t1-1):T,
 )

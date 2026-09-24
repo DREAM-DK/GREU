@@ -14,15 +14,14 @@ import GREU.FixedBasePriceAggregates: pGDP, qGDP, qGVA, vGDP
 import GREU.GrowthInflationAdjustment: fq, gq
 import GREU.InputOutput: industry, pI, pX, qC, qG, qI, qINV, qM, qX, qY_i, vC, vY_i
 import GREU.Intermediates: vM_i
-import GREU.Labor: labor_l_i, pL_l_i, pW, qL_l_i, vWages_i
+import GREU.Labor: labor_l_i, pL_l_i, vW, nL_l_i, qL_l_i, vWages_i
 import GREU.PhillipsCurve: rLEmploymentGap, rWInflation
 import GREU.SectorAccounts: sector, vFinPosition_s_f, vNetFinAssets, vNetFinTransactions
 import GREU.Time
 
 # ============================================================================
-# Series and diagnostics
+# Panels
 # ============================================================================
-
 const a21_names = Dict(
   :iA => "Agriculture, forestry, fishing", :iB => "Mining and quarrying",
   :iC => "Manufacturing", :iD => "Electricity, gas, steam", :iE => "Water, waste",
@@ -34,231 +33,247 @@ const a21_names = Dict(
   :iR => "Arts and recreation", :iS => "Other services", :iT => "Households as employers",
   :iU => "Extraterritorial organisations",
 )
-
-# Detailed industry codes are not necessarily present in the A*21 label map.
-# Keep those codes as readable row labels instead of failing the report.
 industry_row_label(i) = haskey(a21_names, i) ? "$i · $(a21_names[i])" : string(i)
 
-checked_values(::Nothing, name) = nothing
-report_number(::Nothing, name) = NaN
-function report_number(value::Real, name)
-  @assert isfinite(value) "Baseline series '$name' has invalid values."
+# Keep gaps distinct from invalid numeric results until the plot is built.
+report_value(::Union{Nothing,Missing}) = missing
+function report_value(value::Real)
+  @assert isfinite(value) "Baseline report values must be finite; use nothing for unassigned cells."
   return Float64(value)
 end
-checked_values(values, name) = report_number.(vec(Array(values)), Ref(name))
+report_values(x) = report_value.(collect(x))
 
-late_change(years, ::Nothing; window=10) = nothing
-function late_change(years, values; window=10)
-  @assert window > 0 "The closing window must be positive."
-  keep = findall(isfinite, values)
-  length(keep) < 2 && return nothing
-  years, values = years[keep], values[keep]
-  index = searchsortedfirst(years, last(years) - window)
-  (index == length(years) || iszero(values[index])) && return nothing
-  change = 100 * (last(values) / values[index] - 1)
+"""First reported value of a series."""
+opening(y) = first(filter(isfinite, y))
+
+"""Percentage change over the closing window. Blank without a usable start value."""
+function closing_change(years, y; window=10)
+  observed = findall(isfinite, y)
+  length(observed) < 2 && return nothing
+  reported, values = years[observed], y[observed]
+  start = searchsortedfirst(reported, last(reported) - window)
+  (start == length(reported) || iszero(values[start])) && return nothing
+  change = 100 * (last(values) / values[start] - 1)
   @assert isfinite(change) "The closing-window change must be finite."
   return change
 end
 
-function entry(name, values, years; window=10, target=nothing)
-  values = checked_values(values, name)
-  target === nothing || @assert isfinite(target) "The reference value must be finite."
-  return (; name, values, metric=late_change(years, values; window), target)
+"""One report line: values in model units, its closing-window change, and a reference level."""
+struct Panel
+  name::String
+  y::Vector{Float64}
+  change::Union{Nothing,Float64}
+  target::Union{Missing,Float64}
+  function Panel(name, values, years; window=10, target=missing)
+    y = LabeledSeries(years, report_values(values), String(name)).y
+    return new(String(name), y, closing_change(years, y; window), report_value(target))
+  end
 end
 
-# A missing factor type has no series. Missing observations stay blank.
+# ============================================================================
+# Industry series
+# ============================================================================
+# Sum a factor over the types an industry uses. An industry without that factor has no series.
+factor_sum(f, types, years) = isempty(types) ? fill(missing, length(years)) : sum(report_values(f(x)) for x in types)
+
+"""Values that several industry series share. A factor sum stays blank when the industry has no such type."""
 function industry_values(i, years)
   k = [k for (k, ind) in capital_k_i if ind == i]
   l = [l for (l, ind) in labor_l_i if ind == i]
-  first_year = first(years)
-  output = @evalexpr qY_i[i,:]
-  value_added = @evalexpr vY_i[i,:] - vM_i[i,:]
-  capital = isempty(k) ? nothing : @evalexpr sum(qK_k_i[k,i,:] for k in k)
-  investment = isempty(k) ? nothing : @evalexpr sum(qI_k_i[k,i,:] for k in k)
+  t0 = first(years)
+  vY = report_values(@evalexpr vY_i[i,:])
+  qKBase = sum((report_value(@evalexpr qK_k_i[k,i,t0]) for k in k); init=0.0)
+  vKDepr = sum((report_value(@evalexpr rKDepr_k_i[k,i,t0] * qK_k_i[k,i,t0]) for k in k); init=0.0)
   return (;
-    output, value_added,
-    output_price=@evalexpr(vY_i[i,:] / qY_i[i,:]),
-    employment=isempty(l) ? nothing : @evalexpr(sum(qL_l_i[l,i,:] for l in l)),
-    labor_share=@evalexpr(vWages_i[i,:] / (vY_i[i,:] - vM_i[i,:])),
-    labor_cost=isempty(l) ? nothing : @evalexpr(
-      sum(pL_l_i[l,i,:] * qL_l_i[l,i,:] for l in l) / sum(qL_l_i[l,i,:] for l in l)),
-    capital, capital_output=isempty(k) ? nothing : @evalexpr(sum(qK_k_i[k,i,:] for k in k) / qY_i[i,:]),
-    capital_cost=isempty(k) ? nothing : @evalexpr(
-      sum(pK_k_i[k,i,:] * qK_k_i[k,i,first_year] for k in k) / sum(qK_k_i[k,i,first_year] for k in k)),
-    investment,
-    investment_rate=isempty(k) ? nothing : @evalexpr([
-      sum(qI_k_i[k,i,t] for k in k) / (sum(qK_k_i[k,i,t-1] for k in k) / fq) for t in years]),
-    investment_value=isempty(k) ? nothing : @evalexpr(sum(qI_k_i[k,i,:] for k in k) * pI),
-    investment_target=isempty(k) ? nothing : @evalexpr(
-      sum(rKDepr_k_i[k,i,first_year] * qK_k_i[k,i,first_year] for k in k) /
-      sum(qK_k_i[k,i,first_year] for k in k) + gq),
+    qY=report_values(@evalexpr qY_i[i,:]),
+    vY,
+    vVA=vY .- report_values(@evalexpr vM_i[i,:]),
+    vWages=report_values(@evalexpr vWages_i[i,:]),
+    pI=report_values(@evalexpr pI),
+    nL=factor_sum(l -> @evalexpr(nL_l_i[l,i,:]), l, years),
+    qL=factor_sum(l -> @evalexpr(qL_l_i[l,i,:]), l, years),
+    vL=factor_sum(l -> @evalexpr(pL_l_i[l,i,:] * qL_l_i[l,i,:]), l, years),
+    qK=factor_sum(k -> @evalexpr(qK_k_i[k,i,:]), k, years),
+    qKOpen=factor_sum(k -> @evalexpr([qK_k_i[k,i,t-1]/fq for t in years]), k, years),
+    qI=factor_sum(k -> @evalexpr(qI_k_i[k,i,:]), k, years),
+    # Hold the capital mix at the first reported year, so only the user cost moves.
+    vKMix=factor_sum(k -> @evalexpr(pK_k_i[k,i,:] * qK_k_i[k,i,t0]), k, years) ./ qKBase,
+    rKDepr=isempty(k) ? missing : vKDepr / qKBase,
   )
 end
 
 function industry_series(years; window=10)
   data = industry_values.(industry, Ref(years))
-  function series(block, label, column, description, field; targets=fill(nothing, length(industry)))
-    entries = [entry(String(i), getproperty(d, field), years; window, target)
-      for (i, d, target) in zip(industry, data, targets)]
-    return (; block, label, column, description, entries)
-  end
+  panels(value, target=v -> missing) =
+    [Panel(i, value(v), years; window, target=target(v)) for (i, v) in zip(industry, data)]
   return [
-    series("Production", "Gross output", "qY", "Real gross output by industry.", :output),
-    series("Production", "Value added", "VA", "Output less intermediate input spend, before production taxes.", :value_added),
-    series("Production", "Output price", "pY", "Basic-price output price.", :output_price),
-    series("Labour", "Employment", "qL", "Labour in efficiency units, summed over labour types.", :employment),
-    series("Labour", "Labour share", "wL/VA", "Wages over value added.", :labor_share),
-    series("Labour", "Labour user cost", "pL", "Quantity-weighted user cost of labour.", :labor_cost),
-    series("Capital", "Capital stock", "qK", "Capital stock, summed over capital types.", :capital),
-    series("Capital", "Capital-output ratio", "K/Y", "Capital over gross output.", :capital_output),
-    series("Capital", "Capital user cost", "pK", "User cost with the capital mix held at the first reported year.", :capital_cost),
-    series("Investment", "Investment", "qI", "Gross fixed investment, summed over capital types.", :investment),
-    series("Investment", "Investment rate", "I/K", "Investment over opening capital. The dotted line marks depreciation plus trend growth.",
-      :investment_rate; targets=getproperty.(data, :investment_target)),
-    series("Investment", "Investment value", "vI", "Nominal investment by industry.", :investment_value),
+    (block="Production", label="Gross output", column="qY",
+      description="Real gross output by industry.", panels=panels(v -> v.qY)),
+    (block="Production", label="Value added", column="VA",
+      description="Output less intermediate input spend, before production taxes.", panels=panels(v -> v.vVA)),
+    (block="Production", label="Output price", column="pY",
+      description="Basic-price output price.", panels=panels(v -> v.vY ./ v.qY)),
+    (block="Labour", label="Persons", column="nL",
+      description="Persons, summed over labour types.", panels=panels(v -> v.nL)),
+    (block="Labour", label="Employment", column="qL",
+      description="Labour in efficiency units, summed over labour types.", panels=panels(v -> v.qL)),
+    (block="Labour", label="Labour share", column="wL/VA",
+      description="Wages over value added.", panels=panels(v -> v.vWages ./ v.vVA)),
+    (block="Labour", label="Labour user cost", column="pL",
+      description="Quantity-weighted user cost of labour.", panels=panels(v -> v.vL ./ v.qL)),
+    (block="Capital", label="Capital stock", column="qK",
+      description="Capital stock, summed over capital types.", panels=panels(v -> v.qK)),
+    (block="Capital", label="Capital-output ratio", column="K/Y",
+      description="Capital over gross output.", panels=panels(v -> v.qK ./ v.qY)),
+    (block="Capital", label="Capital user cost", column="pK",
+      description="User cost with the capital mix held at the first reported year.", panels=panels(v -> v.vKMix)),
+    (block="Investment", label="Investment", column="qI",
+      description="Gross fixed investment, summed over capital types.", panels=panels(v -> v.qI)),
+    (block="Investment", label="Investment rate", column="I/K",
+      description="Investment over opening capital. The dotted line marks depreciation plus trend growth.",
+      panels=panels(v -> v.qI ./ v.qKOpen, v -> v.rKDepr + gq)),
+    (block="Investment", label="Investment value", column="vI",
+      description="Nominal investment by industry.", panels=panels(v -> v.qI .* v.pI)),
   ]
 end
 
-function closure_series()
-  return [
-    "Government debt over GDP" => @evalexpr(vFinPosition_s_f[:Gov,:Debt,:Liab,:] / vGDP),
-    "Rest-of-world net financial assets over GDP" => @evalexpr(vNetFinAssets[:RoW,:] / vGDP),
-    "Household debt over consumption" => @evalexpr(vFinPosition_s_f[:Hh,:Debt,:Liab,:] / vC),
-    "Employment gap" => @evalexpr(rLEmploymentGap),
-    "Wage inflation" => @evalexpr(rWInflation),
-    ["Net lending over GDP: $s" => @evalexpr(vNetFinTransactions[s,:] / vGDP) for s in sector]...,
-    "Net lending over GDP: all sectors" => @evalexpr(sum(vNetFinTransactions[s,:] for s in sector) / vGDP),
-  ]
-end
+# ============================================================================
+# Closure and aggregate series
+# ============================================================================
+closure_panels(years) = [Panel(name, values, years) for (name, values) in [
+  "Government debt over GDP" => @evalexpr(vFinPosition_s_f[:Gov,:Debt,:Liab,:] / vGDP),
+  "Rest-of-world net financial assets over GDP" => @evalexpr(vNetFinAssets[:RoW,:] / vGDP),
+  "Household debt over consumption" => @evalexpr(vFinPosition_s_f[:Hh,:Debt,:Liab,:] / vC),
+  "Employment gap" => @evalexpr(rLEmploymentGap),
+  "Wage inflation" => @evalexpr(rWInflation),
+  ["Net lending over GDP: $s" => @evalexpr(vNetFinTransactions[s,:] / vGDP) for s in sector]...,
+  "Net lending over GDP: all sectors" => @evalexpr(sum(vNetFinTransactions[s,:] for s in sector) / vGDP),
+]]
 
-function aggregate_series(years)
-  return [
-    "Real GDP" => @evalexpr(qGDP),
-    "Real gross value added" => @evalexpr(qGVA),
-    "Household consumption" => @evalexpr(qC),
-    "Government consumption" => @evalexpr(qG),
-    "Fixed investment" => @evalexpr(qI),
-    "Inventory investment" => @evalexpr(qINV),
-    "Exports" => @evalexpr(qX),
-    "Imports" => @evalexpr(qM),
-    "Gross output" => @evalexpr(sum(qY_i[i,:] for i in industry)),
-    "Employment" => @evalexpr(sum(qL_l_i[l,i,:] for (l, i) in labor_l_i)),
-    "Capital stock" => @evalexpr(sum(qK_k_i[k,i,:] for (k, i) in capital_k_i)),
-    "Investment" => @evalexpr(sum(qI_k_i[k,i,:] for (k, i) in capital_k_i)),
-    "Value added over gross output" => @evalexpr(sum(vY_i[i,:] - vM_i[i,:] for i in industry) / sum(qY_i[i,:] for i in industry)),
-    "Labour share" => @evalexpr(sum(vWages_i[i,:] for i in industry) / sum(vY_i[i,:] - vM_i[i,:] for i in industry)),
-    "Capital-output ratio" => @evalexpr(sum(qK_k_i[k,i,:] for (k, i) in capital_k_i) / sum(qY_i[i,:] for i in industry)),
-    "Investment rate" => @evalexpr([sum(qI_k_i[k,i,t] for (k, i) in capital_k_i) /
-      (sum(qK_k_i[k,i,t-1] for (k, i) in capital_k_i) / fq) for t in years]),
-    "GDP price level" => @evalexpr(pGDP),
-    "Wage" => @evalexpr(pW),
-    "Investment price level" => @evalexpr(pI),
-    "Export price level" => @evalexpr(pX),
-  ]
-end
+aggregate_panels(years) = [Panel(name, values, years) for (name, values) in [
+  "Real GDP" => @evalexpr(qGDP),
+  "Real gross value added" => @evalexpr(qGVA),
+  "Household consumption" => @evalexpr(qC),
+  "Government consumption" => @evalexpr(qG),
+  "Fixed investment" => @evalexpr(qI),
+  "Inventory investment" => @evalexpr(qINV),
+  "Exports" => @evalexpr(qX),
+  "Imports" => @evalexpr(qM),
+  "Gross output" => @evalexpr(sum(qY_i[i,:] for i in industry)),
+  "Persons" => @evalexpr(sum(nL_l_i[l,i,:] for (l, i) in labor_l_i)),
+  "Employment" => @evalexpr(sum(qL_l_i[l,i,:] for (l, i) in labor_l_i)),
+  "Capital stock" => @evalexpr(sum(qK_k_i[k,i,:] for (k, i) in capital_k_i)),
+  "Investment" => @evalexpr(sum(qI_k_i[k,i,:] for (k, i) in capital_k_i)),
+  "Value added over gross output" => @evalexpr(sum(vY_i[i,:] - vM_i[i,:] for i in industry) / sum(qY_i[i,:] for i in industry)),
+  "Labour share" => @evalexpr(sum(vWages_i[i,:] for i in industry) / sum(vY_i[i,:] - vM_i[i,:] for i in industry)),
+  "Capital-output ratio" => @evalexpr(sum(qK_k_i[k,i,:] for (k, i) in capital_k_i) / sum(qY_i[i,:] for i in industry)),
+  "Investment rate" => @evalexpr([sum(qI_k_i[k,i,t] for (k, i) in capital_k_i) /
+    (sum(qK_k_i[k,i,t-1] for (k, i) in capital_k_i) / fq) for t in years]),
+  "GDP price level" => @evalexpr(pGDP),
+  "Wage" => @evalexpr(vW),
+  "Investment price level" => @evalexpr(pI),
+  "Export price level" => @evalexpr(pX),
+]]
 
 # ============================================================================
 # Figures and table
 # ============================================================================
-
 function reference_axes!(axis, series, targets)
-  s = only(series)
-  if all(isnan, s.y)
-    hidedecorations!(axis)
-    hidespines!(axis)
-    text!(axis, 0.5, 0.5; text="no data", space=:relative, align=(:center, :center))
-    return
-  end
-  hlines!(axis, [first(filter(isfinite, s.y))]; color=(colors().DarkGray, 0.3), linestyle=:dash)
-  target = targets[s.label]
-  target === nothing || hlines!(axis, [target]; color=colors().DREAM, linestyle=:dot)
+  all(s -> all(isnan, s.y), series) && return
+  line = only(series)
+  hlines!(axis, [opening(line.y)]; color=(colors().DarkGray, 0.3), linestyle=:dash)
+  target = targets[line.label]
+  ismissing(target) || hlines!(axis, [target]; color=colors().DREAM, linestyle=:dot)
 end
 
-function grid_figure(years, entries; show_metric=false)
-  targets = Dict(e.name => e.target for e in entries)
-  series = [LabeledSeries(years, e.values === nothing ? fill(NaN, length(years)) : e.values, e.name) for e in entries]
-  titles = [show_metric ? "$(e.name)  $(format_percent(e.metric))" : replace(e.name, " over " => "\nover ") for e in entries]
+function panel_figure(panels, years; show_change=false)
+  targets = Dict(p.name => p.target for p in panels)
+  titles = [show_change ? "$(p.name)  $(format_percent(p.change))" : replace(p.name, " over " => "\nover ") for p in panels]
   return with_dream_theme(:slide_small) do
-    plotseries(series; layout=:trellis, columns=3, panel_titles=titles, ylabel="", legend=false,
-      decorate=(ax, series) -> reference_axes!(ax, series, targets))
+    plotseries([LabeledSeries(years, p.y, p.name) for p in panels];
+      layout=:trellis, columns=3, panel_titles=titles,
+      ylabel="", legend=false, decorate=(ax, lines) -> reference_axes!(ax, lines, targets))
   end
 end
 
-movement(::Nothing) = -Inf
-movement(value::Real) = abs(value)
-
-function overview_figure(years, entries)
-  ranked = sort([e for e in entries if e.metric !== nothing]; by=e -> -abs(e.metric))
-  highlighted = [e.name for e in first(ranked, min(3, length(ranked)))]
-  present = [e for e in entries if e.values !== nothing && count(isfinite, e.values) >= 2 &&
-    !iszero(first(filter(isfinite, e.values)))]
-  series = [LabeledSeries(years, 100 .* e.values ./ first(filter(isfinite, e.values)), e.name) for e in present]
-  labels = [e.name in highlighted ? e.name : nothing for e in present]
-  styles = [e.name in highlighted ? (color=color_palette()[findfirst(==(e.name), highlighted)], linewidth=2.5) :
-    (color=(colors().DarkGray, 0.25), linewidth=1) for e in present]
-  return plotseries(series; labels, styles, ylabel="Index (first reported year = 100)",
+"""One line per panel, indexed to its first reported value. The largest movers have coloured labels."""
+function overview(panels, years; highlight=3)
+  ranked = sort([p for p in panels if p.change !== nothing]; by=p -> abs(p.change), rev=true)
+  movers = [p.name for p in first(ranked, highlight)]
+  shown = [p for p in panels if count(isfinite, p.y) >= 2 && !iszero(opening(p.y))]
+  styles = [p.name in movers ?
+    (color=color_palette()[findfirst(==(p.name), movers)], linewidth=2.5) :
+    (color=(colors().DarkGray, 0.25), linewidth=1) for p in shown]
+  return plotseries([LabeledSeries(years, 100 .* p.y ./ opening(p.y), p.name) for p in shown];
+    labels=[p.name in movers ? p.name : nothing for p in shown], styles,
+    ylabel="Index (first reported year = 100)",
     legend=(fig, ax, series) -> colored_text_legend!(fig, ax; columns=3),
     decorate=(ax, series) -> hlines!(ax, [100]; color=(colors().DarkGray, 0.3), linestyle=:dash))
 end
 
+"""Closing-window change for each industry and series. Rows follow the largest absolute change."""
 function screening_table(series; color_scale=5.0)
-  metrics = [e.metric for e in first(series).entries]
-  values = [s.entries[i].metric for i in eachindex(metrics), s in series]
-  row_max = [maximum(movement, row) for row in eachrow(values)]
-  order = sortperm(row_max; rev=true)
-  data = hcat(values, [isfinite(v) ? v : nothing for v in row_max])[order, :]
-  labels = [[s.block for s in series]; "Maximum"]
-  columns = [[s.column for s in series]; "Max"]
-  return report_table(data; column_labels=[labels, columns], merge_column_label_cells=:auto,
-    row_labels=industry_row_label.(collect(industry)[order]), stubhead_label="Industry",
-    format=format_percent, shade=(data, i, j) -> data[i, j] === nothing ? nothing : abs(data[i, j]),
-    shade_scale=color_scale)
+  changes = [s.panels[n].change for n in eachindex(industry), s in series]
+  largest = [maximum(change === nothing ? -Inf : abs(change) for change in row) for row in eachrow(changes)]
+  order = sortperm(largest; rev=true)
+  data = hcat(changes, [isfinite(v) ? v : nothing for v in largest])[order, :]
+  return report_table(data;
+    column_labels=[[[s.block for s in series]; "Maximum"], [[s.column for s in series]; "Max"]],
+    merge_column_label_cells=:auto, stubhead_label="Industry",
+    row_labels=industry_row_label.(collect(industry)[order]),
+    format=format_percent, shade_scale=color_scale,
+    shade=(data, i, j) -> data[i, j] === nothing ? nothing : abs(data[i, j]))
 end
 
 # ============================================================================
 # Report
 # ============================================================================
-
 default_path() = joinpath(@__DIR__, "..", "Output", "baseline_report.html")
-function default_periods()
+
+# The terminal condition binds in the last solved years, so leave them out.
+function report_periods()
   last_year = Time.max_terminal_year - 10
   return Time.t1:(last_year <= Time.t1 ? Time.max_terminal_year : last_year)
 end
 
 """
 Write a DREAM baseline report. Rank industries by their change over the closing
-`late_window` years. Exclude the last ten solved years by default. Set the session's
-source, periods, and operator to this baseline. Structural gaps stay blank.
+`window` years. Exclude the last ten solved years by default. Set the session's
+source, periods, and operator to this baseline. A structural gap, such as an
+industry with no capital, keeps its table row and has no figure panel.
 """
 function write_report(baseline::ModelDictionary; path::AbstractString=default_path(),
-  periods=default_periods(), late_window::Integer=10, color_scale::Real=5.0,
+  periods=report_periods(), window::Integer=10, color_scale::Real=5.0,
 )
+  @assert window > 0 && !isempty(periods) && issorted(periods) && allunique(periods) "Report periods must increase and the closing window must be positive."
   years = collect(periods)
-  @assert !isempty(years) && issorted(years) && allunique(years) "Report years must be nonempty, unique, and increasing."
-  @assert late_window > 0 "The closing window must be positive."
   set_default_source!(baseline)
   set_default_periods!(years)
   set_default_operator!(:n)
-  series = industry_series(years; window=late_window)
-  closure = [entry(name, values, years) for (name, values) in closure_series()]
-  aggregates = [entry(name, values, years) for (name, values) in aggregate_series(years)]
+  series = industry_series(years; window)
   return with_dream_theme(:slide_large) do
+    closure = closure_panels(years)
+    aggregates = aggregate_panels(years)
     sections = [
-      report_section("Closure", ["Stocks, gaps, and net lending" => grid_figure(years, closure)]; wide=true,
+      report_section("Closure", ["Stocks, gaps, and net lending" => panel_figure(closure, years)]; wide=true,
         description="Check whether stocks settle. Sector net lending must sum to zero in each year."),
-      report_section("Aggregates", ["Macro overview" => grid_figure(years, aggregates)]; wide=true,
+      report_section("Aggregates", ["Macro overview" => panel_figure(aggregates, years)]; wide=true,
         description="Aggregate activity, expenditure, factor inputs, ratios, and prices."),
-      report_section("Screening", ["Movement by industry and series" => screening_table(series; color_scale)]; wide=true,
-        description="Percentage change over the closing $late_window years. Rows follow the largest absolute change. Blank cells have no applicable series or percentage change."),
-      report_section("Overview by series", ["$(s.block): $(s.label)" => overview_figure(years, s.entries) for s in series];
-        description="Industries use the first reported value as 100. The three largest movers have coloured labels."),
-      [report_section("$(s.block): $(s.label)",
-        ["$(s.label) by industry" => grid_figure(years, sort(s.entries; by=e -> -movement(e.metric)); show_metric=true)];
-        wide=true, description="$(s.description) Panels follow the largest closing-window change. The dashed line marks the opening value.")
+      report_section("Screening", ["Change by industry and series" => screening_table(series; color_scale)]; wide=true,
+        description="Percentage change over the closing $window years. Rows follow the largest absolute change. Blank cells have no applicable series or percentage change."),
+      [report_section("$(s.block): $(s.label)", [
+        "All industries" => overview(s.panels, years),
+        "By industry" => let
+          panels = sort(filter(p -> any(isfinite, p.y), s.panels);
+            by=p -> p.change === nothing ? -Inf : abs(p.change), rev=true)
+          panel_figure(panels, years; show_change=true)
+        end,
+      ]; wide=true,
+        description="$(s.description) Industries use the first reported value as 100, and the three largest movers have coloured labels. Panels follow the largest closing-window change, and the dashed line marks the opening value.")
         for s in series]...,
     ]
     write_html_report(path, sections; title="Baseline check report",
-      subtitle="$(first(years))–$(last(years)). Values are growth- and inflation-adjusted; each panel shows movement relative to trend.")
+      subtitle="$(first(years))–$(last(years)). Values are growth- and inflation-adjusted; each panel shows change relative to trend.")
   end
 end
 

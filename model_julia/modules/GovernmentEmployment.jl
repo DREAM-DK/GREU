@@ -1,13 +1,13 @@
-# Hold government employment at a fixed share of the labor force.
+# Hold government employment at a fixed share of total persons.
 # Government consumption then follows, through the fG hook in InputOutput.
 # The sector employment identity stays in IndustrySectors.
 
 module GovernmentEmployment
 
 using SquareModels
-import ..IndustrySectors: qL_s
+import ..IndustrySectors: nL_s
 import ..InputOutput: fG
-import ..Labor: qLSupplyHh, qLSupplyRoW
+import ..Labor: nLSupplyHh, nLSupplyRoW
 import ..model
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
@@ -18,7 +18,7 @@ import ..Tags: ForecastConstant
 const GovernmentEmploymentTag = Tag(:GovernmentEmployment)
 
 @variables model :: (GovernmentEmploymentTag, ForecastConstant) begin
-  rLGov[t], "Government share of the labor force."
+  rLGov[t], "Government share of employment."
 end
 
 # ============================================================================
@@ -34,7 +34,7 @@ end
 function define_equations()
   return @block model begin
     # Government employment sets the scale of government consumption.
-    fG[t=t1:T], qL_s[:Gov,t] == rLGov[t] * (qLSupplyHh[t] + qLSupplyRoW[t])
+    fG[t=t1:T], nL_s[:Gov,t] == rLGov[t] * (nLSupplyHh[t] + nLSupplyRoW[t])
   end
 end
 

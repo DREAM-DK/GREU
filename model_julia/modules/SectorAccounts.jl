@@ -112,6 +112,7 @@ const SectorAccountsTag = Tag(:SectorAccounts)
   vNetFinIncome[s=sector, t=t], "Net property income by sector: income received less income paid (D.4)."
   vNetOtherChangesInVolume[s=sector, t=t], "Net other changes in volume by sector: assets less liabilities (K.1-K.6)."
   vFinIncome[s=sector, al=ass_liab, t=t], "Property income received on assets or paid on liabilities (D.4)."
+  vFinPosition[s=sector, al=ass_liab, t=t], "Financial assets or liabilities by sector (F)."
 
   # Values by instrument and asset or liability. Each flow uses the stock mask
   # so each stock cell has one complete change identity.
@@ -262,6 +263,10 @@ function define_equations()
     # Property income sums instruments by asset or liability side.
     vFinIncome[s=sector, al=ass_liab, t=t1:T],
     vFinIncome[s,al,t] == ∑(vFinIncome_s_f[s,f,al,t] for f in fin_instrument)
+
+    # Financial positions sum instruments by asset or liability side.
+    vFinPosition[s=sector, al=ass_liab, t=t1:T],
+    vFinPosition[s,al,t] == ∑(vFinPosition_s_f[s,f,al,t] for f in fin_instrument)
 
     # Net property income is receipts less payments.
     vNetFinIncome[s=sector, t=t1:T],
