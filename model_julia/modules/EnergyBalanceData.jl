@@ -244,6 +244,24 @@ function discrepancy_by_account(mapped)
   return discrepancy
 end
 
+"""
+Report the largest discrepancy as a share of its account's use.
+
+The discrepancy is inside the balance sum, so the balance cannot fail because of it.
+Its size shows how much of an account the source had to plug.
+"""
+function report_discrepancy(discrepancy, use)
+  throughput = @chain use begin
+    @rsubset(:year >= first_checked_year)
+    sum_by([:activity, :year])
+  end
+  shares = innerjoin(discrepancy, rename(throughput, :value => :use), on = [:activity, :year])
+  @rtransform!(shares, :share = abs(:value) / :use)
+  worst = shares[argmax(shares.share), :]
+  @info "Largest SD_IO discrepancy" account = worst.activity year = worst.year pj = worst.value percent_of_use = round(100 * worst.share; digits = 3)
+  return nothing
+end
+
 
 """
 Split the mapped account into the four variables the model reads.
@@ -282,6 +300,7 @@ function refresh_energy_balance_data!(dir = energy_balance_data_dir)
   assert_activity_balance(mapped)
   cells = energy_balance_variables(mapped)
   discrepancy = discrepancy_by_account(mapped)
+  report_discrepancy(discrepancy, cells.use)
   # Index letters: `e` is the energy product, `m` the purpose, `d` the account —
   # the industries, households, and the three boundary accounts. `d` follows
   # the legacy GAMS model, where `qEpj[es,e,d,t]` indexes the same set. `a` is

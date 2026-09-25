@@ -27,9 +27,10 @@ const pj_per_source_unit = 1e-3
 # must not be checked. This is because boundary accounts are more like bookkeeping
 # entries than like activities.
 
-# Tolerance is relative to the activity's own throughput, with an absolute floor:
-# NACE sections T (households as employers) and U (extraterritorial bodies) report
-# zero energy, and a purely relative tolerance would divide by zero.
+# Tolerance is relative to the account's own throughput, with an absolute floor of 1 TJ.
+# Some industries report no energy, so a purely relative tolerance would divide by zero.
+# The floor also absorbs Eurostat's rounding to 0.1 TJ, which adds up to a few tenths
+# of a TJ in the smallest industries.
 const activity_balance_rtol = 1e-4
 const activity_balance_atol = 1e-3
 

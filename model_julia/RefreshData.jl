@@ -88,8 +88,10 @@ IndustrySectorsData.refresh_industry_sector_shares!()
 TaxesData.refresh_taxes_data!()
 
 # ==============================================================================
-# Physical energy account 
+# Physical energy account
 # ==============================================================================
+# Reads industry_resolution.csv through InputOutputSettings, so run the industry
+# resolution section first.
 include(joinpath(@__DIR__, "modules", "EnergyBalanceData.jl"))
 
 EnergyBalanceData.refresh_energy_balance_data!()
