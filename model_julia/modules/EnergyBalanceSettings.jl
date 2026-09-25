@@ -92,25 +92,35 @@ const discrepancy_product = "SD_IO"
 # Activities
 # =======================================
 
-# NACE sections.
-# NACE has 21 sections to describe the entire economy.
-# PEFA also publishes pieces of these sections (A01, C10-C12) and some totals
-# and side accounts (TOTAL, HH, ENV, ROW_ACT, SD_SU, NRG_FLOW, CH_INV_PA, G-U_X_H).
-# None of them belong here: C16 sits inside C, so taking both counts the same
-# industry twice. ENV, ROW_ACT and CH_INV_PA come back below as boundary
-# accounts, which is a different set with a different rule.
-# We name the codes we want, not the ones we skip. Eurostat adds codes over time,
-# and a skip-list would then allow new ones through.
-# See bottom of code for description!
-const section = [
-  :A, :B, :C, :D, :E, :F, :G, :H, :I, :J, :K, :L, :M, :N, :O, :P, :Q, :R, :S, :T, :U,
-]
+# PEFA and the model spell the compound NACE groups differently, and PEFA is not
+# even consistent with itself: C10-C12 and E37-E39 use a hyphen, C31_C32 and J59_J60 use underscore.
+# Both appear in the same table, same year.
+# The model uses hyphenation, so we do too.
 
-# Industry labels take a prefix so they never collide with the scalar national-account symbols on the use side. 
-# InputOutputSettings builds its labels by the same rule, and the two must agree - assert that in EnergyBalance.jl,
-# where both modules are in scope.
-const section_to_industry = Dict(s => Symbol("i$s") for s in section)
-const source_industry = [section_to_industry[s] for s in section]
+canonical_activity_code(code::AbstractString) =
+  replace(code, r"^([A-U])(\d{2})[-_]\1(\d{2})$" => s"\1\2-\3")
+
+
+# Both separators occur in PEFA's nace_r2 dimension.
+# A rule that knew only one would drop industries silently.
+@assert all(canonical_activity_code(pefa) == model for (pefa, model) in [
+  "C10-C12" => "C10-12", "C13-C15" => "C13-15", "E37-E39" => "E37-39",
+  "N80-N82" => "N80-82", "R90-R92" => "R90-92",
+  "C31_C32" => "C31-32", "J59_J60" => "J59-60", "J62_J63" => "J62-63",
+  "M69_M70" => "M69-70", "M74_M75" => "M74-75", "Q87_Q88" => "Q87-88",
+]) "PEFA activity codes must normalise to the model's spelling"
+
+# Household, boundary and aggregate codes also contain separators and must pass unchanged.
+@assert all(canonical_activity_code(code) == code for code in [
+  "A", "B", "C16", "D", "L", "L68A", "T", "U",
+  "HH", "HH_HEAT", "HH_TRA", "HH_OTH",
+  "ENV", "ROW_ACT", "CH_INV_PA",
+  "TOTAL", "NRG_FLOW", "SD_SU", "G-U_X_H",
+]) "only NACE industry codes may be rewritten"
+
+
+
+
 
 const households = :households
 
@@ -134,11 +144,9 @@ const purpose = [
 @assert Set(values(household_purpose)) ⊆ Set(purpose) "household purposes must be in the purpose set"
 
 
-# source_activity = all valid activity codes from Eurostat, as strings collected so we can validate them against data.
-const source_section = [string(s) for s in section]
+# Household activity codes, as PEFA spells them.
 const source_household = collect(keys(household_purpose))
-const source_activity = [source_section; source_household]
-@assert allunique(source_activity) "source activities must be distinct"
+
 
 
 # =======================================
@@ -180,11 +188,8 @@ const source_boundary = collect(keys(boundary_account))
 # SD_SU is not a total. It is the discrepancy PEFA books per product for the whole economy,
 # as SD_IO is per account. It belongs to no account, so it stays out the account set.
 # But economy-wide supply only equals use per product with SD_SU in the sum.
-const source_activity_aggregate = [
-  "TOTAL", "HH", "NRG_FLOW", "G-U_X_H", "SD_SU",
-]
-@assert isempty(intersect([source_activity; source_boundary], source_activity_aggregate)) "aggregates must stay out of the cells"
-@assert isempty(intersect(source_activity, source_boundary)) "an account is either resident or a boundary, never both"
+#
+# None of them is a key in the activity lookup, so they drop out when codes are mapped. 
 
 #PEFA also publishes USE_TRS, USE_END and ER_USE. They re-cut the same use flow,
 # so taking them alongside USE would double count.

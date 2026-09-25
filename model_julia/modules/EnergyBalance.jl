@@ -14,7 +14,6 @@ import ..EnergyBalanceSettings:
   boundary_account,
   energy_balance_data_dir,
   households,
-  source_industry,
   source_product
 import ..InputOutputSettings
 import ..model
@@ -38,7 +37,7 @@ const data_year = sort!(unique(year for (_, _, year) in [keys(qESupply_e_d_data)
 # ==============================================================================
 # Indices
 # ==============================================================================
-# Build the masks from the reported cells, not from the cross product: 23 accounts x 31 products x 5 years.
+# Build the masks from the reported cells, not from the cross product: accounts x products x years.
 # A cell outside the mask gets no variable and no equation.
 const supply_e_d = Set((e,d) for (e, d, _) in keys(qESupply_e_d_data))
 const use_e_d = Set((e,d) for (e, d, _) in keys(qEUse_e_d_data))
@@ -47,18 +46,17 @@ const account = sort!(unique(d for (_, d) in supply_e_d ∪ use_e_d))
 const energy_product = sort!(unique(e for (e,_) in supply_e_d ∪ use_e_d))
 
 # The data decides which accounts exist; the settings decide which are allowed.
-# Sections T and U report no energy, so the account set is smaller than the source vocabulary and must not be built from it.
-const permitted_account = [source_industry; households; collect(values(boundary_account))]
+# Some industries report no energy, so the account set is smaller than the source vocabulary and must not be built from it.
+# The data decides which accounts exist; the input-output module decides which industries are allowed.
+# This also catches data written on a different industry resolution than the model runs on.
+const permitted_account = [InputOutputSettings.source_industry; households; collect(values(boundary_account))]
 @assert account ⊆ permitted_account "the data holds an account the settings do not name"
 @assert energy_product ⊆ Symbol.(source_product) "the data holds a product the settings do not name"
 
 # Energy is conserved for a resident account only.
 # The three boundary accounts are where it enters and leaves the economy, so they carry no balance.
-const resident_account = [d for d in account if d in [source_industry; households]]
+const resident_account = [d for d in account if d in [InputOutputSettings.source_industry; households]]
 
-# The industry labels must agree with the input-output module, which builds them by the same rule.
-# If one side changes the prefix, this fires now instead of becoming a silent mismatch later.
-@assert Set(resident_account) ⊆ Set([InputOutputSettings.source_industry; households]) "energy accounts must be input-output industries or households"
 
 
 # ==============================================================================

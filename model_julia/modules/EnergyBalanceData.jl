@@ -5,6 +5,7 @@
 include(joinpath(@__DIR__, "..", "Settings.jl"))
 include("EnergyBalanceSettings.jl")
 include("EurostatClient.jl")
+include("InputOutputSettings.jl")
 include(joinpath(@__DIR__, "..", "DataUtils.jl"))
 
 module EnergyBalanceData
@@ -16,22 +17,21 @@ using CSV
 
 import ..DataUtils: long_format, sum_by
 import ..EurostatClient
+import ..InputOutputSettings: resolution, source_industry
 import ..Settings: calibration_year, country_code, first_data_year
 import ..EnergyBalanceSettings:
   activity_balance_atol,
   activity_balance_rtol,
   boundary_account,
+  canonical_activity_code,
   discrepancy_product,
   energy_balance_data_dir,
   eurostat_pefa_dataset,
   household_purpose,
   households,
   pj_per_source_unit,
-  section,
-  section_to_industry,
-  source_activity,
   source_boundary,
-  source_industry,
+  source_household,
   source_product,
   source_unit,
   supply_flow,
@@ -68,7 +68,7 @@ function fetch_pefa()
     year_params...,
   )
   assert_published("product", source_product, df.prod_nrg)
-  assert_published("activity", [source_activity; source_boundary], df.nace_r2)
+  assert_published("activity", [source_household; source_boundary], df.nace_r2)
   assert_published("year", string.(data_years), df.time)
   df.value .*= pj_per_source_unit
   return df
@@ -79,15 +79,42 @@ end
 # Model labels
 # ==========================================
 
+# Map PEFA activity codes to model industries.
+# Use a group's own code when PEFA publishes it, and sum its members only when it does not.
+# PEFA can publish a group beside one of its members, such as L beside L68A,
+# so taking both would count the same energy twice.
+function industry_source(published)
+  lookup = Dict{String,Symbol}()
+  for row in eachrow(resolution)
+    group = string(row.eurostat_group)
+    label = Symbol(string(row.industry))
+    if group in published
+      lookup[group] = label
+    else
+      members = split(string(row.members), ';')
+      @assert all(m in published for m in members) "PEFA publishes neither $group nor all its members: $(join(members, ", "))"
+      for m in members
+        lookup[m] = label
+      end
+    end
+  end
+  return lookup
+end
+# Each leaf code belongs to one industry group, so no energy can be mapped twice.
+@assert allunique(vcat(split.(string.(resolution.members), ';')...)) "industry groups must not share member codes"
+
+
 # PEFA names an account, not a purpose. Households appear three times, once per purpose.
 # Every other account appears once and takes :unspecified.
 # The model wants to know the activity and purpose of each cell, so we build a lookup table.
-const activity_purpose = merge(
-  Dict(string(s) => (activity = section_to_industry[s], purpose = unspecified) for s in section), 
-  Dict(code => (activity = households, purpose = p) for (code, p) in household_purpose),
-  Dict(code => (activity = a, purpose = unspecified) for (code, a) in boundary_account),
-)
-@assert length(activity_purpose) == length(source_activity) + length(source_boundary) "each source account needs one label"
+function activity_purpose(published)
+  industry = Dict(code => (activity = label, purpose = unspecified) for (code, label) in industry_source(published))
+  household = Dict(code => (activity = households, purpose = p) for (code, p) in household_purpose)
+  boundary = Dict(code => (activity = a, purpose = unspecified) for (code, a) in boundary_account)
+  lookup = merge(industry, household, boundary)
+  @assert length(lookup) == length(industry) + length(household) + length(boundary) "each source account needs one label"
+  return lookup
+end
 
 
 # Just to map the flow names to the model labels.
@@ -106,19 +133,22 @@ const model_activity = [source_industry; households; collect(values(boundary_acc
 """
 Map PEFA codes to model labels and drop what the account does not use.
 
-The 61 NACE sub-details and the five product aggregates fall out here, because
-neither lookup holds them. PEFA reports them beside the cells, so keeping them
-would count the same energy twice. `SD_IO` is kept: it is a discrepancy, not an
-aggregate, and the balance does not close without (except for Denmark which has SD_IO = 0).
+Activity codes are first rewritten to the model's spelling. Codes the country's
+industry resolution does not name fall out here, as do the product aggregates:
+PEFA reports them beside the cells, so keeping them would count the same energy
+twice. `SD_IO` is kept: it is a discrepancy, not an aggregate, and the balance
+does not close without it.
 """
 function map_to_model(df)
-  mapped = @chain df begin # Function from DataFramesMeta that sends tabel through a chain of operations multiple times.
-    @rsubset(haskey(activity_purpose, :nace_r2) && :prod_nrg in wanted_product) # Filters unwanted rows (e.g. totals or NACE sub-details like A01)
-    @rtransform begin # Transforms the remaining rows into 5 new columns: balance, product, activity, purpose, and year. 
+  df = @rtransform(df, :nace_r2 = canonical_activity_code(:nace_r2))
+  lookup = activity_purpose(Set(df.nace_r2))
+  mapped = @chain df begin
+    @rsubset(haskey(lookup, :nace_r2) && :prod_nrg in wanted_product)
+    @rtransform begin
       :balance = balance_name[:stk_flow]
       :product = Symbol(:prod_nrg)
-      :activity = activity_purpose[:nace_r2].activity 
-      :purpose = activity_purpose[:nace_r2].purpose
+      :activity = lookup[:nace_r2].activity
+      :purpose = lookup[:nace_r2].purpose
       :year = parse(Int, :time)
     end
     @select(:balance, :product, :activity, :purpose, :year, :value)
@@ -253,7 +283,7 @@ function refresh_energy_balance_data!(dir = energy_balance_data_dir)
   cells = energy_balance_variables(mapped)
   discrepancy = discrepancy_by_account(mapped)
   # Index letters: `e` is the energy product, `m` the purpose, `d` the account —
-  # the 21 industries, households, and the three boundary accounts. `d` follows
+  # the industries, households, and the three boundary accounts. `d` follows
   # the legacy GAMS model, where `qEpj[es,e,d,t]` indexes the same set. `a` is
   # taken by the consumption node in ConsumptionGroups.jl.
   CSV.write(joinpath(dir, "energy_balance.csv"), vcat(
