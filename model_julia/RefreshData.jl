@@ -86,3 +86,12 @@ IndustrySectorsData.refresh_industry_sector_shares!()
 # TaxesData is included above for D29-D39 reconciliation. Rebuild the tax CSVs
 # after industry-sector shares, which the production-tax allocation uses.
 TaxesData.refresh_taxes_data!()
+
+# ==============================================================================
+# Physical energy account
+# ==============================================================================
+# Reads industry_resolution.csv through InputOutputSettings, so run the industry
+# resolution section first.
+include(joinpath(@__DIR__, "modules", "EnergyBalanceData.jl"))
+
+EnergyBalanceData.refresh_energy_balance_data!()
