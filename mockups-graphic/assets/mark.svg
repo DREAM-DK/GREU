@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="184" height="184" viewBox="0 0 184 184" role="img" aria-labelledby="t d">
+  <title id="t">GreenREFORM-EU</title>
+  <desc id="d">The model disc, copied from brand-lab/assets/05-dream-heritage-mark.svg. The lettering is set in Bahnschrift as a stand-in until DREAM supplies the original model-logo vector.</desc>
+  <circle cx="92" cy="92" r="92" fill="#10693A"/>
+  <g fill="#FFFFFF" font-family="Bahnschrift Light, Bahnschrift, Eurostile, Aldrich, Segoe UI, Arial, sans-serif" font-weight="300">
+    <text x="24" y="80" font-size="17.5" letter-spacing="4.1">GREEN</text>
+    <text x="24" y="101.5" font-size="27" letter-spacing="6.3">REFORM</text>
+    <text x="164.4" y="116.5" font-size="17.5" letter-spacing="4.1" text-anchor="end">EU</text>
+  </g>
+</svg>

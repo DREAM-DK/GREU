@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="51 52 548 374" width="548" height="374" role="img" aria-labelledby="t d">
+  <title id="t">The DREAM model family</title>
+  <desc id="d">The connected discs from brand-lab/backgrounds/05-dream-heritage.svg, re-laid out for a web hero. Topology and colours unchanged: Gr&#248;nREFORM links to the international model, and the chain DREAM to MAKRO to REFORM closes the loop. Sampled from dreamgruppen.dk; the deep green is the international model's own.</desc>
+
+  <g stroke="#D3DBD4" stroke-width="2" fill="none">
+    <path d="M232 104 404 268" />
+    <path d="M232 104 128 200" />
+    <path d="M128 200 84 302" />
+    <path d="M84 302 190 344" />
+    <path d="M190 344 404 268" />
+  </g>
+
+  <circle cx="128" cy="200" r="28" fill="#DF0D0D" />
+  <circle cx="84"  cy="302" r="25" fill="#0E837C" />
+  <circle cx="190" cy="344" r="25" fill="#1E8FBB" />
+  <circle cx="246" cy="382" r="19" fill="#F76E00" />
+  <circle cx="232" cy="104" r="44" fill="#31B148" />
+
+  <circle cx="440" cy="268" r="150" fill="#10693A" />
+  <g fill="#FFFFFF" font-family="Bahnschrift Light, Bahnschrift, Eurostile, Aldrich, Segoe UI, Arial, sans-serif" font-weight="300">
+    <text x="329.1" y="248.4" font-size="28.5" letter-spacing="6.7">GREEN</text>
+    <text x="329.1" y="283.4" font-size="44" letter-spacing="10.3">REFORM</text>
+    <text x="558.0" y="307.9" font-size="28.5" letter-spacing="6.7" text-anchor="end">EU</text>
+  </g>
+</svg>

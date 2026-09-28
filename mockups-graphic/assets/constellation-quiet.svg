@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 360" width="620" height="360" role="presentation" aria-hidden="true">
+  <desc>The quiet register of the graphic system. Same connected-disc topology as family.svg, but drawn entirely in mist so it reads as page texture rather than as the model family. No green, because green means the model or a link.</desc>
+
+  <g stroke="#DFE5DF" stroke-width="2" fill="none">
+    <path d="M214 62 386 226" />
+    <path d="M214 62 110 158" />
+    <path d="M110 158 66 260" />
+    <path d="M66 260 172 302" />
+    <path d="M172 302 386 226" />
+    <path d="M386 226 596 150" />
+  </g>
+
+  <g fill="#E7EBE6">
+    <circle cx="110" cy="158" r="28" />
+    <circle cx="66"  cy="260" r="25" />
+    <circle cx="172" cy="302" r="25" />
+    <circle cx="228" cy="340" r="19" />
+    <circle cx="214" cy="62"  r="44" />
+    <circle cx="386" cy="226" r="62" />
+    <circle cx="596" cy="150" r="96" />
+  </g>
+</svg>

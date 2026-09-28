@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GreenREFORM-EU | A dynamic CGE model for climate and fiscal policy</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind:wght@300;400;500;600&display=swap" />
+<link rel="stylesheet" href="assets/site.css" />
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="brand">
+      <a class="dreamword" href="https://dreamgruppen.dk/">DREAM</a>
+      <span class="vrule"></span>
+      <a class="sitename" href="index.html"><img class="disc" src="assets/mark.svg" alt="" width="56" height="56" />GreenREFORM-EU</a>
+    </div>
+    <div class="utility">
+      <a href="news.html">Subscribe</a>
+      <a href="https://dreamgruppen.dk/">dreamgruppen.dk</a>
+    </div>
+  </div>
+</header>
+
+<nav class="main">
+  <div class="wrap">
+    <a href="index.html" aria-current="page">The model</a>
+    <a href="documentation.html">Documentation</a>
+    <a href="user-guide.html">User guide</a>
+    <a href="get-the-model.html">Get the model</a>
+    <a href="applications.html">Applications</a>
+    <a href="news.html">News</a>
+    <a href="about.html">About</a>
+  </div>
+</nav>
+
+<div class="hero gridpaper">
+  <div class="wrap">
+    <div class="hero-text">
+      <p class="kicker">Version 2.0 &middot; Open source</p>
+      <h1>Score climate policy and the public finances in the same model</h1>
+      <p class="lead">GreenREFORM-EU is a dynamic computable general equilibrium model for finance ministries, planning bureaus and emissions agencies. Carbon prices, technology subsidies, mandates and green investment, assessed together with GDP, employment, wages, trade and the fiscal accounts.</p>
+      <div class="actions">
+        <a class="btn" href="get-the-model.html">Get the model</a>
+        <a class="btn-ghost" href="documentation.html">Read the documentation</a>
+        <a class="btn-ghost" href="user-guide.html">User guide</a>
+      </div>
+    </div>
+    <figure class="hero-figure">
+      <img src="assets/family.svg" alt="The DREAM model family drawn as connected discs, with GreenREFORM-EU as the largest and newest" />
+    </figure>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+
+    <div class="split">
+      <div>
+        <h2 style="margin-top:0">What makes it different</h2>
+        <p class="measure">Fuel switching, electrification and carbon capture are discrete decisions. Most frameworks either leave them out of the economic model or solve a separate engineering model and pass results back and forth.</p>
+        <p class="measure">GreenREFORM-EU represents them continuously and solves them <strong>in the same equation system</strong> as the macroeconomic core. A technology-specific policy can therefore be scored for emissions and for output, employment, investment and the public finances at once.</p>
+        <p class="measure muted small">The technology block is called the energy technology model. DREAM project reports have also called it the abatement model; they are the same thing.</p>
+      </div>
+      <div class="panel">
+        <h3>In brief</h3>
+        <ul class="plain small" style="margin-bottom:0">
+          <li>Dynamic CGE of a small open economy, annual, forward-looking agents</li>
+          <li>National accounts integrated with energy balances and greenhouse gases</li>
+          <li>Hard-linked energy technology model</li>
+          <li>Modular: run a module in partial equilibrium or the whole system</li>
+          <li>GAMS with Python, published as open source</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>Built for ministry work</h2>
+    <div class="grid">
+      <div class="card">
+        <span class="tag">Policy questions</span>
+        <h3>What it can score</h3>
+        <p>Carbon and energy taxation, emission trading, technology subsidies, mandates and public investment, with the fiscal consequences of each.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Your data</span>
+        <h3>Calibrated to your country</h3>
+        <p>National accounts and energy balances. The industry list comes from the data set, not from a fixed template.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Honest limits</span>
+        <h3>What it does not do</h3>
+        <p>No monetary policy or exchange rate. Government is an accounting framework, not an optimiser. Households buy housing services rather than holding a dwelling stock.</p>
+      </div>
+    </div>
+
+    <h2>Where it comes from</h2>
+    <p class="measure">GreenREFORM-EU was developed under the European Commission's Technical Support Instrument, building on GreenREFORM, the climate and environmental model used by the Danish government, and through it on MAKRO, DREAM's model for the Danish Ministry of Finance. Version 2.0 was funded by the KR Foundation to refine the model, generalise the architecture and produce the documentation.</p>
+
+    <div class="lineage">
+      <svg viewBox="0 0 900 282" role="img" aria-label="Lineage: MAKRO leads to GroenREFORM, which leads to GreenREFORM-EU">
+        <g stroke="#C8D2CB" stroke-width="2" fill="none">
+          <path d="M135 115H256" />
+          <path d="M372 115H543" />
+        </g>
+        <g fill="#C8D2CB">
+          <polygon points="256,108 270,115 256,122" />
+          <polygon points="543,108 557,115 543,122" />
+        </g>
+
+        <circle cx="95" cy="115" r="40" fill="#0E837C" />
+        <circle cx="320" cy="115" r="52" fill="#31B148" />
+
+        <g transform="translate(555 20) scale(1.0326087)">
+          <circle cx="92" cy="92" r="92" fill="#10693A" />
+          <g fill="#FFFFFF" font-family="Bahnschrift Light, Bahnschrift, Eurostile, Aldrich, Segoe UI, Arial, sans-serif" font-weight="300">
+            <text x="24" y="80" font-size="17.5" letter-spacing="4.1">GREEN</text>
+            <text x="24" y="101.5" font-size="27" letter-spacing="6.3">REFORM</text>
+            <text x="164.4" y="116.5" font-size="17.5" letter-spacing="4.1" text-anchor="end">EU</text>
+          </g>
+        </g>
+
+        <g font-family="Hind, Segoe UI, Aptos, Arial, sans-serif" text-anchor="middle">
+          <g fill="#1B2620" font-size="17" font-weight="600">
+            <text x="95" y="248">MAKRO</text>
+            <text x="320" y="248">Gr&#248;nREFORM</text>
+            <text x="650" y="248">GreenREFORM-EU</text>
+          </g>
+          <g fill="#55635A" font-size="14">
+            <text x="95" y="270">Danish Ministry of Finance</text>
+            <text x="320" y="270">Danish climate policy</text>
+            <text x="650" y="270">EU Member States</text>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <p class="caption">Each disc is a model in DREAM's family. The size is the reach of the calibration, not the size of the model: GreenREFORM-EU is the one that other countries build on.</p>
+
+    <p><a href="applications.html">See analyses, projects and country teams &rarr;</a></p>
+
+  </div>
+</main>
+
+<section class="signup gridpaper">
+  <div class="wrap">
+    <h2>Stay with the model</h2>
+    <p>Releases, documentation updates and project news for GreenREFORM-EU. Nothing else.</p>
+    <form onsubmit="return false">
+      <label class="sr" for="email-home" style="position:absolute;left:-9999px">Work email</label>
+      <input id="email-home" type="email" placeholder="Work email" />
+      <button type="submit">Subscribe</button>
+    </form>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <h3>GreenREFORM-EU</h3>
+        <ul>
+          <li><a href="documentation.html">Documentation</a></li>
+          <li><a href="user-guide.html">User guide</a></li>
+          <li><a href="get-the-model.html">Get the model</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Projects</h3>
+        <ul>
+          <li><a href="applications.html">Applications</a></li>
+          <li><a href="news.html">News</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>DREAM</h3>
+        <p style="margin:0">Danish Research Institute for Economic Analysis and Modelling<br />
+        <a href="https://dreamgruppen.dk/">dreamgruppen.dk</a></p>
+      </div>
+    </div>
+    <div class="legal">
+      <span>&copy; DREAM</span>
+      <a href="#">Privacy</a>
+      <a href="#">Cookies</a>
+      <a href="#">Accessibility</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

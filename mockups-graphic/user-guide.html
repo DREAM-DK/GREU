@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>User guide | GreenREFORM-EU</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind:wght@300;400;500;600&display=swap" />
+<link rel="stylesheet" href="assets/site.css" />
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="brand">
+      <a class="dreamword" href="https://dreamgruppen.dk/">DREAM</a>
+      <span class="vrule"></span>
+      <a class="sitename" href="index.html"><img class="disc" src="assets/mark.svg" alt="" width="56" height="56" />GreenREFORM-EU</a>
+    </div>
+    <div class="utility">
+      <a href="news.html">Subscribe</a>
+      <a href="https://dreamgruppen.dk/">dreamgruppen.dk</a>
+    </div>
+  </div>
+</header>
+
+<nav class="main">
+  <div class="wrap">
+    <a href="index.html">The model</a>
+    <a href="documentation.html">Documentation</a>
+    <a href="user-guide.html" aria-current="page">User guide</a>
+    <a href="get-the-model.html">Get the model</a>
+    <a href="applications.html">Applications</a>
+    <a href="news.html">News</a>
+    <a href="about.html">About</a>
+  </div>
+</nav>
+
+<div class="pagehead gridpaper">
+  <div class="wrap">
+    <p class="kicker">Practical guide</p>
+    <h1>User guide</h1>
+    <p class="lead">How to install the model, bring in your own data, calibrate it, run a policy experiment and read the results. Written for the analyst who will do the work.</p>
+    <div class="actions">
+      <a class="btn" href="#">Download the guide</a>
+      <a class="btn-ghost" href="documentation.html">Theoretical documentation</a>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="wrap">
+
+    <div class="split">
+      <div>
+        <h2 style="margin-top:0">What it covers</h2>
+        <ol class="plain">
+          <li><strong>Install.</strong> What you need on the machine: GAMS, a solver, Python, and how the run scripts fit together.</li>
+          <li><strong>The data set.</strong> Which national accounts and energy balance tables the model expects, and in what shape.</li>
+          <li><strong>Calibration.</strong> Reproducing your base year and checking that the accounts close.</li>
+          <li><strong>Running an experiment.</strong> Setting a shock, choosing the fiscal closure, switching the energy technology model on.</li>
+          <li><strong>Reading the output.</strong> The reporting tables and how to compare a scenario with the baseline.</li>
+          <li><strong>Adapting the model.</strong> Working with modules without breaking the rest of the system.</li>
+        </ol>
+      </div>
+      <div class="panel">
+        <h3>Before you start</h3>
+        <p class="small">Read Chapter 1 of the documentation and the appendix on CES trees and indexing. Between them they explain nearly all of the notation used in the code.</p>
+        <p class="small" style="margin-bottom:0"><a href="documentation.html">Go to the documentation &rarr;</a></p>
+      </div>
+    </div>
+
+    <h2>Support</h2>
+    <p class="measure">The guide is written so that a team can work independently. Institutions taking part in the Commission's projects also receive direct support from DREAM. If you are starting a calibration outside those projects, say so when you write to us.</p>
+
+  </div>
+</main>
+
+<section class="signup gridpaper">
+  <div class="wrap">
+    <h2>Get told when the guide is updated</h2>
+    <p>The guide changes with the model. Subscribe and you will know when.</p>
+    <form onsubmit="return false">
+      <label for="email-guide" style="position:absolute;left:-9999px">Work email</label>
+      <input id="email-guide" type="email" placeholder="Work email" />
+      <button type="submit">Subscribe</button>
+    </form>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <h3>GreenREFORM-EU</h3>
+        <ul>
+          <li><a href="documentation.html">Documentation</a></li>
+          <li><a href="user-guide.html">User guide</a></li>
+          <li><a href="get-the-model.html">Get the model</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Projects</h3>
+        <ul>
+          <li><a href="applications.html">Applications</a></li>
+          <li><a href="news.html">News</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>DREAM</h3>
+        <p style="margin:0">Danish Research Institute for Economic Analysis and Modelling<br />
+        <a href="https://dreamgruppen.dk/">dreamgruppen.dk</a></p>
+      </div>
+    </div>
+    <div class="legal">
+      <span>&copy; DREAM</span>
+      <a href="#">Privacy</a>
+      <a href="#">Cookies</a>
+      <a href="#">Accessibility</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sitemap | GreenREFORM-EU</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind:wght@300;400;500;600&display=swap" />
+<link rel="stylesheet" href="assets/site.css" />
+<style>
+  .sheet { padding: 46px 40px 40px; }
+  .sheet h1 { font-size: 34px; max-width: none; margin-bottom: 10px; }
+  .sheet .lead { max-width: 86ch; margin-bottom: 28px; }
+  .notes { margin-top: 30px; border-top: 1px solid var(--line); padding-top: 18px; font-size: 14.5px; color: var(--ink-soft); max-width: 96ch; }
+  .notes p { margin: 0 0 8px; }
+  .notes p:last-child { margin-bottom: 0; }
+  .notes strong { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="sheet gridpaper">
+  <p class="kicker">Proposed structure</p>
+  <h1>GreenREFORM-EU &mdash; sitemap</h1>
+  <p class="lead">Seven pages in the primary navigation. Applications is a hub holding three kinds of object: analyses, projects and country teams.</p>
+
+  <div id="diagram"></div>
+
+  <div class="notes">
+    <p><strong>Analyses</strong> is where a researcher or official starts: has anyone scored a question like mine? Projects and country teams are the map around it.</p>
+    <p><strong>News</strong> announces a paper. The analysis record keeps it. Newsletter signup repeats in the footer of every page.</p>
+    <p><strong>No page per documentation chapter.</strong> The document itself is the artefact, offered as PDF, HTML and source.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  var D = [
+    { t: 'Documentation', s: 'How to read it, contents, download', k: [
+      { t: 'PDF / HTML document' },
+      { t: 'LaTeX source in the repository' }
+    ] },
+    { t: 'User guide', s: 'Install, calibrate, run a shock' },
+    { t: 'Get the model', s: 'Open source', k: [
+      { t: 'Repository: GAMS + Python' },
+      { t: 'Licence and data terms' }
+    ] },
+    { t: 'Applications', s: 'Hub: three kinds of object', k: [
+      { t: 'Analyses', s: 'Filter by policy question', k: [
+        { t: 'Analysis record', s: 'What was scored, version, data, limits, PDF' }
+      ] },
+      { t: 'Projects', s: 'Who funded the work', k: [
+        { t: 'TSI 2024 \u00b7 KR Foundation 2.0', s: 'New TSI \u00b7 Viet Nam' }
+      ] },
+      { t: 'Country teams', s: 'Who is calibrating', k: [
+        { t: 'Austria \u00b7 Belgium', s: 'Finland \u00b7 Italy' }
+      ] }
+    ] },
+    { t: 'News', s: 'Dated items', k: [
+      { t: 'News items' },
+      { t: 'Newsletter signup' }
+    ] },
+    { t: 'About', s: 'DREAM, funders, licence, contact' }
+  ];
+
+  var RH = 66, COL = [0, 270, 560, 850], W = [240, 260, 260, 300], rows = 0;
+  var FONT = 'Hind, Segoe UI, Aptos, Roboto, sans-serif';
+
+  function bh(n) { return n.s ? 52 : 34; }
+
+  D.forEach(function (c) {
+    if (!c.k) { c.y = rows * RH; rows++; return; }
+    c.k.forEach(function (g) {
+      if (!g.k) { g.y = rows * RH; rows++; return; }
+      g.k.forEach(function (x) { x.y = rows * RH; rows++; });
+      g.y = (g.k[0].y + g.k[g.k.length - 1].y) / 2;
+    });
+    c.y = (c.k[0].y + c.k[c.k.length - 1].y) / 2;
+  });
+
+  var root = { t: 'greenreform-eu', s: 'Home \u00b7 The model', y: (D[0].y + D[D.length - 1].y) / 2 };
+  var H = rows * RH + 14;
+  var conns = [], boxes = [];
+
+  function place(n, lvl) {
+    n._x = COL[lvl]; n._w = W[lvl]; n._h = bh(n);
+    n._top = n.y + 6; n._cy = n._top + n._h / 2; n._r = n._x + n._w;
+  }
+
+  place(root, 0);
+  D.forEach(function (c) {
+    place(c, 1);
+    if (c.k) c.k.forEach(function (g) {
+      place(g, 2);
+      if (g.k) g.k.forEach(function (x) { place(x, 3); });
+    });
+  });
+
+  function conn(p, c) {
+    var mid = (p._r + c._x) / 2;
+    conns.push("<path d='M" + p._r + " " + p._cy + " H" + mid + " V" + c._cy + " H" + c._x +
+      "' fill='none' stroke='#C8D2CB' stroke-width='1.4'/>");
+  }
+
+  D.forEach(function (c) {
+    conn(root, c);
+    if (c.k) c.k.forEach(function (g) {
+      conn(c, g);
+      if (g.k) g.k.forEach(function (x) { conn(g, x); });
+    });
+  });
+
+  function draw(n, lvl) {
+    var fill = lvl === 0 ? '#1B2620' : (lvl === 2 ? '#EFF2EF' : '#FFFFFF');
+    var stroke = lvl === 0 ? '#1B2620' : (lvl === 3 ? '#E7EBE6' : '#D9E0D9');
+    var tc = lvl === 0 ? '#FFFFFF' : '#1B2620';
+    var sc = lvl === 0 ? '#BFC9C2' : '#55635A';
+    var dash = lvl === 3 ? " stroke-dasharray='4 3'" : '';
+    boxes.push("<rect x='" + n._x + "' y='" + n._top + "' width='" + n._w + "' height='" + n._h +
+      "' rx='3' fill='" + fill + "' stroke='" + stroke + "'" + dash + "/>");
+    if (lvl === 1) {
+      boxes.push("<rect x='" + n._x + "' y='" + n._top + "' width='3' height='" + n._h + "' fill='#10693A'/>");
+    }
+    boxes.push("<text x='" + (n._x + 14) + "' y='" + (n._top + (n.s ? 21 : 22)) +
+      "' font-size='14.5' font-weight='" + (lvl === 0 ? 500 : 600) + "' fill='" + tc + "' font-family='" + FONT + "'>" + n.t + "</text>");
+    if (n.s) {
+      boxes.push("<text x='" + (n._x + 14) + "' y='" + (n._top + 39) +
+        "' font-size='12.5' fill='" + sc + "' font-family='" + FONT + "'>" + n.s + "</text>");
+    }
+  }
+
+  draw(root, 0);
+  D.forEach(function (c) {
+    draw(c, 1);
+    if (c.k) c.k.forEach(function (g) {
+      draw(g, 2);
+      if (g.k) g.k.forEach(function (x) { draw(x, 3); });
+    });
+  });
+
+  document.getElementById('diagram').innerHTML =
+    "<svg width='1160' height='" + H + "' viewBox='0 0 1160 " + H +
+    "' xmlns='http://www.w3.org/2000/svg'>" + conns.join('') + boxes.join('') + "</svg>";
+})();
+</script>
+
+</body>
+</html>

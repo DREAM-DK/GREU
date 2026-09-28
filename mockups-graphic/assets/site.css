@@ -1,0 +1,672 @@
+/* GreenREFORM-EU mockups - Direction 05, DREAM heritage.
+   Palette, typography and component rules from
+   ../../brand-lab/boards/05d-site-palette.html and 05c-dream-heritage-applications.html.
+
+   The working rule: green is never decoration. If something is green it is
+   either the model itself or something you can click. */
+
+:root {
+  /* the five */
+  --green: #10693A;   /* the mark, links, primary buttons, active states */
+  --ink: #1B2620;     /* all headings and body text */
+  --paper: #F7F7F4;   /* page background */
+  --mist: #E7EBE6;    /* rules, table borders, code chips, quiet surfaces */
+  --clay: #A04A26;    /* the one signal colour: new, changed, caution */
+
+  /* tones derived from the five, as used on the brand sheets */
+  --green-deep: #0B4F2B;  /* hover only */
+  --green-tint: #E8F0EA;
+  --green-wash: #F1F6F2;
+  --clay-tint: #F6E9E2;
+  --ink-soft: #55635A;
+  --surface: #FFFFFF;
+  --line: #E7EBE6;
+  --line-firm: #D9E0D9;
+  --focus: #A04A26;
+
+  --maxw: 1100px;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Hind, "Segoe UI", Aptos, Roboto, Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+a { color: var(--green); }
+
+a:focus-visible, button:focus-visible, input:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ---------- masthead ---------- */
+
+.masthead {
+  background: var(--surface);
+}
+
+.masthead .wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.dreamword {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.vrule {
+  width: 1px;
+  align-self: stretch;
+  min-height: 44px;
+  background: var(--line-firm);
+}
+
+.sitename {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  font-size: 21px;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.disc { display: block; }
+
+.utility {
+  display: flex;
+  gap: 18px;
+  font-size: 14px;
+}
+
+.utility a { text-decoration: none; }
+.utility a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- primary navigation ---------- */
+
+nav.main {
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+nav.main .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 26px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+nav.main a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 15px;
+  padding: 12px 0 9px;
+  border-bottom: 3px solid transparent;
+}
+
+nav.main a:hover { color: var(--ink); }
+
+nav.main a[aria-current="page"] {
+  color: var(--green);
+  font-weight: 600;
+  border-bottom-color: var(--green);
+}
+
+/* ---------- page furniture ---------- */
+
+main { padding: 44px 0 60px; }
+
+.kicker {
+  margin: 0 0 10px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 40px;
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  max-width: 20ch;
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin: 40px 0 12px;
+}
+
+h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+p { margin: 0 0 16px; }
+
+.lead {
+  font-size: 20px;
+  line-height: 1.5;
+  max-width: 62ch;
+  color: var(--ink-soft);
+}
+
+.measure { max-width: 68ch; }
+
+.muted { color: var(--ink-soft); }
+
+.small { font-size: 15px; }
+
+.mono {
+  font-family: Consolas, "Cascadia Mono", monospace;
+  font-size: 0.88em;
+  background: var(--mist);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: #2B3A31;
+}
+
+/* ---------- buttons ---------- */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 24px 0 8px;
+}
+
+.btn, .btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 3px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.btn {
+  background: var(--green);
+  color: #fff;
+}
+
+.btn:hover { background: var(--green-deep); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--green);
+  border-color: var(--green);
+}
+
+.btn-ghost:hover { background: var(--green-tint); }
+
+.lnk {
+  color: var(--green);
+  font-size: 16px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- blocks ---------- */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero h1 { max-width: 16ch; }
+
+.grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.card {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 20px;
+}
+
+.card p:last-child { margin-bottom: 0; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 24px;
+}
+
+/* ---------- tags ---------- */
+
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 2px 9px;
+  border-radius: 20px;
+  margin-bottom: 9px;
+  background: var(--mist);
+  color: var(--ink-soft);
+}
+
+.tag.new { background: var(--clay-tint); color: var(--clay); }
+.tag.version { background: var(--green-tint); color: var(--green); }
+
+.split {
+  display: grid;
+  gap: 32px;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+ul.plain, ol.plain { padding-left: 22px; margin: 0 0 16px; }
+ul.plain li, ol.plain li { margin-bottom: 10px; }
+
+ol.toc {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid var(--line-firm);
+}
+
+ol.toc li {
+  display: flex;
+  gap: 16px;
+  padding: 14px 2px;
+  border-bottom: 1px solid var(--line-firm);
+}
+
+ol.toc .no {
+  width: 2.2rem;
+  flex: none;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+ol.toc .what { margin: 0; }
+ol.toc .what span { display: block; color: var(--ink-soft); font-size: 15px; }
+
+.newsfeed { list-style: none; margin: 0; padding: 0; }
+
+.newsfeed li {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line-firm);
+}
+
+.newsfeed li:first-child { border-top: 1px solid var(--line-firm); }
+
+.newsfeed time {
+  display: block;
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+
+.newsfeed h3 { margin-bottom: 6px; }
+.newsfeed p { margin: 0; max-width: 72ch; }
+
+.note {
+  border-left: 3px solid var(--green);
+  background: var(--green-wash);
+  padding: 14px 18px;
+  font-size: 16px;
+}
+
+.note.caution {
+  border-left-color: var(--clay);
+  background: var(--clay-tint);
+}
+
+.note p:last-child { margin-bottom: 0; }
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 22px;
+}
+
+.chip {
+  display: inline-block;
+  padding: 5px 11px;
+  border: 1px solid var(--line-firm);
+  border-radius: 3px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: var(--surface);
+}
+
+.chip.on {
+  background: var(--green-tint);
+  border-color: var(--green);
+  color: var(--green);
+  font-weight: 600;
+}
+
+.analysis {
+  display: grid;
+  gap: 8px 28px;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  padding: 22px 0;
+  border-bottom: 1px solid var(--line-firm);
+  align-items: start;
+}
+
+.analysis:first-of-type { border-top: 1px solid var(--line-firm); }
+
+.analysis h3 { margin: 0 0 6px; font-size: 20px; }
+.analysis h3 a { color: var(--ink); text-decoration: none; }
+.analysis h3 a:hover { color: var(--green); text-decoration: underline; }
+.analysis .aside { font-size: 15px; color: var(--ink-soft); }
+.analysis .aside p { margin: 0 0 8px; }
+.analysis .aside p:last-child { margin-bottom: 0; }
+
+.crumb {
+  margin: 0 0 14px;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.meta-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.meta-table th,
+.meta-table td {
+  text-align: left;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line-firm);
+  vertical-align: top;
+}
+
+.meta-table th {
+  width: 11rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+/* ---------- signup + footer ---------- */
+
+.signup {
+  background: var(--mist);
+  border-top: 1px solid var(--line-firm);
+  border-bottom: 1px solid var(--line-firm);
+  color: var(--ink);
+  padding: 32px 0;
+}
+
+.signup h2 { margin: 0 0 6px; font-size: 22px; }
+.signup p { color: var(--ink-soft); margin: 0 0 18px; max-width: 60ch; }
+
+.signup form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.signup input {
+  flex: 1 1 260px;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--line-firm);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  border-radius: 3px;
+}
+
+.signup input::placeholder { color: #7C8A80; }
+
+.signup button {
+  background: var(--green);
+  color: #fff;
+  border: 0;
+  padding: 12px 22px;
+  font: inherit;
+  font-weight: 600;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.signup button:hover { background: var(--green-deep); }
+
+footer.site {
+  background: var(--ink);
+  color: #BFC9C2;
+  padding: 34px 0 30px;
+  font-size: 15px;
+}
+
+footer.site .cols {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+footer.site h3 { color: #fff; font-size: 15px; margin-bottom: 10px; font-weight: 600; }
+footer.site a { color: #DCE3DD; }
+footer.site ul { list-style: none; margin: 0; padding: 0; }
+footer.site li { margin-bottom: 6px; }
+
+footer.site .legal {
+  margin-top: 26px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 14px;
+  color: #9AA69E;
+}
+
+footer.site .legal a { color: #9AA69E; }
+
+/* ---------- the graphic system ----------
+
+   Three registers, and they are not interchangeable:
+
+   1. gridpaper      the 80 px grid from the brand background. Texture. Use
+                     anywhere a band needs to feel like squared paper.
+   2. family.svg     the DREAM discs in their own colours, connected. This
+                     means the model family. Only where the text is about
+                     lineage: the home hero, "Where it comes from", About.
+   3. constellation-quiet.svg
+                     the same topology drawn in mist. Texture, not the family.
+                     Interior page heads.
+
+   Nothing here introduces a sixth colour. The family discs are DREAM's own
+   and are quoted, not adopted. */
+
+/* The grid sits on its own layer so it can be masked. The band keeps the page
+   background colour, so once the grid has faded there is nothing left to mark
+   where the band ended. */
+
+.gridpaper {
+  position: relative;
+  background-color: var(--paper);
+}
+
+.gridpaper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--mist) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--mist) 1px, transparent 1px);
+  background-size: 80px 80px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 46%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0, #000 46%, transparent 100%);
+  pointer-events: none;
+}
+
+.gridpaper > * { position: relative; z-index: 1; }
+
+.hero .wrap {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.78fr);
+  gap: 40px;
+  align-items: center;
+  padding-top: 46px;
+  padding-bottom: 46px;
+}
+
+.hero-text .actions { margin-bottom: 0; }
+
+.hero-figure { margin: 0; }
+.hero-figure img { display: block; width: 100%; height: auto; }
+
+.pagehead {
+  position: relative;
+  overflow: hidden;
+  padding: 40px 0 44px;
+}
+
+/* The quiet constellation fades out before it reaches the text column on the
+   left, and again before the bottom edge, so the band has no edge at all. */
+.pagehead::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -40px;
+  bottom: 0;
+  width: 520px;
+  background: url("constellation-quiet.svg") no-repeat right center;
+  background-size: contain;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent, #000 38%),
+    linear-gradient(to bottom, #000 0, #000 46%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent, #000 38%),
+    linear-gradient(to bottom, #000 0, #000 46%, transparent 100%);
+  mask-composite: intersect;
+  pointer-events: none;
+}
+
+.pagehead .wrap { position: relative; z-index: 1; }
+.pagehead .actions { margin-bottom: 0; }
+.pagehead .crumb { position: relative; z-index: 1; }
+
+.lineage { margin: 24px 0 8px; }
+.lineage svg { display: block; width: 100%; height: auto; }
+
+.figure { margin: 24px 0 10px; }
+.figure img { display: block; width: 100%; height: auto; }
+.figure figcaption { margin-top: 10px; font-size: 14px; color: var(--ink-soft); }
+
+.caption {
+  margin: 10px 0 18px;
+  font-size: 14px;
+  color: var(--ink-soft);
+  max-width: 76ch;
+}
+
+/* Country teams: the disc is never modified, never re-coloured and never has
+   anything added to it. What a country needs to say is said in type beside
+   it. Component from brand-lab/boards/05c-dream-heritage-applications.html. */
+
+.ccards { display: grid; gap: 12px; }
+
+.ccard {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 14px 18px;
+}
+
+.ccard img { display: block; flex: none; }
+.ccard .nm { font-size: 16px; font-weight: 600; }
+.ccard .meta { font-size: 13.5px; color: var(--ink-soft); margin-top: 1px; max-width: 68ch; }
+
+.ccard .pill {
+  margin-left: auto;
+  background: var(--green-tint);
+  color: var(--green);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.signup { background-color: var(--mist); }
+
+/* The signup band has its own colour and its own rules top and bottom, so its
+   edge is deliberate. The grid stays even across it. */
+.signup.gridpaper { background-color: var(--mist); }
+
+.signup.gridpaper::before {
+  background-image:
+    linear-gradient(to right, #DDE3DD 1px, transparent 1px),
+    linear-gradient(to bottom, #DDE3DD 1px, transparent 1px);
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+@media (max-width: 880px) {
+  .hero .wrap { grid-template-columns: 1fr; }
+  .hero-figure { max-width: 420px; }
+  .pagehead::after { display: none; }
+}
+
+@media (max-width: 760px) {
+  h1 { font-size: 30px; }
+  .lead { font-size: 18px; }
+  .split { grid-template-columns: 1fr; }
+  .analysis { grid-template-columns: 1fr; }
+  .masthead .wrap { flex-wrap: wrap; }
+  .brand { gap: 14px; }
+  .dreamword { font-size: 20px; }
+  .sitename { font-size: 17px; }
+  .ccard { flex-wrap: wrap; }
+  .ccard .pill { margin-left: 0; }
+}

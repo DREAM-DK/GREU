@@ -7,9 +7,7 @@
 *.gtb filter=lfs -diff merge=lfs -text
 
 # Images
-*.png filter=lfs -diff merge=lfs -text
 *.jpg filter=lfs -diff merge=lfs -text
-*.svg filter=lfs -diff merge=lfs -text
 
 *.pdf filter=lfs -diff merge=lfs -text
 
