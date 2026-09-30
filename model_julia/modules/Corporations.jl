@@ -195,10 +195,10 @@ end
 # ============================================================================
 # Calibration
 # ============================================================================
-function define_calibration()
+function define_calibration(base=define_equations())
   # Match the tax rate by capital type to the capital-value-weighted physical
   # depreciation rate in corporate sectors in the calibration year.
-  block = define_equations() + @block model begin
+  block = copy(base) + @block model begin
     rCapitalTaxDepr_k[k=capital_type, t=[t1]],
     rCapitalTaxDepr_k[k,t] * ∑(
       rIndustrySector_s_i[s,i,t] * pI_k[k,t] * qK_k_i[k,i,t-1]/fq

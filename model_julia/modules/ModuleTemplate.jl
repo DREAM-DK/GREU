@@ -60,8 +60,8 @@ end
 # ============================================================================
 # Calibration
 # ============================================================================
-function define_calibration()
-  block = define_equations() + @block model begin
+function define_calibration(base=define_equations())
+  block = copy(base) + @block model begin
     test_forecast[t=t1:t1], test_forecast[t] == 42.0
   end
   return block

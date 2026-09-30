@@ -41,8 +41,8 @@ end
 # ============================================================================
 # Calibration
 # ============================================================================
-function define_calibration()
-  block = define_equations()
+function define_calibration(base=define_equations())
+  block = copy(base)
 
   # The share is what the calibration year reports. The scale factor starts at one.
   @endo_exo_swap! block begin

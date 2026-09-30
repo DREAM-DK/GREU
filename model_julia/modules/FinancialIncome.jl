@@ -88,8 +88,8 @@ end
 # Calibration
 # ============================================================================
 
-function define_calibration()
-  block = define_equations()
+function define_calibration(base=define_equations())
+  block = copy(base)
 
   @endo_exo_swap! block begin
     rDebtIncomeECBGap_s[s=sector, al=ass_liab, t=[t1]; (s,al) ∉ [(:FinCorp, :Assets)]],
