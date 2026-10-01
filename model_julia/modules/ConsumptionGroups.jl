@@ -148,9 +148,9 @@ end
 # Calibration
 # ============================================================================
 
-function define_calibration()
+function define_calibration(base=define_equations())
   # Identify CES shares while group prices set the base-year quantity units.
-  block = define_equations() + @block model begin
+  block = copy(base) + @block model begin
     uCTourist_p[p=consumption_product, t=(t1+1):T],
     uCTourist_p[p,t] == uCTourist_p[p,t1] /
       ∑(uCTourist_p[z,t1] for z in consumption_product if (z,t) in keys(uCTourist_p))

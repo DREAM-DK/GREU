@@ -426,8 +426,8 @@ end
 # Calibration
 # ============================================================================
 
-function define_calibration()
-  block = define_equations() + @block model begin
+function define_calibration(base=define_equations())
+  block = copy(base) + @block model begin
     # Normalize base-year shares over the retained forecast cells.
     rIndustryShare[p=product, i=industry, t=(t1+1):T],
     rIndustryShare[p,i,t] == rIndustryShare[p,i,t1] /

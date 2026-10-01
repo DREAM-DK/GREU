@@ -32,7 +32,8 @@ model_modules = [loaded_module_by_name[name] for name in Settings.model_modules]
 
 # The full-horizon model tells calibration which variables are parameters.
 Time.T = Time.max_terminal_year
-base_block = base_model(model_modules)
+base_blocks = [m.define_equations() for m in model_modules]
+base_block = sum(base_blocks)
 
 # ============================================================================
 # Static calibration
@@ -49,12 +50,12 @@ assert_residuals_small(static_solution; rtol=1e-4, residual_tolerances(static_so
 # Dynamic calibration
 # ==============================================================================
 previous_solution_path = joinpath(output_dir, "previous_baseline.parquet")
-previous_solution = isfile(previous_solution_path) ? load(previous_solution_path, model) : nothing
+previous_solution = (isfile(previous_solution_path) ? load(previous_solution_path, model) : nothing)
 
 # Step by step is used only when no previous solution is available as start values.
-baseline = isnothing(previous_solution) ?
+baseline = @log_time "dynamic calibration" (isnothing(previous_solution) ?
   dynamic_calibration_step_by_step(data, static_solution, static_calibrated_parameters) :
-  dynamic_calibration(data, static_solution, static_calibrated_parameters; previous_solution)
+  dynamic_calibration(data, static_solution, static_calibrated_parameters; previous_solution, base_blocks))
 
 assert_residuals_small(baseline; rtol=1e-4, residual_tolerances(baseline, model_modules)...,
   msg="Large residuals after dynamic calibration")
@@ -77,3 +78,6 @@ unload(joinpath(output_dir, "baseline.parquet"), baseline)
 # Write baseline report
 # ==============================================================================
 include("BaselineReport.jl"); BaselineReport.write_report(baseline)
+
+@info "Calibrate.jl total ($(round(time() - run_start, digits=1))s)"
+TimingReport.report()         # TEMP timing
