@@ -60,6 +60,8 @@ $BLOCK labor_market_equations labor_market_endogenous $(t1.val <= t.val and t.va
     rWageInflation[t] =E= rWageInflation[t-1]
                         + uPhillipsCurveEmpl[t] * (nL[t] / snL[t] - 1)
                         + jnL[t];
+
+  jnL[t]$(not t1[t]).. nL[t] =E= nL[t1];
 $ENDBLOCK
 
 # Add equation and endogenous variables to main model
@@ -87,6 +89,7 @@ pW.l[t] = fpt[t];
 pL_i.l[i,t] = fpt[t];
 qL_i.l[i,t] = vWages_i.l[i,t];
 rWageInflation.l[t] = fv-1;
+snL.l[t] = nL.l[t];
 
 $ENDIF # exogenous_values
 

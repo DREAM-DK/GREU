@@ -29,7 +29,12 @@ $BLOCK households_equations households_endogenous $(t1.val <= t.val and t.val <=
 
 
 # In this modul we have a simple aggregate consumption function with constant marginal propensities
-  .. vC_CMP[t] =E= rMPC[t] * vHhIncome[t] + rMPCW[t] * vNetFinAssets['Hh',t-1]/fv;
+  # .. vC_CMP[t] =E= rMPC[t] * vHhIncome[t] + rMPCW[t] * vNetFinAssets['Hh',t-1]/fv;
+
+  .. vC_CMP[t] =E= vC[t1]*vY[t]/vY[t1];
+
+    qD[g,t]$(t.val > t1.val)..
+    vD[g,t] =E= vD[g,t1]*vY[t]/vY[t1];
 
   .. vHhIncome[t] =E= vWages[t]
                     - vNetHh2Gov[t]
@@ -97,13 +102,13 @@ $ENDBLOCK
 # Add equations and calibration equations to calibration model
 model calibration /
   households_equations
-  households_calibration_equations
+  # households_calibration_equations
 /;
 # Add endogenous variables to calibration model
 $Group calibration_endogenous
   households_endogenous
 
-  rMPCW[t1]
+  # rMPCW[t1]
   calibration_endogenous
 ;
 

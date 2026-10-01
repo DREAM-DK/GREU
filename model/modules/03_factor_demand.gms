@@ -120,6 +120,7 @@ rKDepr_k_i.l['iT',i,t] = 0.15;
 qI_k_i_energy_tech.l[k,i,t] = 0;
 
 fInstCost_k_i.fx[k,i] = 0.5;
+
 qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not t1[t]) = fInstCost_k_i.l[k,i] * sqr((qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t-1]/fq))) * (qK_k_i.l[k,i,t-1]/fq);
 dInstCost2dKLag_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not tEnd[t]) = -fInstCost_k_i.l[k,i] * (2*(1 - rKDepr_k_i.l[k,i,t]) + ((qI_k_i.l[k,i,t+1]*fq) / (qK_k_i.l[k,i,t]))) * ((qI_k_i.l[k,i,t+1]*fq) / (qK_k_i.l[k,i,t]));
 dInstCost2dK_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not t1[t]) = fInstCost_k_i.l[k,i] * 2 * (qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t-1]/fq));

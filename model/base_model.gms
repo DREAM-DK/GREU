@@ -49,26 +49,26 @@ $FUNCTION import_from_modules({stage_key}):
     ("modules/03_factor_demand_energy.gms", 1),
     ("modules/03_pricing.gms" , 1),
     ("modules/02_households.gms", 1),
-    ("modules/03_financial_accounts.gms", 1),
-    ("modules/04_government.gms", 1),
+    ("modules/03_financial_accounts.gms", 0),
+    ("modules/04_government.gms", 0),
     ("modules/05_imports.gms", 1),
     ("modules/05_exports.gms", 1),
 
     ## MODULES WITH FOC-BASED BEHAVIOR
     ("modules/03_production.gms" , 1),
-    ("modules/02_ramsey_household.gms", 1), 
+    ("modules/02_ramsey_household.gms", 0), 
     ("modules/02_consumption_disaggregated.gms", 1), 
 
     ## GREEN TRANSITION MODULES
-    ("modules/06_emissions.gms" , 1),
-    ("modules/06_energy_markets.gms" , 1),
-    ("modules/06_non_energy_markets.gms", 1),
-    ("modules/03_production_CES_energydemand.gms", 1),
-    ("modules/04_energy_and_emissions_taxes.gms" , 1),
-    ("modules/03_production_CET.gms", 1),
-    ("modules/02_consumption_disaggregated_energy.gms", 1),
-    ("modules/05_exports_energy.gms", 1),
-    ("modules/03_energy_technology.gms", 1),
+    ("modules/06_emissions.gms" , 0),
+    ("modules/06_energy_markets.gms" , 0),
+    ("modules/06_non_energy_markets.gms", 0),
+    ("modules/03_production_CES_energydemand.gms", 0),
+    ("modules/04_energy_and_emissions_taxes.gms" , 0),
+    ("modules/03_production_CET.gms", 0),
+    ("modules/02_consumption_disaggregated_energy.gms", 0),
+    ("modules/05_exports_energy.gms", 0),
+    ("modules/03_energy_technology.gms", 0),
 
     ## REPORTING MODULES
     ("Report/All.Report.gms", 1),     

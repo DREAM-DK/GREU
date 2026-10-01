@@ -12,7 +12,7 @@ OPTION
 
 $SETLOCAL first_data_year 2015;
 $SETLOCAL calibration_year 2020;
-$SETLOCAL terminal_year 2050;
+$SETLOCAL terminal_year 2040;
 
 $SETLOCAL base_year 2020;
 $SETGLOBAL exogenous_supply_prices 1 #Can be used to set supply prices as exogeonus

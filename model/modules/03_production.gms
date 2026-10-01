@@ -35,6 +35,7 @@ $IF %stage% == "variables":
     jvEnergycostsnotinnesting[i,t]$(d1Y_i[i,t]) "Total cost of energy not in CES-nested production function (endogenized by production_CES_energydemand module when active)."
 
     vGVA_i[i,t]$(d1Y_i[i,t]) "Approximation of gross value added on industry level"
+  vArtificialExtraCost[i,t]$(d1Y_i[i,t]) "Artificial extra cost, bio. kroner"
   ;
  
 $ENDIF # variables
@@ -69,8 +70,9 @@ $IF %stage% == "equations":
         .. pProd[pfNest,i,t] * qProd[pfNest,i,t] =E= sum(pf_mapping[pfNest,pf,i], pProd[pf,i,t] * qProd[pf,i,t]);
 
     # # Other production costs, not in nesting tree 
-    .. vProdOtherProductionCosts[i,t] =E= 
-                                            vtY_i_NetTaxSub[i,t]           #Net production taxes and subsidies, excluding ETS free allowances
+    .. vProdOtherProductionCosts[i,t] =E=   
+                                           vArtificialExtraCost[i,t]
+                                           +vtY_i_NetTaxSub[i,t]           #Net production taxes and subsidies, excluding ETS free allowances
                                            -jvtBotded[i,t]                   #"Bottom deductions on energy-use"
                                           + jvEnergycostsnotinnesting[i,t]   #Energy costs not in nesting tree
                                           - vNetGov2Corp_xIO[i,t];
