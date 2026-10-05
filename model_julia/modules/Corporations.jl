@@ -85,6 +85,12 @@ function assign_data!(db)
   return nothing
 end
 
+function set_residual_tolerances!(tolerances, rtolerances)
+  # The t1 hurdle-rate residual keeps the data rate while the premium targets the first forecast year.
+  tolerances[rHurdleRate_i] = 0.02
+  return nothing
+end
+
 # ============================================================================
 # Starting values
 # ============================================================================
@@ -219,6 +225,19 @@ function define_calibration(base=define_equations())
     rNonFinCorpDebtLiabilities2Capital[t1], vFinPosition_s_f[:NonFinCorp,:Debt,:Liab,t1]
     rHurdleRatePremium_i[:,t1], rHurdleRate_i[:,t1]
   end
+
+  # Static calibration sets the premium from the t1 hurdle rate. Dynamic calibration sets it from the first
+  # forecast year, after the required return is calibrated from equity values, so the hurdle rate stays at its data value.
+  # if T == t1
+  #   @endo_exo_swap! block begin
+  #     rHurdleRatePremium_i[:,t1], rHurdleRate_i[:,t1]
+  #   end
+  # else
+  #   @endo_exo_swap! block begin
+  #     rHurdleRatePremium_i[:,t1], rHurdleRate_i[:,t1+1]
+  #   end
+  # end
+
 
   return block
 end

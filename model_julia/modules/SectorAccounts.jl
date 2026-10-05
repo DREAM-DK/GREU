@@ -192,6 +192,8 @@ function assign_data!(db)
   fill_cells!(db, vGrossOpSurplusMixedIncome, vGrossOpSurplusMixedIncome_data)
   fill_cells!(db, vFinReval_s_f, vFinReval_s_f_data)
   fill_cells!(db, vOtherChangesInVolume_f, vOtherChangesInVolume_f_data)
+  db[[vOtherChangesInVolume_f[s,f,al,year]
+      for (s, f, al, year) in keys(vOtherChangesInVolume_f) if year > t1]] .= 0.0
 
   # Until the government module supplies B.9, use the same source total as
   # government net financial transactions.

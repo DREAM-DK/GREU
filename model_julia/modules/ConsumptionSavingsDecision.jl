@@ -5,6 +5,8 @@
 module ConsumptionSavingsDecision
 
 using SquareModels
+import ..DataUtils: read_cells, cell_value
+import ..SectorAccountsSettings: sector_accounts_data_dir
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fp, fq
 import ..Households: mHhReturn
 import ..InputOutput: pC, qC, qC_p, qCTourist, vC
@@ -18,6 +20,9 @@ import ..SectorAccounts:
 import ..Tags: DynamicCalibration, ForecastConstant
 import ..Time: t, t1, T
 
+# Same source as qC[t1] in ConsumptionGroups, so the habit term starts on the same level.
+const vHhConsumption_data = read_cells(joinpath(sector_accounts_data_dir, "sector_accounts.csv"), "vHhConsumption")
+const qHhWealth_scale = 1e6
 # ============================================================================
 # Variables
 # ============================================================================
@@ -54,10 +59,11 @@ function assign_data!(db)
   db[rCHabits] .= 0.50
   db[βHh] = 0.96
   db[eHhConsumption] = 1/0.8
-  db[eHhWealth] = 1/0.8
+  db[eHhWealth] = 10
 
-  db[qC[t1-1]] =
-    sum(db[qC_p[p,year]] for (p, year) in keys(qC_p) if year == t1-1) - db[qCTourist[t1-1]]
+  # db[qC[t1-1]] =
+  #   sum(db[qC_p[p,year]] for (p, year) in keys(qC_p) if year == t1-1) - db[qCTourist[t1-1]]
+  db[qC[t1-1]] = cell_value(vHhConsumption_data, t1-1)
 
   @assert 0 <= db[rHtM[t1]] <= 1 "The hand-to-mouth income share must be in [0, 1]"
   @assert 0 <= db[rCHabits[t1]] < 1 "The external habit factor must be in [0, 1)"
@@ -92,7 +98,7 @@ function define_equations()
 
     dU2dC[t=t1:T], dU2dC[t] * qCxRef[t]^eHhConsumption == 1
 
-    dU2dWealth[t=t1:T], dU2dWealth[t] * qHhWealth[t]^eHhWealth == uHhWealthPreference
+    dU2dWealth[t=t1:T], dU2dWealth[t] * (qHhWealth[t]/qHhWealth_scale)^eHhWealth == uHhWealthPreference
 
     qC[t=t1:(T-1)], dU2dC[t] == dU2dWealth[t]
       + βHh * (1 + mHhReturn[t+1]) * pC[t] / (pC[t+1]*fp) * dU2dC[t+1]*fq^(-eHhConsumption)

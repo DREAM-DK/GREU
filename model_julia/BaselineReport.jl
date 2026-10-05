@@ -12,7 +12,7 @@ using SquareModels: ModelDictionary, LabeledSeries, plotseries, @evalexpr,
 import GREU.Capital: capital_k_i, pK_k_i, qI_k_i, qK_k_i, rKDepr_k_i
 import GREU.FixedBasePriceAggregates: pGDP, qGDP, qGVA, vGDP
 import GREU.GrowthInflationAdjustment: fq, gq
-import GREU.InputOutput: industry, pI, pX, qC, qG, qI, qINV, qM, qX, qY_i, vC, vY_i
+import GREU.InputOutput: industry, pC, pG, pI, pM, pX, qC, qG, qI, qINV, qM, qX, qY_i, vC, vY_i
 import GREU.Intermediates: vM_i
 import GREU.Labor: labor_l_i, pL_l_i, vW, nL_l_i, qL_l_i, vWages_i
 import GREU.PhillipsCurve: rLEmploymentGap, rWInflation
@@ -138,8 +138,30 @@ function industry_series(years; window=10)
 end
 
 # ============================================================================
-# Closure and aggregate series
+# Steady-state, closure, and aggregate series
 # ============================================================================
+quantity_panels(years) = [Panel(name, values, years) for (name, values) in [
+  "GDP" => @evalexpr(qGDP),
+  "Consumption" => @evalexpr(qC),
+  "Investment" => @evalexpr(qI),
+  "Capital stock" => @evalexpr(sum(qK_k_i[k,i,:] for (k, i) in capital_k_i)),
+  "Public consumption" => @evalexpr(qG),
+  "Exports" => @evalexpr(qX),
+  "Imports" => @evalexpr(qM),
+]]
+
+# Weight capital user costs by current capital, as in PrintOutput.jl.
+price_panels(years) = [Panel(name, values, years) for (name, values) in [
+  "GDP deflator" => @evalexpr(pGDP),
+  "Consumption" => @evalexpr(pC),
+  "Investment" => @evalexpr(pI),
+  "Capital user cost" => @evalexpr(sum(pK_k_i[k,i,:] * qK_k_i[k,i,:] for (k, i) in capital_k_i) /
+    sum(qK_k_i[k,i,:] for (k, i) in capital_k_i)),
+  "Public consumption" => @evalexpr(pG),
+  "Exports" => @evalexpr(pX),
+  "Imports" => @evalexpr(pM),
+]]
+
 closure_panels(years) = [Panel(name, values, years) for (name, values) in [
   "Government debt over GDP" => @evalexpr(vFinPosition_s_f[:Gov,:Debt,:Liab,:] / vGDP),
   "Rest-of-world net financial assets over GDP" => @evalexpr(vNetFinAssets[:RoW,:] / vGDP),
@@ -196,6 +218,62 @@ function panel_figure(panels, years; show_change=false)
   end
 end
 
+"""Move end labels apart by at least `gap`, keeping their order and centre."""
+function spread_labels(y, gap)
+  order = sortperm(y)
+  placed = y[order]
+  for n in 2:length(placed)
+    placed[n] = max(placed[n], placed[n-1] + gap)
+  end
+  placed .-= (sum(placed) - sum(y[order])) / length(placed)
+  out = similar(y)
+  out[order] = placed
+  return out
+end
+
+"""One steady-state axis: every series indexed to the first year, labelled at its end."""
+function steady_state_axis!(cell, panels, years; title)
+  shown = [p for p in panels if count(isfinite, p.y) >= 2 && !iszero(opening(p.y))]
+  isempty(shown) && return Axis(cell; title)
+  palette = color_palette()
+  indexed = [p.y ./ opening(p.y) for p in shown]
+  finite = filter(isfinite, reduce(vcat, indexed))
+  lo, hi = min(minimum(finite), 1.0), max(maximum(finite), 1.0)
+  yspan = max(hi - lo, 0.02)
+  span = last(years) - first(years)
+  x_end = last(years)
+  ticks = [first(years); [y for y in years if y % 10 == 0 && y - first(years) >= 4]]
+
+  ax = Axis(cell; title, titlealign=:left, ylabel="Index, $(first(years)) = 1",
+    xticks=ticks, xgridvisible=false, topspinevisible=false, rightspinevisible=false)
+  hlines!(ax, [1.0]; color=(colors().DarkGray, 0.5), linestyle=:dash, linewidth=1)
+
+  ends = [y[findlast(isfinite, y)] for y in indexed]
+  label_y = spread_labels(ends, 0.065 * yspan)
+  for (n, (p, y)) in enumerate(zip(shown, indexed))
+    color = palette[mod1(n, length(palette))]
+    lines!(ax, years, y; color, linewidth=2.5)
+    lines!(ax, [x_end, x_end + 0.025span], [ends[n], label_y[n]]; color, linewidth=1)
+    text!(ax, x_end + 0.03span, label_y[n]; text=p.name, color, font=:bold, align=(:left, :center))
+  end
+
+  # Leave room on the right for the labels.
+  xlims!(ax, first(years), x_end + 0.38span)
+  ylims!(ax, min(lo, minimum(label_y)) - 0.06yspan, max(hi, maximum(label_y)) + 0.06yspan)
+  return ax
+end
+
+"""Quantities and prices indexed to the first reported year. Flat lines at the end mean a steady state."""
+function steady_state_figure(years; stacked::Bool=false)
+  return with_dream_theme(:slide_small) do
+    fig = Figure(size=stacked ? (1000, 760) : (1250, 430))
+    steady_state_axis!(fig[1, 1], quantity_panels(years), years; title="Quantities")
+    steady_state_axis!(stacked ? fig[2, 1] : fig[1, 2], price_panels(years), years; title="Prices")
+    stacked ? rowgap!(fig.layout, 30) : colgap!(fig.layout, 50)
+    fig
+  end
+end
+
 """One line per panel, indexed to its first reported value. The largest movers have coloured labels."""
 function overview(panels, years; highlight=3)
   ranked = sort([p for p in panels if p.change !== nothing]; by=p -> abs(p.change), rev=true)
@@ -236,25 +314,42 @@ function report_periods()
   return Time.t1:(last_year <= Time.t1 ? Time.max_terminal_year : last_year)
 end
 
+# Start the steady-state figure at the first year with stored GDP, as PrintOutput.jl does,
+# so it shows the move from data to the steady state.
+function steady_state_periods(baseline, last_year)
+  stored = [t for (t, v) in zip(Time.t, @evalexpr(:n, Time.t, baseline, qGDP)) if !isnothing(v)]
+  return first(stored):last_year
+end
+
 """
 Write a DREAM baseline report. Rank industries by their change over the closing
-`window` years. Exclude the last ten solved years by default. Set the session's
+`window` years. Exclude the last ten solved years by default. The steady-state
+figure starts at the first year with stored GDP; override it with `ss_periods`. Set the session's
 source, periods, and operator to this baseline. A structural gap, such as an
 industry with no capital, keeps its table row and has no figure panel.
 """
 function write_report(baseline::ModelDictionary; path::AbstractString=default_path(),
   periods=report_periods(), window::Integer=10, color_scale::Real=5.0,
+  ss_periods=steady_state_periods(baseline, last(periods)),
 )
   @assert window > 0 && !isempty(periods) && issorted(periods) && allunique(periods) "Report periods must increase and the closing window must be positive."
   years = collect(periods)
+  ss_years = collect(ss_periods)
   set_default_source!(baseline)
-  set_default_periods!(years)
   set_default_operator!(:n)
+  # Build the steady-state figure on its own periods before switching to the report periods.
+  set_default_periods!(ss_years)
+  ss_figure = steady_state_figure(ss_years)
+  set_default_periods!(years)
   series = industry_series(years; window)
   return with_dream_theme(:slide_large) do
     closure = closure_panels(years)
     aggregates = aggregate_panels(years)
     sections = [
+      report_section("Steady state", [
+        "Aggregates indexed to $(first(ss_years))" => ss_figure,
+      ]; wide=true,
+        description="Aggregate quantities and prices indexed to $(first(ss_years)), the first year with data. In a steady state every line is flat by the end."),
       report_section("Closure", ["Stocks, gaps, and net lending" => panel_figure(closure, years)]; wide=true,
         description="Check whether stocks settle. Sector net lending must sum to zero in each year."),
       report_section("Aggregates", ["Macro overview" => panel_figure(aggregates, years)]; wide=true,
