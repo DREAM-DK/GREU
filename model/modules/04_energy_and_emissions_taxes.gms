@@ -306,7 +306,7 @@ $IF %stage% == "exogenous_values":
   # ------------------------------------------------------------------------------
 
    tCO2_ETS.l[t] = 750;
-   tCO2_ETS2.l[t] = 375; 
+   tCO2_ETS2.l[t]= 375; 
 
    tCO2_xEmarg.l['23001',t] = 125;
    tCO2_xEmarg.l['23002',t] = 125;
@@ -328,8 +328,10 @@ $IF %stage% == "exogenous_values":
     d1tCO2_ETS_E[em,es,e,d,t]$(qEmmE_BU.l[em,es,e,d,t] and CO2bio[em] and qEpj.l[es,e,d,t] and in_ETS[es] and natgas[e]) = yes;
     d1tCO2_ETS[i,t]             = yes$(sum((em,es,e), d1tCO2_ETS_E[em,es,e,i,t]));
 
-    d1tCO2_ETS2_E[em,es,e,d,t]  = yes$(qEmmE_BU.l[em,es,e,d,t] and CO2ubio[em] and qEpj.l[es,e,d,t] and not in_ETS[es]);
-    d1tCO2_ETS2_E[em,es,e,d,t]$(qEmmE_BU.l[em,es,e,d,t] and CO2bio[em] and qEpj.l[es,e,d,t] and not in_ETS[es] and natgas[e]) = yes;
+    d1tCO2_ETS2_E[em,es,e,d,t]  = yes$(qEmmE_BU.l[em,es,e,d,t] and CO2ubio[em] and qEpj.l[es,e,d,t] and not in_ETS[es] and tCO2_ETS2.l[t] and t.val>=2028);
+    d1tCO2_ETS2_E[em,es,e,d,t]$(qEmmE_BU.l[em,es,e,d,t] and CO2bio[em] and qEpj.l[es,e,d,t] and not in_ETS[es] and natgas[e] and tCO2_ETS2.l[t] and t.val>=2028) = yes;
+    
+    d1tCO2_ETS2[d,t]=yes$(sum((em,es,e), d1tCO2_ETS2_E[em,es,e,d,t]) and t.val>=2028);
 
     d1tE[es,e,d,t]             = yes$((sum(etaxes,d1tE_duty[etaxes,es,e,d,t])  or d1tE_vat[es,e,d,t] or sum(em,d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) and (pEpj_base.l[es,e,d,t] or pEpj_own.l[es,e,d,t]));
     d1tqEpj[es,e,d,t]          = yes$((sum(etaxes, d1tE_duty[etaxes,es,e,d,t]) or sum(em,d1tCO2_ETS_E[em,es,e,d,t]) or sum(em, d1tCO2_ETS2_E[em,es,e,d,t])) and d1qEpj[es,e,d,t] and not (pEpj_base.l[es,e,d,t] or pEpj_own.l[es,e,d,t]));

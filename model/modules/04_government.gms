@@ -24,7 +24,7 @@ $Group+ all_variables
   vtCorp[t] "Taxation of corporations"
   tCorp[t] "Tax rate on corporations"
   vtDirect_other[t] "Residual direct taxes"
-  sDirect_other[t] "Residual direct taxes relative to GVA"
+  sDirect_other[t] "Residual direct taxes relative to total household returns"
 
   vGovRevOther[t] "Other government revenues"
   vCont[t] "Contributions to social security"
