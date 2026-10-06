@@ -1,52 +1,6 @@
 # Helper functions used by Calibrate.jl.
 using SquareModels
 
-# ============================================================================
-# Speed-up: cached variable lookup for SquareModels
-# ============================================================================
-# Temp until SquareModels has its own cached lookup.
-import JuMP
-const _variable_locations = IdDict{Any, Dict{JuMP.VariableRef, Tuple{Symbol, Any, Any}}}()
-
-function _build_variable_locations(model)
-  locations = Dict{JuMP.VariableRef, Tuple{Symbol, Any, Any}}()
-  add!(var, name, object, key) =
-    var isa JuMP.VariableRef && !haskey(locations, var) && (locations[var] = (name, object, key))
-  for (name, object) in JuMP.object_dictionary(model)
-    endswith(string(name), SquareModels.RESIDUAL_SUFFIX) && continue
-    if object isa JuMP.VariableRef
-      add!(object, name, object, nothing)
-    elseif object isa SquareModels.SparseZeroArray
-      for (key, var) in object.data.data
-        add!(var, name, object, key)
-      end
-    elseif object isa JuMP.Containers.SparseAxisArray
-      for (key, var) in object.data
-        add!(var, name, object, key)
-      end
-    elseif object isa AbstractArray
-      for key in SquareModels._all_keys(object)
-        add!(object[key...], name, object, key)
-      end
-    end
-  end
-  return locations
-end
-
-function _cached_variable_location(model, var)
-  locations = get!(() -> _build_variable_locations(model), _variable_locations, model)
-  location = get(locations, var, nothing)
-  if location === nothing  # variables added since the lookup was built
-    locations = _variable_locations[model] = _build_variable_locations(model)
-    location = get(locations, var, nothing)
-    location === nothing && error("Cannot find residual for an unattached variable")
-  end
-  return location
-end
-
-@eval SquareModels _variable_location(model, var::VariableRef) = $(_cached_variable_location)(model, var)
-
-
 import CONOPT
 # CONOPT.jl patch: square system + interval information, like GAMS/CNS gives CONOPT.
 include("conopt_intervals.jl")
