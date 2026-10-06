@@ -73,8 +73,8 @@ end
 # ============================================================================
 # Calibration
 # ============================================================================
-function define_calibration()
-  return define_equations() + @block model begin
+function define_calibration(base=define_equations())
+  return copy(base) + @block model begin
     snLSupplyHh[t1], snLSupplyHh[t1] == nLSupplyHh[t1]
     snLSupplyRoW[t1], snLSupplyRoW[t1] == nLSupplyRoW[t1]
   end

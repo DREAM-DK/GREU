@@ -98,8 +98,8 @@ end
 # Calibration
 # ============================================================================
 
-function define_calibration()
-  block = define_equations() + @block model begin
+function define_calibration(base=define_equations())
+  block = copy(base) + @block model begin
     # Keep required returns constant after t1+1.
     rFirmRequiredReturn_s[s=equity_issuer, t=(t1+2):T],
     rFirmRequiredReturn_s[s,t] == rFirmRequiredReturn_s[s,t1+1]

@@ -107,8 +107,8 @@ end
 # Calibration
 # ============================================================================
 
-function define_calibration()
-  block = define_equations()
+function define_calibration(base=define_equations())
+  block = copy(base)
 
   # Source total consumption identifies the wealth preference in each calibration solve.
   @endo_exo_swap! block begin

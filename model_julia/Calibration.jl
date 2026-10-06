@@ -5,6 +5,7 @@ module Calibration
 
 using SquareModels
 
+import JuMP
 import ..Tags: ForecastConstant, ForecastZero
 import ..Time: at_year, variable_year, t1
 
@@ -48,6 +49,20 @@ end
 # ============================================================================
 # Forecast setup
 # ============================================================================
+"""All variables in the containers of the variable names tagged `tag`."""
+function _tagged_variables(model, tag)
+  vars = Set{JuMP.VariableRef}()
+  for name in SquareModels.tagged(model, tag)
+    haskey(model, name) && _push_variables!(vars, model[name])
+  end
+  return vars
+end
+_push_variables!(vars, x::JuMP.VariableRef) = push!(vars, x)
+_push_variables!(vars, c::SquareModels.SparseZeroArray) = _push_variables!(vars, c.data)
+_push_variables!(vars, c::JuMP.Containers.SparseAxisArray) =
+  foreach(x -> x isa JuMP.VariableRef && push!(vars, x), values(c.data))
+_push_variables!(vars, c::AbstractArray) = foreach(x -> x isa JuMP.VariableRef && push!(vars, x), c)
+_push_variables!(vars, _) = nothing
 
 """
 Handle ForecastConstant-tagged variables for calibration.
@@ -60,9 +75,10 @@ Return the combined block.
 """
 function forecast_constants!(block::Block, exogenous_values::ModelDictionary)
   forecast_block = Block(block.model)
+  tagged_vars = _tagged_variables(block.model, ForecastConstant)
 
   for var in variables(block)
-    has_tag(var, ForecastConstant) || continue
+    var in tagged_vars || continue
     var_t1 = at_year(var, t1)
     var_t1 == var && continue  # Already at t1, no forecast needed.
 

@@ -1,6 +1,59 @@
 # Helper functions used by Calibrate.jl.
 using SquareModels
 
+# ============================================================================
+# Speed-up: cached variable lookup for SquareModels
+# ============================================================================
+# Temp until SquareModels has its own cached lookup.
+import JuMP
+const _variable_locations = IdDict{Any, Dict{JuMP.VariableRef, Tuple{Symbol, Any, Any}}}()
+
+function _build_variable_locations(model)
+  locations = Dict{JuMP.VariableRef, Tuple{Symbol, Any, Any}}()
+  add!(var, name, object, key) =
+    var isa JuMP.VariableRef && !haskey(locations, var) && (locations[var] = (name, object, key))
+  for (name, object) in JuMP.object_dictionary(model)
+    endswith(string(name), SquareModels.RESIDUAL_SUFFIX) && continue
+    if object isa JuMP.VariableRef
+      add!(object, name, object, nothing)
+    elseif object isa SquareModels.SparseZeroArray
+      for (key, var) in object.data.data
+        add!(var, name, object, key)
+      end
+    elseif object isa JuMP.Containers.SparseAxisArray
+      for (key, var) in object.data
+        add!(var, name, object, key)
+      end
+    elseif object isa AbstractArray
+      for key in SquareModels._all_keys(object)
+        add!(object[key...], name, object, key)
+      end
+    end
+  end
+  return locations
+end
+
+function _cached_variable_location(model, var)
+  locations = get!(() -> _build_variable_locations(model), _variable_locations, model)
+  location = get(locations, var, nothing)
+  if location === nothing  # variables added since the lookup was built
+    locations = _variable_locations[model] = _build_variable_locations(model)
+    location = get(locations, var, nothing)
+    location === nothing && error("Cannot find residual for an unattached variable")
+  end
+  return location
+end
+
+@eval SquareModels _variable_location(model, var::VariableRef) = $(_cached_variable_location)(model, var)
+
+
+import CONOPT
+# CONOPT.jl patch: square system + interval information, like GAMS/CNS gives CONOPT.
+include("conopt_intervals.jl")
+const conopt_optfile = joinpath(@__DIR__, "conopt4.opt")
+write(conopt_optfile, "lmmxsf 1\n")
+ConoptIntervals.install!(optfile=conopt_optfile)
+
 import GREU: Settings, Time
 import GREU.Log: @log_time
 import GREU.Calibration:
@@ -36,11 +89,13 @@ end
 # ============================================================================
 # Dynamic calibration
 # ============================================================================
-function dynamic_calibration(data, static_solution, static_calibrated_parameters; previous_solution=nothing)
+function dynamic_calibration(data, static_solution, static_calibrated_parameters; previous_solution=nothing, base_blocks=nothing)
   Time.T = Time.max_terminal_year
   exogenous_values = copy(data)
   start_values = copy(static_solution)
-  dynamic_calibration_block = sum(m.define_calibration() for m in model_modules);
+  dynamic_calibration_block = isnothing(base_blocks) ?
+    sum(m.define_calibration() for m in model_modules) :
+    sum(m.define_calibration(b) for (m, b) in zip(model_modules, base_blocks));
 
   exogenous_values[static_calibrated_parameters] .= static_solution[static_calibrated_parameters]
   forecast_zeros!(dynamic_calibration_block, exogenous_values)

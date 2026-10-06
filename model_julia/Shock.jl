@@ -26,7 +26,7 @@ baseline = load(joinpath(@__DIR__, "..", "Output", "baseline.parquet"), block.mo
 # ==============================================================================
 scenario = copy(baseline)
 scenario[Labor.qL2nL[t1:T]] .*= 1.01 # replace this line to shock another exogenous variable
-@log_time solve!(block, scenario; run_test_constraints=false)
+@log_time solve!(block, scenario; start_values=baseline, run_test_constraints=false)
 
 # Report settings
 report_file = "shock_report.html"
