@@ -78,6 +78,3 @@ unload(joinpath(output_dir, "baseline.parquet"), baseline)
 # Write baseline report
 # ==============================================================================
 include("BaselineReport.jl"); BaselineReport.write_report(baseline)
-
-@info "Calibrate.jl total ($(round(time() - run_start, digits=1))s)"
-TimingReport.report()         # TEMP timing
