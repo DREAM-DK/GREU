@@ -84,6 +84,7 @@ $IF %stage% == "calibration":
 $BLOCK ramsey_household_calibration_equations ramsey_household_calibration_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
   qC_ramsey&_t1[t]$(t1[t]).. qC_ramsey[t] =E= qC[t];
+  qC_ramsey&_t0[t]$(t1[t]).. qC_ramsey[t] =E= qC_ramsey[t+1];
 
 $ENDBLOCK
 
