@@ -22,7 +22,9 @@ import ..SectorAccounts:
   sector,
   vI_s,
   vNonProducedAssetAcquisitions,
-  vSocialBenefits
+  vOtherTransfers,
+  vSocialBenefits,
+  vSocialContributions
 import ..Taxes:
   vsProduct,
   vsProduction,
@@ -43,6 +45,9 @@ const GovernmentExpenditureTag = Tag(:GovernmentExpenditure)
   rGovOthCurrentTransExp2GVA[t], "Other government current-transfer expense relative to GVA."
   rGovCapTransExp2GVA[t], "Government capital-transfer expense relative to GVA."
   rGovNonProducedAssetAcquisitions2GVA[t], "Government net acquisitions of non-produced assets relative to GVA."
+  rOtherTransfers[s=[:FinCorp, :NonFinCorp, :RoW], t=t], "Other current and capital transfers relative to the transfer index."
+  rFinCorpSocialBenefits[t], "Financial-corporation social benefits relative to the transfer index."
+  rSocialContributions[s=[:FinCorp, :Gov, :NonFinCorp, :RoW], t=t], "Social contributions relative to the transfer index."
 end
 
 @variables model :: (GovernmentExpenditureTag, GrowthAdjusted, InflationAdjusted) begin
@@ -94,7 +99,19 @@ function define_equations()
     vSocialBenefits[s=[:RoW], t=t1:T],
     vSocialBenefits[s,t] == rRoWTransferIncome[t] * vTransferIncomeIndex[t]
     vSocialBenefits[s=[:NonFinCorp], t=t1:T], vSocialBenefits[s,t] == 0
+    # Financial corporations pay pension benefits. In 2019 this is about 10 billion EUR.
+    vSocialBenefits[s=[:FinCorp], t=t1:T],
+    vSocialBenefits[s,t] == rFinCorpSocialBenefits[t] * vTransferIncomeIndex[t]
     vSocialBenefits[s=[:Hh], t=t1:T], ∑(vSocialBenefits[s2,t] for s2 in sector) == 0
+
+    # Household contributions close the sum in GovernmentRevenue.
+    vSocialContributions[s=[:FinCorp, :Gov, :NonFinCorp, :RoW], t=t1:T],
+    vSocialContributions[s,t] == rSocialContributions[s,t] * vTransferIncomeIndex[t]
+
+    # D.7 is the main part. D.92 and D.99 are smaller capital transfers.
+    # Government and households are set in Government.
+    vOtherTransfers[s=[:FinCorp, :NonFinCorp, :RoW], t=t1:T],
+    vOtherTransfers[s,t] == rOtherTransfers[s,t] * vTransferIncomeIndex[t]
 
     # Non-produced assets use a temporary household counterpart.
     vNonProducedAssetAcquisitions[s=[:Hh], t=t1:T],
@@ -115,6 +132,11 @@ function define_calibration(base=define_equations())
     rGovOthCurrentTransExp2GVA[t1], vGovOthCurrentTransExp[t1]
     rGovCapTransExp2GVA[t1], vGovCapTransExp[t1]
     rGovNonProducedAssetAcquisitions2GVA[t1], vNonProducedAssetAcquisitions[:Gov,t1]
+    rOtherTransfers[s=[:FinCorp, :NonFinCorp, :RoW], t=[t1]],
+    vOtherTransfers[s=[:FinCorp, :NonFinCorp, :RoW], t=[t1]]
+    rFinCorpSocialBenefits[t1], vSocialBenefits[:FinCorp,t1]
+    rSocialContributions[s=[:FinCorp, :Gov, :NonFinCorp, :RoW], t=[t1]],
+    vSocialContributions[s=[:FinCorp, :Gov, :NonFinCorp, :RoW], t=[t1]]
   end
 
   return block

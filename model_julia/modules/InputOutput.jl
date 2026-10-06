@@ -208,7 +208,7 @@ end
   qY_i[(i,t)=vY_i], "Domestic output by industry"
   qM_p_i[(p,i,t)=qPurchaserUse_p_u[:,industry,:]], "Intermediate input by product and industry."
   qC_p[(p,t)=qPurchaserUse_p_u[:,:C,:]], "Household and non-profit consumption by product."
-  qG_p[(p,t)=qPurchaserUse_p_u[:,:G,:]], "Government consumption by product."
+  qG_p[(p,t)=qPurchaserUse_p_u[:,:G,:]] :: ForecastConstant, "Government consumption by product."
   qI_p[(p,t)=qPurchaserUse_p_u[:,:K,:]], "Fixed investment by product."
   qX_p[(p,t)=qPurchaserUse_p_u[:,:X,:]], "Direct exports by product."
 

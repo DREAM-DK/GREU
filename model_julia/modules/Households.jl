@@ -18,6 +18,7 @@ import ..SectorAccounts:
   vGrossOpSurplusMixedIncome,
   vFinPosition,
   vFinPosition_s_f,
+  vFinTransactions_f,
   vNetFinAssets
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
@@ -68,6 +69,10 @@ function define_equations()
     # Equity assets are a fixed share of household financial assets.
     vFinPosition_s_f[s=[:Hh], f=[:Equity], al=[:Assets], t=t1:T],
     vFinPosition_s_f[s,f,al,t] == rHhEquity2Assets[t] * vFinPosition[s,al,t]
+
+    # Equity liabilities are derivatives that the source records as equity.
+    # Households do not issue more. The stock follows non-transaction changes.
+    vFinPosition_s_f[s=[:Hh], f=[:Equity], al=[:Liab], t=t1:T], vFinTransactions_f[s,f,al,t] == 0
 
     # Debt liabilities move part of the way to a fixed share of consumption.
     vFinPosition_s_f[s=[:Hh], f=[:Debt], al=[:Liab], t=t1:T],
