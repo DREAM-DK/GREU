@@ -11,7 +11,7 @@ import ..model
 import ..SectorAccounts:
   vNetFinTransactions,
   vNetFinIncome,
-  vFinIncome_s_f,
+  vNetFinReval,
   vNetTransfers,
   vNonProducedAssetAcquisitions,
   vI_s,
@@ -29,7 +29,7 @@ import ..Tags: ForecastConstant
 const HouseholdsTag = Tag(:Households)
 
 @variables model :: HouseholdsTag begin
-  mHhReturn[t], "Marginal household return, equal to the yield on household debt assets."
+  mHhReturn[t], "Household return on net financial assets, including net revaluations."
 end
 
 @variables model :: (HouseholdsTag, ForecastConstant) begin
@@ -80,7 +80,7 @@ function define_equations()
 
     # Extra household saving is held in debt assets.
     mHhReturn[t=t1:T],
-    mHhReturn[t] * vFinPosition_s_f[:Hh,:Debt,:Assets,t-1]/fv == vFinIncome_s_f[:Hh,:Debt,:Assets,t]
+    mHhReturn[t] * vNetFinAssets[:Hh,t-1]/fv == vNetFinIncome[:Hh,t] + vNetFinReval[:Hh,t]
   end
 end
 
