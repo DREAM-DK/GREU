@@ -50,7 +50,9 @@ function dynamic_calibration(data, static_solution, static_calibrated_parameters
   set_starting_values!(start_values, loaded_modules)
   fill_missing_t1_exogenous_start_values!(dynamic_calibration_block, exogenous_values, start_values)
   dynamic_calibration_block = forecast_constants!(dynamic_calibration_block, exogenous_values)
-  fill_missing_exogenous_forecasts!(dynamic_calibration_block, exogenous_values, start_values)
+  fill_missing_exogenous_forecasts!(
+    dynamic_calibration_block, exogenous_values, start_values, setdiff(loaded_modules, model_modules),
+  )
 
   if !isnothing(previous_solution)
     previous_solution_vars = filter(variables(dynamic_calibration_block)) do var
@@ -89,7 +91,9 @@ function dynamic_calibration_step_by_step(
     set_starting_values!(start_values, loaded_modules)
     fill_missing_t1_exogenous_start_values!(block, exogenous_values, start_values)
     block = forecast_constants!(block, exogenous_values)
-    fill_missing_exogenous_forecasts!(block, exogenous_values, start_values)
+    fill_missing_exogenous_forecasts!(
+      block, exogenous_values, start_values, setdiff(loaded_modules, model_modules),
+    )
     extend_start_values!(block, start_values, solved_through)
     fill_missing_endogenous_start_values!(block, start_values)
 
