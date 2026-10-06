@@ -100,13 +100,14 @@ end
 
 """
 Set ForecastZero variables to zero when the full model leaves them exogenous.
+Cells up through t1 keep their data.
 
 An optional module can make a zero hook endogenous and add its equation. In
 that case, this function does not add an exogenous value that fixes the hook at zero.
 """
 function forecast_zeros!(block::Block, exogenous_values::ModelDictionary)
   zero_vars = filter(exogenous(block)) do var
-    has_tag(var, ForecastZero)
+    has_tag(var, ForecastZero) && (variable_year(var) > t1 || isnothing(exogenous_values[var]))
   end
   exogenous_values[zero_vars] .= 0.0
   return nothing
