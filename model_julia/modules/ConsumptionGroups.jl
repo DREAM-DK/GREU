@@ -9,7 +9,7 @@ module ConsumptionGroups
 using SquareModels
 import ..ConsumptionGroupsSettings: full_consumption_nesting, product_by_consumption_leaf, consumption_leaf_by_product
 import ..ProductionSettings: prune_nesting
-import ..DataUtils: read_series
+import ..DataUtils: cell_value, read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutput:
   pC,
@@ -28,7 +28,7 @@ import ..Time: t, t1, T
 # ============================================================================
 
 const sector_accounts_file = joinpath(sector_accounts_data_dir, "sector_accounts.csv")
-const vHhConsumption_data = read_series(sector_accounts_file, "vHhConsumption", t)
+const vHhConsumption_data = read_cells(sector_accounts_file, "vHhConsumption")
 
 # ============================================================================
 # Indices
@@ -85,10 +85,10 @@ end
 # ============================================================================
 
 function assign_data!(db)
-  source_consumption = vHhConsumption_data[t1-first(t)+1]
-  @assert !isnothing(source_consumption) "Source household consumption must exist at t1"
-  @assert source_consumption > 0 "Source household consumption must be positive"
-  db[qC[t1]] = source_consumption
+  for year in (t1-1, t1)
+    db[qC[year]] = cell_value(vHhConsumption_data, year)
+    @assert db[qC[year]] > 0 "Source household consumption must be positive in $year"
+  end
 
   source_product_total = sum(db[qC_p[p,t1]] for p in consumption_product)
   @assert source_product_total > 0 "Source product consumption must be positive"

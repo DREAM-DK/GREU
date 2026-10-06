@@ -12,7 +12,6 @@ import ..SectorAccounts:
   vNetFinTransactions,
   vNetFinIncome,
   vNetFinReval,
-  vFinIncome_s_f,
   vNetTransfers,
   vNonProducedAssetAcquisitions,
   vI_s,
