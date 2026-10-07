@@ -208,7 +208,7 @@ end
   qY_i[(i,t)=vY_i], "Domestic output by industry"
   qM_p_i[(p,i,t)=qPurchaserUse_p_u[:,industry,:]], "Intermediate input by product and industry."
   qC_p[(p,t)=qPurchaserUse_p_u[:,:C,:]], "Household and non-profit consumption by product."
-  qG_p[(p,t)=qPurchaserUse_p_u[:,:G,:]] :: ForecastConstant, "Government consumption by product."
+  qG_p[(p,t)=qPurchaserUse_p_u[:,:G,:]], "Government consumption by product."
   qI_p[(p,t)=qPurchaserUse_p_u[:,:K,:]], "Fixed investment by product."
   qX_p[(p,t)=qPurchaserUse_p_u[:,:X,:]], "Direct exports by product."
 
@@ -238,7 +238,6 @@ const pM_p = pSupply_p_o[:,import_origin,:]
   rMarginRate[(p,u,t)=qMarginBundle_p_u] :: ForecastConstant, "Margin-bundle units per unit of purchaser use"
   ntProduct[p=product, u=use, o=origin, t=t; (p,u,t) in product_tax_p_u_t && (p,u,o,t) in purchaser_use_p_u_o_t && u != :INV] :: ForecastConstant, "Net product tax per unit by origin"
   tVAT[(p,u,o,t)=qPurchaserUse_p_u_o] :: ForecastConstant, "Separate VAT rate; zero while ntProduct includes VAT"
-  fG[t], "Scale factor on government consumption. One unless a module endogenizes it"
 end
 
 @assert Set(p for (p, _, year) in keys(vY_p_i) if year == calibration_year) ==
@@ -263,7 +262,6 @@ function assign_data!(db)
   fill_cells!(db, qI, qI_data)
   fill_cells!(db, qMarginService_s_u, qMarginService_s_u_data)
   db[tVAT] .= 0.0
-  db[fG] .= 1.0
   db[pY_i] .= 1.0
   # Normalize the import price in the base year only. ForecastConstant holds it flat in
   # adjusted units, so foreign prices grow at the same long-run rate as domestic prices.
@@ -294,7 +292,7 @@ function define_equations()
     # Direct product demand. Inventories bypass the module links.
     qPurchaserUse_p_u[p=product, i=industry, t=t1:T], qPurchaserUse_p_u[p,i,t] == qM_p_i[p,i,t]
     qPurchaserUse_p_u[p=product, u=:C, t=t1:T], qPurchaserUse_p_u[p,u,t] == qC_p[p,t]
-    qPurchaserUse_p_u[p=product, u=:G, t=t1:T], qPurchaserUse_p_u[p,u,t] == fG[t] * qG_p[p,t]
+    qPurchaserUse_p_u[p=product, u=:G, t=t1:T], qPurchaserUse_p_u[p,u,t] == qG_p[p,t]
     qPurchaserUse_p_u[p=product, u=:K, t=t1:T], qPurchaserUse_p_u[p,u,t] == qI_p[p,t]
     qPurchaserUse_p_u[p=product, u=:X, t=t1:T], qPurchaserUse_p_u[p,u,t] == qX_p[p,t]
 

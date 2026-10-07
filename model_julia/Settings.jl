@@ -43,7 +43,6 @@ const macro_core_modules = [
   :Government,
   :GovernmentRevenue,
   :GovernmentExpenditure,
-  :GovernmentEmployment,
   :Corporations,
   :RestOfWorld,
 

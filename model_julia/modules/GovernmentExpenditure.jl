@@ -1,11 +1,12 @@
 # Define primary government expenditure and its source flows.
+# Set government consumption by product as a share of GDP.
 # Set simple rules for benefits and other expenditure.
 # Link government payments to sector-account receipts.
 
 module GovernmentExpenditure
 
 using SquareModels
-import ..FixedBasePriceAggregates: vGVA
+import ..FixedBasePriceAggregates: qGDP, vGVA
 import ..Government:
   vGovPensionEntitlementAdj,
   vGovCapTransExp,
@@ -15,7 +16,7 @@ import ..Government:
   vSocTransKind
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
 import ..IndustrySectors: vM_s, vtProduction_s, vWages_s
-import ..InputOutput: vG
+import ..InputOutput: product, qG_p, vG
 import ..Labor: vHhWages
 import ..model
 import ..SectorAccounts:
@@ -48,6 +49,7 @@ const GovernmentExpenditureTag = Tag(:GovernmentExpenditure)
   rOtherTransfers[s=[:FinCorp, :NonFinCorp, :RoW], t=t], "Other current and capital transfers relative to the transfer index."
   rFinCorpSocialBenefits[t], "Financial-corporation social benefits relative to the transfer index."
   rSocialContributions[s=[:FinCorp, :Gov, :NonFinCorp, :RoW], t=t], "Social contributions relative to the transfer index."
+  rG2GDP_p[(p,t)=qG_p], "Government consumption by product relative to real GDP."
 end
 
 @variables model :: (GovernmentExpenditureTag, GrowthAdjusted, InflationAdjusted) begin
@@ -66,6 +68,9 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
+    # Government consumption is exogenous. The baseline holds it as a share of real GDP.
+    rG2GDP_p[p=product, t=t1:T], qG_p[p,t] == rG2GDP_p[p,t] * qGDP[t]
+
     # Primary expenditure.
     vGovPrimaryExpenditure[t=t1:T],
     vGovPrimaryExpenditure[t] == vM_s[:Gov,t]
@@ -126,6 +131,7 @@ function define_calibration(base=define_equations())
   block = copy(base)
 
   @endo_exo_swap! block begin
+    qG_p[(p,t) in keys(qG_p); t1 < t <= T], rG2GDP_p[(p,t) in keys(rG2GDP_p); t1 < t <= T]
     rGovTransferIncome[t1], vGovSocBenefitExp[t1]
     rRoWTransferIncome[t1], vSocialBenefits[:RoW,t1]
     rSocTransKind2G[t1], vSocTransKind[t1]
