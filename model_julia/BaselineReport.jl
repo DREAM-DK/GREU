@@ -6,7 +6,7 @@ module BaselineReport
 
 using CairoMakie
 using DREAMMakieTheme
-using SquareModels: ModelDictionary, LabeledSeries, plotseries, @evalexpr,
+using SquareModels: ModelDictionary, LabeledSeries, plotseries, @plot, @evalexpr,
   set_default_source!, set_default_periods!, set_default_operator!
 
 import GREU.Capital: capital_k_i, pK_k_i, qI_k_i, qK_k_i, rKDepr_k_i
@@ -17,6 +17,7 @@ import GREU.Intermediates: vM_i
 import GREU.Labor: labor_l_i, pL_l_i, vW, nL_l_i, qL_l_i, vWages_i
 import GREU.PhillipsCurve: rLEmploymentGap, rWInflation
 import GREU.SectorAccounts: sector, vFinPosition_s_f, vNetFinAssets, vNetFinTransactions
+import GREU.Settings: calibration_year
 import GREU.Time
 
 # ============================================================================
@@ -196,6 +197,11 @@ function panel_figure(panels, years; show_change=false)
   end
 end
 
+"""GDP and its demand components on one axis, indexed to the first report year."""
+gdp_components_figure() = with_dream_theme(:slide_small) do
+  @plot :i [qGDP, qC, qG, qI, qX, qM]
+end
+
 """One line per panel, indexed to its first reported value. The largest movers have coloured labels."""
 function overview(panels, years; highlight=3)
   ranked = sort([p for p in panels if p.change !== nothing]; by=p -> abs(p.change), rev=true)
@@ -233,7 +239,7 @@ default_path() = joinpath(@__DIR__, "..", "Output", "baseline_report.html")
 # The terminal condition binds in the last solved years, so leave them out.
 function report_periods()
   last_year = Time.max_terminal_year - 10
-  return Time.t1:(last_year <= Time.t1 ? Time.max_terminal_year : last_year)
+  return calibration_year:(last_year <= calibration_year ? Time.max_terminal_year : last_year)
 end
 
 """
@@ -257,7 +263,10 @@ function write_report(baseline::ModelDictionary; path::AbstractString=default_pa
     sections = [
       report_section("Closure", ["Stocks, gaps, and net lending" => panel_figure(closure, years)]; wide=true,
         description="Check whether stocks settle. Sector net lending must sum to zero in each year."),
-      report_section("Aggregates", ["Macro overview" => panel_figure(aggregates, years)]; wide=true,
+      report_section("Aggregates", [
+        "GDP components" => gdp_components_figure(),
+        "Macro overview" => panel_figure(aggregates, years),
+      ]; wide=true,
         description="Aggregate activity, expenditure, factor inputs, ratios, and prices."),
       report_section("Screening", ["Change by industry and series" => screening_table(series; color_scale)]; wide=true,
         description="Percentage change over the closing $window years. Rows follow the largest absolute change. Blank cells have no applicable series or percentage change."),

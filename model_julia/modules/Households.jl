@@ -83,7 +83,8 @@ function define_equations()
     vFinPosition_s_f[s=[:Hh], f=[:Debt], al=[:Assets], t=t1:T],
     vNetFinAssets[s,t] == vFinPosition[s,:Assets,t] - vFinPosition[s,:Liab,t]
 
-    # Extra household saving is held in debt assets.
+    # Behavior must use the marginal return, not the average return on net assets.
+    # TODO: Subtract the marginal tax on interest income to get the after-tax return.
     mHhReturn[t=t1:T],
     mHhReturn[t] * vFinPosition_s_f[:Hh,:Debt,:Assets,t-1]/fv == vFinIncome_s_f[:Hh,:Debt,:Assets,t]
   end
