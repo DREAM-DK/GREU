@@ -16,7 +16,7 @@ const pj_per_source_unit = 1e-3
 # PEFA is a physical flow account, so every resident activity conserves energy:
 # what is taken in must come out again (Thermodynamics!). 
 # Total input therefore equals total output for each activity - but only when also accounting for residuals.
-# This is why R30 transformation losses sit in source_product beside the energy prodocts.
+# This is why R30 transformation losses sit in source_product beside the energy products.
 
 # Individual products do not balance within an activity, because activities transform
 # one product into another: a factory takes in coal and transforms it into electricity.
@@ -187,7 +187,7 @@ const source_boundary = collect(keys(boundary_account))
 #
 # G-U_X_H is "Services (except transportation and storage), so G to U except H".
 # SD_SU is not a total. It is the discrepancy PEFA books per product for the whole economy,
-# as SD_IO is per account. It belongs to no account, so it stays out the account set.
+# as SD_IO is per account. It belongs to no account, so it stays out of the account set.
 # But economy-wide supply only equals use per product with SD_SU in the sum.
 #
 # None of them is a key in the activity lookup, so they drop out when codes are mapped. 
@@ -259,7 +259,7 @@ end # module
 # Q: Human health and social work activities
 # R: Arts, entertainment and recreation
 # S: Other service activities
-# T: Hoiusehold-employer and own-use production activies
+# T: Household-employer and own-use production activities
 # U: Extraterritorial organisations and bodies
 
 
