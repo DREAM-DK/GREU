@@ -77,4 +77,5 @@ unload(joinpath(output_dir, "baseline.parquet"), baseline)
 # ==============================================================================
 # Write baseline report
 # ==============================================================================
-include("BaselineReport.jl"); BaselineReport.write_report(baseline)
+include("BaselineReport.jl")
+isnothing(previous_solution) || BaselineReport.write_report("Baseline" => baseline, "Previous baseline" => previous_solution)
