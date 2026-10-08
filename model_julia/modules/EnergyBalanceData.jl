@@ -180,7 +180,7 @@ Assert that supply equals use for each resident account.
 
 The check runs per purpose, not per activity. PEFA publishes households three times and
 each of the three balances on its own, so summing the purposes away first would let one purpose
-cover  another one's gap.
+cover another one's gap.
 
 `SD_IO` is inside the sum. Without it some countries fail in all sections.
 
@@ -200,7 +200,7 @@ function assert_activity_balance(mapped)
     @select(:activity, :purpose, :year, :use = :value)
   end
   joined = outerjoin(supply, use, on = [:activity, :purpose, :year])
-  @assert nrow(joined) == nrow(supply) == nrow(use) "Each resident account needs  a supply and a use side"
+  @assert nrow(joined) == nrow(supply) == nrow(use) "Each resident account needs a supply and a use side"
   gaps = @rsubset(joined, !isapprox(:supply, :use; rtol = activity_balance_rtol, atol = activity_balance_atol))
   @assert isempty(gaps) "Physical energy does not balance for $(nrow(gaps)) resident accounts:\n$gaps"  
   return nothing
@@ -264,33 +264,24 @@ end
 
 
 """
-Split the mapped account into the four variables the model reads.
+Split the mapped account into supply, use, and use by purpose.
 
-`SD_IO` goes out here. It closes the balance, but no model variable consumes a discrepancy. 
-Exacy zeros go out too: PEFA reports them, and a cell with no flow needs no variable.
+`SD_IO` goes out here; `discrepancy_by_account` carries it.
+Exact zeros go out too: PEFA reports them, and a cell with no flow needs no variable.
 Negative cells stay - `CH_INV_PA` books a stock drawdown as negative use, which is physical, not an error.
 """
 function energy_balance_variables(mapped)
-  cells = @rsubset(mapped, :product != Symbol(discrepancy_product) && !iszero(:value)) # Filters out discrepancy product and zero values.
-  supply = @chain cells begin
-    @rsubset(:balance == Symbol("supply"))
-    sum_by([:product, :activity, :year])
+  cells = @rsubset(mapped, :product != Symbol(discrepancy_product) && !iszero(:value))
+  side(balance, by) = @chain cells begin
+    @rsubset(:balance == balance)
+    sum_by(by)
+    sort!([:activity; setdiff(by, [:activity])])
   end
-  use_by_purpose = @chain cells begin
-    @rsubset(:balance == Symbol("use"))
-    sum_by([:product, :purpose, :activity, :year])
-  end
-  use = sum_by(use_by_purpose, [:product, :activity, :year])
-  shares = innerjoin(use_by_purpose, rename(use, :value => :total), on = [:product, :activity, :year])
-  @assert nrow(shares) == nrow(use_by_purpose) "Each purpose cell needs its account total"
-  shares.value = shares.value ./ shares.total
-  totals = sum_by(shares, [:product, :activity, :year])
-  @assert all(isapprox.(totals.value, 1.0; atol = 1e-9)) "Purpose shares must sum to one"
-  sort!(supply, [:activity, :product, :year])
-  sort!(use, [:activity, :product, :year])
-  sort!(use_by_purpose, [:activity, :product, :purpose, :year])
-  sort!(shares, [:activity, :product, :purpose, :year])
-  return (; supply, use, use_by_purpose, shares)
+  return (;
+    supply = side(:supply, [:product, :activity, :year]),
+    use = side(:use, [:product, :activity, :year]),
+    use_by_purpose = side(:use, [:product, :activity, :purpose, :year]),
+  )
 end
 
 
@@ -309,7 +300,6 @@ function refresh_energy_balance_data!(dir = energy_balance_data_dir)
     long_format(:qESupply_e_d, cells.supply, [:product, :activity, :year]),
     long_format(:qEUse_e_d, cells.use, [:product, :activity, :year]),
     long_format(:qEUse_e_m_d, cells.use_by_purpose, [:product, :purpose, :activity, :year]),
-    long_format(:uEPurpose_e_m_d, cells.shares, [:product, :purpose, :activity, :year]),
     long_format(:qEDiscrepancy_d, discrepancy, [:activity, :year]),
   ))
   return nothing

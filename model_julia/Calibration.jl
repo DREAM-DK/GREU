@@ -100,31 +100,29 @@ end
 
 """
 Set ForecastZero variables to zero when the full model leaves them exogenous.
+Cells up through t1 keep their data.
 
 An optional module can make a zero hook endogenous and add its equation. In
 that case, this function does not add an exogenous value that fixes the hook at zero.
 """
 function forecast_zeros!(block::Block, exogenous_values::ModelDictionary)
   zero_vars = filter(exogenous(block)) do var
-    has_tag(var, ForecastZero)
+    has_tag(var, ForecastZero) && (variable_year(var) > t1 || isnothing(exogenous_values[var]))
   end
   exogenous_values[zero_vars] .= 0.0
   return nothing
 end
 
 """
-Set all future exogenous residuals to zero. Fill other missing exogenous
-values with the period-one start value.
-
-This is the default for exogenous variables without a forecast rule. It also supports
-smaller model setups: if an omitted module would make a variable endogenous, the
-active model keeps that variable at its period-one value. It does not overwrite
-forecast values set by a module or a source.
+Set future exogenous residuals to zero. Hold variables from omitted modules at
+the period-one start value when no forecast value is set. Throw an error when
+an active module leaves a future exogenous variable without a forecast value.
 """
 function fill_missing_exogenous_forecasts!(
   block::Block,
   exogenous_values::ModelDictionary,
   start_values::ModelDictionary,
+  omitted_modules,
 )
   forecast_residuals = filter(intersect(exogenous(block), residuals(block))) do var
     year = variable_year(var)
@@ -132,12 +130,39 @@ function fill_missing_exogenous_forecasts!(
   end
   exogenous_values[forecast_residuals] .= 0.0
 
+  omitted_names = _tagged_names(block.model, _module_tags(omitted_modules))
   forecast_vars = filter(exogenous(block)) do var
     year = variable_year(var)
     !isnothing(year) && year > t1 && isnothing(exogenous_values[var])
   end
-  exogenous_values[forecast_vars] .= start_values[at_year.(forecast_vars, t1)]
+  default_vars = filter(var -> Symbol(SquareModels.base_name(var)) in omitted_names, forecast_vars)
+  missing_vars = filter(var -> Symbol(SquareModels.base_name(var)) ∉ omitted_names, forecast_vars)
+  missing_names = sort!(unique(String.(SquareModels.base_name.(missing_vars))))
+  isempty(missing_names) ||
+    error("Missing forecast rule for: ", join(missing_names, ", "))
+
+  exogenous_values[default_vars] .= start_values[at_year.(default_vars, t1)]
   return nothing
+end
+
+"""Variable names that carry one of `tags`."""
+function _tagged_names(model, tags)
+  names = Set{Symbol}()
+  for tag in tags
+    union!(names, SquareModels.tagged(model, tag))
+  end
+  return names
+end
+
+"""The `ModuleNameTag` marker for each module."""
+function _module_tags(modules)
+  tags = Tag[]
+  for m in modules
+    tag_name = Symbol(nameof(m), "Tag")
+    isdefined(m, tag_name) || error("$m has no $tag_name")
+    push!(tags, getfield(m, tag_name))
+  end
+  return tags
 end
 
 """

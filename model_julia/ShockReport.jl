@@ -5,79 +5,80 @@ module ShockReport
 
 using CairoMakie
 using DREAMMakieTheme
-using SquareModels: ModelDictionary, @plot,
+using SquareModels: ModelDictionary, LabeledSeries, plotseries, @evalexpr, @plot,
   set_default_source!, set_default_periods!, set_default_operator!
 
 import GREU.Capital: capital_k_i, pK_k_i, qK_k_i
 import GREU.FixedBasePriceAggregates: pGDP, qGDP, qGVA
-import GREU.InputOutput: industry, pI, pX, qI, qX, qY_i
+import GREU.InputOutput: industry, industry_label, pI, pX, qI, qX, qY_i
 import GREU.Intermediates: intermediate_m_i, qM_m_i
 import GREU.Labor: labor_l_i, vW, nL_l_i
 
 # ============================================================================
 # Figures
 # ============================================================================
-function level_figures(baseline, years, shock_title, extra_figures)
-  set_default_operator!([:i, :an])
-  options = (
-    labels=[shock_title, "Baseline"],
-    alternating_dash=true,
-    ylabel="Index ($(years[1]) = 100)",
-    decorate=(ax, series) -> reference_line!(ax, years[1]),
-  )
-  extras = [figure(baseline, years, options) for figure in extra_figures]
-  return [
-    "Real GDP" => @plot(qGDP; options...),
-    extras...,
-    "Real investment" => @plot(qI; options...),
-    "Capital stock" => @plot(sum(qK_k_i[k,i,:] for (k, i) in capital_k_i); options...),
-  ]
-end
-
-function response_figures(baseline, years)
-  set_default_operator!(:q)
-  options = (; legend=false,
-    decorate=(ax, series) -> reference_line!(ax, years[1]))
-  return [
-    "Activity — Real GDP" => @plot(qGDP; options...),
-    "Activity — Real gross value added" => @plot(qGVA; options...),
-    "Final demand — Real exports" => @plot(qX; options...),
-    "Final demand — Real investment" => @plot(qI; options...),
-    "Labour — Employment" => @plot(sum(nL_l_i[l,i,:] for (l, i) in labor_l_i); options...),
-    "Labour — Nominal wage" => @plot(vW; options...),
-    "Capital — Stock" => @plot(sum(qK_k_i[k,i,:] for (k, i) in capital_k_i); options...),
-    # Hold the capital mix at the baseline value in each year for both sources.
-    "Capital — User cost" => @plot(
-      sum(pK_k_i[k,i,:] * $(baseline[qK_k_i[k,i,years]]) for (k, i) in capital_k_i) /
-      sum($(baseline[qK_k_i[k,i,years]]) for (k, i) in capital_k_i); options...),
-    "Prices — GDP price level" => @plot(pGDP; options...),
-    "Prices — Investment price level" => @plot(pI; options...),
-    "Prices — Export price level" => @plot(pX; options...),
-    "Production — Gross output" => @plot(sum(qY_i[i,:] for i in industry); options...),
-    "Production — Intermediate inputs" => @plot(sum(qM_m_i[m,i,:] for (m, i) in intermediate_m_i); options...),
-  ]
+# Panels follow the largest absolute deviation. An industry with no finite path has no panel.
+function gross_output_by_industry(years)
+  series = [LabeledSeries(years, @evalexpr(qY_i[i,:]), industry_label[i], :q) for i in industry]
+  magnitude(s) = (ys = filter(isfinite, s.y); isempty(ys) ? -Inf : maximum(abs, ys))
+  order = filter(n -> any(isfinite, series[n].y), sortperm(series; by=magnitude, rev=true))
+  return with_dream_theme(; size=(440, 330)) do
+    plotseries(series[order]; layout=:trellis, columns=3, ylabel="", legend=false,
+      decorate=(ax, _) -> reference_line!(ax, first(years)))
+  end
 end
 
 # ============================================================================
 # Report
 # ============================================================================
-
-"""Write a DREAM HTML report. Set the session's source, periods, and operator for this shock."""
+"""
+Write a DREAM report to `path` that compares `scenario` with `baseline` over
+`periods`. Each function in `extra_figures` takes the level-plot options and
+returns a `title => figure` pair. Leave `baseline => scenario` as the default
+source, with the report periods and the `:q` operator.
+"""
 function write_report(path::AbstractString, baseline::ModelDictionary, scenario::ModelDictionary;
   extra_figures=(), shock_title="", periods,
 )
   years = collect(periods)
   set_default_source!(baseline => scenario)
   set_default_periods!(years)
-  return with_dream_theme(:slide_large) do
-    sections = [
-      report_section("Baseline and shock paths",
-        level_figures(baseline, years, shock_title, extra_figures);
-        description="Each line uses its value in $(periods[1]) as 100."),
-      report_section("Detailed model responses", response_figures(baseline, years);
-        description="Percentage deviations from the calibrated baseline."),
+  decorate = (ax, series) -> reference_line!(ax, first(years))
+  return with_dream_theme() do
+    set_default_operator!([:i, :an])
+    options = (; labels=[shock_title, "Baseline"], alternating_dash=true, ylabel="Index ($(first(years)) = 100)", decorate)
+    levels = [
+      "Real GDP" => @plot(qGDP; options...),
+      (figure(options) for figure in extra_figures)...,
+      "Fixed investment" => @plot(qI; options...),
+      "Capital stock" => @plot(sum(qK_k_i[k,i,:] for (k, i) in capital_k_i); options...),
     ]
-    write_html_report(path, sections; title="$shock_title report", subtitle="$(periods[1])–$(last(periods))")
+    set_default_operator!(:q)
+    options = (; legend=false, decorate)
+    responses = [
+      "Real GDP" => @plot(qGDP; options...),
+      "Real gross value added" => @plot(qGVA; options...),
+      "Exports" => @plot(qX; options...),
+      "Fixed investment" => @plot(qI; options...),
+      "Employed persons" => @plot(sum(nL_l_i[l,i,:] for (l, i) in labor_l_i); options...),
+      "Wage" => @plot(vW; options...),
+      "Capital stock" => @plot(sum(qK_k_i[k,i,:] for (k, i) in capital_k_i); options...),
+      # Hold the capital mix at the baseline value in each year for both sources.
+      "Capital user cost" => @plot(
+        sum(pK_k_i[k,i,:] * $(baseline[qK_k_i[k,i,years]]) for (k, i) in capital_k_i) /
+        sum($(baseline[qK_k_i[k,i,years]]) for (k, i) in capital_k_i); options...),
+      "GDP price level" => @plot(pGDP; options...),
+      "Investment price level" => @plot(pI; options...),
+      "Export price level" => @plot(pX; options...),
+      "Gross output" => @plot(sum(qY_i[i,:] for i in industry); options...),
+      "Intermediate inputs" => @plot(sum(qM_m_i[m,i,:] for (m, i) in intermediate_m_i); options...),
+    ]
+    write_html_report(path, [
+      report_section("Baseline and shock paths", levels; description="Each line uses its value in $(first(years)) as 100."),
+      report_section("Detailed model responses", responses; description="Percentage deviations from the calibrated baseline."),
+      report_section("Gross output by industry", ["Deviation from baseline" => gross_output_by_industry(years)]; wide=true,
+        description="Percentage deviations from the calibrated baseline. Panels follow the largest absolute deviation."),
+    ]; title="$shock_title report", subtitle="$(first(years))–$(last(years))")
   end
 end
 

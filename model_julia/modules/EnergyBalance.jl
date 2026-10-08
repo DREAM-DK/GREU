@@ -18,7 +18,7 @@ import ..EnergyBalanceSettings:
 import ..InputOutputSettings
 import ..model
 import ..Time: t, t1, T
-import ..Tags: ForecastZero
+import ..Tags: ForecastConstant, ForecastZero
 
 
 # ==============================================================================
@@ -45,9 +45,8 @@ const use_e_d = Set((e,d) for (e, d, _) in keys(qEUse_e_d_data))
 const account = sort!(unique(d for (_, d) in supply_e_d ∪ use_e_d))
 const energy_product = sort!(unique(e for (e,_) in supply_e_d ∪ use_e_d))
 
-# The data decides which accounts exist; the settings decide which are allowed.
-# Some industries report no energy, so the account set is smaller than the source vocabulary and must not be built from it.
 # The data decides which accounts exist; the input-output module decides which industries are allowed.
+# Some industries report no energy, so the account set is smaller than the source vocabulary and must not be built from it.
 # This also catches data written on a different industry resolution than the model runs on.
 const permitted_account = [InputOutputSettings.source_industry; households; collect(values(boundary_account))]
 @assert account ⊆ permitted_account "the data holds an account the settings do not name"
@@ -65,12 +64,11 @@ const resident_account = [d for d in account if d in [InputOutputSettings.source
 const EnergyBalanceTag = Tag(:EnergyBalance)
 
 @variables model :: (EnergyBalanceTag, GrowthAdjusted) begin
-  qESupply_e_d[e=energy_product, d=account, t=t; (e,d) in supply_e_d], "Physical energy supply by account and product"
-  qEUse_e_d[e=energy_product, d=account, t=t; (e,d) in use_e_d], "Physical energy use by account and product"
+  qESupply_e_d[e=energy_product, d=account, t=t; (e,d) in supply_e_d] :: ForecastConstant, "Physical energy supply by account and product"
+  qEUse_e_d[e=energy_product, d=account, t=t; (e,d) in use_e_d] :: ForecastConstant, "Physical energy use by account and product"
   qEUseTotal_d[d=resident_account, t=t], "Physical energy a resident account takes in"
   qESupplyTotal_d[d=resident_account, t=t], "Physical energy a resident account gives out"
-  qEDiscrepancy_d[d=resident_account, t=t], "Net SD_IO that PEFA books to make a resident account close."
-
+  qEDiscrepancy_d[d=resident_account, t=t] :: ForecastConstant, "Net SD_IO that PEFA books to make a resident account close."
 
   jqESupply_e_d[(e,d,t)=qESupply_e_d] :: ForecastZero, "Hook for a module that changes energy supply, for example network losses"
   jqEUse_e_d[(e,d,t)=qEUse_e_d] :: ForecastZero, "Hook for a module that changes the fuel mix"
@@ -81,7 +79,7 @@ end
 # Assign data
 # ==============================================================================
 # A missing cell inside a mask is a zero and not an unknown: the data step asserted that the account balanced without it.
-# Fill the data years only, so the forecast years still take their values from t1.
+# Fill the data years only. ForecastConstant holds the t1 values in the forecast years.
 fill_data_years(cells, mask) = Dict(
   (e, d, year) => get(cells, (e, d, year), 0.0)
   for (e, d) in mask, year in data_year
@@ -135,8 +133,8 @@ end
 # ==============================================================================
 # Calibration
 # ==============================================================================
-function define_calibration()
-  return define_equations()
+function define_calibration(base=define_equations())
+  return base
 end
 
 

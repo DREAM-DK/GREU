@@ -42,6 +42,9 @@
 		"python.REPL.sendToNativeREPL": false,
     "notebook.output.scrolling": true,
 		"python.defaultInterpreterPath": "/usr/bin/python.exe",
+		// Building equations is bound by compilation and GC, not by optimized code: -O0 halves compile time.
+		"julia.NumThreads": 8,
+		"julia.additionalArgs": ["-O0", "--gcthreads=8", "--heap-size-hint=24G"],
 },
   "extensions": {
     "recommendations": [
