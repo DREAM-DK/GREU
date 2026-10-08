@@ -21,7 +21,7 @@ import GREU.Tags: DynamicCalibration
 function static_calibration(data, base_block)
   Time.T = Settings.calibration_year
   exogenous_values, start_values = copy(data), copy(data)
-  static_calibration_block = sum(m.define_calibration() for m in model_modules);
+  static_calibration_block = sum([m.define_calibration() for m in model_modules]);
   static_calibrated_parameters = filter(var -> !has_tag(var, DynamicCalibration), setdiff(endogenous(static_calibration_block), endogenous(base_block)))
 
   forecast_zeros!(static_calibration_block, exogenous_values)
@@ -41,8 +41,8 @@ function dynamic_calibration(data, static_solution, static_calibrated_parameters
   exogenous_values = copy(data)
   start_values = copy(static_solution)
   dynamic_calibration_block = isnothing(base_blocks) ?
-    sum(m.define_calibration() for m in model_modules) :
-    sum(m.define_calibration(b) for (m, b) in zip(model_modules, base_blocks));
+    sum([m.define_calibration() for m in model_modules]) :
+    sum([m.define_calibration(b) for (m, b) in zip(model_modules, base_blocks)]);
 
   exogenous_values[static_calibrated_parameters] .= static_solution[static_calibrated_parameters]
   forecast_zeros!(dynamic_calibration_block, exogenous_values)
@@ -83,7 +83,7 @@ function dynamic_calibration_step_by_step(
     Time.T = terminal_year
     exogenous_values = copy(data)
     start_values = copy(baseline)
-    block = sum(m.define_calibration() for m in model_modules);
+    block = sum([m.define_calibration() for m in model_modules]);
 
     exogenous_values[static_calibrated_parameters] .= static_solution[static_calibrated_parameters]
     forecast_zeros!(block, exogenous_values)
