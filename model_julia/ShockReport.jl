@@ -5,14 +5,28 @@ module ShockReport
 
 using CairoMakie
 using DREAMMakieTheme
-using SquareModels: ModelDictionary, @plot,
+using SquareModels: ModelDictionary, LabeledSeries, plotseries, @evalexpr, @plot,
   set_default_source!, set_default_periods!, set_default_operator!
 
 import GREU.Capital: capital_k_i, pK_k_i, qK_k_i
 import GREU.FixedBasePriceAggregates: pGDP, qGDP, qGVA
-import GREU.InputOutput: industry, pI, pX, qI, qX, qY_i
+import GREU.InputOutput: industry, industry_label, pI, pX, qI, qX, qY_i
 import GREU.Intermediates: intermediate_m_i, qM_m_i
 import GREU.Labor: labor_l_i, vW, nL_l_i
+
+# ============================================================================
+# Figures
+# ============================================================================
+# Panels follow the largest absolute deviation. An industry with no finite path has no panel.
+function gross_output_by_industry(years)
+  series = [LabeledSeries(years, @evalexpr(qY_i[i,:]), industry_label[i], :q) for i in industry]
+  magnitude(s) = (ys = filter(isfinite, s.y); isempty(ys) ? -Inf : maximum(abs, ys))
+  order = filter(n -> any(isfinite, series[n].y), sortperm(series; by=magnitude, rev=true))
+  return with_dream_theme(; size=(440, 330)) do
+    plotseries(series[order]; layout=:trellis, columns=3, ylabel="", legend=false,
+      decorate=(ax, _) -> reference_line!(ax, first(years)))
+  end
+end
 
 # ============================================================================
 # Report
@@ -62,6 +76,8 @@ function write_report(path::AbstractString, baseline::ModelDictionary, scenario:
     write_html_report(path, [
       report_section("Baseline and shock paths", levels; description="Each line uses its value in $(first(years)) as 100."),
       report_section("Detailed model responses", responses; description="Percentage deviations from the calibrated baseline."),
+      report_section("Gross output by industry", ["Deviation from baseline" => gross_output_by_industry(years)]; wide=true,
+        description="Percentage deviations from the calibrated baseline. Panels follow the largest absolute deviation."),
     ]; title="$shock_title report", subtitle="$(first(years))–$(last(years))")
   end
 end

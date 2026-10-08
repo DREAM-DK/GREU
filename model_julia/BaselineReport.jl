@@ -12,7 +12,7 @@ using SquareModels: ModelDictionary, LabeledSeries, plotseries, @plot, @evalexpr
 import GREU.Capital: capital_k_i, pK_k_i, qI_k_i, qK_k_i, rKDepr_k_i
 import GREU.FixedBasePriceAggregates: pGDP, qGDP, qGVA, vGDP, vGVA
 import GREU.GrowthInflationAdjustment: fq, gq
-import GREU.InputOutput: industry, pC, pG, pI, pM, pX, qC, qG, qI, qINV, qM, qX, qY_i, vC, vY, vY_i
+import GREU.InputOutput: industry, industry_label, pC, pG, pI, pM, pX, qC, qG, qI, qINV, qM, qX, qY_i, vC, vY, vY_i
 import GREU.Intermediates: vM_i
 import GREU.Labor: labor_l_i, pL_l_i, vW, vWages, nL_l_i, qL_l_i, vWages_i
 import GREU.PhillipsCurve: rLEmploymentGap, rWInflation
@@ -108,7 +108,7 @@ function industry_values(i, years)
     vI=qI .* report_values(@evalexpr pI),
   )
   sqI2qK = isempty(k) ? missing : sum(@evalexpr(rKDepr_k_i[k,i,t0] * qK_k_i[k,i,t0]) for k in k) / qKBase + gq
-  return (; map(y -> LabeledSeries(years, y, string(i)), series)..., sqI2qK)
+  return (; map(y -> LabeledSeries(years, y, industry_label[i]), series)..., sqI2qK)
 end
 
 # ============================================================================
@@ -164,18 +164,6 @@ function overview(series)
     decorate=(ax, series) -> hlines!(ax, [100]; color=(colors().DarkGray, 0.3), linestyle=:dash))
 end
 
-const a21_names = Dict(
-  :iA => "Agriculture, forestry, fishing", :iB => "Mining and quarrying",
-  :iC => "Manufacturing", :iD => "Electricity, gas, steam", :iE => "Water, waste",
-  :iF => "Construction", :iG => "Wholesale and retail trade", :iH => "Transport and storage",
-  :iI => "Accommodation and food", :iJ => "Information and communication",
-  :iK => "Finance and insurance", :iL => "Real estate",
-  :iM => "Professional, scientific, technical", :iN => "Administrative and support",
-  :iO => "Public administration and defence", :iP => "Education", :iQ => "Health and social work",
-  :iR => "Arts and recreation", :iS => "Other services", :iT => "Households as employers",
-  :iU => "Extraterritorial organisations",
-)
-
 """Closing-window change for each industry and series. Rows follow the largest absolute change."""
 function screening_table(industries)
   series = [getproperty(v, key) for v in industries, key in keys(industry_series)]
@@ -183,7 +171,7 @@ function screening_table(industries)
   order = sortperm(largest; rev=true)
   return report_table(hcat(closing_change.(series), [isfinite(v) ? v : nothing for v in largest])[order, :];
     column_labels=[[collect(string.(keys(industry_series))); "Max"]], stubhead_label="Industry",
-    row_labels=[haskey(a21_names, i) ? "$i · $(a21_names[i])" : string(i) for i in industry[order]],
+    row_labels=[industry_label[i] for i in industry[order]],
     format=format_percent, shade_scale=5.0,
     shade=(data, i, j) -> data[i, j] === nothing ? nothing : abs(data[i, j]))
 end
@@ -193,7 +181,7 @@ function industry_section(key, industries)
   title, description = industry_series[key]
   sets = [getproperty.(set, key) for set in industries]
   order = filter(n -> any(isfinite, first(sets)[n].y), sortperm(first(sets); by=change_size, rev=true))
-  targets = key == :qI2qK ? Dict(string(i) => v.sqI2qK for (i, v) in zip(industry, first(industries))) : Dict()
+  targets = key == :qI2qK ? Dict(industry_label[i] => v.sqI2qK for (i, v) in zip(industry, first(industries))) : Dict()
   return report_section(title, [
     "All industries" => overview(first(sets)),
     "By industry" => panel_figure([set[order] for set in sets]; targets,

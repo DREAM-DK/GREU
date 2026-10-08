@@ -11,6 +11,7 @@ import ..DataUtils: fill_cells!, read_cells, read_series
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutputSettings:
   final_uses,
+  industry_label as source_industry_label,
   origin,
   product,
   source_industry,
@@ -63,6 +64,7 @@ const industry = sort(unique(
   if year == calibration_year && abs(value) > cell_tolerance
 ))
 @assert industry ⊆ source_industry "Output data contain an unknown industry"
+const industry_label = Dict(i => source_industry_label[i] for i in industry)
 
 const use = [industry; final_uses]
 @assert allunique(use) "Industry and final-use labels must be distinct"
