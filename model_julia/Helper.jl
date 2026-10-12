@@ -47,12 +47,6 @@ end
 @eval SquareModels _variable_location(model, var::VariableRef) = $(_cached_variable_location)(model, var)
 
 
-import CONOPT
-# CONOPT.jl patch: square system + interval information, like GAMS/CNS gives CONOPT.
-include("conopt_intervals.jl")
-const conopt_optfile = joinpath(@__DIR__, "conopt4.opt")
-write(conopt_optfile, "lmmxsf 1\n")
-ConoptIntervals.install!(optfile=conopt_optfile)
 
 import GREU: Settings, Time
 import GREU.Log: @log_time
