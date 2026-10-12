@@ -18,13 +18,6 @@ import ..Tags: DynamicCalibration, ForecastConstant
 import ..Time: t, t1, T
 
 # ============================================================================
-# Constants
-# ============================================================================
-
-# scale wealth to about one in the utility term. 
-const qHhWealth_scale = 1e6
-
-# ============================================================================
 # Variables
 # ============================================================================
 
@@ -95,7 +88,7 @@ function define_equations()
 
     dU2dC[t=t1:T], dU2dC[t] * qCxRef[t]^eHhConsumption == 1
 
-    dU2dWealth[t=t1:T], dU2dWealth[t] * (qHhWealth[t]/qHhWealth_scale)^eHhWealth == uHhWealthPreference
+    dU2dWealth[t=t1:T], dU2dWealth[t] * (qHhWealth[t]/qHhWealth[tBase])^eHhWealth == uHhWealthPreference
 
     qC[t=t1:(T-1)], dU2dC[t] == dU2dWealth[t]
       + βHh * (1 + mHhReturn[t+1]) * pC[t] / (pC[t+1]*fp) * dU2dC[t+1]*fq^(-eHhConsumption)
