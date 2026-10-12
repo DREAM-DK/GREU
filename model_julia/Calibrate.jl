@@ -67,7 +67,6 @@ assert_residuals_small(baseline; rtol=1e-4, residual_tolerances(baseline, model_
 Time.t1 = 2026
 zero_shock = solve(base_model(model_modules), baseline; run_test_constraints=false)
 assert_no_diff(baseline, zero_shock; atol=1e-5, msg="Zero shock test failed")
-Time.t1 = Settings.calibration_year  # undo the zero-shock t1
 
 # ==============================================================================
 # Export baseline
