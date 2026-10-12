@@ -18,6 +18,7 @@ import GREU.Labor: labor_l_i, pL_l_i, vW, nL_l_i, qL_l_i, vWages_i
 import GREU.PhillipsCurve: rLEmploymentGap, rWInflation
 import GREU.SectorAccounts: sector, vFinPosition_s_f, vNetFinAssets, vNetFinTransactions
 import GREU.Time
+import GREU.Settings
 
 Time.t1 = Settings.calibration_year 
 
