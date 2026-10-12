@@ -29,7 +29,7 @@ import ..Tags: ForecastConstant
 const HouseholdsTag = Tag(:Households)
 
 @variables model :: HouseholdsTag begin
-  mHhReturn[t], "Household return on net financial assets, including net revaluations."
+  mHhReturn[t], "Marginal household return, equal to the yield on household debt assets."
 end
 
 @variables model :: (HouseholdsTag, ForecastConstant) begin
