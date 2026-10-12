@@ -17,6 +17,7 @@ import ..SectorAccountsSettings: sector_accounts_data_dir, cell_tolerance
 import ..Settings: calibration_year
 import ..model
 import ..Time: t, t1, T
+import ..Tags: ForecastZero
 
 # ============================================================================
 # Read data
@@ -119,7 +120,7 @@ const SectorAccountsTag = Tag(:SectorAccounts)
   vFinPosition_s_f[s=sector, f=fin_instrument, al=ass_liab, t=t; (s,f,al) in calibration_year_indices(vFinPosition_s_f_data)], "Financial position by sector, instrument, and asset or liability side (F)."
   vFinTransactions_f[(s,f,al,t)=vFinPosition_s_f], "Financial transactions by sector, instrument, and asset or liability side."
   vFinReval_s_f[(s,f,al,t)=vFinPosition_s_f], "Financial revaluations by sector, instrument, and asset or liability side."
-  vOtherChangesInVolume_f[(s,f,al,t)=vFinPosition_s_f], "Other changes in volume by sector, instrument, and asset or liability side (K.1-K.6)."
+  vOtherChangesInVolume_f[(s,f,al,t)=vFinPosition_s_f] :: ForecastZero, "Other changes in volume by sector, instrument, and asset or liability side (K.1-K.6)."
   vFinIncome_s_f[(s,f,al,t)=vFinPosition_s_f], "Property income received on assets or paid on liabilities by sector and instrument (D.4)."
 
   # Inputs for sector balances.
@@ -192,8 +193,6 @@ function assign_data!(db)
   fill_cells!(db, vGrossOpSurplusMixedIncome, vGrossOpSurplusMixedIncome_data)
   fill_cells!(db, vFinReval_s_f, vFinReval_s_f_data)
   fill_cells!(db, vOtherChangesInVolume_f, vOtherChangesInVolume_f_data)
-  db[[vOtherChangesInVolume_f[s,f,al,year]
-      for (s, f, al, year) in keys(vOtherChangesInVolume_f) if year > t1]] .= 0.0
 
   # Until the government module supplies B.9, use the same source total as
   # government net financial transactions.
