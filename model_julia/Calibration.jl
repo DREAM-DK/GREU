@@ -105,10 +105,16 @@ An optional module can make a zero hook endogenous and add its equation. In
 that case, this function does not add an exogenous value that fixes the hook at zero.
 """
 function forecast_zeros!(block::Block, exogenous_values::ModelDictionary)
-  zero_vars = filter(exogenous(block)) do var
-    has_tag(var, ForecastZero)
+  for var in exogenous(block)
+      has_tag(var, ForecastZero) || continue
+      year = variable_year(var)
+
+      if !isnothing(year) && year > t1
+          exogenous_values[var] = 0.0
+      elseif isnothing(exogenous_values[var])
+          exogenous_values[var] = 0.0
+      end
   end
-  exogenous_values[zero_vars] .= 0.0
   return nothing
 end
 
