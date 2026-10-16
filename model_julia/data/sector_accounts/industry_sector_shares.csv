@@ -1,0 +1,505 @@
+variable,indices,value,assumption
+rIndustrySector_s_i,"FinCorp,iA01,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iA02,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iA03,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iB,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC10_12,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC13_15,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC16,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC17,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC18,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC19,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC20,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC21,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC22,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC23,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC24,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC25,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC26,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC27,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC28,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC29,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC30,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC31_32,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC33,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iD,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iE36,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iE37_39,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iF,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iG45,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iG46,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iG47,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iH49,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iH50,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iH51,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iH52,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iH53,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iI,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iJ58,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iJ59_60,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iJ61,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iJ62_63,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iK64,2018",0.6677055206033734,Target FinCorp operating surplus within the selected section-K industries.
+rIndustrySector_s_i,"FinCorp,iK65,2018",0.6677055206033734,Target FinCorp operating surplus within the selected section-K industries.
+rIndustrySector_s_i,"FinCorp,iK66,2018",0.6677055206033734,Target FinCorp operating surplus within the selected section-K industries.
+rIndustrySector_s_i,"FinCorp,iL,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iM69_70,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iM71,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iM72,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iM73,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iM74_75,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iN77,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iN78,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iN79,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iN80_82,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iO,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iP,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iQ86,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iQ87_88,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iR90_92,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iR93,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iS94,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iS95,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iS96,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iT,2018",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"NonFinCorp,iA01,2018",0.9358180107097479,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iA02,2018",0.5032291129555412,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iA03,2018",0.4651557396954506,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iB,2018",0.43193243002447823,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC10_12,2018",0.9751373206857957,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC13_15,2018",0.6846450408501944,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC16,2018",0.712116094631998,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC17,2018",0.6626698286013128,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC18,2018",0.627924643653284,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC19,2018",0.9109292922773864,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC20,2018",0.8648505549698187,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC21,2018",0.35842953114484155,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC22,2018",0.7976993343676031,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC23,2018",0.8076804143274392,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC24,2018",0.7279661162646901,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC25,2018",0.9148991274249304,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC26,2018",0.7863739412489285,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC27,2018",0.7728327285701584,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC28,2018",0.9669201629162486,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC29,2018",0.6097182730460194,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC30,2018",0.5627250105468193,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC31_32,2018",0.8433613212436348,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC33,2018",0.7856642374592746,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iD,2018",0.8676613426442549,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iE36,2018",0.4140195082568521,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iE37_39,2018",0.8670068131036708,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iF,2018",0.9826696721147384,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iG45,2018",0.8683614490432179,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iG46,2018",0.9693750428285076,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iG47,2018",0.8688231894131372,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iH49,2018",0.9457197848574088,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iH50,2018",0.9822798810975432,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iH51,2018",0.821585736214949,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iH52,2018",0.9123120428250497,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iH53,2018",0.814776552912676,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iI,2018",0.9442799342057278,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iJ58,2018",0.6879424568597764,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iJ59_60,2018",0.7839657207536477,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iJ61,2018",0.8466503754794208,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iJ62_63,2018",0.9320384779009034,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iK64,2018",0.3322944793966266,Assign the section-K remainder to NonFinCorp.
+rIndustrySector_s_i,"NonFinCorp,iK65,2018",0.3322944793966266,Assign the section-K remainder to NonFinCorp.
+rIndustrySector_s_i,"NonFinCorp,iK66,2018",0.3322944793966266,Assign the section-K remainder to NonFinCorp.
+rIndustrySector_s_i,"NonFinCorp,iL,2018",0.43439461340485186,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iM69_70,2018",0.7088324914998665,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iM71,2018",0.9108156238750283,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iM72,2018",0.3891248642480749,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iM73,2018",0.7880944402951662,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iM74_75,2018",0.7831817949543635,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iN77,2018",0.8129232655463178,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iN78,2018",0.33258897516815494,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iN79,2018",0.8376234333260365,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iN80_82,2018",0.9008971362938631,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iO,2018",0.9035447491555536,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iP,2018",0.013238508629033632,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iQ86,2018",0.30017206470157837,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iQ87_88,2018",0.014226774470294797,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iR90_92,2018",0.6849426991400964,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iR93,2018",0.7185382057621931,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iS94,2018",0.7576377519752554,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iS95,2018",0.5283576350641537,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iS96,2018",0.4901370876558445,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iT,2018",0.2881515156452791,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"Gov,iA01,2018",0.027382224470055155,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iA02,2018",0.19066977856710662,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iA03,2018",0.19955983316479062,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iB,2018",0.1882778034925255,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC10_12,2018",0.006177726789332074,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC13_15,2018",0.09567761246071733,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC16,2018",0.09749288735877175,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC17,2018",0.10595368366370932,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC18,2018",0.13311496172053425,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC19,2018",0.021272321478062566,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC20,2018",0.03493845467625717,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC21,2018",0.271164829458837,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC22,2018",0.06471612395683424,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC23,2018",0.06073985231667837,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC24,2018",0.07926185416666877,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC25,2018",0.0304072957699475,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC26,2018",0.0697597978368288,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC27,2018",0.06906993877998811,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC28,2018",0.009251445035475848,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC29,2018",0.13064758868341148,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC30,2018",0.148892004699273,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC31_32,2018",0.04856662010987717,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC33,2018",0.06919262965557259,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iD,2018",0.037547624328690105,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iE36,2018",0.23245239914079155,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iE37_39,2018",0.03483641273038361,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iF,2018",0.00452504905883879,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iG45,2018",0.0641615304914343,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iG46,2018",0.01109031152859641,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iG47,2018",0.11198446911897701,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iH49,2018",0.020613058411863644,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iH50,2018",0.0034266536339698068,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iH51,2018",0.044261885745106866,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iH52,2018",0.028489842767782873,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iH53,2018",0.0814594295448338,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iI,2018",0.030334404739130065,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iJ58,2018",0.15577990773501055,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iJ59_60,2018",0.07001728850027997,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iJ61,2018",0.04277600607044035,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iJ62_63,2018",0.02475231969877681,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iK64,2018",0.0,Assign no section-K activity to Gov.
+rIndustrySector_s_i,"Gov,iK65,2018",0.0,Assign no section-K activity to Gov.
+rIndustrySector_s_i,"Gov,iK66,2018",0.0,Assign no section-K activity to Gov.
+rIndustrySector_s_i,"Gov,iL,2018",0.01299846947456553,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iM69_70,2018",0.21183789978291848,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iM71,2018",0.03587742840014264,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iM72,2018",0.39920363753396865,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iM73,2018",0.06912370017841181,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iM74_75,2018",0.08186678349034752,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iN77,2018",0.047008550740267156,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iN78,2018",0.5894192520611324,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iN79,2018",0.043484367231438226,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iN80_82,2018",0.053250333569585834,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iO,2018",0.06858766408289499,Start with the selected O/P/Q industries; adjust shares to match Gov operating costs and operating surplus.
+rIndustrySector_s_i,"Gov,iP,2018",0.9775629781916637,Start with the selected O/P/Q industries; adjust shares to match Gov operating costs and operating surplus.
+rIndustrySector_s_i,"Gov,iQ86,2018",0.6751419899547916,Start with the selected O/P/Q industries; adjust shares to match Gov operating costs and operating surplus.
+rIndustrySector_s_i,"Gov,iQ87_88,2018",0.9775101903296284,Start with the selected O/P/Q industries; adjust shares to match Gov operating costs and operating surplus.
+rIndustrySector_s_i,"Gov,iR90_92,2018",0.1841774347796009,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iR93,2018",0.17584850966306115,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iS94,2018",0.14104625086975822,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iS95,2018",0.1911065862779684,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iS96,2018",0.2806601066878558,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iT,2018",0.5714464386385845,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Hh,iA01,2018",0.03679976482019703,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iA02,2018",0.30610110847735217,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iA03,2018",0.33528442713975876,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iB,2018",0.37978976648299634,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC10_12,2018",0.018684952524872223,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC13_15,2018",0.21967734668908825,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC16,2018",0.19039101800923036,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC17,2018",0.23137648773497782,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC18,2018",0.23896039462618168,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC19,2018",0.06779838624455098,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC20,2018",0.1002109903539241,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC21,2018",0.37040563939632143,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC22,2018",0.13758454167556272,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC23,2018",0.1315797333558824,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC24,2018",0.19277202956864112,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC25,2018",0.0546935768051221,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC26,2018",0.1438662609142427,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC27,2018",0.1580973326498535,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC28,2018",0.02382839204827555,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC29,2018",0.259634138270569,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC30,2018",0.2883829847539077,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC31_32,2018",0.1080720586464881,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC33,2018",0.14514313288515274,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iD,2018",0.09479103302705501,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iE36,2018",0.3535280926023564,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iE37_39,2018",0.0981567741659456,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iF,2018",0.012805278826422774,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iG45,2018",0.06747702046534788,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iG46,2018",0.01953464564289595,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iG47,2018",0.019192341467885864,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iH49,2018",0.03366715673072747,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iH50,2018",0.014293465268487108,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iH51,2018",0.13415237803994404,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iH52,2018",0.059198114407167324,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iH53,2018",0.10376401754249015,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iI,2018",0.025385661055142117,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iJ58,2018",0.15627763540521303,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iJ59_60,2018",0.14601699074607233,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iJ61,2018",0.11057361845013888,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iJ62_63,2018",0.043209202400319745,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iK64,2018",0.0,Assign no section-K activity to Hh.
+rIndustrySector_s_i,"Hh,iK65,2018",0.0,Assign no section-K activity to Hh.
+rIndustrySector_s_i,"Hh,iK66,2018",0.0,Assign no section-K activity to Hh.
+rIndustrySector_s_i,"Hh,iL,2018",0.5526069171205826,"Start from household operating surplus in the selected section-L industries, then match household costs and operating surplus."
+rIndustrySector_s_i,"Hh,iM69_70,2018",0.07932960871721512,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iM71,2018",0.053306947724829065,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iM72,2018",0.21167149821795636,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iM73,2018",0.142781859526422,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iM74_75,2018",0.13495142155528908,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iN77,2018",0.14006818371341512,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iN78,2018",0.0779917727707126,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iN79,2018",0.11889219944252527,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iN80_82,2018",0.04585253013655102,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iO,2018",0.027867586761551485,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iP,2018",0.009198513179302656,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iQ86,2018",0.02468594534363007,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iQ87_88,2018",0.008263035200076822,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iR90_92,2018",0.13087986608030264,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iR93,2018",0.10561328457474586,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iS94,2018",0.10131599715498642,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iS95,2018",0.2805357786578779,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iS96,2018",0.22920280565629966,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iT,2018",0.14040204571613643,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"FinCorp,iA01,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iA02,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iA03,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iB,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC10_12,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC13_15,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC16,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC17,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC18,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC19,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC20,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC21,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC22,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC23,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC24,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC25,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC26,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC27,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC28,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC29,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC30,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC31_32,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iC33,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iD,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iE36,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iE37_39,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iF,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iG45,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iG46,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iG47,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iH49,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iH50,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iH51,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iH52,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iH53,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iI,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iJ58,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iJ59_60,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iJ61,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iJ62_63,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iK64,2019",0.6320570010864254,Target FinCorp operating surplus within the selected section-K industries.
+rIndustrySector_s_i,"FinCorp,iK65,2019",0.6320570010864254,Target FinCorp operating surplus within the selected section-K industries.
+rIndustrySector_s_i,"FinCorp,iK66,2019",0.6320570010864254,Target FinCorp operating surplus within the selected section-K industries.
+rIndustrySector_s_i,"FinCorp,iL,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iM69_70,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iM71,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iM72,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iM73,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iM74_75,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iN77,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iN78,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iN79,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iN80_82,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iO,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iP,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iQ86,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iQ87_88,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iR90_92,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iR93,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iS94,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iS95,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iS96,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"FinCorp,iT,2019",0.0,Assign no other industry to FinCorp.
+rIndustrySector_s_i,"NonFinCorp,iA01,2019",0.9208788599464238,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iA02,2019",0.4831948422325144,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iA03,2019",0.4977770837039385,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iB,2019",0.5705651460222485,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC10_12,2019",0.9799751418944008,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC13_15,2019",0.7056919532565167,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC16,2019",0.7022033131520198,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC17,2019",0.6215569060045434,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC18,2019",0.6114738808375925,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC19,2019",0.9259973377283323,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC20,2019",0.8672974465095807,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC21,2019",0.17352639127173003,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC22,2019",0.7949575945988466,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC23,2019",0.8097535934059221,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC24,2019",0.7203531837828273,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC25,2019",0.9134937257552659,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC26,2019",0.7966667996227419,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC27,2019",0.7782948558305699,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC28,2019",0.9718170708056599,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC29,2019",0.5618848215593426,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC30,2019",0.5662951740187308,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC31_32,2019",0.8530061221653674,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iC33,2019",0.8004192793944065,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iD,2019",0.8653334826372637,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iE36,2019",0.3686684445551086,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iE37_39,2019",0.8907017690389893,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iF,2019",0.9851531834072208,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iG45,2019",0.8665166612167531,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iG46,2019",0.9777109847121354,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iG47,2019",0.8211250968037738,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iH49,2019",0.9475357864521227,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iH50,2019",0.9880422311831336,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iH51,2019",0.8507416294518371,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iH52,2019",0.9053612114681794,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iH53,2019",0.7940072258002121,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iI,2019",0.9472126941281225,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iJ58,2019",0.7044311044672525,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iJ59_60,2019",0.807271240599213,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iJ61,2019",0.8784624004761723,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iJ62_63,2019",0.9299605001269237,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iK64,2019",0.3679429989135746,Assign the section-K remainder to NonFinCorp.
+rIndustrySector_s_i,"NonFinCorp,iK65,2019",0.3679429989135746,Assign the section-K remainder to NonFinCorp.
+rIndustrySector_s_i,"NonFinCorp,iK66,2019",0.3679429989135746,Assign the section-K remainder to NonFinCorp.
+rIndustrySector_s_i,"NonFinCorp,iL,2019",0.42795548291933416,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iM69_70,2019",0.8416597484443575,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iM71,2019",0.8939495143293261,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iM72,2019",0.43621371581776774,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iM73,2019",0.802975608650931,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iM74_75,2019",0.762992492383392,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iN77,2019",0.8747883791508334,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iN78,2019",0.09550038764768815,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iN79,2019",0.8584533393382553,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iN80_82,2019",0.9076082113562137,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iO,2019",0.9197157399109097,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iP,2019",0.008635517798367406,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iQ86,2019",0.4479658286819302,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iQ87_88,2019",0.012508035676413188,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iR90_92,2019",0.6184357038523994,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iR93,2019",0.7028300946515573,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iS94,2019",0.7491002090577986,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iS95,2019",0.4711984799756442,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iS96,2019",0.2279409691320286,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"NonFinCorp,iT,2019",0.10379752943153883,"Assign the remainder after FinCorp, Gov, and Hh to NonFinCorp."
+rIndustrySector_s_i,"Gov,iA01,2019",0.03457864704286352,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iA02,2019",0.2376801244051845,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iA03,2019",0.21399933975231383,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iB,2019",0.1366579115445833,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC10_12,2019",0.006313124995579429,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC13_15,2019",0.1076082132633129,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC16,2019",0.11892675536358102,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC17,2019",0.1510064526363326,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC18,2019",0.16372186086830845,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC19,2019",0.02224773779658186,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC20,2019",0.04140917280154637,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC21,2019",0.41231964672166255,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC22,2019",0.07663769508522277,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC23,2019",0.06949146187744137,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC24,2019",0.10184437292814655,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC25,2019",0.032235164151679076,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC26,2019",0.07367297430289393,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC27,2019",0.0808081984187528,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC28,2019",0.009017869336923678,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC29,2019",0.18455676545170438,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC30,2019",0.17809873286245095,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC31_32,2019",0.05082174637700137,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iC33,2019",0.07418785369978179,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iD,2019",0.04401003833066156,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iE36,2019",0.3155671223478618,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iE37_39,2019",0.03479465221589895,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iF,2019",0.005197025781745881,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iG45,2019",0.06220806697032523,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iG46,2019",0.008384140871325005,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iG47,2019",0.1559345251561991,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iH49,2019",0.01993255031798755,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iH50,2019",0.0035180129826271407,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iH51,2019",0.0471386857045683,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iH52,2019",0.03338644037263831,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iH53,2019",0.09841112602770087,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iI,2019",0.026843802440716377,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iJ58,2019",0.13927825195241314,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iJ59_60,2019",0.07030408476774834,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iJ61,2019",0.039318914148867325,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iJ62_63,2019",0.02572091956019641,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iK64,2019",0.0,Assign no section-K activity to Gov.
+rIndustrySector_s_i,"Gov,iK65,2019",0.0,Assign no section-K activity to Gov.
+rIndustrySector_s_i,"Gov,iK66,2019",0.0,Assign no section-K activity to Gov.
+rIndustrySector_s_i,"Gov,iL,2019",0.013221380009552208,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iM69_70,2019",0.08000786677648361,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iM71,2019",0.043119354864379816,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iM72,2019",0.3033881983157785,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iM73,2019",0.07334932779401507,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iM74_75,2019",0.09836701830622424,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iN77,2019",0.03923994461504719,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iN78,2019",0.845327068226589,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iN79,2019",0.046924611498993525,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iN80_82,2019",0.04550884222073985,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iO,2019",0.04745009554151744,Start with the selected O/P/Q industries; adjust shares to match Gov operating costs and operating surplus.
+rIndustrySector_s_i,"Gov,iP,2019",0.9838301102018804,Start with the selected O/P/Q industries; adjust shares to match Gov operating costs and operating surplus.
+rIndustrySector_s_i,"Gov,iQ86,2019",0.520203242329527,Start with the selected O/P/Q industries; adjust shares to match Gov operating costs and operating surplus.
+rIndustrySector_s_i,"Gov,iQ87_88,2019",0.9787385131835622,Start with the selected O/P/Q industries; adjust shares to match Gov operating costs and operating surplus.
+rIndustrySector_s_i,"Gov,iR90_92,2019",0.2308278768143455,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iR93,2019",0.1839569219337219,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iS94,2019",0.14025910421040738,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iS95,2019",0.2635710288101333,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iS96,2019",0.603534639803885,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Gov,iT,2019",0.8126306587884967,Adjust the prior to match Gov P2+D1+D29-D39 and operating surplus.
+rIndustrySector_s_i,"Hh,iA01,2019",0.04454249301071264,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iA02,2019",0.2791250333623011,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iA03,2019",0.2882235765437476,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iB,2019",0.2927769424331682,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC10_12,2019",0.013711733110019685,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC13_15,2019",0.18669983348017044,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC16,2019",0.17886993148439928,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC17,2019",0.22743664135912398,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC18,2019",0.2248042582940991,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC19,2019",0.05175492447508589,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC20,2019",0.09129338068887294,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC21,2019",0.4141539620066074,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC22,2019",0.12840471031593056,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC23,2019",0.12075494471663656,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC24,2019",0.17780244328902617,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC25,2019",0.054271110093055124,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC26,2019",0.12966022607436417,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC27,2019",0.14089694575067738,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC28,2019",0.019165059857416327,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC29,2019",0.25355841298895304,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC30,2019",0.25560609311881827,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC31_32,2019",0.0961721314576313,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iC33,2019",0.12539286690581175,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iD,2019",0.09065647903207472,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iE36,2019",0.3157644330970296,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iE37_39,2019",0.07450357874511176,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iF,2019",0.009649790811033326,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iG45,2019",0.07127527181292169,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iG46,2019",0.01390487441653969,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iG47,2019",0.022940378040027146,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iH49,2019",0.03253166322988978,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iH50,2019",0.008439755834239282,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iH51,2019",0.10211968484359464,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iH52,2019",0.06125234815918236,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iH53,2019",0.107581648172087,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iI,2019",0.025943503431161086,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iJ58,2019",0.15629064358033432,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iJ59_60,2019",0.12242467463303879,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iJ61,2019",0.08221868537496034,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iJ62_63,2019",0.044318580312879975,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iK64,2019",0.0,Assign no section-K activity to Hh.
+rIndustrySector_s_i,"Hh,iK65,2019",0.0,Assign no section-K activity to Hh.
+rIndustrySector_s_i,"Hh,iK66,2019",0.0,Assign no section-K activity to Hh.
+rIndustrySector_s_i,"Hh,iL,2019",0.5588231370711136,"Start from household operating surplus in the selected section-L industries, then match household costs and operating surplus."
+rIndustrySector_s_i,"Hh,iM69_70,2019",0.07833238477915885,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iM71,2019",0.06293113080629413,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iM72,2019",0.2603980858664538,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iM73,2019",0.12367506355505396,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iM74_75,2019",0.13864048931038384,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iN77,2019",0.0859716762341194,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iN78,2019",0.05917254412572286,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iN79,2019",0.09462204916275119,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iN80_82,2019",0.04688294642304649,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iO,2019",0.032834164547572764,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iP,2019",0.007534371999752213,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iQ86,2019",0.031830928988542846,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iQ87_88,2019",0.008753451140024614,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iR90_92,2019",0.15073641933325507,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iR93,2019",0.11321298341472075,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iS94,2019",0.11064068673179409,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iS95,2019",0.26523049121422254,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iS96,2019",0.1685243910640864,"Spread household mixed income across other industries, then match household targets."
+rIndustrySector_s_i,"Hh,iT,2019",0.08357181177996445,"Spread household mixed income across other industries, then match household targets."

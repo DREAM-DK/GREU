@@ -1,0 +1,1553 @@
+source,dataset,raw_code,normalized_code,mapped_leaf_count,mapped_leaves,required_cell_count,observed_required_cell_count,missing_cell_count,missing_cells,complete,status
+supply_industry,naio_10_cp15,A01,A01,1,A01,5,5,0,,true,complete
+supply_industry,naio_10_cp15,A02,A02,1,A02,5,5,0,,true,complete
+supply_industry,naio_10_cp15,A03,A03,1,A03,5,5,0,,true,complete
+supply_industry,naio_10_cp15,B,B,1,B,5,5,0,,true,complete
+supply_industry,naio_10_cp15,B05,B05,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,B06,B06,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,B07,B07,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,B08,B08,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,B09,B09,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,C10,C10,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,C10-12,C10-12,1,C10-12,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C11,C11,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,C12,C12,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,C13,C13,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,C13-15,C13-15,1,C13-15,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C14,C14,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,C15,C15,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,C16,C16,1,C16,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C17,C17,1,C17,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C18,C18,1,C18,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C19,C19,1,C19,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C20,C20,1,C20,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C21,C21,1,C21,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C22,C22,1,C22,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C23,C23,1,C23,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C24,C24,1,C24,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C25,C25,1,C25,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C26,C26,1,C26,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C27,C27,1,C27,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C28,C28,1,C28,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C29,C29,1,C29,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C30,C30,1,C30,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C31,C31,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,C31_32,C31-32,1,C31-32,5,5,0,,true,complete
+supply_industry,naio_10_cp15,C32,C32,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,C33,C33,1,C33,5,5,0,,true,complete
+supply_industry,naio_10_cp15,D,D,1,D,5,5,0,,true,complete
+supply_industry,naio_10_cp15,D21X31,D21X31,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,E36,E36,1,E36,5,5,0,,true,complete
+supply_industry,naio_10_cp15,E37,E37,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,E37-39,E37-39,1,E37-39,5,5,0,,true,complete
+supply_industry,naio_10_cp15,E38,E38,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,E39,E39,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,F,F,1,F,5,5,0,,true,complete
+supply_industry,naio_10_cp15,F41,F41,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,F42,F42,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,F43,F43,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,G45,G45,1,G45,5,5,0,,true,complete
+supply_industry,naio_10_cp15,G46,G46,1,G46,5,5,0,,true,complete
+supply_industry,naio_10_cp15,G47,G47,1,G47,5,5,0,,true,complete
+supply_industry,naio_10_cp15,H49,H49,1,H49,5,5,0,,true,complete
+supply_industry,naio_10_cp15,H50,H50,1,H50,5,5,0,,true,complete
+supply_industry,naio_10_cp15,H51,H51,1,H51,5,5,0,,true,complete
+supply_industry,naio_10_cp15,H52,H52,1,H52,5,5,0,,true,complete
+supply_industry,naio_10_cp15,H53,H53,1,H53,5,5,0,,true,complete
+supply_industry,naio_10_cp15,I,I,1,I,5,5,0,,true,complete
+supply_industry,naio_10_cp15,I55,I55,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,I56,I56,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,J58,J58,1,J58,5,5,0,,true,complete
+supply_industry,naio_10_cp15,J59,J59,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,J59_60,J59-60,1,J59-60,5,5,0,,true,complete
+supply_industry,naio_10_cp15,J60,J60,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,J61,J61,1,J61,5,5,0,,true,complete
+supply_industry,naio_10_cp15,J62,J62,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,J62_63,J62-63,1,J62-63,5,5,0,,true,complete
+supply_industry,naio_10_cp15,J63,J63,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,K64,K64,1,K64,5,5,0,,true,complete
+supply_industry,naio_10_cp15,K65,K65,1,K65,5,5,0,,true,complete
+supply_industry,naio_10_cp15,K66,K66,1,K66,5,5,0,,true,complete
+supply_industry,naio_10_cp15,L68A,L68A,1,L68A,5,5,0,,true,complete
+supply_industry,naio_10_cp15,L68B,L68B,1,L68B,5,5,0,,true,complete
+supply_industry,naio_10_cp15,M69,M69,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,M69_70,M69-70,1,M69-70,5,5,0,,true,complete
+supply_industry,naio_10_cp15,M70,M70,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,M71,M71,1,M71,5,5,0,,true,complete
+supply_industry,naio_10_cp15,M72,M72,1,M72,5,5,0,,true,complete
+supply_industry,naio_10_cp15,M73,M73,1,M73,5,5,0,,true,complete
+supply_industry,naio_10_cp15,M74,M74,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,M74_75,M74-75,1,M74-75,5,5,0,,true,complete
+supply_industry,naio_10_cp15,M75,M75,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,N77,N77,1,N77,5,5,0,,true,complete
+supply_industry,naio_10_cp15,N78,N78,1,N78,5,5,0,,true,complete
+supply_industry,naio_10_cp15,N79,N79,1,N79,5,5,0,,true,complete
+supply_industry,naio_10_cp15,N80,N80,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,N80-82,N80-82,1,N80-82,5,5,0,,true,complete
+supply_industry,naio_10_cp15,N81,N81,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,N82,N82,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,O,O,1,O,5,5,0,,true,complete
+supply_industry,naio_10_cp15,OTTM,OTTM,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,P,P,1,P,5,5,0,,true,complete
+supply_industry,naio_10_cp15,P7,P7,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,P7_B0,P7-B0,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,P7_D0,P7-D0,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,P7_U2,P7-U2,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,P7_U3,P7-U3,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,Q86,Q86,1,Q86,5,5,0,,true,complete
+supply_industry,naio_10_cp15,Q87,Q87,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,Q87_88,Q87-88,1,Q87-88,5,5,0,,true,complete
+supply_industry,naio_10_cp15,Q88,Q88,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,R90,R90,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,R90-92,R90-92,1,R90-92,5,5,0,,true,complete
+supply_industry,naio_10_cp15,R91,R91,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,R92,R92,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,R93,R93,1,R93,5,5,0,,true,complete
+supply_industry,naio_10_cp15,S94,S94,1,S94,5,5,0,,true,complete
+supply_industry,naio_10_cp15,S95,S95,1,S95,5,5,0,,true,complete
+supply_industry,naio_10_cp15,S96,S96,1,S96,5,5,0,,true,complete
+supply_industry,naio_10_cp15,T,T,1,T,5,5,0,,true,complete
+supply_industry,naio_10_cp15,T97,T97,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,T98,T98,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,TOTAL,TOTAL,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,TS_BP,TS-BP,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,TS_PP,TS-PP,0,,5,5,0,,true,unmapped code
+supply_industry,naio_10_cp15,U,U,1,U,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_A01,A01,1,A01,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_A02,A02,1,A02,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_A03,A03,1,A03,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_B,B,1,B,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_B05,B05,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_B06,B06,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_B07,B07,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_B08,B08,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_B09,B09,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_C10,C10,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_C10-12,C10-12,1,C10-12,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C11,C11,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_C12,C12,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_C13,C13,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_C13-15,C13-15,1,C13-15,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C14,C14,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_C15,C15,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_C16,C16,1,C16,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C17,C17,1,C17,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C18,C18,1,C18,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C19,C19,1,C19,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C20,C20,1,C20,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C21,C21,1,C21,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C22,C22,1,C22,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C23,C23,1,C23,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C24,C24,1,C24,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C25,C25,1,C25,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C26,C26,1,C26,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C27,C27,1,C27,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C28,C28,1,C28,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C29,C29,1,C29,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C30,C30,1,C30,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C31,C31,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_C31_32,C31-32,1,C31-32,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_C32,C32,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_C33,C33,1,C33,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_D,D,1,D,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_E36,E36,1,E36,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_E37,E37,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_E37-39,E37-39,1,E37-39,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_E38,E38,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_E39,E39,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_F,F,1,F,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_F41,F41,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_F42,F42,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_F43,F43,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_G45,G45,1,G45,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_G46,G46,1,G46,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_G47,G47,1,G47,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_H49,H49,1,H49,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_H50,H50,1,H50,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_H51,H51,1,H51,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_H52,H52,1,H52,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_H53,H53,1,H53,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_I,I,1,I,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_I55,I55,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_I56,I56,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_J58,J58,1,J58,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_J59,J59,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_J59_60,J59-60,1,J59-60,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_J60,J60,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_J61,J61,1,J61,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_J62,J62,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_J62_63,J62-63,1,J62-63,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_J63,J63,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_K64,K64,1,K64,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_K65,K65,1,K65,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_K66,K66,1,K66,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_L68A,L68A,1,L68A,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_L68B,L68B,1,L68B,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_M69,M69,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_M69_70,M69-70,1,M69-70,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_M70,M70,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_M71,M71,1,M71,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_M72,M72,1,M72,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_M73,M73,1,M73,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_M74,M74,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_M74_75,M74-75,1,M74-75,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_M75,M75,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_N77,N77,1,N77,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_N78,N78,1,N78,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_N79,N79,1,N79,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_N80,N80,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_N80-82,N80-82,1,N80-82,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_N81,N81,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_N82,N82,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_O,O,1,O,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_P,P,1,P,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_Q86,Q86,1,Q86,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_Q87,Q87,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_Q87_88,Q87-88,1,Q87-88,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_Q88,Q88,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_R90,R90,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_R90-92,R90-92,1,R90-92,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_R91,R91,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_R92,R92,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_R93,R93,1,R93,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_S94,S94,1,S94,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_S95,S95,1,S95,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_S96,S96,1,S96,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_T,T,1,T,5,5,0,,true,complete
+supply_product,naio_10_cp15,CPA_T97,T97,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_T98,T98,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_TOTAL,TOTAL,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,CPA_U,U,1,U,5,5,0,,true,complete
+supply_product,naio_10_cp15,OP_RES,OP-RES,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,P11,P11,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,P12,P12,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,P13,P13,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,P7_ADJ,P7-ADJ,0,,5,5,0,,true,unmapped code
+supply_product,naio_10_cp15,TOTADJ,TOTADJ,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,A01,A01,1,A01,5,5,0,,true,complete
+use_industry,naio_10_cp1610,A02,A02,1,A02,5,5,0,,true,complete
+use_industry,naio_10_cp1610,A03,A03,1,A03,5,5,0,,true,complete
+use_industry,naio_10_cp1610,B,B,1,B,5,5,0,,true,complete
+use_industry,naio_10_cp1610,B05,B05,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,B06,B06,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,B07,B07,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,B08,B08,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,B09,B09,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,C10,C10,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,C10-12,C10-12,1,C10-12,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C11,C11,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,C12,C12,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,C13,C13,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,C13-15,C13-15,1,C13-15,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C14,C14,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,C15,C15,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,C16,C16,1,C16,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C17,C17,1,C17,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C18,C18,1,C18,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C19,C19,1,C19,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C20,C20,1,C20,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C21,C21,1,C21,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C22,C22,1,C22,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C23,C23,1,C23,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C24,C24,1,C24,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C25,C25,1,C25,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C26,C26,1,C26,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C27,C27,1,C27,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C28,C28,1,C28,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C29,C29,1,C29,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C30,C30,1,C30,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C31,C31,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,C31_32,C31-32,1,C31-32,5,5,0,,true,complete
+use_industry,naio_10_cp1610,C32,C32,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,C33,C33,1,C33,5,5,0,,true,complete
+use_industry,naio_10_cp1610,D,D,1,D,5,5,0,,true,complete
+use_industry,naio_10_cp1610,E36,E36,1,E36,5,5,0,,true,complete
+use_industry,naio_10_cp1610,E37,E37,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,E37-39,E37-39,1,E37-39,5,5,0,,true,complete
+use_industry,naio_10_cp1610,E38,E38,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,E39,E39,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,F,F,1,F,5,5,0,,true,complete
+use_industry,naio_10_cp1610,F41,F41,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,F42,F42,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,F43,F43,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,G45,G45,1,G45,5,5,0,,true,complete
+use_industry,naio_10_cp1610,G46,G46,1,G46,5,5,0,,true,complete
+use_industry,naio_10_cp1610,G47,G47,1,G47,5,5,0,,true,complete
+use_industry,naio_10_cp1610,H49,H49,1,H49,5,5,0,,true,complete
+use_industry,naio_10_cp1610,H50,H50,1,H50,5,5,0,,true,complete
+use_industry,naio_10_cp1610,H51,H51,1,H51,5,5,0,,true,complete
+use_industry,naio_10_cp1610,H52,H52,1,H52,5,5,0,,true,complete
+use_industry,naio_10_cp1610,H53,H53,1,H53,5,5,0,,true,complete
+use_industry,naio_10_cp1610,I,I,1,I,5,5,0,,true,complete
+use_industry,naio_10_cp1610,I55,I55,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,I56,I56,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,J58,J58,1,J58,5,5,0,,true,complete
+use_industry,naio_10_cp1610,J59,J59,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,J59_60,J59-60,1,J59-60,5,5,0,,true,complete
+use_industry,naio_10_cp1610,J60,J60,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,J61,J61,1,J61,5,5,0,,true,complete
+use_industry,naio_10_cp1610,J62,J62,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,J62_63,J62-63,1,J62-63,5,5,0,,true,complete
+use_industry,naio_10_cp1610,J63,J63,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,K64,K64,1,K64,5,5,0,,true,complete
+use_industry,naio_10_cp1610,K65,K65,1,K65,5,5,0,,true,complete
+use_industry,naio_10_cp1610,K66,K66,1,K66,5,5,0,,true,complete
+use_industry,naio_10_cp1610,L68A,L68A,1,L68A,5,5,0,,true,complete
+use_industry,naio_10_cp1610,L68B,L68B,1,L68B,5,5,0,,true,complete
+use_industry,naio_10_cp1610,M69,M69,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,M69_70,M69-70,1,M69-70,5,5,0,,true,complete
+use_industry,naio_10_cp1610,M70,M70,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,M71,M71,1,M71,5,5,0,,true,complete
+use_industry,naio_10_cp1610,M72,M72,1,M72,5,5,0,,true,complete
+use_industry,naio_10_cp1610,M73,M73,1,M73,5,5,0,,true,complete
+use_industry,naio_10_cp1610,M74,M74,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,M74_75,M74-75,1,M74-75,5,5,0,,true,complete
+use_industry,naio_10_cp1610,M75,M75,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,N77,N77,1,N77,5,5,0,,true,complete
+use_industry,naio_10_cp1610,N78,N78,1,N78,5,5,0,,true,complete
+use_industry,naio_10_cp1610,N79,N79,1,N79,5,5,0,,true,complete
+use_industry,naio_10_cp1610,N80,N80,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,N80-82,N80-82,1,N80-82,5,5,0,,true,complete
+use_industry,naio_10_cp1610,N81,N81,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,N82,N82,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,O,O,1,O,5,5,0,,true,complete
+use_industry,naio_10_cp1610,P,P,1,P,5,5,0,,true,complete
+use_industry,naio_10_cp1610,P3,P3,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,P3_S13,P3-S13,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,P3_S14,P3-S14,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,P3_S15,P3-S15,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,P5,P5,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,P51G,P51G,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,P52,P52,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,P53,P53,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,P5M,P5M,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,P6,P6,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,P6_B0,P6-B0,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,P6_D0,P6-D0,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,P6_U2,P6-U2,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,P6_U3,P6-U3,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,Q86,Q86,1,Q86,5,5,0,,true,complete
+use_industry,naio_10_cp1610,Q87,Q87,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,Q87_88,Q87-88,1,Q87-88,5,5,0,,true,complete
+use_industry,naio_10_cp1610,Q88,Q88,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,R90,R90,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,R90-92,R90-92,1,R90-92,5,5,0,,true,complete
+use_industry,naio_10_cp1610,R91,R91,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,R92,R92,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,R93,R93,1,R93,5,5,0,,true,complete
+use_industry,naio_10_cp1610,S94,S94,1,S94,5,5,0,,true,complete
+use_industry,naio_10_cp1610,S95,S95,1,S95,5,5,0,,true,complete
+use_industry,naio_10_cp1610,S96,S96,1,S96,5,5,0,,true,complete
+use_industry,naio_10_cp1610,T,T,1,T,5,5,0,,true,complete
+use_industry,naio_10_cp1610,T97,T97,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,T98,T98,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,TFU,TFU,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,TOTAL,TOTAL,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,TU,TU,0,,5,5,0,,true,unmapped code
+use_industry,naio_10_cp1610,U,U,1,U,5,5,0,,true,complete
+use_product,naio_10_cp1610,B1G,B1G,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,B2A3G,B2A3G,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,B2A3N,B2A3N,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,B3G,B3G,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_A01,A01,1,A01,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_A02,A02,1,A02,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_A03,A03,1,A03,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_B,B,1,B,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_B05,B05,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_B06,B06,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_B07,B07,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_B08,B08,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_B09,B09,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_C10,C10,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_C10-12,C10-12,1,C10-12,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C11,C11,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_C12,C12,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_C13,C13,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_C13-15,C13-15,1,C13-15,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C14,C14,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_C15,C15,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_C16,C16,1,C16,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C17,C17,1,C17,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C18,C18,1,C18,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C19,C19,1,C19,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C20,C20,1,C20,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C21,C21,1,C21,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C22,C22,1,C22,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C23,C23,1,C23,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C24,C24,1,C24,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C25,C25,1,C25,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C26,C26,1,C26,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C27,C27,1,C27,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C28,C28,1,C28,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C29,C29,1,C29,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C30,C30,1,C30,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C31,C31,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_C31_32,C31-32,1,C31-32,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_C32,C32,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_C33,C33,1,C33,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_D,D,1,D,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_E36,E36,1,E36,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_E37,E37,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_E37-39,E37-39,1,E37-39,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_E38,E38,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_E39,E39,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_F,F,1,F,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_F41,F41,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_F42,F42,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_F43,F43,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_G45,G45,1,G45,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_G46,G46,1,G46,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_G47,G47,1,G47,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_H49,H49,1,H49,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_H50,H50,1,H50,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_H51,H51,1,H51,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_H52,H52,1,H52,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_H53,H53,1,H53,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_I,I,1,I,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_I55,I55,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_I56,I56,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_J58,J58,1,J58,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_J59,J59,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_J59_60,J59-60,1,J59-60,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_J60,J60,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_J61,J61,1,J61,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_J62,J62,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_J62_63,J62-63,1,J62-63,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_J63,J63,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_K64,K64,1,K64,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_K65,K65,1,K65,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_K66,K66,1,K66,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_L68A,L68A,1,L68A,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_L68B,L68B,1,L68B,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_M69,M69,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_M69_70,M69-70,1,M69-70,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_M70,M70,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_M71,M71,1,M71,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_M72,M72,1,M72,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_M73,M73,1,M73,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_M74,M74,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_M74_75,M74-75,1,M74-75,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_M75,M75,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_N77,N77,1,N77,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_N78,N78,1,N78,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_N79,N79,1,N79,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_N80,N80,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_N80-82,N80-82,1,N80-82,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_N81,N81,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_N82,N82,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_O,O,1,O,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_P,P,1,P,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_Q86,Q86,1,Q86,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_Q87,Q87,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_Q87_88,Q87-88,1,Q87-88,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_Q88,Q88,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_R90,R90,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_R90-92,R90-92,1,R90-92,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_R91,R91,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_R92,R92,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_R93,R93,1,R93,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_S94,S94,1,S94,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_S95,S95,1,S95,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_S96,S96,1,S96,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_T,T,1,T,5,5,0,,true,complete
+use_product,naio_10_cp1610,CPA_T97,T97,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_T98,T98,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_TOTAL,TOTAL,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,CPA_U,U,1,U,5,5,0,,true,complete
+use_product,naio_10_cp1610,D1,D1,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,D11,D11,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,D21X31,D21X31,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,D29X39,D29X39,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,IMP,IMP,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,OP_NRES,OP-NRES,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,OP_RES,OP-RES,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,P1,P1,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,P2,P2,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,P2_ADJ,P2-ADJ,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,P51C,P51C,0,,5,5,0,,true,unmapped code
+use_product,naio_10_cp1610,P6_ADJ,P6-ADJ,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,A01,A01,1,A01,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,A02,A02,1,A02,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,A03,A03,1,A03,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,B,B,1,B,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,B05,B05,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,B06,B06,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,B07,B07,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,B08,B08,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,B09,B09,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,C10,C10,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,C10-12,C10-12,1,C10-12,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C11,C11,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,C12,C12,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,C13,C13,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,C13-15,C13-15,1,C13-15,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C14,C14,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,C15,C15,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,C16,C16,1,C16,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C17,C17,1,C17,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C18,C18,1,C18,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C19,C19,1,C19,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C20,C20,1,C20,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C21,C21,1,C21,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C22,C22,1,C22,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C23,C23,1,C23,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C24,C24,1,C24,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C25,C25,1,C25,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C26,C26,1,C26,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C27,C27,1,C27,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C28,C28,1,C28,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C29,C29,1,C29,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C30,C30,1,C30,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C31,C31,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,C31_32,C31-32,1,C31-32,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,C32,C32,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,C33,C33,1,C33,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,D,D,1,D,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,E36,E36,1,E36,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,E37,E37,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,E37-39,E37-39,1,E37-39,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,E38,E38,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,E39,E39,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,F,F,1,F,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,F41,F41,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,F42,F42,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,F43,F43,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,G45,G45,1,G45,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,G46,G46,1,G46,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,G47,G47,1,G47,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,H49,H49,1,H49,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,H50,H50,1,H50,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,H51,H51,1,H51,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,H52,H52,1,H52,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,H53,H53,1,H53,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,I,I,1,I,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,I55,I55,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,I56,I56,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,J58,J58,1,J58,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,J59,J59,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,J59_60,J59-60,1,J59-60,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,J60,J60,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,J61,J61,1,J61,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,J62,J62,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,J62_63,J62-63,1,J62-63,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,J63,J63,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,K64,K64,1,K64,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,K65,K65,1,K65,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,K66,K66,1,K66,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,L68A,L68A,1,L68A,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,L68B,L68B,1,L68B,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,M69,M69,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,M69_70,M69-70,1,M69-70,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,M70,M70,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,M71,M71,1,M71,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,M72,M72,1,M72,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,M73,M73,1,M73,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,M74,M74,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,M74_75,M74-75,1,M74-75,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,M75,M75,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,N77,N77,1,N77,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,N78,N78,1,N78,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,N79,N79,1,N79,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,N80,N80,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,N80-82,N80-82,1,N80-82,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,N81,N81,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,N82,N82,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,O,O,1,O,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,P,P,1,P,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,P3,P3,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,P3_S13,P3-S13,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,P3_S14,P3-S14,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,P3_S15,P3-S15,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,P5,P5,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,P51G,P51G,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,P52,P52,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,P53,P53,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,P5M,P5M,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,P6,P6,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,P6_B0,P6-B0,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,P6_D0,P6-D0,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,P6_U2,P6-U2,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,P6_U3,P6-U3,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,Q86,Q86,1,Q86,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,Q87,Q87,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,Q87_88,Q87-88,1,Q87-88,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,Q88,Q88,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,R90,R90,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,R90-92,R90-92,1,R90-92,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,R91,R91,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,R92,R92,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,R93,R93,1,R93,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,S94,S94,1,S94,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,S95,S95,1,S95,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,S96,S96,1,S96,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,T,T,1,T,5,5,0,,true,complete
+margin_industry,naio_10_cp1620,T97,T97,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,T98,T98,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,TFU,TFU,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,TOTAL,TOTAL,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,TU,TU,0,,5,5,0,,true,unmapped code
+margin_industry,naio_10_cp1620,U,U,1,U,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_A01,A01,1,A01,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_A02,A02,1,A02,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_A03,A03,1,A03,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_B,B,1,B,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_B05,B05,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_B06,B06,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_B07,B07,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_B08,B08,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_B09,B09,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_C10,C10,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_C10-12,C10-12,1,C10-12,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C11,C11,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_C12,C12,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_C13,C13,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_C13-15,C13-15,1,C13-15,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C14,C14,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_C15,C15,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_C16,C16,1,C16,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C17,C17,1,C17,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C18,C18,1,C18,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C19,C19,1,C19,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C20,C20,1,C20,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C21,C21,1,C21,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C22,C22,1,C22,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C23,C23,1,C23,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C24,C24,1,C24,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C25,C25,1,C25,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C26,C26,1,C26,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C27,C27,1,C27,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C28,C28,1,C28,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C29,C29,1,C29,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C30,C30,1,C30,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C31,C31,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_C31_32,C31-32,1,C31-32,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_C32,C32,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_C33,C33,1,C33,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_D,D,1,D,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_E36,E36,1,E36,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_E37,E37,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_E37-39,E37-39,1,E37-39,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_E38,E38,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_E39,E39,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_F,F,1,F,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_F41,F41,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_F42,F42,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_F43,F43,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_G45,G45,1,G45,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_G46,G46,1,G46,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_G47,G47,1,G47,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_H49,H49,1,H49,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_H50,H50,1,H50,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_H51,H51,1,H51,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_H52,H52,1,H52,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_H53,H53,1,H53,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_I,I,1,I,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_I55,I55,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_I56,I56,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_J58,J58,1,J58,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_J59,J59,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_J59_60,J59-60,1,J59-60,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_J60,J60,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_J61,J61,1,J61,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_J62,J62,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_J62_63,J62-63,1,J62-63,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_J63,J63,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_K64,K64,1,K64,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_K65,K65,1,K65,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_K66,K66,1,K66,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_L68A,L68A,1,L68A,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_L68B,L68B,1,L68B,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_M69,M69,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_M69_70,M69-70,1,M69-70,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_M70,M70,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_M71,M71,1,M71,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_M72,M72,1,M72,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_M73,M73,1,M73,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_M74,M74,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_M74_75,M74-75,1,M74-75,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_M75,M75,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_N77,N77,1,N77,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_N78,N78,1,N78,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_N79,N79,1,N79,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_N80,N80,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_N80-82,N80-82,1,N80-82,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_N81,N81,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_N82,N82,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_O,O,1,O,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_P,P,1,P,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_Q86,Q86,1,Q86,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_Q87,Q87,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_Q87_88,Q87-88,1,Q87-88,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_Q88,Q88,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_R90,R90,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_R90-92,R90-92,1,R90-92,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_R91,R91,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_R92,R92,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_R93,R93,1,R93,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_S94,S94,1,S94,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_S95,S95,1,S95,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_S96,S96,1,S96,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_T,T,1,T,5,5,0,,true,complete
+margin_product,naio_10_cp1620,CPA_T97,T97,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_T98,T98,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_TOTAL,TOTAL,0,,5,5,0,,true,unmapped code
+margin_product,naio_10_cp1620,CPA_U,U,1,U,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,A01,A01,1,A01,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,A02,A02,1,A02,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,A03,A03,1,A03,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,B,B,1,B,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,B05,B05,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,B06,B06,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,B07,B07,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,B08,B08,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,B09,B09,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,C10,C10,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,C10-12,C10-12,1,C10-12,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C11,C11,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,C12,C12,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,C13,C13,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,C13-15,C13-15,1,C13-15,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C14,C14,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,C15,C15,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,C16,C16,1,C16,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C17,C17,1,C17,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C18,C18,1,C18,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C19,C19,1,C19,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C20,C20,1,C20,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C21,C21,1,C21,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C22,C22,1,C22,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C23,C23,1,C23,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C24,C24,1,C24,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C25,C25,1,C25,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C26,C26,1,C26,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C27,C27,1,C27,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C28,C28,1,C28,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C29,C29,1,C29,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C30,C30,1,C30,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C31,C31,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,C31_32,C31-32,1,C31-32,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,C32,C32,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,C33,C33,1,C33,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,D,D,1,D,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,E36,E36,1,E36,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,E37,E37,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,E37-39,E37-39,1,E37-39,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,E38,E38,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,E39,E39,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,F,F,1,F,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,F41,F41,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,F42,F42,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,F43,F43,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,G45,G45,1,G45,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,G46,G46,1,G46,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,G47,G47,1,G47,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,H49,H49,1,H49,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,H50,H50,1,H50,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,H51,H51,1,H51,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,H52,H52,1,H52,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,H53,H53,1,H53,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,I,I,1,I,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,I55,I55,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,I56,I56,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,J58,J58,1,J58,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,J59,J59,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,J59_60,J59-60,1,J59-60,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,J60,J60,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,J61,J61,1,J61,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,J62,J62,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,J62_63,J62-63,1,J62-63,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,J63,J63,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,K64,K64,1,K64,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,K65,K65,1,K65,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,K66,K66,1,K66,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,L68A,L68A,1,L68A,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,L68B,L68B,1,L68B,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,M69,M69,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,M69_70,M69-70,1,M69-70,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,M70,M70,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,M71,M71,1,M71,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,M72,M72,1,M72,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,M73,M73,1,M73,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,M74,M74,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,M74_75,M74-75,1,M74-75,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,M75,M75,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,N77,N77,1,N77,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,N78,N78,1,N78,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,N79,N79,1,N79,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,N80,N80,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,N80-82,N80-82,1,N80-82,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,N81,N81,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,N82,N82,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,O,O,1,O,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,P,P,1,P,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,P3,P3,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,P3_S13,P3-S13,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,P3_S14,P3-S14,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,P3_S15,P3-S15,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,P5,P5,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,P51G,P51G,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,P52,P52,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,P53,P53,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,P5M,P5M,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,P6,P6,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,P6_B0,P6-B0,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,P6_D0,P6-D0,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,P6_U2,P6-U2,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,P6_U3,P6-U3,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,Q86,Q86,1,Q86,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,Q87,Q87,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,Q87_88,Q87-88,1,Q87-88,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,Q88,Q88,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,R90,R90,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,R90-92,R90-92,1,R90-92,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,R91,R91,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,R92,R92,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,R93,R93,1,R93,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,S94,S94,1,S94,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,S95,S95,1,S95,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,S96,S96,1,S96,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,T,T,1,T,5,5,0,,true,complete
+net_product_tax_industry,naio_10_cp1630,T97,T97,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,T98,T98,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,TFU,TFU,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,TOTAL,TOTAL,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,TU,TU,0,,5,5,0,,true,unmapped code
+net_product_tax_industry,naio_10_cp1630,U,U,1,U,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_A01,A01,1,A01,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_A02,A02,1,A02,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_A03,A03,1,A03,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_B,B,1,B,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_B05,B05,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_B06,B06,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_B07,B07,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_B08,B08,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_B09,B09,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_C10,C10,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_C10-12,C10-12,1,C10-12,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C11,C11,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_C12,C12,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_C13,C13,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_C13-15,C13-15,1,C13-15,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C14,C14,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_C15,C15,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_C16,C16,1,C16,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C17,C17,1,C17,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C18,C18,1,C18,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C19,C19,1,C19,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C20,C20,1,C20,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C21,C21,1,C21,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C22,C22,1,C22,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C23,C23,1,C23,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C24,C24,1,C24,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C25,C25,1,C25,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C26,C26,1,C26,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C27,C27,1,C27,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C28,C28,1,C28,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C29,C29,1,C29,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C30,C30,1,C30,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C31,C31,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_C31_32,C31-32,1,C31-32,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_C32,C32,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_C33,C33,1,C33,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_D,D,1,D,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_E36,E36,1,E36,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_E37,E37,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_E37-39,E37-39,1,E37-39,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_E38,E38,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_E39,E39,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_F,F,1,F,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_F41,F41,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_F42,F42,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_F43,F43,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_G45,G45,1,G45,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_G46,G46,1,G46,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_G47,G47,1,G47,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_H49,H49,1,H49,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_H50,H50,1,H50,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_H51,H51,1,H51,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_H52,H52,1,H52,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_H53,H53,1,H53,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_I,I,1,I,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_I55,I55,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_I56,I56,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_J58,J58,1,J58,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_J59,J59,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_J59_60,J59-60,1,J59-60,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_J60,J60,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_J61,J61,1,J61,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_J62,J62,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_J62_63,J62-63,1,J62-63,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_J63,J63,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_K64,K64,1,K64,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_K65,K65,1,K65,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_K66,K66,1,K66,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_L68A,L68A,1,L68A,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_L68B,L68B,1,L68B,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_M69,M69,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_M69_70,M69-70,1,M69-70,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_M70,M70,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_M71,M71,1,M71,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_M72,M72,1,M72,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_M73,M73,1,M73,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_M74,M74,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_M74_75,M74-75,1,M74-75,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_M75,M75,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_N77,N77,1,N77,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_N78,N78,1,N78,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_N79,N79,1,N79,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_N80,N80,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_N80-82,N80-82,1,N80-82,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_N81,N81,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_N82,N82,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_O,O,1,O,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_P,P,1,P,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_Q86,Q86,1,Q86,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_Q87,Q87,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_Q87_88,Q87-88,1,Q87-88,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_Q88,Q88,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_R90,R90,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_R90-92,R90-92,1,R90-92,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_R91,R91,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_R92,R92,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_R93,R93,1,R93,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_S94,S94,1,S94,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_S95,S95,1,S95,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_S96,S96,1,S96,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_T,T,1,T,5,5,0,,true,complete
+net_product_tax_product,naio_10_cp1630,CPA_T97,T97,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_TOTAL,TOTAL,0,,5,5,0,,true,unmapped code
+net_product_tax_product,naio_10_cp1630,CPA_U,U,1,U,5,5,0,,true,complete
+payroll,naio_10_cp1610,A01,A01,1,A01,5,5,0,,true,complete
+payroll,naio_10_cp1610,A02,A02,1,A02,5,5,0,,true,complete
+payroll,naio_10_cp1610,A03,A03,1,A03,5,5,0,,true,complete
+payroll,naio_10_cp1610,B,B,1,B,5,5,0,,true,complete
+payroll,naio_10_cp1610,B05,B05,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,B06,B06,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,B07,B07,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,B08,B08,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,B09,B09,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,C10,C10,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,C10-12,C10-12,1,C10-12,5,5,0,,true,complete
+payroll,naio_10_cp1610,C11,C11,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,C12,C12,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,C13,C13,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,C13-15,C13-15,1,C13-15,5,5,0,,true,complete
+payroll,naio_10_cp1610,C14,C14,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,C15,C15,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,C16,C16,1,C16,5,5,0,,true,complete
+payroll,naio_10_cp1610,C17,C17,1,C17,5,5,0,,true,complete
+payroll,naio_10_cp1610,C18,C18,1,C18,5,5,0,,true,complete
+payroll,naio_10_cp1610,C19,C19,1,C19,5,5,0,,true,complete
+payroll,naio_10_cp1610,C20,C20,1,C20,5,5,0,,true,complete
+payroll,naio_10_cp1610,C21,C21,1,C21,5,5,0,,true,complete
+payroll,naio_10_cp1610,C22,C22,1,C22,5,5,0,,true,complete
+payroll,naio_10_cp1610,C23,C23,1,C23,5,5,0,,true,complete
+payroll,naio_10_cp1610,C24,C24,1,C24,5,5,0,,true,complete
+payroll,naio_10_cp1610,C25,C25,1,C25,5,5,0,,true,complete
+payroll,naio_10_cp1610,C26,C26,1,C26,5,5,0,,true,complete
+payroll,naio_10_cp1610,C27,C27,1,C27,5,5,0,,true,complete
+payroll,naio_10_cp1610,C28,C28,1,C28,5,5,0,,true,complete
+payroll,naio_10_cp1610,C29,C29,1,C29,5,5,0,,true,complete
+payroll,naio_10_cp1610,C30,C30,1,C30,5,5,0,,true,complete
+payroll,naio_10_cp1610,C31,C31,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,C31_32,C31-32,1,C31-32,5,5,0,,true,complete
+payroll,naio_10_cp1610,C32,C32,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,C33,C33,1,C33,5,5,0,,true,complete
+payroll,naio_10_cp1610,D,D,1,D,5,5,0,,true,complete
+payroll,naio_10_cp1610,E36,E36,1,E36,5,5,0,,true,complete
+payroll,naio_10_cp1610,E37,E37,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,E37-39,E37-39,1,E37-39,5,5,0,,true,complete
+payroll,naio_10_cp1610,E38,E38,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,E39,E39,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,F,F,1,F,5,5,0,,true,complete
+payroll,naio_10_cp1610,F41,F41,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,F42,F42,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,F43,F43,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,G45,G45,1,G45,5,5,0,,true,complete
+payroll,naio_10_cp1610,G46,G46,1,G46,5,5,0,,true,complete
+payroll,naio_10_cp1610,G47,G47,1,G47,5,5,0,,true,complete
+payroll,naio_10_cp1610,H49,H49,1,H49,5,5,0,,true,complete
+payroll,naio_10_cp1610,H50,H50,1,H50,5,5,0,,true,complete
+payroll,naio_10_cp1610,H51,H51,1,H51,5,5,0,,true,complete
+payroll,naio_10_cp1610,H52,H52,1,H52,5,5,0,,true,complete
+payroll,naio_10_cp1610,H53,H53,1,H53,5,5,0,,true,complete
+payroll,naio_10_cp1610,I,I,1,I,5,5,0,,true,complete
+payroll,naio_10_cp1610,I55,I55,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,I56,I56,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,J58,J58,1,J58,5,5,0,,true,complete
+payroll,naio_10_cp1610,J59,J59,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,J59_60,J59-60,1,J59-60,5,5,0,,true,complete
+payroll,naio_10_cp1610,J60,J60,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,J61,J61,1,J61,5,5,0,,true,complete
+payroll,naio_10_cp1610,J62,J62,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,J62_63,J62-63,1,J62-63,5,5,0,,true,complete
+payroll,naio_10_cp1610,J63,J63,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,K64,K64,1,K64,5,5,0,,true,complete
+payroll,naio_10_cp1610,K65,K65,1,K65,5,5,0,,true,complete
+payroll,naio_10_cp1610,K66,K66,1,K66,5,5,0,,true,complete
+payroll,naio_10_cp1610,L68A,L68A,1,L68A,5,5,0,,true,complete
+payroll,naio_10_cp1610,L68B,L68B,1,L68B,5,5,0,,true,complete
+payroll,naio_10_cp1610,M69,M69,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,M69_70,M69-70,1,M69-70,5,5,0,,true,complete
+payroll,naio_10_cp1610,M70,M70,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,M71,M71,1,M71,5,5,0,,true,complete
+payroll,naio_10_cp1610,M72,M72,1,M72,5,5,0,,true,complete
+payroll,naio_10_cp1610,M73,M73,1,M73,5,5,0,,true,complete
+payroll,naio_10_cp1610,M74,M74,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,M74_75,M74-75,1,M74-75,5,5,0,,true,complete
+payroll,naio_10_cp1610,M75,M75,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,N77,N77,1,N77,5,5,0,,true,complete
+payroll,naio_10_cp1610,N78,N78,1,N78,5,5,0,,true,complete
+payroll,naio_10_cp1610,N79,N79,1,N79,5,5,0,,true,complete
+payroll,naio_10_cp1610,N80,N80,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,N80-82,N80-82,1,N80-82,5,5,0,,true,complete
+payroll,naio_10_cp1610,N81,N81,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,N82,N82,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,O,O,1,O,5,5,0,,true,complete
+payroll,naio_10_cp1610,P,P,1,P,5,5,0,,true,complete
+payroll,naio_10_cp1610,Q86,Q86,1,Q86,5,5,0,,true,complete
+payroll,naio_10_cp1610,Q87,Q87,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,Q87_88,Q87-88,1,Q87-88,5,5,0,,true,complete
+payroll,naio_10_cp1610,Q88,Q88,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,R90,R90,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,R90-92,R90-92,1,R90-92,5,5,0,,true,complete
+payroll,naio_10_cp1610,R91,R91,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,R92,R92,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,R93,R93,1,R93,5,5,0,,true,complete
+payroll,naio_10_cp1610,S94,S94,1,S94,5,5,0,,true,complete
+payroll,naio_10_cp1610,S95,S95,1,S95,5,5,0,,true,complete
+payroll,naio_10_cp1610,S96,S96,1,S96,5,5,0,,true,complete
+payroll,naio_10_cp1610,T,T,1,T,5,5,0,,true,complete
+payroll,naio_10_cp1610,T97,T97,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,T98,T98,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,TOTAL,TOTAL,0,,5,5,0,,true,unmapped code
+payroll,naio_10_cp1610,U,U,1,U,5,5,0,,true,complete
+employment,nama_10_a64_e,A,A,3,A01;A02;A03,5,5,0,,true,complete
+employment,nama_10_a64_e,A01,A01,1,A01,5,5,0,,true,complete
+employment,nama_10_a64_e,A02,A02,1,A02,5,5,0,,true,complete
+employment,nama_10_a64_e,A03,A03,1,A03,5,5,0,,true,complete
+employment,nama_10_a64_e,B,B,1,B,5,5,0,,true,complete
+employment,nama_10_a64_e,B-E,B-E,23,B;C10-12;C13-15;C16;C17;C18;C19;C20;C21;C22;C23;C24;C25;C26;C27;C28;C29;C30;C31-32;C33;D;E36;E37-39,5,5,0,,true,complete
+employment,nama_10_a64_e,C,C,19,C10-12;C13-15;C16;C17;C18;C19;C20;C21;C22;C23;C24;C25;C26;C27;C28;C29;C30;C31-32;C33,5,5,0,,true,complete
+employment,nama_10_a64_e,C10-C12,C10-C12,1,C10-12,5,5,0,,true,complete
+employment,nama_10_a64_e,C13-C15,C13-C15,1,C13-15,5,5,0,,true,complete
+employment,nama_10_a64_e,C16,C16,1,C16,5,5,0,,true,complete
+employment,nama_10_a64_e,C16-C18,C16-C18,3,C16;C17;C18,5,5,0,,true,complete
+employment,nama_10_a64_e,C17,C17,1,C17,5,5,0,,true,complete
+employment,nama_10_a64_e,C18,C18,1,C18,5,5,0,,true,complete
+employment,nama_10_a64_e,C19,C19,1,C19,5,5,0,,true,complete
+employment,nama_10_a64_e,C20,C20,1,C20,5,5,0,,true,complete
+employment,nama_10_a64_e,C21,C21,1,C21,5,5,0,,true,complete
+employment,nama_10_a64_e,C22,C22,1,C22,5,5,0,,true,complete
+employment,nama_10_a64_e,C22_C23,C22-C23,2,C22;C23,5,5,0,,true,complete
+employment,nama_10_a64_e,C23,C23,1,C23,5,5,0,,true,complete
+employment,nama_10_a64_e,C24,C24,1,C24,5,5,0,,true,complete
+employment,nama_10_a64_e,C24_C25,C24-C25,2,C24;C25,5,5,0,,true,complete
+employment,nama_10_a64_e,C25,C25,1,C25,5,5,0,,true,complete
+employment,nama_10_a64_e,C26,C26,1,C26,5,5,0,,true,complete
+employment,nama_10_a64_e,C27,C27,1,C27,5,5,0,,true,complete
+employment,nama_10_a64_e,C28,C28,1,C28,5,5,0,,true,complete
+employment,nama_10_a64_e,C29,C29,1,C29,5,5,0,,true,complete
+employment,nama_10_a64_e,C29_C30,C29-C30,2,C29;C30,5,5,0,,true,complete
+employment,nama_10_a64_e,C30,C30,1,C30,5,5,0,,true,complete
+employment,nama_10_a64_e,C31-C33,C31-C33,2,C31-32;C33,5,5,0,,true,complete
+employment,nama_10_a64_e,C31_C32,C31-C32,1,C31-32,5,5,0,,true,complete
+employment,nama_10_a64_e,C33,C33,1,C33,5,5,0,,true,complete
+employment,nama_10_a64_e,D,D,1,D,5,5,0,,true,complete
+employment,nama_10_a64_e,D35,D35,0,,5,5,0,,true,unmapped code
+employment,nama_10_a64_e,E,E,2,E36;E37-39,5,5,0,,true,complete
+employment,nama_10_a64_e,E36,E36,1,E36,5,5,0,,true,complete
+employment,nama_10_a64_e,E37-E39,E37-E39,1,E37-39,5,5,0,,true,complete
+employment,nama_10_a64_e,F,F,1,F,5,5,0,,true,complete
+employment,nama_10_a64_e,G,G,3,G45;G46;G47,5,5,0,,true,complete
+employment,nama_10_a64_e,G-I,G-I,9,G45;G46;G47;H49;H50;H51;H52;H53;I,5,5,0,,true,complete
+employment,nama_10_a64_e,G45,G45,1,G45,5,5,0,,true,complete
+employment,nama_10_a64_e,G46,G46,1,G46,5,5,0,,true,complete
+employment,nama_10_a64_e,G47,G47,1,G47,5,5,0,,true,complete
+employment,nama_10_a64_e,H,H,5,H49;H50;H51;H52;H53,5,5,0,,true,complete
+employment,nama_10_a64_e,H49,H49,1,H49,5,5,0,,true,complete
+employment,nama_10_a64_e,H50,H50,1,H50,5,5,0,,true,complete
+employment,nama_10_a64_e,H51,H51,1,H51,5,5,0,,true,complete
+employment,nama_10_a64_e,H52,H52,1,H52,5,5,0,,true,complete
+employment,nama_10_a64_e,H53,H53,1,H53,5,5,0,,true,complete
+employment,nama_10_a64_e,I,I,1,I,5,5,0,,true,complete
+employment,nama_10_a64_e,J,J,4,J58;J59-60;J61;J62-63,5,5,0,,true,complete
+employment,nama_10_a64_e,J58,J58,1,J58,5,5,0,,true,complete
+employment,nama_10_a64_e,J58-J60,J58-J60,2,J58;J59-60,5,5,0,,true,complete
+employment,nama_10_a64_e,J59_J60,J59-J60,1,J59-60,5,5,0,,true,complete
+employment,nama_10_a64_e,J61,J61,1,J61,5,5,0,,true,complete
+employment,nama_10_a64_e,J62_J63,J62-J63,1,J62-63,5,5,0,,true,complete
+employment,nama_10_a64_e,K,K,3,K64;K65;K66,5,5,0,,true,complete
+employment,nama_10_a64_e,K64,K64,1,K64,5,5,0,,true,complete
+employment,nama_10_a64_e,K65,K65,1,K65,5,5,0,,true,complete
+employment,nama_10_a64_e,K66,K66,1,K66,5,5,0,,true,complete
+employment,nama_10_a64_e,L,L,2,L68A;L68B,5,5,0,,true,complete
+employment,nama_10_a64_e,L68,L68,2,L68A;L68B,5,5,0,,true,complete
+employment,nama_10_a64_e,L68A,L68A,1,L68A,5,5,0,,true,complete
+employment,nama_10_a64_e,M,M,5,M69-70;M71;M72;M73;M74-75,5,5,0,,true,complete
+employment,nama_10_a64_e,M69-M71,M69-M71,2,M69-70;M71,5,5,0,,true,complete
+employment,nama_10_a64_e,M69_M70,M69-M70,1,M69-70,5,5,0,,true,complete
+employment,nama_10_a64_e,M71,M71,1,M71,5,5,0,,true,complete
+employment,nama_10_a64_e,M72,M72,1,M72,5,5,0,,true,complete
+employment,nama_10_a64_e,M73,M73,1,M73,5,5,0,,true,complete
+employment,nama_10_a64_e,M73-M75,M73-M75,2,M73;M74-75,5,5,0,,true,complete
+employment,nama_10_a64_e,M74_M75,M74-M75,1,M74-75,5,5,0,,true,complete
+employment,nama_10_a64_e,M_N,M-N,9,M69-70;M71;M72;M73;M74-75;N77;N78;N79;N80-82,5,5,0,,true,complete
+employment,nama_10_a64_e,N,N,4,N77;N78;N79;N80-82,5,5,0,,true,complete
+employment,nama_10_a64_e,N77,N77,1,N77,5,5,0,,true,complete
+employment,nama_10_a64_e,N78,N78,1,N78,5,5,0,,true,complete
+employment,nama_10_a64_e,N79,N79,1,N79,5,5,0,,true,complete
+employment,nama_10_a64_e,N80-N82,N80-N82,1,N80-82,5,5,0,,true,complete
+employment,nama_10_a64_e,O,O,1,O,5,5,0,,true,complete
+employment,nama_10_a64_e,O-Q,O-Q,4,O;P;Q86;Q87-88,5,5,0,,true,complete
+employment,nama_10_a64_e,O84,O84,0,,5,5,0,,true,unmapped code
+employment,nama_10_a64_e,P,P,1,P,5,5,0,,true,complete
+employment,nama_10_a64_e,P85,P85,0,,5,5,0,,true,unmapped code
+employment,nama_10_a64_e,Q,Q,2,Q86;Q87-88,5,5,0,,true,complete
+employment,nama_10_a64_e,Q86,Q86,1,Q86,5,5,0,,true,complete
+employment,nama_10_a64_e,Q87_Q88,Q87-Q88,1,Q87-88,5,5,0,,true,complete
+employment,nama_10_a64_e,R,R,2,R90-92;R93,5,5,0,,true,complete
+employment,nama_10_a64_e,R-U,R-U,7,R90-92;R93;S94;S95;S96;T;U,5,5,0,,true,complete
+employment,nama_10_a64_e,R90-R92,R90-R92,1,R90-92,5,5,0,,true,complete
+employment,nama_10_a64_e,R93,R93,1,R93,5,5,0,,true,complete
+employment,nama_10_a64_e,S,S,3,S94;S95;S96,5,5,0,,true,complete
+employment,nama_10_a64_e,S94,S94,1,S94,5,5,0,,true,complete
+employment,nama_10_a64_e,S95,S95,1,S95,5,5,0,,true,complete
+employment,nama_10_a64_e,S96,S96,1,S96,5,5,0,,true,complete
+employment,nama_10_a64_e,T,T,1,T,5,5,0,,true,complete
+employment,nama_10_a64_e,TOTAL,TOTAL,0,,5,5,0,,true,unmapped code
+employment,nama_10_a64_e,U,U,1,U,5,5,0,,true,complete
+employment,nama_10_a64_e,U99,U99,0,,5,5,0,,true,unmapped code
+gva_current,nama_10_a64,A,A,3,A01;A02;A03,5,5,0,,true,complete
+gva_current,nama_10_a64,A01,A01,1,A01,5,5,0,,true,complete
+gva_current,nama_10_a64,A02,A02,1,A02,5,5,0,,true,complete
+gva_current,nama_10_a64,A03,A03,1,A03,5,5,0,,true,complete
+gva_current,nama_10_a64,B,B,1,B,5,5,0,,true,complete
+gva_current,nama_10_a64,B-E,B-E,23,B;C10-12;C13-15;C16;C17;C18;C19;C20;C21;C22;C23;C24;C25;C26;C27;C28;C29;C30;C31-32;C33;D;E36;E37-39,5,5,0,,true,complete
+gva_current,nama_10_a64,C,C,19,C10-12;C13-15;C16;C17;C18;C19;C20;C21;C22;C23;C24;C25;C26;C27;C28;C29;C30;C31-32;C33,5,5,0,,true,complete
+gva_current,nama_10_a64,C10-C12,C10-C12,1,C10-12,5,5,0,,true,complete
+gva_current,nama_10_a64,C13-C15,C13-C15,1,C13-15,5,5,0,,true,complete
+gva_current,nama_10_a64,C16,C16,1,C16,5,5,0,,true,complete
+gva_current,nama_10_a64,C16-C18,C16-C18,3,C16;C17;C18,5,5,0,,true,complete
+gva_current,nama_10_a64,C17,C17,1,C17,5,5,0,,true,complete
+gva_current,nama_10_a64,C18,C18,1,C18,5,5,0,,true,complete
+gva_current,nama_10_a64,C19,C19,1,C19,5,5,0,,true,complete
+gva_current,nama_10_a64,C20,C20,1,C20,5,5,0,,true,complete
+gva_current,nama_10_a64,C21,C21,1,C21,5,5,0,,true,complete
+gva_current,nama_10_a64,C22,C22,1,C22,5,5,0,,true,complete
+gva_current,nama_10_a64,C22_C23,C22-C23,2,C22;C23,5,5,0,,true,complete
+gva_current,nama_10_a64,C23,C23,1,C23,5,5,0,,true,complete
+gva_current,nama_10_a64,C24,C24,1,C24,5,5,0,,true,complete
+gva_current,nama_10_a64,C24_C25,C24-C25,2,C24;C25,5,5,0,,true,complete
+gva_current,nama_10_a64,C25,C25,1,C25,5,5,0,,true,complete
+gva_current,nama_10_a64,C26,C26,1,C26,5,5,0,,true,complete
+gva_current,nama_10_a64,C27,C27,1,C27,5,5,0,,true,complete
+gva_current,nama_10_a64,C28,C28,1,C28,5,5,0,,true,complete
+gva_current,nama_10_a64,C29,C29,1,C29,5,5,0,,true,complete
+gva_current,nama_10_a64,C29_C30,C29-C30,2,C29;C30,5,5,0,,true,complete
+gva_current,nama_10_a64,C30,C30,1,C30,5,5,0,,true,complete
+gva_current,nama_10_a64,C31-C33,C31-C33,2,C31-32;C33,5,5,0,,true,complete
+gva_current,nama_10_a64,C31_C32,C31-C32,1,C31-32,5,5,0,,true,complete
+gva_current,nama_10_a64,C33,C33,1,C33,5,5,0,,true,complete
+gva_current,nama_10_a64,D,D,1,D,5,5,0,,true,complete
+gva_current,nama_10_a64,D35,D35,0,,5,5,0,,true,unmapped code
+gva_current,nama_10_a64,E,E,2,E36;E37-39,5,5,0,,true,complete
+gva_current,nama_10_a64,E36,E36,1,E36,5,5,0,,true,complete
+gva_current,nama_10_a64,E37-E39,E37-E39,1,E37-39,5,5,0,,true,complete
+gva_current,nama_10_a64,F,F,1,F,5,5,0,,true,complete
+gva_current,nama_10_a64,G,G,3,G45;G46;G47,5,5,0,,true,complete
+gva_current,nama_10_a64,G-I,G-I,9,G45;G46;G47;H49;H50;H51;H52;H53;I,5,5,0,,true,complete
+gva_current,nama_10_a64,G45,G45,1,G45,5,5,0,,true,complete
+gva_current,nama_10_a64,G46,G46,1,G46,5,5,0,,true,complete
+gva_current,nama_10_a64,G47,G47,1,G47,5,5,0,,true,complete
+gva_current,nama_10_a64,H,H,5,H49;H50;H51;H52;H53,5,5,0,,true,complete
+gva_current,nama_10_a64,H49,H49,1,H49,5,5,0,,true,complete
+gva_current,nama_10_a64,H50,H50,1,H50,5,5,0,,true,complete
+gva_current,nama_10_a64,H51,H51,1,H51,5,5,0,,true,complete
+gva_current,nama_10_a64,H52,H52,1,H52,5,5,0,,true,complete
+gva_current,nama_10_a64,H53,H53,1,H53,5,5,0,,true,complete
+gva_current,nama_10_a64,I,I,1,I,5,5,0,,true,complete
+gva_current,nama_10_a64,J,J,4,J58;J59-60;J61;J62-63,5,5,0,,true,complete
+gva_current,nama_10_a64,J58,J58,1,J58,5,5,0,,true,complete
+gva_current,nama_10_a64,J58-J60,J58-J60,2,J58;J59-60,5,5,0,,true,complete
+gva_current,nama_10_a64,J59_J60,J59-J60,1,J59-60,5,5,0,,true,complete
+gva_current,nama_10_a64,J61,J61,1,J61,5,5,0,,true,complete
+gva_current,nama_10_a64,J62_J63,J62-J63,1,J62-63,5,5,0,,true,complete
+gva_current,nama_10_a64,K,K,3,K64;K65;K66,5,5,0,,true,complete
+gva_current,nama_10_a64,K64,K64,1,K64,5,5,0,,true,complete
+gva_current,nama_10_a64,K65,K65,1,K65,5,5,0,,true,complete
+gva_current,nama_10_a64,K66,K66,1,K66,5,5,0,,true,complete
+gva_current,nama_10_a64,L,L,2,L68A;L68B,5,5,0,,true,complete
+gva_current,nama_10_a64,L68,L68,2,L68A;L68B,5,5,0,,true,complete
+gva_current,nama_10_a64,L68A,L68A,1,L68A,5,5,0,,true,complete
+gva_current,nama_10_a64,M,M,5,M69-70;M71;M72;M73;M74-75,5,5,0,,true,complete
+gva_current,nama_10_a64,M69-M71,M69-M71,2,M69-70;M71,5,5,0,,true,complete
+gva_current,nama_10_a64,M69_M70,M69-M70,1,M69-70,5,5,0,,true,complete
+gva_current,nama_10_a64,M71,M71,1,M71,5,5,0,,true,complete
+gva_current,nama_10_a64,M72,M72,1,M72,5,5,0,,true,complete
+gva_current,nama_10_a64,M73,M73,1,M73,5,5,0,,true,complete
+gva_current,nama_10_a64,M73-M75,M73-M75,2,M73;M74-75,5,5,0,,true,complete
+gva_current,nama_10_a64,M74_M75,M74-M75,1,M74-75,5,5,0,,true,complete
+gva_current,nama_10_a64,M_N,M-N,9,M69-70;M71;M72;M73;M74-75;N77;N78;N79;N80-82,5,5,0,,true,complete
+gva_current,nama_10_a64,N,N,4,N77;N78;N79;N80-82,5,5,0,,true,complete
+gva_current,nama_10_a64,N77,N77,1,N77,5,5,0,,true,complete
+gva_current,nama_10_a64,N78,N78,1,N78,5,5,0,,true,complete
+gva_current,nama_10_a64,N79,N79,1,N79,5,5,0,,true,complete
+gva_current,nama_10_a64,N80-N82,N80-N82,1,N80-82,5,5,0,,true,complete
+gva_current,nama_10_a64,O,O,1,O,5,5,0,,true,complete
+gva_current,nama_10_a64,O-Q,O-Q,4,O;P;Q86;Q87-88,5,5,0,,true,complete
+gva_current,nama_10_a64,O84,O84,0,,5,5,0,,true,unmapped code
+gva_current,nama_10_a64,P,P,1,P,5,5,0,,true,complete
+gva_current,nama_10_a64,P85,P85,0,,5,5,0,,true,unmapped code
+gva_current,nama_10_a64,Q,Q,2,Q86;Q87-88,5,5,0,,true,complete
+gva_current,nama_10_a64,Q86,Q86,1,Q86,5,5,0,,true,complete
+gva_current,nama_10_a64,Q87_Q88,Q87-Q88,1,Q87-88,5,5,0,,true,complete
+gva_current,nama_10_a64,R,R,2,R90-92;R93,5,5,0,,true,complete
+gva_current,nama_10_a64,R-U,R-U,7,R90-92;R93;S94;S95;S96;T;U,5,5,0,,true,complete
+gva_current,nama_10_a64,R90-R92,R90-R92,1,R90-92,5,5,0,,true,complete
+gva_current,nama_10_a64,R93,R93,1,R93,5,5,0,,true,complete
+gva_current,nama_10_a64,S,S,3,S94;S95;S96,5,5,0,,true,complete
+gva_current,nama_10_a64,S94,S94,1,S94,5,5,0,,true,complete
+gva_current,nama_10_a64,S95,S95,1,S95,5,5,0,,true,complete
+gva_current,nama_10_a64,S96,S96,1,S96,5,5,0,,true,complete
+gva_current,nama_10_a64,T,T,1,T,5,5,0,,true,complete
+gva_current,nama_10_a64,TOTAL,TOTAL,0,,5,5,0,,true,unmapped code
+gva_current,nama_10_a64,U,U,1,U,5,5,0,,true,complete
+gva_current,nama_10_a64,U99,U99,0,,5,5,0,,true,unmapped code
+gva_previous_prices,nama_10_a64,A,A,3,A01;A02;A03,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,A01,A01,1,A01,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,A02,A02,1,A02,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,A03,A03,1,A03,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,B,B,1,B,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,B-E,B-E,23,B;C10-12;C13-15;C16;C17;C18;C19;C20;C21;C22;C23;C24;C25;C26;C27;C28;C29;C30;C31-32;C33;D;E36;E37-39,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C,C,19,C10-12;C13-15;C16;C17;C18;C19;C20;C21;C22;C23;C24;C25;C26;C27;C28;C29;C30;C31-32;C33,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C10-C12,C10-C12,1,C10-12,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C13-C15,C13-C15,1,C13-15,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C16,C16,1,C16,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C16-C18,C16-C18,3,C16;C17;C18,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C17,C17,1,C17,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C18,C18,1,C18,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C19,C19,1,C19,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C20,C20,1,C20,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C21,C21,1,C21,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C22,C22,1,C22,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C22_C23,C22-C23,2,C22;C23,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C23,C23,1,C23,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C24,C24,1,C24,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C24_C25,C24-C25,2,C24;C25,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C25,C25,1,C25,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C26,C26,1,C26,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C27,C27,1,C27,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C28,C28,1,C28,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C29,C29,1,C29,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C29_C30,C29-C30,2,C29;C30,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C30,C30,1,C30,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C31-C33,C31-C33,2,C31-32;C33,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C31_C32,C31-C32,1,C31-32,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,C33,C33,1,C33,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,D,D,1,D,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,D35,D35,0,,5,5,0,,true,unmapped code
+gva_previous_prices,nama_10_a64,E,E,2,E36;E37-39,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,E36,E36,1,E36,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,E37-E39,E37-E39,1,E37-39,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,F,F,1,F,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,G,G,3,G45;G46;G47,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,G-I,G-I,9,G45;G46;G47;H49;H50;H51;H52;H53;I,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,G45,G45,1,G45,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,G46,G46,1,G46,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,G47,G47,1,G47,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,H,H,5,H49;H50;H51;H52;H53,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,H49,H49,1,H49,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,H50,H50,1,H50,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,H51,H51,1,H51,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,H52,H52,1,H52,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,H53,H53,1,H53,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,I,I,1,I,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,J,J,4,J58;J59-60;J61;J62-63,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,J58,J58,1,J58,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,J58-J60,J58-J60,2,J58;J59-60,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,J59_J60,J59-J60,1,J59-60,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,J61,J61,1,J61,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,J62_J63,J62-J63,1,J62-63,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,K,K,3,K64;K65;K66,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,K64,K64,1,K64,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,K65,K65,1,K65,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,K66,K66,1,K66,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,L,L,2,L68A;L68B,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,L68,L68,2,L68A;L68B,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,L68A,L68A,1,L68A,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,M,M,5,M69-70;M71;M72;M73;M74-75,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,M69-M71,M69-M71,2,M69-70;M71,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,M69_M70,M69-M70,1,M69-70,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,M71,M71,1,M71,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,M72,M72,1,M72,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,M73,M73,1,M73,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,M73-M75,M73-M75,2,M73;M74-75,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,M74_M75,M74-M75,1,M74-75,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,M_N,M-N,9,M69-70;M71;M72;M73;M74-75;N77;N78;N79;N80-82,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,N,N,4,N77;N78;N79;N80-82,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,N77,N77,1,N77,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,N78,N78,1,N78,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,N79,N79,1,N79,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,N80-N82,N80-N82,1,N80-82,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,O,O,1,O,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,O-Q,O-Q,4,O;P;Q86;Q87-88,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,O84,O84,0,,5,5,0,,true,unmapped code
+gva_previous_prices,nama_10_a64,P,P,1,P,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,P85,P85,0,,5,5,0,,true,unmapped code
+gva_previous_prices,nama_10_a64,Q,Q,2,Q86;Q87-88,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,Q86,Q86,1,Q86,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,Q87_Q88,Q87-Q88,1,Q87-88,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,R,R,2,R90-92;R93,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,R-U,R-U,7,R90-92;R93;S94;S95;S96;T;U,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,R90-R92,R90-R92,1,R90-92,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,R93,R93,1,R93,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,S,S,3,S94;S95;S96,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,S94,S94,1,S94,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,S95,S95,1,S95,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,S96,S96,1,S96,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,T,T,1,T,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,TOTAL,TOTAL,0,,5,5,0,,true,unmapped code
+gva_previous_prices,nama_10_a64,U,U,1,U,5,5,0,,true,complete
+gva_previous_prices,nama_10_a64,U99,U99,0,,5,5,0,,true,unmapped code
+production_taxes,nama_10_a64,A,A,3,A01;A02;A03,5,5,0,,true,complete
+production_taxes,nama_10_a64,A01,A01,1,A01,5,5,0,,true,complete
+production_taxes,nama_10_a64,A02,A02,1,A02,5,5,0,,true,complete
+production_taxes,nama_10_a64,A03,A03,1,A03,5,5,0,,true,complete
+production_taxes,nama_10_a64,B,B,1,B,5,5,0,,true,complete
+production_taxes,nama_10_a64,B-E,B-E,23,B;C10-12;C13-15;C16;C17;C18;C19;C20;C21;C22;C23;C24;C25;C26;C27;C28;C29;C30;C31-32;C33;D;E36;E37-39,5,5,0,,true,complete
+production_taxes,nama_10_a64,C,C,19,C10-12;C13-15;C16;C17;C18;C19;C20;C21;C22;C23;C24;C25;C26;C27;C28;C29;C30;C31-32;C33,5,5,0,,true,complete
+production_taxes,nama_10_a64,C10-C12,C10-C12,1,C10-12,5,5,0,,true,complete
+production_taxes,nama_10_a64,C13-C15,C13-C15,1,C13-15,5,5,0,,true,complete
+production_taxes,nama_10_a64,C16,C16,1,C16,5,5,0,,true,complete
+production_taxes,nama_10_a64,C16-C18,C16-C18,3,C16;C17;C18,5,5,0,,true,complete
+production_taxes,nama_10_a64,C17,C17,1,C17,5,5,0,,true,complete
+production_taxes,nama_10_a64,C18,C18,1,C18,5,5,0,,true,complete
+production_taxes,nama_10_a64,C19,C19,1,C19,5,5,0,,true,complete
+production_taxes,nama_10_a64,C20,C20,1,C20,5,5,0,,true,complete
+production_taxes,nama_10_a64,C21,C21,1,C21,5,5,0,,true,complete
+production_taxes,nama_10_a64,C22,C22,1,C22,5,5,0,,true,complete
+production_taxes,nama_10_a64,C22_C23,C22-C23,2,C22;C23,5,5,0,,true,complete
+production_taxes,nama_10_a64,C23,C23,1,C23,5,5,0,,true,complete
+production_taxes,nama_10_a64,C24,C24,1,C24,5,5,0,,true,complete
+production_taxes,nama_10_a64,C24_C25,C24-C25,2,C24;C25,5,5,0,,true,complete
+production_taxes,nama_10_a64,C25,C25,1,C25,5,5,0,,true,complete
+production_taxes,nama_10_a64,C26,C26,1,C26,5,5,0,,true,complete
+production_taxes,nama_10_a64,C27,C27,1,C27,5,5,0,,true,complete
+production_taxes,nama_10_a64,C28,C28,1,C28,5,5,0,,true,complete
+production_taxes,nama_10_a64,C29,C29,1,C29,5,5,0,,true,complete
+production_taxes,nama_10_a64,C29_C30,C29-C30,2,C29;C30,5,5,0,,true,complete
+production_taxes,nama_10_a64,C30,C30,1,C30,5,5,0,,true,complete
+production_taxes,nama_10_a64,C31-C33,C31-C33,2,C31-32;C33,5,5,0,,true,complete
+production_taxes,nama_10_a64,C31_C32,C31-C32,1,C31-32,5,5,0,,true,complete
+production_taxes,nama_10_a64,C33,C33,1,C33,5,5,0,,true,complete
+production_taxes,nama_10_a64,D,D,1,D,5,5,0,,true,complete
+production_taxes,nama_10_a64,D35,D35,0,,5,5,0,,true,unmapped code
+production_taxes,nama_10_a64,E,E,2,E36;E37-39,5,5,0,,true,complete
+production_taxes,nama_10_a64,E36,E36,1,E36,5,5,0,,true,complete
+production_taxes,nama_10_a64,E37-E39,E37-E39,1,E37-39,5,5,0,,true,complete
+production_taxes,nama_10_a64,F,F,1,F,5,5,0,,true,complete
+production_taxes,nama_10_a64,G,G,3,G45;G46;G47,5,5,0,,true,complete
+production_taxes,nama_10_a64,G-I,G-I,9,G45;G46;G47;H49;H50;H51;H52;H53;I,5,5,0,,true,complete
+production_taxes,nama_10_a64,G45,G45,1,G45,5,5,0,,true,complete
+production_taxes,nama_10_a64,G46,G46,1,G46,5,5,0,,true,complete
+production_taxes,nama_10_a64,G47,G47,1,G47,5,5,0,,true,complete
+production_taxes,nama_10_a64,H,H,5,H49;H50;H51;H52;H53,5,5,0,,true,complete
+production_taxes,nama_10_a64,H49,H49,1,H49,5,5,0,,true,complete
+production_taxes,nama_10_a64,H50,H50,1,H50,5,5,0,,true,complete
+production_taxes,nama_10_a64,H51,H51,1,H51,5,5,0,,true,complete
+production_taxes,nama_10_a64,H52,H52,1,H52,5,5,0,,true,complete
+production_taxes,nama_10_a64,H53,H53,1,H53,5,5,0,,true,complete
+production_taxes,nama_10_a64,I,I,1,I,5,5,0,,true,complete
+production_taxes,nama_10_a64,J,J,4,J58;J59-60;J61;J62-63,5,5,0,,true,complete
+production_taxes,nama_10_a64,J58,J58,1,J58,5,5,0,,true,complete
+production_taxes,nama_10_a64,J58-J60,J58-J60,2,J58;J59-60,5,5,0,,true,complete
+production_taxes,nama_10_a64,J59_J60,J59-J60,1,J59-60,5,5,0,,true,complete
+production_taxes,nama_10_a64,J61,J61,1,J61,5,5,0,,true,complete
+production_taxes,nama_10_a64,J62_J63,J62-J63,1,J62-63,5,5,0,,true,complete
+production_taxes,nama_10_a64,K,K,3,K64;K65;K66,5,5,0,,true,complete
+production_taxes,nama_10_a64,K64,K64,1,K64,5,5,0,,true,complete
+production_taxes,nama_10_a64,K65,K65,1,K65,5,5,0,,true,complete
+production_taxes,nama_10_a64,K66,K66,1,K66,5,5,0,,true,complete
+production_taxes,nama_10_a64,L,L,2,L68A;L68B,5,5,0,,true,complete
+production_taxes,nama_10_a64,L68,L68,2,L68A;L68B,5,5,0,,true,complete
+production_taxes,nama_10_a64,L68A,L68A,1,L68A,5,5,0,,true,complete
+production_taxes,nama_10_a64,M,M,5,M69-70;M71;M72;M73;M74-75,5,5,0,,true,complete
+production_taxes,nama_10_a64,M69-M71,M69-M71,2,M69-70;M71,5,5,0,,true,complete
+production_taxes,nama_10_a64,M69_M70,M69-M70,1,M69-70,5,5,0,,true,complete
+production_taxes,nama_10_a64,M71,M71,1,M71,5,5,0,,true,complete
+production_taxes,nama_10_a64,M72,M72,1,M72,5,5,0,,true,complete
+production_taxes,nama_10_a64,M73,M73,1,M73,5,5,0,,true,complete
+production_taxes,nama_10_a64,M73-M75,M73-M75,2,M73;M74-75,5,5,0,,true,complete
+production_taxes,nama_10_a64,M74_M75,M74-M75,1,M74-75,5,5,0,,true,complete
+production_taxes,nama_10_a64,M_N,M-N,9,M69-70;M71;M72;M73;M74-75;N77;N78;N79;N80-82,5,5,0,,true,complete
+production_taxes,nama_10_a64,N,N,4,N77;N78;N79;N80-82,5,5,0,,true,complete
+production_taxes,nama_10_a64,N77,N77,1,N77,5,5,0,,true,complete
+production_taxes,nama_10_a64,N78,N78,1,N78,5,5,0,,true,complete
+production_taxes,nama_10_a64,N79,N79,1,N79,5,5,0,,true,complete
+production_taxes,nama_10_a64,N80-N82,N80-N82,1,N80-82,5,5,0,,true,complete
+production_taxes,nama_10_a64,O,O,1,O,5,5,0,,true,complete
+production_taxes,nama_10_a64,O-Q,O-Q,4,O;P;Q86;Q87-88,5,5,0,,true,complete
+production_taxes,nama_10_a64,O84,O84,0,,5,5,0,,true,unmapped code
+production_taxes,nama_10_a64,P,P,1,P,5,5,0,,true,complete
+production_taxes,nama_10_a64,P85,P85,0,,5,5,0,,true,unmapped code
+production_taxes,nama_10_a64,Q,Q,2,Q86;Q87-88,5,5,0,,true,complete
+production_taxes,nama_10_a64,Q86,Q86,1,Q86,5,5,0,,true,complete
+production_taxes,nama_10_a64,Q87_Q88,Q87-Q88,1,Q87-88,5,5,0,,true,complete
+production_taxes,nama_10_a64,R,R,2,R90-92;R93,5,5,0,,true,complete
+production_taxes,nama_10_a64,R-U,R-U,7,R90-92;R93;S94;S95;S96;T;U,5,5,0,,true,complete
+production_taxes,nama_10_a64,R90-R92,R90-R92,1,R90-92,5,5,0,,true,complete
+production_taxes,nama_10_a64,R93,R93,1,R93,5,5,0,,true,complete
+production_taxes,nama_10_a64,S,S,3,S94;S95;S96,5,5,0,,true,complete
+production_taxes,nama_10_a64,S94,S94,1,S94,5,5,0,,true,complete
+production_taxes,nama_10_a64,S95,S95,1,S95,5,5,0,,true,complete
+production_taxes,nama_10_a64,S96,S96,1,S96,5,5,0,,true,complete
+production_taxes,nama_10_a64,T,T,1,T,5,5,0,,true,complete
+production_taxes,nama_10_a64,TOTAL,TOTAL,0,,5,5,0,,true,unmapped code
+production_taxes,nama_10_a64,U,U,1,U,5,5,0,,true,complete
+production_taxes,nama_10_a64,U99,U99,0,,5,5,0,,true,unmapped code
+capital_stock_current,nama_10_nfa_st,A,A,3,A01;A02;A03,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,B,B,1,B,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,B-E,B-E,23,B;C10-12;C13-15;C16;C17;C18;C19;C20;C21;C22;C23;C24;C25;C26;C27;C28;C29;C30;C31-32;C33;D;E36;E37-39,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,C,C,19,C10-12;C13-15;C16;C17;C18;C19;C20;C21;C22;C23;C24;C25;C26;C27;C28;C29;C30;C31-32;C33,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,D,D,1,D,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,E,E,2,E36;E37-39,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,F,F,1,F,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,G,G,3,G45;G46;G47,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,G-I,G-I,9,G45;G46;G47;H49;H50;H51;H52;H53;I,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,H,H,5,H49;H50;H51;H52;H53,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,I,I,1,I,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,J,J,4,J58;J59-60;J61;J62-63,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,K,K,3,K64;K65;K66,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,L,L,2,L68A;L68B,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,M,M,5,M69-70;M71;M72;M73;M74-75,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,M_N,M-N,9,M69-70;M71;M72;M73;M74-75;N77;N78;N79;N80-82,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,N,N,4,N77;N78;N79;N80-82,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,O,O,1,O,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,O-Q,O-Q,4,O;P;Q86;Q87-88,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,P,P,1,P,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,Q,Q,2,Q86;Q87-88,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,R,R,2,R90-92;R93,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,R-U,R-U,7,R90-92;R93;S94;S95;S96;T;U,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,S,S,3,S94;S95;S96,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,T,T,1,T,20,20,0,,true,complete
+capital_stock_current,nama_10_nfa_st,TOTAL,TOTAL,0,,20,20,0,,true,unmapped code
+capital_stock_current,nama_10_nfa_st,U,U,1,U,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,A,A,3,A01;A02;A03,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,B,B,1,B,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,B-E,B-E,23,B;C10-12;C13-15;C16;C17;C18;C19;C20;C21;C22;C23;C24;C25;C26;C27;C28;C29;C30;C31-32;C33;D;E36;E37-39,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,C,C,19,C10-12;C13-15;C16;C17;C18;C19;C20;C21;C22;C23;C24;C25;C26;C27;C28;C29;C30;C31-32;C33,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,D,D,1,D,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,E,E,2,E36;E37-39,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,F,F,1,F,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,G,G,3,G45;G46;G47,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,G-I,G-I,9,G45;G46;G47;H49;H50;H51;H52;H53;I,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,H,H,5,H49;H50;H51;H52;H53,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,I,I,1,I,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,J,J,4,J58;J59-60;J61;J62-63,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,K,K,3,K64;K65;K66,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,L,L,2,L68A;L68B,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,M,M,5,M69-70;M71;M72;M73;M74-75,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,M_N,M-N,9,M69-70;M71;M72;M73;M74-75;N77;N78;N79;N80-82,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,N,N,4,N77;N78;N79;N80-82,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,O,O,1,O,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,O-Q,O-Q,4,O;P;Q86;Q87-88,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,P,P,1,P,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,Q,Q,2,Q86;Q87-88,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,R,R,2,R90-92;R93,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,R-U,R-U,7,R90-92;R93;S94;S95;S96;T;U,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,S,S,3,S94;S95;S96,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,T,T,1,T,20,20,0,,true,complete
+capital_stock_previous_prices,nama_10_nfa_st,TOTAL,TOTAL,0,,20,20,0,,true,unmapped code
+capital_stock_previous_prices,nama_10_nfa_st,U,U,1,U,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,A,A,3,A01;A02;A03,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,A01,A01,1,A01,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,A02,A02,1,A02,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,A03,A03,1,A03,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,B,B,1,B,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,B-E,B-E,23,B;C10-12;C13-15;C16;C17;C18;C19;C20;C21;C22;C23;C24;C25;C26;C27;C28;C29;C30;C31-32;C33;D;E36;E37-39,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C,C,19,C10-12;C13-15;C16;C17;C18;C19;C20;C21;C22;C23;C24;C25;C26;C27;C28;C29;C30;C31-32;C33,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C10-C12,C10-C12,1,C10-12,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C13-C15,C13-C15,1,C13-15,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C16,C16,1,C16,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C16-C18,C16-C18,3,C16;C17;C18,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C17,C17,1,C17,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C18,C18,1,C18,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C19,C19,1,C19,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C20,C20,1,C20,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C21,C21,1,C21,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C22,C22,1,C22,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C22_C23,C22-C23,2,C22;C23,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C23,C23,1,C23,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C24,C24,1,C24,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C24_C25,C24-C25,2,C24;C25,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C25,C25,1,C25,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C26,C26,1,C26,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C27,C27,1,C27,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C28,C28,1,C28,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C29,C29,1,C29,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C29_C30,C29-C30,2,C29;C30,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C30,C30,1,C30,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C31-C33,C31-C33,2,C31-32;C33,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C31_C32,C31-C32,1,C31-32,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,C33,C33,1,C33,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,D,D,1,D,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,E,E,2,E36;E37-39,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,E36,E36,1,E36,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,E37-E39,E37-E39,1,E37-39,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,F,F,1,F,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,G,G,3,G45;G46;G47,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,G-I,G-I,9,G45;G46;G47;H49;H50;H51;H52;H53;I,20,15,5,N11KG|2015;N11KG|2016;N11KG|2017;N11KG|2018;N11KG|2019,false,incomplete
+capital_investment,nama_10_a64_p5,G45,G45,1,G45,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,G46,G46,1,G46,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,G47,G47,1,G47,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,H,H,5,H49;H50;H51;H52;H53,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,H49,H49,1,H49,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,H50,H50,1,H50,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,H51,H51,1,H51,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,H52,H52,1,H52,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,H53,H53,1,H53,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,I,I,1,I,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,J,J,4,J58;J59-60;J61;J62-63,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,J58,J58,1,J58,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,J58-J60,J58-J60,2,J58;J59-60,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,J59_J60,J59-J60,1,J59-60,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,J61,J61,1,J61,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,J62_J63,J62-J63,1,J62-63,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,K,K,3,K64;K65;K66,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,K64,K64,1,K64,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,K65,K65,1,K65,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,K66,K66,1,K66,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,L,L,2,L68A;L68B,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,L68A,L68A,1,L68A,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,M,M,5,M69-70;M71;M72;M73;M74-75,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,M69-M71,M69-M71,2,M69-70;M71,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,M69_M70,M69-M70,1,M69-70,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,M71,M71,1,M71,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,M72,M72,1,M72,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,M73,M73,1,M73,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,M73-M75,M73-M75,2,M73;M74-75,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,M74_M75,M74-M75,1,M74-75,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,M_N,M-N,9,M69-70;M71;M72;M73;M74-75;N77;N78;N79;N80-82,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,N,N,4,N77;N78;N79;N80-82,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,N77,N77,1,N77,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,N78,N78,1,N78,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,N79,N79,1,N79,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,N80-N82,N80-N82,1,N80-82,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,O,O,1,O,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,O-Q,O-Q,4,O;P;Q86;Q87-88,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,P,P,1,P,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,Q,Q,2,Q86;Q87-88,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,Q86,Q86,1,Q86,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,Q87_Q88,Q87-Q88,1,Q87-88,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,R,R,2,R90-92;R93,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,R-U,R-U,7,R90-92;R93;S94;S95;S96;T;U,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,R90-R92,R90-R92,1,R90-92,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,R93,R93,1,R93,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,S,S,3,S94;S95;S96,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,S94,S94,1,S94,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,S95,S95,1,S95,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,S96,S96,1,S96,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,T,T,1,T,20,20,0,,true,complete
+capital_investment,nama_10_a64_p5,TOTAL,TOTAL,0,,20,20,0,,true,unmapped code
+capital_investment,nama_10_a64_p5,U,U,1,U,20,20,0,,true,complete
