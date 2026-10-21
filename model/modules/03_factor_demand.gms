@@ -18,7 +18,7 @@ $Group+ all_variables
   qInvt_i[i,t] "Net real inventory investments by industry."
   vInvt_i[i,t] "Net inventory investments by industry."
 
-  fInstCost_k_i[k,i] "Multiplicative factor of installation cost function"
+  fInstCost_k_i[k,i,t] "Multiplicative factor of installation cost function"
   qInstCost_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Real installation costs by capital type and industry"
   dInstCost2dKLag_k_i[k,i,t]$(d1K_k_i[k,i,t]) "Derivative of installation costs wrt. lagged capital"
   dInstCost2dK_k_i[k,i,t]$(d1K_k_i[k,i,t])  "Derivative of installation costs wrt. current capital"
@@ -65,14 +65,14 @@ $BLOCK factor_demand_equations factor_demand_endogenous $(t1.val <= t.val and t.
   .. vI_k_i[k,i,t] =E= pD[k,t] * qI_k_i[k,i,t];
 
   # Installation costs for capital adjustments
-     .. qInstCost_k_i[k,i,t] =E= fInstCost_k_i[k,i] * sqr((qI_k_i[k,i,t] / qK_k_i[k,i,t-1])) * qK_k_i[k,i,t-1];
+     .. qInstCost_k_i[k,i,t] =E= fInstCost_k_i[k,i,t] * sqr((qI_k_i[k,i,t] / qK_k_i[k,i,t-1])) * qK_k_i[k,i,t-1];
 
   $(not tEnd[t])
-  .. dInstCost2dKLag_k_i[k,i,t] =E= -fInstCost_k_i[k,i] * (2*(1 - rKDepr_k_i[k,i,t]) + ((qI_k_i[k,i,t+1]*fq) / (qK_k_i[k,i,t]))) * ((qI_k_i[k,i,t+1]*fq) / (qK_k_i[k,i,t]));
+  .. dInstCost2dKLag_k_i[k,i,t] =E= -fInstCost_k_i[k,i,t] * (2*(1 - rKDepr_k_i[k,i,t]) + ((qI_k_i[k,i,t+1]*fq) / (qK_k_i[k,i,t]))) * ((qI_k_i[k,i,t+1]*fq) / (qK_k_i[k,i,t]));
   
-  dInstCost2dKLag_k_i&_tEnd[k,i,t]$(tEnd[t]).. dInstCost2dKLag_k_i[k,i,t] =E= -fInstCost_k_i[k,i] * (2*(1 - rKDepr_k_i[k,i,t]) + ((qI_k_i[k,i,t]*fq) / (qK_k_i[k,i,t]))) * ((qI_k_i[k,i,t]*fq) / (qK_k_i[k,i,t]));
+  dInstCost2dKLag_k_i&_tEnd[k,i,t]$(tEnd[t]).. dInstCost2dKLag_k_i[k,i,t] =E= -fInstCost_k_i[k,i,t] * (2*(1 - rKDepr_k_i[k,i,t]) + ((qI_k_i[k,i,t]*fq) / (qK_k_i[k,i,t]))) * ((qI_k_i[k,i,t]*fq) / (qK_k_i[k,i,t]));
 
-  .. dInstCost2dK_k_i[k,i,t] =E= fInstCost_k_i[k,i] * 2 * (qI_k_i[k,i,t] / (qK_k_i[k,i,t-1]/fq));
+  .. dInstCost2dK_k_i[k,i,t] =E= fInstCost_k_i[k,i,t] * 2 * (qI_k_i[k,i,t] / (qK_k_i[k,i,t-1]/fq));
 
   $(not tEnd[t])..
     pK_k_i[k,i,t] =E= pD[k,t] - (1-rKDepr_k_i[k,i,t]) / (1+rHurdleRate_i[i,t+1]) * pD[k,t+1]*fp + pProd['TopPfunction',i,t] * dInstCost2dK_k_i[k,i,t]
@@ -116,18 +116,35 @@ rKDepr_k_i.l['iB',i,t] = 0.04;
 rKDepr_k_i.l['iM',i,t] = 0.15;
 rKDepr_k_i.l['iT',i,t] = 0.15;
 
+#£KN: Below is specific to Finnish data
+#rKDepr_k_i.l['iB',i,t] = 0.02; #AKB: Closer to I/K in 2019. A hard assumtion that 2019 close resembles a steady-state
+#rKDepr_k_i.l['iT',i,t] = 0.08;   #AKB: Closer to I/K in 2019. A hard assumtion that 2019 close resembles a steady-state
+#rKDepr_k_i.l['iM',i,t] = 0.09; #AKB: Closer to I/K in 2019. A hard assumtion that 2019 close resembles a steady-stat
+
 # Initialize J-term for energy technology investments to zero (allows partial equilibrium when energy technology module is off)
 qI_k_i_energy_tech.l[k,i,t] = 0;
 
-fInstCost_k_i.fx[k,i] = 0.5;
+#fInstCost_k_i.fx[k,i] = 0.5;
+fInstCost_k_i.fx[k,i,t] = 0.5; #AKB: No installlation costs in last data-year to "pollute uProd[capital]"
+fInstCost_k_i.fx[k,i,t]$(t.val>tDataEnd.val) = 0.5; # Joel £ : Changed to same as with AKB suggested.
 
-qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not t1[t]) = fInstCost_k_i.l[k,i] * sqr((qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t-1]/fq))) * (qK_k_i.l[k,i,t-1]/fq);
-dInstCost2dKLag_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not tEnd[t]) = -fInstCost_k_i.l[k,i] * (2*(1 - rKDepr_k_i.l[k,i,t]) + ((qI_k_i.l[k,i,t+1]*fq) / (qK_k_i.l[k,i,t]))) * ((qI_k_i.l[k,i,t+1]*fq) / (qK_k_i.l[k,i,t]));
-dInstCost2dK_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not t1[t]) = fInstCost_k_i.l[k,i] * 2 * (qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t-1]/fq));
 
-qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and t1[t]) = fInstCost_k_i.l[k,i] * sqr(qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t]/fq)) * qK_k_i.l[k,i,t]/fq;
-dInstCost2dKLag_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and tEnd[t]) = -fInstCost_k_i.l[k,i] * (2*(1 - rKDepr_k_i.l[k,i,t]) + ((qI_k_i.l[k,i,t]*fq) / (qK_k_i.l[k,i,t]))) * ((qI_k_i.l[k,i,t]*fq) / (qK_k_i.l[k,i,t]));
-dInstCost2dK_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and t1[t]) = fInstCost_k_i.l[k,i] * 2 * (qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t]/fq));
+qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not t1[t]) = fInstCost_k_i.l[k,i,t] * sqr((qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t-1]/fq))) * (qK_k_i.l[k,i,t-1]/fq);
+dInstCost2dKLag_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not tEnd[t]) = -fInstCost_k_i.l[k,i,t] * (2*(1 - rKDepr_k_i.l[k,i,t]) + ((qI_k_i.l[k,i,t+1]*fq) / (qK_k_i.l[k,i,t]))) * ((qI_k_i.l[k,i,t+1]*fq) / (qK_k_i.l[k,i,t]));
+dInstCost2dK_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not t1[t]) = fInstCost_k_i.l[k,i,t] * 2 * (qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t-1]/fq));
+
+qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and t1[t]) = fInstCost_k_i.l[k,i,t] * sqr(qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t]/fq)) * qK_k_i.l[k,i,t]/fq;
+dInstCost2dKLag_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and tEnd[t]) = -fInstCost_k_i.l[k,i,t] * (2*(1 - rKDepr_k_i.l[k,i,t]) + ((qI_k_i.l[k,i,t]*fq) / (qK_k_i.l[k,i,t]))) * ((qI_k_i.l[k,i,t]*fq) / (qK_k_i.l[k,i,t]));
+dInstCost2dK_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and t1[t]) = fInstCost_k_i.l[k,i,t] * 2 * (qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t]/fq));
+
+
+#qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not t1[t]) = fInstCost_k_i.l[k,i] * sqr((qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t-1]/fq))) * (qK_k_i.l[k,i,t-1]/fq);
+#dInstCost2dKLag_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not tEnd[t]) = -fInstCost_k_i.l[k,i] * (2*(1 - rKDepr_k_i.l[k,i,t]) + ((qI_k_i.l[k,i,t+1]*fq) / (qK_k_i.l[k,i,t]))) * ((qI_k_i.l[k,i,t+1]*fq) / (qK_k_i.l[k,i,t]));
+#dInstCost2dK_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and not t1[t]) = fInstCost_k_i.l[k,i] * 2 * (qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t-1]/fq));
+
+#qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and t1[t]) = fInstCost_k_i.l[k,i] * sqr(qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t]/fq)) * qK_k_i.l[k,i,t]/fq;
+#dInstCost2dKLag_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and tEnd[t]) = -fInstCost_k_i.l[k,i] * (2*(1 - rKDepr_k_i.l[k,i,t]) + ((qI_k_i.l[k,i,t]*fq) / (qK_k_i.l[k,i,t]))) * ((qI_k_i.l[k,i,t]*fq) / (qK_k_i.l[k,i,t]));
+#dInstCost2dK_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and t1[t]) = fInstCost_k_i.l[k,i] * 2 * (qI_k_i.l[k,i,t] / (qK_k_i.l[k,i,t]/fq));
 
 pK_k_i.l[k,i,t]$d1K_k_i[k,i,t] = rHurdleRate_i.l[i,t]; 
 $ENDIF # exogenous_values
@@ -150,9 +167,9 @@ dInstCost2dKLag_k_i.l[k,i,t]$(t1.val <= t.val and t.val <= tEnd.val and d1K_k_i[
 
 # If installation costs are disabled (if fInstCost_k_i is zero, installation costs are zero)
 # we manually set relevant installation cost variables to zero
-qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and fInstCost_k_i.l[k,i] = 0) = 0;
-dInstCost2dKLag_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and fInstCost_k_i.l[k,i] = 0) = 0;
-dInstCost2dK_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and fInstCost_k_i.l[k,i] = 0) = 0;
+qInstCost_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and fInstCost_k_i.l[k,i,t] = 0) = 0;
+dInstCost2dKLag_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and fInstCost_k_i.l[k,i,t] = 0) = 0;
+dInstCost2dK_k_i.l[k,i,t]$(d1K_k_i[k,i,t] and fInstCost_k_i.l[k,i,t] = 0) = 0;
 
 $ENDIF # starting_values
 

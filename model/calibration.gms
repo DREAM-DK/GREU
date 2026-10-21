@@ -73,6 +73,12 @@ $FIX all_variables; $UNFIX calibration_endogenous;
 execute_unloaddi "Output/calibration_pre.gdx";
 solve calibration using CNS;
 
+$GROUP G_warnings
+calibration_endogenous;
+#10 percent tolerance
+@warn_if_changed_from_tDataEnd(G_warnings,10);
+@warn_large_markups();
+
 # @unload_previous_difference(data_covered_variables, _difference); # This one unloads the previous differences to previous_calibration.gdx file. Only do this if you are certain that differences are tolerable.
 #Consider bunching three below into single function
 # @create_difference_parameters(data_covered_variables, _difference); #This one creates parameters with suffix _difference of all data covered variables

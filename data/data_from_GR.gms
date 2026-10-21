@@ -483,7 +483,9 @@ $PGROUP PG_GREU_data
 
 # Labor-market
 vWages_i[i,t] = vIO_a["SalEmpl",i,t];
-nL[t] = nEmployed[t]; #nEmployed[t].l
+#nL[t] = nEmployed[t]; #nEmployed[t].l
+nL['2019'] = nEmployed['2020'] * 1.0302; # Joel £ : fv = 1.0302 -> rWageInflation[2019] == rWageInflation[2015-2018]
+nL['2020'] = nEmployed['2020']; #nEmployed[t].l
 vW[t]$(nL[t]) = sum(i, vWages_i[i,t]) / nL[t];
 
 # Input-output

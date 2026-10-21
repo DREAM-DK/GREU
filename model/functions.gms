@@ -67,6 +67,59 @@ $FUNCTION assert_no_difference({group}, {threshold}, {suffix1}, {suffix2}, {msg}
   $onlisting
 $ENDFUNCTION
 
+# 1.5 Warn on Changes Relative to Last Data Year
+# Computes {name}.l[t] / {name}.l[tDataEnd] for each variable in a group.
+# The tolerance level is in percent, e.g. 3 means +/-3 percent.
+$FUNCTION warn_if_changed_from_tDataEnd({group}, {tolerance_level}):
+  $offlisting
+    $LOOP {group}:
+      parameter {name}_ratio_to_tDataEnd{sets};
+      parameter {name}_pct_change_from_tDataEnd{sets};
+      parameter {name}_zero_tDataEnd_change{sets};
+
+      {name}_ratio_to_tDataEnd{sets}$({conditions} and {name}.l{sets}{$}[<t>tDataEnd] <> 0)
+        = {name}.l{sets} / {name}.l{sets}{$}[<t>tDataEnd];
+      {name}_pct_change_from_tDataEnd{sets}$({conditions} and {name}.l{sets}{$}[<t>tDataEnd] <> 0)
+        = 100 * ({name}_ratio_to_tDataEnd{sets} - 1);
+      {name}_pct_change_from_tDataEnd{sets}$(abs({name}_pct_change_from_tDataEnd{sets}) <= {tolerance_level}) = 0;
+      {name}_ratio_to_tDataEnd{sets}$({name}_pct_change_from_tDataEnd{sets} = 0) = 0;
+
+      if (sum({sets}{$}[+t]${conditions}, abs({name}_pct_change_from_tDataEnd{sets}) > {tolerance_level}),
+        put_utility 'log' / 'WARNING: {name} changed more than {tolerance_level}% compared to tDataEnd';
+        display {name}_ratio_to_tDataEnd, {name}_pct_change_from_tDataEnd;
+      );
+
+      {name}_zero_tDataEnd_change{sets}$({conditions} and {name}.l{sets}{$}[<t>tDataEnd] = 0 and abs({name}.l{sets}) > 0)
+        = {name}.l{sets};
+
+      if (sum({sets}{$}[+t]${conditions}, abs({name}_zero_tDataEnd_change{sets})),
+        put_utility 'log' / 'WARNING: {name} changed from zero in tDataEnd; percentage change is undefined';
+        display {name}_zero_tDataEnd_change;
+      );
+    $ENDLOOP
+  $onlisting
+$ENDFUNCTION
+
+# 1.6 Warn on Large Markups
+$FUNCTION warn_large_markups():
+  $offlisting
+    parameter rMarkup_i_warning[i,t];
+    parameter rMarkup_out_i_calib_warning[i,t];
+
+    rMarkup_i_warning[i,t]$(d1Y_i[i,t] and abs(rMarkup_i.l[i,t]) > 0.1) = rMarkup_i.l[i,t];
+    rMarkup_out_i_calib_warning[i,t]$(d1Y_i[i,t] and abs(rMarkup_out_i_calib.l[i,t]) > 0.1) = rMarkup_out_i_calib.l[i,t];
+
+    if (sum((i,t), abs(rMarkup_i_warning[i,t])),
+      put_utility 'log' / 'WARNING: rMarkup_i is smaller than -0.1 or larger than 0.1';
+      display rMarkup_i_warning;
+    );
+
+    if (sum((i,t), abs(rMarkup_out_i_calib_warning[i,t])),
+      put_utility 'log' / 'WARNING: rMarkup_out_i_calib is smaller than -0.1 or larger than 0.1';
+      display rMarkup_out_i_calib_warning;
+    );
+  $onlisting
+$ENDFUNCTION
 # ----------------------------------------------------------------------------------------------------------------------
 # 2. Set Operations
 # ----------------------------------------------------------------------------------------------------------------------

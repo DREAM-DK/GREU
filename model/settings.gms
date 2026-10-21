@@ -10,11 +10,12 @@ OPTION
   CNS=CONOPT4  # Choose solver
 ;
 
-$SETLOCAL first_data_year 2015;
-$SETLOCAL calibration_year 2020;
-$SETLOCAL terminal_year 2040;
+$SETGLOBAL first_data_year 2015;
+$SETGLOBAL calibration_year 2020;
+$SETGLOBAL first_forecast_year 2021;
+$SETGLOBAL terminal_year 2099;
 
-$SETLOCAL base_year 2020;
+$SETGLOBAL base_year 2020;
 $SETGLOBAL exogenous_supply_prices 1 #Can be used to set supply prices as exogeonus
 $SETGLOBAL generic_energy_technology_data 1 #Can be used to switch between generic dummy data (=1) and excel-based data (=0)
 
