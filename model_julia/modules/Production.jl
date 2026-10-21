@@ -62,6 +62,7 @@ const topNest = Dict(
   i => only(n for n in keys(production_nesting[i]) if !haskey(parent, (n, i)))
   for i in industry
 )
+const primary_factors = Set([:equipment, :energy, :labor, :structures, :materials])
 const node = sort(unique(
   v
   for i in industry
@@ -90,6 +91,7 @@ end
 
 @variables model :: ProductionTag begin
   uProd[n=node, i=industry, t=t; haskey(parent, (n,i))] :: (ForecastConstant, DynamicCalibration), "CES share by child node and industry."
+  aProd[n=node, i=industry, t=t; n in primary_factors && haskey(parent, (n,i))] :: ForecastConstant, "Factor-augmenting productivity for active primary inputs (K, E, L, B, M), by industry and time; baseline 1."
   qTop2qY[i=industry, t=t] :: (ForecastConstant, DynamicCalibration), "Marginal top-nest use per unit of output by industry."
   eProd[n=node, i=industry; haskey(production_nesting[i], n)], "Substitution elasticity by production nest and industry."
 end
@@ -98,6 +100,7 @@ end
 # elasticity, so a negative trial value stops the solver with a domain error. The bound keeps
 # the search in the domain. Prices calibrate to 1.0, so an active bound means a real error.
 JuMP.set_lower_bound.([pProd[key...] for key in keys(pProd)], 1e-4)
+JuMP.set_lower_bound.([aProd[key...] for key in keys(aProd)], 1e-4)
 
 # ============================================================================
 # Assign data
@@ -107,6 +110,9 @@ function assign_data!(db)
 
   # All factor prices are calibrated to 1.0
   db[pProd] .= 1
+
+  # Exogenous baseline productivity; scenario shocks can override individual cells.
+  db[aProd] .= 1
 
   return nothing
 end
@@ -128,7 +134,12 @@ function define_equations()
     qProd[n=node, i=industry, t=t1:T; n == topNest[i]],
     qProd[n,i,t] - qFixedCost_i[i,t] - qProductionLoss[i,t] == qTop2qY[i,t] * qY_i[i,t]
 
-    qProd[n=node, i=industry, t=t1:T; haskey(parent, (n,i))],
+    qProd[n=node, i=industry, t=t1:T; haskey(parent, (n,i)) && n in primary_factors],
+    (aProd[n,i,t] * qProd[n,i,t]) * (pProd[n,i,t] / aProd[n,i,t])^eProd[parent[n, i],i] ==
+      uProd[n,i,t] * qProd[parent[n, i],i,t] * pProd[parent[n, i],i,t]^eProd[parent[n, i],i]
+
+    # Composite child nodes retain the original CES demand equation (no productivity parameter).
+    qProd[n=node, i=industry, t=t1:T; haskey(parent, (n,i)) && !(n in primary_factors)],
     qProd[n,i,t] * pProd[n,i,t]^eProd[parent[n, i],i] ==
       uProd[n,i,t] * qProd[parent[n, i],i,t] * pProd[parent[n, i],i,t]^eProd[parent[n, i],i]
 

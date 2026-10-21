@@ -7,8 +7,6 @@ import GREU.Labor: labor_l_i, nL_l_i
 import GREU.Time: T
 import GREU.Log: @log_time
 
-include("ShockReport.jl")
-
 model_modules = [loaded_module_by_name[name] for name in Settings.model_modules]
 
 # ==============================================================================
@@ -30,15 +28,26 @@ scenario[Labor.qL2nL[t1:T]] .*= 1.01 # replace this line to shock another exogen
 
 # Report settings
 report_file = "shock_report.html"
+tables_file = "labor_productivity_shock_tables.html"
 shock_title = "Labour productivity shock"
 extra_figures=[(_, _, options) -> "Employment" => @plot(sum(nL_l_i[l,i,:] for (l, i) in labor_l_i); options...)]
 
 # ==============================================================================
 # Write one HTML report for the solved scenario.
 # ==============================================================================
+include("ShockReport.jl")
 shock_report = ShockReport.write_report(
   joinpath(@__DIR__, "..", "Output", report_file), baseline, scenario;
   extra_figures,
   shock_title,
   periods=(t1-1):T,
+)
+
+# One styled HTML report with three tables: percentage deviation from baseline in 2050.
+include("ShockTables.jl")
+ShockTables.write_tables(
+    joinpath(@__DIR__, "..", "Output", "ShockTables", tables_file),
+    baseline, scenario;
+    shock_title,
+    year=2050
 )
