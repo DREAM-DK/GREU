@@ -3,9 +3,9 @@
 # that supply equals use for each resident account.
 # Keep emission factors and the model equations in other modules.
 include(joinpath(@__DIR__, "..", "Settings.jl"))
+include("InputOutputSettings.jl")
 include("EnergyBalanceSettings.jl")
 include("EurostatClient.jl")
-include("InputOutputSettings.jl")
 include(joinpath(@__DIR__, "..", "DataUtils.jl"))
 
 module EnergyBalanceData
@@ -17,7 +17,7 @@ using CSV
 
 import ..DataUtils: long_format, sum_by
 import ..EurostatClient
-import ..InputOutputSettings: resolution, source_industry
+import ..InputOutputSettings: source_industry
 import ..Settings: calibration_year, country_code, first_data_year
 import ..EnergyBalanceSettings:
   activity_balance_atol,
@@ -29,6 +29,7 @@ import ..EnergyBalanceSettings:
   eurostat_pefa_dataset,
   household_purpose,
   households,
+  industry_source,
   pj_per_source_unit,
   source_boundary,
   source_household,
@@ -79,36 +80,13 @@ end
 # Model labels
 # ==========================================
 
-# Map PEFA activity codes to model industries.
-# Use a group's own code when PEFA publishes it, and sum its members only when it does not.
-# PEFA can publish a group beside one of its members, such as L beside L68A,
-# so taking both would count the same energy twice.
-function industry_source(published)
-  lookup = Dict{String,Symbol}()
-  for row in eachrow(resolution)
-    group = string(row.eurostat_group)
-    label = Symbol(string(row.industry))
-    if group in published
-      lookup[group] = label
-    else
-      members = split(string(row.members), ';')
-      @assert all(m in published for m in members) "PEFA publishes neither $group nor all its members: $(join(members, ", "))"
-      for m in members
-        lookup[m] = label
-      end
-    end
-  end
-  return lookup
-end
-# Each leaf code belongs to one industry group, so no energy can be mapped twice.
-@assert allunique(vcat(split.(string.(resolution.members), ';')...)) "industry groups must not share member codes"
 
 
 # PEFA names an account, not a purpose. Households appear three times, once per purpose.
 # Every other account appears once and takes :unspecified.
 # The model wants to know the activity and purpose of each cell, so we build a lookup table.
 function activity_purpose(published)
-  industry = Dict(code => (activity = label, purpose = unspecified) for (code, label) in industry_source(published))
+  industry = Dict(code => (activity = label, purpose = unspecified) for (code, label) in industry_source(published, "PEFA"))
   household = Dict(code => (activity = households, purpose = p) for (code, p) in household_purpose)
   boundary = Dict(code => (activity = a, purpose = unspecified) for (code, a) in boundary_account)
   lookup = merge(industry, household, boundary)
