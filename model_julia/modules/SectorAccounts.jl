@@ -17,6 +17,7 @@ import ..SectorAccountsSettings: sector_accounts_data_dir, cell_tolerance
 import ..Settings: calibration_year
 import ..model
 import ..Time: t, t1, T
+import ..Tags: ForecastZero
 
 # ============================================================================
 # Read data
@@ -119,7 +120,7 @@ const SectorAccountsTag = Tag(:SectorAccounts)
   vFinPosition_s_f[s=sector, f=fin_instrument, al=ass_liab, t=t; (s,f,al) in calibration_year_indices(vFinPosition_s_f_data)], "Financial position by sector, instrument, and asset or liability side (F)."
   vFinTransactions_f[(s,f,al,t)=vFinPosition_s_f], "Financial transactions by sector, instrument, and asset or liability side."
   vFinReval_s_f[(s,f,al,t)=vFinPosition_s_f], "Financial revaluations by sector, instrument, and asset or liability side."
-  vOtherChangesInVolume_f[(s,f,al,t)=vFinPosition_s_f], "Other changes in volume by sector, instrument, and asset or liability side (K.1-K.6)."
+  vOtherChangesInVolume_f[(s,f,al,t)=vFinPosition_s_f] :: ForecastZero, "Other changes in volume by sector, instrument, and asset or liability side (K.1-K.6)."
   vFinIncome_s_f[(s,f,al,t)=vFinPosition_s_f], "Property income received on assets or paid on liabilities by sector and instrument (D.4)."
 
   # Inputs for sector balances.
@@ -300,8 +301,8 @@ end # define_equations
 # Calibration
 # ============================================================================
 
-function define_calibration()
-  return define_equations()
+function define_calibration(base=define_equations())
+  return copy(base)
 end
 
 end # module

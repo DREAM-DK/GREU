@@ -112,8 +112,8 @@ end
 # ============================================================================
 # Calibration
 # ============================================================================
-function define_calibration()
-  block = define_equations()
+function define_calibration(base=define_equations())
+  block = copy(base)
 
   @endo_exo_swap! block begin
     qProd[l=labor_type, i=industry, t=t1], nL_l_i[l=labor_type, i=industry, t=t1]

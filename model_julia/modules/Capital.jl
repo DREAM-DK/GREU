@@ -152,8 +152,8 @@ end
 # ============================================================================
 # Calibration
 # ============================================================================
-function define_calibration()
-  block = define_equations()
+function define_calibration(base=define_equations())
+  block = copy(base)
 
   @endo_exo_swap! block begin
     qProd[k=capital_type, i=industry, t=t1], pProd[k=capital_type, i=industry, t=t1]

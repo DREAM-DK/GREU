@@ -144,10 +144,10 @@ end
 # ============================================================================
 # Calibration
 # ============================================================================
-function define_calibration()
+function define_calibration(base=define_equations())
   # Identify nest shares from pProd, leaf shares from qProd, and the top-nest
   # to output ratio from pProd at the top nest.
-  block = define_equations()
+  block = copy(base)
 
   @endo_exo_swap! block begin
     uProd[n=node, i=industry, t=t1; haskey(production_nesting[i], n)],

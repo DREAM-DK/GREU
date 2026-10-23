@@ -87,8 +87,8 @@ end
 # ============================================================================
 # Calibration
 # ============================================================================
-function define_calibration()
-  block = define_equations()
+function define_calibration(base=define_equations())
+  block = copy(base)
 
   @endo_exo_swap! block begin
     rHhDebtLiabilities2Consumption[t1], vFinPosition_s_f[:Hh,:Debt,:Liab,t1]

@@ -62,8 +62,8 @@ end
 # ============================================================================
 # Calibration
 # ============================================================================
-function define_calibration()
-  block = define_equations()
+function define_calibration(base=define_equations())
+  block = copy(base)
 
   @endo_exo_swap! block begin
     uImport_p_u_o[:,:,:,t1],

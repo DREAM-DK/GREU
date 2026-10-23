@@ -126,8 +126,8 @@ end
 # ============================================================================
 # Calibration
 # ============================================================================
-function define_calibration()
-  return define_equations()
+function define_calibration(base=define_equations())
+  return copy(base)
 end
 
 end # module

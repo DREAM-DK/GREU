@@ -71,8 +71,8 @@ end
 # ============================================================================
 # Calibration
 # ============================================================================
-function define_calibration()
-  block = define_equations()
+function define_calibration(base=define_equations())
+  block = copy(base)
 
   # At t1, swap each ratio endogenous and the corresponding financial asset cell exogenous,
   # so calibration solves for the ratio implied by observed balance-sheet data.
