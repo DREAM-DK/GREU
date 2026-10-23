@@ -40,6 +40,9 @@ enough** for all 13.
 
 ## Current status (2026-08-27)
 
+> The data phase ended on 2026-08-27. The Julia work since then (energy merged,
+> emissions in review, step 9 next) is tracked in `C:\GREU_JULIA\CLAUDE.md`.
+
 - **Monetary-energy core: architecture chosen and proven.** Sweden 2020 is the
   first accepted non-Danish `public_core` package, built only from public
   European controls with no Danish fallback. It passes its workbook/GDX

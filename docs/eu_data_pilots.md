@@ -647,8 +647,35 @@ Denmark 2015–2019: **130 of 131 product-years close to under 0.001 PJ**, worst
 This is the market-clearing identity the GAMS model writes as `qEtot[e,t]`
 (`energy_markets.gms:230`). The earlier note that "the invariant does not hold
 per product" is true **within an activity** and false **across all accounts** —
-transformation and trade cancel once every account is summed. Not yet verified
-outside Denmark.
+transformation and trade cancel once every account is summed.
+
+**Verified for the 13 on 2026-09-15 — and it needs a discrepancy term, exactly
+like the per-account balance.** PEFA carries `SD_SU` as a code on the activity
+dimension, labelled *"Statistical discrepancy between supply and use of energy
+for total activities"*. It is not a total. It is the per-product counterpart of
+`SD_IO`: `SD_IO` closes each account summed over products, `SD_SU` closes each
+product summed over accounts. Per product, 2017–2019, all accounts including the
+three boundary accounts, tolerance `max(1e-3, 1e-4 · side)`:
+
+| geo | product-years off without `SD_SU` | with `SD_SU` | worst without |
+|---|---|---|---|
+| AT, BE, DK, IT | 0 | 0 | — |
+| DE | 36 | 0 | 2019 `P13` +65.66 PJ |
+| EE | 14 | 0 | 2019 `P26` +1.69 |
+| ES | 44 | 0 | 2019 `R30` −21.46 |
+| FI | 59 | 0 | 2018 `P17` +18.34 |
+| FR | 51 | 0 | 2017 `P18` −160.87 |
+| LV | 6 | 0 | 2019 `P17` −1.71 |
+| NL | 12 | 0 | 2018 `P13` +5.71 |
+| PT | 52 | 0 | 2019 `R30` −3.88 |
+| SE | 67 | 0 | 2018 `P19` −38.79 |
+
+With `SD_SU` every product in every one of the 13 closes. Denmark books it as
+zero, so the Danish check on 2026-09-11 could not show the dependency — the
+fourth time the same lesson has bitten. `SD_SU` sits in the Julia module's
+`source_activity_aggregate` and is described there as a total that re-counts;
+that is wrong, though harmless until something uses the economy-wide product
+balance.
 
 ### What the module puts on disk (read back 2026-09-10)
 
@@ -684,6 +711,510 @@ Largest products by use in 2019: `R30` losses 1,295.80, `P19` residual fuel oil
 natural gas 298.82, `P18` heating gasoil 157.26, `P26` electricity 150.00, `P23`
 solid biomass 122.17. `R30` being the single largest flow in the account is
 expected — it is where every conversion loss in the economy lands.
+
+## Country register — everything measured, per country (consolidated 2026-09-24)
+
+**Why this section exists.** From 2026-09-22 the deliverable is Denmark alone, so
+no other country's defect is fixed. But everything measured about the others is
+kept here, because it may be asked for later — Martin has said he may want a
+country-by-country overview. **Add to this section whenever a country fact is
+measured, even when it changes nothing for Denmark.** Nothing here is derived;
+every line was measured live against the Eurostat API on the date given.
+
+**Two separate questions per country.** *Can the macro model be built at all?*
+depends on the four input-output tables (`naio_10_cp15`, `cp1610`, `cp1620`,
+`cp1630`), which `IndustryResolutionData.jl` requires for **every** year in
+`first_data_year:calibration_year`. *Can the energy account be built?* depends on
+`env_ac_pefasu`, which is far better covered. The input-output side is the
+binding one everywhere.
+
+### Input-output table coverage by year (measured 2026-09-22)
+
+A year counts when all four tables publish at least 40 codes on **both** the
+industry and the product axis.
+
+```
+           12  13  14  15  16  17  18  19  20  21  22  23
+DK          x   x   x   x   x   x   x   x   x   x   x   .
+AT          x   x   x   x   x   x   x   x   x   x   x   .
+BE          x   x   x   x   x   .   .   x   x   x   x   .
+FI          x   x   x   x   x   x   x   x   x   x   x   x
+FR          x   x   x   x   x   x   x   x   x   x   x   .
+IT          x   x   x   x   x   x   x   x   x   x   x   .
+PT          x   x   x   x   x   x   x   x   x   x   x   x
+NL          .   .   .   .   .   .   .   .   .   x   x   x
+EE          .   .   .   .   .   .   .   .   x   x   .   .
+SE          .   .   .   x   .   .   .   .   .   x   x   x
+LV          .   .   .   x   .   .   .   .   x   .   .   .
+DE          .   .   .   .   .   .   .   .   .   .   .   .
+ES          .   .   .   .   .   .   .   .   .   .   .   .
+```
+
+Method notes worth keeping, because both cost a wrong answer once: the product
+total is **`CPA_TOTAL`**, not `TOTAL`, and pinning `TOTAL` on the product axis
+returns an empty frame that looks exactly like missing data; and an unfiltered or
+multi-year request returns **HTTP 413**, which a bare `try/except` turns into
+"no data".
+
+### Per country
+
+**DK — the deliverable. Everything works.**
+Input-output 2012–2022 (2023 not yet published). PEFA 2010–2023, although the
+`time` dimension advertises 2000–2024. Industry resolution: **64 groups, exactly
+A64**, with a single multi-member group `iL` = `L68A;L68B`. **PEFA publishes all
+64 groups directly** — no member summing needed anywhere, including `L`. The
+balance closes account by account at A64 for 2017, 2018 and 2019; the largest
+deviation is 0.3 TJ (`iC26`, `iC30`, `iM73`, `iK66`, `iN79`, `iS94`, `iS96`),
+which is Eurostat's rounding to 0.1 TJ, not an imbalance. **`SD_IO` is published
+for all 88 accounts and every single one is exactly zero**, so Denmark's account
+closes on its own and the discrepancy does no work. Two quirks: hard coal is
+reported under `P09` with `P08` at zero, and 484 PJ of section `H` use is
+international bunkers, 23 % of resident throughput.
+
+**DK, air emissions (measured 2026-09-25).** `env_ac_ainah_r2` publishes all 64
+of Denmark's industry groups, in the same spellings as PEFA, for 2017 and 2019.
+The groups sum exactly to their sections (`C` 5,683.9 kt `GHG` in 2019) and to
+`TOTAL` (85,261.7 kt in 2019; 87,948.5 kt in 2017). Households are split into
+`HH_HEAT`, `HH_TRA` and `HH_OTH`, as in PEFA. Dimensions `freq, airpol, nace_r2,
+unit, geo, time`; 24 `airpol` codes.
+
+**DK, emission-relevant energy use (measured 2026-09-25).** `env_ac_pefasu`
+publishes `stk_flow = ER_USE` ("Emission-relevant use") beside `USE`. Denmark
+2019, energy products `P08`–`P27`, in PJ:
+
+| | `USE` | `ER_USE` |
+|---|---|---|
+| `TOTAL` | 1,586.4 | 987.8 |
+| `HH` | 271.8 | 158.3 |
+| `C19` | 350.3 | 16.9 |
+| `D` | 304.4 | 159.3 |
+| `H` | 659.2 | 654.1 |
+| `H50` | 577.1 | 576.9 |
+
+The largest gaps are crude oil `P12` in `C19`, 330.7 PJ, which is refinery input
+and is not burned, and natural gas `P13` in `D`, 140.4 PJ. The household gap is
+`P26` and `P27` alone. At `TOTAL`, `ER_USE` carries `P08`–`P25`, the natural input
+`N01`, and the waste residuals `R28` and `R29`. It carries no `P26`, `P27`, `R30`
+or `R31`. Bunkers are inside `ER_USE`, because `H50` is almost unchanged. So an
+emission factor applied to `USE` would count the crude oil refined in `C19` as
+burned there. `ER_USE` is the flow the factors belong on.
+
+**DK, both emission sources across the data window 2015–2019 (measured
+2026-09-28).**
+
+- **`ER_USE` coverage.** Every year has 2,117 rows. All 64 model groups and all
+  three household codes are published. The same 21 products appear each year:
+  `N01`, `P08`–`P25`, `R28` and `R29`.
+- **Totals.** `TOTAL` + `HH`, the sum over those 21 products, runs 1,076.8,
+  1,178.1, 1,195.7, 1,204.0 and 1,162.4 PJ.
+- **`ER_USE` never exceeds `USE`**, cell by cell, in any account, at a 0.1 TJ
+  tolerance. There are six exceptions, all in the all-flow total `NRG_FLOW`:
+  `P09` in 2015 and 2016, `P11` in 2015, `P23` in 2016 and 2017, and `P24` in
+  2016.
+- **No `ER_USE` cell lacks a `USE` cell.** No boundary account (`ENV`, `ROW_ACT`,
+  `CH_INV_PA`) carries non-zero `ER_USE`.
+- **`env_ac_ainah_r2` in `THS_T` is complete.** It publishes all ten gases the
+  plan takes, for all 64 groups and all three household codes, in every year:
+  `GHG`, `CO2`, the four other CO2e components, `CH4`, `N2O` and `CO2_BIO`.
+  `GHG` equals the sum of its six components at `TOTAL_HH`, and the 64 groups sum
+  exactly to `TOTAL`, in every year. The `GHG` `TOTAL_HH` series is 91,981.2,
+  97,429.1, 96,488.6, 97,198.6 and 93,634.9 kt.
+
+**DK, the coal under `P09` is other bituminous coal (measured 2026-09-28).**
+
+- **PEFA.** Hard coal `P08` is zero in every year 2015–2019. All of `P09` is
+  emission-relevant use (`ER_USE` = `USE` in every cell), in PJ: 76.0, 87.8,
+  65.4, 67.2 and 37.8. Energy supply `D` takes 89–94 % of it, from 71.5 to 33.5
+  PJ. The rest is `C23`, 2.0–3.5; `C10-12`, about 1.2; `A01`, falling from 0.7 to
+  0.2; `C20`, zero from 2018; and `B`, about 0.1.
+- **The energy balance.** `nrg_bal_c`, gross inland consumption, puts Denmark's
+  solid fossil fuels **entirely under `C0129` other bituminous coal**: 75.6,
+  83.6, 64.0, 66.3 and 40.3 PJ. Lignite `C0220`, sub-bituminous `C0210`, peat
+  `P1100` and oil shale `S2000` are zero in every year. The only other solid is
+  coke oven coke `C0311`, 0.3–0.5 PJ.
+- **Conclusion.** Denmark's `P09` content is hard coal under a brown-coal
+  label. The two series track within 1.4 PJ in 2015–2018. In 2019 the difference is
+  2.5 PJ, but gross inland consumption and use are different flows.
+- **What the choice of factor costs.** The IPCC 2006 defaults are 94.6 kt CO2/PJ
+  for other bituminous coal and 101.0 for lignite. Using the lignite factor on
+  this `P09` would overstate Danish coal CO2 by 6.4 kt/PJ: about 0.24 Mt in 2019
+  and 0.56 Mt in 2016, almost all of it in `D`.
+
+**DK, the process rest with IPCC factors (measured 2026-09-28).** This is air
+emissions minus IPCC 2006 default factor × `ER_USE`, per account, over 64
+groups and three household codes.
+
+- **The factors.** Fossil factors in kg/TJ: `N01` 56,100; `P08`/`P09` 94,600;
+  `P11` 107,000; `P12` 73,300; `P13` 56,100; `P14` 69,300; `P15` 71,500; `P16`
+  73,300; `P17`/`P18` 74,100; `P19` 77,400. Four rows are provisional: `P10`
+  44,400 (gas works gas), `P20` 57,600 (refinery gas), `P21` 73,300 and `R29`
+  91,700 (municipal waste, non-biomass). Biogenic factors: `P23` 112,000, `P24`
+  70,800, `P25` 54,600, `R28` 100,000. Every burned product has a factor.
+- **The IPCC factors fit the pure-burning accounts** in 2016–2019. The fossil
+  rest is a small positive share of reported CO2: `D` 1.9–3.3 %, `H49` 0.8–0.9 %,
+  `H50` 1.1–1.2 %, `H51` 1.1 %, `HH_HEAT` 3.0–4.2 %, `HH_TRA` 1.8–1.9 %. So the
+  defaults are, if anything, 1–4 % below the factors Denmark implies.
+- **The whole economy.** The fossil rest is 4,561.8–4,665.5 kt in 2016–2019, and
+  7,243.9 kt in 2015. The largest positive rests are `C23` (cement), about
+  1.5–1.6 Mt, and `E37-39` (waste), about 1.34–1.40 Mt. The second is larger
+  than expected for non-burning, and it has not been explained.
+- **Small negative fossil rests occur in every year.** In 2016–2019 there are 5–7
+  accounts, with a total of −41.2 to −95.5 kt, at most 0.12 % of national fossil
+  CO2. The largest are:
+  - `C19`: −2.1 to −53.4 kt, 0.2–5.9 % of its fuel CO2, with provisional rows
+    for refinery fuels.
+  - `A03`: −15.6 to −30.3 kt, 4–8 %.
+  - `HH_OTH`: −19.1 to −23.5 kt, 21–24 %; positive (+18.6) in 2019.
+  - `C16`, `A02`, `H53`, `C33`: below 4 kt each.
+- **2015 is an outlier.** `H49` has −1,324.7 kt, which is 41 % of its fuel CO2,
+  while `H50` is +5,591.6 kt. It looks as if transport fuel is booked in different
+  accounts in `ER_USE` and in the air account that year. The model does not read
+  2015.
+- **The biogenic rest does not fit.** It is negative in 17–27 accounts per year,
+  with a total of −1.4 to −2.8 Mt: `D` −9 to −12 % of its biogenic fuel CO2,
+  `HH_HEAT` −10 to −21 %, and `C16` −60 to −84 % (for example 556.7 kt from fuel
+  against 220.5 kt reported in 2019). This is too large for factor precision. It
+  is either a difference in definition or wood in `ER_USE` that is not burned.
+
+**DK, why the biogenic rest does not fit (measured 2026-09-30).** The implied
+factor is reported `CO2_BIO` ÷ biogenic `ER_USE` (`P23`, `P24`, `P25`, `R28`),
+compared with the IPCC mix for the same fuels.
+
+- **Whole economy: IPCC fits.** The implied factor is 99.0, 105.0, 101.0, 97.0
+  and 99.7 kt/PJ in 2015–2019. The IPCC mix is 104.3, 103.4, 103.1, 101.9 and
+  99.7. The national match is partly offsetting errors, as the next two points
+  show.
+- **Wood: Denmark implies less CO2 per PJ than IPCC's 112.**
+  - Household heating burns almost only `P23`. Its implied factor is 86.3–100.6
+    against an IPCC mix of 108–112, and it varies from year to year.
+  - Energy supply `D`, mostly `P23`, implies 88.4–94.4 from 2016, against 100.8–104.0.
+  - So either the two sources disagree on household and plant wood, or the
+    factor behind the air account is 10–20 % below IPCC's.
+- **Waste: booked in different industries in the two tables from 2016.**
+  - In 2015, renewable waste `R28` had 15.86 PJ of `ER_USE` in `E37-39`.
+  - From 2016, its `R28` `ER_USE` is 0.00, while its `R28` `USE` is 18.4–19.7 PJ.
+  - The air account still books 2,010–2,152 kt of `CO2_BIO` in `E37-39` in
+    2016–2019. There is only 0.36–0.52 PJ of biogenic fuel there, so the
+    implied factor is 3,900–5,500 kt/PJ.
+  - Meanwhile wood products `C16` carry 4.9–8.9 PJ of `R28` `ER_USE`, and
+    report only 146–222 kt, an implied 16–40 kt/PJ. `D` carries 5.4–6.4 PJ of
+    `R28` from 2016.
+  - The same mismatch probably explains the unexplained fossil rest of about
+    1.35–1.40 Mt in `E37-39`: the CO2 of plastic waste `R29` burned there is
+    booked in `E37-39` without matching `ER_USE`. Not yet measured for `R29`.
+- **No account reports `CO2_BIO` without any biogenic `ER_USE`.**
+
+**DK, where the burned waste went, and what else Eurostat has (measured
+2026-09-30).**
+
+- **The flows.** `env_ac_pefasu` has five `stk_flow` codes: `SUP`, `USE`,
+  `USE_TRS` (transformation use), `USE_END` (end use) and `ER_USE`.
+- **The waste industry burns the waste as transformation use.** Waste
+  management `E37-39` uses renewable waste `R28` as `USE_TRS`: 15.86, 18.68,
+  18.60, 18.41 and 19.69 PJ in 2015–2019. It uses non-renewable waste `R29` the
+  same way: 13.08, 14.17, 14.35, 13.97 and 14.47 PJ.
+- **Only 2015 counts it as emission-relevant.** In 2015 all of it is also
+  `ER_USE`. From 2016 its `ER_USE` is 0.00 for both products.
+- **The air account keeps the CO2 in the waste industry.**
+  `env_ac_ainah_r2` keeps booking the CO2 in `E37-39`: `CO2_BIO` of 2,010–2,152
+  kt, and a fossil rest of 1,341–1,395 kt. That matches the transformation use
+  times IPCC: `R28` 19.69 PJ × 100 = 1,969 kt, and `R29` 14.47 PJ × 91.7 = 1,327
+  kt in 2019. So the unexplained fossil "process" rest in `E37-39` is plastic
+  waste burned in incineration plants.
+- **All waste that is used is accounted for.** Resident `USE` of `R28` equals its
+  supply: 2016 use 31.97 PJ against supply 32.07 PJ (`CH_INV_PA` 29.19 +
+  `ROW_ACT` 2.88). Besides `E37-39`, the users are `D` (6.3 PJ `ER_USE` from 2016;
+  2015 `USE` 10.18 with `ER_USE` 0), `C16` 4.9–8.9, `C23` about 0.8, and small
+  amounts elsewhere. `R29` outside `E37-39` is only `C23`, about 0.65 PJ.
+- **With all waste use counted as burned, the national biogenic total no longer
+  matches.** Counting `USE` for `R28`/`R29` and `ER_USE` for everything else, it
+  rises about 11–12 % above `env_ac_ainah_r2` (2019: about 18,670 against 16,708
+  kt). The match at 99.7 against 99.7 kt/PJ was two errors cancelling: waste left
+  out of `ER_USE`, and wood at a higher factor than the air account implies. In
+  `D`, the wood implied after biogas and waste is 95.7 kt/PJ if `D`'s `R28` is
+  burned there, and 103.7 if it is not, against IPCC's 112.
+- **Other Eurostat emission tables.** The only independent source besides
+  `env_ac_ainah_r2` is the inventory table `env_air_gge`. It is territorial and
+  by IPCC source category. It has biogenic CO2 only as one national memo item,
+  `CRF1D3`: 16,725.5 kt in 2019, against `env_ac_ainah_r2`'s 16,707.6. It books
+  waste incineration CO2 as zero (`CRF5C` = 0), so incineration counts as fuel
+  combustion under energy. The other tables are derived: `env_ac_aigg_q`
+  (quarterly), `env_ac_aibrid_r2` (bridge), `env_ac_aeint_r2` (intensities),
+  `env_ac_ghgfp` and `env_ac_io10` (footprints), and indicators (`cei_gsr011`,
+  `sdg_13_10`, `tai08`). None gives CO2 by fuel or biogenic CO2 by industry.
+
+**DK, CH4 and N2O from burning (measured 2026-09-30).** Figures are
+`env_ac_ainah_r2`, kt CO2e, for 2017 / 2018 / 2019.
+
+- **CH4.** The total is 9,517 / 9,587 / 9,363. The accounts that are almost
+  pure burning carry 533 / 561 / 594, which is 5.6–6.3 % of the total: `D` 351 /
+  392 / 437 (rising), `HH_HEAT` 129 / 115 / 104, and `H50` about 22. The rest is
+  `A01` (7,990 in 2019) and `E37-39` (636).
+- **N2O.** The total is 5,597 / 5,386 / 5,478. The burning accounts carry 523 /
+  534 / 519, which is 9.3–9.9 %: `H50` 282–299, `D` 65–79, `HH_HEAT` 46–52,
+  `HH_TRA` about 40, and `H51` about 37. The rest is mostly `A01` (4,665).
+- **F-gases.** They total 492 / 551 / 394 and are not from burning.
+- **Burning's share of GHG.** CH4 and N2O from burning together make about 1.1
+  Mt CO2e, about 1.2 % of GHG (93,635 in 2019).
+- **IPCC Tier 1 does not fit CH4.** Household wood at the residential defaults
+  (CH4 300, N2O 4 kg/TJ) gives CH4 297–370 kt CO2e against 104–129 reported,
+  about 3 times too high. N2O gives 37–47 against 46–52 reported.
+- **The DST file carries CH4 and N2O per fuel.** `energy_and_emissions.xlsx`
+  has `ch4` and `n2o` per energy row, and the GAMS model uses them per fuel
+  (`qEmmE_BU`). Non-energy emissions come separately from
+  `non_energy_emissions.xlsx` (`qEmmxE`).
+
+**DK, what the four mixed PEFA products contain (measured 2026-10-01).** Four
+products have more than one IPCC 2006 factor. "Burned" means `ER_USE`, and all
+`USE` for waste. Figures are PJ, 2017 / 2018 / 2019.
+
+- **`R29` non-renewable waste: municipal waste.** 17.86 / 17.30 / 17.82 PJ is
+  burned: `E37-39` 14.35 / 13.97 / 14.47, `D` about 2.7, `C23` about 0.66.
+  - With the municipal non-biomass factor (91.7 kt/PJ) the `E37-39` fossil rest
+    is +25 / +72 / +67 kt.
+  - With industrial waste (143) it is −711 kt in 2017. That is beyond the 0.5 %
+    limit of about 404 kt.
+- **`P20` refinery gas, ethane and LPG: mostly refinery gas.** 18.46 / 18.32 /
+  19.31 PJ is burned, 78 % of it in `C19` (14.10–15.09 PJ). Then come `D` about 1.5,
+  `HH_OTH` 0.75–0.88, and many small LPG users.
+  - With refinery gas (57.6) the lowest `C19` rest is −53.4 kt (2018).
+  - With LPG (63.1) it is −130.9, and with ethane (61.6) −109.8.
+- **`P21` other petroleum products: petroleum coke in cement.**
+  - `C23` burns 7.906 / 6.886 / 7.715 PJ of `P21`. `nrg_bal_c` books exactly the
+    same amounts as petroleum coke (`O4694`) in non-metallic minerals final
+    energy use (`FC_IND_NMM_E`).
+  - The only other user is `HH_OTH`, with 0.63 PJ in 2017–2018 and 0 in 2019.
+  - At petroleum coke's 97.5 kt/PJ, cement's fuel CO2 rises by about 187 kt
+    (2019). Its process rest stays about 1.35 Mt.
+- **`P10` derived gases: not gas works gas.** 0.59 / 0.61 / 0.59 PJ is burned:
+  `HH_HEAT` about 0.35, `C20` about 0.15, and small amounts in `C21`, `O`, `I`
+  and `C10-12`.
+  - `nrg_bal_c` books zero manufactured gases (`C0350-0370`) in every year. Its
+    only `C03` product is coke oven coke.
+  - So `P10` is most likely town gas made from natural gas.
+  - The factor choice moves at most 7 kt (44.4 against 56.1). Blast furnace gas
+    (260) would give `HH_HEAT` a negative rest.
+
+**DK, the bridge from the air account to the inventory (measured 2026-10-19).**
+`env_ac_aibrid_r2` has the dimensions `freq, airpol, indic_env, unit, geo, time`:
+24 gases, 17 `indic_env` codes, four units. The bridge is
+
+```
+AEMIS_RES (resident units, = env_ac_ainah_r2 TOTAL_HH)
+  − AEMIS_RES_ABR (residents' fuel bought abroad: _WTR water, _ATR air, _LTR land, _FWTR fishing)
+  + AEMIS_TER_NRES (non-residents' fuel bought on the territory: _LTR, _WTR, _ATR)
+  + ADJ_SD (other adjustments and statistical differences)
+  = AEMIS_TER (inventory, territory principle, without LULUCF)
+```
+
+It closes exactly for Denmark 2019 GHG: 93,634.85 − 48,321.50 + 792.36 + 0 =
+46,105.71 kt. So the reconciliation item is −47,529.1 kt GHG in 2019: water
+transport abroad −44,939.0, air −3,188.9, land −193.6, and non-residents' land
+transport on the territory +792.4. `ADJ_SD` is 0. `CO2_BIO` has no bridge
+(`AEMIS_TER` = `AEMIS_RES`). LULUCF is reported beside it (`LULUCF` 1,342.0 kt
+GHG: `FORL` −2,666.4, `CRL_GRL` 3,759.7, `LULUCF_OTH` 248.7), and `AEMIS_TER_LULUCF`
+is 47,207.9. The −47.5 Mt in 2019 is larger than the "about 39 Mt" in the
+Danish 2020 data that was quoted to Martin on 2026-09-28.
+
+**The bridge's end point is not the inventory total without LULUCF** (measured
+2026-10-19, 2015–2019). The bridge closes exactly in every year and gas. But
+`AEMIS_TER` lies above `env_air_gge` `TOTX4_MEMO` (the inventory without LULUCF
+and memo items) in every year. For GHG the gap is 312.8 / 280.0 / 269.8 / 231.8
+/ 239.9 kt, about 0.5–0.6 %. It is made of:
+
+| Gas | Gap, kt |
+|---|---|
+| CH4 CO2e | +451.7 to +459.1 |
+| N2O CO2e | −175.3 to −245.8 |
+| CO2 | +22.3 to +55.7 |
+
+`AEMIS_TER_LULUCF` does equal `env_air_gge` `TOTXMEMO` exactly, so
+`AEMIS_TER + LULUCF` misses `AEMIS_TER_LULUCF` by the same gap. 2019 GHG: the
+inventory is 45,865.8 kt without LULUCF and 47,207.9 kt with it. The difference
+is LULUCF, 1,342.0 kt. The tables do not explain the gap; it looks like a
+different allocation of CH4 and N2O between the air account and the inventory.
+
+**Each mode abroad against the industry it comes from (measured 2026-10-22).**
+Residents' emissions abroad per mode (`env_ac_aibrid_r2`), as a share of the
+matching industry's emissions in `env_ac_ainah_r2`, 2019:
+
+| Mode | GHG abroad, kt | Industry, GHG kt | Share GHG | CO2 | CH4 | N2O |
+|---|---|---|---|---|---|---|
+| water `_WTR` | 44,939.0 | `H50` 45,459.4 | 98.9 % | 98.9 % | 96.5 % | 99.2 % |
+| air `_ATR` | 3,188.9 | `H51` 3,348.6 | 95.2 % | 95.2 % | about 100 % | 95.1 % |
+| land `_LTR` | 193.6 | `H49` 1,871.3 | 10.3 % | 10.4 % | | |
+| fishing `_FWTR` | 0.0 | `A03` 341.1 | 0 | | | |
+
+Every share is at most one. Water abroad is 42,201.0 / 44,125.3 / 44,939.0 kt GHG
+in 2017–2019, air 3,364.1 / 3,393.1 / 3,188.9, land 181.7 / 159.5 / 193.6, and
+fishing zero in all three years. Non-residents' fuel on the territory
+(`AEMIS_TER_NRES`) is 783.8 kt CO2 in all three years, a flat estimate.
+
+**DK, control sums of the Julia emissions data step (2026-10-19).**
+`EmissionsData.jl` writes `model_julia/data/emissions/emissions.csv`.
+
+- **Size and hash.** On 2026-10-22 bunkering and aviation were written per
+  industry, and the four economy totals were added. The file is 462,823 bytes and
+  byte-identical across two runs, SHA256 `0948DDA3…AAB5FC5`. The nine other
+  variables are unchanged, row for row. Before that change it was 455,636 bytes,
+  `4828EC3C…134D987` (2026-10-19), and before the reconciliation items 451,505
+  bytes, `7738A640…BE2799`.
+- **Written 2026-10-22:** `qEmmBunkering_g_d` 30 rows (`iH49`, `iH50`) and
+  `qEmmInternationalAviation_g_d` 15 rows (`iH51`), summing exactly to the earlier
+  national items; `qEmmTot_g_b` 120 rows and `qEmmTotCO2e_b` 20 rows. 2019 GHG:
+  GNA 93,634.9, GNA with LULUCF 94,976.9, UNFCCC 45,865.8, UNFCCC with LULUCF
+  47,207.9 kt. Eurostat's totals differ from the sum of their parts by at most
+  0.00005 kt per gas and 0.01 kt in CO2e. In t1 every such gap is inside the
+  calibration tolerance, `max(1e-6, 1e-4 × value)`; the narrowest margin is the
+  PFC total, 1e-5 against 9.9e-5.
+- **Rows per variable:** `qEmm_g_d` 1,687; `qEmm_g_m_d` 1,722; `qEmmCO2e_d` 320;
+  `qEmmE_g_e_d` 2,660; `qEmmxE_g_d` 1,372; `qEBurned_e_d` 2,660;
+  `qEmmBunkering_g` 15; `qEmmInternationalAviation_g` 15; `qEmmBorderTrade_g` 10;
+  `qEmmOtherDifferences_g` 30; `qEmmLULUCF_g` 15.
+- **Reconciliation items, 2019 GHG, kt:** bunkering 45,132.6, international
+  aviation 3,188.9, border trade −792.4, other differences 239.9, LULUCF 1,342.0.
+  Residence 93,634.9 minus the first four gives 45,865.8, the inventory without
+  LULUCF.
+- **2019, whole economy:**
+  - reported fossil CO2: 78,399.8 kt;
+  - fossil CO2 from fuel: 75,358.8 kt, and not from fuel: 3,041.0 kt;
+  - biogenic CO2 from fuel: 18,677.3 kt, against 16,707.6 reported (+11.8 %);
+  - reported GHG: 93,634.9 kt;
+  - burned fuel: 1,196.6 PJ.
+- **Not-from-fuel CO2, 2017–2019:** 3,099.1 / 3,165.4 / 3,041.0 kt.
+- **Negative fossil rests in 2017–2019:** 18 kept, the most negative
+  `households`/`other` −39.1 kt (2018) and `iC19` −53.4 kt (2018). The limit is
+  about −392 to −406 kt.
+- **Identities, per account and year:**
+  - reported CO2 = from fuel + not from fuel, to 2e-12 kt;
+  - each other CO2e part equals its not-from-fuel value exactly;
+  - the household purpose split sums exactly to the account.
+
+**DK, biomethane in the gas grid is already split out as `P25` (measured
+2026-10-22).** From `energy_balance.csv` (`env_ac_pefasu`, `USE`). Most accounts
+that use natural gas `P13` also use biogas `P25`, and in nearly all of them the
+biogas share `P25 / (P13 + P25)` is the same number in a given year:
+
+- 4.2 % in 2017, 6.9 % in 2018, 10.2 % in 2019;
+- 2019 examples: households 22.854 PJ `P13` and 2.587 PJ `P25`; cement `iC23`
+  4.370 and 0.495; retail `iG47` 0.707 and 0.080.
+
+So PEFA books the grid's biomethane as `P25` and allocates it to every gas user in
+proportion to its gas use. Accounts with biogas of their own have higher shares:
+in 2019 farming `iA01` 16.0 %, food `iC10_12` 14.1 %, the refinery `iC19` 26.0 %
+and waste `iE37_39` 47.1 %. Energy supply `iD` has 10.0 %, with 26.2 PJ of `P25`
+supply. `P25` never appears without `P13`. The boundary accounts carry no `P25`.
+The Danish file instead has one product, "Natural gas incl. biogas", and the
+GAMS model splits its CO2 with a single share `sBioNatGas` (`emissions.gms:63-67`).
+
+**DK, the natural input `N01` in `ER_USE` (measured 2026-09-28).** It is non-zero
+in one cell only: `B` in 2015, 3.57 PJ, against 507.7 PJ of `N01` `USE` in `B`
+that year. It is zero in every account in 2016–2019.
+
+**AT — the one country we would test against, if we test one.**
+Input-output 2012–2022. PEFA 2013–2023. Industry resolution: **58 groups**, two
+of them multi-member. PEFA publishes every group directly **except `R-U`**, whose
+members must be summed, and it does not publish member `L68B`. **0 industries out
+of balance 2017–2019.** `SD_IO` published for all 88 accounts, every one zero,
+like Denmark. Austria needs no window change and no settings change.
+
+**BE — fails on the window, not on the data.**
+Input-output 2012–2016 and 2019–2022; the gap is **2017 and 2018**, where the
+use table, margins, product taxes and the payroll slice are all missing while the
+supply table is present. It therefore fails `IndustryResolutionData.jl` with the
+current 2015–2019 window, and **would build with `first_data_year = 2019` and
+`calibration_year = 2021`**. PEFA 2008–2023. At A64 Belgium publishes every
+sub-industry cell and balances account by account.
+
+**DE — cannot be built, and no calibration year helps.**
+`naio_10_cp1620` and `naio_10_cp1630` return **zero cells for every year, every
+unit and every `stk_flow`** — verified without filters, against Denmark's 25,410
+cells in the same tables. The use table carries only about 13 product codes. The
+supply table is detailed. So Germany has no margin and no product-tax table at
+all, which is a source gap, not a window gap.
+
+**ES — same verdict as DE, different detail.**
+No margin or product-tax table cells in any year. Use and supply tables are
+detailed. `SD_IO` is non-zero for 5 accounts in 2019, the largest being section
+`C` at −34.3 PJ, 0.20 % of its use. Spain is where the `SD_IO` fix was proved:
+its energy CSV builds, and `iC` 2019 carried a negative discrepancy that
+demonstrated the sign convention.
+
+**FI — the best-covered country of the thirteen.**
+Input-output **2012–2023, complete**, the only one with 2023. PEFA 2011–2023.
+`SD_IO` is non-zero, so Finland is one of the countries the discrepancy fix
+covers.
+
+**FR — builds, but at a much coarser grain, and withholds product detail.**
+Input-output 2012–2022. Industry resolution: **38 groups, not 64** — `C16+C17+C18`,
+`C22+C23`, `C24+C25`, `C29+C30`, `C31-32+C33` are merged, and `A`, `E`, `G`, `H`
+stay whole sections. **This is the `C16` case worth remembering:** for Denmark
+`C16` is a model industry and section `C` must be dropped as an aggregate; for
+France `C16` is part of `iC16_C17_C18` and must itself be dropped. Whether a PEFA
+code is an industry or an aggregate is therefore country-dependent, which is why
+the mapping cannot use a fixed list. PEFA does not publish `L68B` for France, so
+the mapping must prefer a group's own code (`L`) and only sum members as a
+fallback. France publishes every sub-industry's **total** use (`N00_P00_R00` sums
+exactly to the section, `C` = 4,505,178 TJ in 2019) but withholds single product
+cells — hard coal `P08` in `C20`, `C25`, `C27` is 11.5 PJ, 55 PJ in all, **1.2 %
+of section `C`**. On its own 38-group resolution 7–9 industries are out of
+balance: `iC16_C17_C18` about +42 PJ, `iC20` +12–14 PJ, the rest under 0.4 PJ.
+France also needs `SD_SU` for the product balance — without it it is off by
+160.9 PJ of `P18` in 2017.
+
+**IT — input-output 2012–2022; balances account by account at A64.**
+
+**LV — cannot be built.** Input-output detail exists only for **2015 and 2020**,
+isolated single years with no unbroken window of any length.
+
+**NL — buildable only on a recent window.** Input-output 2021–2023; the product-tax
+table is missing before 2021 while the others are present from 2019. PEFA
+2014–2023. Would build with a 2021–2023 window.
+
+**PT — input-output 2012–2023, complete.** PEFA 2000–2023, the longest span of
+any candidate. `SD_IO` non-zero, so it is covered by the discrepancy fix.
+
+**SE — cannot be built, and the energy account would need construction too.**
+Input-output detail exists only for **2015 and 2021–2023**; use, margins and
+product taxes are missing 2016–2019, in `MIO_NAC` as well as `MIO_EUR`, so the
+unit is not the cause. It fails the team's own first data step at
+`IndustryResolutionData.jl:459`, *"use_industry has no usable NACE/CPA
+coverage"*. Sweden does publish the symmetric table `naio_10_cp1700` for all
+five years, but that is a different object and not what the macro modules read.
+PEFA 2008–2023. On the energy side Sweden withholds the **product split
+entirely** in sections `A`, `C`, `E`, `G` and `H` — crude oil `P12` 706,575 TJ
+and biomass `P23` 231,611 TJ in `C` show `:` for every sub-industry, while the
+sub-industry totals are published. Filling that would need an **observed** prior,
+not a uniform one: `nrg_bal_c` fuel use by industrial sub-sector is the best
+candidate, a neighbour such as FI the next best. An earlier Sweden build lost
+917 PJ to server-side filtering, which is where the *"absence is not zero"* rule
+comes from.
+
+**CZ — out of scope since 2026-09-11, and it fails anyway.** The PEFA refresh
+aborts in 2015–2016: section `A` supply is not reported, about 130 PJ.
+
+**All 27 member states** publish `env_ac_pefasu` and `env_ac_ainah_r2` complete
+for 2015–2019 at NACE section grain with the same household purpose split. `AL`
+publishes no calibration year; `MK`, `RS` and `TR` are partial.
+
+### The energy module's own country sweep, at NACE section grain (2026-09-11/14)
+
+Run before the merge, when the account was still 21 sections and the scope was 13
+countries. It stands as the record that the energy code is country-generic: the
+code holds four numeric literals and no hard-coded `"DK"`.
+
+| check | result across the 13 |
+|---|---|
+| coverage, vocabulary, purpose shares, permitted accounts, IO labels | **13 of 13 pass** |
+| data step, real code, one process per country | **13 of 13 write their CSV** (2026-09-14) |
+| data-step balance from 2017 | 13 of 13 — `SE` fails 2015 only, outside the asserted window |
+| model balance on the real CSVs, t1 and 2017–18 | **13 of 13**, worst 0.0003 PJ — 10 of 13 before the `SD_IO` fix, `ES` 17.14 PJ out |
+| full calibration, Spain's energy account on the Danish macro model | **feasible**, 9,599 / 69,155 as predicted, zero-shock passes |
+| mask fill | every filled cell is a reported zero in all 13 |
+
+The `SD_IO` fix covers `ES`, `FI` and `PT`. `SE` passed only because the balance
+is asserted from `calibration_year - 2`. These verdicts are at section grain; the
+A64 re-measurement is in the per-country entries above.
 
 ## Pilot results — JRC-IDEES for the purpose dimension (2026-07-30)
 
@@ -1910,6 +2441,11 @@ everywhere. A non-zero value must be a stated policy — hard error or explicit
 carried residual — not an accident.
 
 ### Open anomaly — Denmark files hard coal under brown coal
+
+**Resolved 2026-09-28:** `nrg_bal_c` books all of Denmark's coal as `C0129`
+other bituminous coal, with lignite and peat at zero. So the content of `P09`
+is hard coal under a brown-coal label. The numbers are in the country register,
+under DK. The text below is the original note.
 
 `P08` (hard coal) is **zero** for DK 2020 while `P09` (brown coal and peat)
 carries 33,175.8 TJ. Denmark has no brown coal or peat resources;
