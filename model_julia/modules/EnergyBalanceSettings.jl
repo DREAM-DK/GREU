@@ -3,6 +3,8 @@
 
 module EnergyBalanceSettings
 
+import ..InputOutputSettings: resolution
+
 const energy_balance_data_dir = joinpath(@__DIR__, "..", "data", "energy_balance")
 
 # Point to the PEFA dataset in Eurostat's data portal.
@@ -119,6 +121,32 @@ canonical_activity_code(code::AbstractString) =
   "TOTAL", "NRG_FLOW", "SD_SU", "G-U_X_H",
 ]) "only NACE industry codes may be rewritten"
 
+
+# Map Eurostat activity codes to model industries. 
+# PEFA and the air emissions accounts use the same codes.
+# Use a group's own code when the source publishes it, and sum its members only when it does not.
+# A source can publish a group beside one of its members, such as L beside L68A,
+# so taking both would count the same flow twice.
+function industry_source(published, source)
+  lookup = Dict{String,Symbol}()
+  for row in eachrow(resolution)
+    group = string(row.eurostat_group)
+    label = Symbol(string(row.industry))
+    if group in published
+      lookup[group] = label
+    else
+      members = split(string(row.members), ';')
+      @assert all(m in published for m in members) "$source publishes neither $group nor all its members: $(join(members, ", "))"
+      for m in members
+        lookup[m] = label
+      end
+    end
+  end
+  return lookup
+end
+
+# Each leaf code belongs to one industry group, so no flow can be mapped twice.
+@assert allunique(vcat(split.(string.(resolution.members), ';')...)) "industry groups must not share member codes"
 
 
 
@@ -247,7 +275,8 @@ end # module
 # E: Water, sewage and waste management
 # F: Construction
 # G: Wholesale and retail trade
-# H: Transportation and storage
+# H: Transportation and storage. It includes fuel that resident ships, aircraft and lorries
+#    buy and burn abroad: the account follows the residence principle, not the territory.
 # I: Accommodation and food service activities
 # J: Information and communication
 # K: Financial and insurance activities
