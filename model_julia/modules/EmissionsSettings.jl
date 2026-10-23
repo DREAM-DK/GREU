@@ -177,6 +177,18 @@ const bridge_item = [
 
 
 
+# Residents' fuel bought abroad, per transport mode, and the industry that buys it.
+# In the model each mode follows the emissions of that industry.
+const abroad_mode = [
+  (code = "AEMIS_RES_ABR_WTR", nace = "H50"),   # water transport
+  (code = "AEMIS_RES_ABR_LTR", nace = "H49"),   # land transport
+  (code = "AEMIS_RES_ABR_FWTR", nace = "A03"),  # fishing
+  (code = "AEMIS_RES_ABR_ATR", nace = "H51"),   # air transport
+]
+@assert Set(m.code for m in abroad_mode) == Set(c for r in bridge_item for c in r.code if startswith(c, resident_abroad_total)) "each mode abroad needs the industry that buys its fuel"
+
+
+
 end # module EmissionsSettings
 
 

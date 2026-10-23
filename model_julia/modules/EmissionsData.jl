@@ -17,7 +17,7 @@ using DataFramesMeta
 import ..DataUtils: long_format, sum_by
 import ..EurostatClient
 import ..Settings: calibration_year, country_code, first_data_year
-import ..InputOutputSettings: source_industry
+import ..InputOutputSettings: industry_members, source_industry
 import ..EnergyBalanceSettings:
   canonical_activity_code,
   eurostat_pefa_dataset,
@@ -31,6 +31,7 @@ import ..EnergyBalanceSettings:
   unspecified,
   use_flow
 import ..EmissionsSettings:
+  abroad_mode,
   biogenic_co2,
   bridge_item,
   co2_equivalent_gas,
@@ -400,7 +401,7 @@ function fetch_bridge()
     year_params...,
   )
   code = [residence_total; inventory_total; lulucf_total; resident_abroad_total; [c for r in bridge_item for c in r.code]]
-  assert_published("bridge gas", co2_equivalent_gas, df.airpol)
+  assert_published("bridge gas", [co2_equivalent_gas; reported_total], df.airpol)
   assert_published("bridge code", code, df.indic_env)
   assert_published("bridge year", string.(data_year), df.time)
   return df
@@ -457,6 +458,71 @@ end
 
 
 
+"""The model industry whose members hold a NACE code."""
+function industry_holding(nace)
+  holder = [i for (i, members) in industry_members if nace in members]
+  @assert length(holder) == 1 "$nace must belong to one industry group, not $holder"
+  return only(holder)
+end
+
+"""
+Residents' emissions abroad per item, gas, industry and year.
+
+Each transport mode goes to the industry that buys its fuel abroad.
+The model can then let bunkering and aviation follow the emissions of their own industry.
+"""
+function abroad_items(bridge)
+  cell = bridge_lookup(bridge)
+  item_of = Dict(c => r.item for r in bridge_item for c in r.code)
+  rows = DataFrame([
+    (item = item_of[m.code], gas = Symbol(gas), activity = industry_holding(m.nace), year = year, value = cell(gas, m.code, year))
+    for m in abroad_mode for gas in co2_equivalent_gas for year in data_year
+  ])
+  return sum_by(rows, [:item, :gas, :activity, :year])
+end
+
+"""
+Assert that no industry buys more emissions abroad than it emits, per gas and year.
+
+The model subtracts them from that industry's emissions on the way to the inventory,
+so more than all of them would give the industry a negative emission on the territory.
+"""
+function assert_abroad_share(abroad, mapped)
+  own = rename(sum_by(mapped, [:gas, :activity, :year]), :value => :own)
+  joined = leftjoin(sum_by(abroad, [:gas, :activity, :year]), own, on = [:gas, :activity, :year])
+  too_high = @rsubset(joined, :value > coalesce(:own, 0.0) + sum_atol)
+  @assert isempty(too_high) "An industry buys more emissions abroad than it emits:\n$too_high"
+  return nothing
+end
+
+
+"""
+The four economy totals for one gas and year, named as in the GAMS model.
+
+GNA follows the residence principle, and UNFCCC is the inventory reported to the UN.
+Each also comes with land use.
+"""
+function inventory_rows(cell, gas, year)
+  residence = cell(gas, residence_total, year)
+  lulucf = cell(gas, lulucf_total, year)
+  inventory = cell(gas, inventory_total, year)
+  return [
+    (inventory = :GNA, value = residence),
+    (inventory = :GNA_LULUCF, value = residence + lulucf),
+    (inventory = :UNFCCC, value = inventory - lulucf),
+    (inventory = :UNFCCC_LULUCF, value = inventory),
+  ]
+end
+
+"""The four economy totals per gas and year, for the six parts and the reported greenhouse gas total."""
+function economy_totals(bridge)
+  cell = bridge_lookup(bridge)
+  return DataFrame([(gas = Symbol(gas), inventory = r.inventory, year = year, value = r.value)
+                    for gas in [co2_equivalent_gas; reported_total] for year in data_year for r in inventory_rows(cell, gas, year)])
+end
+
+
+
 # ==========================================
 # Refresh
 # ==========================================
@@ -479,9 +545,15 @@ function refresh_emissions_data!(dir = emissions_data_dir)
   bridge = fetch_bridge()
   assert_bridge(bridge, raw)
   items = reconciliation_items(bridge)
+  abroad = abroad_items(bridge)
+  assert_abroad_share(abroad, mapped)
+  totals = economy_totals(bridge)
   bridge_variable(item) = sort!(@rsubset(items, :item == item && !iszero(:value)), [:gas, :year])
+  abroad_variable(item) = sort!(@rsubset(abroad, :item == item && !iszero(:value)), [:gas, :activity, :year])
+  gas_total = sort!(@rsubset(totals, :gas != Symbol(reported_total) && !iszero(:value)), [:gas, :inventory, :year])
+  co2e_total = sort!(@rsubset(totals, :gas == Symbol(reported_total) && !iszero(:value)), [:inventory, :year])
   cells = emission_variables(mapped, burned, fuel, rest)
-  # Index letters: `g` is the gas, `e` the fuel, `m` the purpose and `d` the account,
+  # Index letters: `g` is the gas, `e` the fuel, `m` the purpose, `d` the account and `b` the inventory,
   # as in the energy account. The names follow the GAMS model: `qEmmE` is CO2 from fuel,
   # and `qEmmxE` holds the emissions not from fuel.
   CSV.write(joinpath(dir, "emissions.csv"), vcat(
@@ -491,14 +563,17 @@ function refresh_emissions_data!(dir = emissions_data_dir)
     long_format(:qEmmE_g_e_d, cells.from_fuel, [:gas, :product, :activity, :year]),
     long_format(:qEmmxE_g_d, cells.not_fuel, [:gas, :activity, :year]),
     long_format(:qEBurned_e_d, cells.burned_fuel, [:product, :activity, :year]),
-    long_format(:qEmmBunkering_g, bridge_variable(:Bunkering), [:gas, :year]),
-    long_format(:qEmmInternationalAviation_g, bridge_variable(:InternationalAviation), [:gas, :year]),
+    long_format(:qEmmBunkering_g_d, abroad_variable(:Bunkering), [:gas, :activity, :year]),
+    long_format(:qEmmInternationalAviation_g_d, abroad_variable(:InternationalAviation), [:gas, :activity, :year]),
     long_format(:qEmmBorderTrade_g, bridge_variable(:BorderTrade), [:gas, :year]),
     long_format(:qEmmOtherDifferences_g, bridge_variable(:OtherDifferences), [:gas, :year]),
     long_format(:qEmmLULUCF_g, bridge_variable(:LULUCF), [:gas, :year]),
+    long_format(:qEmmTot_g_b, gas_total, [:gas, :inventory, :year]),
+    long_format(:qEmmTotCO2e_b, co2e_total, [:inventory, :year]),
   ))
   return nothing
 end
+
 
 
 
