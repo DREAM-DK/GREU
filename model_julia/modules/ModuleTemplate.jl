@@ -20,7 +20,9 @@ const test_index = [:a, :b, :c]
 # ============================================================================
 # Variables
 # ============================================================================
-@variables model begin
+const ModuleTemplateTag = Tag(:ModuleTemplate)
+
+@variables model :: ModuleTemplateTag begin
   test_variable[t], "Test variable from the module template."
   test_scalar, "Test variable with no indices."
   test_constant[test_index], "Test variable with no time index."

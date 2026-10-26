@@ -39,4 +39,4 @@ function assign_data!(db)
   return db
 end
 
-base_model(modules) = @log_time sum(m.define_equations() for m in modules)
+base_model(modules) = @log_time sum([m.define_equations() for m in modules])
