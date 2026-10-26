@@ -109,7 +109,6 @@ function forecast_zeros!(block::Block, exogenous_values::ModelDictionary)
   zero_vars = filter(exogenous(block)) do var
     has_tag(var, ForecastZero) && (variable_year(var) > t1 || isnothing(exogenous_values[var]))
   end
-  exogenous_values[zero_vars] .= 0.0
   return nothing
 end
 
@@ -136,7 +135,7 @@ function fill_missing_exogenous_forecasts!(
     !isnothing(year) && year > t1 && isnothing(exogenous_values[var])
   end
   default_vars = filter(var -> Symbol(SquareModels.base_name(var)) in omitted_names, forecast_vars)
-  missing_vars = filter(var -> Symbol(SquareModels.base_name(var)) ∉ omitted_names, forecast_vars)
+  missing_vars = filter(var -> Symbol(SquareModels.base_name(var)) ? omitted_names, forecast_vars)
   missing_names = sort!(unique(String.(SquareModels.base_name.(missing_vars))))
   isempty(missing_names) ||
     error("Missing forecast rule for: ", join(missing_names, ", "))
