@@ -13,7 +13,7 @@ import ..InputOutput: industry
 import ..Production: pProd, qProductionLoss, topNest
 import ..ProductionSettings: capital_type
 import ..model
-import ..Time: t1, T
+import ..Time: t1, T, tBase
 import ..Tags: ForecastConstant
 
 # ============================================================================
@@ -54,8 +54,15 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    rKCapitalGrowthChange[k=capital_type, i=industry, t=t1:T],
+    rKCapitalGrowthChange[k=capital_type, i=industry, t=t1:T; t > tBase+1],
     rKCapitalGrowthChange[k,i,t] == qK_k_i[k,i,t] / qK_k_i[k,i,t-1]*fq - qK_k_i[k,i,t-1] / qK_k_i[k,i,t-2]*fq
+
+    # Use assumptions for first year after base period to avoid initial jump from data (only 1 year)
+    rKCapitalGrowthChange[k=capital_type, i=industry, t=t1:T; t == tBase+1],
+    rKCapitalGrowthChange[k,i,t] == qK_k_i[k,i,t] / qK_k_i[k,i,t-1]*fq - fq
+
+    rKCapitalGrowthChange[k=capital_type, i=industry, t=t1:T; t <= tBase],
+    rKCapitalGrowthChange[k,i,t] == 0
 
     qKAdjCost_k_i[k=capital_type, i=industry, t=t1:T],
     qKAdjCost_k_i[k,i,t] == fKAdjCost[k,i,t] / 2 * rKCapitalGrowthChange[k,i,t]^2 * qK_k_i[k,i,t-1]/fq

@@ -218,6 +218,9 @@ function write_report(sources::Pair{<:AbstractString,<:ModelDictionary}...)
   gdp_options = (; ylabel="Index ($(first(years)) = 100)", labels=[
     ["GDP", "Household consumption", "Government consumption", "Fixed investment", "Exports", "Imports"];
     fill(nothing, 6 * (length(sources) - 1))])
+  price_options = (; ylabel="Index ($(first(years)) = 100)", labels=[
+    ["GDP", "Household consumption", "Government consumption", "Fixed investment", "Exports", "Imports", "Capital user cost"];
+    fill(nothing, 7 * (length(sources) - 1))])
   industries = getproperty.(sets, :industries)
   return with_dream_theme() do
     sections = [
@@ -225,7 +228,9 @@ function write_report(sources::Pair{<:AbstractString,<:ModelDictionary}...)
         description="Check whether stocks settle. Sector net lending must sum to zero in each year."),
       report_section("GDP components", [
         "Quantities" => @plot(:i, [qGDP, qC, qG, qI, qX, qM]; gdp_options...),
-        "Prices" => @plot(:i, [pGDP, pC, pG, pI, pX, pM]; gdp_options...),
+        "Prices" => @plot(:i, [pGDP, pC, pG, pI, pX, pM,
+        sum(pK_k_i[k,i,:] * qK_k_i[k,i,:] for (k, i) in capital_k_i) /
+          sum(qK_k_i[k,i,:] for (k, i) in capital_k_i)]; price_options...),
       ]; description="Expenditure quantities and prices, indexed to the first report year. Flat lines at the end mean a steady state."),
       report_section("Aggregates", ["Macro overview" => panel_figure(getproperty.(sets, :aggregates))]; wide=true,
         description="Aggregate activity, expenditure, factor inputs, ratios, and prices."),

@@ -42,7 +42,6 @@ end
 # ============================================================================
 
 function assign_data!(db)
-  db[rFirmRequiredReturn_s[:,t1]] .= 0.08
   return nothing
 end
 
@@ -57,6 +56,7 @@ end
 # ============================================================================
 
 function set_starting_values!(start_values)
+  start_values[rFirmRequiredReturn_s[:,t1]] .= 0.08
   return nothing
 end
 
@@ -129,6 +129,11 @@ function define_calibration(base=define_equations())
     @endo_exo_swap! block begin
       rFirmRequiredReturn_s[s=equity_issuer,t1+1],
       vFinReval_s_f[s=equity_issuer,:Equity,:Liab,t1]
+    end
+
+    block = block + @block model begin
+      rFirmRequiredReturn_s[s=equity_issuer, t=[t1]],
+      rFirmRequiredReturn_s[s,t] == rFirmRequiredReturn_s[s,t1+1]
     end
   end
 

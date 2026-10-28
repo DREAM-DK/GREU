@@ -45,7 +45,7 @@ import ..Taxes:
   vCorpCapitalTaxDeduction_s,
   vCorpDebtTaxDeduction_s
 import ..Time: t, t1, T
-import ..Tags: ForecastConstant
+import ..Tags: ForecastConstant, DynamicCalibration
 
 # ============================================================================
 # Variables
@@ -70,7 +70,7 @@ end
 @variables model :: CorporationsTag begin
   rCapitalTaxDepr_k[k=capital_type, t=t] :: ForecastConstant, "Tax depreciation rate on the opening capital tax value."
   rWACC[t], "Weighted average cost of non-financial corporate capital."
-  rHurdleRatePremium_i[i=industry, t=t] :: ForecastConstant, "Capital hurdle rate premium by industry."
+    rHurdleRatePremium_i[i=industry, t=t] :: (ForecastConstant, DynamicCalibration), "Capital hurdle rate premium by industry."
 end
 
 # ============================================================================

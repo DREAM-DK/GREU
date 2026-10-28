@@ -2,6 +2,7 @@
 # The static result supplies start values for the dynamic solve.
 using Revise
 using SquareModels
+include("sqm_patch.jl")
 import GREU:
   Settings,
   Time,
@@ -78,4 +79,6 @@ unload(joinpath(output_dir, "baseline.parquet"), baseline)
 # Write baseline report
 # ==============================================================================
 include("BaselineReport.jl")
-isnothing(previous_solution) || BaselineReport.write_report("Baseline" => baseline, "Previous baseline" => previous_solution)
+isnothing(previous_solution) ?
+  BaselineReport.write_report("Baseline" => baseline) :
+  BaselineReport.write_report("Baseline" => baseline, "Previous baseline" => previous_solution)

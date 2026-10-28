@@ -134,9 +134,21 @@ function define_equations()
     vI_k_i[k=capital_type, i=industry, t=t1:T], vI_k_i[k,i,t] == pI_k[k,t] * qI_k_i[k,i,t]
 
     # Lagged investment sets the user cost of capital installed for this period.
-    pK_k_i[k=capital_type, i=industry, t=t1:T],
+    pK_k_i[k=capital_type, i=industry, t=t1:T; !(t in (tBase, tBase+1))],
     pK_k_i[k,i,t] == (
         pI_k[k,t-1]/fp + dvCorpTax2dqI_k_i[k,i,t-1]/fp
+        - (1 - rKDepr_k_i[k,i,t]) / (1 + rHurdleRate_i[i,t]) *
+          (pI_k[k,t] + dvCorpTax2dqI_k_i[k,i,t])
+        + dvCorpTax2dqK_k_i[k,i,t]
+      ) / (1 - mtCorp_i[i,t])
+      + ntK_k_i[k,i,t]
+      + pKAdjCost_k_i[k,i,t]
+
+    # Base year and the year after: expected investment-price growth equals trend (fp),
+    # so the data price history does not create a capital gain or loss.
+    pK_k_i[k=capital_type, i=industry, t=t1:T; t in (tBase, tBase+1)],
+    pK_k_i[k,i,t] == (
+        pI_k[k,t]/fp + dvCorpTax2dqI_k_i[k,i,t]/fp
         - (1 - rKDepr_k_i[k,i,t]) / (1 + rHurdleRate_i[i,t]) *
           (pI_k[k,t] + dvCorpTax2dqI_k_i[k,i,t])
         + dvCorpTax2dqK_k_i[k,i,t]
