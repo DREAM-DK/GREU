@@ -37,7 +37,7 @@ end
 # Assign data
 # ============================================================================
 function assign_data!(db)
-  db[fKAdjCost] .= 0.01
+  db[fKAdjCost] .= 10
   return nothing
 end
 

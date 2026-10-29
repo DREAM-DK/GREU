@@ -11,6 +11,7 @@ import ..DataUtils: fill_cells!, read_cells, read_series
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutputSettings:
   final_uses,
+  industry_label as source_industry_label,
   origin,
   product,
   source_industry,
@@ -63,6 +64,7 @@ const industry = sort(unique(
   if year == calibration_year && abs(value) > cell_tolerance
 ))
 @assert industry ⊆ source_industry "Output data contain an unknown industry"
+const industry_label = Dict(i => source_industry_label[i] for i in industry)
 
 const use = [industry; final_uses]
 @assert allunique(use) "Industry and final-use labels must be distinct"
@@ -238,7 +240,6 @@ const pM_p = pSupply_p_o[:,import_origin,:]
   rMarginRate[(p,u,t)=qMarginBundle_p_u] :: ForecastConstant, "Margin-bundle units per unit of purchaser use"
   ntProduct[p=product, u=use, o=origin, t=t; (p,u,t) in product_tax_p_u_t && (p,u,o,t) in purchaser_use_p_u_o_t && u != :INV] :: ForecastConstant, "Net product tax per unit by origin"
   tVAT[(p,u,o,t)=qPurchaserUse_p_u_o] :: ForecastConstant, "Separate VAT rate; zero while ntProduct includes VAT"
-  fG[t], "Scale factor on government consumption. One unless a module endogenizes it"
 end
 
 @assert Set(p for (p, _, year) in keys(vY_p_i) if year == calibration_year) ==
@@ -263,7 +264,6 @@ function assign_data!(db)
   fill_cells!(db, qI, qI_data)
   fill_cells!(db, qMarginService_s_u, qMarginService_s_u_data)
   db[tVAT] .= 0.0
-  db[fG] .= 1.0
   db[pY_i] .= 1.0
   # Normalize the import price in the base year only. ForecastConstant holds it flat in
   # adjusted units, so foreign prices grow at the same long-run rate as domestic prices.
@@ -294,7 +294,7 @@ function define_equations()
     # Direct product demand. Inventories bypass the module links.
     qPurchaserUse_p_u[p=product, i=industry, t=t1:T], qPurchaserUse_p_u[p,i,t] == qM_p_i[p,i,t]
     qPurchaserUse_p_u[p=product, u=:C, t=t1:T], qPurchaserUse_p_u[p,u,t] == qC_p[p,t]
-    qPurchaserUse_p_u[p=product, u=:G, t=t1:T], qPurchaserUse_p_u[p,u,t] == fG[t] * qG_p[p,t]
+    qPurchaserUse_p_u[p=product, u=:G, t=t1:T], qPurchaserUse_p_u[p,u,t] == qG_p[p,t]
     qPurchaserUse_p_u[p=product, u=:K, t=t1:T], qPurchaserUse_p_u[p,u,t] == qI_p[p,t]
     qPurchaserUse_p_u[p=product, u=:X, t=t1:T], qPurchaserUse_p_u[p,u,t] == qX_p[p,t]
 

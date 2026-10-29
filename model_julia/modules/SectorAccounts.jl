@@ -13,6 +13,7 @@ module SectorAccounts
 using SquareModels
 import ..DataUtils: fill_cells!, read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
+import ..Tags: ForecastConstant, ForecastZero
 import ..SectorAccountsSettings: sector_accounts_data_dir, cell_tolerance
 import ..Settings: calibration_year
 import ..model
@@ -134,9 +135,10 @@ const SectorAccountsTag = Tag(:SectorAccounts)
   vtCap[t], "Capital taxes paid by households and received by government (D.91)."
   vSocialContributions[s=sector, t=t], "Social insurance and pension contributions received less paid, after scheme service charges (D.61)."
   vSocialBenefits[s=sector, t=t], "Cash and other non-kind social benefits received less paid, including pension benefits (D.62)."
-  vNetPensionSaving[t], "Net pension saving received by households and paid by financial corporations (D.8)."
+  # TODO: Model pension saving. The constant forecast holds the calibration-year flow.
+  vNetPensionSaving[t] :: ForecastConstant, "Net pension saving received by households and paid by financial corporations (D.8)."
   vOtherTransfers[s=sector, t=t], "Other current and capital transfers received less paid (D.7, D.92, and D.99)."
-  vNonProducedAssetAcquisitions[s=sector, t=t], "Purchases less sales of land, mineral and energy reserves, other natural resources, and transferable contracts, leases, and licences (NP)."
+  vNonProducedAssetAcquisitions[s=sector, t=t] :: ForecastZero, "Purchases less sales of land, mineral and energy reserves, other natural resources, and transferable contracts, leases, and licences (NP)."
 
   vGovBalance[t], "Government net lending or borrowing (B.9)."
   vGrossOpSurplusMixedIncome[s=sector, t=t; s in calibration_year_axis(vGrossOpSurplusMixedIncome_data)], "Gross operating surplus and mixed income by sector (B.2g+B.3g)."

@@ -31,7 +31,7 @@ scenario[Labor.qL2nL[t1:T]] .*= 1.01 # replace this line to shock another exogen
 # Report settings
 report_file = "shock_report.html"
 shock_title = "Labour productivity shock"
-extra_figures=[(_, _, options) -> "Employment" => @plot(sum(nL_l_i[l,i,:] for (l, i) in labor_l_i); options...)]
+extra_figures = [options -> "Labour productivity" => @plot(Labor.qL2nL; options...)]
 
 # ==============================================================================
 # Write one HTML report for the solved scenario.

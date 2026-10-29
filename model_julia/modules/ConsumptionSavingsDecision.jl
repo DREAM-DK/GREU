@@ -42,7 +42,7 @@ end
   eHhConsumption, "Curvature of utility from consumption above the reference level."
   eHhWealth, "Curvature of utility from real wealth."
   uHhWealthPreference :: DynamicCalibration, "Preference weight on end-of-period real wealth."
-end 
+end
 
 # ============================================================================
 # Assign data
@@ -54,7 +54,6 @@ function assign_data!(db)
   db[βHh] = 0.96
   db[eHhConsumption] = 1/0.8
   db[eHhWealth] = 1/0.8
-
 
   @assert 0 <= db[rHtM[t1]] <= 1 "The hand-to-mouth income share must be in [0, 1]"
   @assert 0 <= db[rCHabits[t1]] < 1 "The external habit factor must be in [0, 1)"
@@ -86,7 +85,8 @@ function define_equations()
     qCxRef[t=t1:T],
     qCxRef[t] == qC[t] - rCHabits[t] * qC[t-1]/fq - rHtM[t] * vHtMIncome[t] / pC[t]
 
-    dU2dC[t=t1:T], dU2dC[t] * qCxRef[t]^eHhConsumption == 1
+    # Scale consumption and wealth by base-year levels, so marginal utilities are near one.
+    dU2dC[t=t1:T], dU2dC[t] * (qCxRef[t]/qCxRef[tBase])^eHhConsumption == 1
 
     dU2dWealth[t=t1:T], dU2dWealth[t] * (qHhWealth[t]/qHhWealth[tBase])^eHhWealth == uHhWealthPreference
 
