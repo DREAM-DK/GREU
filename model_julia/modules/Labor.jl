@@ -11,6 +11,7 @@ import ..InputOutput: industry
 import ..Production: pProd, qProd, nL_l_i_data, labor_l_i
 import ..ProductionSettings: labor_type, production_data_dir
 import ..model
+import ..Settings: model_modules
 import ..Time: t, t1, T, tBase
 import ..Tags: ForecastConstant
 
@@ -97,7 +98,8 @@ function define_equations()
 
     pL_l_i[l=labor_type, i=industry, t=t1:T], pL_l_i[l,i,t] == pW[t] + ntL_l_i[l,i,t]
 
-    pProd[l=labor_type, i=industry, t=t1:T], pProd[l,i,t] == pL_l_i[l,i,t] / pL_l_i[l,i,tBase]
+    pProd[l=labor_type, i=industry, t=t1:T; !(:LaborNesting in model_modules)],
+      pProd[l,i,t] == pL_l_i[l,i,t] / pL_l_i[l,i,tBase]
 
     vWages_i[i=industry, t=t1:T], vWages_i[i,t] == vW[t] * ∑(nL_l_i[l,i,t] for l in labor_type)
 

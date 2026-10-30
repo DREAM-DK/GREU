@@ -32,6 +32,7 @@ const macro_core_modules = [
 
   :Production,
   :Labor,
+  :LaborNesting, # Optional CES decomposition of aggregate labor
   :Intermediates,
   :Capital,
   :Taxes,
@@ -69,7 +70,7 @@ const loaded_modules = [
   macro_accounting_modules...,
   macro_core_modules...,
   macro_rigidity_modules...,
-  green_transition_modules...,
+  # green_transition_modules...,
 ]
 
 # Model modules also add equations to the base model and calibration.
@@ -78,7 +79,7 @@ model_modules::Vector{Symbol} = [
   macro_accounting_modules...,
   macro_core_modules...,
   macro_rigidity_modules...,
-  green_transition_modules...,
+  # green_transition_modules...,
 ]
 
 # JuMP `Model` configured as a square nonlinear system for the selected backend.
