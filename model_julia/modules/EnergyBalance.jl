@@ -134,8 +134,10 @@ end
 # Calibration
 # ==============================================================================
 function define_calibration(base=define_equations())
+  return copy(base)
   return base
 end
+
 
 
 

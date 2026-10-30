@@ -60,6 +60,7 @@ const macro_rigidity_modules = [
 
 const green_transition_modules = [
   :EnergyBalance,
+  :Emissions,
 ]
 
 
