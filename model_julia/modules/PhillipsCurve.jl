@@ -5,7 +5,8 @@ module PhillipsCurve
 
 using SquareModels
 import ..GrowthInflationAdjustment: fv
-import ..Labor: vW, nLSupplyHh, nLSupplyRoW
+import ..Labor: vWType, nLSupplyHhType, nLSupplyRoWType
+import ..Labor.LaborNestingSettings: labor_types
 import ..model
 import ..Time: t, t1, T
 import ..Tags: ForecastConstant
@@ -16,15 +17,15 @@ import ..Tags: ForecastConstant
 const PhillipsCurveTag = Tag(:PhillipsCurve)
 
 @variables model :: PhillipsCurveTag begin
-  rWInflation[t], "Nominal wage inflation."
-  rLEmploymentGap[t], "Employment gap relative to structural labor supply."
-  uPhillipsCurveEmployment[t] :: ForecastConstant, "Response of wage inflation to the employment gap."
+  rWInflation[l=labor_types, t=t], "Nominal wage inflation."
+  rLEmploymentGap[l=labor_types, t=t], "Employment gap relative to structural labor supply."
+  uPhillipsCurveEmployment[l=labor_types, t=t] :: ForecastConstant, "Response of wage inflation to the employment gap."
   uPhillipsCurveExpectedInflation, "Weight on the expected wage inflation change."
 end
 
 @variables model :: (PhillipsCurveTag, ForecastConstant) begin
-  snLSupplyHh[t], "Structural household persons."
-  snLSupplyRoW[t], "Structural rest-of-world persons."
+  snLSupplyHh[l=labor_types, t=t], "Structural household persons."
+  snLSupplyRoW[l=labor_types, t=t], "Structural rest-of-world persons."
 end
 
 # ============================================================================
@@ -50,23 +51,23 @@ end
 function define_equations()
   return @block model begin
     # Rest-of-world employment stays exogenous for now.
-    rLEmploymentGap[t=t1:T],
-    1 + rLEmploymentGap[t] ==
-      (nLSupplyHh[t] + nLSupplyRoW[t]) / (snLSupplyHh[t] + snLSupplyRoW[t])
+    rLEmploymentGap[l=labor_types, t=t1:T],
+    1 + rLEmploymentGap[l,t] ==
+      (nLSupplyHhType[l,t] + nLSupplyRoWType[l,t]) / (snLSupplyHh[l,t] + snLSupplyRoW[l,t])
 
     # The wage is growth and inflation adjusted, so a constant vW is wage growth at trend.
-    rWInflation[t=t1:T], 1 + rWInflation[t] == vW[t] / vW[t-1] * fv
+    rWInflation[l=labor_types, t=t1:T], 1 + rWInflation[l,t] == vWType[l,t] / vWType[l,t-1] * fv
 
     # Current wage inflation depends on its lag, the employment gap, and the
     # expected change from lagged to future wage inflation.
-    nLSupplyHh[t=(t1+1):(T-1)],
-    rWInflation[t] == rWInflation[t-1]
-      + uPhillipsCurveEmployment[t] * rLEmploymentGap[t]
-      + uPhillipsCurveExpectedInflation * (rWInflation[t+1] - rWInflation[t-1])
+    nLSupplyHhType[l=labor_types, t=(t1+1):(T-1)],
+    rWInflation[l,t] == rWInflation[l,t-1]
+      + uPhillipsCurveEmployment[l,t] * rLEmploymentGap[l,t]
+      + uPhillipsCurveExpectedInflation * (rWInflation[l,t+1] - rWInflation[l,t-1])
 
     # The terminal equation drops the expected future change.
-    nLSupplyHh[t=T; T > t1],
-    rWInflation[t] == rWInflation[t-1] + uPhillipsCurveEmployment[t] * rLEmploymentGap[t]
+    nLSupplyHhType[l=labor_types, t=T; T > t1],
+    rWInflation[l,t] == rWInflation[l,t-1] + uPhillipsCurveEmployment[l,t] * rLEmploymentGap[l,t]
   end
 end
 
@@ -75,8 +76,8 @@ end
 # ============================================================================
 function define_calibration(base=define_equations())
   return copy(base) + @block model begin
-    snLSupplyHh[t1], snLSupplyHh[t1] == nLSupplyHh[t1]
-    snLSupplyRoW[t1], snLSupplyRoW[t1] == nLSupplyRoW[t1]
+    snLSupplyHh[l=labor_types, t=t1], snLSupplyHh[l,t1] == nLSupplyHhType[l,t1]
+    snLSupplyRoW[l=labor_types, t=t1], snLSupplyRoW[l,t1] == nLSupplyRoWType[l,t1]
   end
 end
 

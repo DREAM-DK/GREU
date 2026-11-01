@@ -16,6 +16,7 @@ import GREU.InputOutput: industry, pC, pG, pI, pM, pX, qC, qG, qI, qINV, qM, qX,
 import GREU.Intermediates: vM_i
 import GREU.Labor: labor_l_i, pL_l_i, vW, nL_l_i, qL_l_i, vWages_i
 import GREU.PhillipsCurve: rLEmploymentGap, rWInflation
+import GREU.Labor.LaborNestingSettings: labor_types
 import GREU.SectorAccounts: sector, vFinPosition_s_f, vNetFinAssets, vNetFinTransactions
 import GREU.Time
 import GREU.Settings
@@ -169,8 +170,8 @@ closure_panels(years) = [Panel(name, values, years) for (name, values) in [
   "Government debt over GDP" => @evalexpr(vFinPosition_s_f[:Gov,:Debt,:Liab,:] / vGDP),
   "Rest-of-world net financial assets over GDP" => @evalexpr(vNetFinAssets[:RoW,:] / vGDP),
   "Household debt over consumption" => @evalexpr(vFinPosition_s_f[:Hh,:Debt,:Liab,:] / vC),
-  "Employment gap" => @evalexpr(rLEmploymentGap),
-  "Wage inflation" => @evalexpr(rWInflation),
+  ["Employment gap ($(l))" => @evalexpr(rLEmploymentGap[l, :]) for l in labor_types]...,
+  ["Wage inflation ($(l))" => @evalexpr(rWInflation[l, :]) for l in labor_types]...,
   ["Net lending over GDP: $s" => @evalexpr(vNetFinTransactions[s,:] / vGDP) for s in sector]...,
   "Net lending over GDP: all sectors" => @evalexpr(sum(vNetFinTransactions[s,:] for s in sector) / vGDP),
 ]]

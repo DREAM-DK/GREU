@@ -11,7 +11,7 @@ import ..DataUtils: read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..Production: qProd, pProd, labor_l_i
 import ..ProductionSettings: production_data_dir
-import ..Labor: pL_l_i
+import ..Labor: pL_l_i, pLType_i, nLType, nL_l_i
 import ..LaborNestingSettings: labor_types, full_nesting
 import ..InputOutput: industry
 import ..Settings: calibration_year
@@ -106,10 +106,21 @@ function define_equations()
     qLaborNode[n=nodes, i=industry, t=t1:T; n == top && i in active_industries],
       qLaborNode[n,i,t] == qProd[:labor,i,t]
 
-    # In step 1, types inherit the existing common wage/user cost.
-    # Type-specific wages and taxes are deferred to a later step.
+    # Allocate each industry's observed/modelled headcount using CES quantity
+    # shares rather than wage-bill shares. This avoids defining nLType as a
+    # fraction of aggregate labor supply, which created a circular identity.
+    # Quantity shares are a provisional headcount proxy: the CES leaves must
+    # represent comparable labor units within each industry.
+    nLType[l=labor_types, t=t1:T],
+      nLType[l,t] == ∑(
+        nL_l_i[:labor,i,t] * qLaborNode[l,i,t] /
+          ∑(qLaborNode[c,i,t] for c in labor_types)
+        for i in active_industries)
+
+    # Step 3A: prices now flow through explicit type-specific labor costs.
+    # The wage bridge in Labor.jl keeps the original baseline unchanged.
     pLaborNode[n=labor_types, i=industry, t=t1:T; i in active_industries],
-      pLaborNode[n,i,t] == pL_l_i[:labor,i,t] / pL_l_i[:labor,i,tBase]
+      pLaborNode[n,i,t] == pLType_i[n,i,t] / pLType_i[n,i,tBase]
 
     # Each internal CES price is the value-weighted unit cost of its children.
     pLaborNode[n=inner_nodes, i=industry, t=t1:T; i in active_industries],
