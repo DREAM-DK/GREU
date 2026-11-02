@@ -7,7 +7,7 @@ using SquareModels
 import ..GrowthInflationAdjustment: fv
 import ..Labor: vW, nLSupplyHh, nLSupplyRoW
 import ..model
-import ..Time: t, t1, T
+import ..Time: t, t1, T, tBase
 import ..Tags: ForecastConstant
 
 # ============================================================================
@@ -59,10 +59,17 @@ function define_equations()
 
     # Current wage inflation depends on its lag, the employment gap, and the
     # expected change from lagged to future wage inflation.
-    nLSupplyHh[t=(t1+1):(T-1)],
+    nLSupplyHh[t=(t1+1):(T-1); t != tBase+1],
     rWInflation[t] == rWInflation[t-1]
       + uPhillipsCurveEmployment[t] * rLEmploymentGap[t]
       + uPhillipsCurveExpectedInflation * (rWInflation[t+1] - rWInflation[t-1])
+
+    # The base year has a zero employment gap, so its consistent wage inflation is trend
+    # (fv - 1). The year after starts from trend, not from the data-year rate.
+    nLSupplyHh[t=(t1+1):(T-1); t == tBase+1],
+    rWInflation[t] == (fv - 1)
+      + uPhillipsCurveEmployment[t] * rLEmploymentGap[t]
+      + uPhillipsCurveExpectedInflation * (rWInflation[t+1] - (fv - 1))
 
     # The terminal equation drops the expected future change.
     nLSupplyHh[t=T; T > t1],

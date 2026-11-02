@@ -54,7 +54,11 @@ function dynamic_calibration(data, static_solution, static_calibrated_parameters
     dynamic_calibration_block, exogenous_values, start_values, setdiff(loaded_modules, model_modules),
   )
 
-  if !isnothing(previous_solution)
+  if isnothing(previous_solution)
+    # Start every future year at the static solution (flat in growth- and inflation-adjusted terms).
+    extend_start_values!(dynamic_calibration_block, start_values, Settings.calibration_year)
+    set_forecast_start_values!(dynamic_calibration_block, start_values, Settings.calibration_year)
+  else
     previous_solution_vars = filter(variables(dynamic_calibration_block)) do var
       year = variable_year(var)
       !isnothing(year) && year > Time.t1 && !isnothing(previous_solution[var])
@@ -101,4 +105,49 @@ function dynamic_calibration_step_by_step(
   end
 
   return baseline
+end
+
+
+# ============================================================================
+# Forecast start values
+# ============================================================================
+import JuMP
+import GREU.GrowthInflationAdjustment: fq, fv
+
+# Flows that the forecast rules set to zero. 2019 has one-off revaluations and volume changes.
+const zero_start_variables = Set([
+  "vFinReval_s_f", "rFinReval_s_f", "rFinReval_f", "vNetFinReval",
+  "vOtherChangesInVolume_f", "vNetOtherChangesInVolume",
+])
+# Inventory changes halve each year in the forecast.
+const fading_start_variables = Set(["vINV", "qINV", "vINV_s"])
+is_inventory_cell(name) = occursin(r"[\[,]INV,", name)
+
+"""
+Improve flat start values for forecast years where the static solution is far from the
+forecast path: zero for one-off financial flows, a fading path for inventories, trend wage
+inflation, and investment that keeps each capital stock flat.
+"""
+function set_forecast_start_values!(block, start_values, t0)
+  model = block.model
+  for v in variables(block)
+    year = variable_year(v)
+    (isnothing(year) || year <= t0) && continue
+    name = JuMP.name(v)
+    base = first(split(name, '['))
+    if base in zero_start_variables
+      start_values[v] = 0.0
+    elseif base in fading_start_variables || is_inventory_cell(name)
+      start_values[v] = something(start_values[Time.at_year(v, t0)], 0.0) * 0.5^(year - t0)
+    elseif base == "rWInflation"
+      start_values[v] = fv - 1
+    elseif base == "qI_k_i"
+      key = name[length("qI_k_i[")+1:findlast(',', name)-1]
+      qK = start_values[SquareModels.variable_by_name(model, "qK_k_i[$key,$t0]")]
+      depr = start_values[SquareModels.variable_by_name(model, "rKDepr_k_i[$key,$t0]")]
+      (isnothing(qK) || isnothing(depr)) && continue
+      start_values[v] = qK * (1 - (1 - depr) / fq)
+    end
+  end
+  return nothing
 end
