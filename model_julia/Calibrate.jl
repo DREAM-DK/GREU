@@ -50,8 +50,8 @@ assert_residuals_small(static_solution; rtol=1e-4, residual_tolerances(static_so
 # ==============================================================================
 # Dynamic calibration
 # ==============================================================================
-# previous_solution_path = joinpath(output_dir, "previous_baseline.parquet")
-# previous_solution = (isfile(previous_solution_path) ? load(previous_solution_path, model) : nothing)
+previous_solution_path = joinpath(output_dir, "previous_baseline.parquet")
+previous_solution = (isfile(previous_solution_path) ? load(previous_solution_path, model) : nothing)
 
 # Step by step is used only when no previous solution is available as start values.
 baseline = @log_time "dynamic calibration" dynamic_calibration(
