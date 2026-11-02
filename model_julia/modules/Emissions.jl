@@ -95,9 +95,9 @@ const EmissionsTag = Tag(:Emissions)
   qEmmBunkering_g[g=co2e_gas, t=t; g in bunkering_g], "Emissions from fuel that resident ships, lorries and fishing vessels buy abroad."
   qEmmInternationalAviation_g_d[g=co2e_gas, d=account, t=t; (g,d) in aviation_g_d], "Emissions from fuel that resident aircraft buy abroad, by industry."
   qEmmInternationalAviation_g[g=co2e_gas, t=t; g in aviation_g], "Emissions from fuel that resident aircraft buy abroad."
-  qEmmBorderTrade_g[g=co2e_gas, t=t; g in border_trade_g], "Emissions from fuel that non-residents buy in the country, with a minus."
-  qEmmOtherDifferences_g[g=co2e_gas, t=t; g in other_differences_g], "Other differences between the residence total and the inventory."
-  qEmmLULUCF_g[g=co2e_gas, t=t; g in lulucf_g], "Emissions from land use, land-use change and forestry."
+  qEmmBorderTrade_g[g=co2e_gas, t=t; g in border_trade_g] :: ForecastConstant, "Emissions from fuel that non-residents buy in the country, with a minus."
+  qEmmOtherDifferences_g[g=co2e_gas, t=t; g in other_differences_g] :: ForecastConstant, "Other differences between the residence total and the inventory."
+  qEmmLULUCF_g[g=co2e_gas, t=t; g in lulucf_g] :: ForecastConstant, "Emissions from land use, land-use change and forestry."
   qEmmTot_g_b[g=co2e_gas, b=inventory, t=t], "Emissions of the whole economy by gas and inventory."
   qEmmTotCO2e_b[b=inventory, t=t], "Greenhouse gas emissions of the whole economy by inventory, in CO2 equivalents."
 end
