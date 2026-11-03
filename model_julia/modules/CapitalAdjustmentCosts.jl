@@ -28,7 +28,6 @@ end
 @variables model :: CapitalAdjustmentCostsTag begin
   fKAdjCost[(k,i,t)=qK_k_i] :: ForecastConstant, "Adjustment-cost factor by capital type and industry."
   rKCapitalGrowthChange[(k,i,t)=qK_k_i], "Change in the capital growth rate by type and industry."
-  rKGrowthSmoothed[(k,i,t)=qK_k_i], "Smoothed capital growth factor by type and industry in the base year."
   dKAdjCost2dK[(k,i,t)=qK_k_i], "Adjustment-cost derivative for current capital by type and industry."
   dKAdjCost2dKLag[(k,i,t)=qK_k_i], "One-period-ahead adjustment-cost derivative by type and industry."
   dKAdjCost2dKLag2[(k,i,t)=qK_k_i], "Two-period-ahead adjustment-cost derivative by type and industry."
@@ -40,14 +39,11 @@ end
 function assign_data!(db)
   db[fKAdjCost] .= 10
 
-  # Base year: two-year steps (2015-17 and 2017-19), because single-year changes in the
-  # capital data are noisy. Growth change per year, and average growth 2017-19 as the
-  # reference for the first forecast year.
+  # Base year: growth change over two-year steps (2015-17 and 2017-19), per year,
+  # because single-year changes in the capital data are noisy.
   K(k, i, t) = db[qK_k_i[k,i,t]]
   db[[rKCapitalGrowthChange[k,i,tBase] for (k,i) in capital_k_i]] .=
     [(sqrt(K(k,i,tBase) / K(k,i,tBase-2)) - sqrt(K(k,i,tBase-2) / K(k,i,tBase-4))) / 2 for (k,i) in capital_k_i]
-  db[[rKGrowthSmoothed[k,i,tBase] for (k,i) in capital_k_i]] .=
-    [sqrt(K(k,i,tBase) / K(k,i,tBase-2)) for (k,i) in capital_k_i]
   return nothing
 end
 
@@ -64,13 +60,9 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    rKCapitalGrowthChange[k=capital_type, i=industry, t=t1:T; t > tBase+1],
+    # The base year has no equation: rKCapitalGrowthChange is data there (see assign_data!).
+    rKCapitalGrowthChange[k=capital_type, i=industry, t=t1:T; t > tBase],
     rKCapitalGrowthChange[k,i,t] == qK_k_i[k,i,t] / qK_k_i[k,i,t-1]*fq - qK_k_i[k,i,t-1] / qK_k_i[k,i,t-2]*fq
-
-    # The year after the base year measures its growth against smoothed base-year growth
-    # (see assign_data!), not against one noisy data year.
-    rKCapitalGrowthChange[k=capital_type, i=industry, t=t1:T; t == tBase+1],
-    rKCapitalGrowthChange[k,i,t] == qK_k_i[k,i,t] / qK_k_i[k,i,t-1]*fq - rKGrowthSmoothed[k,i,t-1]
 
     qKAdjCost_k_i[k=capital_type, i=industry, t=t1:T],
     qKAdjCost_k_i[k,i,t] == fKAdjCost[k,i,t] / 2 * rKCapitalGrowthChange[k,i,t]^2 * qK_k_i[k,i,t-1]/fq

@@ -99,6 +99,8 @@ end
 # ============================================================================
 
 function define_calibration(base=define_equations())
+  block = copy(base)
+  
   @endo_exo_swap! block begin
     rFinReval_s_f[s=sector, f=[:Debt], al=ass_liab, t=[t1]],
     vFinReval_s_f[s=sector, f=[:Debt], al=ass_liab, t=[t1]]
