@@ -129,7 +129,7 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
   rG_g[g,t]$(first(g)).. vG[t] =E= vG2vGDP[t] * vGDP[t];  # Government consumption expenditure to GDP ratio
   qD[g,t].. vD[g,t] =E= rG_g[g,t] * vG[t];
 
-  .. vHhTransfers[t] =E= pW[t-3] * qPopTransfers[t]; 
+  .. vHhTransfers[t] =E= pW[t] * qPopTransfers[t]; 
 
   .. vGovExpOther[t] =E= vGovSub[t] + vGov2Corp[t] + vGov2Foreign[t] + vGovNetAcquisitions[t];
 
