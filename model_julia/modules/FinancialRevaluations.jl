@@ -99,12 +99,6 @@ end
 # ============================================================================
 
 function define_calibration(base=define_equations())
-  block = copy(base) + @block model begin
-    # Keep required returns constant after t1+1.
-    rFirmRequiredReturn_s[s=equity_issuer, t=(t1+2):T],
-    rFirmRequiredReturn_s[s,t] == rFirmRequiredReturn_s[s,t1+1]
-  end
-
   @endo_exo_swap! block begin
     rFinReval_s_f[s=sector, f=[:Debt], al=ass_liab, t=[t1]],
     vFinReval_s_f[s=sector, f=[:Debt], al=ass_liab, t=[t1]]
@@ -132,7 +126,7 @@ function define_calibration(base=define_equations())
     end
 
     block = block + @block model begin
-      rFirmRequiredReturn_s[s=equity_issuer, t=[t1]],
+      rFirmRequiredReturn_s[s=equity_issuer, t=t1:T; t != t1+1],
       rFirmRequiredReturn_s[s,t] == rFirmRequiredReturn_s[s,t1+1]
     end
   end
