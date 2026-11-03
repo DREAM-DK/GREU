@@ -10,7 +10,7 @@ import ..Capital:
   rHurdleRate_i
 import ..GrowthInflationAdjustment: GrowthAdjusted, fp, fq
 import ..InputOutput: industry
-import ..Production: pProd, qProductionLoss, qK_k_i_data, topNest
+import ..Production: capital_k_i, pProd, qProductionLoss, topNest
 import ..ProductionSettings: capital_type
 import ..model
 import ..Time: t1, T, tBase
@@ -28,6 +28,7 @@ end
 @variables model :: CapitalAdjustmentCostsTag begin
   fKAdjCost[(k,i,t)=qK_k_i] :: ForecastConstant, "Adjustment-cost factor by capital type and industry."
   rKCapitalGrowthChange[(k,i,t)=qK_k_i], "Change in the capital growth rate by type and industry."
+  rKGrowthSmoothed[(k,i,t)=qK_k_i], "Smoothed capital growth factor by type and industry in the base year."
   dKAdjCost2dK[(k,i,t)=qK_k_i], "Adjustment-cost derivative for current capital by type and industry."
   dKAdjCost2dKLag[(k,i,t)=qK_k_i], "One-period-ahead adjustment-cost derivative by type and industry."
   dKAdjCost2dKLag2[(k,i,t)=qK_k_i], "Two-period-ahead adjustment-cost derivative by type and industry."
@@ -38,6 +39,15 @@ end
 # ============================================================================
 function assign_data!(db)
   db[fKAdjCost] .= 10
+
+  # Base year: two-year steps (2015-17 and 2017-19), because single-year changes in the
+  # capital data are noisy. Growth change per year, and average growth 2017-19 as the
+  # reference for the first forecast year.
+  K(k, i, t) = db[qK_k_i[k,i,t]]
+  db[[rKCapitalGrowthChange[k,i,tBase] for (k,i) in capital_k_i]] .=
+    [(sqrt(K(k,i,tBase) / K(k,i,tBase-2)) - sqrt(K(k,i,tBase-2) / K(k,i,tBase-4))) / 2 for (k,i) in capital_k_i]
+  db[[rKGrowthSmoothed[k,i,tBase] for (k,i) in capital_k_i]] .=
+    [sqrt(K(k,i,tBase) / K(k,i,tBase-2)) for (k,i) in capital_k_i]
   return nothing
 end
 
@@ -50,51 +60,6 @@ function set_starting_values!(start_values)
 end
 
 # ============================================================================
-# Capital growth momentum in the base year
-# ============================================================================
-# Reference growth for the first model year, as a gross factor (1 + growth).
-# Industry part: median yearly capital growth over the last `momentum_years` data years.
-#   The median keeps persistent trends (e.g. shrinking building stocks) and ignores
-#   single one-off years (e.g. a -23% year).
-# Common part: one shift for all series, chosen so the capital-weighted momentum equals
-#   aggregate base-year growth. The economy then continues from where it actually was.
-# Each series is capped at trend growth +/- `momentum_cap`, so a multi-year building
-#   boom is not carried forward.
-const momentum_years = 4
-const momentum_cap = 0.05
-
-_median(x) = (s = sort(collect(x)); n = length(s); isodd(n) ? s[(n+1)÷2] : (s[n÷2] + s[n÷2+1]) / 2)
-_kdata(k, i, year) = get(qK_k_i_data, (k, i, year), 0.0)
-const momentum_window = (tBase-momentum_years+1):tBase
-
-# Series with positive capital in every year of the window and the year before.
-const momentum_pairs = [(k, i) for (k, i, year) in keys(qK_k_i_data)
-  if year == tBase && all(y -> _kdata(k, i, y) > 0, (first(momentum_window)-1):tBase)]
-
-_growth(k, i, year) = _kdata(k, i, year) / _kdata(k, i, year-1) - 1
-const aggregate_base_growth = sum(_kdata(k, i, tBase) for (k, i) in momentum_pairs) /
-                              sum(_kdata(k, i, tBase-1) for (k, i) in momentum_pairs) - 1
-const median_growth = Dict((k, i) => _median(_growth(k, i, y) for y in momentum_window) for (k, i) in momentum_pairs)
-
-_capped(g) = clamp(g, (fq - 1) - momentum_cap, (fq - 1) + momentum_cap)
-_weighted_momentum(shift) = sum(_capped(median_growth[p] + shift) * _kdata(p..., tBase-1) for p in momentum_pairs) /
-                            sum(_kdata(p..., tBase-1) for p in momentum_pairs)
-
-# The cap makes the weighted momentum nonlinear in the shift, so iterate to the aggregate target.
-const momentum_shift = let shift = 0.0
-  for _ in 1:100
-    shift += aggregate_base_growth - _weighted_momentum(shift)
-  end
-  @assert abs(_weighted_momentum(shift) - aggregate_base_growth) < 1e-10 "Capital momentum shift did not converge"
-  shift
-end
-
-const kMomentum = Dict(p => 1 + _capped(median_growth[p] + momentum_shift) for p in momentum_pairs)
-
-# Series without a full history arrive with the aggregate base-year growth.
-kMomentum_or_aggregate(k, i) = get(kMomentum, (k, i), 1 + aggregate_base_growth)
-
-# ============================================================================
 # Equations
 # ============================================================================
 function define_equations()
@@ -102,14 +67,10 @@ function define_equations()
     rKCapitalGrowthChange[k=capital_type, i=industry, t=t1:T; t > tBase+1],
     rKCapitalGrowthChange[k,i,t] == qK_k_i[k,i,t] / qK_k_i[k,i,t-1]*fq - qK_k_i[k,i,t-1] / qK_k_i[k,i,t-2]*fq
 
-    # The year after the base year measures capital growth against the momentum the
-    # economy arrives with (see kMomentum), not against one noisy data year.
+    # The year after the base year measures its growth against smoothed base-year growth
+    # (see assign_data!), not against one noisy data year.
     rKCapitalGrowthChange[k=capital_type, i=industry, t=t1:T; t == tBase+1],
-    rKCapitalGrowthChange[k,i,t] == qK_k_i[k,i,t] / qK_k_i[k,i,t-1]*fq - kMomentum_or_aggregate(k, i)
-
-    # No growth change in the base year itself: the data year carries no adjustment cost.
-    rKCapitalGrowthChange[k=capital_type, i=industry, t=t1:T; t <= tBase],
-    rKCapitalGrowthChange[k,i,t] == 0
+    rKCapitalGrowthChange[k,i,t] == qK_k_i[k,i,t] / qK_k_i[k,i,t-1]*fq - rKGrowthSmoothed[k,i,t-1]
 
     qKAdjCost_k_i[k=capital_type, i=industry, t=t1:T],
     qKAdjCost_k_i[k,i,t] == fKAdjCost[k,i,t] / 2 * rKCapitalGrowthChange[k,i,t]^2 * qK_k_i[k,i,t-1]/fq
