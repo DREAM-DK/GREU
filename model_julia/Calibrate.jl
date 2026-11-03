@@ -53,9 +53,17 @@ assert_residuals_small(static_solution; rtol=1e-4, residual_tolerances(static_so
 previous_solution_path = joinpath(output_dir, "previous_baseline.parquet")
 previous_solution = (isfile(previous_solution_path) ? load(previous_solution_path, model) : nothing)
 
-# Step by step is used only when no previous solution is available as start values.
+# Default: one solve, starting from the static solution.
 baseline = @log_time "dynamic calibration" dynamic_calibration(
   data, static_solution, static_calibrated_parameters; base_blocks)
+
+# Step by step, in stages of `step` years:
+# baseline = @log_time "dynamic calibration" dynamic_calibration(
+#   data, static_solution, static_calibrated_parameters; base_blocks, step=5)
+
+# Starting from the previous baseline:
+# baseline = @log_time "dynamic calibration" dynamic_calibration(
+#   data, static_solution, static_calibrated_parameters; base_blocks, previous_solution)
 
 assert_residuals_small(baseline; rtol=1e-4, residual_tolerances(baseline, model_modules)...,
   msg="Large residuals after dynamic calibration")
