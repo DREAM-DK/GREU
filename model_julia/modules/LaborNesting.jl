@@ -11,7 +11,7 @@ import ..DataUtils: read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..Production: qProd, pProd, labor_l_i
 import ..ProductionSettings: production_data_dir
-import ..Labor: pL_l_i, pLType_i, nLType, nL_l_i
+import ..Labor: pL_l_i, pLType_i, nLType, nL_l_i, qL2nL
 import ..LaborNestingSettings: labor_types, full_nesting
 import ..InputOutput: industry
 import ..Settings: calibration_year
@@ -73,7 +73,31 @@ for i in active_industries
   end
 end
 
+# Base-year calibration: with unit leaf and nest prices, the CES quantity
+# share of a leaf equals the product of its conditional shares along the tree.
+# The type-specific conversion factor makes the observed type PERSON shares
+# agree with CES quantities in the base year. This is a fixed physical-unit
+# normalization, not a CES identity outside the calibration year.
+const productivity = Dict{Tuple{Symbol,Symbol},Float64}()
+for i in active_industries
+  total_people = sum(labor_data[(l,i,calibration_year)] for l in labor_types)
+  for l in labor_types
+    leaf_share = 1.0
+    child = l
+    while haskey(parent_node, child)
+      leaf_share *= shares[(child,i)]
+      child = parent_node[child]
+    end
+    person_share = labor_data[(l,i,calibration_year)] / total_people
+    productivity[(l,i)] = leaf_share / person_share
+    @assert isfinite(productivity[(l,i)]) && productivity[(l,i)] > 0
+  end
+end
+
 const LaborNestingTag = Tag(:LaborNesting)
+@variables model :: LaborNestingTag begin
+  nLaborType_i[l=labor_types, i=industry, t=t; i in active_industries], "Persons of labor type by industry."
+end
 @variables model :: (LaborNestingTag, GrowthAdjusted) begin
   qLaborNode[n=nodes, i=industry, t=t; i in active_industries], "CES labor quantities."
 end
@@ -82,12 +106,15 @@ end
 end
 @variables model :: LaborNestingTag begin
   uLaborNode[n=nodes, i=industry, t=t; (n,i) in keys(shares)] :: (ForecastConstant, DynamicCalibration), "CES conditional shares."
+  aLabor[l=labor_types, i=industry, t=t; i in active_industries] :: ForecastConstant, "Factor-augmenting labor productivity by labor type and industry."
 end
 JuMP.set_lower_bound.([pLaborNode[key...] for key in keys(pLaborNode)], 1e-4)
+JuMP.set_lower_bound.([aLabor[key...] for key in keys(aLabor)], 1e-4)
 
 function assign_data!(db)
   db[uLaborNode] .= [shares[(n,i)] for (n,i,yr) in keys(uLaborNode)]
   db[pLaborNode] .= 1.0
+  db[aLabor]     .= 1.0
   # Do not assign observed headcounts to qLaborNode. Those are not
   # production quantity units. Conditional shares are calibrated above;
   # the CES equations determine node quantities during calibration.
@@ -106,16 +133,22 @@ function define_equations()
     qLaborNode[n=nodes, i=industry, t=t1:T; n == top && i in active_industries],
       qLaborNode[n,i,t] == qProd[:labor,i,t]
 
-    # Allocate each industry's observed/modelled headcount using CES quantity
-    # shares rather than wage-bill shares. This avoids defining nLType as a
-    # fraction of aggregate labor supply, which created a circular identity.
-    # Quantity shares are a provisional headcount proxy: the CES leaves must
-    # represent comparable labor units within each industry.
+    # Explicit type-level PERSON demand, rather than a normalized CES share.
+    # pL_l_i[:labor,i,tBase] converts original qProd into efficiency units;
+    # productivity[(l,i)] calibrates type units to observed persons in tBase.
+    nLaborType_i[l=labor_types, i=industry, t=t1:T; i in active_industries],
+      qLaborNode[l,i,t] == productivity[(l,i)] *
+        nLaborType_i[l,i,t] * qL2nL[t] * pL_l_i[:labor,i,tBase]
+
+    # The aggregate headcount is the exact sum of type headcounts.
+    # This replaces Labor.jl's old direct qL2nL -> aggregate persons equation
+    # when LaborNesting is enabled; keeping both would overdetermine CES.
+    nL_l_i[l=:labor, i=industry, t=t1:T; i in active_industries],
+      nL_l_i[l,i,t] == ∑(nLaborType_i[k,i,t] for k in labor_types)
+
+    # Total persons of each type are obtained from industry-specific persons.
     nLType[l=labor_types, t=t1:T],
-      nLType[l,t] == ∑(
-        nL_l_i[:labor,i,t] * qLaborNode[l,i,t] /
-          ∑(qLaborNode[c,i,t] for c in labor_types)
-        for i in active_industries)
+      nLType[l,t] == ∑(nLaborType_i[l,i,t] for i in active_industries)
 
     # Step 3A: prices now flow through explicit type-specific labor costs.
     # The wage bridge in Labor.jl keeps the original baseline unchanged.
@@ -127,14 +160,30 @@ function define_equations()
       pLaborNode[n,i,t] * qLaborNode[n,i,t] ==
         ∑(pLaborNode[c,i,t] * qLaborNode[c,i,t] for c in children_of[n])
 
-    # Conditional CES factor demand at every binary nest.
-    qLaborNode[n=nodes, i=industry, t=t1:T; (n,i) in keys(shares)],
-      qLaborNode[n,i,t] * pLaborNode[n,i,t]^full_nesting[parent_node[n]].elasticity ==
-        uLaborNode[n,i,t] * qLaborNode[parent_node[n],i,t] *
-        pLaborNode[parent_node[n],i,t]^full_nesting[parent_node[n]].elasticity
+     # CES demand for primary labor types with factor-augmenting productivity.
+     qLaborNode[n=labor_types, i=industry, t=t1:T; (n,i) in keys(shares)],
+     (aLabor[n,i,t] * qLaborNode[n,i,t]) *
+       (pLaborNode[n,i,t] / aLabor[n,i,t])^full_nesting[parent_node[n]].elasticity ==
+       uLaborNode[n,i,t] * qLaborNode[parent_node[n],i,t] *
+       pLaborNode[parent_node[n],i,t]^full_nesting[parent_node[n]].elasticity
+
+   # CES demand for composite labor nodes without productivity adjustment.
+   qLaborNode[n=inner_nodes, i=industry, t=t1:T; (n,i) in keys(shares)],
+     qLaborNode[n,i,t] *
+       pLaborNode[n,i,t]^full_nesting[parent_node[n]].elasticity ==
+       uLaborNode[n,i,t] * qLaborNode[parent_node[n],i,t] *
+       pLaborNode[parent_node[n],i,t]^full_nesting[parent_node[n]].elasticity
   end
 end
 function define_calibration(base=define_equations())
-  return base
+  block = copy(base)
+  # The aggregate headcount equation belongs to LaborNesting when enabled.
+  # Calibrate aggregate production labor quantities from observed headcounts,
+  # just as the original Labor module did before CES disaggregation.
+  @endo_exo_swap! block begin
+    qProd[l=:labor, i=industry, t=t1; i in active_industries],
+      nL_l_i[l=:labor, i=industry, t=t1; i in active_industries]
+  end
+  return block
 end
 end # module LaborNesting

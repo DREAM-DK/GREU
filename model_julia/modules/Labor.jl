@@ -37,7 +37,7 @@ const LaborTag = Tag(:Labor)
   nLSupplyRoW[t] :: ForecastConstant, "Rest-of-world persons."
   nLSupplyHhType[l=nesting_labor_types, t=t], "Household labor supply by type."
   nLSupplyRoWType[l=nesting_labor_types, t=t] :: ForecastConstant, "Rest-of-world labor supply by type."
-  nLType[l=nesting_labor_types, t=t], "Employment by type from industry CES quantity shares."
+  nLType[l=nesting_labor_types, t=t], "Employment by type, summed from explicit industry/type persons."
 end
 
 @variables model :: (LaborTag, GrowthAdjusted) begin
@@ -105,7 +105,8 @@ function define_equations()
   return @block model begin
     qL_l_i[l=labor_type, i=industry, t=t1:T], qL_l_i[l,i,t] == qProd[l,i,t] / pL_l_i[l,i,tBase]
 
-    nL_l_i[l=labor_type, i=industry, t=t1:T], qL_l_i[l,i,t] == nL_l_i[l,i,t] * qL2nL[t]
+    nL_l_i[l=labor_type, i=industry, t=t1:T; !(:LaborNesting in model_modules)],
+      qL_l_i[l,i,t] == nL_l_i[l,i,t] * qL2nL[t]
 
     # Aggregate household supply is the sum across labor types.
     nLSupplyHh[t=t1:T],
@@ -166,9 +167,17 @@ function define_calibration(base=define_equations())
   block = copy(base)
 
   @endo_exo_swap! block begin
-    qProd[l=labor_type, i=industry, t=t1], nL_l_i[l=labor_type, i=industry, t=t1]
     qL2nL[t1], vW[t1]
     nLSupplyRoW[t1], vRoWNetWages[t1]
+  end
+
+  # With LaborNesting, nL_l_i is determined in LaborNesting.jl and is
+  # therefore not endogenous in this block. Keep the production quantity
+  # calibration swap only for the original, non-nested labor model.
+  if !(:LaborNesting in model_modules)
+    @endo_exo_swap! block begin
+      qProd[l=labor_type, i=industry, t=t1], nL_l_i[l=labor_type, i=industry, t=t1]
+    end
   end
 
   # Symmetric base-year closure: every labor type uses the same swap.
