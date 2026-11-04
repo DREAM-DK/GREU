@@ -1,32 +1,3 @@
-parameter
-  d1pEpj_base_CGE[es,e,d,t]
-  d1pEpj_CGE[es,e,d,t]
-  d1pEpj_marg_CGE[es,e,i,t]
-  d1pEpj_marg_inNest_CGE[es,e,i,t]
-  d1tqEpj_CGE[es,e,d,t]
-  d1qEpj_CGE[es,e,d,t]
-  # d1tCO2_ETS2_E_CGE[em,es,e,d,t]
-  d1EmmE_BU_CGE[em,es,e,d,t]
-  uEmmE_BU_CGE[em,es,e,d,t]
-  d1tCO2_E_CGE[em,es,e,d,t]
-  tCO2_Emarg_CGE[em,es,e,i,t]
-  d1tE_duty_CGE[etaxes,es,e,d,t]
-
-  d1pEpj_base_energy_technology[es,e,d,t]
-  d1pEpj_energy_technology[es,e,d,t]
-  d1pEpj_marg_energy_technology[es,e,i,t]
-  d1pEpj_marg_inNest_energy_technology[es,e,i,t]
-  d1tqEpj_energy_technology[es,e,d,t]
-  d1qEpj_energy_technology[es,e,d,t]
-  # d1tCO2_ETS2_E_energy_technology[em,es,e,d,t]
-  d1EmmE_BU_energy_technology[em,es,e,d,t]
-  uEmmE_BU_energy_technology[em,es,e,d,t]
-  d1tCO2_E_energy_technology[em,es,e,d,t]
-  tCO2_Emarg_energy_technology[em,es,e,i,t]
-  d1tE_duty_energy_technology[etaxes,es,e,d,t]
-;
-
-
 ## DUMMIES FOR ENERGY PRICES
 # Save energy related dummies from the CGE model
 d1pEpj_base_CGE[es,e,d,t]        = d1pEpj_base[es,e,d,t];
@@ -58,8 +29,8 @@ d1qEpj_energy_technology[es,e,d,t]$(d1qEpj[es,e,d,t] and not d1qEpj_CGE[es,e,d,t
 
 ## DUMMIES FOR EMISSIONS (ONLY ON NEW ENERGY USE IN THE ENERGY TECHNOLOGY MODEL COMPARED TO CGE)
 d1EmmE_BU_CGE[em,es,e,d,t] = d1EmmE_BU[em,es,e,d,t];
-d1EmmE_BU[em,es,e,d,t]$(t.val>t1.val and (sameas[em,'CO2ubio'] or sameas[em,'CO2bio']) and d1pEpj_energy_technology[es,e,d,t] and sum((es_a,d_a,tt), d1EmmE_BU[em,es_a,e,d_a,tt]) and not sameas(e,'Captured CO2')) = yes;
-d1EmmE_BU[em,es,e,d,t]$(t.val>t1.val and sameas[em,'CO2ubio'] and d1pEpj_energy_technology[es,e,d,t] and sameas(e,'Captured CO2')) = yes; # Consider changing to sameas[em,'CCS']
+d1EmmE_BU[em,es,e,d,t]$(t.val>=t1.val and (sameas[em,'CO2ubio'] or sameas[em,'CO2bio']) and d1pEpj_energy_technology[es,e,d,t] and sum((es_a,d_a,tt), d1EmmE_BU[em,es_a,e,d_a,tt]) and not sameas(e,'Captured CO2')) = yes;
+d1EmmE_BU[em,es,e,d,t]$(t.val>=t1.val and sameas[em,'CO2ubio'] and d1pEpj_energy_technology[es,e,d,t] and sameas(e,'Captured CO2')) = yes; # Consider changing to sameas[em,'CCS']
 d1EmmE_BU['CO2e',es,e,d,t]$(d1EmmE_BU['CO2ubio',es,e,d,t]) = yes; # Consider adding "or d1EmmE_BU['CCS',es,e,d,t]"
 d1EmmE_BU_energy_technology[em,es,e,d,t]$(d1EmmE_BU[em,es,e,d,t] and not d1EmmE_BU_CGE[em,es,e,d,t]) = yes;
 
@@ -88,9 +59,11 @@ d1tE_duty_CGE[etaxes,es,e,d,t] = d1tE_duty[etaxes,es,e,d,t];
 d1tE_duty[etaxes,es,e,d,t]$(sameas[etaxes,'co2_tax'] and sum(em, d1tCO2_E_energy_technology[em,es,e,d,t])) = yes;
 d1tE_duty_energy_technology[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t] and not d1tE_duty_CGE[etaxes,es,e,d,t]) = yes;
 
+execute_unload 'Output/pre_exists_dummies.gdx';
 @update_exist_dummies()
 
 # A random initial value for the new energy use
 pEpj_marg.l[es,e,i,t]$(d1pEpj_marg_energy_technology[es,e,i,t]) = 1;
 
 # vtE_duty.l[CO2_tax,es,'Captured CO2',d,t] = 0;
+execute_unload 'Output/exists_dummies.gdx';

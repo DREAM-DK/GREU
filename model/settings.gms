@@ -12,11 +12,11 @@ OPTION
 
 $SETLOCAL first_data_year 2015;
 $SETLOCAL calibration_year 2020;
-$SETLOCAL terminal_year 2050;
+$SETLOCAL terminal_year 2040;
 
 $SETLOCAL base_year 2020;
 $SETGLOBAL exogenous_supply_prices 1 #Can be used to set supply prices as exogeonus
-$SETGLOBAL generic_energy_technology_data 1 #Can be used to switch between generic dummy data (=1) and excel-based data (=0)
+$SETGLOBAL generic_energy_technology_data 0 #Can be used to switch between generic dummy data (=1) and excel-based data (=0)
 
 parameter gp "Steady state rate of inflation." /0.02/;
 parameter gq "Steady state labor saving technical progress." /0.01/;

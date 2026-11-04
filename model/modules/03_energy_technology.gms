@@ -20,6 +20,36 @@ $SetGroup SG_Energy_technology_dummies
 ;
 
 parameter
+  d1pEpj_base_CGE[es,e,d,t]
+  d1pEpj_CGE[es,e,d,t]
+  d1pEpj_marg_CGE[es,e,i,t]
+  d1pEpj_marg_inNest_CGE[es,e,i,t]
+  d1tqEpj_CGE[es,e,d,t]
+  d1qEpj_CGE[es,e,d,t]
+  # d1tCO2_ETS2_E_CGE[em,es,e,d,t]
+  d1EmmE_BU_CGE[em,es,e,d,t]
+  uEmmE_BU_CGE[em,es,e,d,t]
+  d1tCO2_E_CGE[em,es,e,d,t]
+  tCO2_Emarg_CGE[em,es,e,i,t]
+  d1tE_duty_CGE[etaxes,es,e,d,t]
+
+  d1pEpj_base_energy_technology[es,e,d,t]
+  d1pEpj_energy_technology[es,e,d,t]
+  d1pEpj_marg_energy_technology[es,e,i,t]
+  d1pEpj_marg_inNest_energy_technology[es,e,i,t]
+  d1tqEpj_energy_technology[es,e,d,t]
+  d1qEpj_energy_technology[es,e,d,t]
+  # d1tCO2_ETS2_E_energy_technology[em,es,e,d,t]
+  d1EmmE_BU_energy_technology[em,es,e,d,t]
+  uEmmE_BU_energy_technology[em,es,e,d,t]
+  d1tCO2_E_energy_technology[em,es,e,d,t]
+  tCO2_Emarg_energy_technology[em,es,e,i,t]
+  d1tE_duty_energy_technology[etaxes,es,e,d,t]
+;
+
+d1EmmE_BU_energy_technology[em,es,e,d,t] = no;
+
+parameter
   d1switch_energy_technology "Dummy to control whether the energy technology model is turned on (=1) or off (=0)"
   d1switch_integrate_energy_technology "Dummy to control whether the energy technology model is integrated with the CGE-model (=1) or not (=0)"
   jqESE_phaseout[t] "Parameter to phase out jqESE in the calibration model"
@@ -184,7 +214,7 @@ $BLOCK energy_technology_equations_links energy_technology_endogenous_links $(t1
 
   # jqESE is endogenous when calibrating the model. In shocks, jqESE is exogenous and uEpj is endogenous
   # Note that when this equation is used in the calibration model, then it removes E_uEpj_flat for these dimensions
-  uEpj[es,e,i,t]$(d1qES_e[es,e,i,t] and d1pEpj_marg[es,e,i,t] and qEpj_exists_dummy[es,e,i,t]).. qESE[es,e,i,t] + jqESE[es,e,i,t] =E= qEpj[es,e,i,t];
+  uEpj[es,e,i,t]$(d1pEpj_marg[es,e,i,t] and d1qES[es,i,t]).. qESE[es,e,i,t] + jqESE[es,e,i,t] =E= qEpj[es,e,i,t];
 
   # Link energy technology capital use to factor demand module
   .. qI_k_i_energy_tech[k,i,t] =E= sum(es$(es2k[es,k]), qESK[es,i,t]);
@@ -284,6 +314,14 @@ $IF1 %generic_energy_technology_data% == 0:
   execute_load "../data/Energy_technology_data/Excel_data/Energy_technology_data.gdx" LifeSpan=LifeSpan;
 $ENDIF1
 
+  sqTPotential.l[l,es,d,t]$(t.val > 2030) =   sqTPotential.l[l,es,d,'2030'];
+  uTE.l[l,es,e,d,t]$(t.val > 2030) =   uTE.l[l,es,e,d,'2030'];
+  uTI.l[l,es,d,t]$(t.val > 2030) =   uTI.l[l,es,d,'2030'];
+  uTC.l[l,es,d,t]$(t.val > 2030) =   uTC.l[l,es,d,'2030'];
+  pTK.l[d,t]$(t.val > 2030) =   pTK.l[d,'2030'];
+  qES.l[es,d,t]$(t.val > 2030) =   qES.l[es,d,'2030'];
+  LifeSpan[l,es,d,t]$(t.val > 2030) =   LifeSpan[l,es,d,'2030'];
+
 # 3.2 Initial Values
 # Set discount rate
 DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
@@ -365,7 +403,7 @@ $BLOCK energy_technology_calibration energy_technology_calibration_endogenous $(
   jES[es,i,t]$(not t1[t] and d1qES[es,i,t1])..
     jES[es,i,t] =E= jES[es,i,t1];
 
-  jqESE[es,e,i,t]$(not t1[t] and d1qES_e[es,e,i,t] and d1pEpj_marg[es,e,i,t] and qEpj_exists_dummy[es,e,i,t])..
+  jqESE[es,e,i,t]$(not t1[t] and d1pEpj_marg[es,e,i,t] and d1qES[es,i,t])..
     jqESE[es,e,i,t] =E= jqESE[es,e,i,t1]*jqESE_phaseout[t];
 
 $ENDBLOCK
@@ -383,7 +421,8 @@ $GROUP calibration_endogenous
   -jI_k_i[k,i]$(sum(t, d1qI_k_i_energy_tech[k,i,t]) and d1switch_energy_technology), qK_k_i$(t0[t] and sum(tt, d1qI_k_i_energy_tech[k,i,tt]) and d1switch_energy_technology)
   -qES[es,i,t1], jES[es,i,t]
   -pTK[i,t], jpTK[i,t]
-  jqESE[es,e,i,t]$(d1qES_e[es,e,i,t] and d1pEpj_marg[es,e,i,t] and qEpj_exists_dummy[es,e,i,t])
+  jqESE[es,e,i,t]$(d1pEpj_marg[es,e,i,t] and d1qES[es,i,t] and d1switch_energy_technology)
+  -uEmmE_BU[em,es,e,d,t]$(t1[t] and d1EmmE_BU_energy_technology[em,es,e,d,t] and d1switch_energy_technology), qEmmE_BU[em,es,e,d,t]$(t1[t] and d1EmmE_BU_energy_technology[em,es,e,d,t] and d1switch_energy_technology)
 ;
 
 # 4.3 Flat Variables After Last Data Year
@@ -396,6 +435,8 @@ $Group+ G_flat_after_last_data_year
   pESmarg[es,d,t]
   sqT[l,es,d,t]
   eP[l,es,d,t]
+  -uEpj[es,e,i,t]
+  uEpj[es,e,i,t]$(not (d1pEpj_marg[es,e,i,t] and d1qES[es,i,t] and d1switch_energy_technology))
 ;
 
 
