@@ -9,7 +9,7 @@ using DREAMMakieTheme
 using SquareModels: ModelDictionary, LabeledSeries, plotseries, @plot, @evalexpr,
   set_default_source!, set_default_periods!, set_default_operator!
 
-import GREU.Capital: capital_k_i, pK_k_i, qI_k_i, qK_k_i, rKDepr_k_i
+import GREU.Capital: capital_k_i, pInvestmentShock_k_i, pK_k_i, qI_k_i, qK_k_i, rKDepr_k_i
 import GREU.FixedBasePriceAggregates: pGDP, qGDP, qGVA, vGDP, vGVA
 import GREU.GrowthInflationAdjustment: fq, gq
 import GREU.InputOutput: industry, industry_label, pC, pG, pI, pM, pX, qC, qG, qI, qINV, qM, qX, qY_i, vC, vY, vY_i
@@ -72,7 +72,7 @@ const industry_series = (
   pL=("Labour user cost", "Quantity-weighted user cost of labour."),
   qK=("Capital stock", "Capital stock, summed over capital types."),
   qK2qY=("Capital-output ratio", "Capital over gross output."),
-  pK=("Capital user cost", "User cost with the capital mix held at the first reported year."),
+  pK=("Effective capital user cost", "User cost less the calibrated investment shock, with the capital mix held at the first reported year."),
   qI=("Investment", "Gross fixed investment, summed over capital types."),
   qI2qK=("Investment rate", "Investment over opening capital. The dotted line marks depreciation plus trend growth."),
   vI=("Investment value", "Nominal investment by industry."),
@@ -105,7 +105,7 @@ function industry_values(i, years)
     qK,
     qK2qY=qK ./ qY,
     # Hold the capital mix at the first reported year, so only the user cost moves.
-    pK=factor_sum(k -> @evalexpr(pK_k_i[k,i,:] * qK_k_i[k,i,t0]), k, years) ./ qKBase,
+    pK=factor_sum(k -> @evalexpr((pK_k_i[k,i,:] - pInvestmentShock_k_i[k,i,:]) * qK_k_i[k,i,t0]), k, years) ./ qKBase,
     qI,
     qI2qK=qI ./ factor_sum(k -> @evalexpr([qK_k_i[k,i,t-1]/fq for t in years]), k, years),
     vI=qI .* report_values(@evalexpr pI),
@@ -218,6 +218,9 @@ function write_report(sources::Pair{<:AbstractString,<:ModelDictionary}...)
   gdp_options = (; ylabel="Index ($(first(years)) = 100)", labels=[
     ["GDP", "Household consumption", "Government consumption", "Fixed investment", "Exports", "Imports"];
     fill(nothing, 6 * (length(sources) - 1))])
+  price_options = (; ylabel="Index ($(first(years)) = 100)", labels=[
+    ["GDP", "Household consumption", "Government consumption", "Fixed investment", "Exports", "Imports", "Effective Capital user cost", "Wage"];
+    fill(nothing, 8 * (length(sources) - 1))])
   industries = getproperty.(sets, :industries)
   return with_dream_theme() do
     sections = [
@@ -225,7 +228,9 @@ function write_report(sources::Pair{<:AbstractString,<:ModelDictionary}...)
         description="Check whether stocks settle. Sector net lending must sum to zero in each year."),
       report_section("GDP components", [
         "Quantities" => @plot(:i, [qGDP, qC, qG, qI, qX, qM]; gdp_options...),
-        "Prices" => @plot(:i, [pGDP, pC, pG, pI, pX, pM]; gdp_options...),
+        "Prices" => @plot(:i, [pGDP, pC, pG, pI, pX, pM,
+        sum((pK_k_i[k,i,:] - pInvestmentShock_k_i[k,i,:]) * qK_k_i[k,i,:] for (k, i) in capital_k_i) /
+          sum(qK_k_i[k,i,:] for (k, i) in capital_k_i), vW]; price_options...),
       ]; description="Expenditure quantities and prices, indexed to the first report year. Flat lines at the end mean a steady state."),
       report_section("Aggregates", ["Macro overview" => panel_figure(getproperty.(sets, :aggregates))]; wide=true,
         description="Aggregate activity, expenditure, factor inputs, ratios, and prices."),

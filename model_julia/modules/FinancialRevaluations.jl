@@ -42,7 +42,6 @@ end
 # ============================================================================
 
 function assign_data!(db)
-  db[rFirmRequiredReturn_s[:,t1]] .= 0.08
   return nothing
 end
 
@@ -57,6 +56,7 @@ end
 # ============================================================================
 
 function set_starting_values!(start_values)
+  start_values[rFirmRequiredReturn_s[:,t1]] .= 0.08
   return nothing
 end
 
@@ -99,12 +99,8 @@ end
 # ============================================================================
 
 function define_calibration(base=define_equations())
-  block = copy(base) + @block model begin
-    # Keep required returns constant after t1+1.
-    rFirmRequiredReturn_s[s=equity_issuer, t=(t1+2):T],
-    rFirmRequiredReturn_s[s,t] == rFirmRequiredReturn_s[s,t1+1]
-  end
-
+  block = copy(base)
+  
   @endo_exo_swap! block begin
     rFinReval_s_f[s=sector, f=[:Debt], al=ass_liab, t=[t1]],
     vFinReval_s_f[s=sector, f=[:Debt], al=ass_liab, t=[t1]]
@@ -129,6 +125,11 @@ function define_calibration(base=define_equations())
     @endo_exo_swap! block begin
       rFirmRequiredReturn_s[s=equity_issuer,t1+1],
       vFinReval_s_f[s=equity_issuer,:Equity,:Liab,t1]
+    end
+
+    block = block + @block model begin
+      rFirmRequiredReturn_s[s=equity_issuer, t=t1:T; t != t1+1],
+      rFirmRequiredReturn_s[s,t] == rFirmRequiredReturn_s[s,t1+1]
     end
   end
 

@@ -8,7 +8,7 @@ module InputOutput
 
 using SquareModels
 import ..DataUtils: fill_cells!, read_cells, read_series
-import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
+import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fq
 import ..InputOutputSettings:
   final_uses,
   industry_label as source_industry_label,
@@ -52,6 +52,7 @@ const qX_p_data = read_cells(purchaser_use_file, "qX_p")
 const qI_data = read_cells(purchaser_use_file, "qI")
 const vY_data = read_cells(aggregate_totals_file, "vY")
 const vM_data = read_cells(aggregate_totals_file, "vM")
+include(joinpath(@__DIR__, "InputOutputPruning.jl"))
 
 # ============================================================================
 # Indices
@@ -74,65 +75,69 @@ const ordinary_uses = setdiff(use, [:INV])
 # Each mask is named after the indices it holds. Cells outside a mask have no
 # variable and no equation, so a mask change needs a model rebuild.
 
-# Hold origin fixed when a table has a third non-time axis.
-pruning_row(key) = (key[1], key[3:end]...)
-pruning_column(key) = (key[2], key[3:end]...)
-
-pruning_totals(cells, axis) = Dict(
-  group => sum(value for (key, value) in cells if axis(key) == group)
-  for group in unique(axis.(first.(cells)))
-)
-
-"""Choose forecast cells from base-year data within row and column loss limits."""
-function forecast_indices(cells)
-  magnitudes = sort([
-    key[1:(end-1)] => abs(value) for (key, value) in cells
-    if key[end] == calibration_year && abs(value) > cell_tolerance
-  ]; by=first)
-  row_totals = pruning_totals(magnitudes, pruning_row)
-  column_totals = pruning_totals(magnitudes, pruning_column)
-  row_losses = Dict(key => 0.0 for key in keys(row_totals))
-  column_losses = Dict(key => 0.0 for key in keys(column_totals))
-  retained = Set(first.(magnitudes))
-  candidates = sort([
-    key => value for (key, value) in magnitudes
-    if value <= max_pruned_cell_supply_share * (vY_data[(calibration_year,)] + vM_data[(calibration_year,)]) &&
-      value <= max_pruned_cell_row_column_share * row_totals[pruning_row(key)] &&
-      value <= max_pruned_cell_row_column_share * column_totals[pruning_column(key)]
-  ]; by=cell -> (last(cell), first(cell)))
-
-  for (key, value) in candidates
-    row, column = pruning_row(key), pruning_column(key)
-    if row_losses[row] + value <= max_pruned_row_column_loss_share * row_totals[row] &&
-      column_losses[column] + value <= max_pruned_row_column_loss_share * column_totals[column]
-      row_losses[row] += value
-      column_losses[column] += value
-      delete!(retained, key)
-    end
-  end
-  return retained
-end
-
-"""Keep nonzero base-year source cells before pruning starts."""
+"""Keep nonzero base-year source cells."""
 source_indices(cells) = Set(
   key[1:end-1] for (key, value) in cells
   if last(key) == calibration_year && abs(value) > cell_tolerance
 )
 
-"""Build a year-specific domain from full historical and retained forecast cells."""
-function model_indices(cells, retained=forecast_indices(cells))
-  source = source_indices(cells)
-  forecast = intersect(source, retained)
-  return Set((key..., year) for year in t for key in (year <= calibration_year ? source : forecast))
-end
+"""Use the same base-year cells in every year. Pruning already happened in the data."""
+model_indices(cells) = Set((key..., year) for year in t for key in source_indices(cells))
 
 const output_p_i_t = model_indices(qY_p_i_data)
-# Purchaser and margin-service flows share origin weights. Keep their origin cuts aligned.
-const forecast_use_p_u_o = union(
-  forecast_indices(qPurchaserUse_p_u_o_data), forecast_indices(qMarginService_s_u_o_data),
-)
-const purchaser_use_p_u_o_t = model_indices(qPurchaserUse_p_u_o_data, forecast_use_p_u_o)
-const margin_s_u_o_t = model_indices(qMarginService_s_u_o_data, forecast_use_p_u_o)
+const purchaser_use_p_u_o_t = model_indices(qPurchaserUse_p_u_o_data)
+const margin_s_u_o_t = model_indices(qMarginService_s_u_o_data)
+
+# """Choose forecast cells from base-year data within row and column loss limits."""
+# function forecast_indices(cells)
+#   magnitudes = sort([
+#     key[1:(end-1)] => abs(value) for (key, value) in cells
+#     if key[end] == calibration_year && abs(value) > cell_tolerance
+#   ]; by=first)
+#   row_totals = pruning_totals(magnitudes, pruning_row)
+#   column_totals = pruning_totals(magnitudes, pruning_column)
+#   row_losses = Dict(key => 0.0 for key in keys(row_totals))
+#   column_losses = Dict(key => 0.0 for key in keys(column_totals))
+#   retained = Set(first.(magnitudes))
+#   candidates = sort([
+#     key => value for (key, value) in magnitudes
+#     if value <= max_pruned_cell_supply_share * (vY_data[(calibration_year,)] + vM_data[(calibration_year,)]) &&
+#       value <= max_pruned_cell_row_column_share * row_totals[pruning_row(key)] &&
+#       value <= max_pruned_cell_row_column_share * column_totals[pruning_column(key)]
+#   ]; by=cell -> (last(cell), first(cell)))
+
+#   for (key, value) in candidates
+#     row, column = pruning_row(key), pruning_column(key)
+#     if row_losses[row] + value <= max_pruned_row_column_loss_share * row_totals[row] &&
+#       column_losses[column] + value <= max_pruned_row_column_loss_share * column_totals[column]
+#       row_losses[row] += value
+#       column_losses[column] += value
+#       delete!(retained, key)
+#     end
+#   end
+#   return retained
+# end
+
+# """Keep nonzero base-year source cells before pruning starts."""
+# source_indices(cells) = Set(
+#   key[1:end-1] for (key, value) in cells
+#   if last(key) == calibration_year && abs(value) > cell_tolerance
+# )
+
+# """Build a year-specific domain from full historical and retained forecast cells."""
+# function model_indices(cells, retained=forecast_indices(cells))
+#   source = source_indices(cells)
+#   forecast = intersect(source, retained)
+#   return Set((key..., year) for year in t for key in (year <= calibration_year ? source : forecast))
+# end
+
+# const output_p_i_t = model_indices(qY_p_i_data)
+# # Purchaser and margin-service flows share origin weights. Keep their origin cuts aligned.
+# const forecast_use_p_u_o = union(
+#   forecast_indices(qPurchaserUse_p_u_o_data), forecast_indices(qMarginService_s_u_o_data),
+# )
+# const purchaser_use_p_u_o_t = model_indices(qPurchaserUse_p_u_o_data, forecast_use_p_u_o)
+# const margin_s_u_o_t = model_indices(qMarginService_s_u_o_data, forecast_use_p_u_o)
 const purchaser_use_p_u_t = Set((p,u,year) for (p,u,_,year) in purchaser_use_p_u_o_t)
 # Carried margins follow purchaser support; they have no separate pruning rule.
 const margin_p_u_t = Set(
@@ -304,7 +309,9 @@ function define_equations()
     qPurchaserUse_p_u_o[p=product, u=ordinary_uses, o=origin, t=t1:T],
     qPurchaserUse_p_u_o[p,u,o,t] == rOriginShare[p,u,o,t] * qPurchaserUse_p_u[p,u,t]
 
-    qPurchaserUse_p_u_o[p=product, u=:INV, o=origin, t=(t1+1):T], qPurchaserUse_p_u_o[p,u,o,t] == 0
+    # Inventory changes fade out gradually instead of stopping at once after the data year.
+    qPurchaserUse_p_u_o[p=product, u=:INV, o=origin, t=(t1+1):T],
+    qPurchaserUse_p_u_o[p,u,o,t] == 0.5 * qPurchaserUse_p_u_o[p,u,o,t-1]/fq
 
     # Derived margin demand. Only uses with reported margins carry a bundle.
     qMarginBundle_p_u[p=product, u=use, t=t1:T],

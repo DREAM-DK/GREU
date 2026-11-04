@@ -106,8 +106,12 @@ An optional module can make a zero hook endogenous and add its equation. In
 that case, this function does not add an exogenous value that fixes the hook at zero.
 """
 function forecast_zeros!(block::Block, exogenous_values::ModelDictionary)
-  zero_vars = filter(exogenous(block)) do var
-    has_tag(var, ForecastZero) && (variable_year(var) > t1 || isnothing(exogenous_values[var]))
+  for var in exogenous(block)
+    has_tag(var, ForecastZero) || continue
+    year = variable_year(var)
+    if (!isnothing(year) && year > t1) || isnothing(exogenous_values[var])
+      exogenous_values[var] = 0.0
+    end
   end
   return nothing
 end
@@ -135,7 +139,7 @@ function fill_missing_exogenous_forecasts!(
     !isnothing(year) && year > t1 && isnothing(exogenous_values[var])
   end
   default_vars = filter(var -> Symbol(SquareModels.base_name(var)) in omitted_names, forecast_vars)
-  missing_vars = filter(var -> Symbol(SquareModels.base_name(var)) ? omitted_names, forecast_vars)
+  missing_vars = filter(var -> !(Symbol(SquareModels.base_name(var)) in omitted_names), forecast_vars)
   missing_names = sort!(unique(String.(SquareModels.base_name.(missing_vars))))
   isempty(missing_names) ||
     error("Missing forecast rule for: ", join(missing_names, ", "))

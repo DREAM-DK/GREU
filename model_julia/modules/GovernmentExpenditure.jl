@@ -6,7 +6,7 @@
 module GovernmentExpenditure
 
 using SquareModels
-import ..FixedBasePriceAggregates: qGDP, vGVA
+import ..FixedBasePriceAggregates: vGDP, vGVA
 import ..Government:
   vGovPensionEntitlementAdj,
   vGovCapTransExp,
@@ -16,7 +16,7 @@ import ..Government:
   vSocTransKind
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
 import ..IndustrySectors: vM_s, vtProduction_s, vWages_s
-import ..InputOutput: product, qG_p, vG
+import ..InputOutput: product, qG_p, vG, pPurchaserUse_p_u
 import ..Labor: vHhWages
 import ..model
 import ..SectorAccounts:
@@ -49,7 +49,7 @@ const GovernmentExpenditureTag = Tag(:GovernmentExpenditure)
   rOtherTransfers[s=[:FinCorp, :NonFinCorp, :RoW], t=t], "Other current and capital transfers relative to the transfer index."
   rFinCorpSocialBenefits[t], "Financial-corporation social benefits relative to the transfer index."
   rSocialContributions[s=[:FinCorp, :Gov, :NonFinCorp, :RoW], t=t], "Social contributions relative to the transfer index."
-  rG2GDP_p[(p,t)=qG_p], "Government consumption by product relative to real GDP."
+  rG2GDP_p[(p,t)=qG_p], "Government consumption by product as a share of nominal GDP."
 end
 
 @variables model :: (GovernmentExpenditureTag, GrowthAdjusted, InflationAdjusted) begin
@@ -68,8 +68,8 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    # Government consumption is exogenous. The baseline holds it as a share of real GDP.
-    rG2GDP_p[p=product, t=t1:T], qG_p[p,t] == rG2GDP_p[p,t] * qGDP[t]
+    # Government consumption is exogenous. The baseline holds it as a share of nominal GDP.
+    rG2GDP_p[p=product, t=t1:T], pPurchaserUse_p_u[p,:G,t] * qG_p[p,t] == rG2GDP_p[p,t] * vGDP[t]
 
     # Primary expenditure.
     vGovPrimaryExpenditure[t=t1:T],
