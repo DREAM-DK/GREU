@@ -327,12 +327,12 @@ smooth_factor = 0.05;
 # Set smoothing parameters (we recalculate this in base_model_energy_technology.gms because electricity prices are not present in some cases in the data)
 eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = smooth_factor*pTPotential.l[l,es,d,t]/uTKexp.l[l,es,d,t];
 
-jqESE_phaseout[t]$(t.val = t1.val) = 1;
-jqESE_phaseout[t]$(t.val = t1.val+1) = 0.8;
-jqESE_phaseout[t]$(t.val = t1.val+2) = 0.6;
-jqESE_phaseout[t]$(t.val = t1.val+3) = 0.4;
-jqESE_phaseout[t]$(t.val = t1.val+4) = 0.2;
-jqESE_phaseout[t]$(t.val >= t1.val+5) = 0;
+jqESE_phaseout[t]$(t.val = tDataEnd.val) = 1;
+jqESE_phaseout[t]$(t.val = tDataEnd.val+1) = 0.8;
+jqESE_phaseout[t]$(t.val = tDataEnd.val+2) = 0.6;
+jqESE_phaseout[t]$(t.val = tDataEnd.val+3) = 0.4;
+jqESE_phaseout[t]$(t.val = tDataEnd.val+4) = 0.2;
+jqESE_phaseout[t]$(t.val >= tDataEnd.val+5) = 0;
 
 $ENDIF # exogenous_values
 
