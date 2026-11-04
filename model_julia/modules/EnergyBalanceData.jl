@@ -3,9 +3,9 @@
 # that supply equals use for each resident account.
 # Keep emission factors and the model equations in other modules.
 include(joinpath(@__DIR__, "..", "Settings.jl"))
+include("InputOutputSettings.jl")
 include("EnergyBalanceSettings.jl")
 include("EurostatClient.jl")
-include("InputOutputSettings.jl")
 include(joinpath(@__DIR__, "..", "DataUtils.jl"))
 
 module EnergyBalanceData
@@ -17,7 +17,7 @@ using CSV
 
 import ..DataUtils: long_format, sum_by
 import ..EurostatClient
-import ..InputOutputSettings: resolution, source_industry
+import ..InputOutputSettings: source_industry
 import ..Settings: calibration_year, country_code, first_data_year
 import ..EnergyBalanceSettings:
   activity_balance_atol,
@@ -29,6 +29,7 @@ import ..EnergyBalanceSettings:
   eurostat_pefa_dataset,
   household_purpose,
   households,
+  industry_source,
   pj_per_source_unit,
   source_boundary,
   source_household,
@@ -79,36 +80,13 @@ end
 # Model labels
 # ==========================================
 
-# Map PEFA activity codes to model industries.
-# Use a group's own code when PEFA publishes it, and sum its members only when it does not.
-# PEFA can publish a group beside one of its members, such as L beside L68A,
-# so taking both would count the same energy twice.
-function industry_source(published)
-  lookup = Dict{String,Symbol}()
-  for row in eachrow(resolution)
-    group = string(row.eurostat_group)
-    label = Symbol(string(row.industry))
-    if group in published
-      lookup[group] = label
-    else
-      members = split(string(row.members), ';')
-      @assert all(m in published for m in members) "PEFA publishes neither $group nor all its members: $(join(members, ", "))"
-      for m in members
-        lookup[m] = label
-      end
-    end
-  end
-  return lookup
-end
-# Each leaf code belongs to one industry group, so no energy can be mapped twice.
-@assert allunique(vcat(split.(string.(resolution.members), ';')...)) "industry groups must not share member codes"
 
 
 # PEFA names an account, not a purpose. Households appear three times, once per purpose.
 # Every other account appears once and takes :unspecified.
 # The model wants to know the activity and purpose of each cell, so we build a lookup table.
 function activity_purpose(published)
-  industry = Dict(code => (activity = label, purpose = unspecified) for (code, label) in industry_source(published))
+  industry = Dict(code => (activity = label, purpose = unspecified) for (code, label) in industry_source(published, "PEFA"))
   household = Dict(code => (activity = households, purpose = p) for (code, p) in household_purpose)
   boundary = Dict(code => (activity = a, purpose = unspecified) for (code, a) in boundary_account)
   lookup = merge(industry, household, boundary)
@@ -180,7 +158,7 @@ Assert that supply equals use for each resident account.
 
 The check runs per purpose, not per activity. PEFA publishes households three times and
 each of the three balances on its own, so summing the purposes away first would let one purpose
-cover  another one's gap.
+cover another one's gap.
 
 `SD_IO` is inside the sum. Without it some countries fail in all sections.
 
@@ -200,7 +178,7 @@ function assert_activity_balance(mapped)
     @select(:activity, :purpose, :year, :use = :value)
   end
   joined = outerjoin(supply, use, on = [:activity, :purpose, :year])
-  @assert nrow(joined) == nrow(supply) == nrow(use) "Each resident account needs  a supply and a use side"
+  @assert nrow(joined) == nrow(supply) == nrow(use) "Each resident account needs a supply and a use side"
   gaps = @rsubset(joined, !isapprox(:supply, :use; rtol = activity_balance_rtol, atol = activity_balance_atol))
   @assert isempty(gaps) "Physical energy does not balance for $(nrow(gaps)) resident accounts:\n$gaps"  
   return nothing
@@ -264,33 +242,24 @@ end
 
 
 """
-Split the mapped account into the four variables the model reads.
+Split the mapped account into supply, use, and use by purpose.
 
-`SD_IO` goes out here. It closes the balance, but no model variable consumes a discrepancy. 
-Exacy zeros go out too: PEFA reports them, and a cell with no flow needs no variable.
+`SD_IO` goes out here; `discrepancy_by_account` carries it.
+Exact zeros go out too: PEFA reports them, and a cell with no flow needs no variable.
 Negative cells stay - `CH_INV_PA` books a stock drawdown as negative use, which is physical, not an error.
 """
 function energy_balance_variables(mapped)
-  cells = @rsubset(mapped, :product != Symbol(discrepancy_product) && !iszero(:value)) # Filters out discrepancy product and zero values.
-  supply = @chain cells begin
-    @rsubset(:balance == Symbol("supply"))
-    sum_by([:product, :activity, :year])
+  cells = @rsubset(mapped, :product != Symbol(discrepancy_product) && !iszero(:value))
+  side(balance, by) = @chain cells begin
+    @rsubset(:balance == balance)
+    sum_by(by)
+    sort!([:activity; setdiff(by, [:activity])])
   end
-  use_by_purpose = @chain cells begin
-    @rsubset(:balance == Symbol("use"))
-    sum_by([:product, :purpose, :activity, :year])
-  end
-  use = sum_by(use_by_purpose, [:product, :activity, :year])
-  shares = innerjoin(use_by_purpose, rename(use, :value => :total), on = [:product, :activity, :year])
-  @assert nrow(shares) == nrow(use_by_purpose) "Each purpose cell needs its account total"
-  shares.value = shares.value ./ shares.total
-  totals = sum_by(shares, [:product, :activity, :year])
-  @assert all(isapprox.(totals.value, 1.0; atol = 1e-9)) "Purpose shares must sum to one"
-  sort!(supply, [:activity, :product, :year])
-  sort!(use, [:activity, :product, :year])
-  sort!(use_by_purpose, [:activity, :product, :purpose, :year])
-  sort!(shares, [:activity, :product, :purpose, :year])
-  return (; supply, use, use_by_purpose, shares)
+  return (;
+    supply = side(:supply, [:product, :activity, :year]),
+    use = side(:use, [:product, :activity, :year]),
+    use_by_purpose = side(:use, [:product, :activity, :purpose, :year]),
+  )
 end
 
 
@@ -309,7 +278,6 @@ function refresh_energy_balance_data!(dir = energy_balance_data_dir)
     long_format(:qESupply_e_d, cells.supply, [:product, :activity, :year]),
     long_format(:qEUse_e_d, cells.use, [:product, :activity, :year]),
     long_format(:qEUse_e_m_d, cells.use_by_purpose, [:product, :purpose, :activity, :year]),
-    long_format(:uEPurpose_e_m_d, cells.shares, [:product, :purpose, :activity, :year]),
     long_format(:qEDiscrepancy_d, discrepancy, [:activity, :year]),
   ))
   return nothing

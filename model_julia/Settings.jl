@@ -43,7 +43,6 @@ const macro_core_modules = [
   :Government,
   :GovernmentRevenue,
   :GovernmentExpenditure,
-  :GovernmentEmployment,
   :Corporations,
   :RestOfWorld,
 
@@ -61,6 +60,7 @@ const macro_rigidity_modules = [
 
 const green_transition_modules = [
   :EnergyBalance,
+  :Emissions,
 ]
 
 
@@ -69,7 +69,7 @@ const loaded_modules = [
   macro_accounting_modules...,
   macro_core_modules...,
   macro_rigidity_modules...,
-  green_transition_modules...,
+  #green_transition_modules...,
 ]
 
 # Model modules also add equations to the base model and calibration.
@@ -78,22 +78,30 @@ model_modules::Vector{Symbol} = [
   macro_accounting_modules...,
   macro_core_modules...,
   macro_rigidity_modules...,
-  green_transition_modules...,
+  #green_transition_modules...,
 ]
 
-# JuMP `Model` configured as a square nonlinear system for the selected backend.
-# Importing the backend package activates the matching SquareModels extension.
+# ============================================================================
+# Solver
+# ============================================================================
+# JuMP `Model` configured as a square nonlinear system. Restart Julia after a solver change.
+# GREU.__init__ passes the precompiled model back in, so the GAMS temporary work directory is set again in each session.
+
+# CONOPT4 through GAMS. Importing GAMS activates the SquareModels GAMS extension.
 import GAMS
 gams_system_dir() = dirname(something(Sys.which("gams"), "C:/GAMS/51/gams.exe"))
-
 function square_model(model=SquareModels.square_model(; gamsdir=gams_system_dir()))
   GAMS.check_system_dir(JuMP.get_optimizer_attribute(model, "sysdir"))
   JuMP.set_optimizer_attribute(model, "workdir", mktempdir())
   JuMP.set_time_limit_sec(model, 5 * 60)
   return model
 end
-# Alternative backends:
-#   import Ipopt;  square_model() = SquareModels.square_model(Ipopt.Optimizer)
-#   import CONOPT; square_model() = SquareModels.square_model(CONOPT.Optimizer; lmmxsf=1)
+
+# CONOPT.jl.
+# import CONOPT
+# function square_model(model=SquareModels.square_model(CONOPT.Optimizer; lmmxsf=1))
+#   JuMP.set_time_limit_sec(model, 5 * 60)
+#   return model
+# end
 
 end

@@ -9,7 +9,7 @@ using SquareModels
 import JuMP
 import ..DataUtils: read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
-import ..InputOutput: industry, qY_i, qM_p_i
+import ..InputOutput: industry, qY_i, qM_p_i, follow_intermediate_split!
 import ..InputOutputSettings: cell_tolerance
 import ..ProductionSettings: production_data_dir, full_nesting, prune_nesting, product_to_intermediate_type
 import ..Settings: calibration_year
@@ -27,6 +27,7 @@ const qK_k_i_data = read_cells(capital_file, "qK_k_i")
 const nL_l_i_data = read_cells(labor_file, "nL_l_i")
 const qM_p_m_i_data = read_cells(intermediate_product_split_file, "qM_p_m_i")
 const qM_m_i_data = read_cells(intermediate_product_split_file, "qM_m_i")
+follow_intermediate_split!(qM_p_m_i_data, qM_m_i_data)
 
 # ============================================================================
 # Indices
