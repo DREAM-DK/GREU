@@ -214,7 +214,8 @@ $BLOCK energy_technology_equations_links energy_technology_endogenous_links $(t1
 
   # jqESE is endogenous when calibrating the model. In shocks, jqESE is exogenous and uEpj is endogenous
   # Note that when this equation is used in the calibration model, then it removes E_uEpj_flat for these dimensions
-  uEpj[es,e,i,t]$(d1pEpj_marg[es,e,i,t] and d1qES[es,i,t]).. qESE[es,e,i,t] + jqESE[es,e,i,t] =E= qEpj[es,e,i,t];
+  uEpj[es,e,i,t]$(d1qES_e[es,e,i,t] and d1pEpj_marg[es,e,i,t]).. 
+    qESE[es,e,i,t] + jqESE[es,e,i,t] =E= qEpj[es,e,i,t];
 
   # Link energy technology capital use to factor demand module
   .. qI_k_i_energy_tech[k,i,t] =E= sum(es$(es2k[es,k]), qESK[es,i,t]);
@@ -403,7 +404,7 @@ $BLOCK energy_technology_calibration energy_technology_calibration_endogenous $(
   jES[es,i,t]$(not t1[t] and d1qES[es,i,t1])..
     jES[es,i,t] =E= jES[es,i,t1];
 
-  jqESE[es,e,i,t]$(not t1[t] and d1pEpj_marg[es,e,i,t] and d1qES[es,i,t])..
+  jqESE[es,e,i,t]$(not t1[t] and d1qES_e[es,e,i,t] and d1pEpj_marg[es,e,i,t])..
     jqESE[es,e,i,t] =E= jqESE[es,e,i,t1]*jqESE_phaseout[t];
 
 $ENDBLOCK
@@ -421,7 +422,7 @@ $GROUP calibration_endogenous
   -jI_k_i[k,i]$(sum(t, d1qI_k_i_energy_tech[k,i,t]) and d1switch_energy_technology), qK_k_i$(t0[t] and sum(tt, d1qI_k_i_energy_tech[k,i,tt]) and d1switch_energy_technology)
   -qES[es,i,t1], jES[es,i,t]
   -pTK[i,t], jpTK[i,t]
-  jqESE[es,e,i,t]$(d1pEpj_marg[es,e,i,t] and d1qES[es,i,t] and d1switch_energy_technology)
+  jqESE[es,e,i,t]$(d1qES_e[es,e,i,t] and d1pEpj_marg[es,e,i,t])
   -uEmmE_BU[em,es,e,d,t]$(t1[t] and d1EmmE_BU_energy_technology[em,es,e,d,t] and d1switch_energy_technology), qEmmE_BU[em,es,e,d,t]$(t1[t] and d1EmmE_BU_energy_technology[em,es,e,d,t] and d1switch_energy_technology)
 ;
 

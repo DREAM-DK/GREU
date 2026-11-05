@@ -43,8 +43,14 @@ Solve energy_technology_partial_equations using CNS;
 # execute_unload 'Output/base_model_energy_technology_partial.gdx';
 execute_unload 'Output/post_partialmodel.gdx';
 
+# LBS: Se om du kan fjerne disse i morgen
+# qEpj_exists_dummy['heating','Diesel for transport','10030',t] = 1;
+# qEpj_exists_dummy['heating','Gasoline for transport','10030',t] = 1;
+# qEpj_exists_dummy['heating','Coal and coke','10030',t] = 1;
+
 # Solve full model
 $FIX all_variables; $UNFIX calibration_endogenous;
+# $FIX qEpj$(t1[t] and sameas[d,'10030'] and sum(i, d1pEpj_marg_energy_technology[es,e,i,t]));
 execute_unload 'Output/pre_calibration_energy_technology.gdx';
 solve calibration using CNS;
 
