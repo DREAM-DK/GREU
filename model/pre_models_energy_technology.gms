@@ -15,7 +15,6 @@
 # 1. Supply Curve Parameters
 # ----------------------------------------------------------------------------------------------------------------------
 # 1.1 Scenario Set Definition
-# LBS CONSIDER number of steps in scen
 set scen / 1*100 /; # Number of steps for tracing the supply curve
 Set l_ord / 1*100 /; # Sorted technology positions
 Alias (l_ord, ll_ord); # Alias

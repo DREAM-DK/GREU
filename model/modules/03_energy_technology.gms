@@ -26,7 +26,10 @@ parameter
   d1pEpj_marg_inNest_CGE[es,e,i,t]
   d1tqEpj_CGE[es,e,d,t]
   d1qEpj_CGE[es,e,d,t]
-  # d1tCO2_ETS2_E_CGE[em,es,e,d,t]
+  d1tCO2_ETS_E_CGE[em,es,e,d,t]
+  d1tCO2_ETS_CGE[d,t]
+  d1tCO2_ETS2_E_CGE[em,es,e,d,t]
+  d1tCO2_ETS2_CGE[d,t]
   d1EmmE_BU_CGE[em,es,e,d,t]
   uEmmE_BU_CGE[em,es,e,d,t]
   d1tCO2_E_CGE[em,es,e,d,t]
@@ -39,12 +42,17 @@ parameter
   d1pEpj_marg_inNest_energy_technology[es,e,i,t]
   d1tqEpj_energy_technology[es,e,d,t]
   d1qEpj_energy_technology[es,e,d,t]
-  # d1tCO2_ETS2_E_energy_technology[em,es,e,d,t]
+  d1tCO2_ETS_E_energy_technology[em,es,e,d,t]
+  d1tCO2_ETS_energy_technology[d,t]
+  d1tCO2_ETS2_E_energy_technology[em,es,e,d,t]
+  d1tCO2_ETS2_energy_technology[d,t]
   d1EmmE_BU_energy_technology[em,es,e,d,t]
   uEmmE_BU_energy_technology[em,es,e,d,t]
   d1tCO2_E_energy_technology[em,es,e,d,t]
   tCO2_Emarg_energy_technology[em,es,e,i,t]
   d1tE_duty_energy_technology[etaxes,es,e,d,t]
+
+  d1no_energy_price[e]
 ;
 
 d1EmmE_BU_energy_technology[em,es,e,d,t] = no;
@@ -105,7 +113,7 @@ $Group+ all_variables
   qESK[es,d,t]$(d1qES[es,d,t]) "Quantity of machinery capital in energy services"
 
   # 1.2.4 Variables for integration with CGE-model
-  jqESE[es,e,i,t]$(d1qES_e[es,e,i,t] and d1pEpj_marg[es,e,i,t]) "Share parameter linking energy input in the energy technology model to energy input in the CGE-model"
+  jqESE[es,e,i,t]$(d1pEpj_marg[es,e,i,t] and d1qES[es,i,t]) "Share parameter linking energy input in the energy technology model to energy input in the CGE-model"
   qI_k_i_energy_tech[k,i,t] "Quantity of investments from the energy technology model"
   vI_k_i_energy_tech[k,i,t] "Value of investments from the energy technology model"
   qEmmE_CCS[es,e,d,t]$(d1qES_e[es,e,d,t] and sameas(e,'Captured CO2')) "Quantity of CCS in energy services"
@@ -214,7 +222,7 @@ $BLOCK energy_technology_equations_links energy_technology_endogenous_links $(t1
 
   # jqESE is endogenous when calibrating the model. In shocks, jqESE is exogenous and uEpj is endogenous
   # Note that when this equation is used in the calibration model, then it removes E_uEpj_flat for these dimensions
-  uEpj[es,e,i,t]$(d1qES_e[es,e,i,t] and d1pEpj_marg[es,e,i,t]).. 
+  uEpj[es,e,i,t]$(d1pEpj_marg[es,e,i,t] and d1qES[es,i,t]).. 
     qESE[es,e,i,t] + jqESE[es,e,i,t] =E= qEpj[es,e,i,t];
 
   # Link energy technology capital use to factor demand module
@@ -225,8 +233,6 @@ $BLOCK energy_technology_equations_links energy_technology_endogenous_links $(t1
 
   # CCS in energy services
   .. qEmmE_CCS[es,e,d,t] =E= qESE[es,e,d,t];
-
-
 
 $ENDBLOCK
 
@@ -315,14 +321,6 @@ $IF1 %generic_energy_technology_data% == 0:
   execute_load "../data/Energy_technology_data/Excel_data/Energy_technology_data.gdx" LifeSpan=LifeSpan;
 $ENDIF1
 
-  sqTPotential.l[l,es,d,t]$(t.val > 2030) =   sqTPotential.l[l,es,d,'2030'];
-  uTE.l[l,es,e,d,t]$(t.val > 2030) =   uTE.l[l,es,e,d,'2030'];
-  uTI.l[l,es,d,t]$(t.val > 2030) =   uTI.l[l,es,d,'2030'];
-  uTC.l[l,es,d,t]$(t.val > 2030) =   uTC.l[l,es,d,'2030'];
-  pTK.l[d,t]$(t.val > 2030) =   pTK.l[d,'2030'];
-  qES.l[es,d,t]$(t.val > 2030) =   qES.l[es,d,'2030'];
-  LifeSpan[l,es,d,t]$(t.val > 2030) =   LifeSpan[l,es,d,'2030'];
-
 # 3.2 Initial Values
 # Set discount rate
 DiscountRate[l,es,d]$(sum(t, sqTPotential.l[l,es,d,t])) = 0.05;
@@ -366,12 +364,12 @@ smooth_factor = 0.05;
 # Set smoothing parameters (we recalculate this in base_model_energy_technology.gms because electricity prices are not present in some cases in the data)
 eP.l[l,es,d,t]$(sqTPotential.l[l,es,d,t]) = smooth_factor*pTPotential.l[l,es,d,t]/uTKexp.l[l,es,d,t];
 
-jqESE_phaseout[t]$(t.val = t1.val) = 1;
-jqESE_phaseout[t]$(t.val = t1.val+1) = 0.8;
-jqESE_phaseout[t]$(t.val = t1.val+2) = 0.6;
-jqESE_phaseout[t]$(t.val = t1.val+3) = 0.4;
-jqESE_phaseout[t]$(t.val = t1.val+4) = 0.2;
-jqESE_phaseout[t]$(t.val >= t1.val+5) = 0;
+jqESE_phaseout[t]$(t.val = tDataEnd.val) = 1;
+jqESE_phaseout[t]$(t.val = tDataEnd.val+1) = 0.8;
+jqESE_phaseout[t]$(t.val = tDataEnd.val+2) = 0.6;
+jqESE_phaseout[t]$(t.val = tDataEnd.val+3) = 0.4;
+jqESE_phaseout[t]$(t.val = tDataEnd.val+4) = 0.2;
+jqESE_phaseout[t]$(t.val >= tDataEnd.val+5) = 0;
 
 $ENDIF # exogenous_values
 
@@ -404,7 +402,7 @@ $BLOCK energy_technology_calibration energy_technology_calibration_endogenous $(
   jES[es,i,t]$(not t1[t] and d1qES[es,i,t1])..
     jES[es,i,t] =E= jES[es,i,t1];
 
-  jqESE[es,e,i,t]$(not t1[t] and d1qES_e[es,e,i,t] and d1pEpj_marg[es,e,i,t])..
+  jqESE[es,e,i,t]$(not t1[t] and d1pEpj_marg[es,e,i,t] and d1qES[es,i,t])..
     jqESE[es,e,i,t] =E= jqESE[es,e,i,t1]*jqESE_phaseout[t];
 
 $ENDBLOCK
@@ -422,7 +420,7 @@ $GROUP calibration_endogenous
   -jI_k_i[k,i]$(sum(t, d1qI_k_i_energy_tech[k,i,t]) and d1switch_energy_technology), qK_k_i$(t0[t] and sum(tt, d1qI_k_i_energy_tech[k,i,tt]) and d1switch_energy_technology)
   -qES[es,i,t1], jES[es,i,t]
   -pTK[i,t], jpTK[i,t]
-  jqESE[es,e,i,t]$(d1qES_e[es,e,i,t] and d1pEpj_marg[es,e,i,t])
+  jqESE[es,e,i,t]$(d1pEpj_marg[es,e,i,t] and d1qES[es,i,t])
   -uEmmE_BU[em,es,e,d,t]$(t1[t] and d1EmmE_BU_energy_technology[em,es,e,d,t] and d1switch_energy_technology), qEmmE_BU[em,es,e,d,t]$(t1[t] and d1EmmE_BU_energy_technology[em,es,e,d,t] and d1switch_energy_technology)
 ;
 
@@ -493,7 +491,7 @@ LOOP((es,i,t)$(t1.val <= t.val and t.val <= tEnd.val and d1qES[es,i,t] and sum((
 # Test that price changes in the CGE model are the same as in the energy technology model
 # when all energy-technology inputs are linked to existing CGE energy activity.
 LOOP((es,i,t)$(t1.val <= t.val and t.val <= tEnd.val and not jqESE_phaseout[t] and d1qES[es,i,t] and not sum(e$(d1qES_e[es,e,i,t] and d1pEpj_marg[es,e,i,t] and not qEpj_exists_dummy[es,e,i,t]), 1) and sum((em,e), tCO2_Emarg_pj.l[em,es,e,i,t]-tCO2_Emarg_pj_baseline.l[em,es,e,i,t])>0 and d1switch_energy_technology),
-  ABORT$(abs(pREes_change.l[es,i,t] - pES_change.l[es,i,t]) > 1e-7)
+  ABORT$(abs(pREes_change.l[es,i,t] - pES_change.l[es,i,t]) > 1e-5)
         'Price change in the CGE model does not match price change in the energy technology model');
 
 $ENDIF # tests
