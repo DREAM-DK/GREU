@@ -13,7 +13,6 @@
 				pEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 								"Base price of energy for demand sector d, measured in bio. kroner per PJ (or equivalently 1000 DKR per GJ)"
 				pEpj_marg[es,e,d,t]$(d1pEpj[es,e,d,t])                      "Price of energy, including taxes and margins, for demand sector d, defined if either a base price or a quantity-tax exists, measured in bio. kroner per PJ (or equivalently 1000 DKR per GJ)"
 				pEpj_own[es,e,d,t]$(d1pEpj_own[es,e,d,t])                "Price of energy used from own production, not in NAS"
-				pEpj[es,e,d,t]$(d1pEpj[es,e,d,t])                      "Average price of energy"
 				fpE[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Sector average margin between average supplier price, and sector base price"
 
 				vEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t] and d1qEpj[es,e,d,t]) "Value of energy for demand sector d in base prices, measured in bio. kroner"
@@ -146,21 +145,10 @@
 			pEpj_marg&_own[es,e,d,t]$(d1pEpj_own[es,e,d,t])..
 				pEpj_marg[es,e,d,t] =E= (1+tpE_marg[es,e,d,t]) * pEpj_own[es,e,d,t];
 
-			#Average price is base price plus the tax-wedge tpE based on average tax-rates. See energy_and_emissions_taxes.gms
-			 pEpj&_base[es,e,d,t]$(d1pEpj_base[es,e,d,t]).. 
-			 		pEpj[es,e,d,t] =E= (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t];
-        
-			 pEpj&_nonpriced[es,e,d,t]$(d1tqEpj[es,e,d,t])..
-			 	pEpj[es,e,d,t] =E= tqE[es,e,d,t];
-
-			 pEpj&_own[es,e,d,t]$(d1pEpj_own[es,e,d,t])..
-			 	pEpj[es,e,d,t] =E= (1+tpE[es,e,d,t]) * pEpj_own[es,e,d,t];
-
-			 
 			#Value of energy-consumption in base prices
 			.. vEpj_base[es,e,d,t] =E= pEpj_base[es,e,d,t] * qEpj[es,e,d,t];
 
-			#Value of energy-consumption as per National Account Systems (NAS): Based on average tax-rates and excluding ETS
+			#Value of energy-consumption as per National Account Systems (NAS): Based on actual tax payments and excluding ETS
 			.. vEpj_NAS[es,e,d,t] =E=  vEpj_base[es,e,d,t]
 															 + vtE_NAS[es,e,d,t] #Total taxes, excluding ETS 
 															;
@@ -340,7 +328,7 @@
 
 		eDist.l[e] = 5;
 
-		pEpj.l[es,e,d,t]$(pEpj_base.l[es,e,d,t]) = fpt[t];
+		pEpj_marg.l[es,e,c,t]$(pEpj_base.l[es,e,c,t]) = fpt[t];
 
 		qEtot.l[e,t] = sum(i, qY_CET.l[e,i,t] + qM_CET.l[e,i,t]);
 
