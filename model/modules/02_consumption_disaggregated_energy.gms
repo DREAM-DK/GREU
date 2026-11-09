@@ -17,7 +17,7 @@ $ENDIF # variables
 $IF %stage% == "equations":
   $BLOCK consumption_disaggregated_energy_equations consumption_disaggregated_energy_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
-    #CES-demand based on average, not marginal energy prices (this is in contrast to industries, and should be modified in later versions)
+    #CES-demand based on marginal energy prices
       qEpj[es,e,c,t]$(d1pEpj[es,e,c,t])..
         qEpj[es,e,c,t] =E= uChh_Epj[es,e,c,t] * sum(cf_ene$es2cf2d(es,cf_ene,c),
                                                     pEpj2pChh[es,e,c,cf_ene,t] **(-eChh_cEne[cf_ene]) * qChh[cf_ene,t]
@@ -25,7 +25,11 @@ $IF %stage% == "equations":
 
     #Relative price
     pEpj2pChh[es,e,c,cf_ene,t]$(es2cf2d(es,cf_ene,c) and d1pEpj_base[es,e,c,t])..
-      pEpj2pChh[es,e,c,cf_ene,t] * pChh[cf_ene,t] =E= pEpj[es,e,c,t];
+      pEpj2pChh[es,e,c,cf_ene,t] * pChh[cf_ene,t] =E= pEpj_marg[es,e,c,t];
+
+    #Price of energy in the consumption nesting is based on marginal prices. Differences to payments are captured by bottom deductions in the top
+    jpCHh[cf_ene,t]..
+      pCHh[cf_ene,t] * qCHh[cf_ene,t] =E= sum((es,e,c)$es2cf2d(es,cf_ene,c), pEpj_marg[es,e,c,t] * qEpj[es,e,c,t]);
 
 # Epj2pChh.lo[es,e,c,cf_ene,t]$((((t1.val <= t.val and t.val <= tEnd.val) and (es2cf2d(es,cf,d))) and pEpj2pChh_exists_dummy[es,e,c,cf_ene,t])) = -inf;
   $ENDBLOCK

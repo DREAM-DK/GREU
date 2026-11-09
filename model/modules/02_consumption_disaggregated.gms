@@ -10,6 +10,8 @@ $Group+ all_variables
   pCHh2pNest[cf,cfNest,t] "Relative prices between consumption levels"
   eCHh[cfNest] "Substitution elasticity in consumption function"
   jD_c[c,t] "Adjustment of consumption due to behavior"
+  jpCHh[cf,t] "J-term to be endogenized when energy module is turned on. Energy prices in the consumption nesting are based on marginal tax-rates"
+  jvtBotded_Hh[t] "Households' bottom deductions on energy-use, i.e. energy at marginal prices less payments (endogenized by energy_and_emissions_taxes module when active)."
   ;
 
 $ENDIF # variables
@@ -25,13 +27,14 @@ $BLOCK consumption_disaggregated_equations consumption_disaggregated_endogenous 
 
 # Prices comes from the input-output module
   pCHh&_cf_bottom[cf_bottom,t]..
-    pCHh[cf_bottom,t] =E= sum(c $c2cf_bottom_mapping[c,cf_bottom], pD[c,t]);
+    pCHh[cf_bottom,t] =E= sum(c $c2cf_bottom_mapping[c,cf_bottom], pD[c,t]) + jpCHh[cf_bottom,t];
 
 # The aggregate consumption is determined in the households/ramsey_household module
-  qCHh&_cf_top[cf,t]$(cf_top[cf] and not t1[t]).. qCHh[cf,t] * pCHh[cf,t] =E= vC[t];
+# Bottom deductions are subtracted, as energy in the nesting is valued at marginal prices
+  qCHh&_cf_top[cf,t]$(cf_top[cf] and not t1[t]).. qCHh[cf,t] * pCHh[cf,t] - jvtBotded_Hh[t] =E= vC[t];
 
-# Disaggregated quantities are determind in this section and linked to vD_c
-  jD_c[c,t]$(not t1[t]).. vD[c,t] =E= sum(cf_bottom $c2cf_bottom_mapping[c,cf_bottom], pCHh[cf_bottom,t]*qCHh[cf_bottom,t]); 
+# Disaggregated quantities are determind in this section and linked to qD
+  jD_c[c,t]$(not t1[t]).. qD[c,t] =E= sum(cf_bottom $c2cf_bottom_mapping[c,cf_bottom], qCHh[cf_bottom,t]); 
 
 
 # The CES consumption function
@@ -83,6 +86,9 @@ eCHh.l['Goods'] = 0.3;
 eCHh.l['TourServ'] = 1.25;
 eCHh.l['Food'] = 1.1;
 
+
+jpCHh.l[cf,t] = 0;
+jvtBotded_Hh.l[t] = 0;
 
 qCHh.l[cf_bottom,t] = sum(c $c2cf_bottom_mapping[c,cf_bottom], qD.l[c,t]);
 qCHh.l[cfNest,t] =  sum(cf_mapping[cfNest,cf], qCHh.l[cf,t]);

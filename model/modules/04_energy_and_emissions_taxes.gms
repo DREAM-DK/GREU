@@ -39,9 +39,7 @@ $IF %stage% == "variables":
     qCO2_ETS_freeallowances[i,t]$(d1tCO2_ETS[i,t])                     "This one needs to have added non-energy related emissions"
 
 		tpE_marg[es,e,d,t]$(d1pEpj_base[es,e,d,t]) 										 "Aggregate marginal tax-rate on priced energy, measured as a mark-up over base price"
-		tpE[es,e,d,t]$(d1pEpj_base[es,e,d,t] and d1qEpj[es,e,d,t]) 		 "Aggregate average tax-rate on priced energy, measured as a mark-up over base price"
 		tqE_marg[es,e,d,t]$(d1tqEpj[es,e,d,t]) 												 "Aggregate marginal tax-rate on non-priced energy, measured as bio. kroner per PJ (or equivalently 1000 DKR per GJ)" 
-    tqE[es,e,d,t]$(d1tqEpj[es,e,d,t])                              "Aggregate average tax-rate on non-priced energy, measured as bio. kroner per PJ (or equivalently 1000 DKR PER GJ)"
 
     vtE_duty[etaxes,es,e,d,t]$(d1tE_duty[etaxes,es,e,d,t]) "Tax revenue from duties on energy"
     vtE_duty_tot[d,t]$(d1tE_duty_tot[d,t]) "Total tax revenue from duties on energy"
@@ -71,6 +69,7 @@ $IF %stage% == "variables":
     #Links 
     vtY_i_d_calib[i,d,t]$(d1Y_i_d[i,d,t]) ""
     vtM_i_d_calib[i,d,t]$(d1M_i_d[i,d,t]) ""
+    tY_i_tax_xETS[i,t]$(d1Y_i[i,t]) "Average production tax rate per output unit, excluding ETS"
 
     adj_jvtY_i_d[t] ""
     adj_jvtM_i_d[t] ""
@@ -125,7 +124,8 @@ $IF %stage% == "equations":
     #Total VAT paid on energy
      ..   vtE_vat[es,e,d,t] =E= tE_vat[es,e,d,t] * (pEpj_base[es,e,d,t]*qEpj[es,e,d,t]
                                                   + sum(etaxes, tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] - qEpj_duty_deductible[etaxes,es,e,d,t]))
-                                                  + sum(i,pE_margins[es,e,d,i,t])*qEpj[es,e,d,t]);
+                                                  + sum(i,pE_margins[es,e,d,i,t])*qEpj[es,e,d,t]
+                                                  + sum(em, tCO2_ETS_pj[em,es,e,d,t] + tCO2_ETS2_pj[em,es,e,d,t])*qEpj[es,e,d,t]);
 
       #Total taxes on energy, excluding ETS, i.e. how it is computed in Danish National Accounts
       ..   vtE_NAS[es,e,d,t] =E= vtE_vat[es,e,d,t] 
@@ -139,7 +139,7 @@ $IF %stage% == "equations":
                             ; 
 
       #Total taxes, if marginal rates applied to all energy-use                      
-      ..   vtEmarg[es,e,d,t] =E= (1+tpE_marg[es,e,d,t]) * pEpj_base[es,e,d,t] * qEpj[es,e,d,t];
+      ..   vtEmarg[es,e,d,t] =E= (pEpj_marg[es,e,d,t] - pEpj_base[es,e,d,t] - pEpj_own[es,e,d,t] - sum(i,pE_margins[es,e,d,i,t])) * qEpj[es,e,d,t];
 
       #Marginal tax-rate on priced-energy
       tpE_marg[es,e,d,t]..
@@ -150,11 +150,6 @@ $IF %stage% == "equations":
                                       + sum(em, tCO2_ETS_pj[em,es,e,d,t])
                                       + sum(em, tCO2_ETS2_pj[em,es,e,d,t]))
                                       ;     
-                                         
-      #Average tax-rate on energy
-      tpE[es,e,d,t]..
-         (1+tpE[es,e,d,t]) * pEpj_base[es,e,d,t] * qEpj[es,e,d,t]
-          =E= vEpj[es,e,d,t];
       
       #Marginal tax-rate on non-priced energy
       tqE_marg[es,e,d,t]..
@@ -162,12 +157,6 @@ $IF %stage% == "equations":
           =E= sum(etaxes, tEmarg_duty[etaxes,es,e,d,t])
              +sum(em, tCO2_ETS_pj[em,es,e,d,t])
              +sum(em, tCO2_ETS2_pj[em,es,e,d,t]);
-
-      tqE[es,e,d,t]..
-        tqE[es,e,d,t]*(qEpj[es,e,d,t]+epsilon) =E= 
-          sum(etaxes,vtE_duty[etaxes,es,e,d,t]) 
-                        + sum(em, tCO2_ETS_pj[em,es,e,d,t])*(qEpj[es,e,d,t]+epsilon)
-                        + sum(em, tCO2_ETS2_pj[em,es,e,d,t])*(qEpj[es,e,d,t]+epsilon);
         
         #CO2-taxes based on emissions (currently only industries) 
           #Domestic CO2-tax                                                                                                                                                                                     #AKB: Depending on how EOP-energy technology is modelled this should be adjusted for EOP
@@ -228,9 +217,9 @@ $IF %stage% == "equations":
   $BLOCK energy_and_emissions_taxes_links energy_and_emissions_taxes_links_endogenous $(t1.val <= t.val and t.val <= tEnd.val)
 
     #Bottom deductions (we meausure with positive sign and deduct them in production.gms)
+    #Marginal prices include ETS, whereas ETS is paid through production taxes, so ETS is deducted here as well
       vtBotded[i,t]$(d1Y_i[i,t])..
-        vtBotded[i,t] =E= sum((es,e), vtEmarg[es,e,i,t] - vtE[es,e,i,t])
-                        + tCO2_ETS[t]/10**6 * qCO2_ETS_freeallowances[i,t]; 
+        vtBotded[i,t] =E= sum((es,e), vtEmarg[es,e,i,t] - vtE_NAS[es,e,i,t]); 
 
     #Non-energy related taxes
       vtEmmRxE[i,t]$(d1Y_i[i,t])..
@@ -241,6 +230,10 @@ $IF %stage% == "equations":
     jvtBotded[i,t]$(d1Y_i[i,t])..
       jvtBotded[i,t] =E= vtBotded[i,t];
 
+    #Households' bottom deductions, i.e. marginal less actual taxes. Includes ETS2, which households pay directly to government
+    jvtBotded_Hh[t]..
+      jvtBotded_Hh[t] =E= sum((es,e,c), vtEmarg[es,e,c,t] - vtE_NAS[es,e,c,t]);
+
     jvtEmmRxE[i,t]$(d1Y_i[i,t])..
       jvtEmmRxE[i,t] =E= vtEmmRxE[i,t];
 
@@ -248,6 +241,13 @@ $IF %stage% == "equations":
     # J-term stands in for vtCO2_ETS_tot[t] used in government.gms equation
     jvtCO2_ETS_tot[t]..
       jvtCO2_ETS_tot[t] =E= sum(d, vtCO2_ETS[d,t] + vtCO2_ETS2[d,t]);
+
+    #ETS is kept outside the National Accounts energy values. Firms pay ETS through production taxes, households pay ETS2 directly to government
+    tY_i_tax[i,t]$(d1Y_i[i,t])..
+      vtY_i_tax[i,t] =E= tY_i_tax_xETS[i,t] * qY_i[i,t] + vtCO2_ETS[i,t] + vtCO2_ETS2[i,t];
+
+    jvtCO2_ETS2_Hh[t]..
+      jvtCO2_ETS2_Hh[t] =E= sum(c, vtCO2_ETS2[c,t]);
 
     # Non-energy related carbon tax revenue by industry
     jvtCO2_xE[i,t]$(d1tCO2_xE[i,t])..
@@ -348,6 +348,9 @@ $IF %stage% == "exogenous_values":
 	  d1pEpj_marg[es,e,i,t]           = yes$(d1pEpj_marg_inNest[es,e,i,t] or d1pEpj_marg_NotinNest[es,e,i,t]);
 
 	  d1pEes[es,i,t] 			 				 = yes$(sum(e, d1pEpj_marg_inNest[es,e,i,t]));	
+
+    #Households pay the statutory CO2-tax on their emissions, see calibration
+    $Group+ data_covered_variables -vtE_duty[etaxes,es,e,c,t]$(CO2_tax[etaxes] and sum(em, d1tCO2_E[em,es,e,c,t]));
 	  d1pREmachine[i,t]            = yes$(sum(es$(not (heating[es] or transport[es])), d1pEes[es,i,t]));
 
 $ENDIF
@@ -395,13 +398,17 @@ $IF %stage% == "calibration":
   $Group calibration_endogenous
     energy_and_emissions_taxes_endogenous 
     -vtE_duty[etaxes,es,e,d,t1], tEmarg_duty[etaxes,es,e,d,t1]
-    -tEmarg_duty['ener_tax',es,e,d,t1]$(d1tE_duty['ener_tax',es,e,d,t1] and tEmarg_duty.l['ener_tax',es,e,d,t1] <>0), qEpj_duty_deductible['ener_tax',es,e,d,t1]$(d1tE_duty['ener_tax',es,e,d,t1] and tEmarg_duty.l['ener_tax',es,e,d,t1] <>0)
-    -tEmarg_duty['ener_tax',es,e,d,t1]$(d1tE_duty['ener_tax',es,e,d,t1] and tEmarg_duty.l['ener_tax',es,e,d,t1] =0), jvtE_duty['ener_tax',es,e,d,t1]$(d1tE_duty['ener_tax',es,e,d,t1] and tEmarg_duty.l['ener_tax',es,e,d,t1] =0)
+    #Households cannot deduct energy taxes, so their marginal energy tax is calibrated to match revenue
+    -tEmarg_duty['ener_tax',es,e,d,t1]$(d1tE_duty['ener_tax',es,e,d,t1] and not c[d] and tEmarg_duty.l['ener_tax',es,e,d,t1] <>0), qEpj_duty_deductible['ener_tax',es,e,d,t1]$(d1tE_duty['ener_tax',es,e,d,t1] and not c[d] and tEmarg_duty.l['ener_tax',es,e,d,t1] <>0)
+    -tEmarg_duty['ener_tax',es,e,d,t1]$(d1tE_duty['ener_tax',es,e,d,t1] and not c[d] and tEmarg_duty.l['ener_tax',es,e,d,t1] =0), jvtE_duty['ener_tax',es,e,d,t1]$(d1tE_duty['ener_tax',es,e,d,t1] and not c[d] and tEmarg_duty.l['ener_tax',es,e,d,t1] =0)
     -vtE_vat[es,e,d,t1], tE_vat[es,e,d,t1]
 
-    qEpj_duty_deductible[etaxes,es,e,d,t1]$(d1tE_duty[etaxes,es,e,d,t] and CO2_tax[etaxes] and sum(em,d1tCO2_E[em,es,e,d,t])) # and i[d])
+    qEpj_duty_deductible[etaxes,es,e,d,t1]$(d1tE_duty[etaxes,es,e,d,t] and CO2_tax[etaxes] and sum(em,d1tCO2_E[em,es,e,d,t]) and not c[d])
+    #Households pay the statutory CO2-tax on their emissions, so their CO2-tax revenue is not calibrated to data
+    vtE_duty[etaxes,es,e,d,t1]$(d1tE_duty[etaxes,es,e,d,t] and CO2_tax[etaxes] and sum(em,d1tCO2_E[em,es,e,d,t]) and c[d])
 
     energy_and_emissions_taxes_links_endogenous
+    tY_i_tax_xETS[i,t1]
 
     energy_and_emissions_taxes_calibration_endogenous
     vtY_i_d[i,d,t]$(d1Y_i_d[i,d,t] and not i_energymargins[i] and d_ene[d] and t1[t])
@@ -421,13 +428,31 @@ $ENDIF
 $IF %stage%=='tests':
 
   #Testing that the math works in linking equation
-
   PARAMETER what[t];
 
   what[t] = abs(sum((es,e,d), vtE_NAS.l[es,e,d,t]) - sum((i,d_ene), vtY_i_d.l[i,d_ene,t] + vtM_i_d.l[i,d_ene,t]));
   display what; 
   LOOP(t$(t.val>=t1.val and t.val<=tEnd.val),
     ABORT$(abs(sum((es,e,d), vtE_NAS.l[es,e,d,t]) - sum((i,d_ene), vtY_i_d.l[i,d_ene,t] + vtM_i_d.l[i,d_ene,t])) > 0.1$(t.val=t1.val) + 1e-8$(t.val>t1.val))  'Bottom-up tax revenues does not match IO tax-revenues (1)';
+  );
+
+  #Testing that payments match prices. Payments are the National Accounts value of energy, ETS is kept outside the National Accounts energy values
+  #Households' energy in the consumption nesting (marginal prices less bottom deductions) equals the payments for energy in the IO-system
+  PARAMETER jvE_Hh_pricing2payments[t] "Households' energy in consumption nesting less payments for energy";
+  jvE_Hh_pricing2payments[t]$(t.val>t1.val and t.val<=tEnd.val)
+    = sum((c,cf_ene)$sameas[c,cf_ene], pCHh.l[cf_ene,t]*qCHh.l[cf_ene,t] - vD.l[c,t]) - jvtBotded_Hh.l[t];
+  ABORT$(sum(t, abs(jvE_Hh_pricing2payments[t])) > 1e-6) 'Households energy costs in consumption nesting do not match payments for energy', jvE_Hh_pricing2payments;
+
+  #Energy costs in production pricing (marginal prices less bottom deductions) equal the payments for energy: National Accounts value and own production. ETS is paid through production taxes
+  PARAMETER jvE_pricing2payments[i,t] "Energy costs in production pricing less payments for energy";
+  jvE_pricing2payments[i,t]$(d1Y_i[i,t] and t.val>=t1.val and t.val<=tEnd.val)
+    = sum(pf_bottom_e, pProd.l[pf_bottom_e,i,t]*qProd.l[pf_bottom_e,i,t]) + jvEnergycostsnotinnesting.l[i,t] - jvtBotded.l[i,t]
+    - sum((es,e), vEpj.l[es,e,i,t] + pEpj_own.l[es,e,i,t]*qEpj.l[es,e,i,t]);
+  ABORT$(not d1switch_energy_technology and sum((i,t), abs(jvE_pricing2payments[i,t])) > 1e-6) 'Firms energy costs in production pricing do not match payments for energy', jvE_pricing2payments;
+
+  #All ETS revenue is paid, either by firms through production taxes or by households directly to government
+  LOOP(t$(t.val>=t1.val and t.val<=tEnd.val),
+    ABORT$(abs(jvtCO2_ETS_tot.l[t] - sum(i, vtY_i_tax.l[i,t] - tY_i_tax_xETS.l[i,t]*qY_i.l[i,t]) - jvtCO2_ETS2_Hh.l[t]) > 1e-6) 'ETS revenue is not paid by firms or households';
   );
 
   #Testing that data is matched

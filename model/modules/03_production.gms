@@ -70,7 +70,7 @@ $IF %stage% == "equations":
 
     # # Other production costs, not in nesting tree 
     .. vProdOtherProductionCosts[i,t] =E= 
-                                            vtY_i_NetTaxSub[i,t]           #Net production taxes and subsidies, excluding ETS free allowances
+                                            vtY_i_NetTaxSub[i,t]           #Net production taxes and subsidies, including ETS net of free allowances
                                            -jvtBotded[i,t]                   #"Bottom deductions on energy-use"
                                           + jvEnergycostsnotinnesting[i,t]   #Energy costs not in nesting tree
                                           - vNetGov2Corp_xIO[i,t];

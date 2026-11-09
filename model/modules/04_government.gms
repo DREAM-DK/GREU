@@ -62,6 +62,7 @@ $Group+ all_variables
   # J-terms for energy and emissions tax variables (endogenized by energy_and_emissions_taxes module when active)
   jvtCO2_ETS_tot[t] "Total revenue from ETS1 and ETS2 (endogenized by energy_and_emissions_taxes module when active)."
   jvtCO2_xE[i,t] "Tax revenue from national carbon tax, non-energy related emissions (endogenized by energy_and_emissions_taxes module when active)."
+  jvtCO2_ETS2_Hh[t] "Households' ETS2 payments (endogenized by energy_and_emissions_taxes module when active)."
 ;
 
 $ENDIF # variables
@@ -84,6 +85,7 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
 
   .. vtIndirect[t] =E=    vtY[t] + vtM[t] # Net duties, paid through R, E, I, C, G, and X
                         + vtY_Tax[t]  - jvtCO2_ETS_tot[t] #Production taxes minus ETS-revenue
+                        + jvtCO2_ETS2_Hh[t] #Households' ETS2 payments, which are kept outside the National Accounts energy values
                         + sum(i, jvtCO2_xE[i,t])
                         + sum(i, vtIndirect_other[i,t])
                         ;
@@ -149,7 +151,7 @@ $BLOCK government_equations government_endogenous $(t1.val <= t.val and t.val <=
 
 
   .. vNetHh2Gov[t] =E= vtHhWages[t] + vtHhReturn[t] + vtDirect_other[t] 
-                       + vCont[t] + vGovRevGovCorpCorrection[t] + vGovDeprCorrection[t] + vtCap[t]  
+                       + vCont[t] + vGovRevGovCorpCorrection[t] + vGovDeprCorrection[t] + vtCap[t] + jvtCO2_ETS2_Hh[t]
                        - vHhTransfers[t] - vGovNetAcquisitions[t] - vLumpsum[t];
 
 
@@ -202,6 +204,7 @@ vGovRevGovCorp.l[t] = vGovRevQuasi.l[t] + vGovRent.l[t];
 # Initialize J-terms for energy and emissions tax variables to zero (allows partial equilibrium when energy modules are off)
 jvtCO2_ETS_tot.l[t] = 0;
 jvtCO2_xE.l[i,t] = 0;
+jvtCO2_ETS2_Hh.l[t] = 0;
 
 $ENDIF # exogenous_values
 
