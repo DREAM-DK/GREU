@@ -30,7 +30,9 @@ baseline = load(joinpath(@__DIR__, "..", "Output", "baseline.parquet"), block.mo
 scenario = copy(baseline)
 
 scenario[Production.qFixedCost_i[:, t1:T]] .*= 1.01
-scenario[Production.aProd[:labor, :, t1:T]] .*= 1.01
+scenario[Production.aProd[:unskilled, :, t1:T]] .*= 1.01
+scenario[Production.aProd[:skilled, :, t1:T]] .*= 1.01
+scenario[Production.aProd[:tertiary, :, t1:T]] .*= 1.01
 scenario[Labor.ntL_l_i[:, :, t1:T]] .*= 1.01
 scenario[SectorAccounts.vSocialContributions[:, t1:T]] .*= 1.01
 scenario[SectorAccounts.vSocialBenefits[[:FinCorp], t1:T]] .*= 1.01

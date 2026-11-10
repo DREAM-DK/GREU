@@ -88,6 +88,15 @@ IndustrySectorsData.refresh_industry_sector_shares!()
 TaxesData.refresh_taxes_data!()
 
 # ==============================================================================
+# Labor type data
+# ==============================================================================
+# Split aggregate employment, wages, and labor taxes by labor type with the DA
+# shares in labor_type_shares.csv. Run after the labor and tax tables.
+include(joinpath(@__DIR__, "modules", "LaborTypeData.jl"))
+
+LaborTypeData.refresh_labor_type_data!()
+
+# ==============================================================================
 # Physical energy account
 # ==============================================================================
 # Reads industry_resolution.csv through InputOutputSettings, so run the industry

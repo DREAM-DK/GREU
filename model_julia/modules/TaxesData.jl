@@ -26,7 +26,6 @@ import ..InputOutputSettings:
 import ..ProductionSettings:
   capital_type,
   intermediate_type,
-  labor_type,
   production_data_dir
 import ..SectorAccountsSettings: sector_accounts_data_dir
 import ..Settings: calibration_year, country_code, first_data_year
@@ -52,6 +51,8 @@ const production_intermediate_file = joinpath(production_data_dir, "production_i
 const production_taxes_file = joinpath(production_data_dir, "production_taxes.csv")
 const product_taxes_file = joinpath(production_data_dir, "product_taxes.csv")
 const import_product_taxes_file = joinpath(production_data_dir, "import_product_taxes.csv")
+# Factor taxes use aggregate labor. LaborTypeData.jl splits them by labor type.
+const aggregate_labor_type = [:labor]
 const purchaser_use_file = joinpath(input_output_data_dir, "input_output_purchaser_use.csv")
 const net_product_tax_file = joinpath(input_output_data_dir, "input_output_net_product_tax.csv")
 const government_file = joinpath(government_data_dir, "government_variables.csv")
@@ -61,7 +62,7 @@ const industry_sector_share_file = joinpath(sector_accounts_data_dir, "industry_
 @assert Set(tax_class) == Set([reported_tax_class; residual_tax_class]) "Tax settings must cover each source class"
 @assert subsidy_class == [:D39] "The broad Eurostat source supports only the D39 subsidy class"
 @assert all(
-  count(!isempty(intersect(targets, inputs)) for inputs in (capital_type, labor_type, intermediate_type)) <= 1
+  count(!isempty(intersect(targets, inputs)) for inputs in (capital_type, aggregate_labor_type, intermediate_type)) <= 1
   for targets in Iterators.flatten((values(production_tax_input_map), values(production_subsidy_input_map)))
 ) "A tax or subsidy class cannot span factor inputs with different units"
 
@@ -139,11 +140,10 @@ function production_tax_bases(gva)
   qK = read_cells(production_capital_file, "qK_k_i")
   wages = read_cells(production_labor_file, "vWages_i")
   qM = read_cells(production_intermediate_file, "qM_m_i")
-  @assert length(labor_type) == 1 "The wage base needs one model labor type"
 
   input_base = merge(
     Dict((k, i, year) => value for ((k, i, year), value) in qK),
-    Dict((only(labor_type), i, year) => value for ((i, year), value) in wages),
+    Dict((only(aggregate_labor_type), i, year) => value for ((i, year), value) in wages),
     Dict((m, i, year) => value for ((m, i, year), value) in qM),
   )
   industries = sort(unique(i for (i, _) in keys(gva)))

@@ -63,9 +63,7 @@ function industry_accounts(industries, year, source)
       intermediate = sum_industry_cells(source.purchaser_use, i, year) +
                      sum_industry_cells(source.margins, i, year) +
                      sum_industry_cells(source.product_taxes, i, year)
-      average_wage = sum(value for ((_,source_year), value) in source.payroll if source_year == year) /
-                     sum(value for ((_,_,source_year), value) in source.labor if source_year == year)
-      wages = average_wage * sum_industry_cells(source.labor, i, year)
+      wages = get(source.payroll, (i, year), 0.0)
       production_taxes = get(source.production_taxes, (i, year), 0.0)
       (
         output = output,
@@ -263,7 +261,6 @@ function build_industry_sector_shares()
     purchaser_use = read_cells(purchaser_use_file, "qPurchaserUse_p_u"),
     margins = read_cells(margin_file, "qMarginBundle_p_u"),
     product_taxes = read_cells(product_tax_file, "vntProduct_p_u"),
-    labor = read_cells(labor_file, "nL_l_i"),
     payroll = read_cells(labor_file, "vWages_i"),
     production_taxes = read_cells(production_file, "vntProduction_i"),
   )

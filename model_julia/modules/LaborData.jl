@@ -13,7 +13,7 @@ using DataFramesMeta
 import ..EurostatClient
 import ..DataUtils: long_format, sum_by
 import ..InputOutputSettings: eurostat_unit, eurostat_use_dataset, source_mapping
-import ..ProductionSettings: labor_type, production_data_dir
+import ..ProductionSettings: production_data_dir
 import ..Settings: calibration_year, country_code, first_data_year
 
 const data_years = first_data_year:calibration_year
@@ -61,7 +61,8 @@ end
 
 function refresh_labor_data!(employment = fetch_employment_table(), payroll = fetch_payroll_table(), dir = production_data_dir)
   mkpath(dir)
-  employment.l .= only(labor_type)
+  # Aggregate employment. LaborTypeData.jl splits it by labor type.
+  employment.l .= :labor
   CSV.write(joinpath(dir, "production_labor.csv"), vcat(
     long_format(:nL_l_i, employment, [:l, :industry, :year]),
     long_format(:nLSupply, sum_by(employment, [:year]), [:year]),

@@ -60,6 +60,7 @@ import ..Tags: ForecastConstant, ForecastZero
 # ============================================================================
 const production_gva_file = joinpath(production_data_dir, "production_gva.csv")
 const production_taxes_file = joinpath(production_data_dir, "production_taxes.csv")
+const production_labor_types_file = joinpath(production_data_dir, "production_labor_types.csv")
 const product_taxes_file = joinpath(production_data_dir, "product_taxes.csv")
 
 const vtProduction_c_i_data = read_cells(production_taxes_file, "vtProduction_c_i")
@@ -67,7 +68,7 @@ const vsProduction_c_i_data = read_cells(production_taxes_file, "vsProduction_c_
 const vsProduction_c_data = read_cells(production_taxes_file, "vsProduction_c")
 const vtProduction_data = read_cells(production_taxes_file, "vtProduction")
 const vntK_k_i_data = read_cells(production_taxes_file, "vntK_k_i")
-const vntL_l_i_data = read_cells(production_taxes_file, "vntL_l_i")
+const vntL_l_i_data = read_cells(production_labor_types_file, "vntL_l_i")
 const vntM_m_i_data = read_cells(production_taxes_file, "vntM_m_i")
 const vntProductionOther_i_data = read_cells(production_taxes_file, "vntProductionOther_i")
 const vntProduction_i_data = read_cells(production_gva_file, "vntProduction_i")

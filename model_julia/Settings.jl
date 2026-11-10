@@ -32,7 +32,6 @@ const macro_core_modules = [
 
   :Production,
   :Labor,
-  :LaborNesting, # Optional CES decomposition of aggregate labor
   :Intermediates,
   :Capital,
   :Taxes,
@@ -69,7 +68,7 @@ const green_transition_modules = [
 const loaded_modules = [
   macro_accounting_modules...,
   macro_core_modules...,
-  macro_rigidity_modules...,
+  # macro_rigidity_modules...,
   # green_transition_modules...,
 ]
 
@@ -78,7 +77,7 @@ const loaded_modules = [
 model_modules::Vector{Symbol} = [
   macro_accounting_modules...,
   macro_core_modules...,
-  macro_rigidity_modules...,
+  # macro_rigidity_modules...,
   # green_transition_modules...,
 ]
 
@@ -90,7 +89,7 @@ gams_system_dir() = dirname(something(Sys.which("gams"), "C:/GAMS/51/gams.exe"))
 function square_model(model=SquareModels.square_model(; gamsdir=gams_system_dir()))
   GAMS.check_system_dir(JuMP.get_optimizer_attribute(model, "sysdir"))
   JuMP.set_optimizer_attribute(model, "workdir", mktempdir())
-  JuMP.set_time_limit_sec(model, 5 * 60)
+  JuMP.set_time_limit_sec(model, 10 * 60)
   return model
 end
 # Alternative backends:

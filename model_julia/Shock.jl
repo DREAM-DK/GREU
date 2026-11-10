@@ -2,8 +2,8 @@
 # To create another experiment, copy this file and change the marked settings
 # and shock definition below.
 using SquareModels
-import GREU: Settings, Time, loaded_module_by_name, base_model, Exports, Labor
-import GREU.Labor: labor_l_i, nL_l_i
+import GREU: Settings, Time, loaded_module_by_name, base_model, Exports, Production
+import GREU.Production: aProd
 import GREU.Time: T
 import GREU.Log: @log_time
 
@@ -23,13 +23,13 @@ baseline = load(joinpath(@__DIR__, "..", "Output", "baseline.parquet"), block.mo
 # Shock definition
 # ==============================================================================
 scenario = copy(baseline)
-scenario[Labor.qL2nL[t1:T]] .*= 1.01 # replace this line to shock another exogenous variable
+scenario[Production.aProd[:tertiary, :, t1:T]] .*= 1.01
 @log_time solve!(block, scenario; start_values=baseline, run_test_constraints=false)
 
 # Report settings
-report_file = "shock_report.html"
-tables_file = "labor_productivity_shock_tables.html"
-shock_title = "Labour productivity shock"
+report_file = "tertiary_labor_productivity_shock_report.html"
+tables_file = "tertiary_labor_productivity_shock_tables.html"
+shock_title = "Tertiary labour productivity shock"
 extra_figures=[(_, _, options) -> "Employment" => @plot(sum(nL_l_i[l,i,:] for (l, i) in labor_l_i); options...)]
 
 # ==============================================================================
@@ -38,7 +38,7 @@ extra_figures=[(_, _, options) -> "Employment" => @plot(sum(nL_l_i[l,i,:] for (l
 include("ShockReport.jl")
 shock_report = ShockReport.write_report(
   joinpath(@__DIR__, "..", "Output", report_file), baseline, scenario;
-  extra_figures,
+  # extra_figures,
   shock_title,
   periods=(t1-1):T,
 )

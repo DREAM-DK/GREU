@@ -1,10 +1,12 @@
-# Percentage deviations of the shocked scenario from the no-shock baseline in 2050.
+# Percentage deviations of the shocked scenario from the no-shock baseline in one year.
 module ShockTables
 
-import GREU.InputOutput: industry, pY_i, qY_i, qC, qI, qG, qX, qM, pC
+import GREU.InputOutput: industry, pY_i, qY_i, qX_p, qC, qI, qG, qX, qM, pC
+import GREU.InputOutputSettings: product, source_industry
 import GREU.FixedBasePriceAggregates: qGDP, pGDP
 import GREU.Capital: qK_k_i
-import GREU.Labor: qL_l_i, vW
+import GREU.Labor: qL_l_i, vW, vW_l, nL_l_i
+import GREU.ProductionSettings: labor_type
 import GREU.Intermediates: qM_m_i
 import GREU.Production: labor_l_i
 
@@ -84,6 +86,9 @@ industry_label(i) = begin
     isnothing(name) ? code : "$(name) ($(code))"
 end
 
+# Exports are by product. The common resolution pairs each industry with one product.
+const product_of_industry = Dict(zip(source_industry, product))
+
 
 # Sparse model arrays can contain structural zero placeholders. These are not
 # valid ModelDictionary keys, so resolve only genuine variable references.
@@ -117,6 +122,21 @@ function labour_deviation(baseline, scenario, i, year)
     return abs(b) < 1e-12 ? missing : 100 * (s / b - 1)
 end
 
+# Employment is measured in persons, not CES efficiency units.
+function employment_change(baseline, scenario, l, i, year)
+    (l, i) in labor_l_i || return missing
+    ref = nL_l_i[l,i,year]
+    b = model_value(baseline, ref)
+    s = model_value(scenario, ref)
+    return (ismissing(b) || ismissing(s)) ? missing : s - b
+end
+
+# Persons by type, summed over the industries that employ the type.
+function total_employment_change(baseline, scenario, l, year)
+    changes = [employment_change(baseline, scenario, l, i, year) for (k, i) in labor_l_i if k == l]
+    return (isempty(changes) || any(ismissing, changes)) ? missing : sum(changes)
+end
+
 # Escape labels so the generated HTML is safe and self-contained.
 function html_escape(value)
     return replace(string(value), "&" => "&amp;", "<" => "&lt;",
@@ -134,17 +154,20 @@ function html_number(x)
     return "<span class=\"$(cls)\">$(formatted)</span>"
 end
 
-function html_table(headers, rows)
+# `separator` is the column index (header position) that gets a left border.
+function html_table(headers, rows; total_last=false, separator=0)
+    sep_class(col) = col == separator ? " class=\"sep\"" : ""
     io = IOBuffer()
     println(io, "<div class=\"table-scroll\"><table><thead><tr>")
-    for header in headers
-        println(io, "<th>", html_escape(header), "</th>")
+    for (col, header) in enumerate(headers)
+        println(io, "<th", sep_class(col), ">", html_escape(header), "</th>")
     end
     println(io, "</tr></thead><tbody>")
-    for row in rows
-        println(io, "<tr><th scope=\"row\">", html_escape(row[1]), "</th>")
-        for value in row[2:end]
-            println(io, "<td>", html_number(value), "</td>")
+    for (idx, row) in enumerate(rows)
+        row_class = total_last && idx == length(rows) ? " class=\"labor-total\"" : ""
+        println(io, "<tr", row_class, "><th scope=\"row\">", html_escape(row[1]), "</th>")
+        for (col, value) in enumerate(row[2:end])
+            println(io, "<td", sep_class(col + 1), ">", html_number(value), "</td>")
         end
         println(io, "</tr>")
     end
@@ -152,24 +175,32 @@ function html_table(headers, rows)
     return String(take!(io))
 end
 
-function write_tables(path::AbstractString, baseline, scenario; shock_title, year=2050)
+function write_tables(path::AbstractString, baseline, scenario; shock_title, year=2060)
     industry_rows = Vector{Any}[]
+    labor_rows = Vector{Any}[]
     for i in sort(collect(industry); by=string)
         variables = (
             pY_i[i,:], qY_i[i,:], qK_k_i[:equipment,i,:],
             qM_m_i[:energy,i,:], nothing, qK_k_i[:structures,i,:],
-            qM_m_i[:materials,i,:]
+            qM_m_i[:materials,i,:], qX_p[product_of_industry[i],:]
         )
         values = [j == 5 ? labour_deviation(baseline, scenario, i, year) :
                   pct_deviation(baseline, scenario, var, year)
                   for (j, var) in enumerate(variables)]
         push!(industry_rows, Any[industry_label(i), values...])
+        headcounts = [employment_change(baseline, scenario, l, i, year)
+                      for l in labor_type]
+        push!(labor_rows, Any[industry_label(i), headcounts...])
     end
+    total_headcounts = [total_employment_change(baseline, scenario, l, year) for l in labor_type]
+    push!(labor_rows, Any["Total (all industries)", total_headcounts...])
     totals = [("GDP, constant prices", qGDP), ("Private consumption (C)", qC),
               ("Investment (I)", qI), ("Government consumption (G)", qG),
               ("Exports", qX), ("Imports", qM)]
     total_rows = [Any[label, pct_deviation(baseline, scenario, var, year)] for (label,var) in totals]
+    # Type wages are not industry specific, so they sit under the total wage.
     prices = [("GDP deflator", pGDP), ("Wage per employee (W)", vW),
+              [("Wage per employee, $(l)", vW_l[l,:]) for l in labor_type]...,
               ("Consumer prices (pC)", pC)]
     price_rows = [Any[label, pct_deviation(baseline, scenario, var, year)] for (label,var) in prices]
 
@@ -178,7 +209,7 @@ function write_tables(path::AbstractString, baseline, scenario; shock_title, yea
     open(path, "w") do io
         print(io, """<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GREU | $(title) in $(year)</title>
+<title>GREU | $(title)</title>
 <style>
 :root{color-scheme:light;--ink:#16233c;--muted:#637187;--line:#e1e8f0;--bg:#f4f7fb;--blue:#1c416d}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px/1.55 system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--ink)}
@@ -188,21 +219,25 @@ section{background:white;border:1px solid var(--line);border-radius:14px;padding
 h2{font-size:19px;margin:0 0 5px}section>p{margin:0 0 18px;color:var(--muted);font-size:13px}
 .table-scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;white-space:nowrap}thead{background:#eaf0f7}
 th,td{padding:11px 13px;border-bottom:1px solid var(--line);text-align:right}thead th{font-size:12px;color:#344c69;font-weight:700}
-th:first-child{text-align:left}tbody th:first-child{white-space:normal;min-width:300px;max-width:490px}tbody th{font-weight:550}tbody tr:nth-child(even){background:#f8fafd}tbody tr:hover{background:#edf4fb}
+th:first-child{text-align:left}tbody th:first-child{white-space:normal;min-width:300px;max-width:490px}tbody th{font-weight:550}tbody tr:nth-child(even){background:#f8fafd}tbody tr:hover{background:#edf4fb}.labor-total th,.labor-total td{font-weight:750;border-top:2px solid var(--blue);background:#eaf0f7}
+th.sep,td.sep{border-left:2px solid var(--blue);padding-left:22px}
 .positive{color:#126c54}.negative{color:#b13e47}.neutral{color:#35445c}.na{color:#9aa6b7}
 footer{font-size:12px;color:var(--muted);padding:4px 5px}code{background:#edf2f8;padding:2px 5px;border-radius:4px}
 @media print{body{background:white}main{max-width:none;margin:0;padding:0}header{print-color-adjust:exact}section{break-inside:avoid;box-shadow:none}}
 </style></head><body><main>
-<header><div class="eyebrow">GREU · Scenario analysis</div><h1>$(title) – $(year)</h1>
-<p>Percentage deviation from the no-shock baseline in the same year.</p></header>
-<section><h2>01 · Industries and production inputs</h2><p>Output deflator, output (Y), equipment capital (K), effective labour units (L), energy (E), structures (B) and materials (M). All figures in percent.</p>
+<header><div class="eyebrow">GREU · Scenario analysis</div><h1>$(title)</h1>
+<p>Scenario comparison against the no-shock baseline in the same year.</p></header>
+<section><h2>01 · Industries and production inputs</h2><p>Output deflator, output (Y), equipment capital (K), effective labour units (L), energy (E), structures (B) and materials (M). The last column is direct exports of the product that the industry produces (X). All figures in percent.</p>
 """)
-        print(io, html_table(["Industry", "Output deflator", "Y", "K", "E", "L", "B", "M"], industry_rows))
-        print(io, """</section><section><h2>02 · GDP and expenditure components</h2><p>Real quantities; percentage deviation.</p>""")
+        print(io, html_table(["Industry", "Output deflator", "Y", "K", "E", "L", "B", "M", "X"], industry_rows; separator=9))
+        print(io, """</section><section><h2>02 · Employment by labor type</h2><p>Change in number of persons (shock minus baseline). The total row sums changes in persons across industries.</p>""")
+        labor_headers = vcat(["Industry"], ["Employment $(l) (persons Δ)" for l in labor_type])
+        print(io, html_table(labor_headers, labor_rows; total_last=true))
+        print(io, """</section><section><h2>03 · GDP and expenditure components</h2><p>Real quantities; percentage deviation.</p>""")
         print(io, html_table(["Variable", "Deviation in $(year) (%)"], total_rows))
-        print(io, """</section><section><h2>03 · Prices and wages</h2><p>Price indices and wage per employee; percentage deviation.</p>""")
+        print(io, """</section><section><h2>04 · Prices and wages</h2><p>Price indices, wage per employee in total and by labor type; percentage deviation.</p>""")
         print(io, html_table(["Variable", "Deviation in $(year) (%)"], price_rows))
-        print(io, """</section><footer>Method: 100 × (scenario[$(year)] / baseline[$(year)] − 1). Missing or invalid values are shown as —. The report is generated automatically when the model is run.</footer></main></body></html>""")
+        print(io, """</section><footer>Method: Percent deviations = 100 × (scenario[$(year)] / baseline[$(year)] − 1); employment changes = scenario[$(year)] − baseline[$(year)] persons. Missing or invalid values are shown as —. The report is generated automatically when the model is run.</footer></main></body></html>""")
     end
     return path
 end

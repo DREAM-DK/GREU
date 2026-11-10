@@ -42,13 +42,16 @@ const flow_asset_to_capital_type = Dict(
 const capital_type = sort(unique(values(flow_asset_to_capital_type)))
 @assert Set(capital_type) == Set(values(stock_asset_to_capital_type)) "Stock and flow assets must use the same capital types"
 
-const labor_type = [:labor]
+# Labor types by education. They must match the names in labor_type_shares.csv.
+const labor_type = [:unskilled, :skilled, :tertiary]
 const intermediate_type = [:energy, :materials]
 const product_to_intermediate_type = Dict(
   p => (product_members[p] ⊆ ("B", "C19", "D") ? :energy : :materials) for p in product
 )
 
 const full_nesting = Dict(
+  :nonTertiary => (children = [:unskilled, :skilled], elasticity = 1.5),
+  :labor => (children = [:nonTertiary, :tertiary], elasticity = 1.5),
   :KE => (children = [:equipment, :energy], elasticity = 0.7),
   :KEL => (children = [:KE, :labor], elasticity = 0.7),
   :KELB => (children = [:KEL, :structures], elasticity = 0.7),

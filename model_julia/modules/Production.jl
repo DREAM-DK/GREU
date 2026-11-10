@@ -21,7 +21,7 @@ import ..Tags: ForecastConstant, ForecastZero, DynamicCalibration
 # Read data
 # ============================================================================
 const capital_file = joinpath(production_data_dir, "production_capital.csv")
-const labor_file = joinpath(production_data_dir, "production_labor.csv")
+const labor_file = joinpath(production_data_dir, "production_labor_types.csv")
 const intermediate_product_split_file = joinpath(production_data_dir, "production_intermediate_product_split.csv")
 const qK_k_i_data = read_cells(capital_file, "qK_k_i")
 const nL_l_i_data = read_cells(labor_file, "nL_l_i")
@@ -62,7 +62,7 @@ const topNest = Dict(
   i => only(n for n in keys(production_nesting[i]) if !haskey(parent, (n, i)))
   for i in industry
 )
-const primary_factors = Set([:equipment, :energy, :labor, :structures, :materials])
+const primary_factors = Set([:equipment, :energy, :unskilled, :skilled, :tertiary, :structures, :materials])
 const node = sort(unique(
   v
   for i in industry
