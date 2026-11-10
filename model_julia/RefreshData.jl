@@ -104,3 +104,15 @@ LaborTypeData.refresh_labor_type_data!()
 include(joinpath(@__DIR__, "modules", "EnergyBalanceData.jl"))
 
 EnergyBalanceData.refresh_energy_balance_data!()
+
+# ==============================================================================
+# Air emissions account
+# ==============================================================================
+# Reads industry_resolution.csv through InputOutputSettings, so run the industry
+# resolution section first. It fetches its own burned fuel from PEFA, so it does
+# not need the energy section.
+include(joinpath(@__DIR__, "modules", "EmissionsData.jl"))
+
+EmissionsData.refresh_emissions_data!()
+
+

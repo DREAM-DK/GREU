@@ -3,6 +3,8 @@
 
 module EnergyBalanceSettings
 
+import ..InputOutputSettings: resolution
+
 const energy_balance_data_dir = joinpath(@__DIR__, "..", "data", "energy_balance")
 
 # Point to the PEFA dataset in Eurostat's data portal.
@@ -16,7 +18,7 @@ const pj_per_source_unit = 1e-3
 # PEFA is a physical flow account, so every resident activity conserves energy:
 # what is taken in must come out again (Thermodynamics!). 
 # Total input therefore equals total output for each activity - but only when also accounting for residuals.
-# This is why R30 transformation losses sit in source_product beside the energy prodocts.
+# This is why R30 transformation losses sit in source_product beside the energy products.
 
 # Individual products do not balance within an activity, because activities transform
 # one product into another: a factory takes in coal and transforms it into electricity.
@@ -120,6 +122,32 @@ canonical_activity_code(code::AbstractString) =
 ]) "only NACE industry codes may be rewritten"
 
 
+# Map Eurostat activity codes to model industries. 
+# PEFA and the air emissions accounts use the same codes.
+# Use a group's own code when the source publishes it, and sum its members only when it does not.
+# A source can publish a group beside one of its members, such as L beside L68A,
+# so taking both would count the same flow twice.
+function industry_source(published, source)
+  lookup = Dict{String,Symbol}()
+  for row in eachrow(resolution)
+    group = string(row.eurostat_group)
+    label = Symbol(string(row.industry))
+    if group in published
+      lookup[group] = label
+    else
+      members = split(string(row.members), ';')
+      @assert all(m in published for m in members) "$source publishes neither $group nor all its members: $(join(members, ", "))"
+      for m in members
+        lookup[m] = label
+      end
+    end
+  end
+  return lookup
+end
+
+# Each leaf code belongs to one industry group, so no flow can be mapped twice.
+@assert allunique(vcat(split.(string.(resolution.members), ';')...)) "industry groups must not share member codes"
+
 
 
 
@@ -187,7 +215,7 @@ const source_boundary = collect(keys(boundary_account))
 #
 # G-U_X_H is "Services (except transportation and storage), so G to U except H".
 # SD_SU is not a total. It is the discrepancy PEFA books per product for the whole economy,
-# as SD_IO is per account. It belongs to no account, so it stays out the account set.
+# as SD_IO is per account. It belongs to no account, so it stays out of the account set.
 # But economy-wide supply only equals use per product with SD_SU in the sum.
 #
 # None of them is a key in the activity lookup, so they drop out when codes are mapped. 
@@ -247,7 +275,8 @@ end # module
 # E: Water, sewage and waste management
 # F: Construction
 # G: Wholesale and retail trade
-# H: Transportation and storage
+# H: Transportation and storage. It includes fuel that resident ships, aircraft and lorries
+#    buy and burn abroad: the account follows the residence principle, not the territory.
 # I: Accommodation and food service activities
 # J: Information and communication
 # K: Financial and insurance activities
@@ -259,7 +288,7 @@ end # module
 # Q: Human health and social work activities
 # R: Arts, entertainment and recreation
 # S: Other service activities
-# T: Hoiusehold-employer and own-use production activies
+# T: Household-employer and own-use production activities
 # U: Extraterritorial organisations and bodies
 
 

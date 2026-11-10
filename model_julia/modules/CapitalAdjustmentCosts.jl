@@ -10,10 +10,10 @@ import ..Capital:
   rHurdleRate_i
 import ..GrowthInflationAdjustment: GrowthAdjusted, fp, fq
 import ..InputOutput: industry
-import ..Production: pProd, qProductionLoss, topNest
+import ..Production: capital_k_i, pProd, qProductionLoss, topNest
 import ..ProductionSettings: capital_type
 import ..model
-import ..Time: t1, T
+import ..Time: t1, T, tBase
 import ..Tags: ForecastConstant
 
 # ============================================================================
@@ -37,7 +37,13 @@ end
 # Assign data
 # ============================================================================
 function assign_data!(db)
-  db[fKAdjCost] .= 0.01
+  db[fKAdjCost] .= 10
+
+  # Base year: growth change over two-year steps (2015-17 and 2017-19), per year,
+  # because single-year changes in the capital data are noisy.
+  K(k, i, t) = db[qK_k_i[k,i,t]]
+  db[[rKCapitalGrowthChange[k,i,tBase] for (k,i) in capital_k_i]] .=
+    [(sqrt(K(k,i,tBase) / K(k,i,tBase-2)) - sqrt(K(k,i,tBase-2) / K(k,i,tBase-4))) / 2 for (k,i) in capital_k_i]
   return nothing
 end
 
@@ -54,7 +60,8 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    rKCapitalGrowthChange[k=capital_type, i=industry, t=t1:T],
+    # The base year has no equation: rKCapitalGrowthChange is data there (see assign_data!).
+    rKCapitalGrowthChange[k=capital_type, i=industry, t=t1:T; t > tBase],
     rKCapitalGrowthChange[k,i,t] == qK_k_i[k,i,t] / qK_k_i[k,i,t-1]*fq - qK_k_i[k,i,t-1] / qK_k_i[k,i,t-2]*fq
 
     qKAdjCost_k_i[k=capital_type, i=industry, t=t1:T],

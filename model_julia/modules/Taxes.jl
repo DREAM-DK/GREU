@@ -21,7 +21,8 @@ import ..InputOutput:
   purchaser_use_p_u_o_t,
   qPurchaserUse_p_u_o,
   ntProduct,
-  use
+  use,
+  follow_product_taxes!
 import ..Intermediates:
   intermediate_m_i,
   qM_m_i,
@@ -83,6 +84,7 @@ const vsProduct_data = read_cells(product_taxes_file, "vsProduct")
 const vtRoWProduct_data = read_cells(product_taxes_file, "vtRoWProduct")
 const vsRoWProduct_data = read_cells(product_taxes_file, "vsRoWProduct")
 const vsRoWProduction_data = read_cells(product_taxes_file, "vsRoWProduction")
+follow_product_taxes!(vtProduct_p_u_o_data, vsProduct_p_u_o_data, vtProduct_p_u_data, vsProduct_p_u_data, vntProduct_p_u_data)
 
 # ============================================================================
 # Indices

@@ -28,12 +28,17 @@ end
   snLSupplyRoW[l=labor_type, t=t], "Structural rest-of-world persons."
 end
 
+# Constant in the baseline (wage growth at trend). Shock it to move the normal wage path.
+@variables model :: (PhillipsCurveTag, GrowthAdjusted, InflationAdjusted, ForecastConstant) begin
+  vWStructural[t], "Structural wage per person."
+end
+
 # ============================================================================
 # Assign data
 # ============================================================================
 function assign_data!(db)
   db[uPhillipsCurveEmployment] .= 5.0
-  db[uPhillipsCurveExpectedInflation] = 0.30
+  db[uPhillipsCurveExpectedWage] = 0.96
   return nothing
 end
 
