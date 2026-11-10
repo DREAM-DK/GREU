@@ -12,4 +12,5 @@ subprocess.run([
     "pyarrow==24.0.0",
     "matplotlib",
     "eurostat",
+    "playwright==1.64.1",
 ], check=True)
