@@ -20,44 +20,6 @@ $SetGroup SG_Energy_technology_dummies
 ;
 
 parameter
-  d1pEpj_base_CGE[es,e,d,t]
-  d1pEpj_CGE[es,e,d,t]
-  d1pEpj_marg_CGE[es,e,i,t]
-  d1pEpj_marg_inNest_CGE[es,e,i,t]
-  d1tqEpj_CGE[es,e,d,t]
-  d1qEpj_CGE[es,e,d,t]
-  d1tCO2_ETS_E_CGE[em,es,e,d,t]
-  d1tCO2_ETS_CGE[d,t]
-  d1tCO2_ETS2_E_CGE[em,es,e,d,t]
-  d1tCO2_ETS2_CGE[d,t]
-  d1EmmE_BU_CGE[em,es,e,d,t]
-  uEmmE_BU_CGE[em,es,e,d,t]
-  d1tCO2_E_CGE[em,es,e,d,t]
-  tCO2_Emarg_CGE[em,es,e,i,t]
-  d1tE_duty_CGE[etaxes,es,e,d,t]
-
-  d1pEpj_base_energy_technology[es,e,d,t]
-  d1pEpj_energy_technology[es,e,d,t]
-  d1pEpj_marg_energy_technology[es,e,i,t]
-  d1pEpj_marg_inNest_energy_technology[es,e,i,t]
-  d1tqEpj_energy_technology[es,e,d,t]
-  d1qEpj_energy_technology[es,e,d,t]
-  d1tCO2_ETS_E_energy_technology[em,es,e,d,t]
-  d1tCO2_ETS_energy_technology[d,t]
-  d1tCO2_ETS2_E_energy_technology[em,es,e,d,t]
-  d1tCO2_ETS2_energy_technology[d,t]
-  d1EmmE_BU_energy_technology[em,es,e,d,t]
-  uEmmE_BU_energy_technology[em,es,e,d,t]
-  d1tCO2_E_energy_technology[em,es,e,d,t]
-  tCO2_Emarg_energy_technology[em,es,e,i,t]
-  d1tE_duty_energy_technology[etaxes,es,e,d,t]
-
-  d1no_energy_price[e]
-;
-
-d1EmmE_BU_energy_technology[em,es,e,d,t] = no;
-
-parameter
   d1switch_energy_technology "Dummy to control whether the energy technology model is turned on (=1) or off (=0)"
   d1switch_integrate_energy_technology "Dummy to control whether the energy technology model is integrated with the CGE-model (=1) or not (=0)"
   jqESE_phaseout[t] "Parameter to phase out jqESE in the calibration model"
