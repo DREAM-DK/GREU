@@ -77,6 +77,7 @@ $BLOCK financial_equations financial_endogenous $(t1.val <= t.val and t.val <= t
                             + vNetGov2Foreign[t];
 
   .. vEBITDA_i[i,t] =E= vY_i[i,t] - vWages_i[i,t] - vD[i,t] - jvE_i[i,t]
+                                  - jvtCO2_CCS[i,t] # Carbon tax on captured CO2, paid in cash but not in the input-output table
                                   - vtY_i_NetTaxSub[i,t] + vNetGov2Corp_xIO[i,t]; # Net duties should be subtracted here - AKB: What? They are contained in vD and vE_i
 
   # Government maintains equity at a constant level

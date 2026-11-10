@@ -189,8 +189,8 @@ $BLOCK energy_technology_equations_output energy_technology_endogenous_output $(
   # 2.2.1 Energy and Capital Use
   # Use of energy in production of energy service
   .. qESE[es,e,d,t] =E= 
-        max[10**(-6),
-            qES[es,d,t] * sum(l$(d1sqTPotential[l,es,d,t]), sqT[l,es,d,t] * uTE[l,es,e,d,t])];
+        # max[10**(-6),
+            qES[es,d,t] * sum(l$(d1sqTPotential[l,es,d,t]), sqT[l,es,d,t] * uTE[l,es,e,d,t]);
     
   # Use of machinery capital for technologies
   .. qESK[es,d,t] =E= 

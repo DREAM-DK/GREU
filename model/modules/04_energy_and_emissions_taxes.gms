@@ -247,6 +247,12 @@ $IF %stage% == "equations":
     jvtCO2_xE[i,t]$(d1tCO2_xE[i,t])..
       jvtCO2_xE[i,t] =E= vtCO2_xE[i,t];
 
+    # Captured CO2 has no energy supplier, so its carbon tax is not allocated to an IO cell.
+    # The industry pays it in cash, so it is added to vtIndirect and deducted from vEBITDA_i.
+    # It is not deducted in vNetGov2Corp_xIO, because that term also enters the production cost (vProdOtherProductionCosts).
+    jvtCO2_CCS[i,t]$(sum(es, d1tE_duty['co2_tax',es,'Captured CO2',i,t]))..
+      jvtCO2_CCS[i,t] =E= sum(es$d1tE_duty['co2_tax',es,'Captured CO2',i,t], vtE_duty['co2_tax',es,'Captured CO2',i,t]);
+
 
     ..    vtE_duty_tot[d,t] =E= sum((etaxes,es,e), vtE_duty[etaxes,es,e,d,t]);
 
@@ -417,13 +423,13 @@ $IF %stage%=='tests':
 
   PARAMETER what[t];
 
-  what[t] = abs(sum((es,e,d), vtE_NAS.l[es,e,d,t]) - sum((i,d_ene), vtY_i_d.l[i,d_ene,t] + vtM_i_d.l[i,d_ene,t]));
+  what[t] = abs(sum((es,e,d)$(not sameas(e,'Captured CO2')), vtE_NAS.l[es,e,d,t]) - sum((i,d_ene), vtY_i_d.l[i,d_ene,t] + vtM_i_d.l[i,d_ene,t]));
   display what; 
   LOOP(t$(t.val>=t1.val and t.val<=tEnd.val),
-    ABORT$(abs(sum((es,e,d), vtE_NAS.l[es,e,d,t]) - sum((i,d_ene), vtY_i_d.l[i,d_ene,t] + vtM_i_d.l[i,d_ene,t])) > 0.1$(t.val=t1.val) + 1e-8$(t.val>t1.val))  'Bottom-up tax revenues does not match IO tax-revenues (1)';
+    ABORT$(abs(sum((es,e,d)$(not sameas(e,'Captured CO2')), vtE_NAS.l[es,e,d,t]) - sum((i,d_ene), vtY_i_d.l[i,d_ene,t] + vtM_i_d.l[i,d_ene,t])) > 0.1$(t.val=t1.val) + 1e-8$(t.val>t1.val))  'Bottom-up tax revenues does not match IO tax-revenues (1)';
   );
 
-  #Testing that data is matched
-  ABORT$(abs(sum((es,e,d,tDataEnd), vtE_NAS.l[es,e,d,tDataEnd]) - sum((i,d_ene,tDataEnd), vtY_i_d_data[i,d_ene,tDataEnd] + vtM_i_d_data[i,d_ene,tDataEnd])) >0.1)  'Bottom-up tax revenues does not match IO tax-revenues (2). We accept a small difference her for now.';
+  #Testing that data is matched. Captured CO2 is excluded because its tax goes to vtIndirect through jvtCO2_CCS, not through an IO cell.
+  ABORT$(abs(sum((es,e,d,tDataEnd)$(not sameas(e,'Captured CO2')), vtE_NAS.l[es,e,d,tDataEnd]) - sum((i,d_ene,tDataEnd), vtY_i_d_data[i,d_ene,tDataEnd] + vtM_i_d_data[i,d_ene,tDataEnd])) >0.1)  'Bottom-up tax revenues does not match IO tax-revenues (2). We accept a small difference her for now.';
 
 $ENDIF 
