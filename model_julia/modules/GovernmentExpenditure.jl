@@ -68,8 +68,8 @@ end
 # ============================================================================
 function define_equations()
   return @block model begin
-    # Government consumption is exogenous. The baseline holds it as a share of nominal GDP.
-    rG2GDP_p[p=product, t=t1:T], pPurchaserUse_p_u[p,:G,t] * qG_p[p,t] == rG2GDP_p[p,t] * vGDP[t]
+    # Government consumption by product is a fixed share of nominal GDP.
+    qG_p[p=product, t=t1:T], pPurchaserUse_p_u[p,:G,t] * qG_p[p,t] == rG2GDP_p[p,t] * vGDP[t]
 
     # Primary expenditure.
     vGovPrimaryExpenditure[t=t1:T],
@@ -131,7 +131,7 @@ function define_calibration(base=define_equations())
   block = copy(base)
 
   @endo_exo_swap! block begin
-    qG_p[(p,t) in keys(qG_p); t1 < t <= T], rG2GDP_p[(p,t) in keys(rG2GDP_p); t1 < t <= T]
+    rG2GDP_p[:,t1], qG_p[:,t1]
     rGovTransferIncome[t1], vGovSocBenefitExp[t1]
     rRoWTransferIncome[t1], vSocialBenefits[:RoW,t1]
     rSocTransKind2G[t1], vSocTransKind[t1]
