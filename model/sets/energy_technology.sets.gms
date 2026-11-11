@@ -46,6 +46,7 @@ parameter
   d1tE_duty_energy_technology[etaxes,es,e,d,t]
 
   d1no_energy_price[e] "Dummy determining whether new energy use in the energy technology model should get dimensions in the CGE model (i.e. the energy price is not priced in the CGE model)"
+  d1new_energy_price[es,e,d,t] "Technology use that gets a new energy price: the fuel is priced in the CGE model, and the cell does not already have a CGE quantity without a price"
 ;
 
 # Initialisation of parameters governing new energy use in energy technology model (not already defined in CGE model)

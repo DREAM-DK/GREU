@@ -11,15 +11,22 @@ d1no_energy_price[e]  = yes;
 d1no_energy_price[e]$(sum((es,d,t), d1pEpj_base[es,e,d,t]) or sum((es,d,t), d1pEpj_own[es,e,d,t]) or sameas(e,'Captured CO2'))  = no;
 # d1no_energy_price[e]$(sum((es,i,t), d1pEpj_marg[es,e,i,t]) or sameas(e,'Captured CO2'))  = no;
 
+# Technology use gets a new price when the fuel is priced in the CGE model and the cell does not
+# already have a CGE quantity without a marginal price. Only industries (i) have marginal prices, so
+# the sum selects the industry matching d and is zero for other demand sectors. A new price on such a
+# cell adds cost to the energy nest without an offset.
+d1new_energy_price[es,e,d,t]$(sum(l, d1uTE[l,es,e,d,t]) and not d1no_energy_price(e) and not (d1qEpj_CGE[es,e,d,t] and not sum(i$(sameas(i,d)), d1pEpj_marg_CGE[es,e,i,t]))) = yes;
+
 # DUMMIES FOR ENERGY PRICES AND QUANTITIES
-# There is no base price for captured CO2, so we need to exclude it from d1pEpj_base
-d1pEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and not (d1no_energy_price(e) or sameas(e,'Captured CO2'))))            = yes;
-d1pEpj[es,e,d,t]$(d1pEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and not d1no_energy_price(e)))                           = yes;
-d1pEpj_marg[es,e,i,t]$(d1pEpj_marg[es,e,i,t] or (sum(l, d1uTE[l,es,e,i,t]) and not d1no_energy_price(e)))                 = yes;
-d1pEpj_marg_inNest[es,e,i,t]$(d1pEpj_marg_inNest[es,e,i,t] or (sum(l, d1uTE[l,es,e,i,t]) and not d1no_energy_price(e)))   = yes;
-# d1tqEpj is only updated for new energy use that is not priced in pEpj_base or pEpj_own
-d1tqEpj[es,e,d,t]$(d1tqEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and not (d1no_energy_price(e) or sum((es_a,d_a), d1pEpj_base[es_a,e,d_a,t]) or sum((es_a,d_a), d1pEpj_own[es_a,e,d_a,t]))))                       = yes;
-d1qEpj[es,e,d,t]$(d1qEpj[es,e,d,t] or (sum(l, d1uTE[l,es,e,d,t]) and not d1no_energy_price(e)))                           = yes;
+# Captured CO2, taxed non-priced energy and own-use keep their CGE classification, so they do not get a base price.
+d1pEpj_base[es,e,d,t]$(d1pEpj_base[es,e,d,t] or (d1new_energy_price[es,e,d,t] and not (sameas(e,'Captured CO2') or d1tqEpj[es,e,d,t] or d1pEpj_own[es,e,d,t]))) = yes;
+d1pEpj[es,e,d,t]$(d1pEpj[es,e,d,t] or d1new_energy_price[es,e,d,t])                           = yes;
+d1pEpj_marg[es,e,i,t]$(d1pEpj_marg[es,e,i,t] or d1new_energy_price[es,e,i,t])                 = yes;
+d1pEpj_marg_inNest[es,e,i,t]$(d1pEpj_marg_inNest[es,e,i,t] or d1new_energy_price[es,e,i,t])   = yes;
+# d1tqEpj is only added for technology use that passes d1new_energy_price and is not priced in pEpj_base or pEpj_own.
+# Existing d1tqEpj is kept. Cells with a CGE quantity and no CGE price stay out, so they do not get a marginal price.
+d1tqEpj[es,e,d,t]$(d1tqEpj[es,e,d,t] or (d1new_energy_price[es,e,d,t] and not (sum((es_a,d_a), d1pEpj_base[es_a,e,d_a,t]) or sum((es_a,d_a), d1pEpj_own[es_a,e,d_a,t])))) = yes;
+d1qEpj[es,e,d,t]$(d1qEpj[es,e,d,t] or d1new_energy_price[es,e,d,t])                           = yes;
 
 # Save dummies containing only the new energy use in the technology model
 d1pEpj_base_energy_technology[es,e,d,t]$(d1pEpj_base[es,e,d,t] and not d1pEpj_base_CGE[es,e,d,t])                      = yes;
