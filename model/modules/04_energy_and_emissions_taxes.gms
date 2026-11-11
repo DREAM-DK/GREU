@@ -112,12 +112,6 @@ $IF %stage% == "equations":
 
     ..  qCO2e_taxgroup[CO2etax,t] =E= sum((d), qCO2e_d[CO2etax,d,t]);
 
-
-
-
-
-
-
      #Total duties, net of bottom deductions
      ..   vtE_duty[etaxes,es,e,d,t] =E= tEmarg_duty[etaxes,es,e,d,t] * (qEpj[es,e,d,t] + epsilon - qEpj_duty_deductible[etaxes,es,e,d,t]) +  jvtE_duty[etaxes,es,e,d,t];
 
@@ -150,7 +144,7 @@ $IF %stage% == "equations":
                                       + sum(em, tCO2_ETS_pj[em,es,e,d,t])
                                       + sum(em, tCO2_ETS2_pj[em,es,e,d,t]))
                                       ;     
-      
+                                      
       #Marginal tax-rate on non-priced energy
       tqE_marg[es,e,d,t]..
         tqE_marg[es,e,d,t] 
@@ -253,7 +247,6 @@ $IF %stage% == "equations":
     jvtCO2_xE[i,t]$(d1tCO2_xE[i,t])..
       jvtCO2_xE[i,t] =E= vtCO2_xE[i,t];
 
-
     ..    vtE_duty_tot[d,t] =E= sum((etaxes,es,e), vtE_duty[etaxes,es,e,d,t]);
 
     ..    vtE_vat_tot[d,t] =E= sum((es,e), vtE_vat[es,e,d,t]);
@@ -274,7 +267,6 @@ $IF %stage% == "equations":
 							=E=   sum((e,es,d_a)$es_d2d(es,d_a,d),  (1-sum(i_a,sSupply_d_e_i_adj[d,e,i_a,t])) * vte_NAS[es,e,d_a,t]) 
                   # + sum((e,es,d_a)$(es_d2d(es,d_a,d) and d1pM_CET[e,i,t] and not d1pY_CET[e,i,t] and d1tqEpj[es,e,d_a,t]), vte_NAS[es,e,d_a,t]) #Allocating energy-taxes on non-priced energy
                   + vtM_i_d_calib[i,d,t]; 
-
 
   $ENDBLOCK
 

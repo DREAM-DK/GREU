@@ -41,7 +41,7 @@ Solve energy_technology_partial_equations using CNS;
 
 # Solve full model
 $FIX all_variables; $UNFIX calibration_endogenous;
-# execute_unload 'Output/pre_calibration_energy_technology.gdx';
+execute_unload 'Output/pre_calibration_energy_technology.gdx';
 solve calibration using CNS;
 
 execute_unload 'Output/calibration_energy_technology.gdx';
