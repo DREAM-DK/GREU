@@ -61,6 +61,7 @@ end
 report_file = "da_labor_productivity_shock_report.html"
 tables_file = "da_labor_productivity_shock_tables.html"
 figures_file = "da_labor_productivity_shock_figures.html"
+figures_xlsx = "da_labor_productivity_shock_figures.xlsx"
 shock_title = "DA labour productivity shock by type and industry"
 figures_title = "DA-stød til arbejdskraftsproduktivitet efter type og branche"
 
@@ -77,6 +78,7 @@ shock_report = ShockReport.write_report(
 # One styled HTML report with six tables: the shock by industry and type, percentage
 # deviations from baseline in 2050, and employment changes in persons.
 # Then the same six tables as interactive bar charts in Danish, in the same order.
+# The chart rows are also written as one Excel worksheet per chart.
 # Industry and labor type names come from the shock sheet.
 include("DAProductivityShockFigures.jl")
 DAProductivityShockTables.write_tables(
@@ -91,6 +93,14 @@ DAProductivityShockFigures.write_figures(
     baseline, scenario;
     shock=industry_shock,
     shock_title=figures_title,
+    year=2050,
+    industry_name,
+    type_name,
+)
+DAProductivityShockFigures.write_excel(
+    joinpath(@__DIR__, "..", "Output", "ShockTables", figures_xlsx),
+    baseline, scenario;
+    shock=industry_shock,
     year=2050,
     industry_name,
     type_name,

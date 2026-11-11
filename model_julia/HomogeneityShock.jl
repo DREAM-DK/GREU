@@ -2,11 +2,12 @@
 # To create another experiment, copy this file and change the marked settings
 # and shock definition below.
 using SquareModels
-import GREU: Settings, Time, loaded_module_by_name, base_model, Exports, Labor, PhillipsCurve, Production, SectorAccounts
+import GREU: Settings, Time, loaded_module_by_name, base_model, Exports, Labor, PhillipsCurve, Production, SectorAccounts, Taxes
 import GREU.Labor: ntL_l_i
 import GREU.Exports: qXMarket_p, qCTouristMarket
 import GREU.Production: aProd, qFixedCost_i, vntProductionOther_i
 import GREU.SectorAccounts: vSocialContributions, vSocialBenefits, vNetPensionSaving, vOtherTransfers, vNonProducedAssetAcquisitions
+import GREU.Taxes: vtProduction_c_i, vsProduction_c_i
 import GREU.Time: T
 import GREU.Log: @log_time
 
@@ -34,14 +35,18 @@ scenario[Production.aProd[:unskilled, :, t1:T]] .*= 1.01
 scenario[Production.aProd[:skilled, :, t1:T]] .*= 1.01
 scenario[Production.aProd[:tertiary, :, t1:T]] .*= 1.01
 scenario[Labor.ntL_l_i[:, :, t1:T]] .*= 1.01
-scenario[SectorAccounts.vSocialContributions[:, t1:T]] .*= 1.01
-scenario[SectorAccounts.vSocialBenefits[[:FinCorp], t1:T]] .*= 1.01
-scenario[SectorAccounts.vNetPensionSaving[t1:T]] .*= 1.01
-scenario[SectorAccounts.vOtherTransfers[[:FinCorp, :NonFinCorp, :RoW], t1:T]] .*= 1.01
-scenario[SectorAccounts.vNonProducedAssetAcquisitions[[:FinCorp, :NonFinCorp, :RoW], t1:T]] .*= 1.01
+# scenario[SectorAccounts.vSocialContributions[:, t1:T]] .*= 1.01
+# scenario[SectorAccounts.vSocialBenefits[[:FinCorp], t1:T]] .*= 1.01
+# scenario[SectorAccounts.vNetPensionSaving[t1:T]] .*= 1.01
+# scenario[SectorAccounts.vOtherTransfers[[:FinCorp, :NonFinCorp, :RoW], t1:T]] .*= 1.01
+# scenario[SectorAccounts.vNonProducedAssetAcquisitions[[:FinCorp, :NonFinCorp, :RoW], t1:T]] .*= 1.01
 scenario[Production.vntProductionOther_i[:, t1:T]] .*= 1.01
 scenario[Exports.qXMarket_p[:, t1:T]] .*= 1.01
 scenario[Exports.qCTouristMarket[t1:T]] .*= 1.01
+
+scenario[Taxes.vtProduction_c_i[:, :, t1:T]] .*= 1.01
+scenario[Taxes.vsProduction_c_i[:, :, t1:T]] .*= 1.01
+scenario[SectorAccounts.vNetPensionSaving[t1:T]] .*= 1.01
 
 @log_time solve!(block, scenario; start_values=baseline, run_test_constraints=false)
 unload(joinpath(@__DIR__, "..", "Output", "homogeneity_shock_productivity.parquet"), scenario)
