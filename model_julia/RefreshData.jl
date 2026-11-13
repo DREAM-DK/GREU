@@ -106,4 +106,12 @@ include(joinpath(@__DIR__, "modules", "EmissionsData.jl"))
 
 EmissionsData.refresh_emissions_data!()
 
+# ==============================================================================
+# Energy prices
+# ==============================================================================
+# Reads industry_resolution.csv through InputOutputSettings, so run the industry
+# resolution section first.
+include(joinpath(@__DIR__, "modules", "EnergyPricesData.jl"))
+
+EnergyPricesData.refresh_energy_prices_data!()
 
