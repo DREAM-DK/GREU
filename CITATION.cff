@@ -1,0 +1,24 @@
+# This file describes how to cite GreenREFORM-EU and its documentation.
+# Validate with https://bit.ly/cffinit before committing.
+cff-version: 1.2.0
+title: GreenREFORM-EU
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - name: "Danish Research Institute for Economic Analysis and Modelling (DREAM)"
+    website: "https://dreamgruppen.dk"
+repository-code: "https://github.com/DREAM-DK/GREU"
+url: "https://greenreformeu.dk"
+license: MIT
+# version: ""        # fill in when release 2.0 is tagged
+# date-released: ""  # fill in the release date, e.g. "2026-12-01"
+preferred-citation:
+  type: manual
+  title: "GreenREFORM-EU 2.0 Model Documentation: Theoretical Framework and Architecture"
+  authors:
+    - name: "Danish Research Institute for Economic Analysis and Modelling (DREAM)"
+  year: 2026
+  month: 11
+  url: "https://greenreformeu.dk/documentation.html"
