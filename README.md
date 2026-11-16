@@ -1,5 +1,5 @@
 # Green REFORM EU
-is an extensible system of Dynamic General Equilibrium models. The model system is build and maintained by [the Danish Research Institute for Economic Analysis and Modelling (DREAM)](https://dreamgruppen.dk/), but welcome contributions from the community and is free to under an [MIT license](LICENSE).
+is an extensible system of Dynamic General Equilibrium models. The model system is build and maintained by [the Danish Research Institute for Economic Analysis and Modelling (DREAM)](https://dreamgruppen.dk/), but welcome contributions from the community and is free to under the [MIT licence](LICENSE).
 The model system is designed to be used by policymakers and researchers to analyze the sustainability of policies, both fiscally and environmentally.
 
 ## Modularity
@@ -197,4 +197,37 @@ To allow for varying levels of aggregation, depending on the number of submodule
 Multi-word identifiers are written in CamelCase.
 
 ## Data
-To be written
+
+The Danish benchmark data set was produced by Statistics Denmark, which holds
+the copyright. It is freely available with the model on the same terms as data
+from Statbank Denmark, which allow commercial use
+([terms](https://www.dst.dk/en/presse/kildeangivelse)). Cite it as "Source:
+Statistics Denmark", or "Own calculations based on data from Statistics
+Denmark" for derived results. The data set is not covered by the MIT licence.
+See [DATA.md](DATA.md).
+
+## Licence, disclaimer and citation
+
+The code is released under the [MIT licence](LICENSE). Copyright Danish
+Research Institute for Economic Analysis and Modelling (DREAM), CVR 10108330.
+
+DREAM bears no responsibility for analyses that others produce with the model.
+See [DISCLAIMER.md](DISCLAIMER.md).
+
+To cite the model or its documentation, use [CITATION.cff](CITATION.cff).
+
+"GreenREFORM-EU" is the name of DREAM's model. Please do not use the name for
+modified versions without agreement with DREAM.
+
+GAMS and the CONOPT solver are commercial software. You need your own licences
+for them. They are not covered by this repository's licence.
+
+## Funding
+
+Version 1.0 was developed under the European Union's Technical Support
+Instrument (project 101195159). Version 2.0 was funded by the KR Foundation.
+
+Funded by the European Union. Views and opinions expressed are however those of
+the author(s) only and do not necessarily reflect those of the European Union
+or the European Commission. Neither the European Union nor the granting
+authority can be held responsible for them.
