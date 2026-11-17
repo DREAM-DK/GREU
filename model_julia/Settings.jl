@@ -59,8 +59,10 @@ const macro_rigidity_modules = [
 ]
 
 const green_transition_modules = [
-  :EnergyBalance,
-  :Emissions,
+  # :EnergyBalance,
+  # :Emissions,
+  :EnergyMarkets,
+  # :EnergyTechnology
 ]
 
 
@@ -69,7 +71,8 @@ const loaded_modules = [
   macro_accounting_modules...,
   macro_core_modules...,
   macro_rigidity_modules...,
-  #green_transition_modules...,
+  green_transition_modules...,
+  # :EnergyTechnology
 ]
 
 # Model modules also add equations to the base model and calibration.
@@ -78,7 +81,7 @@ model_modules::Vector{Symbol} = [
   macro_accounting_modules...,
   macro_core_modules...,
   macro_rigidity_modules...,
-  #green_transition_modules...,
+  green_transition_modules...,
 ]
 
 # ============================================================================
@@ -89,7 +92,7 @@ model_modules::Vector{Symbol} = [
 
 # CONOPT4 through GAMS. Importing GAMS activates the SquareModels GAMS extension.
 import GAMS
-gams_system_dir() = dirname(something(Sys.which("gams"), "C:/GAMS/51/gams.exe"))
+gams_system_dir() = dirname(something(Sys.which("gams"), "C:/GAMS/54/gams.exe"))
 function square_model(model=SquareModels.square_model(; gamsdir=gams_system_dir()))
   GAMS.check_system_dir(JuMP.get_optimizer_attribute(model, "sysdir"))
   JuMP.set_optimizer_attribute(model, "workdir", mktempdir())
