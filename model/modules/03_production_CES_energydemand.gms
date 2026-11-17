@@ -41,7 +41,9 @@ $IF %stage% == "equations":
 
 		#In nests
 			qEpj&_inNest[es,e,i,t]$(d1pepj_marg_innest[es,e,i,t]).. 
-				qEpj[es,e,i,t] =E= uEpj[es,e,i,t] * (pEpj_marg[es,e,i,t]/pREes[es,i,t])**(-eEpj[es,i]) * qREes[es,i,t];
+				qEpj[es,e,i,t] =E= (uEpj[es,e,i,t] * (pEpj_marg[es,e,i,t]/pREes[es,i,t])**(-eEpj[es,i]) * qREes[es,i,t])$(not d1switch_integrate_energy_technology)
+				                + (uEpj[es,e,i,t] * qREes[es,i,t])$(d1switch_integrate_energy_technology)
+				                ;
 		
 			pREes[es,i,t]$(d1pEes[es,i,t]).. pREes[es,i,t]*qREes[es,i,t] 
 																					=E= sum((e)$(d1pEpj_marg_inNest[es,e,i,t]), pEpj_marg[es,e,i,t] * qEpj[es,e,i,t])
