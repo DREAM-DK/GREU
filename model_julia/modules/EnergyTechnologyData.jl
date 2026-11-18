@@ -1,6 +1,7 @@
 # Build the partial energy technology data from Louis's dummy data (Abatement_dummy_data.xlsx).
 # Read one CSV per Excel sheet and write the model's long format.
 # Hold each series at its last data year until the terminal year. An energy input without a price costs 0.
+# Write money in million EUR, as in the CGE model. Louis's data are in billion EUR.
 include(joinpath(@__DIR__, "..", "Settings.jl"))
 include(joinpath(@__DIR__, "..", "DataUtils.jl"))
 
@@ -16,6 +17,9 @@ const years = calibration_year:terminal_year
 
 # Discount rate in the levelized cost
 const discount_rate = 0.05
+
+# Million EUR per billion EUR. Converts money to million EUR instead of billion EUR
+const money_unit = 1000
 
 const technology_keys = [:TechID, :Energy_service, :Industry]
 const price_keys = [:Energy_service, :Energy_input, :Industry, :Year]
@@ -34,11 +38,13 @@ end
 """Lowercase a name and replace spaces and signs with _, such as "Natural gas incl. biongas" to natural_gas_incl_biongas."""
 label(x) = strip(replace(lowercase(string(x)), r"[^a-z0-9]+" => "_"), '_')
 
-"""Rows of one series. Each year after the last data year gets the value of that year."""
-function series(variable, df, keys, value_column)
+"""
+Rows of one series, multiplied by `scale`. Each year after the last data year gets the value of that year.
+"""
+function series(variable, df, keys, value_column; scale = 1.0)
   last_data_year = maximum(df.Year)
   rows = [
-    (index = join([label.(row[k] for k in keys)..., year], ","), value = Float64(row[value_column]))
+    (index = join([label.(row[k] for k in keys)..., year], ","), value = scale * Float64(row[value_column]))
     for row in eachrow(df)
     for year in (row.Year == last_data_year ? (row.Year:terminal_year) : (row.Year:row.Year))
     if year in years
@@ -79,15 +85,15 @@ function refresh_energy_technology_data!(dir = energy_technology_data_dir)
     joinpath(dir, "energy_technology.csv"),
     vcat(
       series("rTPotential_l_es_d", technologies, technology_keys, "Potential_(Share_of_energy_demand)"),
-      series("uTI_l_es_d", technologies, technology_keys, "Investment_costs_(billion_EUR_per_PJ_out)"),
-      series("uTC_l_es_d", technologies, technology_keys, "Variable_capital_costs_(billion_EUR_per_PJ_out)"),
+      series("uTI_l_es_d", technologies, technology_keys, "Investment_costs_(billion_EUR_per_PJ_out)"; scale = money_unit),
+      series("uTC_l_es_d", technologies, technology_keys, "Variable_capital_costs_(billion_EUR_per_PJ_out)"; scale = money_unit),
       life,
       DataFrame(variable = "rTDiscount_l_es_d", indices = life.indices, value = discount_rate),
       series("uTE_l_es_e_d", uTE, [:TechID, :Energy_service, :Energy_input, :Industry], "Energy_intensity_(PJ_in_per_PJ_out)"),
       series("pEBase_es_e_d", by_input_in_use(used, energy_price, "Energy_price_(billion_EUR_per_PJ_in)"),
-        [:Energy_service, :Energy_input, :Industry], :value),
+        [:Energy_service, :Energy_input, :Industry], :value; scale = money_unit),
       series("tqE_es_e_d", by_input_in_use(used, energy_tax, "Energy_tax_(billion_EUR_per_PJ_in)"),
-        [:Energy_service, :Energy_input, :Industry], :value),
+        [:Energy_service, :Energy_input, :Industry], :value; scale = money_unit),
       series("pTK_d", capital_cost, [:Industry], "Capital_cost_index"),
       series("qES_es_d", energy_service, [:Energy_service, :Industry], "Energy_service_(PJ_out)"),
     ),

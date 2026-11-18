@@ -124,8 +124,8 @@ share_below(x, μ, σ) = Φ((log(x / μ) + 0.5 * σ^2) / σ)
 mean_below(x, μ, σ) = μ * Φ((log(x / μ) - 0.5 * σ^2) / σ)
 
 # Smooth version of max(a, x). The gap to the true maximum is at most width / 2.
-smooth_max(a, x; width=1e-5) = 0.5 * (a + x + sqrt((x - a)^2 + width^2))
-const uTKFloor = 1e-4
+smooth_max(a, x; width=1e-2) = 0.5 * (a + x + sqrt((x - a)^2 + width^2))
+const uTKFloor = 1e-1
 
 # ============================================================================
 # Starting values
