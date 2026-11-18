@@ -30,7 +30,8 @@ for m in loaded_modules
   Core.eval(m, :(const __revise_mode__ = :evalmeth))
 end
 
-const loaded_module_by_name = Dict(nameof(m) => m for m in loaded_modules)
+# Key by the Settings file name. Two files can declare the same module, as the labor closures do.
+const loaded_module_by_name = Dict(zip(Settings.loaded_modules, loaded_modules))
 
 function assign_data!(db)
   for m in loaded_modules

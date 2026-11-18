@@ -20,6 +20,7 @@ import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fq, fv
 import ..IndustrySectors:
   rIndustrySector_s_i,
   vK_s,
+  vLaborFee_s,
   vM_s,
   vntProduction_s,
   vWages_s,
@@ -110,13 +111,13 @@ function define_equations()
     vNetFinTransactions[s,t] == vNetFinIncome[s,t]
                               + vNetTransfers[s,t] - vNonProducedAssetAcquisitions[s,t]
                               - vI_s[s,t] + vY_s[s,t] - vM_s[s,t]
-                              - vWages_s[s,t] - vntProduction_s[s,t]
+                              - vWages_s[s,t] - vntProduction_s[s,t] - vLaborFee_s[s,t]
 
     vNetFinTransactions[s=[:NonFinCorp], t=t1:T],
     vNetFinTransactions[s,t] == vNetFinIncome[s,t]
                               + vNetTransfers[s,t] - vNonProducedAssetAcquisitions[s,t]
                               - vI_s[s,t] + vY_s[s,t] - vM_s[s,t]
-                              - vWages_s[s,t] - vntProduction_s[s,t]
+                              - vWages_s[s,t] - vntProduction_s[s,t] - vLaborFee_s[s,t]
 
     # Portfolio.
     # Financial corporations.

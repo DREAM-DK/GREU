@@ -15,7 +15,7 @@ import ..Government:
   vGovSocBenefitExp,
   vSocTransKind
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
-import ..IndustrySectors: vM_s, vtProduction_s, vWages_s
+import ..IndustrySectors: vLaborFee_s, vM_s, vtProduction_s, vWages_s
 import ..InputOutput: product, qG_p, vG, pPurchaserUse_p_u
 import ..Labor: vHhWages
 import ..model
@@ -84,6 +84,7 @@ function define_equations()
                                   + vGovPensionEntitlementAdj[t]
                                   + vGovCapTransExp[t]
                                   + vNonProducedAssetAcquisitions[:Gov,t]
+                                  + vLaborFee_s[:Gov,t]
 
     # Expenditure without a detailed rule follows GVA or government consumption.
     vGovOthCurrentTransExp[t=t1:T],

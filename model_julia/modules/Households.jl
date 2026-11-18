@@ -5,6 +5,7 @@ module Households
 
 using SquareModels
 import ..GrowthInflationAdjustment: fv
+import ..IndustrySectors: vLaborFee_s
 import ..InputOutput: vC
 import ..Labor: vHhWages
 import ..model
@@ -63,7 +64,7 @@ function define_equations()
     vNetFinTransactions[s=[:Hh], t=t1:T],
     vNetFinTransactions[s,t] == vNetFinIncome[s,t] + vNetTransfers[s,t] + vHhWages[t] - vC[t]
                               + vGrossOpSurplusMixedIncome[s,t] - vI_s[s,t]
-                              - vNonProducedAssetAcquisitions[s,t]
+                              - vNonProducedAssetAcquisitions[s,t] - vLaborFee_s[s,t]
 
     # Portfolio.
     # Equity assets are a fixed share of household financial assets.

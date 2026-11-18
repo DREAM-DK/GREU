@@ -25,7 +25,7 @@ import ..SectorAccounts:
 import ..SectorAccountsSettings: sector_accounts_data_dir
 import ..Settings: calibration_year
 import ..Time: t, t1, T
-import ..Tags: ForecastConstant
+import ..Tags: ForecastConstant, ForecastZero
 
 # ============================================================================
 # Read data
@@ -87,6 +87,7 @@ end
   vK_s[(s,t)=vY_s], "Replacement value of capital by sector."
   vIFixed_s[(s,t)=vY_s], "Fixed investment by sector."
   vINV_s[(s,t)=vY_s], "Inventory investment by sector."
+  vLaborFee_s[(s,t)=vY_s] :: ForecastZero, "Fee on employed persons paid abroad by sector."
 end
 
 @variables model :: (IndustrySectorsTag, ForecastConstant) begin
