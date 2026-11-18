@@ -1,12 +1,12 @@
 # Let industries substitute between energy products inside their energy input.
 # Make the product shares of the energy input in Intermediates endogenous through CES demand.
 # Keep fixed shares in the energy industries, whose energy inputs are mostly feedstock.
-include(joinpath(@__DIR__, "EnergyMarketsSettings.jl"))
+include(joinpath(@__DIR__, "EnergyMarketSettings.jl"))
 
 module EnergyMarkets
 
 using SquareModels
-import ..EnergyMarketsSettings: energy_elasticity, energy_members
+import ..EnergyMarketSettings: energy_elasticity, energy_members
 import ..InputOutput: industry, pPurchaserUse_p_u
 import ..InputOutputSettings: industry_members, product
 import ..Intermediates: ntM_m_i, pM_m_i, rIntermediateProductShare

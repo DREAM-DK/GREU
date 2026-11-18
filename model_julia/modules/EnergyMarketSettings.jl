@@ -1,5 +1,5 @@
 # Define energy members, elasticity and other settings for energy market.
-module EnergyMarketsSettings
+module EnergyMarketSettings
 
 # Source codes for energy. 
 const energy_members = ("B", "C19", "D")

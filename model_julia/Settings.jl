@@ -72,7 +72,7 @@ const loaded_modules = [
   macro_core_modules...,
   macro_rigidity_modules...,
   green_transition_modules...,
-  # :EnergyTechnology
+  :EnergyTechnology
 ]
 
 # Model modules also add equations to the base model and calibration.

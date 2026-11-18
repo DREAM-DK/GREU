@@ -115,3 +115,10 @@ include(joinpath(@__DIR__, "modules", "EnergyPricesData.jl"))
 
 EnergyPricesData.refresh_energy_prices_data!()
 
+# ==============================================================================
+# Energy technology data
+# ==============================================================================
+# Placeholder numbers for the partial energy technology model. Needs no Eurostat data.
+include(joinpath(@__DIR__, "modules", "EnergyTechnologyData.jl"))
+
+EnergyTechnologyData.refresh_energy_technology_data!()
