@@ -1,7 +1,8 @@
 # Choose technologies that supply each energy service at least cost.
 # A technology supplies a share of the service from fixed energy inputs and machinery capital.
 # Capital use per unit varies log-normally inside a technology, which makes the choice smooth.
-# Partial model: service demand, energy prices and the capital price are given. No link to other modules.
+# Partial model: service demand, energy prices and the capital price are given. EnergyTechnologyPartial.jl can link them to the CGE model.
+include(joinpath(@__DIR__, "EnergyTechnologySettings.jl"))
 module EnergyTechnology
 
 using SquareModels
@@ -23,6 +24,7 @@ const uTE_data = read_data("uTE_l_es_e_d")
 const uTI_data = read_data("uTI_l_es_d")
 const uTC_data = read_data("uTC_l_es_d")
 const rTDiscount_data = read_data("rTDiscount_l_es_d")
+# The marginal energy price is the base price plus the energy tax.
 const pE_data = mergewith(+, read_data("pEBase_es_e_d"), read_data("tqE_es_e_d"))
 const pTK_data = read_data("pTK_d")
 const qES_data = read_data("qES_es_d")
