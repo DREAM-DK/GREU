@@ -10,6 +10,7 @@ import GREU:
   Settings,
   Time,
   model,
+  loaded_modules,
   loaded_module_by_name,
   assign_data!,
   base_model
@@ -85,8 +86,8 @@ function link!(db, cge, years)
     db[E.pTK_d[d,year]] = db[E.pTK_d[d,t0]] * cge_growth(cge, t -> pK_k_i[linked_capital,i,t], year)
     for e in E.energy
       (es,e,d) in E.energy_es_e_d && haskey(linked_product, e) || continue
-      db[E.pE_es_e_d[es,e,d,year]] =
-        db[E.pE_es_e_d[es,e,d,t0]] * cge_growth(cge, t -> pPurchaserUse_p_u[linked_product[e],i,t], year)
+      db[E.pEBase_es_e_d[es,e,d,year]] =
+        db[E.pEBase_es_e_d[es,e,d,t0]] * cge_growth(cge, t -> pPurchaserUse_p_u[linked_product[e],i,t], year)
     end
   end
   return db

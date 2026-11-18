@@ -24,8 +24,8 @@ const uTE_data = read_data("uTE_l_es_e_d")
 const uTI_data = read_data("uTI_l_es_d")
 const uTC_data = read_data("uTC_l_es_d")
 const rTDiscount_data = read_data("rTDiscount_l_es_d")
-# The marginal energy price is the base price plus the energy tax.
-const pE_data = mergewith(+, read_data("pEBase_es_e_d"), read_data("tqE_es_e_d"))
+const pEBase_data = read_data("pEBase_es_e_d")
+const tqE_data = read_data("tqE_es_e_d")
 const pTK_data = read_data("pTK_d")
 const qES_data = read_data("qES_es_d")
 const life = Dict(key => Int(years) for (key, years) in read_data("nTLife_l_es_d"))
@@ -59,7 +59,9 @@ const EnergyTechnologyTag = Tag(:EnergyTechnology)
 end
 
 @variables model :: (EnergyTechnologyTag, InflationAdjusted) begin
-  pE_es_e_d[(es,e,d,t)=qESE_es_e_d] :: ForecastConstant, "Marginal energy price per PJ by service, energy type and user."
+  pEBase_es_e_d[(es,e,d,t)=qESE_es_e_d] :: ForecastConstant, "Energy price per PJ before tax by service, energy type and user."
+  tqE_es_e_d[(es,e,d,t)=qESE_es_e_d] :: ForecastConstant, "Energy tax per PJ by service, energy type and user."
+  pEMarg_es_e_d[(es,e,d,t)=qESE_es_e_d], "Marginal energy price per PJ, including tax."
   pTK_d[d=user, t=t] :: ForecastConstant, "User cost of machinery capital in energy technologies."
   pESMarg_es_d[(es,d,t)=qES_es_d], "Marginal price of an energy service. Supply meets demand at this price."
   pES_es_d[(es,d,t)=qES_es_d], "Average price of an energy service."
@@ -93,7 +95,8 @@ function assign_data!(db)
   fill_cells!(db, uTI_l_es_d, uTI_data)
   fill_cells!(db, uTC_l_es_d, uTC_data)
   fill_cells!(db, rTDiscount_l_es_d, rTDiscount_data)
-  fill_cells!(db, pE_es_e_d, pE_data)
+  fill_cells!(db, pEBase_es_e_d, pEBase_data)
+  fill_cells!(db, tqE_es_e_d, tqE_data)
   fill_cells!(db, pTK_d, pTK_data)
   fill_cells!(db, qES_es_d, qES_data)
   db[rTSmooth] = 0.05
@@ -137,8 +140,12 @@ function set_starting_values!(start_values)
     isnothing(start_values[qES_es_d[es,d,year]]) && continue
     techs, pTK, qES = technologies(es, d), value(pTK_d[d,year]), value(qES_es_d[es,d,year])
     potential = Dict(l => value(rTPotential_l_es_d[l,es,d,year]) for l in techs)
+    for e in energy
+      (es,e,d) in energy_es_e_d || continue
+      start_values[pEMarg_es_e_d[es,e,d,year]] = value(pEBase_es_e_d[es,e,d,year]) + value(tqE_es_e_d[es,e,d,year])
+    end
     energy_cost = Dict(
-      l => sum(value(uTE_l_es_e_d[l,es,e,d,year]) * value(pE_es_e_d[es,e,d,year]) for e in inputs(l, es, d))
+      l => sum(value(uTE_l_es_e_d[l,es,e,d,year]) * value(pEMarg_es_e_d[es,e,d,year]) for e in inputs(l, es, d))
       for l in techs
     )
     μ = Dict(
@@ -177,7 +184,7 @@ function set_starting_values!(start_values)
       qES * sum(potential[l] * mean_below(marginal_capital(l, price), μ[l], σ[l]) for l in techs)
     start_values[vESK_es_d[es,d,year]] = value(qESK_es_d[es,d,year]) * pTK
     start_values[vES_es_d[es,d,year]] = value(vESK_es_d[es,d,year]) +
-      sum(value(qESE_es_e_d[es,e,d,year]) * value(pE_es_e_d[es,e,d,year]) for e in energy if (es,e,d) in energy_es_e_d)
+      sum(value(qESE_es_e_d[es,e,d,year]) * value(pEMarg_es_e_d[es,e,d,year]) for e in energy if (es,e,d) in energy_es_e_d)
     start_values[pES_es_d[es,d,year]] = value(vES_es_d[es,d,year]) / qES
   end
   return nothing
@@ -192,10 +199,14 @@ function define_equations()
   # every solver step without a variable bound.
   marginal_capital(l, es, d, t) = smooth_max(
     uTKFloor,
-    (pESMarg_es_d[es,d,t] - ∑(uTE_l_es_e_d[l,es,e,d,t] * pE_es_e_d[es,e,d,t] for e in inputs(l, es, d))) / pTK_d[d,t],
+    (pESMarg_es_d[es,d,t] - ∑(uTE_l_es_e_d[l,es,e,d,t] * pEMarg_es_e_d[es,e,d,t] for e in inputs(l, es, d))) / pTK_d[d,t],
   )
 
   return @block model begin
+    # The marginal energy price is the base price plus tax. A full link to the CGE model replaces this equation.
+    pEMarg_es_e_d[es=service, e=energy, d=user, t=t1:T; (es,e,d) in energy_es_e_d],
+    pEMarg_es_e_d[es,e,d,t] == pEBase_es_e_d[es,e,d,t] + tqE_es_e_d[es,e,d,t]
+
     # Levelized capital cost: the constant yearly cost with the same present value as
     # investment plus running costs over the life of the technology.
     uTKExp_l_es_d[l=technology, es=service, d=user, t=t1:T; (l,es,d) in tech_l_es_d],
@@ -232,7 +243,7 @@ function define_equations()
     vESK_es_d[es=service, d=user, t=t1:T; (es,d) in service_es_d], vESK_es_d[es,d,t] == qESK_es_d[es,d,t] * pTK_d[d,t]
 
     vES_es_d[es=service, d=user, t=t1:T; (es,d) in service_es_d],
-    vES_es_d[es,d,t] == ∑(qESE_es_e_d[es,e,d,t] * pE_es_e_d[es,e,d,t] for e in energy if (es,e,d) in energy_es_e_d) + vESK_es_d[es,d,t]
+    vES_es_d[es,d,t] == ∑(qESE_es_e_d[es,e,d,t] * pEMarg_es_e_d[es,e,d,t] for e in energy if (es,e,d) in energy_es_e_d) + vESK_es_d[es,d,t]
 
     pES_es_d[es=service, d=user, t=t1:T; (es,d) in service_es_d], pES_es_d[es,d,t] * qES_es_d[es,d,t] == vES_es_d[es,d,t]
   end
@@ -247,7 +258,7 @@ function define_calibration(base=define_equations())
   return copy(base) + @block model begin
     uTKSpread_l_es_d[l=technology, es=service, d=user, t=t1:T; (l,es,d) in tech_l_es_d],
     uTKSpread_l_es_d[l,es,d,t] * uTKExp_l_es_d[l,es,d,t] * pTK_d[d,t] == rTSmooth * (
-      ∑(uTE_l_es_e_d[l,es,e,d,t] * pE_es_e_d[es,e,d,t] for e in inputs(l, es, d))
+      ∑(uTE_l_es_e_d[l,es,e,d,t] * pEMarg_es_e_d[es,e,d,t] for e in inputs(l, es, d))
       + uTKExp_l_es_d[l,es,d,t] * pTK_d[d,t]
     )
   end
