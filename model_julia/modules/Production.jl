@@ -11,7 +11,7 @@ import ..DataUtils: read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutput: industry, qY_i, qM_p_i, follow_intermediate_split!
 import ..InputOutputSettings: cell_tolerance
-import ..ProductionSettings: production_data_dir, full_nesting, prune_nesting, product_to_intermediate_type
+import ..ProductionSettings: production_data_dir, industry_nesting, prune_nesting, product_to_intermediate_type
 import ..Settings: calibration_year
 import ..model
 import ..Time: t, t1, T
@@ -49,7 +49,7 @@ const intermediate_product_m_i = Set(
 const intermediate_m_i = Set((m, i) for (_, m, i) in intermediate_product_m_i)
 const factor_i = union(capital_k_i, labor_l_i, intermediate_m_i)
 const production_nesting = Dict(
-  i => prune_nesting(full_nesting, Set(f for (f, ind) in factor_i if ind == i)) for i in industry
+  i => prune_nesting(industry_nesting(i), Set(f for (f, ind) in factor_i if ind == i)) for i in industry
 )
 @assert all(!isempty(nests) for nests in values(production_nesting)) "Each active industry needs production factors"
 

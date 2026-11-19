@@ -32,7 +32,7 @@ import ..Taxes:
   vsRoWProduct,
   vsRoWProduction
 import ..Time: t, t1, T
-import ..Tags: ForecastConstant
+import ..Tags: ForecastConstant, ForecastZero
 
 # ============================================================================
 # Variables
@@ -54,6 +54,7 @@ end
 
 @variables model :: (GovernmentExpenditureTag, GrowthAdjusted, InflationAdjusted) begin
   vTransferIncomeIndex[t], "Index for cash transfer income payments."
+  vHhLumpSum[t] :: ForecastZero, "Lump-sum cash transfer from government to households."
 end
 
 # ============================================================================
@@ -94,10 +95,10 @@ function define_equations()
     vNonProducedAssetAcquisitions[s,t] == rGovNonProducedAssetAcquisitions2GVA[t] * vGVA[t]
     vSocTransKind[t=t1:T], vSocTransKind[t] == rSocTransKind2G[t] * vG[t]
 
-    # Cash benefits follow a simple income index.
+    # Cash benefits follow a simple income index. Households receive the lump sum.
     vTransferIncomeIndex[t=t1:T], vTransferIncomeIndex[t] == vHhWages[t-2]/fv^2
     vGovSocBenefitExp[t=t1:T],
-    vGovSocBenefitExp[t] == vSocTransKind[t] + rGovTransferIncome[t] * vTransferIncomeIndex[t]
+    vGovSocBenefitExp[t] == vSocTransKind[t] + rGovTransferIncome[t] * vTransferIncomeIndex[t] + vHhLumpSum[t]
 
     # Social benefits use government spending and source flows for other sectors.
     vSocialBenefits[s=[:Gov], t=t1:T],

@@ -6,6 +6,8 @@
 using XLSX
 using SquareModels
 import GREU: Settings, Time, loaded_module_by_name, base_model
+import GREU.Government: vGovPrimaryBalance
+import GREU.GovernmentExpenditure: vHhLumpSum
 import GREU.GrowthInflationAdjustment: fv
 import GREU.InputOutputSettings: industry_members
 import GREU.LaborFee: rLaborFee_l_i, vLaborFeeBase
@@ -73,6 +75,10 @@ for (l, i) in labor_l_i
 end
 # Million EUR in model units, which are growth- and inflation-adjusted to the base year.
 scenario[vLaborFeeBase[t1:T]] .= fee_base_dkk / dkk_per_eur / 1e6 / fv^(t1 - tBase)
+# Hold the primary balance at baseline. A lump-sum transfer to households absorbs the change.
+@endo_exo_swap! block begin
+  vHhLumpSum[t1:T], vGovPrimaryBalance[t1:T]
+end
 @log_time solve!(block, scenario; start_values=baseline, run_test_constraints=false)
 
 # Report settings
@@ -82,7 +88,7 @@ figures_file = "da_shock_figures.html"
 figures_xlsx = "da_shock_figures.xlsx"
 labor_types_file = "da_shock_labor_types.html"
 shock_title = "DA labour productivity shock and fee per employed person by type and industry"
-figures_title = "DA-stød til arbejdskraftsproduktivitet og gebyr pr. beskæftiget efter type og branche"
+figures_title = "DA-stød til arbejdskraftsproduktivitet og gebyr pr. beskæftiget efter type og branche. Elasticiteter i produktionsfunktionen er fra GrønREFORM. Lump-sum lukning."
 
 # ==============================================================================
 # Write one HTML report for the solved scenario.
@@ -110,7 +116,7 @@ DAProductivityShockTables.write_tables(
 )
 # Figures 02 and 03 show the fee per employed person: the share from sheet "Pris", then DKK.
 # Set false to leave out figure 06, the percentage change in total employment by labor type.
-include_total_employment = true
+include_total_employment = false
 DAProductivityShockFigures.write_figures(
     joinpath(@__DIR__, "..", "Output", "ShockTables", figures_file),
     baseline, scenario;
