@@ -5,7 +5,6 @@
 # Needs :EnergyTechnology in Settings.loaded_modules. Keep it out of Settings.model_modules.
 using Revise
 using SquareModels
-include("sqm_patch.jl")
 import GREU:
   Settings,
   Time,

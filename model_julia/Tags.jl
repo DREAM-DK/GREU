@@ -11,4 +11,7 @@ const ForecastZero = Tag(:forecast_zero)
 """Parameters where the calibration year value changes when calibrated with model consistent expectations."""
 const DynamicCalibration = Tag(:dynamic_calibration)
 
+"""Equations that replace the equations other modules give for the same variables."""
+const Override = Tag(:override)
+
 end

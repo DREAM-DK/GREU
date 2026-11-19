@@ -18,4 +18,8 @@ const linked_product = Dict(
 # CGE capital type whose user cost drives the cost of machinery in energy technologies.
 const linked_capital = :equipment
 
+# Share of each linked industry's energy price that follows the energy service price.
+# The rest follows the CGE product prices. Placeholder until real data give the cost share.
+const energy_service_share = Dict(:iC10_12 => 0.1)
+
 end # module

@@ -2,7 +2,6 @@
 # The static result supplies start values for the dynamic solve.
 using Revise
 using SquareModels
-include("sqm_patch.jl")
 import GREU:
   Settings,
   Time,

@@ -72,7 +72,8 @@ const loaded_modules = [
   macro_core_modules...,
   macro_rigidity_modules...,
   green_transition_modules...,
-  :EnergyTechnology
+  :EnergyTechnology,
+  :EnergyTechnologyLink
 ]
 
 # Model modules also add equations to the base model and calibration.
@@ -82,6 +83,8 @@ model_modules::Vector{Symbol} = [
   macro_core_modules...,
   macro_rigidity_modules...,
   green_transition_modules...,
+  :EnergyTechnology,
+  :EnergyTechnologyLink
 ]
 
 # ============================================================================

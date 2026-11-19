@@ -54,3 +54,18 @@ ShockTables.write_tables(
     shock_title,
     year=2050
 )
+
+
+
+import GREU.EnergyTechnology as E
+import GREU.InputOutput: pPurchaserUse_p_u
+old = load(joinpath(@__DIR__, "..", "Output", "scenario_softlink.parquet"), block.model)
+p = pPurchaserUse_p_u[:C19,:iC10_12,2030]
+println("CGE C19 price, old vs new: ", old[p], "  ", scenario[p])
+for l in E.technologies(:heating, :i10030)
+  r = E.rT_l_es_d[l,:heating,:i10030,2030]
+  println(l, ": ", round(baseline[r]; digits=4), " -> ", round(scenario[r]; digits=4))
+end
+for v in (E.pESMarg_es_d, E.pES_es_d)
+  println(round(baseline[v[:heating,:i10030,2030]]; digits=2), " -> ", round(scenario[v[:heating,:i10030,2030]]; digits=2))
+end

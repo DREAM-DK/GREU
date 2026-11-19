@@ -8,6 +8,7 @@ include("Time.jl")
 include("GrowthInflationAdjustment.jl")
 include("Tags.jl")
 include("DataUtils.jl")
+include("sqm_patch.jl")
 
 include("Logging.jl")
 import .Log: @log_time, @log_errors

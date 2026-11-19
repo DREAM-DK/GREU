@@ -10,6 +10,7 @@ include(joinpath(@__DIR__, "..", "model_julia", "Model.jl"))
 include(joinpath(@__DIR__, "..", "model_julia", "Calibration.jl"))
 
 function __init__()
+  patch_square_models!()
   Settings.square_model(model)
   return nothing
 end
