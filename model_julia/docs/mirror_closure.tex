@@ -1,0 +1,539 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\row}{\mathrm{R}}
+\newcommand{\gov}{\mathrm{G}}
+\newcommand{\hh}{\mathrm{H}}
+\setlist{itemsep=2pt,topsep=4pt}
+\setlength{\belowcaptionskip}{6pt}
+
+\title{The mirror closure in GREU\\ and why the shocked economy is not in a steady state in 2075}
+\author{}
+\date{12 November 2026}
+
+\begin{document}
+\maketitle
+
+\section{Summary}
+
+The mirror closure lets the rest of the world respond to a shock as the home economy does.
+The code is in \code{modules/MirrorClosure.jl}. The file \code{DAProductivityShockMirror.jl} runs it.
+
+The closure has five parts:
+\begin{enumerate}
+\item Foreign prices follow the home price of the same product.
+\item Foreign market sizes follow home imports of the same product.
+\item The ECB rate holds the import price index on its baseline path (anchor B).
+\item One factor on all foreign markets steers rest-of-world net lending and net assets to their baseline shares of GDP.
+\item Foreign share prices jump with home share prices in the first shock year.
+\end{enumerate}
+
+The closure passes a zero-shock test, and the DA labour productivity shock solves.
+The shocked economy is not in a steady state in 2075.
+From 2064 to 2074, the GDP deviation rises 0.09 percentage points, the export deviation rises 0.48 points, and the ECB rate falls 0.05 points.
+Household net financial assets fall 3.6 per cent of GDP against the baseline, and government net financial assets rise 3.3 per cent of GDP.
+
+The reason has three steps:
+\begin{enumerate}
+\item The shock raises the government primary balance by about 0.35 per cent of GDP in all years. No rule returns this to households. The government must build about 28 per cent of GDP in extra net assets before its position is stable.
+\item Government debt is a residual. It cannot jump. It moves by flows only, and a gap closes at 2 to 9 per cent a year.
+\item While the government builds assets, households must hold less. They do so only when the return falls. The ECB rate, consumption, and trade therefore keep moving.
+\end{enumerate}
+
+A version of the closure that keeps the terminal condition of the base model is flat from about 2060.
+It gets there with a fall of 16.7 per cent in foreign share prices in 2026, which moves 27 per cent of GDP in wealth to the rest of the world.
+Section~\ref{sec:flat} shows why that jump removes the slow adjustment.
+
+\section{The closure}
+
+\subsection{Setting}
+
+All values are divided by trend growth and trend inflation.
+A lagged value $x_{t-1}$ in the units of year $t$ is $x_{t-1}/f^v$, where $f^v = f^q f^p = 1.01 \cdot 1.02 = 1.0302$.
+The first shock year is $t_1 = 2026$ and the last year is $T = 2075$.
+A bar marks a baseline value, $\bar{x}_t$. A hat marks a gap to the baseline, $\hat{x}_t = x_t - \bar{x}_t$.
+
+In the base model, the rest of the world is exogenous on four margins: import prices, competing export prices, foreign market sizes, and the ECB rate.
+The closure makes each of them endogenous with one equation.
+
+\subsection{Equations}
+
+Table~\ref{tab:equations} lists the equations. The text below gives the reason for each.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Equations of the mirror closure}
+\label{tab:equations}
+\begin{tabular}{@{}llll@{}}
+\toprule
+ & Equation & Years & Endogenous variable \\
+\midrule
+(1) & $P^{m}_{p,t} = \mu^{m}_{p,t}\, P^{y}_{p,t}$ & $t_1,\dots,T$ & \code{pSupply\_p\_o[p,import,t]} \\[2pt]
+(2) & $P^{x*}_{p,t} = \mu^{x}_{p,t}\, P^{x}_{p,t}$ & $t_1,\dots,T$ & \code{pXForeign\_p[p,t]} \\[2pt]
+(3) & $P^{\tau*}_{t} = \mu^{\tau}_{t}\, P^{\tau}_{t}$ & $t_1,\dots,T$ & \code{pCTouristForeign[t]} \\[2pt]
+(4) & $X^{*}_{p,t} = f_t\, \mu^{q}_{p,t}\, M_{p,t}$ & $t_1,\dots,T$ & \code{qXMarket\_p[p,t]} \\[2pt]
+(5) & $C^{\tau*}_{t} = f_t\, \mu^{c}_{t}\, C_{t}$ & $t_1,\dots,T$ & \code{qCTouristMarket[t]} \\[2pt]
+(6) & $P^{M}_{t} = \bar{P}^{M}_{t}$ & $t_1,\dots,T-1$ & \code{rECB[t+1]} \\[2pt]
+(7) & $\rho_{s,t} = i_t + \pi_{s,t}$ & $t_1+1,\dots,T$ & \code{rFirmRequiredReturn\_s[s,t]} \\[2pt]
+(8) & $\dfrac{N^{\row}_t}{Y_t} = \bar{n}_t + \lambda \left( \bar{a}_{t-1} - \dfrac{A^{\row}_{t-1}}{Y_{t-1}} \right)$ & $t_1,\dots,T$ & \code{fXMarket[t]} \\[8pt]
+(9) & $v_{\row,t_1} = g + \dfrac{\sum_{s \in D} v_{s,t_1} E_{s,t_1-1}}{\sum_{s \in D} E_{s,t_1-1}}$ & $t_1$ & \code{rFinReval\_s\_f[RoW,Equity,Liab,$t_1$]} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Prices, (1) to (3).}
+$P^{y}_{p,t}$ is the domestic basic price of product $p$, and $P^{m}_{p,t}$ is its import price.
+$P^{x}_{p,t}$ is the domestic export price, and $P^{x*}_{p,t}$ is the competing foreign price.
+$P^{\tau}_t$ and $P^{\tau*}_t$ are the domestic and foreign tourist prices.
+Each ratio $\mu$ is the baseline ratio of the foreign price to the home price.
+A shock that changes a home price by one per cent changes the foreign price by one per cent.
+
+\paragraph{Market sizes, (4) and (5).}
+$M_{p,t}$ is home imports of product $p$ for domestic use, and $X^{*}_{p,t}$ is the foreign market for home exports of that product.
+$C_t$ is household consumption, and $C^{\tau*}_t$ is the foreign tourist market.
+Foreign demand for home products follows home demand for foreign products.
+The factor $f_t$ is common to all markets. It is one on the baseline.
+
+\paragraph{Nominal anchor, (6).}
+Foreign prices now move with home prices, so they no longer set the price level.
+$P^{M}_t$ is the import price index. The ECB rate $i_{t+1}$ is set in year $t$ and holds the index of year $t$ on the baseline path.
+The rate in $t_1$ was set before the shock and stays exogenous.
+No rate holds the index in year $T$.
+
+\paragraph{Required equity return, (7).}
+$\rho_{s,t}$ is the required return on equity of issuer $s$: non-financial corporations, financial corporations, and the rest of the world.
+In the base model it is a constant. Here it follows the ECB rate with a fixed premium $\pi_{s,t}$.
+
+\paragraph{External balance, (8).}
+$N^{\row}_t$ is net lending of the rest of the world, $A^{\row}_t$ is its net financial assets, and $Y_t$ is nominal GDP.
+$\bar{n}_t$ and $\bar{a}_t$ are the baseline shares of GDP, and $\lambda = 0.1$.
+Mirrored trade alone does not respond to net foreign assets.
+In a test run with (1) to (7) only, the gap in rest-of-world net assets grew through the whole period.
+Two like countries that get the same shock cannot lend more to each other, so the baseline shares are the target.
+The factor $f_t$ is the free variable: it moves exports until net lending fits the rule.
+
+\paragraph{Share price jump, (9).}
+$E_{s,t}$ is the market value of equity that issuer $s$ has issued, and $v_{s,t}$ is its revaluation rate.
+$D$ is the set of home issuers and $g$ is the baseline difference.
+$\mathit{Div}_{s,t}$ is dividends and $\mathit{Iss}_{s,t}$ is equity issues.
+The base model sets $v_{s,t}$ from year $t_1+1$ by the required return:
+\begin{equation}
+E_{s,t}\,(1+\rho_{s,t+1}) = f^v \left( \mathit{Div}_{s,t+1} - \mathit{Iss}_{s,t+1} + E_{s,t+1} \right), \qquad t = t_1,\dots,T-1 .
+\label{eq:pv}
+\end{equation}
+The stock identity is $E_{s,t+1} = E_{s,t}(1+v_{s,t+1})/f^v + \mathit{Iss}_{s,t+1}$.
+Together they give $v_{s,t+1} = \rho_{s,t+1} - f^v\,\mathit{Div}_{s,t+1}/E_{s,t}$.
+The rate in $t_1$ is free. The base model sets it with a terminal condition, equation (\ref{eq:pv}) with all variables dated $T$.
+With the stock identity, that condition is
+\begin{equation}
+E_{s,T} = E_{s,T-1} .
+\label{eq:terminal}
+\end{equation}
+For the rest of the world, equation (9) replaces (\ref{eq:terminal}). Section~\ref{sec:flat} gives the reason and the cost.
+
+\subsection{Calibration and use}
+
+The baseline sets all closure parameters.
+\code{define\_calibration} solves the closure as a separate block of 9{,}447 equations on the baseline.
+It gives each ratio $\mu$ with $f_t = 1$, the shares $\bar{n}_t$ and $\bar{a}_t$, the anchor path $\bar{P}^M_t$, the premiums $\pi_{s,t}$, and the difference $g$.
+The gap in (8) is then zero on the baseline, and a zero shock returns the baseline.
+
+\code{Settings.closure\_modules} loads the module. It is not in \code{Settings.model\_modules}, so the base model and the calibration do not use it.
+The shock file builds the model as
+\begin{center}
+\code{block = base\_model(model\_modules) - mirror + mirror}
+\end{center}
+The subtraction removes the base equation that has the same endogenous variable as a mirror equation. Only the terminal condition (\ref{eq:terminal}) for the rest of the world is removed.
+
+\subsection{Tests}
+
+\begin{itemize}
+\item Zero shock from the baseline: the solution equals the baseline (tolerance $10^{-5}$).
+\item Zero shock from the shocked solution as start values: the largest gaps in the ECB rate, the market factor, and the consumer price are below $10^{-13}$.
+\item DA shock: the model of 2{,}885{,}487 equations solves.
+\item Rule (8) holds to $2 \cdot 10^{-15}$ in the shocked solution.
+\item The import price index is on the baseline from 2026 to 2074. It is 0.02 per cent below in 2075, where no rate holds it.
+\end{itemize}
+
+\subsection{What the closure does not mirror}
+
+\begin{itemize}
+\item Products that do not have both a domestic price and an import price.
+\item Foreign labour supply and the net wages of the rest of the world.
+\item The ECB rate in $t_1$ and the import price index in $T$.
+\end{itemize}
+
+\section{The DA productivity shock}
+
+The shock is the one in \code{DAProductivityShock.jl}: a permanent rise in labour productivity by type and industry from 2026.
+Table~\ref{tab:results} compares three versions of the closure with the national closure of the base model.
+\begin{itemize}
+\item \textbf{A}: equations (1) to (8) with $\lambda = 0$. The base terminal condition sets the foreign share price jump.
+\item \textbf{B}: A with the jump rule (9).
+\item \textbf{C}: B with $\lambda = 0.1$. This is the code now.
+\end{itemize}
+
+\begin{table}[ht]
+\centering
+\small
+\caption{DA shock. Per cent deviation from the baseline, unless a unit is given}
+\label{tab:results}
+\begin{tabular}{@{}lrrrrrrrr@{}}
+\toprule
+ & \multicolumn{2}{c}{A} & \multicolumn{2}{c}{B} & \multicolumn{2}{c}{C} & \multicolumn{2}{c}{National} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(l){8-9}
+ & 2026 & 2075 & 2026 & 2075 & 2026 & 2075 & 2026 & 2075 \\
+\midrule
+GDP & 4.95 & 9.79 & 5.18 & 9.76 & 5.17 & 9.59 & 5.43 & 8.79 \\
+Private consumption & 0.64 & 8.64 & 2.62 & 10.49 & 2.55 & 9.83 & 3.17 & 6.82 \\
+Investment & 15.11 & 7.71 & 10.11 & 7.15 & 10.28 & 7.01 & 20.81 & 5.76 \\
+Exports & 5.86 & 11.89 & 5.46 & 9.35 & 5.47 & 9.84 & 0.96 & 6.99 \\
+Imports & 5.80 & 10.01 & 5.35 & 9.01 & 5.36 & 9.10 & 4.08 & 3.84 \\
+Wage sum & 1.85 & 8.46 & 1.78 & 7.90 & 1.79 & 7.79 & 4.09 & 4.67 \\
+Consumer price & $-1.35$ & $-0.21$ & $-0.41$ & $-0.15$ & $-0.45$ & $-0.11$ & 0.79 & $-1.54$ \\
+\midrule
+Foreign share price jump, per cent & $-16.7$ & & 9.1 & & 8.4 & & 6.6 & \\
+Market factor $f_t$ (2030, 2075) & 1.023 & 1.023 & 0.992 & 1.003 & 0.991 & 1.009 & & \\
+ECB rate, per cent (2027, 2074) & 4.73 & 3.96 & 5.27 & 4.08 & 5.26 & 4.11 & 4.00 & 4.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:flat} shows how much the deviations still move in the last full decade.
+Version A is flat. Versions B and C are not.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Change in the deviation from the baseline, 2064 to 2074. Percentage points}
+\label{tab:flat}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+ & A & B & C & National \\
+\midrule
+GDP & 0.002 & 0.227 & 0.091 & $-0.013$ \\
+Private consumption & 0.024 & $-0.069$ & $-0.130$ & $-0.079$ \\
+Exports & $-0.002$ & 0.841 & 0.476 & 0.032 \\
+ECB rate & 0.001 & $-0.105$ & $-0.049$ & 0.000 \\
+Household net financial assets, per cent of GDP & 0.32 & $-6.38$ & $-3.62$ & $-0.59$ \\
+Government net financial assets, per cent of GDP & 0.25 & 2.89 & 3.34 & 1.64 \\
+Rest-of-world net financial assets, per cent of GDP & $-0.32$ & 5.87 & 0.82 & $-0.42$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Why the economy is not in a steady state}
+
+\subsection{The condition for a steady state}
+
+The baseline is not a steady state for financial positions.
+Government net financial assets rise from 45 per cent of GDP in 2026 to 244 per cent in 2075, because the primary surplus is 5.5 to 6.0 per cent of GDP.
+The net financial assets of the rest of the world fall from $-84$ to $-142$ per cent of GDP.
+The real side of the baseline is stationary: adjusted GDP grows by 0.001 per cent in 2074.
+A steady state of the shocked economy therefore means that all gaps to the baseline are constant.
+
+Let $A_{s,t}$ be the net financial assets of sector $s$, $N_{s,t}$ its net lending, and $R_{s,t}$ its net revaluation. The model identity is
+\begin{equation}
+A_{s,t} = A_{s,t-1}/f^v + N_{s,t} + R_{s,t} .
+\end{equation}
+Divide by GDP, with $a = A/Y$, $n = N/Y$, $r = R/Y$, and $\gamma_t = Y_t/Y_{t-1}$. Then take the gap to the baseline:
+\begin{equation}
+\hat{a}_{s,t} - \hat{a}_{s,t-1} =
+\underbrace{\left( \frac{1}{f^v \gamma_t} - 1 \right) \hat{a}_{s,t-1}}_{\text{dilution}}
++ \underbrace{\frac{\bar{a}_{s,t-1}}{f^v} \left( \frac{1}{\gamma_t} - \frac{1}{\bar{\gamma}_t} \right)}_{\text{GDP growth}}
++ \hat{n}_{s,t} + \hat{r}_{s,t} .
+\label{eq:decomposition}
+\end{equation}
+With stationary GDP, $\gamma_t = \bar{\gamma}_t = 1$, the gap is constant only when
+\begin{equation}
+\hat{n}_{s,t} + \hat{r}_{s,t} = \left( 1 - 1/f^v \right) \hat{a}_{s,t-1} = 0.0293\, \hat{a}_{s,t-1} .
+\label{eq:condition}
+\end{equation}
+A gap of one per cent of GDP needs an extra flow of 0.029 per cent of GDP each year. If the flow stops, the gap halves in 23 years.
+
+Table~\ref{tab:decomposition} applies (\ref{eq:decomposition}) to version C in 2074. The terms sum to the change with an error below $10^{-13}$.
+The condition (\ref{eq:condition}) fails for the government and for households.
+The government gains 0.30 per cent of GDP a year against the baseline, and households lose 0.38.
+In version A, no sector moves by more than 0.04.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Change in net financial assets against the baseline in 2074. Per cent of GDP}
+\label{tab:decomposition}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+ & & \multicolumn{5}{c}{Version C} & Version A \\
+\cmidrule(lr){3-7}\cmidrule(l){8-8}
+ & Gap 2073 & Dilution & GDP growth & Net lending & Revaluation & Change & Change \\
+\midrule
+Households & 5.16 & $-0.152$ & $-0.014$ & $-0.763$ & 0.551 & $-0.378$ & 0.036 \\
+Government & 25.59 & $-0.752$ & $-0.013$ & 0.884 & 0.176 & 0.295 & 0.021 \\
+Non-financial corp. & $-5.92$ & 0.174 & 0.011 & 0.234 & $-0.457$ & $-0.038$ & 0.006 \\
+Financial corp. & $-28.97$ & 0.851 & 0.009 & 0.058 & $-0.859$ & 0.059 & $-0.033$ \\
+Rest of the world & 4.13 & $-0.121$ & 0.008 & $-0.413$ & 0.589 & 0.062 & $-0.029$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The government}
+
+\paragraph{The rule.}
+Government consumption is a fixed share of nominal GDP. Cash benefits follow the household wage sum two years before. Other transfers follow gross value added.
+The government does not trade equity or debt assets. Its debt liabilities take the whole balance. No tax or expense responds to the debt.
+
+\paragraph{The shock raises the primary balance in all years.}
+Table~\ref{tab:budget} splits the gap in the balance in 2075.
+In version C, the wage sum rises 7.8 per cent and nominal GDP rises 9.4 per cent.
+Expenses that follow wages fall as a share of GDP: social benefits by 0.23 points, public wages by 0.11, and production subsidies by 0.15.
+Indirect taxes fall by 0.26 points. The primary balance improves by 0.35 points, and by 0.31 points under the national closure.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Government budget in 2075. Per cent of GDP less the baseline}
+\label{tab:budget}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+ & A & C & National \\
+\midrule
+Balance & 0.09 & 0.84 & 0.46 \\
+\quad Net interest & $-0.06$ & 0.49 & 0.15 \\
+\quad Primary balance & 0.15 & 0.35 & 0.31 \\
+\qquad Primary revenue & $-0.38$ & $-0.24$ & $-0.20$ \\
+\qquad Primary expenditure & $-0.53$ & $-0.60$ & $-0.51$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{The debt recursion.}
+Let $l_t$ be government debt liabilities as a share of GDP, $pb_t$ the primary balance, $ia_t$ the interest on debt assets, and $i^L_t$ the rate on debt liabilities. Then
+\begin{equation}
+l_t = \rho_t\, l_{t-1} - pb_t - ia_t , \qquad \rho_t = \frac{1 + i^L_t}{f^v \gamma_t} .
+\label{eq:debt}
+\end{equation}
+The solved paths satisfy (\ref{eq:debt}) to rounding error in each year that was checked.
+The rate $i^L_t$ is the ECB rate less a fixed gap. On the baseline it is 1.441 per cent, so
+\[
+\bar{\rho} = 1.01441 / 1.0302 = 0.9847 .
+\]
+The rate is below nominal growth, so the debt ratio is stable, but a gap closes by only 1.5 per cent a year. The half-life is 45 years.
+On the baseline, $l_t$ falls from 8.5 per cent of GDP in 2026 to $-213$ per cent in 2075. It is negative in 2030 and in all later years: the residual has become a claim. The fixed point of (\ref{eq:debt}) on the baseline is close to $-400$ per cent of GDP.
+
+The gap to the baseline follows
+\begin{equation}
+\hat{l}_t - \hat{l}_{t-1} = (\bar{\rho}_t - 1)\, \hat{l}_{t-1} + (\rho_t - \bar{\rho}_t)\, l_{t-1} - \widehat{pb}_t - \widehat{ia}_t .
+\label{eq:debtgap}
+\end{equation}
+Table~\ref{tab:debt} gives the terms for version C.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Gap in government debt liabilities, version C. Per cent of GDP. The rate gap is in percentage points}
+\label{tab:debt}
+\begin{tabular}{@{}lrrrrrrr@{}}
+\toprule
+Year & $\hat{l}_{t-1}$ & $(\bar{\rho}-1)\hat{l}_{t-1}$ & $(\rho-\bar{\rho})\,l_{t-1}$ & $-\widehat{pb}_t$ & $-\widehat{ia}_t$ & Change & Rate gap \\
+\midrule
+2030 & $-2.63$ & 0.041 & $-0.090$ & $-0.157$ & $-0.199$ & $-0.406$ & 1.00 \\
+2040 & $-7.59$ & 0.117 & $-0.276$ & $-0.339$ & $-0.042$ & $-0.540$ & 0.46 \\
+2050 & $-12.79$ & 0.197 & $-0.308$ & $-0.366$ & $-0.004$ & $-0.483$ & 0.27 \\
+2060 & $-17.18$ & 0.264 & $-0.293$ & $-0.357$ & 0.006 & $-0.380$ & 0.19 \\
+2070 & $-20.45$ & 0.314 & $-0.245$ & $-0.344$ & 0.009 & $-0.266$ & 0.13 \\
+2074 & $-21.47$ & 0.329 & $-0.235$ & $-0.345$ & 0.009 & $-0.242$ & 0.11 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two results follow.
+\begin{itemize}
+\item \textbf{The primary balance alone moves the long-run position by 22 per cent of GDP.}
+With the rate on the baseline, the gap is constant at $\hat{l} = -(\widehat{pb} + \widehat{ia})/(1-\bar{\rho}) = -0.336/0.0153 = -21.9$.
+\item \textbf{The rate gap adds a large flow, and it grows with the stock.}
+The stock is about $-228$ per cent of GDP in 2073. A rate that is 0.11 points above the baseline then adds 0.24 per cent of GDP to the balance in 2074. In 2029 the stock is about $-13$ per cent of GDP, and a rate gap of one full point adds only 0.09 in 2030.
+\end{itemize}
+In 2074 the debt gap is $-21.5$, close to the value that the primary balance needs. The gap still falls by 0.24 a year, and all of that comes from the rate gap.
+The question is therefore why the rate is still above the baseline.
+
+\subsection{Households}
+
+The household first-order condition is
+\begin{equation}
+u'_t = w'_t + \kappa_t\, u'_{t+1} , \qquad
+\kappa_t = \beta\, (1+m_{t+1})\, \frac{P^C_t}{P^C_{t+1} f^p}\, (f^q)^{-e} ,
+\end{equation}
+with $u'_t = (\tilde{C}_t/\tilde{C}_0)^{-e}$ and $w'_t = \mu^W (W_t/W_0)^{-e}$.
+$\tilde{C}_t$ is consumption above the habit and the hand-to-mouth amount, $W_t$ is real net financial assets, and $m_t$ is the return on household debt assets.
+The parameters are $\beta = 0.96$ and $e = 1.25$.
+When $u'_t$ is constant, the condition gives the ratio of wealth to consumption as a function of the return:
+\begin{equation}
+\frac{W_t}{\tilde{C}_t} \propto (1 - \kappa_t)^{-1/e} .
+\label{eq:wealth}
+\end{equation}
+On the baseline, $m = 0.346$ per cent and $1 - \bar{\kappa} = 0.0672$. The return $m_t$ is the ECB rate less a fixed gap, so its gap equals the gap in the ECB rate.
+The semi-elasticity is
+\[
+\frac{\partial \ln (W/\tilde{C})}{\partial m} = \frac{1}{e} \cdot \frac{\kappa}{(1+m)(1-\kappa)} = 0.8 \cdot \frac{0.9295}{0.0672} = 11.1 .
+\]
+Household net financial assets are 268 per cent of GDP on the baseline. A return that is one percentage point higher therefore raises desired household wealth by $\theta = 11.1 \cdot 2.68 = 29.7$ per cent of GDP.
+
+Table~\ref{tab:households} tests (\ref{eq:wealth}) on the solution of version C. From 2050 the condition explains the wealth ratio.
+Households are close to their own steady state, given the return. They are not the slow part.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Household wealth relative to consumption above the reference, version C. Per cent deviation from the baseline}
+\label{tab:households}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Year & Solution & Equation (\ref{eq:wealth}) & Gap in the return, points \\
+\midrule
+2040 & 3.99 & 5.27 & 0.43 \\
+2050 & 3.27 & 3.08 & 0.26 \\
+2060 & 2.49 & 2.08 & 0.18 \\
+2070 & 1.59 & 1.41 & 0.12 \\
+2074 & 1.10 & 1.12 & 0.09 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The two parts together}
+\label{sec:together}
+
+Net financial assets sum to zero over the five sectors, so the gaps also sum to zero:
+\begin{equation}
+\hat{a}^{\hh}_t + \hat{a}^{\gov}_t = x_t , \qquad x_t = -\left( \hat{a}^{\mathrm{NFC}}_t + \hat{a}^{\mathrm{FC}}_t + \hat{a}^{\row}_t \right) .
+\label{eq:addingup}
+\end{equation}
+Households hold what the government and the other sectors do not.
+Three relations then give a reduced form. It is an approximation, and it takes $x_t$ and the primary balance as given.
+\begin{enumerate}
+\item Households, from (\ref{eq:wealth}): $\hat{a}^{\hh}_t = h_t + \theta\, \hat{\imath}_t$. Here $\hat{\imath}_t$ is the rate gap in percentage points, and $h_t$ is the gap that households would hold at the baseline return. It is 1.8 per cent of GDP in 2074, because consumption rises more than GDP.
+\item Government, from (\ref{eq:debtgap}): $\hat{a}^{\gov}_t - \hat{a}^{\gov}_{t-1} = -(1-\bar{\rho}) (\hat{a}^{\gov}_{t-1} - G^*_t) + \phi_t\, \hat{\imath}_t$. Here $G^*_t$ is the position that the primary balance needs at the baseline rate, and $\phi_t = -l_{t-1}/(100 f^v)$ is the extra balance for each point of the rate.
+\item Adding up, from (\ref{eq:addingup}): $\hat{\imath}_t = (x_t - h_t - \hat{a}^{\gov}_t)/\theta$.
+\end{enumerate}
+Put the third relation in the second:
+\begin{equation}
+\hat{a}^{\gov}_t - \hat{a}^{\gov}_{t-1} \approx
+-(1-\bar{\rho}) \left( \hat{a}^{\gov}_{t-1} - G^*_t \right)
+- \frac{\phi_t}{\theta} \left( \hat{a}^{\gov}_{t-1} - (x_t - h_t) \right) .
+\label{eq:reduced}
+\end{equation}
+The government position moves to a weighted average of $G^*_t$ and $x_t - h_t$. The speed is
+\begin{equation}
+\sigma_t = (1-\bar{\rho}) + \frac{\phi_t}{\theta} .
+\end{equation}
+
+\begin{table}[ht]
+\centering
+\small
+\caption{The reduced form (\ref{eq:reduced}) on the solution of version C. Positions in per cent of GDP, rate gaps in percentage points}
+\label{tab:reduced}
+\begin{tabular}{@{}lrrrrrrrr@{}}
+\toprule
+Year & $\hat{a}^{\gov}$ & $\hat{a}^{\hh}$ & $x$ & $\phi$ & $\sigma$ & Half-life, years & Rate gap, implied & Rate gap, solution \\
+\midrule
+2030 & 2.9 & 14.5 & 17.3 & 0.13 & 0.020 & 35 & 0.39 & 0.92 \\
+2040 & 9.4 & 16.0 & 25.5 & 0.73 & 0.040 & 17 & 0.37 & 0.43 \\
+2050 & 15.7 & 13.2 & 28.9 & 1.26 & 0.058 & 12 & 0.30 & 0.26 \\
+2060 & 20.9 & 9.8 & 30.7 & 1.71 & 0.073 & 9 & 0.23 & 0.18 \\
+2070 & 24.7 & 6.3 & 31.0 & 2.09 & 0.086 & 8 & 0.14 & 0.12 \\
+2074 & 25.9 & 4.8 & 30.7 & 2.22 & 0.090 & 7 & 0.10 & 0.09 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:reduced} gives the terms. The implied rate gap is close to the solution from 2050. Three points follow.
+\begin{itemize}
+\item \textbf{The speed is low at first.} The government has almost no net debt position in 2030, so the rate has little effect on its balance. The gap then closes by 2 per cent a year. The speed rises to 9 per cent a year in 2074, when the stock is large.
+\item \textbf{The distance is large.} With the values of 2074, the long-run government gap is 28.4 per cent of GDP and the long-run rate gap is 0.02 points. The government gap is 2.9 in 2030 and 25.9 in 2074. About one tenth of the distance of 2030 is left.
+\item \textbf{The rate carries the adjustment.} Each year the government gains assets, households must hold less, and the return must fall for them to do so. The ECB rate is the free variable of the anchor, so it takes this role. A falling rate moves consumption and, through rule (8), the market factor and exports.
+\end{itemize}
+
+Under the national closure the ECB rate is fixed, so the rate term is zero. The government gap still rises by 1.6 per cent of GDP each decade (Table~\ref{tab:flat}). Only the root of 0.985 is at work there.
+
+\subsection{The rest of the world}
+
+Rule (8) is proportional. Put it in (\ref{eq:decomposition}) with $\gamma_t = \bar{\gamma}_t = 1$:
+\begin{equation}
+\hat{a}^{\row}_t = \left( \frac{1}{f^v} - \lambda \right) \hat{a}^{\row}_{t-1} + \hat{r}^{\row}_t .
+\end{equation}
+The root is $0.971 - 0.1 = 0.871$, so the half-life is 5 years. A lasting revaluation gap leaves a lasting gap in net assets of $\hat{r}^{\row}/(\lambda + 1 - 1/f^v)$.
+In 2074 the revaluation gap is 0.59 per cent of GDP. This note does not split that gap by instrument.
+The formula gives a gap of 4.6 per cent of GDP. The solution has 4.2.
+With $\lambda = 0$ (version B) the root is 0.971, and the gap is 12.5 per cent of GDP in 2074 and rises by 0.6 a year.
+
+\subsection{Why version A is flat}
+\label{sec:flat}
+
+Version A keeps the terminal condition (\ref{eq:terminal}) for the rest of the world: $E_{\row,T} = E_{\row,T-1}$.
+The stock $E_{\row,t}$ is not a choice of the foreign issuer. A portfolio rule sets it as a fixed share of the equity that home sectors hold, and household equity is a fixed share of household financial assets.
+The condition therefore says that home portfolios do not change in the last year.
+The only free variable is the foreign share price in $t_1$.
+The solver sets it so that the slow adjustment of Section~\ref{sec:together} is complete in $T$.
+This reading follows from the equations. It was not tested in a separate run.
+
+The numbers fit this reading. Table~\ref{tab:jump} shows the wealth that the revaluation of 2026 moves.
+In version A the foreign share price falls 16.7 per cent, against 0.06 per cent on the baseline. Home sectors lose 27.5 per cent of GDP to the rest of the world.
+In version C households gain 23.9 per cent of GDP.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Net revaluation in 2026 less the baseline. Per cent of GDP}
+\label{tab:jump}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+ & A & C & National \\
+\midrule
+Households & $-8.3$ & 23.9 & 25.7 \\
+Government & $-0.7$ & 1.9 & 2.0 \\
+Non-financial corporations & $-9.5$ & $-0.9$ & $-11.7$ \\
+Financial corporations & $-9.0$ & $-20.0$ & $-15.6$ \\
+Rest of the world & 27.5 & $-4.9$ & $-0.5$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The reduced form (\ref{eq:reduced}) gives the same result for version A with its own values in 2074:
+$x = -3.3$, $h = -3.0$, and a primary balance gap of 0.15.
+The long-run government gap is 1.0 per cent of GDP and the long-run rate gap is $-0.05$ points.
+The solution has 0.9 and $-0.04$. Version A is at its long-run point.
+Households are poorer from the first year, consume less, and the rate is lower. The government then has almost no extra assets to build.
+
+The speed $\sigma_t$ is about the same in A and C (0.084 and 0.090 in 2074). The difference is the distance.
+In C the government must build 28 per cent of GDP by flows. In A the jump in 2026 leaves 1 per cent.
+
+\section{Options}
+
+None of these options was tested.
+\begin{itemize}
+\item \textbf{Keep version C.} The economy moves to a long-run point, but about one tenth of the adjustment is left in 2075. Report results with that limit.
+\item \textbf{Add a fiscal rule.} A transfer to households that returns the gap in the government balance removes the stock that must be built. This is a change of home policy, not of foreign behaviour, so it is a closure of its own.
+\item \textbf{Use version A.} It is flat from about 2060. The cost is the fall of 16.7 per cent in foreign share prices in 2026 and a consumption response of 0.6 per cent in the first year.
+\item \textbf{Solve a longer horizon.} With the speed of 2074, three more decades close nine tenths of the rest.
+\end{itemize}
+
+\section{Limits of this note}
+
+\begin{itemize}
+\item The numbers come from four solved scenarios of the DA shock: versions A, B, and C, and the national closure. The scenario of version C is in \code{Output}, in the file\\ \code{da\_labor\_productivity\_shock\_mirror.parquet}. The other three scenario files and the scripts that made the tables are not in the repository.
+\item For version C, only $\lambda = 0.1$ was solved.
+\item The reduced form (\ref{eq:reduced}) is an approximation. It holds $x_t$, $h_t$, and the primary balance fixed, and it fits the solution only from about 2050. The long-run values are extrapolations.
+\item The baseline is not a steady state for financial positions. The stock $l_{t-1}$ in $\phi_t$ still grows, so a rate gap that is not zero has an effect that changes over time.
+\item \code{Calibrate.jl} was not run again with the closure module loaded.
+\end{itemize}
+
+\end{document}
