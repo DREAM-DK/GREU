@@ -1,11 +1,12 @@
 # Run the DA labor productivity shock under the mirror closure.
 # The rest of the world responds as the home economy does. See modules/MirrorClosure.jl.
-# First solve a zero shock. The mirror closure must return the baseline.
+# Cash transfers hold the government balance on its baseline share of GDP. See modules/FiscalClosure.jl.
+# First solve a zero shock. The closures must return the baseline.
 # The shock is the same as in DAProductivityShock.jl.
 # Write the solved scenario, the usual shock report, and the tables.
 using XLSX
 using SquareModels
-import GREU: Settings, Time, loaded_module_by_name, base_model, MirrorClosure
+import GREU: Settings, Time, loaded_module_by_name, base_model, MirrorClosure, FiscalClosure
 import GREU.InputOutputSettings: industry_members
 import GREU.Production: aProd, labor_l_i
 import GREU.Time: T
@@ -21,24 +22,27 @@ t1 = Time.t1 = 2026
 
 # Create residual variables before loading their calibrated values.
 # A mirror equation replaces the base equation with the same endogenous variable.
+# The fiscal rule adds one equation. The transfer rate is exogenous in the base model.
 mirror = MirrorClosure.define_equations()
-mirror_calibration = MirrorClosure.define_calibration(mirror)
-block = base_model(model_modules) - mirror + mirror
+fiscal = FiscalClosure.define_equations()
+closure_calibration = MirrorClosure.define_calibration(mirror) + FiscalClosure.define_calibration(fiscal)
+block = base_model(model_modules) - mirror + mirror + fiscal
 baseline = load(joinpath(@__DIR__, "..", "Output", "baseline.parquet"), block.model)
 
 # ==============================================================================
-# Mirror closure
+# Closures
 # ==============================================================================
-# The baseline file has no mirror values. Set the market factor to one. Then set the ratios,
-# the net lending share, the net asset target, the price anchor, and the equity premiums
+# The baseline file has no closure values. Set the market factor to one. Then set the ratios,
+# the net lending shares, the net asset targets, the price anchor, and the equity premiums
 # from the baseline paths.
 MirrorClosure.assign_data!(baseline)
-baseline[residuals(mirror_calibration)] .= 0.0
-@log_time solve!(mirror_calibration, baseline; replace_nothing=1.0)
+FiscalClosure.assign_data!(baseline)
+baseline[residuals(closure_calibration)] .= 0.0
+@log_time solve!(closure_calibration, baseline; replace_nothing=1.0)
 
-# Zero shock test: with no changes, the mirror closure must return the baseline.
+# Zero shock test: with no changes, the closures must return the baseline.
 zero_shock = @log_time solve(block, baseline; run_test_constraints=false)
-assert_no_diff(baseline, zero_shock; atol=1e-5, msg="Zero shock test failed under the mirror closure")
+assert_no_diff(baseline, zero_shock; atol=1e-5, msg="Zero shock test failed under the closures")
 
 # ==============================================================================
 # Shock definition

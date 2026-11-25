@@ -67,6 +67,7 @@ const green_transition_modules = [
 # to the base model. Do not add them to model_modules.
 const closure_modules = [
   :MirrorClosure,
+  :FiscalClosure,
 ]
 
 
