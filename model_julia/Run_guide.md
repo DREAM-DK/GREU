@@ -35,21 +35,9 @@ The default branch, `main`, holds the GAMS model. The Julia model is on `julia-i
 
 **Test:** `git branch` shows `* julia-implementation`.
 
-## 3. Set the GAMS path
+## 3. The solver
 
-The model solves its equations with CONOPT through GAMS. `model_julia/Settings.jl` finds GAMS with this line:
-
-```julia
-gams_system_dir() = dirname(something(Sys.which("gams"), "C:/GAMS/51/gams.exe"))
-```
-
-It uses the `gams` on your PATH. If there is none, it uses the path in quotes. If GAMS is not on your PATH, change that path to your own `gams.exe`, for example:
-
-```julia
-gams_system_dir() = dirname(something(Sys.which("gams"), "C:/GAMS/54/gams.exe"))
-```
-
-Use forward slashes.
+The model solves its equations with [SPADE](https://github.com/MartinBonde/SPADE.jl). SPADE needs 64-bit Windows and a CPU with AVX2, and this evaluation version works until the end of 2026. `instantiate` (step 4.4) downloads it, about 105 MB.
 
 ## 4. Run first time
 

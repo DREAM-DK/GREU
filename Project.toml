@@ -17,11 +17,13 @@ JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
 JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+SPADE = "c3e1a8d2-6f4b-4d7a-8e15-2a9b7c0d4e63"
 SquareModels = "8f61fe60-8cc6-11ec-3043-2171a73045bd"
 
 [sources]
 CONOPT = {url = "https://github.com/GAMS-dev/CONOPT.jl"}
 DREAMMakieTheme = {url = "https://github.com/DREAM-DK/DREAMMakieTheme"}
+SPADE = {url = "https://github.com/MartinBonde/SPADE.jl", rev = "v0.1.0"}
 
 [compat]
 CairoMakie = "0.15"

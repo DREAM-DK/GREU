@@ -88,17 +88,25 @@ model_modules::Vector{Symbol} = [
 # Solver
 # ============================================================================
 # JuMP `Model` configured as a square nonlinear system. Restart Julia after a solver change.
-# GREU.__init__ passes the precompiled model back in, so the GAMS temporary work directory is set again in each session.
+# GREU.__init__ passes the precompiled model back in, so the settings are set again in each session.
 
-# CONOPT4 through GAMS. Importing GAMS activates the SquareModels GAMS extension.
-import GAMS
-gams_system_dir() = dirname(something(Sys.which("gams"), "C:/GAMS/54/gams.exe"))
-function square_model(model=SquareModels.square_model(; gamsdir=gams_system_dir()))
-  GAMS.check_system_dir(JuMP.get_optimizer_attribute(model, "sysdir"))
-  JuMP.set_optimizer_attribute(model, "workdir", mktempdir())
+# SPADE (https://github.com/MartinBonde/SPADE.jl). The first solve in a session starts the solver.
+# The dynamic calibration needs more than the default 100 trials; the time limit bounds the solve.
+import SPADE
+function square_model(model=SquareModels.square_model(SPADE.Optimizer; maxiters=1000))
   JuMP.set_time_limit_sec(model, 5 * 60)
   return model
 end
+
+# CONOPT4 through GAMS. Importing GAMS activates the SquareModels GAMS extension.
+# import GAMS
+# gams_system_dir() = dirname(something(Sys.which("gams"), "C:/GAMS/54/gams.exe"))
+# function square_model(model=SquareModels.square_model(; gamsdir=gams_system_dir()))
+#   GAMS.check_system_dir(JuMP.get_optimizer_attribute(model, "sysdir"))
+#   JuMP.set_optimizer_attribute(model, "workdir", mktempdir())
+#   JuMP.set_time_limit_sec(model, 5 * 60)
+#   return model
+# end
 
 # CONOPT.jl.
 # import CONOPT
