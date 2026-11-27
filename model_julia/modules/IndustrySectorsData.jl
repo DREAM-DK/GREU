@@ -125,7 +125,8 @@ end
 function target_shares(industries, accounts, targets, prior, capacity)
   share_model = JuMP.Model(Ipopt.Optimizer)
   JuMP.set_silent(share_model)
-  JuMP.set_optimizer_attribute(share_model, "bound_relax_factor", 0.0)
+  JuMP.set_optimizer_attribute(share_model, "bound_relax_factor", 1e-13)
+  JuMP.set_optimizer_attribute(share_model, "tol", 1e-13)
   JuMP.@variable(share_model, 0.0 <= share[i in industries] <= capacity[i])
   JuMP.@constraint(
     share_model,
