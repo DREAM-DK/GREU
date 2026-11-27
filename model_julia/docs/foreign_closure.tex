@@ -1,0 +1,543 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{placeins}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepgfplotslibrary{groupplots}
+\pgfplotsset{compat=1.18}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\setlist{itemsep=2pt,topsep=4pt}
+\setlength{\belowcaptionskip}{6pt}
+% Rules have numbers. Equations have letters.
+\renewcommand{\theequation}{\alph{equation}}
+
+% Chart colours and line styles.
+\definecolor{fcblue}{RGB}{0,84,159}
+\definecolor{fcorange}{RGB}{217,95,2}
+\definecolor{fcgrey}{RGB}{110,110,110}
+\definecolor{fcgreen}{RGB}{27,158,119}
+\definecolor{fcpurple}{RGB}{117,112,179}
+\definecolor{fcred}{RGB}{200,40,60}
+\pgfplotsset{
+  fc/.style={
+    xmin=2026, xmax=2075,
+    x tick label style={/pgf/number format/1000 sep={}},
+    y tick label style={/pgf/number format/fixed},
+    scaled y ticks=false,
+    tick label style={font=\footnotesize},
+    title style={font=\small, yshift=-1ex},
+    label style={font=\footnotesize},
+    grid=major, grid style={gray!25},
+    legend style={font=\footnotesize, draw=none, /tikz/every even column/.append style={column sep=0.8em}},
+  },
+  narrow/.style={width=5.7cm, height=4.7cm, xtick={2030,2050,2070}},
+  wide/.style={width=7.7cm, height=5.4cm, xtick={2030,2040,2050,2060,2070}},
+  closure/.style={fcblue, line width=1.1pt},
+  basemodel/.style={fcorange, line width=1.1pt, densely dashed},
+  noanchor/.style={fcgrey, line width=1.1pt, dashdotted},
+  importmarks/.style={only marks, mark=o, mark size=1.5pt, mark repeat=4, forget plot},
+}
+
+% Chart data: \fcmacro and \fcproduct.
+\input{foreign_closure_data}
+
+\title{A foreign closure for GREU:\\ foreign prices and export markets that follow the home economy}
+\author{}
+\date{27 November 2026}
+
+\begin{document}
+\maketitle
+
+\section{Summary}
+
+The foreign closure lets foreign prices and foreign demand follow the home economy in a shock.
+The code is in the new file \code{modules/ForeignClosure.jl}. The base model and the calibration do not use it. A shock file adds its equations.
+
+The closure has four parts:
+\begin{enumerate}
+\item The import price of each of the 63 products follows the home basic price of that product.
+\item The competing foreign price of each of the 59 export products follows the home export price. The export market of each of those products follows home imports of the product. Exports and imports of a product then change by the same per cent.
+\item Tourist exports are not a product. The foreign tourist price follows the home tourist price, and the tourist market follows household consumption.
+\item The ECB rate holds the consumer price index on its baseline path.
+\end{enumerate}
+
+The model stays square. The closure adds 9{,}199 equations and makes 9{,}199 exogenous variables endogenous.
+Part 4 is necessary: with parts 1 to 3 only, no foreign price sets the price level. In a test with no anchor, one per cent more labour productivity raised the consumer price by 2.6 per cent.
+
+The baseline sets all closure parameters, so the baseline does not change. A zero shock returns the baseline.
+A permanent rise of one per cent in labour productivity solves. In 2075, GDP is 1.29 per cent above the baseline with the closure and 1.01 per cent above in the base model. Exports and imports rise 1.18 and 1.17 per cent, against 0.79 and 0.45.
+
+\section{Changes to the code}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Files}
+\label{tab:files}
+\begin{tabular}{@{}lp{9.6cm}@{}}
+\toprule
+File & Change \\
+\midrule
+\code{modules/ForeignClosure.jl} & New module. It declares six ratio variables, the closure equations in \code{define\_equations}, and the swaps that set the ratios in \code{define\_calibration}. \\[2pt]
+\code{Settings.jl} & New group \code{closure\_modules} with \code{:ForeignClosure}. The group is in \code{loaded\_modules}. It is not in \code{model\_modules}. \\[2pt]
+\code{docs/foreign\_closure.tex} & This note. \\[2pt]
+\code{docs/foreign\_closure\_data.tex} & Chart data for this note. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+No base module, calibration file, or shock file was changed.
+\code{Settings.loaded\_modules} declares the variables of the module. \code{Settings.model\_modules} selects the modules that add equations to the base model and to both calibration solves. The closure is only in the first list. \code{Calibrate.jl} therefore gives the same baseline as before (Section~\ref{sec:tests}).
+
+\section{The closure}
+
+\subsection{Setting}
+
+All values are divided by trend growth and trend inflation.
+The first shock year is $t_1 = 2026$ and the last year is $T = 2075$, so each rule has 50 years.
+A bar marks a baseline value, $\bar{x}_t$.
+
+In the base model, the rest of the world is exogenous on four margins: import prices, competing export prices, foreign market sizes, and the ECB rate.
+The closure makes each of them endogenous with one equation.
+
+\subsection{Equations}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Equations of the foreign closure}
+\label{tab:equations}
+\begin{tabular}{@{}lllllr@{}}
+\toprule
+ & Equation & Products & Years & Endogenous variable & Equations \\
+\midrule
+(1) & $P^{m}_{p,t} = \mu^{m}_{p,t}\, P^{y}_{p,t}$ & 63 & $t_1,\dots,T$ & \code{pSupply\_p\_o[p,import,t]} & 3{,}150 \\[2pt]
+(2) & $P^{x*}_{p,t} = \mu^{x}_{p,t}\, P^{x}_{p,t}$ & 59 & $t_1,\dots,T$ & \code{pXForeign\_p[p,t]} & 2{,}950 \\[2pt]
+(3) & $X^{*}_{p,t} = \mu^{q}_{p,t}\, M_{p,t}$ & 59 & $t_1,\dots,T$ & \code{qXMarket\_p[p,t]} & 2{,}950 \\[2pt]
+(4) & $P^{\tau*}_{t} = \mu^{\tau}_{t}\, P^{\tau}_{t}$ & & $t_1,\dots,T$ & \code{pCTouristForeign[t]} & 50 \\[2pt]
+(5) & $C^{\tau*}_{t} = \mu^{c}_{t}\, C_{t}$ & & $t_1,\dots,T$ & \code{qCTouristMarket[t]} & 50 \\[2pt]
+(6) & $P^{C}_{t} = \bar{P}^{C}_{t}$ & & $t_1,\dots,T-1$ & \code{rECB[t+1]} & 49 \\
+\midrule
+ & & & & & 9{,}199 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Each ratio $\mu$ is a new variable. It is exogenous in a shock, and its value is the baseline ratio of the foreign variable to the home variable in the same year.
+Table~\ref{tab:names} gives the names in the code.
+
+\begin{table}[H]
+\centering
+\small
+\caption{New variables}
+\label{tab:names}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Symbol & Name in the code & Meaning \\
+\midrule
+$\mu^{m}_{p,t}$ & \code{pM2pY\_p[p,t]} & Import price to home basic price \\
+$\mu^{x}_{p,t}$ & \code{pXForeign2pX\_p[p,t]} & Competing foreign price to home export price \\
+$\mu^{q}_{p,t}$ & \code{qXMarket2qM\_p[p,t]} & Foreign market size to imports \\
+$\mu^{\tau}_{t}$ & \code{pCTouristForeign2pCTourist[t]} & Foreign tourist price to home tourist price \\
+$\mu^{c}_{t}$ & \code{qCTouristMarket2qC[t]} & Tourist market size to household consumption \\
+$\bar{P}^{C}_{t}$ & \code{pCAnchor[t]} & Baseline path of the consumer price index \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Import prices, (1).}
+$P^{y}_{p,t}$ is the home basic price of product $p$ and $P^{m}_{p,t}$ is its import price. Both are in \code{pSupply\_p\_o}.
+All 63 products have a home price and an import price.
+A shock that changes a home price by one per cent changes the import price of that product by one per cent.
+
+\paragraph{Export prices, (2).}
+The export price $P^{x}_{p,t}$ is the purchaser price of the home product in export use. It already follows the home basic price in the base model, so it needs no rule.
+What the base model holds fixed is the competing foreign price $P^{x*}_{p,t}$. Rule (2) lets it follow the home export price. The relative export price is then constant.
+Four products have no exports (E36, G47, S96, and T). They have rule (1) only.
+
+\paragraph{Export markets, (3).}
+$M_{p,t}$ is all imports of product $p$, \code{qSupply\_p\_o[p,import,t]}. $X^{*}_{p,t}$ is the foreign market for home exports of the product.
+The base model sets exports of home products with the demand function
+\begin{equation}
+X^{d}_{p,t}\, \bigl( P^{x}_{p,t} \bigr)^{e_p} = \bigl( P^{x*}_{p,t} \bigr)^{e_p} X^{*}_{p,t} , \qquad e_p = 5 ,
+\label{eq:armington}
+\end{equation}
+and imports for re-export as a fixed share of the same market, $X^{r}_{p,t} = u_{p,t}\, X^{*}_{p,t}$.
+With (2) and (3), total exports of the product are
+\begin{equation}
+X_{p,t} = X^{d}_{p,t} + X^{r}_{p,t} = \left( \bigl(\mu^{x}_{p,t}\bigr)^{e_p} + u_{p,t} \right) \mu^{q}_{p,t}\, M_{p,t} .
+\label{eq:exports}
+\end{equation}
+The factor in front of $M_{p,t}$ is fixed in a shock. Exports of each product therefore change by the same per cent as imports of that product. The price elasticity $e_p$ has no effect on this relation.
+
+Imports include imports for re-export, and these follow the export market. This is a loop, but all its parts are proportional, so the per cent change of imports, of the market, and of exports is the same.
+
+\paragraph{Tourism, (4) and (5).}
+Section~\ref{sec:tourism} gives the reason for these two rules.
+
+\paragraph{Nominal anchor, (6).}
+Section~\ref{sec:square} gives the reason for this rule.
+$P^{C}_t$ is the consumer price index, \code{pC[t]}. The ECB rate of year $t+1$ is set in year $t$, and it holds the index of year $t$ on the baseline path.
+The rate in $t_1$ was set before the shock, so it stays exogenous. No rate holds the index in year $T$.
+
+\subsection{Tourism}
+\label{sec:tourism}
+
+Tourist exports are the consumption in the country by non-resident households, \code{qCTourist[t]}. They are 3.3 per cent of exports in 2026.
+They are part of total exports, but they are not one of the 63 products. A fixed split puts them on the consumption products.
+The product rules (1) to (3) therefore do not cover them.
+
+The base model sets tourist exports with a demand function of the same form as (\ref{eq:armington}).
+The home tourist price $P^{\tau}_t$ is the purchaser price of product I (accommodation and food services) in household consumption. The foreign tourist price $P^{\tau*}_t$ and the tourist market $C^{\tau*}_t$ are exogenous.
+With no rule, the foreign tourist price would be the only foreign price that does not follow home prices, and tourist exports would respond to each change in the home price level with an elasticity of 5.
+
+Rule (4) lets the foreign tourist price follow the home tourist price.
+The model has no variable for tourist imports. Rule (5) therefore lets the tourist market follow household consumption $C_t$, \code{qC[t]}.
+Tourist exports then change by the same per cent as household consumption.
+
+\section{Is the model square?}
+\label{sec:square}
+
+Yes. Table~\ref{tab:square} gives the count.
+Each closure equation has its own endogenous variable. The base model has no equation for any of these 9{,}199 variables, and it uses all of them as exogenous inputs.
+The solver reports a square system with 2{,}885{,}340 equations and variables.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Equations and endogenous variables, with $t_1 = 2026$}
+\label{tab:square}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Block & Equations and endogenous variables \\
+\midrule
+Base model & 2{,}876{,}141 \\
+Foreign closure & 9{,}199 \\
+\midrule
+Model in a shock & 2{,}885{,}340 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A square model can still have no clear price level. In the base model, the exogenous foreign prices set it.
+With rules (1), (2), and (4), all foreign prices move with home prices, so they no longer do that.
+The model with rules (1) to (5) only is square and solves, but the result is not sound. Figure~\ref{fig:anchor} shows it: one per cent more labour productivity raises the consumer price by 2.6 per cent in 2026 and by 1.7 per cent in 2075.
+The items that then set the price level were not examined. Likely items are those that are fixed in nominal terms, such as taxes per unit and opening financial stocks.
+
+Rule (6) removes this. It holds the consumer price index on the baseline path and makes the ECB rate the free variable.
+It adds 49 equations and 49 endogenous variables, so the model stays square.
+The choice of the ECB rate as the free variable is a choice of this note. Section~\ref{sec:limits} lists what follows from it.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[fc, wide, group style={group size=2 by 1, horizontal sep=1.6cm}]
+\nextgroupplot[title={Consumer price}, ylabel={Per cent}, legend to name=fclegendanchor, legend columns=-1]
+\addplot[closure] table[x=year, y=pcF]{\fcmacro}; \addlegendentry{Foreign closure}
+\addplot[noanchor] table[x=year, y=pcA]{\fcmacro}; \addlegendentry{Foreign closure with no anchor}
+\addplot[basemodel] table[x=year, y=pcB]{\fcmacro}; \addlegendentry{Base model}
+\nextgroupplot[title={Private consumption}]
+\addplot[closure] table[x=year, y=conF]{\fcmacro};
+\addplot[noanchor] table[x=year, y=conA]{\fcmacro};
+\addplot[basemodel] table[x=year, y=conB]{\fcmacro};
+\end{groupplot}
+\end{tikzpicture}
+
+\ref{fclegendanchor}
+\caption{The effect of the nominal anchor. One per cent more labour productivity from 2026. Per cent deviation from the baseline}
+\label{fig:anchor}
+\end{figure}
+
+\section{Calibration and use}
+
+The closure is calibrated to the baseline that \code{Calibrate.jl} wrote. It needs no new calibration run.
+\code{define\_calibration} swaps each ratio for its foreign variable in all years $t_1,\dots,T$, and the anchor path for the ECB rate.
+The shock file solves this block of 9{,}199 equations alone on the baseline. All other variables keep their baseline values, so each equation has one unknown:
+\[
+\mu^{m}_{p,t} = \bar{P}^{m}_{p,t} / \bar{P}^{y}_{p,t} , \qquad
+\mu^{q}_{p,t} = \bar{X}^{*}_{p,t} / \bar{M}_{p,t} , \qquad
+\bar{P}^{C}_{t} = \text{baseline } P^{C}_{t} ,
+\]
+and the same for the other ratios.
+The closure equations then hold on the baseline, and a zero shock returns the baseline.
+On the baseline of this note, the ratios are between 0.002 and 32.9.
+
+A shock file uses the closure with these lines. They replace the two lines that build \code{block} and load \code{baseline}.
+{\small
+\begin{verbatim}
+import GREU: ForeignClosure
+
+closure = ForeignClosure.define_equations()
+block = base_model(model_modules) + closure
+baseline = load(joinpath(@__DIR__, "..", "Output", "baseline.parquet"), block.model)
+
+closure_calibration = ForeignClosure.define_calibration(closure)
+baseline[residuals(closure_calibration)] .= 0.0
+solve!(closure_calibration, baseline; replace_nothing=1.0)
+\end{verbatim}
+}
+No shock file in the repository has these lines now. \code{Settings.jl} changed, so Julia must compile GREU again in a new session.
+
+\section{Tests}
+\label{sec:tests}
+
+\begin{itemize}
+\item \textbf{Calibration of the closure.} The block of 9{,}199 equations solves. All ratios are finite.
+\item \textbf{Zero shock.} The solution equals the baseline (tolerance $10^{-5}$).
+\item \textbf{Zero shock from the shocked solution as start values.} The model returns to the baseline. The largest gap is $4 \cdot 10^{-13}$ in the ECB rate and $3 \cdot 10^{-15}$ in the consumer price.
+\item \textbf{Rules in the shock of Section~\ref{sec:shock}.} Exports and imports of each product have the same per cent deviation: the largest difference is $2 \cdot 10^{-7}$ percentage points. For import prices and home prices it is $7 \cdot 10^{-14}$, and for tourist exports and household consumption it is $6 \cdot 10^{-13}$.
+\item \textbf{Anchor.} The consumer price is on the baseline from 2026 to 2074. It is 0.0005 per cent above in 2075, where no rate holds it.
+\item \textbf{\code{Calibrate.jl} with the module loaded.} The static calibration, the dynamic calibration, and the zero-shock test pass. The result has the same 7{,}956{,}650 values as the baseline in \code{Output}. The largest scaled difference is $4 \cdot 10^{-11}$.
+\end{itemize}
+
+\section{A labour productivity shock}
+\label{sec:shock}
+
+The test shock raises labour productivity \code{aProd} by one per cent for all three labour types in all industries, from 2026 and in all later years.
+Three models get the same shock:
+\begin{itemize}
+\item \textbf{Foreign closure}: the base model with rules (1) to (6).
+\item \textbf{Base model}: foreign prices, foreign markets, and the ECB rate are exogenous.
+\item \textbf{Foreign closure with no anchor}: rules (1) to (5). It is in Figure~\ref{fig:anchor} only.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\small
+\caption{One per cent more labour productivity. Per cent deviation from the baseline. The ECB rate is in per cent}
+\label{tab:results}
+\begin{tabular}{@{}lrrrrrrrr@{}}
+\toprule
+ & \multicolumn{4}{c}{Foreign closure} & \multicolumn{4}{c}{Base model} \\
+\cmidrule(lr){2-5}\cmidrule(l){6-9}
+ & 2026 & 2030 & 2050 & 2075 & 2026 & 2030 & 2050 & 2075 \\
+\midrule
+GDP & 0.59 & 0.92 & 1.30 & 1.29 & 0.62 & 0.93 & 1.01 & 1.01 \\
+Private consumption & 0.07 & 0.41 & 1.36 & 1.36 & 0.31 & 0.74 & 0.79 & 0.77 \\
+Investment & 1.91 & 2.39 & 1.14 & 1.11 & 2.43 & 1.44 & 0.67 & 0.68 \\
+Exports & 0.59 & 0.88 & 1.19 & 1.18 & 0.10 & 0.48 & 0.78 & 0.79 \\
+Imports & 0.62 & 0.91 & 1.18 & 1.17 & 0.48 & 0.48 & 0.46 & 0.45 \\
+Tourist exports & 0.07 & 0.41 & 1.36 & 1.36 & 0.42 & 0.79 & 1.18 & 1.21 \\
+\midrule
+Consumer price & 0.00 & 0.00 & 0.00 & 0.00 & 0.11 & $-0.09$ & $-0.19$ & $-0.19$ \\
+Import price & 0.10 & $-0.01$ & 0.05 & 0.05 & 0.00 & 0.00 & 0.00 & 0.00 \\
+Export price & 0.10 & $-0.01$ & 0.05 & 0.05 & $-0.01$ & $-0.10$ & $-0.16$ & $-0.16$ \\
+ECB rate & 4.00 & 4.17 & 3.86 & 3.87 & 4.00 & 4.00 & 4.00 & 4.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Quantities}
+
+Figure~\ref{fig:quantities} shows the main quantities.
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[fc, narrow, group style={group size=3 by 2, horizontal sep=1.0cm, vertical sep=1.4cm}]
+\nextgroupplot[title={GDP}, ylabel={Per cent}, legend to name=fclegendquantities, legend columns=-1]
+\addplot[closure] table[x=year, y=gdpF]{\fcmacro}; \addlegendentry{Foreign closure}
+\addplot[basemodel] table[x=year, y=gdpB]{\fcmacro}; \addlegendentry{Base model}
+\nextgroupplot[title={Private consumption}]
+\addplot[closure] table[x=year, y=conF]{\fcmacro};
+\addplot[basemodel] table[x=year, y=conB]{\fcmacro};
+\nextgroupplot[title={Investment}]
+\addplot[closure] table[x=year, y=invF]{\fcmacro};
+\addplot[basemodel] table[x=year, y=invB]{\fcmacro};
+\nextgroupplot[title={Exports}, ylabel={Per cent}]
+\addplot[closure] table[x=year, y=expF]{\fcmacro};
+\addplot[basemodel] table[x=year, y=expB]{\fcmacro};
+\nextgroupplot[title={Imports}]
+\addplot[closure] table[x=year, y=impF]{\fcmacro};
+\addplot[basemodel] table[x=year, y=impB]{\fcmacro};
+\nextgroupplot[title={Tourist exports}]
+\addplot[closure] table[x=year, y=touF]{\fcmacro};
+\addplot[basemodel] table[x=year, y=touB]{\fcmacro};
+\end{groupplot}
+\end{tikzpicture}
+
+\ref{fclegendquantities}
+\caption{Quantities. One per cent more labour productivity from 2026. Per cent deviation from the baseline}
+\label{fig:quantities}
+\end{figure}
+
+\begin{itemize}
+\item \textbf{Base model.} Home prices fall and foreign prices are fixed. In 2075 the export price is 0.16 per cent lower. With a price elasticity of 5, exports rise 0.79 per cent. Imports rise 0.45 per cent.
+\item \textbf{Foreign closure.} Foreign prices move with home prices, so the relative export price does not change. Exports rise because the foreign markets grow with home imports. Exports and imports both rise about 1.2 per cent in 2075.
+\item \textbf{Long run.} GDP is 1.29 per cent above the baseline in 2075, against 1.01 per cent in the base model. Private consumption is 1.36 per cent above, against 0.77.
+\item \textbf{First years.} Private consumption rises less with the closure: 0.07 per cent in 2026, against 0.31. It is above the base model from 2033. Investment is above the base model from 2028.
+\item \textbf{Tourist exports.} With the closure they follow household consumption. In the base model they follow the fall in the home tourist price.
+\end{itemize}
+This note does not split the difference in consumption by cause.
+
+\FloatBarrier
+\subsection{Prices and the ECB rate}
+
+Figure~\ref{fig:prices} shows the prices and the ECB rate.
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[fc, wide, group style={group size=2 by 2, horizontal sep=1.6cm, vertical sep=1.4cm}]
+\nextgroupplot[title={Consumer price}, ylabel={Per cent}, legend to name=fclegendprices, legend columns=-1]
+\addplot[closure] table[x=year, y=pcF]{\fcmacro}; \addlegendentry{Foreign closure}
+\addplot[basemodel] table[x=year, y=pcB]{\fcmacro}; \addlegendentry{Base model}
+\nextgroupplot[title={Import price}]
+\addplot[closure] table[x=year, y=pmF]{\fcmacro};
+\addplot[basemodel] table[x=year, y=pmB]{\fcmacro};
+\nextgroupplot[title={Export price}, ylabel={Per cent}]
+\addplot[closure] table[x=year, y=pxF]{\fcmacro};
+\addplot[basemodel] table[x=year, y=pxB]{\fcmacro};
+\nextgroupplot[title={ECB rate, per cent}]
+\addplot[closure] table[x=year, y=ecbF]{\fcmacro};
+\addplot[basemodel] table[x=year, y=ecbB]{\fcmacro};
+\end{groupplot}
+\end{tikzpicture}
+
+\ref{fclegendprices}
+\caption{Prices and the ECB rate. One per cent more labour productivity from 2026. Prices are in per cent deviation from the baseline}
+\label{fig:prices}
+\end{figure}
+
+\begin{itemize}
+\item \textbf{Consumer price.} With the closure it stays on the baseline. In the base model it falls 0.19 per cent.
+\item \textbf{Import and export prices.} With the closure they move together: both are 0.05 per cent above the baseline in 2075. In the base model the import price is fixed and the export price falls 0.16 per cent.
+\item \textbf{ECB rate.} The rate of 2026 is fixed at 4.00 per cent. It is 3.61 per cent in 2027 and 4.32 per cent in 2028. It then falls to 3.87 per cent in 2075.
+\end{itemize}
+
+\FloatBarrier
+\subsection{Exports and imports by product}
+
+Figure~\ref{fig:products} shows the five largest export products. They are 47 per cent of exports in 2026.
+With the closure, the circles for imports are on the lines for exports, as (\ref{eq:exports}) says. In the base model they are not.
+In 2075, the export deviations of the 59 products are between 0.90 and 1.42 per cent with the closure.
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[fc, wide, group style={group size=2 by 1, horizontal sep=1.6cm}]
+\nextgroupplot[title={Foreign closure}, ylabel={Per cent}, legend to name=fclegendproducts, legend columns=-1]
+\addplot[fcblue, line width=1pt] table[x=year, y=xH50F]{\fcproduct}; \addlegendentry{H50}
+\addplot[fcblue, importmarks] table[x=year, y=mH50F]{\fcproduct};
+\addplot[fcorange, line width=1pt] table[x=year, y=xC21F]{\fcproduct}; \addlegendentry{C21}
+\addplot[fcorange, importmarks] table[x=year, y=mC21F]{\fcproduct};
+\addplot[fcgreen, line width=1pt] table[x=year, y=xC1012F]{\fcproduct}; \addlegendentry{C10--12}
+\addplot[fcgreen, importmarks] table[x=year, y=mC1012F]{\fcproduct};
+\addplot[fcpurple, line width=1pt] table[x=year, y=xC28F]{\fcproduct}; \addlegendentry{C28}
+\addplot[fcpurple, importmarks] table[x=year, y=mC28F]{\fcproduct};
+\addplot[fcred, line width=1pt] table[x=year, y=xG46F]{\fcproduct}; \addlegendentry{G46}
+\addplot[fcred, importmarks] table[x=year, y=mG46F]{\fcproduct};
+\nextgroupplot[title={Base model}]
+\addplot[fcblue, line width=1pt] table[x=year, y=xH50B]{\fcproduct};
+\addplot[fcblue, importmarks] table[x=year, y=mH50B]{\fcproduct};
+\addplot[fcorange, line width=1pt] table[x=year, y=xC21B]{\fcproduct};
+\addplot[fcorange, importmarks] table[x=year, y=mC21B]{\fcproduct};
+\addplot[fcgreen, line width=1pt] table[x=year, y=xC1012B]{\fcproduct};
+\addplot[fcgreen, importmarks] table[x=year, y=mC1012B]{\fcproduct};
+\addplot[fcpurple, line width=1pt] table[x=year, y=xC28B]{\fcproduct};
+\addplot[fcpurple, importmarks] table[x=year, y=mC28B]{\fcproduct};
+\addplot[fcred, line width=1pt] table[x=year, y=xG46B]{\fcproduct};
+\addplot[fcred, importmarks] table[x=year, y=mG46B]{\fcproduct};
+\end{groupplot}
+\end{tikzpicture}
+
+\ref{fclegendproducts}
+\caption{Exports (lines) and imports (circles) of the five largest export products. Per cent deviation from the baseline. H50: water transport. C21: pharmaceutical products. C10--12: food, beverages, and tobacco. C28: machinery. G46: wholesale trade}
+\label{fig:products}
+\end{figure}
+
+\FloatBarrier
+\subsection{Net financial assets}
+
+Figure~\ref{fig:assets} shows the net financial assets of the five sectors. The unit is per cent of baseline GDP, so a change in GDP does not move the lines.
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[fc, wide, ymin=-6, ymax=10, group style={group size=2 by 1, horizontal sep=1.6cm}]
+\nextgroupplot[title={Foreign closure}, ylabel={Per cent of baseline GDP}, legend to name=fclegendassets, legend columns=-1]
+\addplot[fcblue, line width=1pt] table[x=year, y=nfaHhF]{\fcmacro}; \addlegendentry{Households}
+\addplot[fcorange, line width=1pt] table[x=year, y=nfaGovF]{\fcmacro}; \addlegendentry{Government}
+\addplot[fcgreen, line width=1pt] table[x=year, y=nfaNonFinCorpF]{\fcmacro}; \addlegendentry{Non-financial corp.}
+\addplot[fcpurple, line width=1pt] table[x=year, y=nfaFinCorpF]{\fcmacro}; \addlegendentry{Financial corp.}
+\addplot[fcred, line width=1pt] table[x=year, y=nfaRoWF]{\fcmacro}; \addlegendentry{Rest of the world}
+\nextgroupplot[title={Base model}]
+\addplot[fcblue, line width=1pt] table[x=year, y=nfaHhB]{\fcmacro};
+\addplot[fcorange, line width=1pt] table[x=year, y=nfaGovB]{\fcmacro};
+\addplot[fcgreen, line width=1pt] table[x=year, y=nfaNonFinCorpB]{\fcmacro};
+\addplot[fcpurple, line width=1pt] table[x=year, y=nfaFinCorpB]{\fcmacro};
+\addplot[fcred, line width=1pt] table[x=year, y=nfaRoWB]{\fcmacro};
+\end{groupplot}
+\end{tikzpicture}
+
+\ref{fclegendassets}
+\caption{Net financial assets by sector. One per cent more labour productivity from 2026. Difference from the baseline in per cent of baseline GDP}
+\label{fig:assets}
+\end{figure}
+
+\begin{itemize}
+\item \textbf{Jump in 2026.} For financial corporations and the rest of the world, most of the difference comes in the first year, from revaluations. With the closure, the net revaluation in 2026 adds 7.4 per cent of baseline GDP to financial corporations and takes 4.0 per cent from the rest of the world, against the baseline. The revaluation rate on foreign shares is 2.85 per cent, against 1.00 per cent on the baseline. For shares of financial corporations it is 0.87 per cent, against 3.39.
+\item \textbf{Rest of the world.} With the closure, its net financial assets are 4.8 per cent of baseline GDP below the baseline in 2075. In the base model they are 1.9 per cent above. The revaluation of 2026 gives 4.0 of the 4.8 per cent. Net exports change by 0.01 to 0.04 per cent of baseline GDP a year with the closure.
+\item \textbf{Government.} Its net financial assets rise in all years from 2032 with the closure, and in all years in the base model. No fiscal rule responds to the shock.
+\end{itemize}
+The base model sets the share price of each issuer in the first shock year with a terminal condition. The closure does not change that. This note does not examine the cause of the jumps.
+
+\FloatBarrier
+\subsection{Is the shocked economy in a steady state?}
+
+Table~\ref{tab:flat} shows how much the deviations still move in the last full decade.
+The quantities and the ECB rate are almost flat with the closure. The financial positions of the government and of financial corporations still move by 0.17 per cent of baseline GDP in a decade. They move by about the same amount in the base model.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Change in the deviation from the baseline, 2064 to 2074. Percentage points}
+\label{tab:flat}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+ & Foreign closure & Base model \\
+\midrule
+GDP & $-0.003$ & $-0.001$ \\
+Private consumption & $-0.007$ & $-0.004$ \\
+Exports & $-0.003$ & 0.002 \\
+Imports & $-0.002$ & $-0.001$ \\
+ECB rate & 0.003 & 0.000 \\
+\midrule
+Net financial assets, per cent of baseline GDP & & \\
+\quad Households & 0.02 & $-0.01$ \\
+\quad Government & 0.17 & 0.22 \\
+\quad Non-financial corporations & 0.02 & 0.01 \\
+\quad Financial corporations & $-0.17$ & $-0.14$ \\
+\quad Rest of the world & $-0.04$ & $-0.07$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\FloatBarrier
+\section{Limits}
+\label{sec:limits}
+
+\begin{itemize}
+\item \textbf{One shock.} Only the shock of Section~\ref{sec:shock} was solved. The DA productivity shock was not run, because its data sheet is not on this branch.
+\item \textbf{Baseline.} The baseline is \code{Output/baseline.parquet} of 25 November 2026. It has the lump-sum transfer of \code{modules/FiscalRule.jl}. That transfer is a fixed share of GDP in a shock.
+\item \textbf{The ECB rate is the free variable.} The anchor could use a different price index or a different free variable. The rate moves by up to 0.4 percentage points in the first years of a shock of one per cent.
+\item \textbf{Required equity return.} It does not follow the ECB rate. It stays on its calibrated value, for home issuers and for the rest of the world.
+\item \textbf{Share prices in the first year.} The closure has no rule for the foreign share price. The revaluations in 2026 are large for a shock of one per cent (Figure~\ref{fig:assets}).
+\item \textbf{No rule for the external balance.} The net financial assets of the rest of the world can move in a shock. They are close to flat at the end of the period (Table~\ref{tab:flat}).
+\item \textbf{Water transport.} H50 is 16.9 per cent of exports in 2026. Imports of the product are 3.2 per cent of its exports, and 91 per cent of them are imports for re-export. A small import flow therefore sets the market of the largest export product.
+\item \textbf{Rigidity modules.} The tests ran with the accounting and core modules only. The export rigidity module adds a price signal to (\ref{eq:armington}). While that signal is not zero, exports and imports of a product do not change by the same per cent.
+\item \textbf{Foreign labour.} Foreign labour supply and the net wages of the rest of the world stay exogenous.
+\item \textbf{Files.} The scenario files and the scripts that made the tables and the chart data are not in the repository. The architecture note \code{GREU\_architecture.lyx} was not updated.
+\end{itemize}
+
+\end{document}

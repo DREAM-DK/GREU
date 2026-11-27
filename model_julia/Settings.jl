@@ -43,6 +43,7 @@ const macro_core_modules = [
   :Government,
   :GovernmentRevenue,
   :GovernmentExpenditure,
+  :FiscalRule,
   :Corporations,
   :RestOfWorld,
 
@@ -63,6 +64,13 @@ const green_transition_modules = [
   :Emissions,
 ]
 
+# Closures replace exogenous paths in a shock. A shock file adds their equations
+# to the base model. Do not add them to model_modules.
+const closure_modules = [
+  :ForeignClosure,
+  :GDPIndexation,
+]
+
 
 # Loaded modules define variables, assign data, and set start values.
 const loaded_modules = [
@@ -70,6 +78,7 @@ const loaded_modules = [
   macro_core_modules...,
   # macro_rigidity_modules...,
   # green_transition_modules...,
+  closure_modules...,
 ]
 
 # Model modules also add equations to the base model and calibration.

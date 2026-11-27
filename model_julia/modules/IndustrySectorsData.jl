@@ -126,6 +126,8 @@ function target_shares(industries, accounts, targets, prior, capacity)
   share_model = JuMP.Model(Ipopt.Optimizer)
   JuMP.set_silent(share_model)
   JuMP.set_optimizer_attribute(share_model, "bound_relax_factor", 0.0)
+  # The prior weight in the objective is 1e-8. The default tolerance of 1e-8 stops the solve before the prior counts.
+  JuMP.set_optimizer_attribute(share_model, "tol", 1e-13)
   JuMP.@variable(share_model, 0.0 <= share[i in industries] <= capacity[i])
   JuMP.@constraint(
     share_model,

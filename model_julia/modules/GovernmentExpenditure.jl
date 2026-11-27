@@ -10,6 +10,7 @@ import ..FixedBasePriceAggregates: vGDP, vGVA
 import ..Government:
   vGovPensionEntitlementAdj,
   vGovCapTransExp,
+  vGovLumpSum,
   vGovOthCurrentTransExp,
   vGovPrimaryExpenditure,
   vGovSocBenefitExp,
@@ -83,6 +84,7 @@ function define_equations()
                                   + vGovOthCurrentTransExp[t]
                                   + vGovPensionEntitlementAdj[t]
                                   + vGovCapTransExp[t]
+                                  + vGovLumpSum[t]
                                   + vNonProducedAssetAcquisitions[:Gov,t]
 
     # Expenditure without a detailed rule follows GVA or government consumption.

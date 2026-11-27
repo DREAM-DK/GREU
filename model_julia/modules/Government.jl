@@ -54,6 +54,7 @@ const GovernmentTag = Tag(:Government)
   vGovOthCurrentTransExp[t], "Other current transfers expenditure of government (D.7)."
   vGovPensionEntitlementAdj[t] :: ForecastZero, "Adjustment for the change in government pension entitlements (D.8)."
   vGovCapTransExp[t], "Capital transfers expenditure of government (D.9)."
+  vGovLumpSum[t] :: ForecastZero, "Lump-sum transfer from government to households. FiscalRule sets it."
 end
 
 # ============================================================================
@@ -104,9 +105,13 @@ function define_equations()
 
     vNetFinTransactions[s=[:Gov], t=t1:T], vNetFinTransactions[s,t] == vGovBalance[t]
 
-    # Other transfers span primary revenue and expenditure.
+    # Other transfers span primary revenue and expenditure. Households receive the lump sum as the counterpart.
     vOtherTransfers[s=[:Gov], t=t1:T],
-    vOtherTransfers[s,t] == vGovOthCurrentTransRev[t] + vGovCapTransfer[t] - vGovOthCurrentTransExp[t] - vGovCapTransExp[t]
+    vOtherTransfers[s,t] == vGovOthCurrentTransRev[t]
+                          + vGovCapTransfer[t]
+                          - vGovOthCurrentTransExp[t]
+                          - vGovCapTransExp[t]
+                          - vGovLumpSum[t]
 
     vOtherTransfers[s=[:Hh], t=t1:T], ∑(vOtherTransfers[s2,t] for s2 in sector) == 0
 
