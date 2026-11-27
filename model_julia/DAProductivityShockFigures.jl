@@ -1,6 +1,8 @@
 # Danish bar charts for the DA labor productivity shock, plus one Excel sheet per chart.
-# Figures 02 and 03 show the fee per employed person: the share from the sheet, then DKK.
-# `include_total_employment` adds figure 06, total employment by labor type, in percent.
+# Figure 02 shows the price per employed person in DKK when `include_fee` is true.
+# `k_shock` adds the capital productivity shock immediately after figure 01. Both options shift later numbers.
+# `include_total_employment` adds figure 05, total employment by labor type, in percent,
+# and the next figure, the same change in persons.
 # One separate HTML file shows persons by labor type over time, and wage per person as lines.
 # Industry and labor type names come from the caller, which reads them from the shock sheet.
 # Charts are HTML, CSS and SVG. The workbook stores the one-year rows as tables.
@@ -132,28 +134,40 @@ function bar_html(ax, value, k, n, slot, fill, label, name, color, digits)
            "width:$(px(0.84stride));background:$(bar_color(color, value))\"></div>"
 end
 
-function column_html(ax, label, values, series, slot, fill, height, label_class, digits, group_end)
+"""Diamond at `value` in the middle of a slot of width `slot`. A missing value gives no diamond."""
+function marker_html(ax, value, slot, label, name, digits)
+    value isa Real && isfinite(value) || return ""
+    return "<div class=\"marker\" title=\"$(html_escape(tip(label, name, value, digits)))\" " *
+           "style=\"top:$(px(ax.y(value)));left:$(px(slot / 2))\"></div>"
+end
+
+function column_html(ax, label, values, series, slot, fill, height, label_class, digits, group_end, marker, marker_name)
     bars = join(bar_html(ax, v, k, length(values), slot, fill, label, name, color, digits)
                 for (k, (v, (name, color))) in enumerate(zip(values, series)))
     return "<div class=\"col$(group_end ? " group-end" : "")\" style=\"width:$(slot)px\">" *
-           "<div class=\"slot\" style=\"height:$(height)px\">$(bars)</div>" *
+           "<div class=\"slot\" style=\"height:$(height)px\">$(bars)$(marker_html(ax, marker, slot, label, marker_name, digits))</div>" *
            "<div class=\"$(label_class)\">$(html_escape(label))</div></div>"
 end
 
 """
-    chart(groups, series; height, slot, fill, ytitle, digits, group_every=0, total_last=false, label_class="lab")
+    chart(groups, series; height, slot, fill, ytitle, digits, group_every=0, total_last=false, label_class="lab", markers, marker_name="")
 
 `groups` is a vector of `label => values` with one value per series. `series` is a vector of
 `name => color`; a `nothing` color colors each bar by sign. A thin line follows every
 `group_every` columns and sits before a total in the last column.
+`markers` holds one value per group, drawn as a diamond named `marker_name`. A missing value gives no diamond.
+The page must style the `marker` class.
 """
-function chart(groups, series; height, slot, fill, ytitle, digits, group_every=0, total_last=false, label_class="lab")
-    ax = axis(reduce(vcat, last.(groups)), height)
+function chart(groups, series; height, slot, fill, ytitle, digits, group_every=0, total_last=false, label_class="lab",
+               markers=Base.fill(missing, length(groups)), marker_name="")
+    @assert length(markers) == length(groups)
+    ax = axis([reduce(vcat, last.(groups)); markers], height)
     ticks = join("<div class=\"tick\" style=\"top:$(px(ax.y(t)))\">$(fmt(t, ax.digits))</div>" for t in ax.ticks)
     grid = join("<div class=\"grid$(iszero(t) ? " zero" : "")\" style=\"top:$(px(ax.y(t)))\"></div>" for t in ax.ticks)
     group_end(n) = n < length(groups) && (group_every > 0 && n % group_every == 0 || total_last && n == length(groups) - 1)
-    cols = join(column_html(ax, label, values, series, slot, fill, height, label_class, digits, group_end(n))
-                for (n, (label, values)) in enumerate(groups))
+    cols = join(column_html(ax, label, values, series, slot, fill, height, label_class, digits, group_end(n),
+                            marker, marker_name)
+                for (n, ((label, values), marker)) in enumerate(zip(groups, markers)))
     return """<div class="chart-flex">
 <div class="ycol"><div class="ytitle" style="height:$(height)px"><span>$(ytitle)</span></div><div class="yaxis" style="height:$(height)px">$(ticks)</div></div>
 <div class="series"><div class="gridlayer" style="height:$(height)px">$(grid)</div><div class="cols">$(cols)</div></div>
@@ -298,13 +312,13 @@ const unit_suffix = Dict("Procent" => " (%)", "Personer" => " (personer)", "Ande
 
 """Column headers after the row label. One series uses the deviation header; a group names each series."""
 function column_headers(series, ytitle)
-    length(series) == 1 && return ["Afvigelse (%)"]
+    length(series) == 1 && return [ytitle == "Personer" ? "Ændring (personer)" : "Afvigelse (%)"]
     return [first(item) * unit_suffix[ytitle] for item in series]
 end
 
 """The chart body for one figure specification."""
 function chart_html(spec)
-    spec.kind == :keycard && return keycard(spec.rows, spec.label)
+    spec.kind == :keycard && return keycard(spec.rows, spec.label; ytitle=spec.ytitle, digits=spec.digits)
     groups = [row[1] => row[2:end] for row in spec.rows]
     return industry_chart(groups, spec.series; digits=spec.digits, ytitle=spec.ytitle, total_last=spec.total_last)
 end
@@ -318,11 +332,12 @@ function industry_chart(groups, series; digits, ytitle, total_last=false)
 end
 
 """A bar per row, labels below, and the table under the chart."""
-function keycard(rows, label="Variabel")
+function keycard(rows, label="Variabel"; ytitle="Procent", digits=2)
     groups = [row[1] => row[2:end] for row in rows]
+    value_header = ytitle == "Personer" ? "Ændring (personer)" : "Afvigelse (%)"
     return "<article class=\"keycard\">" *
-           chart(groups, ["" => nothing]; height=300, slot=110, fill=0.6, ytitle="Procent", digits=2, label_class="hlab") *
-           table_html([label, "Afvigelse (%)"], rows, 2) * "</article>"
+           chart(groups, ["" => nothing]; height=300, slot=110, fill=0.6, ytitle, digits, label_class="hlab") *
+           table_html([label, value_header], rows, digits) * "</article>"
 end
 
 section_html(b) = """<section id="$(b.id)"><h2 class="chart-title">$(html_escape(b.title))</h2><p class="note">$(b.note)</p>$(b.body)</section>
@@ -334,58 +349,77 @@ function type_rows(value, industry_name)
             for i in sort(collect(industry); by=string)]
 end
 
+"""One percent per industry. A missing shock leaves an empty bar."""
+function industry_percent_rows(value, industry_name)
+    return [Any[industry_name(i), ismissing(value(i)) ? missing : 100 * value(i)]
+            for i in sort(collect(industry); by=string)]
+end
+
 """
-    figure_specs(baseline, scenario; shock, fee, fee_base_dkk, year, industry_name, type_name, include_total_employment=true)
+    figure_specs(baseline, scenario; shock, fee, fee_base_dkk, year, industry_name, type_name, include_total_employment=true, include_fee=true, k_shock=nothing)
 
 One entry per chart, in chart order. Each row starts with the label printed on the chart.
-Figures 02 and 03 show the fee: the share `fee(l, i)`, then the share times `fee_base_dkk`.
-`include_total_employment` adds the chart of total employment by labor type as figure 06.
-The industry and employment charts then take the next numbers. Without it, those charts take
-the numbers 06, 07 and 08.
+Figure 02 shows the price in DKK when `include_fee` is true: the share `fee(l, i)` times `fee_base_dkk`.
+`k_shock(i)` adds the capital productivity shock, in percent, immediately after figure 01.
+Later figure numbers then move up by one, including the price chart. Leaving the price out moves later numbers down by one.
+`include_total_employment` adds the charts of total employment by labor type as figures 05 and 06 when the price chart is included and the capital chart is not.
+Figure 05 is the percentage deviation. Figure 06 is the change in persons.
+The industry and employment charts then take the next numbers.
 """
-function figure_specs(baseline, scenario; shock, fee, fee_base_dkk, year, industry_name, type_name, include_total_employment=true)
+function figure_specs(baseline, scenario; shock, fee, fee_base_dkk, year, industry_name, type_name, include_total_employment=true, include_fee=true, k_shock=nothing)
     (; shock_rows, total_rows, price_rows, industry_rows, labor_rows, headcount_rows) =
         table_data(baseline, scenario; shock, year, label=industry_name)
     names = row_names(type_name)
     rename(rows) = [Any[names[row[1]], row[2:end]...] for row in rows]
     type_series = [uppercasefirst(type_name[l]) => c for (l, c) in zip(labor_type, type_colors)]
     totals = labor_rows[end]
-    @assert first(totals) == "Total (all industries)"
+    headcounts = headcount_rows[end]
+    @assert first(totals) == "Total (all industries)" && first(headcounts) == "Total (all industries)"
     employment_total_rows = [Any[uppercasefirst(type_name[l]), totals[k + 1]] for (k, l) in enumerate(labor_type)]
+    employment_total_persons_rows = [Any[uppercasefirst(type_name[l]), headcounts[k + 1]] for (k, l) in enumerate(labor_type)]
     input_series = [name => color for (_, name, _, color) in inputs]
     deviation = "procentvis afvigelse fra baseline"
-    input_n = include_total_employment ? 7 : 6
-    no(k) = lpad(k, 2, '0')
+    input_n = include_total_employment ? 7 : 5
+    # The capital chart takes number 02. The price chart takes the next number.
+    # `no` is for charts that follow the price in the full set, so leaving the price out moves them down by one.
+    k_shift = isnothing(k_shock) ? 0 : 1
+    k_no = lpad(1 + k_shift, 2, '0')
+    no(k) = lpad(k + k_shift - (include_fee ? 0 : 1), 2, '0')
     spec(; id, sheet, nav, title, note, rows, series, digits=2, ytitle="Procent",
          total_last=false, label="Branche", kind=:industry) =
         (; id, sheet, nav, title, note, rows, series, digits, ytitle, total_last, label, kind)
-    employment_total = spec(; id="employment-total", sheet="06 · Beskæftigelse i alt", nav="06 · Beskæftigelse i alt",
-                             title="06 · Samlet beskæftigelse efter arbejdskrafttype – $(deviation)",
+    employment_total = spec(; id="employment-total", sheet="$(no(5)) · Beskæftigelse i alt", nav="$(no(5)) · Beskæftigelse i alt",
+                             title="$(no(5)) · Samlet beskæftigelse efter arbejdskrafttype – $(deviation)",
                              note="Personer efter type, summeret over de brancher, der beskæftiger typen.",
                              rows=employment_total_rows, series=["" => nothing], label="Arbejdskrafttype", kind=:keycard)
+    employment_total_persons = spec(; id="employment-total-persons", sheet="$(no(6)) · Beskæftigelse, personer", nav="$(no(6)) · Beskæftigelse, personer",
+                             title="$(no(6)) · Samlet beskæftigelse efter arbejdskrafttype – ændring i antal personer i forhold til baseline",
+                             note="Stød minus baseline. Personer efter type, summeret over de brancher, der beskæftiger typen.",
+                             rows=employment_total_persons_rows, series=["" => nothing], digits=0, ytitle="Personer",
+                             label="Arbejdskrafttype", kind=:keycard)
     specs = [
-        spec(; id="shock", sheet="01 · Stød", nav="01 · Stød",
+        spec(; id="shock", sheet="01 · Stød", nav=isnothing(k_shock) ? "01 · Stød" : "01 · Stød, L",
              title="01 · Arbejdskraftsproduktivitetsstød efter branche og arbejdskrafttype",
              note="Stigning i arbejdskraftsproduktiviteten (aProd) i hvert stødår, i procent af baselineniveauet. En type, som branchen ikke beskæftiger, har ingen søjle.",
              rows=numbered_rows(shock_rows), series=type_series),
-        spec(; id="fee-share", sheet="02 · Gebyrandel", nav="02 · Gebyrandel",
-             title="02 · Gebyr pr. beskæftiget som andel af gebyrgrundlaget efter branche og arbejdskrafttype",
-             note="Andelen fra fanen Pris. Når flere NACE-koder danner én branche, er andelen et simpelt gennemsnit over de koder, der har beskæftigede. En type, som branchen ikke beskæftiger, har ingen søjle.",
-             rows=numbered_rows(type_rows(fee, industry_name)), series=type_series, digits=3, ytitle="Andel"),
-        spec(; id="fee-dkk", sheet="03 · Gebyr (kr. pr. person)", nav="03 · Gebyr i kroner",
-             title="03 · Gebyr pr. beskæftiget i kroner efter branche og arbejdskrafttype",
-             note="Andelen i figur 02 gange gebyrgrundlaget på $(fmt(fee_base_dkk, 0)) kr. pr. person i første stødår. Beløbet vokser derefter med den nominelle vækst. En type, som branchen ikke beskæftiger, har ingen søjle.",
+        (isnothing(k_shock) ? [] : [spec(; id="k-shock", sheet="$(k_no) · Kapitalstød", nav="$(k_no) · Stød, K",
+             title="$(k_no) · Kapitalproduktivitetsstød efter branche",
+             note="Stigning i kapitalproduktiviteten (aProd for equipment) i hvert stødår, i procent af baselineniveauet. En branche uden værdi har ingen søjle. Bygninger indgår ikke.",
+             rows=numbered_rows(industry_percent_rows(k_shock, industry_name)), series=["" => nothing])])...,
+        (include_fee ? [spec(; id="fee-dkk", sheet="$(no(2)) · Pris (kr. pr. person)", nav="$(no(2)) · Pris i kroner",
+             title="$(no(2)) · Pris pr. beskæftiget i kroner efter branche og arbejdskrafttype",
+             note="Andelen fra fanen Pris gange prisgrundlaget på $(fmt(fee_base_dkk, 0)) kr. pr. person i første stødår. Beløbet vokser derefter med den nominelle vækst. Når flere NACE-koder danner én branche, er andelen et simpelt gennemsnit over de koder, der har beskæftigede. En type, som branchen ikke beskæftiger, har ingen søjle.",
              rows=numbered_rows(type_rows((l, i) -> fee(l, i) * fee_base_dkk, industry_name)), series=type_series,
-             digits=0, ytitle="Kr. pr. person"),
-        spec(; id="gdp", sheet="04 · BNP og efterspørgsel", nav="04 · BNP og efterspørgsel",
-             title="04 · BNP og efterspørgselskomponenter – $(deviation)",
+             digits=0, ytitle="Kr. pr. person")] : [])...,
+        spec(; id="gdp", sheet="$(no(3)) · BNP og efterspørgsel", nav="$(no(3)) · BNP og efterspørgsel",
+             title="$(no(3)) · BNP og efterspørgselskomponenter – $(deviation)",
              note="Reale mængder.",
              rows=rename(total_rows), series=["" => nothing], label="Variabel", kind=:keycard),
-        spec(; id="prices", sheet="05 · Priser og løn", nav="05 · Priser og løn",
-             title="05 · Priser og løn – $(deviation)",
+        spec(; id="prices", sheet="$(no(4)) · Priser og løn", nav="$(no(4)) · Priser og løn",
+             title="$(no(4)) · Priser og løn – $(deviation)",
              note="Prisindeks og løn pr. ansat i alt og efter arbejdskrafttype.",
              rows=rename(price_rows), series=["" => nothing], label="Variabel", kind=:keycard),
-        (include_total_employment ? [employment_total] : [])...,
+        (include_total_employment ? [employment_total, employment_total_persons] : [])...,
         [spec(; id="input-$(id)", sheet="$(no(input_n)) · $(sheet)", nav="$(no(input_n)) · $(name)",
               title="$(no(input_n)) · $(name) – $(deviation)",
               note="En søjle pr. branche. Positive søjler er grønne og negative røde.",
@@ -412,20 +446,26 @@ function figure_specs(baseline, scenario; shock, fee, fee_base_dkk, year, indust
 end
 
 """
-    write_figures(path, baseline, scenario; shock, fee, fee_base_dkk, shock_title, year, industry_name, type_name, include_total_employment=true)
+    write_figures(path, baseline, scenario; shock, fee, fee_base_dkk, shock_title, year, industry_name, type_name, include_total_employment=true, include_fee=true, k_shock=nothing)
 
 `shock(l, i)` returns the fractional productivity increase for labor type `l` in industry `i`.
 `fee(l, i)` returns the fee share for labor type `l` in industry `i`, and `fee_base_dkk` is the fee base
 per person in DKK in the first shocked year.
 `industry_name(i)` is the Danish label of industry `i`. `type_name[l]` is the Danish name of labor type `l`.
-`include_total_employment` adds figure 06, the percentage change in total employment by labor type.
+`include_total_employment` adds the percentage change in total employment by labor type, then the same change in persons.
+`include_fee` adds the price chart. Set it false to leave it out.
+`k_shock(i)` adds the capital productivity shock immediately after figure 01. Pass `nothing` to leave it out.
 """
-function write_figures(path::AbstractString, baseline, scenario; shock, fee, fee_base_dkk, shock_title, year=2050, industry_name, type_name, include_total_employment=true)
-    specs = figure_specs(baseline, scenario; shock, fee, fee_base_dkk, year, industry_name, type_name, include_total_employment)
-    fee_lead = "Figur 02 og 03 viser gebyret pr. beskæftiget: andelen fra fanen Pris og beløbet i kroner."
+function write_figures(path::AbstractString, baseline, scenario; shock, fee, fee_base_dkk, shock_title, year=2050, industry_name, type_name, include_total_employment=true, include_fee=true, k_shock=nothing)
+    specs = figure_specs(baseline, scenario; shock, fee, fee_base_dkk, year, industry_name, type_name, include_total_employment, include_fee, k_shock)
+    fee_no = isnothing(k_shock) ? "02" : "03"
+    employment_no = lpad(5 + (isnothing(k_shock) ? 0 : 1) - (include_fee ? 0 : 1), 2, '0')
+    persons_no = lpad(6 + (isnothing(k_shock) ? 0 : 1) - (include_fee ? 0 : 1), 2, '0')
+    fee_lead = include_fee ? "Figur $(fee_no) viser prisen pr. beskæftiget i kroner." : ""
+    capital_lead = isnothing(k_shock) ? "" : "Figur 02 er kapitalproduktivitetsstødet efter branche. "
     lead = include_total_employment ?
-        "Søjlediagrammer. $(fee_lead) Figur 06 er samlet beskæftigelse efter arbejdskrafttype, i procent. De andre figurer følger de seks tabeller i samme rækkefølge." :
-        "Søjlediagrammer. $(fee_lead) De andre figurer følger de seks tabeller i tabelrapporten, i samme rækkefølge."
+        "Søjlediagrammer. $(capital_lead)$(fee_lead) Figur $(employment_no) er samlet beskæftigelse efter arbejdskrafttype, i procent. Figur $(persons_no) er ændringen i antal personer. De andre figurer følger de seks tabeller i samme rækkefølge." :
+        "Søjlediagrammer. $(capital_lead)$(fee_lead) De andre figurer følger de seks tabeller i tabelrapporten, i samme rækkefølge."
     blocks = [(id=s.id, nav=s.nav, title=s.title, note=s.note, body=chart_html(s)) for s in specs]
     nav = join("<a href=\"#$(b.id)\">$(html_escape(b.nav))</a>" for b in blocks)
     title = html_escape(shock_title)
@@ -465,10 +505,10 @@ footer{font-size:12px;color:var(--muted);padding:12px 4px}
 @media print{body{background:#fff}nav{display:none}header.page{print-color-adjust:exact}.scroller,.keycard{overflow:visible;border:none}section{break-inside:avoid}}
 </style></head><body>
 <header class="page"><div class="eyebrow">GREU · Scenarieanalyse</div><h1>$(title)</h1>
-<p>$(lead) Tallene er procentvis afvigelse fra baseline uden stød, bortset fra selve stødet, gebyret og beskæftigelsesændringen i personer. Hold musen over en søjle for at se værdien. Brede figurer kan rulles sidelæns. En enkelt serie er grøn, når den er positiv, og rød, når den er negativ; grupperede serier har hver sin farve. Manglende værdier har ingen søjle.</p></header>
+<p>$(lead) Tallene er procentvis afvigelse fra baseline uden stød, bortset fra selve stødet, prisen og beskæftigelsesændringen i personer. Hold musen over en søjle for at se værdien. Brede figurer kan rulles sidelæns. En enkelt serie er grøn, når den er positiv, og rød, når den er negativ; grupperede serier har hver sin farve. Manglende værdier har ingen søjle.</p></header>
 <nav>$(nav)</nav>
 <main>
-$(join(section_html.(blocks)))<footer>Metode: Procentvise afvigelser = 100 × (scenarie / baseline − 1); beskæftigelsesændringer i personer = scenarie − baseline. Stødfiguren viser 100 × den relative stigning i aProd. Gebyret i kroner = andel × gebyrgrundlag. Rapporten dannes automatisk, når modellen køres.</footer>
+$(join(section_html.(blocks)))<footer>Metode: Procentvise afvigelser = 100 × (scenarie / baseline − 1); beskæftigelsesændringer i personer = scenarie − baseline. Stødfiguren viser 100 × den relative stigning i aProd. Prisen i kroner = andel × prisgrundlag. Rapporten dannes automatisk, når modellen køres.</footer>
 </main></body></html>""")
     end
     return path
@@ -661,13 +701,13 @@ function write_sheet!(sheet, spec)
 end
 
 """
-    write_excel(path, baseline, scenario; shock, fee, fee_base_dkk, year, industry_name, type_name, include_total_employment=true)
+    write_excel(path, baseline, scenario; shock, fee, fee_base_dkk, year, industry_name, type_name, include_total_employment=true, include_fee=true, k_shock=nothing)
 
 One worksheet per chart, in the same order as `write_figures`. The sheet holds the chart rows as a table.
-`include_total_employment` must match the value passed to `write_figures`.
+`include_total_employment`, `include_fee` and `k_shock` must match the values passed to `write_figures`.
 """
-function write_excel(path::AbstractString, baseline, scenario; shock, fee, fee_base_dkk, year=2050, industry_name, type_name, include_total_employment=true)
-    specs = figure_specs(baseline, scenario; shock, fee, fee_base_dkk, year, industry_name, type_name, include_total_employment)
+function write_excel(path::AbstractString, baseline, scenario; shock, fee, fee_base_dkk, year=2050, industry_name, type_name, include_total_employment=true, include_fee=true, k_shock=nothing)
+    specs = figure_specs(baseline, scenario; shock, fee, fee_base_dkk, year, industry_name, type_name, include_total_employment, include_fee, k_shock)
     mkpath(dirname(path))
     XLSX.openxlsx(path, mode="w") do xf
         for (n, spec) in enumerate(specs)

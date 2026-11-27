@@ -1,14 +1,15 @@
-# Write HTML tables of the baseline in one year: input quantities over output, and the parts of
+# Write HTML tables of the baseline in one year: input quantities and exports over output, and the parts of
 # output value, by industry. Then wages, and persons by labor type and industry in numbers and shares.
-# Write the same numbers as Danish bar charts in a second HTML file.
+# Write the same numbers as Danish bar charts in a second HTML file. Its figures 1-7 also mark a second year.
 # Values are growth- and inflation-adjusted model units in million EUR.
-# Include DAProductivityShockFigures.jl first; this file uses its charts.
+# Include DAProductivityShockFigures.jl first; this file uses its charts and ShockTables.
 # Do not solve, calibrate, or change model values.
 module BaselineTables
 
 using SquareModels: ModelDictionary
-import ..DAProductivityShockFigures: chart, stacked_chart, legend_html, fmt, type_colors
-import GREU.InputOutput: industry, industry_label, qY_i, vY_i
+import ..DAProductivityShockFigures: chart, stacked_chart, legend_html, fmt, type_colors, positive
+import ..ShockTables: product_of_industry, model_value
+import GREU.InputOutput: industry, industry_label, qY_i, vY_i, qX_p
 import GREU.Capital: qK_k_i
 import GREU.Intermediates: qM_m_i
 import GREU.Labor: nL_l_i, qL_l_i, vW_l
@@ -46,7 +47,14 @@ function input_ratio(db, (q, leaves), i, year)
   return sum(value(db, q[n,i,year]) for n in live) / value(db, qY_i[i,year])
 end
 
-industry_row(db, i, year) = [value(db, qY_i[i,year]); [input_ratio(db, input, i, year) for input in last.(inputs)]]
+"""Direct exports of the product of industry `i` over its output. Missing when the product has no exports."""
+export_ratio(db, i, year) = model_value(db, qX_p[product_of_industry[i],year]) / value(db, qY_i[i,year])
+
+industry_row(db, i, year) = [
+  value(db, qY_i[i,year]);
+  [input_ratio(db, input, i, year) for input in last.(inputs)];
+  export_ratio(db, i, year)
+]
 
 """Cost of an input in percent of output value. Capital cost is the user cost. Labor cost includes production taxes."""
 function input_cost_share(db, (_, leaves), i, year)
@@ -145,7 +153,7 @@ function write_tables(path::AbstractString, baseline::ModelDictionary; year::Int
     [label => format_number.(row, digits) for (label, row) in zip(labels, rows)];
     "Average across industries" => format_number.(column_averages(rows), digits)
   ]
-  production_rows = formatted_rows(production, [0; fill(2, length(inputs))])
+  production_rows = formatted_rows(production, [0; fill(2, length(inputs) + 1)])
   value_rows = formatted_rows(output_value, [0; fill(1, length(first(output_value)) - 1)])
   wage_rows = ["Wage per person (1,000 EUR)" => format_number.(wage, 1)]
   headcount_rows = formatted_rows(headcount, 0)
@@ -159,9 +167,9 @@ function write_tables(path::AbstractString, baseline::ModelDictionary; year::Int
 <title>GREU | Baseline $year</title><style>$style</style></head><body><main>
 <header><div class="eyebrow">GREU · Baseline</div><h1>Baseline – $year</h1>
 <p>Production and employment by industry in the calibrated baseline.</p></header>
-<section><h2>01 · Industries and production inputs</h2><p>Output (Y) in million EUR at $(Time.tBase) prices. Quantities of equipment capital (K), energy (E), labour (L), structures (B) and materials (M) over output. K and B are end-of-year capital stocks. L is efficiency units summed over labour types. The last row is the simple average across industries.</p>
+<section><h2>01 · Industries and production inputs</h2><p>Output (Y) in million EUR at $(Time.tBase) prices. Quantities of equipment capital (K), energy (E), labour (L), structures (B) and materials (M) over output. K and B are end-of-year capital stocks. L is efficiency units summed over labour types. X/Y is direct exports of the product that the industry produces over output. The last row is the simple average across industries.</p>
 """)
-    print(io, html_table(["Industry", "Y (mio. EUR)", "K/Y", "E/Y", "L/Y", "B/Y", "M/Y"], production_rows;
+    print(io, html_table(["Industry", "Y (mio. EUR)", "K/Y", "E/Y", "L/Y", "B/Y", "M/Y", "X/Y"], production_rows;
       emphasis=(length(production_rows),)))
     print(io, """</section><section><h2>02 · Decomposition of output value</h2><p>Output value (vY) in million EUR. The other columns are in percent of vY. Cost of equipment capital (vK), energy (vE), labour (vL), structures (vB) and materials (vM). Capital cost is the user cost. Labour cost includes production taxes. The markup is the markup rate times marginal cost times output. Other production taxes are those not assigned to an input. Input costs include the input bundle for the fixed cost and the production loss, so these two enter with a minus. The sum is 100 when the parts add up to vY. The last row is the simple average across industries.</p>""")
     print(io, html_table(["Industry", "vY (mio. EUR)", "vK/vY", "vE/vY", "vL/vY", "vB/vY", "vM/vY", "Markup/vY",
@@ -206,16 +214,12 @@ end
 stacked_industry_chart(groups, series; digits, ytitle) =
   legend_html(series) * scroller(stacked_chart(groups, series; height=420, slot=30, fill=0.72, ytitle, digits, group_every=5))
 
-"""A card with one bar per name, then the same numbers as a table. `extra` adds `header => values` columns."""
-function keycard(title, names, values; ytitle, digits, extra=())
+"""A card with one bar per name, then the same numbers as a table."""
+function keycard(title, names, values; ytitle, digits)
   bars = chart([n => [v] for (n, v) in zip(names, values)], ["" => nothing];
     height=300, slot=110, fill=0.6, ytitle, digits, label_class="hlab")
-  headers = ["Variabel", "Gennemsnit", first.(extra)...]
-  columns = [[fmt.(values, digits)]; [fmt.(v, 1) for v in last.(extra)]]
-  head = join("<th>$(html_escape(h))</th>" for h in headers)
-  body = join("<tr><th scope=\"row\">$(html_escape(n))</th>$(join("<td>$(c[k])</td>" for c in columns))</tr>"
-              for (k, n) in enumerate(names))
-  return "<article class=\"keycard\"><h3>$(html_escape(title))</h3>$bars<table><thead><tr>$head</tr></thead><tbody>$body</tbody></table></article>"
+  body = join("<tr><th scope=\"row\">$(html_escape(n))</th><td>$(fmt(v, digits))</td></tr>" for (n, v) in zip(names, values))
+  return "<article class=\"keycard\"><h3>$(html_escape(title))</h3>$bars<table><thead><tr><th>Variabel</th><th>Gennemsnit</th></tr></thead><tbody>$body</tbody></table></article>"
 end
 
 section(id, title, note, body) =
@@ -244,6 +248,8 @@ main{padding:8px 20px 48px}section{margin:22px 0;scroll-margin-top:64px}
 .lab{writing-mode:vertical-rl;text-orientation:mixed;margin-top:18px;white-space:nowrap;line-height:1;font-size:8pt}
 .hlab{margin-top:10px;font-size:9pt;text-align:center;line-height:1.25;min-height:2.5em;padding:0 4px}
 .legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:0 0 12px;font-size:14px}.legend i{display:inline-block;width:14px;height:14px;margin-right:6px;vertical-align:-1px}
+.marker{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;background:#16233c;border:1.5px solid #fff;transform:rotate(45deg);z-index:2}.marker:hover{background:#e07a1f}
+.legend i.diamond{width:11px;height:11px;margin:0 8px 0 2px;background:#16233c;transform:rotate(45deg)}
 .keys{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
 .keycard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 16px 8px;max-width:100%;overflow-x:auto}.keycard h3{margin:0 0 12px;font-size:15px}
 table{border-collapse:collapse;margin:16px 0 8px;font-size:14px;font-variant-numeric:tabular-nums}th,td{padding:7px 12px;border-bottom:1px solid var(--line);text-align:right}
@@ -252,40 +258,52 @@ footer{font-size:12px;color:var(--muted);padding:12px 4px}
 @media print{body{background:#fff}nav{display:none}header.page{print-color-adjust:exact}.scroller,.keycard{overflow:visible;border:none}section{break-inside:avoid}}
 """
 
-"""Write Danish bar charts of the baseline tables for `year` to `path`. The average row is in its own cards."""
-function write_figures(path::AbstractString, baseline::ModelDictionary; year::Int)
-  (; production, output_value, wage, headcount, shares) = table_data(baseline, year)
+"""
+Write Danish bar charts of the baseline tables for `year` to `path`. The average row is in its own cards.
+Figures 1-7 (output, the input ratios and the export ratio) also show `compare_year` as a diamond.
+"""
+function write_figures(path::AbstractString, baseline::ModelDictionary; year::Int, compare_year::Int)
+  (; production, output_value, wage, headcount) = table_data(baseline, year)
+  compare = table_data(baseline, compare_year).production
   labels = ["$n. " * replace(industry_label[i], " · " => ", ") for (n, i) in enumerate(industry)]
   groups(rows, columns) = [label => row[columns] for (label, row) in zip(labels, rows)]
   ratios = 2:length(inputs)+1
   parts = 2:length(value_series)+1
   ids = ["$(first(input))Y" for input in inputs]
+  years = "$year (søjle) og $compare_year (diamant)"
+  year_legend = "<div class=\"legend\"><span><i style=\"background:$positive\"></i>$year</span>" *
+                "<span><i class=\"diamond\"></i>$compare_year</span></div>"
+  year_chart(j; digits, ytitle) = year_legend * scroller(chart(groups(production, j:j), ["$year" => nothing];
+    height=420, slot=26, fill=0.6, ytitle, digits, group_every=5,
+    markers=getindex.(compare, j), marker_name="$compare_year"))
 
   sections = [
-    ("Y", "Produktion (Y)", section("Y", "Produktion (Y) – mio. EUR, $year", "Realt output i $(Time.tBase)-priser.",
-      industry_chart(groups(production, 1:1), ["" => nothing]; digits=0, ytitle="Mio. EUR")));
-    [(id, name, section(id, "$name – input pr. produktionsenhed, $year", "Mængde af input over realt output.",
-      industry_chart(groups(production, j:j), ["" => nothing]; digits=2, ytitle="Kvote")))
+    ("Y", "Produktion (Y)", section("Y", "Produktion (Y) – mio. EUR, $years", "Realt output i $(Time.tBase)-priser.",
+      year_chart(1; digits=0, ytitle="Mio. EUR")));
+    [(id, name, section(id, "$name – input pr. produktionsenhed, $years", "Mængde af input over realt output.",
+      year_chart(j; digits=2, ytitle="Kvote")))
      for (id, (name, _), j) in zip(ids, ratio_series, ratios)];
+    ("XY", "Eksport (X/Y)", section("XY", "Eksport af egen vare (X/Y) – eksport pr. produktionsenhed, $years",
+      "Mængde af direkte eksport af den vare, branchen producerer, over realt output. En branche, hvis vare ikke eksporteres, har ingen søjle.",
+      year_chart(length(inputs) + 2; digits=2, ytitle="Kvote")));
     ("Samlet", "Samlet", section("Samlet", "Inputkvoter – mængde pr. produktionsenhed, $year",
       "Søjlerne har fælles skala. Et input, som branchen ikke bruger, har ingen søjle.",
       industry_chart(groups(production, ratios), ratio_series; digits=2, ytitle="Kvote")));
     ("Vaerdi", "Produktionsværdi", section("Vaerdi", "Dekomponering af produktionsværdien – procent af vY, $year",
       "Positive dele stables op fra nul, og negative dele stables ned. Inputomkostningerne dækker også den del af input-bundtet, der går til faste omkostninger og produktionstab, så de to indgår med minus. Summen af alle dele er 100.",
       stacked_industry_chart(groups(output_value, parts), value_series; digits=1, ytitle="Procent af vY")));
-    ("Andele", "Arbejdskraftandele", section("Andele", "Arbejdskraftandele efter type – procent af beskæftigede i branchen, $year",
-      "Personer af hver type i procent af personerne i branchen. Hver søjle summerer til 100.",
-      stacked_industry_chart(groups(shares, eachindex(labor_type)), type_series; digits=1, ytitle="Procent")));
     ("Personer", "Personer", section("Personer", "Beskæftigelse efter type – antal personer, $year",
       "Antal personer i branchen. En type, som branchen ikke beskæftiger, har ingen søjle.",
       industry_chart(groups(headcount, eachindex(labor_type)), type_series; digits=0, ytitle="Personer")));
-    ("Gennemsnit", "Gennemsnit og løn", section("Gennemsnit", "Gennemsnit på tværs af brancher og løn, $year",
-      "Simpelt gennemsnit fra tabellernes sidste række. Løn pr. person er ens i alle brancher. Positive søjler er grønne og negative røde.",
+    ("Loen", "Løn", section("Loen", "Løn pr. person efter type – 1.000 EUR, $year",
+      "Løn pr. person er ens i alle brancher.",
+      scroller(chart([n => [w] for (n, w) in zip(first.(type_series), wage)], ["" => nothing];
+        height=300, slot=110, fill=0.6, ytitle="1.000 EUR", digits=1, label_class="hlab"))));
+    ("Gennemsnit", "Gennemsnit", section("Gennemsnit", "Gennemsnit på tværs af brancher, $year",
+      "Simpelt gennemsnit fra tabellernes sidste række. Positive søjler er grønne og negative røde.",
       "<div class=\"keys\">" *
       keycard("Inputkvoter", first.(ratio_series), column_averages(production)[ratios]; ytitle="Kvote", digits=2) *
       keycard("Produktionsværdi", first.(value_series), column_averages(output_value)[parts]; ytitle="Procent af vY", digits=1) *
-      keycard("Arbejdskraftandele", first.(type_series), column_averages(shares); ytitle="Procent", digits=1,
-        extra=("Løn pr. person (1.000 EUR)" => wage,)) *
       keycard("Personer", first.(type_series), column_averages(headcount); ytitle="Personer", digits=0) *
       "</div>"))
   ]
@@ -297,7 +315,7 @@ function write_figures(path::AbstractString, baseline::ModelDictionary; year::In
 <html lang="da"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>GREU | Baseline $year – figurer</title><style>$figure_style</style></head><body>
 <header class="page"><div class="eyebrow">GREU · Baseline</div><h1>Produktion og beskæftigelse – $year</h1>
-<p>Figurerne viser tabellerne for baseline. En inputkvote er mængden af input pr. produktionsenhed. Dekomponeringen viser dele af produktionsværdien i procent. Hold musen over en søjle for at se værdien. Brede figurer kan rulles sidelæns. Manglende værdier har ingen søjle.</p></header>
+<p>Figurerne viser tabellerne for baseline. De første syv figurer viser $year som søjle og $compare_year som diamant. En inputkvote er mængden af input pr. produktionsenhed. Dekomponeringen viser dele af produktionsværdien i procent. Hold musen over en søjle for at se værdien. Brede figurer kan rulles sidelæns. Manglende værdier har ingen søjle.</p></header>
 <nav>$nav</nav>
 <main>
 $(join(last.(sections)))<footer>Værdierne er vækst- og inflationskorrigeret til $(Time.tBase).</footer>

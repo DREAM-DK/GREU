@@ -88,7 +88,7 @@ figures_file = "da_shock_figures.html"
 figures_xlsx = "da_shock_figures.xlsx"
 labor_types_file = "da_shock_labor_types.html"
 shock_title = "DA labour productivity shock and fee per employed person by type and industry"
-figures_title = "DA-stød til arbejdskraftsproduktivitet og gebyr pr. beskæftiget efter type og branche. Elasticiteter i produktionsfunktionen er fra GrønREFORM. Lump-sum lukning."
+figures_title = "DA-stød til arbejdskraftsproduktivitet og pris pr. beskæftiget efter type og branche. Elasticiteter i produktionsfunktionen er fra GrønREFORM. Lump-sum lukning. Eksogene relative lønninger."
 
 # ==============================================================================
 # Write one HTML report for the solved scenario.
@@ -114,9 +114,12 @@ DAProductivityShockTables.write_tables(
     shock_title,
     year=2050
 )
-# Figures 02 and 03 show the fee per employed person: the share from sheet "Pris", then DKK.
-# Set false to leave out figure 06, the percentage change in total employment by labor type.
-include_total_employment = false
+# Figure 02 shows the price per employed person in DKK: the share from sheet "Pris" times the base.
+# Set false to leave out figure 05, the percentage change in total employment by labor type,
+# and the next figure, the same change in persons.
+include_capital_shock = false
+include_fee = true
+include_total_employment = true
 DAProductivityShockFigures.write_figures(
     joinpath(@__DIR__, "..", "Output", "ShockTables", figures_file),
     baseline, scenario;
@@ -128,6 +131,8 @@ DAProductivityShockFigures.write_figures(
     industry_name,
     type_name,
     include_total_employment,
+    include_fee,
+    k_shock=include_capital_shock ? capital_shock : nothing,
 )
 DAProductivityShockFigures.write_excel(
     joinpath(@__DIR__, "..", "Output", "ShockTables", figures_xlsx),
