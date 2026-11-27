@@ -32,7 +32,7 @@ const macro_core_modules = [
 
   :Production,
   :Labor,
-  # :Labor_ exogenous_relative_wages,
+  # :Labor_exogenous_relative_wages,
   :Intermediates,
   :Capital,
   :Taxes,

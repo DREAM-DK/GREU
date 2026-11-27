@@ -14,7 +14,7 @@ import ..InputOutput:
   qI,
   qI_p,
   vI
-import ..Production: pProd, qProd, qK_k_i_data, capital_k_i
+import ..Production: pProd, qProd, qK_k_i_data, capital_k_i, hurdle_rate_industry
 import ..ProductionSettings:
   capital_type,
   production_data_dir
@@ -85,6 +85,11 @@ function assign_data!(db)
   fill_cells!(db, pI_k, pI_k_data)
   db[[pProd[k,i,tBase] for (k,i) in capital_k_i]] .= 1.0
   db[rHurdleRate_i] .= 0.10
+  # Public industries and housing solve this rate in the dynamic calibration.
+  # A stored t1 value would fix it through the residual.
+  for i in hurdle_rate_industry
+    db[rHurdleRate_i[i,t1]] = nothing
+  end
   db[pInvestmentShock_k_i] .= 0.0
   return nothing
 end
@@ -96,6 +101,11 @@ function set_starting_values!(start_values)
   # Keep calibrated production quantities; seed only missing leaves.
   q_start = start_values[qProd[capital_type,:,:]]
   q_start .= ifelse.(isnothing.(q_start), start_values[qK_k_i][capital_type,:,:], q_start)
+  # The static calibration holds the public and housing rate. The data leaves it unset.
+  for i in hurdle_rate_industry
+    var = rHurdleRate_i[i,t1]
+    isnothing(start_values[var]) && (start_values[var] = 0.10)
+  end
   start_values[ntK_k_i] .= 0 # Calibrated in Taxes module
   start_values[pKAdjCost_k_i] .= 0 # Can be endogenized in CapitalAdjustmentCosts
   start_values[pInvestmentShock_k_i] .= 0

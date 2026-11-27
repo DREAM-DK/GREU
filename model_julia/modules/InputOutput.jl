@@ -174,6 +174,7 @@ const InputOutputTag = Tag(:InputOutput)
   vSupply_o[o=origin, t=t], "Supply value by origin"
 
   vY_i[(i,t)=select_axes(vY_p_i, 2, 3)], "Domestic output by industry"
+  vG_p[(p,t)=vPurchaserUse_p_u[:,:G,:]], "Government consumption value by product."
   vC[t], "Household and non-profit consumption"
   vCTourist[t], "Consumption in the country by non-resident households"
   vG[t], "Government consumption"
@@ -407,6 +408,7 @@ function define_equations()
     pX[t=t1:T], pX[t] * qX[t] == vX[t]
 
     vC[t=t1:T], vC[t] == pC[t] * qC[t]
+    qG_p[p=product, t=t1:T], pPurchaserUse_p_u[p,:G,t] * qG_p[p,t] == vG_p[p,t]
     vG[t=t1:T], vG[t] == ∑(vPurchaserUse_p_u[p,:G,t] for p in product)
     pG[t=t1:T], pG[t] * qG[t] == vG[t]
     vI[t=t1:T], vI[t] == ∑(vPurchaserUse_p_u[p,:K,t] for p in product)
@@ -454,6 +456,9 @@ function define_calibration(base=define_equations())
     rMarginServiceShare[:,:,t1], qMarginService_s_u[:,:,t1]
 
     rMarginRate[:,:,t1], qMarginBundle_p_u[:,:,t1]
+
+    # The source reports government consumption in volume terms only.
+    vG_p[:,t1], qG_p[:,t1]
 
     rOriginShare[(s,u,o,t) in margin_only_s_u_o_t; t == t1],
     qMarginService_s_u_o[(s,u,o,t) in margin_only_s_u_o_t; t == t1]

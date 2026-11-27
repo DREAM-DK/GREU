@@ -16,7 +16,7 @@ import ..Government:
   vSocTransKind
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
 import ..IndustrySectors: vLaborFee_s, vM_s, vtProduction_s, vWages_s
-import ..InputOutput: product, qG_p, vG, pPurchaserUse_p_u
+import ..InputOutput: product, qG_p, vG, vG_p
 import ..Labor: vHhWages
 import ..model
 import ..SectorAccounts:
@@ -70,7 +70,7 @@ end
 function define_equations()
   return @block model begin
     # Government consumption by product is a fixed share of nominal GDP.
-    qG_p[p=product, t=t1:T], pPurchaserUse_p_u[p,:G,t] * qG_p[p,t] == rG2GDP_p[p,t] * vGDP[t]
+    vG_p[p=product, t=t1:T], vG_p[p,t] == rG2GDP_p[p,t] * vGDP[t]
 
     # Primary expenditure.
     vGovPrimaryExpenditure[t=t1:T],
@@ -133,7 +133,7 @@ function define_calibration(base=define_equations())
   block = copy(base)
 
   @endo_exo_swap! block begin
-    rG2GDP_p[:,t1], qG_p[:,t1]
+    rG2GDP_p[:,t1], vG_p[:,t1]
     rGovTransferIncome[t1], vGovSocBenefitExp[t1]
     rRoWTransferIncome[t1], vSocialBenefits[:RoW,t1]
     rSocTransKind2G[t1], vSocTransKind[t1]

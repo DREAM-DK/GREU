@@ -10,7 +10,7 @@ import JuMP
 import ..DataUtils: read_cells
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted
 import ..InputOutput: industry, qY_i, qM_p_i, follow_intermediate_split!
-import ..InputOutputSettings: cell_tolerance
+import ..InputOutputSettings: cell_tolerance, industries_in_sections
 import ..ProductionSettings: production_data_dir, industry_nesting, prune_nesting, product_to_intermediate_type
 import ..Settings: calibration_year
 import ..model
@@ -32,6 +32,13 @@ follow_intermediate_split!(qM_p_m_i_data, qM_m_i_data)
 # ============================================================================
 # Indices
 # ============================================================================
+# Public administration, education, health, and housing. The dynamic calibration
+# solves their hurdle rate and keeps the fixed cost exogenous.
+const hurdle_rate_industry = Set(industries_in_sections([:O, :P, :Q, :L]))
+@assert all(i -> i in industry, hurdle_rate_industry) "Each industry in sections O, P, Q, and L must have output"
+@assert !isempty(intersect(hurdle_rate_industry, industries_in_sections([:O, :P, :Q]))) "The model needs a public industry in sections O, P, or Q"
+@assert !isempty(intersect(hurdle_rate_industry, industries_in_sections([:L]))) "The model needs a housing industry in section L"
+
 # Each factor module uses these same source values and retained cells.
 const capital_k_i = Set(
   (k, i) for ((k, i, year), value) in qK_k_i_data
@@ -172,11 +179,19 @@ function define_calibration(base=define_equations())
     pProd[(n,i,t) in keys(pProd); n == topNest[i] && t == t1]
   end
 
-  # Dynamic calibration only. The markup from the static calibration sets the marginal
-  # cost, so qTop2qY takes the marginal use and the fixed cost takes the rest.
+  # Dynamic calibration only. The static markup sets marginal cost. qTop2qY takes
+  # the marginal use. The fixed cost takes the rest. In public industries and
+  # housing the hurdle rate takes it, and the fixed cost stays exogenous.
   if T > t1
+    # Capital defines the rate. The marginal-cost equation matches it here.
+    rHurdleRate_i = model[:rHurdleRate_i]
+    union!(block.variables, (rHurdleRate_i[i,t1] for i in hurdle_rate_industry))
     @endo_exo_swap! block begin
-      qFixedCost_i[:,t1], pMarginalCost_i[:,t1]
+      qFixedCost_i[i=industry, t=t1; !(i in hurdle_rate_industry)],
+      pMarginalCost_i[i=industry, t=t1; !(i in hurdle_rate_industry)]
+
+      rHurdleRate_i[i=industry, t=t1; i in hurdle_rate_industry],
+      pMarginalCost_i[i=industry, t=t1; i in hurdle_rate_industry]
     end
   end
 
