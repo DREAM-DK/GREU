@@ -1,0 +1,657 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepgfplotslibrary{groupplots}
+\pgfplotsset{compat=1.18}
+\usepackage[hidelinks]{hyperref}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\setlist{itemsep=2pt,topsep=4pt}
+\setlength{\belowcaptionskip}{6pt}
+
+% Chart colours and line styles.
+\definecolor{fcblue}{RGB}{0,84,159}
+\definecolor{fcorange}{RGB}{217,95,2}
+\definecolor{fcgrey}{RGB}{110,110,110}
+\definecolor{fcgreen}{RGB}{27,158,119}
+\definecolor{fcpurple}{RGB}{117,112,179}
+\definecolor{fcred}{RGB}{200,40,60}
+\pgfplotsset{
+  fc/.style={
+    xmin=2026, xmax=2075,
+    x tick label style={/pgf/number format/1000 sep={}},
+    y tick label style={/pgf/number format/fixed},
+    scaled y ticks=false,
+    tick label style={font=\footnotesize},
+    title style={font=\small, yshift=-1ex},
+    label style={font=\footnotesize},
+    grid=major, grid style={gray!25},
+    legend style={font=\footnotesize, draw=none, /tikz/every even column/.append style={column sep=0.8em}},
+  },
+  narrow/.style={width=5.7cm, height=4.7cm, xtick={2030,2050,2070}},
+  wide/.style={width=7.7cm, height=5.4cm, xtick={2030,2040,2050,2060,2070}},
+  full/.style={fcblue, line width=1.1pt},
+  nofc/.style={fcorange, line width=1.1pt},
+  noscale/.style={fcgrey, line width=1.1pt, densely dashed},
+  labourtax/.style={fcgreen, line width=1.1pt, dashdotted},
+  one/.style={black, line width=0.4pt, densely dotted, forget plot},
+}
+
+% The six real GDP components of one scenario. #1: scenario suffix.
+\newcommand{\components}[1]{%
+  \addplot[one, domain=2026:2075, samples=2] {1};
+  \addplot[black, line width=1.4pt] table[x=year, y=gdp#1]{\hmacro};
+  \addplot[fcblue, line width=1.0pt] table[x=year, y=con#1]{\hmacro};
+  \addplot[fcorange, line width=1.0pt] table[x=year, y=inv#1]{\hmacro};
+  \addplot[fcgreen, line width=1.0pt] table[x=year, y=gov#1]{\hmacro};
+  \addplot[fcpurple, line width=1.0pt] table[x=year, y=exp#1]{\hmacro};
+  \addplot[fcred, line width=1.0pt, densely dashed] table[x=year, y=imp#1]{\hmacro};
+}
+\newcommand{\componentlegend}{%
+  \legend{GDP, Private consumption, Investment, Government consumption, Exports, Imports}
+}
+
+% Chart data: \hmacro and \hspread.
+\input{foreign_closure_homogeneity_data}
+
+\title{A foreign closure for shocks that are common to all countries:\\ rules and a test of long-run homogeneity}
+\author{}
+\date{27 November 2026}
+
+\begin{document}
+\maketitle
+
+\section{Summary}
+
+GREU is a model of a small open economy. In the base model, the rest of the world does not respond to a shock.
+This is correct for a shock to the home economy only. It is not correct for a shock that all countries get, such as a new technology.
+
+The \emph{foreign closure} is a second set of rules for the rest of the world. Foreign prices follow home prices, product by product, and foreign demand follows home imports, product by product. The rest of the world then moves as the home economy moves.
+A second module, \emph{sluggish scaling}, lets fixed costs, production taxes, and net pension saving follow the size of the economy slowly.
+Both modules are for shocks only. The baseline does not change.
+
+The test is a permanent rise of one per cent in labour productivity in all industries. Employment is fixed.
+If the model is homogeneous, all quantities rise one per cent in the long run and no relative price changes.
+
+\begin{itemize}
+\item \textbf{The shock is homogeneous in the long run to within 0.02 percentage points.} In 2075, GDP, private consumption, government consumption, exports, and imports are 0.99 per cent above the baseline, and investment is 0.98 per cent above. Output is between 0.98 and 1.00 per cent above in each of the 63 industries. The terms of trade and the consumer price are on the baseline.
+\item \textbf{Both modules are necessary.} With no foreign closure, GDP rises 0.92 per cent, exports 0.65 per cent, and imports 0.49 per cent, and the terms of trade fall. With no scaling, GDP rises 1.29 per cent, because fixed costs do not grow with the economy.
+\item \textbf{The rest has one main cause.} The net tax on labour is a fixed amount per unit of labour. When this rate also rises one per cent, all quantities are between 0.995 and 0.999 per cent above the baseline.
+\item \textbf{The short run is not homogeneous.} Capital, fixed costs, taxes, and pension saving are slow. GDP is 0.58 per cent above the baseline in 2026, 0.96 per cent in 2040, and 0.98 per cent in 2050.
+\end{itemize}
+
+\section{The rest of the world in the base model}
+\label{sec:base}
+
+All variables are divided by trend growth and trend inflation. A bar marks a baseline value. The model has 63 products $p$ and 63 industries $i$.
+The rest of the world enters the base model in four places. Each is an exogenous path.
+
+\begin{itemize}
+\item \textbf{Import prices.} The import price of each product, $P^{m}_{p,t}$, is exogenous. Users substitute between the home product and the imported product.
+\item \textbf{Export demand.} Exports of home products follow an Armington demand function,
+\begin{equation}
+X^{d}_{p,t} = \left( \frac{P^{x}_{p,t}}{P^{x*}_{p,t}} \right)^{-e_p} X^{*}_{p,t} , \qquad e_p = 5 .
+\label{eq:armington}
+\end{equation}
+$P^{x}_{p,t}$ is the home export price. The competing foreign price $P^{x*}_{p,t}$ and the size of the foreign market $X^{*}_{p,t}$ are exogenous. Re-exports are a fixed share of the same market.
+\item \textbf{Tourists.} Consumption in the country by non-residents follows a demand function of the same form, with an exogenous foreign price and an exogenous market.
+\item \textbf{The interest rate.} The ECB rate is exogenous.
+\end{itemize}
+
+The exogenous foreign prices are also the nominal anchor of the model. Home prices are set relative to them.
+
+In 2026, exports are 57 per cent of GDP and imports are 52 per cent. In 2075, imports are 38 per cent of intermediate inputs and 21 per cent of investment goods.
+With these shares, the foreign rules have a large effect on a supply shock. When home productivity rises, the home economy must lower its relative price to sell more. The terms of trade fall, and imported inputs do not become cheaper. Section~\ref{sec:parts} gives the numbers.
+
+\section{The foreign closure}
+\label{sec:closure}
+
+\subsection{Rules}
+
+The closure makes each of the four exogenous paths endogenous. Table~\ref{tab:rules} gives the rules.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Rules of the foreign closure}
+\label{tab:rules}
+\begin{tabular}{@{}llp{6.2cm}r@{}}
+\toprule
+ & Rule & Meaning & Equations \\
+\midrule
+(F1) & $P^{m}_{p,t} = \mu^{m}_{p,t}\, P^{y}_{p,t}$ & The import price follows the home basic price of the same product. 63 products. & 3{,}150 \\[2pt]
+(F2) & $P^{x*}_{p,t} = \mu^{x}_{p,t}\, P^{x}_{p,t}$ & The competing foreign price follows the home export price. 59 products with exports. & 2{,}950 \\[2pt]
+(F3) & $X^{*}_{p,t} = \mu^{q}_{p,t}\, M_{p,t}$ & The foreign market follows home imports of the same product. & 2{,}950 \\[2pt]
+(F4) & $P^{\tau*}_{t} = \mu^{\tau}_{t}\, P^{\tau}_{t}$ & The foreign tourist price follows the home tourist price. & 50 \\[2pt]
+(F5) & $C^{\tau*}_{t} = \mu^{c}_{t}\, C_{t}$ & The tourist market follows household consumption. & 50 \\[2pt]
+(F6) & $P^{C}_{t} = \bar{P}^{C}_{t}$ & The ECB rate holds the consumer price index on its baseline path. & 49 \\
+\midrule
+ & & & 9{,}199 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Each $\mu$ is the baseline ratio of the foreign variable to the home variable in the same year. It is exogenous in a shock. With the baseline ratios, the baseline is a solution of the model with the closure.
+
+\paragraph{Prices, (F1) and (F2).}
+A shock that changes the home price of a product by one per cent changes its import price and the competing price on its export market by one per cent.
+The relative price of the home product is then constant in the home market and in the foreign market. The terms of trade are constant for each product.
+
+\paragraph{Quantities, (F3).}
+With (F2), the price term in (\ref{eq:armington}) is constant. Exports of home products and re-exports are both proportional to the foreign market, and (F3) makes the market proportional to imports $M_{p,t}$. So
+\begin{equation}
+X_{p,t} = k_{p,t}\, M_{p,t} ,
+\label{eq:mirror}
+\end{equation}
+where $k_{p,t}$ is fixed in a shock. Exports of each product change by the same per cent as imports of that product. The export elasticity $e_p$ has no effect on this result.
+In the solution, the two per cent changes are equal to five decimals for all 59 products.
+
+\paragraph{Tourists, (F4) and (F5).}
+Tourist exports are not one of the 63 products, so (F1) to (F3) do not cover them. They are 3.3 per cent of exports. The model has no tourist imports, so the tourist market follows household consumption.
+
+\paragraph{The nominal anchor, (F6).}
+With (F1), (F2), and (F4), all foreign prices follow home prices. No exogenous price is left, and the price level has no anchor: if all prices double, all equations hold.
+Rule (F6) is the new anchor. The ECB rate becomes endogenous. The rate of year $t+1$ is set in year $t$, and it holds the consumer price index of year $t$ on its baseline path. This is a strict price-level target.
+The rate of 2026 was set before the shock, so it is exogenous. No rate holds the index in 2075, the last year.
+In a test of the closure with no anchor, the same shock raised the consumer price by 2.6 per cent in the first year.
+
+\subsection{Interpretation}
+
+The closure makes the rest of the world a mirror of the home economy.
+\begin{itemize}
+\item A fall in the home cost of a product is a fall in the foreign cost of that product. No country gains or loses competitiveness.
+\item A rise in home demand for imports of a product is a rise in foreign demand for home exports of that product. Trade grows on both sides, product by product.
+\item Monetary policy holds the price level with one interest rate.
+\end{itemize}
+
+The closure is a rule for a shock that is common to all countries. It is not a rule for a shock to the home economy only, such as a change in a home tax.
+
+\section{Sluggish scaling}
+\label{sec:scaling}
+
+\subsection{Why the foreign closure is not sufficient}
+
+Homogeneity needs constant returns to scale and no amount that is fixed in money or in quantity. The base model has three groups of amounts that do not follow the economy in a shock (Table~\ref{tab:amounts}).
+
+\begin{itemize}
+\item \textbf{Fixed costs.} Output of industry $i$ is the input bundle less a fixed cost, $Q_{i,t} - F_{i,t} = \theta_{i,t} Y_{i,t}$. The fixed cost $F_{i,t}$ is a quantity of the bundle. It is exogenous, so returns to scale increase. It is 11 per cent of the bundle in total. In 2075, the median industry has a fixed cost of 1 per cent of output, and dwellings have 65 per cent.
+\item \textbf{Production taxes and subsidies.} The gross taxes and the subsidies by industry are exogenous amounts. One more amount, other net production taxes, enters the marginal cost of the industry.
+\item \textbf{Net pension saving.} The flow from financial corporations to households is an exogenous amount.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Amounts with sluggish scaling}
+\label{tab:amounts}
+\begin{tabular}{@{}lp{4.6cm}p{3.6cm}rr@{}}
+\toprule
+ & Amount $A_{j,t}$ & Base $B_{j,t}$ & Cells in a year & Size in 2026 \\
+\midrule
+(S1) & Fixed cost by industry & Output of the industry, $Y_{i,t}$ & 63 & 12.0 \\[2pt]
+(S2) & Production taxes by class and industry & Output value of the industry, $P^{y}_{i,t} Y_{i,t}$ & 378 & 2.27 \\[2pt]
+ & Production subsidies by industry & Output value of the industry & 63 & 1.21 \\[2pt]
+ & Other net production taxes by industry & Output value of the industry & 63 & $-1.11$ \\[2pt]
+(S3) & Net pension saving & Nominal GDP & 1 & 3.29 \\
+\bottomrule
+\multicolumn{5}{@{}l}{\footnotesize Size: per cent of output for (S1), per cent of GDP for (S2) and (S3).}
+\end{tabular}
+\end{table}
+
+\subsection{Rule}
+
+Each amount closes a fixed share $\lambda$ of the gap to its long-run level each year:
+\begin{equation}
+A_{j,t} = \lambda\, \rho_{j,t}\, B_{j,t} + (1 - \lambda)\, A_{j,t-1} .
+\label{eq:sluggish}
+\end{equation}
+The long-run level is $A^{*}_{j,t} = \rho_{j,t} B_{j,t}$: a fixed ratio $\rho$ to the base. The ratio is set from the baseline, so the baseline is a solution.
+The variables are divided by trend growth and inflation. The lag in (\ref{eq:sluggish}) is therefore last year's amount with trend growth added, and a constant amount is a steady state.
+
+The module has one $\lambda$ for each of (S1), (S2), and (S3). All three are 0.2.
+After $n$ years, the share $0.8^{n}$ of a gap is left: 11 per cent after 10 years and 0.4 per cent after 25 years.
+A step in the base in 2026 has thus passed to the amount in 2050. Section~\ref{sec:slow} shows the paths when the base moves slowly also.
+
+The module adds 28{,}400 equations: 568 cells in each of 50 years.
+
+\subsection{What the module does not cover}
+
+The net production taxes on capital, labour, and intermediate inputs are rates per unit of the input. The module does not change them.
+A rate per unit follows the quantity of the input, but not its price. The price of capital and of intermediate inputs does not change in the long run. The wage does. Section~\ref{sec:rest} shows the effect.
+
+\section{The test}
+\label{sec:test}
+
+\subsection{Shock}
+
+Labour productivity rises one per cent in 2026 for all three types of labour in all industries, and it stays one per cent higher.
+The rise is labour-augmenting: one person gives 1.01 units of labour in the production function. Employment is the same as on the baseline in all years.
+
+\subsection{What homogeneity means}
+
+Take a model where production has constant returns to scale in capital, intermediate inputs, and labour in efficiency units, where demand is homothetic, and where no amount is fixed.
+One per cent more labour in efficiency units then has this long-run effect:
+\begin{itemize}
+\item each quantity is one per cent higher: output, capital, consumption, investment, exports, and imports of each product;
+\item each relative price is the same, and so is the interest rate;
+\item the real wage of a person is one per cent higher;
+\item each ratio to GDP is the same.
+\end{itemize}
+The economy is one per cent larger and has the same structure.
+A small open economy with fixed foreign prices and fixed foreign markets does not have this property. Its trade partners do not grow with it.
+
+\subsection{Scenarios}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Scenarios. All have the same shock}
+\label{tab:scenarios}
+\begin{tabular}{@{}lllr@{}}
+\toprule
+Name & Foreign closure & Sluggish scaling & Equations \\
+\midrule
+Full & yes & yes & 2{,}913{,}740 \\
+No foreign closure & no & yes & 2{,}904{,}541 \\
+No scaling & yes & no & 2{,}885{,}340 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The base model has 2{,}876{,}141 equations. Each new equation has its own endogenous variable, and the base model holds that variable exogenous. The model is square.
+With no shock, the full model gives the baseline again, with a tolerance of $10^{-5}$.
+A calibration with both modules loaded gives the same baseline: the largest difference is $2 \cdot 10^{-10}$ of the value. The only new values are the three rates $\lambda$.
+
+\section{Results}
+
+\subsection{The long run is homogeneous}
+
+Figure~\ref{fig:components} shows the real components of GDP in the full model. All six lines end close to the dotted line at one per cent.
+Table~\ref{tab:longrun} gives the values in 2075.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[fc, width=13.5cm, height=7.6cm, xtick={2030,2035,...,2075}, ymin=0, ymax=2.3,
+  ylabel={Per cent}, legend columns=3, legend to name=hcomponents]
+\components{S}
+\componentlegend
+\end{axis}
+\end{tikzpicture}
+
+\ref{hcomponents}
+\caption{Real components of GDP in the full model. Per cent deviation from the baseline}
+\label{fig:components}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\small
+\caption{The long run: 2075. Per cent deviation from the baseline}
+\label{tab:longrun}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+ & Full & No foreign closure & No scaling \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Quantities}} \\
+GDP & 0.990 & 0.919 & 1.292 \\
+Private consumption & 0.994 & 0.779 & 1.362 \\
+Investment & 0.979 & 0.819 & 1.109 \\
+Government consumption & 0.991 & 0.923 & 1.220 \\
+Exports & 0.989 & 0.645 & 1.181 \\
+Imports & 0.989 & 0.486 & 1.172 \\
+Output & 0.990 & 0.856 & 1.183 \\
+Capital & 0.979 & 0.817 & 1.074 \\
+Intermediate inputs & 0.990 & 0.789 & 1.077 \\
+Fixed cost & 0.990 & 0.849 & 0.000 \\
+Employment & 0.000 & 0.000 & 0.000 \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Prices}} \\
+Real wage & 0.995 & 0.774 & 1.244 \\
+Terms of trade & 0.000 & $-0.131$ & 0.001 \\
+Consumer price & 0.000 & $-0.155$ & 0.001 \\
+Price of investment goods & $-0.002$ & $-0.157$ & 0.090 \\
+User cost of capital & 0.019 & $-0.161$ & $-0.222$ \\
+ECB rate, per cent (baseline 4.000) & 4.008 & 4.000 & 3.871 \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Values}} \\
+Nominal GDP & 0.989 & 0.651 & 1.325 \\
+Net exports, change in per cent of GDP & 0.000 & 0.013 & 0.004 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+In the full model:
+\begin{itemize}
+\item \textbf{Quantities.} All quantities are between 0.98 and 0.99 per cent above the baseline. The largest gap to one per cent is 0.02 percentage points, in capital and investment.
+\item \textbf{Prices.} The terms of trade, the consumer price, and the price of investment goods are on the baseline. The real wage is 0.995 per cent higher. The ECB rate is 0.008 percentage points above the baseline.
+\item \textbf{Ratios.} Net exports are the same share of GDP. Nominal GDP and real GDP rise by the same per cent.
+\end{itemize}
+
+Homogeneity also holds for each industry and each product. Table~\ref{tab:spread} gives the smallest and the largest change over the cells, and Figure~\ref{fig:spread} shows them over time.
+In the full model, output of each industry is between 0.98 and 1.00 per cent above the baseline, and the price of each industry changes by less than 0.03 per cent. No industry gains at the cost of another industry.
+With no foreign closure, the change in output is between 0.28 and 1.10 per cent.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Smallest and largest change over industries or products in 2075. Per cent deviation from the baseline}
+\label{tab:spread}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+ & \multicolumn{2}{c}{Full} & \multicolumn{2}{c}{No foreign closure} \\
+\cmidrule(lr){2-3} \cmidrule(l){4-5}
+ & Smallest & Largest & Smallest & Largest \\
+\midrule
+Output by industry & 0.983 & 0.997 & 0.277 & 1.098 \\
+Exports by product & 0.983 & 0.997 & 0.132 & 1.626 \\
+Imports by product & 0.983 & 0.997 & 0.058 & 0.744 \\
+Fixed cost by industry & 0.986 & 0.996 & 0.277 & 1.015 \\
+Output price by industry & $-0.022$ & 0.010 & $-0.381$ & $-0.043$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[fc, narrow, group style={group size=3 by 1, horizontal sep=1.2cm}]
+\nextgroupplot[title={Output by industry}, ylabel={Per cent}, legend to name=hspreadlegend, legend columns=-1]
+\addplot[one, domain=2026:2075, samples=2] {1};
+\addplot[full] table[x=year, y=yloS]{\hspread};
+\addplot[nofc] table[x=year, y=yloN]{\hspread};
+\addplot[full, forget plot] table[x=year, y=yhiS]{\hspread};
+\addplot[nofc, forget plot] table[x=year, y=yhiN]{\hspread};
+\legend{Full, No foreign closure}
+\nextgroupplot[title={Exports by product}]
+\addplot[one, domain=2026:2075, samples=2] {1};
+\addplot[full] table[x=year, y=xloS]{\hspread};
+\addplot[nofc] table[x=year, y=xloN]{\hspread};
+\addplot[full] table[x=year, y=xhiS]{\hspread};
+\addplot[nofc] table[x=year, y=xhiN]{\hspread};
+\nextgroupplot[title={Output price by industry}]
+\addplot[one, domain=2026:2075, samples=2] {0};
+\addplot[full] table[x=year, y=pyloS]{\hspread};
+\addplot[nofc] table[x=year, y=pyloN]{\hspread};
+\addplot[full] table[x=year, y=pyhiS]{\hspread};
+\addplot[nofc] table[x=year, y=pyhiN]{\hspread};
+\end{groupplot}
+\end{tikzpicture}
+
+\ref{hspreadlegend}
+\caption{Smallest and largest change over industries or products. Each model has two lines. Per cent deviation from the baseline}
+\label{fig:spread}
+\end{figure}
+
+\subsection{What each module does}
+\label{sec:parts}
+
+Figure~\ref{fig:parts} shows the same shock with one module removed.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[fc, wide, group style={group size=2 by 1, horizontal sep=1.6cm}, ymin=-0.3, ymax=3.5]
+\nextgroupplot[title={No foreign closure}, ylabel={Per cent}, legend to name=hparts, legend columns=3]
+\components{N}
+\componentlegend
+\nextgroupplot[title={No scaling}]
+\components{F}
+\end{groupplot}
+\end{tikzpicture}
+
+\ref{hparts}
+\caption{Real components of GDP with one module removed. Per cent deviation from the baseline}
+\label{fig:parts}
+\end{figure}
+
+\paragraph{No foreign closure.}
+The home economy alone becomes more productive. To sell more, it lowers its export price: the terms of trade fall 0.13 per cent.
+Foreign markets do not grow, so exports rise 0.65 per cent only. Imports rise 0.49 per cent.
+Imported inputs do not become cheaper, so the real wage rises 0.77 per cent and capital rises 0.82 per cent.
+GDP rises 0.92 per cent. The components do not move together: the structure of the economy changes.
+
+\paragraph{No scaling.}
+The components move together, but they rise more than one per cent: GDP 1.29 per cent and private consumption 1.36 per cent.
+The fixed cost does not change. When the input bundle rises one per cent, output rises by more, because the fixed cost takes a smaller share. This is increasing returns to scale.
+Net pension saving and production taxes do not change, so they fall relative to GDP.
+
+\paragraph{Prices.}
+Figure~\ref{fig:prices} shows the prices. With the foreign closure, the terms of trade stay within 0.01 per cent of the baseline in all years, and the consumer price is on the baseline by rule (F6).
+The ECB rate does the work of the anchor: it is 3.77 per cent in 2027 and 4.34 per cent in 2028, and it is back within 0.05 percentage points of the baseline from 2040.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[fc, wide, group style={group size=2 by 2, horizontal sep=1.6cm, vertical sep=1.4cm}]
+\nextgroupplot[title={Real wage}, ylabel={Per cent}, legend to name=hprices, legend columns=-1]
+\addplot[one, domain=2026:2075, samples=2] {1};
+\addplot[full] table[x=year, y=rwS]{\hmacro};
+\addplot[nofc] table[x=year, y=rwN]{\hmacro};
+\addplot[noscale] table[x=year, y=rwF]{\hmacro};
+\legend{Full, No foreign closure, No scaling}
+\nextgroupplot[title={Terms of trade}]
+\addplot[full] table[x=year, y=totS]{\hmacro};
+\addplot[nofc] table[x=year, y=totN]{\hmacro};
+\addplot[noscale] table[x=year, y=totF]{\hmacro};
+\nextgroupplot[title={Consumer price}, ylabel={Per cent}]
+\addplot[full] table[x=year, y=pcS]{\hmacro};
+\addplot[nofc] table[x=year, y=pcN]{\hmacro};
+\addplot[noscale] table[x=year, y=pcF]{\hmacro};
+\nextgroupplot[title={ECB rate, per cent}]
+\addplot[full] table[x=year, y=ecbS]{\hmacro};
+\addplot[nofc] table[x=year, y=ecbN]{\hmacro};
+\addplot[noscale] table[x=year, y=ecbF]{\hmacro};
+\end{groupplot}
+\end{tikzpicture}
+
+\ref{hprices}
+\caption{Prices and the ECB rate. Prices are in per cent deviation from the baseline}
+\label{fig:prices}
+\end{figure}
+
+\subsection{The short run is not homogeneous}
+\label{sec:slow}
+
+Homogeneity is a property of the long run. Three things are slow in the full model.
+
+\begin{itemize}
+\item \textbf{Capital.} It is 0.12 per cent above the baseline in 2026 and 0.95 per cent in 2050. Investment is 2.13 per cent above the baseline in 2028. It then falls: 1.04 per cent in 2050 and 0.98 per cent in 2075.
+\item \textbf{Consumption.} Households get a higher income only when capital and wages have risen. Private consumption is 0.13 per cent above the baseline in 2026, 0.37 per cent in 2030, and 0.96 per cent in 2050.
+\item \textbf{The amounts of Table~\ref{tab:amounts}.} Figure~\ref{fig:amounts} shows them with their long-run levels. The long-run level moves slowly also, because output and nominal GDP move slowly.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[fc, narrow, group style={group size=3 by 1, horizontal sep=1.2cm}, ymin=0, ymax=1.1]
+\nextgroupplot[title={Fixed cost}, ylabel={Per cent}, legend to name=hamounts, legend columns=-1]
+\addplot[one, domain=2026:2075, samples=2] {1};
+\addplot[full] table[x=year, y=fixS]{\hmacro};
+\addplot[fcgrey, line width=1.1pt, densely dashed] table[x=year, y=fixlS]{\hmacro};
+\legend{Amount, Long-run level}
+\nextgroupplot[title={Production taxes}]
+\addplot[one, domain=2026:2075, samples=2] {1};
+\addplot[full] table[x=year, y=taxS]{\hmacro};
+\addplot[fcgrey, line width=1.1pt, densely dashed] table[x=year, y=taxlS]{\hmacro};
+\nextgroupplot[title={Net pension saving}]
+\addplot[one, domain=2026:2075, samples=2] {1};
+\addplot[full] table[x=year, y=penS]{\hmacro};
+\addplot[fcgrey, line width=1.1pt, densely dashed] table[x=year, y=penlS]{\hmacro};
+\end{groupplot}
+\end{tikzpicture}
+
+\ref{hamounts}
+\caption{Sluggish amounts in the full model. The long-run level is the baseline ratio times the base: output, output value, and nominal GDP. Per cent deviation from the baseline}
+\label{fig:amounts}
+\end{figure}
+
+Table~\ref{tab:2050} shows how far each amount is in 2050. Each has made 95 per cent or more of its change to 2075, and each is 0.03 percentage points or less below its long-run level of that year.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Full model in 2050. Per cent deviation from the baseline}
+\label{tab:2050}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+ & 2050 & Long-run level, 2050 & 2075 & 2050 as a share of 2075 \\
+\midrule
+Fixed cost & 0.939 & 0.970 & 0.990 & 0.95 \\
+Production taxes & 0.950 & 0.974 & 0.990 & 0.96 \\
+Production subsidies & 0.954 & 0.978 & 0.993 & 0.96 \\
+Other net production taxes & 0.955 & 0.978 & 0.992 & 0.96 \\
+Net pension saving & 0.965 & 0.981 & 0.989 & 0.98 \\
+\midrule
+GDP & 0.982 & & 0.990 & 0.99 \\
+Capital & 0.952 & & 0.979 & 0.97 \\
+Private consumption & 0.963 & & 0.994 & 0.97 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{What is left}
+\label{sec:rest}
+
+The quantities in the full model are 0.01 to 0.02 percentage points below one per cent. This section gives the cause of most of the gap.
+
+\paragraph{The net tax on labour.}
+The cost of labour for a firm is the wage plus a net production tax per unit of labour. The revenue is 0.69 per cent of GDP. The rate is a fixed amount, so it does not rise with the wage.
+In the full model, the wage rises 0.995 per cent, the cost of labour rises 0.982 per cent, and the tax revenue rises 0.08 per cent.
+
+A fourth scenario is the full model with one more change: the rate of the net tax on labour rises one per cent in 2026. Table~\ref{tab:labourtax} and Figure~\ref{fig:labourtax} give the result.
+All quantities are then between 0.995 and 0.999 per cent above the baseline in 2075, and output by industry is between 0.996 and 1.001 per cent above.
+The ECB rate is 4.002 per cent.
+
+\begin{table}[H]
+\centering
+\small
+\caption{The full model with and without a rise in the rate of the net tax on labour. 2075. Per cent deviation from the baseline}
+\label{tab:labourtax}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+ & Full & Full, and the rate rises one per cent \\
+\midrule
+GDP & 0.990 & 0.998 \\
+Private consumption & 0.994 & 0.998 \\
+Investment & 0.979 & 0.995 \\
+Government consumption & 0.991 & 0.999 \\
+Exports & 0.989 & 0.997 \\
+Imports & 0.989 & 0.997 \\
+Capital & 0.979 & 0.995 \\
+Real wage & 0.995 & 0.995 \\
+User cost of capital & 0.019 & 0.004 \\
+\midrule
+Output by industry, smallest & 0.983 & 0.996 \\
+Output by industry, largest & 0.997 & 1.001 \\
+Output price by industry, smallest & $-0.022$ & $-0.005$ \\
+Output price by industry, largest & 0.010 & 0.003 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[fc, wide, group style={group size=2 by 1, horizontal sep=1.6cm}, xmin=2040, xtick={2040,2050,2060,2070}, ymin=0.9, ymax=1.06]
+\nextgroupplot[title={GDP}, ylabel={Per cent}, legend to name=hlabourtax, legend columns=-1]
+\addplot[one, domain=2040:2075, samples=2] {1};
+\addplot[full] table[x=year, y=gdpS]{\hmacro};
+\addplot[labourtax] table[x=year, y=gdpL]{\hmacro};
+\legend{Full, {Full, and the labour tax rate rises one per cent}}
+\nextgroupplot[title={Investment}]
+\addplot[one, domain=2040:2075, samples=2] {1};
+\addplot[full] table[x=year, y=invS]{\hmacro};
+\addplot[labourtax] table[x=year, y=invL]{\hmacro};
+\end{groupplot}
+\end{tikzpicture}
+
+\ref{hlabourtax}
+\caption{GDP and investment from 2040. Per cent deviation from the baseline}
+\label{fig:labourtax}
+\end{figure}
+
+\paragraph{The last year is not the steady state.}
+The paths still move at the end. In the full model, GDP is 0.9886 per cent above the baseline in 2060 and 0.9905 per cent in 2075.
+Investment is 0.995 per cent above the baseline in 2060 and 0.979 per cent in 2075. It moves down to the change in capital, which is 0.979 per cent in 2075.
+
+\paragraph{Net financial assets.}
+The first years move wealth between the sectors: the ECB rate changes, and asset prices change with it. Table~\ref{tab:assets} shows that the ratios of net financial assets to GDP are close to the baseline in 2075, but not on it. The largest change is 0.35 per cent of GDP, for a ratio of $-19$ per cent.
+The model has no rule that brings these ratios back. The long run is homogeneous in the flows. The ratios of the stocks to GDP do not return to the baseline exactly.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Net financial assets in 2075. Per cent of GDP}
+\label{tab:assets}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+ & Baseline & Change, full & Change, full and the tax rate rises \\
+\midrule
+Households & 306.8 & 0.29 & 0.07 \\
+Government & 50.0 & $-0.26$ & $-0.16$ \\
+Non-financial corporations & $-203.0$ & 0.01 & 0.00 \\
+Financial corporations & $-19.3$ & $-0.35$ & 0.00 \\
+Rest of the world & $-134.6$ & 0.31 & 0.10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Code}
+
+\begin{itemize}
+\item \code{modules/ForeignClosure.jl} has the rules (F1) to (F6).
+\item \code{modules/SluggishScaling.jl} has the rules (S1) to (S3). It has one rate $\lambda$ for each rule. The shock file below shows their names.
+\item \code{Settings.jl} lists both modules in \code{closure\_modules}. The model loads them, but the base model and the calibration do not include their equations.
+\end{itemize}
+
+A shock file adds the equations to the base model and sets the ratios from the baseline:
+
+{\small
+\begin{verbatim}
+import GREU: ForeignClosure, SluggishScaling
+import GREU.SluggishScaling:
+  rFixedCostAdjust, rProductionTaxAdjust, rNetPensionSavingAdjust
+
+foreign = ForeignClosure.define_equations()
+scaling = SluggishScaling.define_equations()
+block = base_model(model_modules) + scaling + foreign
+baseline = load(joinpath(@__DIR__, "..", "Output", "baseline.parquet"), block.model)
+
+# A baseline file that is older than the module has no rates. Set them here.
+baseline[rFixedCostAdjust] = 0.2
+baseline[rProductionTaxAdjust] = 0.2
+baseline[rNetPensionSavingAdjust] = 0.2
+
+for calibration in (ForeignClosure.define_calibration(foreign),
+                    SluggishScaling.define_calibration(scaling))
+  baseline[residuals(calibration)] .= 0.0
+  solve!(calibration, baseline; replace_nothing=1.0)
+end
+\end{verbatim}
+}
+
+The two modules do not depend on each other. A shock to the home economy only can use the scaling module with no foreign closure.
+
+\section{Limits}
+
+\begin{itemize}
+\item \textbf{Homogeneity is close, not exact.} The gap in 2075 is 0.02 percentage points or less. With the rate of the net tax on labour scaled, it is 0.005 points or less. The note does not split the last part by cause.
+\item \textbf{The rate of adjustment is a choice.} With $\lambda = 0.2$, each amount has made 95 per cent or more of its change in 2050. A higher rate brings the amounts closer to their long-run levels in 2050. No data set the rate.
+\item \textbf{The net tax on labour.} The scaling module does not change the rate. A rule that lets the rate follow the wage is the next step if exact homogeneity is necessary.
+\item \textbf{The required return on equity} does not follow the ECB rate.
+\item \textbf{For shocks only.} The baseline holds the amounts of Table~\ref{tab:amounts} constant. Their ratios to the base therefore change over time on the baseline, and the modules keep these paths.
+\item \textbf{One shock.} The test uses one shock of one size. It does not show the response to a shock to the home economy only.
+\item \textbf{Files.} The scenario files and the scripts that made the tables and the chart data are not in the repository. The chart data are in \code{docs/foreign\_closure\_homogeneity\_data.tex}.
+\end{itemize}
+
+\end{document}

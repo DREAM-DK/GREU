@@ -57,7 +57,7 @@
 % Chart data: \fcfdata.
 \input{foreign_closure_fixed_cost_data}
 
-\title{The foreign closure with amounts that follow GDP:\\ a productivity shock and a fixed cost shock}
+\title{The foreign closure:\\ why GDP rises more than one per cent, and a shock to fixed costs}
 \author{}
 \date{27 November 2026}
 
@@ -66,119 +66,26 @@
 
 \section{Summary}
 
-The base model holds production taxes, production subsidies, and net pension saving on exogenous paths. In a shock, they do not follow the economy.
-A new module, \code{GDPIndexation.jl}, lets them follow nominal GDP. It is for shocks only, and the baseline does not change.
-All scenarios in this note use it.
-
-The note shows two shocks from 2026: one per cent more labour productivity, and the same shock with one per cent more fixed cost. Each is solved with the foreign closure and with no foreign closure.
+The note \code{foreign\_closure.tex} shows a shock of one per cent to labour productivity.
+In 2075, GDP is 1.29 per cent above the baseline with the foreign closure and 1.01 per cent above in the base model.
+This note gives the cause of both numbers and tests it with a second shock.
 
 \begin{enumerate}
-\item \textbf{Productivity shock.} In 2075, GDP is 1.22 per cent above the baseline with the foreign closure and 1.03 per cent above with no foreign closure.
-\item \textbf{Cause of the rise above one per cent.} Fixed costs are 11 per cent of the input bundle, and they do not change in the shock. With the closure, the inputs rise 1.00 per cent and output rises 1.12 per cent.
-\item \textbf{Cause of the difference between the models.} With no foreign closure, the terms of trade fall and imported inputs do not become cheaper. Capital and intermediate inputs rise 0.67 and 0.75 per cent, against 0.96 and 1.03 per cent with the closure.
-\item \textbf{Productivity and fixed cost shock.} With the closure, GDP, private consumption, government consumption, exports, and imports are all 0.99 per cent above the baseline in 2075, and investment is 0.98 per cent above. The terms of trade and the consumer price are on the baseline, and the ECB rate is 4.01 per cent, against 4.00. With no foreign closure, GDP is 0.90 per cent above.
+\item \textbf{Employment does not change.} Labour is 27 per cent of input cost. More productive labour alone raises the input bundle by 0.27 per cent. The rest depends on how much capital and intermediate inputs rise.
+\item \textbf{The closure decides how much they rise.} With the foreign closure, capital and intermediate inputs rise 1.07 and 1.08 per cent. In the base model they rise 0.64 and 0.74 per cent, because the terms of trade fall and imported inputs do not become cheaper.
+\item \textbf{Fixed costs decide the level.} Fixed costs are 11 per cent of the input bundle, and they do not change in the shock. Output therefore rises more than the inputs: 1.18 per cent for an input rise of 1.05 per cent.
 \end{enumerate}
 
-The fixed cost thus explains all of the 0.22 percentage points that GDP rises above one per cent with the closure.
-
-\section{Amounts that follow nominal GDP}
-\label{sec:indexation}
-
-\subsection{Rules}
-
-Four groups of amounts are exogenous in the base model. They are constant on the baseline after adjustment for growth and inflation. Table~\ref{tab:rules} lists them.
-The module adds one equation for each amount $A_{j,t}$ in each year from 2026:
-\begin{equation}
-A_{j,t} = r_{j,t}\, V_t .
-\label{eq:index}
-\end{equation}
-Here $V_t$ is nominal GDP (\code{vGDP}), and $r_{j,t}$ is the ratio of the amount to GDP on the baseline.
-The amount becomes endogenous and the ratio is exogenous.
-
-\begin{table}[H]
-\centering
-\small
-\caption{Amounts that follow nominal GDP}
-\label{tab:rules}
-\begin{tabular}{@{}llrr@{}}
-\toprule
-Amount & Ratio to GDP & Cells in a year & Per cent of GDP, 2026 \\
-\midrule
-\code{vtProduction\_c\_i} & \code{rtProduction2GDP\_c\_i} & 378 & 2.27 \\
-\code{vsProduction\_c\_i} & \code{rsProduction2GDP\_c\_i} & 63 & 1.21 \\
-\code{vntProductionOther\_i} & \code{rntProductionOther2GDP\_i} & 63 & $-1.11$ \\
-\code{vNetPensionSaving} & \code{rNetPensionSaving2GDP} & 1 & 3.29 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\begin{itemize}
-\item \textbf{Production taxes} by class and industry. Their sum is government revenue. They do not enter the costs of firms.
-\item \textbf{Production subsidies} by industry. The model splits them on the sectors that receive them.
-\item \textbf{Other net production taxes} by industry. This amount enters the marginal cost of the industry. It is negative in sum: a net subsidy.
-\item \textbf{Net pension saving}. Households receive it and financial corporations pay it.
-\end{itemize}
-
-The net production taxes on capital, labour, and intermediate inputs are rates per unit of the input. They are not amounts, and the module does not change them.
-
-\subsection{Code}
-
-\begin{itemize}
-\item \code{modules/GDPIndexation.jl} is new. It declares the four ratios, the equations, and the calibration.
-\item \code{Settings.jl} lists the module in \code{closure\_modules}. The model loads it, but the base model and the calibration do not include its equations.
-\end{itemize}
-
-A shock file adds the equations to the base model and sets the ratios from the baseline:
-
-{\small
-\begin{verbatim}
-import GREU: GDPIndexation
-indexation = GDPIndexation.define_equations()
-block = base_model(model_modules) + indexation
-baseline = load(joinpath(@__DIR__, "..", "Output", "baseline.parquet"), block.model)
-calibration = GDPIndexation.define_calibration(indexation)
-baseline[residuals(calibration)] .= 0.0
-solve!(calibration, baseline; replace_nothing=1.0)
-\end{verbatim}
-}
-
-A shock file adds the foreign closure in the same way. The two modules do not depend on each other.
-
-\subsection{Tests}
-
-\begin{itemize}
-\item \textbf{Square.} The module adds 25{,}250 equations: 505 cells in each of 50 years. Each equation has its own endogenous variable. The base model and the foreign closure hold all of these variables exogenous. Table~\ref{tab:size} gives the model sizes.
-\item \textbf{Calibration.} All 25{,}250 ratios are finite. They are between $-0.0028$ and $0.0329$.
-\item \textbf{Zero shock.} The model with the module and the foreign closure gives the baseline again when no exogenous variable changes. The tolerance is $10^{-5}$.
-\item \textbf{The amounts follow GDP.} In 2075, the sum of each group changes by the same per cent as nominal GDP in all four scenarios. With the closure and both shocks, each cell above 0.001 million euro follows GDP in all years; the largest relative gap is $5 \cdot 10^{-9}$.
-\item \textbf{Calibration of the model.} \code{Calibrate.jl} with the module loaded gives the same baseline: 7{,}956{,}650 values, with a largest scaled gap of $10^{-10}$.
-\end{itemize}
-
-\begin{table}[H]
-\centering
-\small
-\caption{Equations in a shock with 2026 as the first year}
-\label{tab:size}
-\begin{tabular}{@{}lr@{}}
-\toprule
- & Equations \\
-\midrule
-Base model & 2{,}876{,}141 \\
-GDP indexation & 25{,}250 \\
-Foreign closure & 9{,}199 \\
-\midrule
-Sum & 2{,}910{,}590 \\
-\bottomrule
-\end{tabular}
-\end{table}
+The test is a shock that also raises the fixed cost by one per cent.
+With the foreign closure, GDP, private consumption, exports, and imports are then all 1.04 per cent above the baseline in 2075. In the base model, GDP is 0.88 per cent above.
+The fixed cost therefore explains 0.25 of the 0.29 percentage points that GDP rises above one per cent with the closure.
 
 \section{Scenarios}
 
 All shocks start in 2026 and stay in all later years. Table~\ref{tab:scenarios} lists the four scenarios.
 The productivity shock raises \code{aProd} by one per cent for all three labour types in all industries.
 The fixed cost shock raises \code{qFixedCost\_i} by one per cent in all industries.
-All four scenarios have GDP indexation. In this note, ``base model'' is the model with GDP indexation and no foreign closure.
-The numbers therefore differ from those in \code{foreign\_closure.tex}, where the amounts of Table~\ref{tab:rules} do not change.
+The baseline and the calibration of the closure are those of \code{foreign\_closure.tex}.
 
 \begin{table}[H]
 \centering
@@ -187,15 +94,17 @@ The numbers therefore differ from those in \code{foreign\_closure.tex}, where th
 \label{tab:scenarios}
 \begin{tabular}{@{}llll@{}}
 \toprule
-Short name & Foreign closure & Labour productivity & Fixed cost \\
+Short name & Model & Labour productivity & Fixed cost \\
 \midrule
-Closure, P & yes & $+1$ per cent & no change \\
-Base, P & no & $+1$ per cent & no change \\
-Closure, P+F & yes & $+1$ per cent & $+1$ per cent \\
-Base, P+F & no & $+1$ per cent & $+1$ per cent \\
+Closure, P & Base model with the foreign closure & $+1$ per cent & no change \\
+Base, P & Base model & $+1$ per cent & no change \\
+Closure, P+F & Base model with the foreign closure & $+1$ per cent & $+1$ per cent \\
+Base, P+F & Base model & $+1$ per cent & $+1$ per cent \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+All four models solve. The model with the closure has 2{,}885{,}340 equations, and the base model has 2{,}876{,}141.
 
 \section{Output and inputs in the model}
 \label{sec:block}
@@ -242,12 +151,12 @@ Imports in investment goods & 0.209 \\
 
 Real gross value added is output less intermediate inputs. It rises more than output when intermediate inputs rise less than output.
 
-\section{The productivity shock}
+\section{Why GDP rises 1.29 per cent with the closure and 1.01 per cent in the base model}
 \label{sec:why}
 
-This section uses the two scenarios with the productivity shock only. GDP is 1.22 per cent above the baseline in 2075 with the foreign closure and 1.03 per cent above in the base model.
+This section uses the two scenarios with the productivity shock only.
 Table~\ref{tab:inputs} follows the shock from inputs to GDP, and Table~\ref{tab:contributions} applies (\ref{eq:bundle}).
-Equation (\ref{eq:output}) gives the row for output: $1.00 / 0.890 = 1.12$ and $0.80 / 0.890 = 0.89$.
+The sum in Table~\ref{tab:contributions} equals the input bundle in Table~\ref{tab:inputs}, and (\ref{eq:output}) gives the row for output: $1.05 / 0.890 = 1.18$ and $0.78 / 0.890 = 0.88$.
 
 \begin{table}[H]
 \centering
@@ -260,15 +169,15 @@ Equation (\ref{eq:output}) gives the row for output: $1.00 / 0.890 = 1.12$ and $
 \midrule
 Employment & 0.00 & 0.00 & 0.00 & 0.00 \\
 Labour productivity & 1.00 & 1.00 & 1.00 & 1.00 \\
-Capital & 0.96 & 0.67 & 0.98 & 0.85 \\
-Intermediate inputs & 1.03 & 0.75 & 0.99 & 0.80 \\
+Capital & 1.07 & 0.64 & 1.07 & 0.83 \\
+Intermediate inputs & 1.08 & 0.74 & 1.03 & 0.78 \\
 \midrule
-Input bundle & 1.00 & 0.80 & 0.99 & 0.87 \\
+Input bundle & 1.05 & 0.78 & 1.03 & 0.85 \\
 Fixed cost & 0.00 & 0.00 & 1.00 & 1.00 \\
-Output & 1.12 & 0.89 & 0.99 & 0.85 \\
+Output & 1.18 & 0.88 & 1.04 & 0.84 \\
 \midrule
-Real gross value added & 1.20 & 1.02 & 0.99 & 0.90 \\
-Real GDP & 1.22 & 1.03 & 0.99 & 0.90 \\
+Real gross value added & 1.27 & 1.00 & 1.04 & 0.89 \\
+Real GDP & 1.29 & 1.01 & 1.04 & 0.88 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -276,18 +185,17 @@ Real GDP & 1.22 & 1.03 & 0.99 & 0.90 \\
 \begin{table}[H]
 \centering
 \small
-\caption{Contributions to the input bundle in 2075, from (\ref{eq:bundle}). Percentage points. The parts are rounded}
+\caption{Contributions to the input bundle in 2075, from (\ref{eq:bundle}). Percentage points}
 \label{tab:contributions}
 \begin{tabular}{@{}lrrrr@{}}
 \toprule
  & Closure, P & Base, P & Closure, P+F & Base, P+F \\
 \midrule
-Labour & 0.274 & 0.274 & 0.274 & 0.274 \\
-Capital & 0.259 & 0.180 & 0.265 & 0.229 \\
-Intermediate inputs & 0.468 & 0.342 & 0.451 & 0.363 \\
+Labour & 0.27 & 0.27 & 0.27 & 0.27 \\
+Capital & 0.29 & 0.17 & 0.29 & 0.22 \\
+Intermediate inputs & 0.49 & 0.34 & 0.47 & 0.36 \\
 \midrule
-Sum & 1.002 & 0.796 & 0.990 & 0.866 \\
-Input bundle in the solution & 1.002 & 0.796 & 0.990 & 0.866 \\
+Sum & 1.05 & 0.78 & 1.03 & 0.85 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -296,24 +204,24 @@ Input bundle in the solution & 1.002 & 0.796 & 0.990 & 0.866 \\
 Employment is the same in all four scenarios. The productivity shock raises the input bundle by $s_L \cdot 1 = 0.27$ per cent. All of the remaining rise comes from capital and intermediate inputs.
 
 \paragraph{Step 2: the base model.}
-Only the home economy becomes more productive. It must lower its price to sell more: the export price falls 0.15 per cent. Import prices are fixed, so the terms of trade fall 0.15 per cent (Table~\ref{tab:prices}).
+Only the home economy becomes more productive. It must lower its price to sell more: the export price falls 0.16 per cent. Import prices are fixed, so the terms of trade fall 0.16 per cent (Table~\ref{tab:prices}).
 Imports are 38 per cent of intermediate inputs and 21 per cent of investment goods. These inputs do not become cheaper when home prices fall.
-The real wage rises 0.74 per cent. The wage rises 0.74 per cent relative to the user cost of capital and 0.71 per cent relative to the price of intermediate inputs.
-Firms therefore add less capital and fewer intermediate inputs for each unit of labour: capital rises 0.67 per cent and intermediate inputs 0.75 per cent.
+The real wage rises 0.71 per cent. The wage rises 0.71 per cent relative to the user cost of capital and 0.68 per cent relative to the price of intermediate inputs.
+Firms therefore add less capital and fewer intermediate inputs for each unit of labour: capital rises 0.64 per cent and intermediate inputs 0.74 per cent.
 
 \paragraph{Step 3: the foreign closure.}
 Foreign prices follow home prices, and foreign markets follow home imports. This is close to a rest of the world that gets the same rise in productivity.
 The terms of trade do not change, and the prices of imported inputs follow the prices of home products.
-The real wage rises 1.13 per cent, and the wage rises 1.23 per cent relative to the user cost of capital.
-Capital and intermediate inputs rise 0.96 and 1.03 per cent, close to the rise of one per cent in labour in efficiency units.
+The real wage rises 1.24 per cent, and the wage rises 1.47 per cent relative to the user cost of capital.
+Capital and intermediate inputs rise 1.07 and 1.08 per cent, close to the rise of one per cent in labour in efficiency units.
 
 \paragraph{Step 4: fixed costs.}
-The fixed cost does not change, so (\ref{eq:output}) turns an input rise of 1.00 per cent into an output rise of 1.12 per cent. Intermediate inputs rise 1.03 per cent, less than output, so real gross value added rises 1.20 per cent.
-The same step lifts the base model from 0.80 to 0.89 per cent in output and to 1.02 per cent in real gross value added. GDP in the base model is thus close to one per cent by coincidence: the fall in the terms of trade lowers it, and the fixed cost raises it.
+The fixed cost does not change, so (\ref{eq:output}) turns an input rise of 1.05 per cent into an output rise of 1.18 per cent. Intermediate inputs rise 1.08 per cent, less than output, so real gross value added rises 1.27 per cent.
+The same step lifts the base model from 0.78 to 0.88 per cent in output and to 1.00 per cent in real gross value added. GDP in the base model is thus close to one per cent by coincidence: the fall in the terms of trade lowers it, and the fixed cost raises it.
 
 \paragraph{Step 5: the ECB rate.}
-With the closure, the ECB rate is 3.94 per cent in 2075, against 4.00 per cent. The hurdle rate for investment falls from 10.00 to 9.98 per cent, and the user cost of capital falls 0.14 per cent relative to the price of investment goods.
-A rough calculation with the elasticity of 0.7 gives 0.07 per cent more capital and about 0.02 percentage points more GDP from this. It is not a model result.
+With the closure, the ECB rate is 3.87 per cent in 2075, against 4.00 per cent. The hurdle rate for investment falls from 10.00 to 9.96 per cent, and the user cost of capital falls 0.31 per cent relative to the price of investment goods.
+A rough calculation with the elasticity of 0.7 gives 0.16 per cent more capital and about 0.05 percentage points more GDP from this. It is not a model result.
 
 \begin{table}[H]
 \centering
@@ -324,22 +232,21 @@ A rough calculation with the elasticity of 0.7 gives 0.07 per cent more capital 
 \toprule
  & Closure, P & Base, P & Closure, P+F & Base, P+F \\
 \midrule
-Terms of trade & 0.00 & $-0.15$ & 0.00 & $-0.13$ \\
-Consumer price & 0.00 & $-0.18$ & 0.00 & $-0.15$ \\
-Real wage & 1.13 & 0.74 & 1.00 & 0.78 \\
-Wage relative to the user cost of capital & 1.23 & 0.74 & 0.98 & 0.78 \\
-Wage relative to the price of intermediate inputs & 1.11 & 0.71 & 1.00 & 0.76 \\
-Nominal GDP and the amounts of Table~\ref{tab:rules} & 1.24 & 0.71 & 0.99 & 0.64 \\
+Terms of trade & 0.00 & $-0.16$ & 0.00 & $-0.14$ \\
+Consumer price & 0.00 & $-0.19$ & 0.00 & $-0.16$ \\
+Real wage & 1.24 & 0.71 & 1.08 & 0.75 \\
+Wage relative to the user cost of capital & 1.47 & 0.71 & 1.17 & 0.76 \\
+Wage relative to the price of intermediate inputs & 1.19 & 0.68 & 1.06 & 0.73 \\
 \midrule
-ECB rate & 3.94 & 4.00 & 4.01 & 4.00 \\
-Hurdle rate for investment & 9.98 & 10.00 & 10.00 & 10.00 \\
+ECB rate & 3.87 & 4.00 & 3.95 & 4.00 \\
+Hurdle rate for investment & 9.96 & 10.00 & 9.98 & 10.00 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\section{The productivity and fixed cost shock}
+\section{A shock to fixed costs also}
 
-If the fixed cost is the cause of the rise above one per cent, a shock that also raises the fixed cost by one per cent must remove it. In (\ref{eq:output}), $f = 1$ and $q = 1$ give $y = 1$.
+If the fixed cost is the cause of the rise above one per cent, a shock that also raises the fixed cost by one per cent must remove most of it. In (\ref{eq:output}), $f = 1$ and $q = 1$ give $y = 1$.
 
 \subsection{Long run}
 
@@ -354,26 +261,26 @@ Table~\ref{tab:demand} gives the result in 2075.
 \toprule
  & Closure, P & Base, P & Closure, P+F & Base, P+F \\
 \midrule
-GDP & 1.22 & 1.03 & 0.99 & 0.90 \\
-Private consumption & 1.30 & 0.85 & 0.99 & 0.76 \\
-Investment & 1.00 & 0.70 & 0.98 & 0.84 \\
-Government consumption & 1.18 & 1.03 & 0.99 & 0.91 \\
-Exports & 1.12 & 0.75 & 0.99 & 0.63 \\
-Imports & 1.11 & 0.47 & 0.99 & 0.49 \\
+GDP & 1.29 & 1.01 & 1.04 & 0.88 \\
+Private consumption & 1.36 & 0.77 & 1.04 & 0.70 \\
+Investment & 1.11 & 0.68 & 1.07 & 0.82 \\
+Government consumption & 1.22 & 1.01 & 1.02 & 0.89 \\
+Exports & 1.18 & 0.79 & 1.04 & 0.67 \\
+Imports & 1.17 & 0.45 & 1.04 & 0.47 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{itemize}
-\item \textbf{Foreign closure.} GDP is 0.99 per cent above the baseline, against 1.22 per cent with no shock to the fixed cost. GDP, private consumption, government consumption, exports, and imports all rise 0.99 per cent, and investment rises 0.98 per cent. The real wage rises 1.00 per cent. The terms of trade and the consumer price do not change, and the ECB rate is 4.01 per cent. The economy is one per cent larger with the same prices.
-\item \textbf{Base model.} GDP is 0.90 per cent above the baseline, against 1.03 per cent. The parts do not grow at the same rate: imports rise 0.49 per cent and exports 0.63 per cent. The terms of trade fall 0.13 per cent.
-\item \textbf{Effect of the fixed cost.} It lowers GDP by 0.24 percentage points with the closure and by 0.13 points in the base model. With no change in the inputs, (\ref{eq:output}) gives $-0.12$ points on output. With the closure, the input bundle rises a little less (0.99 against 1.00 per cent). In the base model it rises more (0.87 against 0.80 per cent), and capital rises 0.85 per cent against 0.67.
-\item \textbf{What is left.} With the closure, the quantities are 0.01 to 0.02 percentage points below one per cent. The net tax on labour is a rate per unit of labour, and it does not rise with the wage. Its revenue rises 0.08 per cent. This note does not test if it explains the rest.
+\item \textbf{Foreign closure.} GDP is 1.04 per cent above the baseline, against 1.29 per cent with no shock to the fixed cost. GDP, private consumption, exports, and imports all rise 1.04 per cent. Investment rises 1.07 per cent and government consumption 1.02 per cent. The economy grows by close to one per cent in all parts.
+\item \textbf{Base model.} GDP is 0.88 per cent above the baseline, against 1.01 per cent. The parts do not grow at the same rate: imports rise 0.47 per cent and exports 0.67 per cent. The terms of trade fall 0.14 per cent.
+\item \textbf{Effect of the fixed cost.} It lowers GDP by 0.25 percentage points with the closure and by 0.12 points in the base model. With no change in the inputs, (\ref{eq:output}) gives $-0.12$ points on output. With the closure, the input bundle rises a little less (1.03 against 1.05 per cent). In the base model it rises more (0.85 against 0.78 per cent), and capital rises 0.83 per cent against 0.64.
+\item \textbf{What is left.} With the closure, 0.04 percentage points above one per cent are left. The ECB rate is 3.95 per cent, against 4.00, and capital rises 1.07 per cent. Taxes on production and net pension saving are fixed amounts in the model and do not change in the shock. This note does not split the 0.04 points by cause.
 \end{itemize}
 
 \subsection{Paths}
 
-Figure~\ref{fig:quantities} shows the quantities over time, Figure~\ref{fig:inputs} the inputs and output, and Figure~\ref{fig:prices} the prices, nominal GDP, and the ECB rate.
+Figure~\ref{fig:quantities} shows the quantities over time, Figure~\ref{fig:inputs} the inputs and output, and Figure~\ref{fig:prices} the prices and the ECB rate.
 Blue lines are the foreign closure and orange lines are the base model. Solid lines have the productivity shock only. Dashed lines also have the fixed cost shock.
 
 \begin{figure}[H]
@@ -424,51 +331,45 @@ Blue lines are the foreign closure and orange lines are the base model. Solid li
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}
-\begin{groupplot}[fc, narrow, group style={group size=3 by 2, horizontal sep=1.0cm, vertical sep=1.4cm}]
+\begin{groupplot}[fc, wide, group style={group size=2 by 2, horizontal sep=1.6cm, vertical sep=1.4cm}]
 \nextgroupplot[title={Real wage}, ylabel={Per cent}]
 \fourlines{rw}
 \nextgroupplot[title={Terms of trade}]
 \fourlines{tot}
-\nextgroupplot[title={Consumer price}]
+\nextgroupplot[title={Consumer price}, ylabel={Per cent}]
 \fourlines{pc}
-\nextgroupplot[title={Nominal GDP}, ylabel={Per cent}]
-\fourlines{ngdp}
-\nextgroupplot[title={Wage to intermediate price}]
-\fourlines{wm}
 \nextgroupplot[title={ECB rate, per cent}]
 \fourlines{ecb}
 \end{groupplot}
 \end{tikzpicture}
 
 \ref{fcflegend}
-\caption{Prices, nominal GDP, and the ECB rate. Per cent deviation from the baseline, except the ECB rate. The amounts of Table~\ref{tab:rules} follow nominal GDP}
+\caption{Prices and the ECB rate. Prices are in per cent deviation from the baseline}
 \label{fig:prices}
 \end{figure}
 
+\FloatBarrier
 \begin{itemize}
-\item \textbf{First year.} Capital is slow, so all four scenarios start low. In 2026, GDP rises 0.59 and 0.62 per cent with the productivity shock, and 0.35 and 0.40 per cent with both shocks.
-\item \textbf{Private consumption with the closure.} With both shocks it falls in the first years: $-0.22$ per cent in 2026 and $-0.29$ per cent in 2027. It is above the baseline from 2030. The ECB rate rises to 4.49 per cent in 2028 in this scenario, against 4.34 per cent with the productivity shock only.
-\item \textbf{Investment.} In the base model, the fixed cost shock raises investment in the first years: 3.90 per cent in 2027, against 3.02 per cent. More fixed cost needs more inputs for the same output.
-\item \textbf{Nominal GDP.} With the closure, the consumer price stays on the baseline, and nominal GDP follows real GDP. In the base model, prices fall, and nominal GDP rises 0.71 per cent in 2075 with the productivity shock, against 1.03 per cent for real GDP. The amounts of Table~\ref{tab:rules} therefore rise less than real GDP in the base model.
-\item \textbf{End of the period.} With the closure and both shocks, the quantities in Table~\ref{tab:demand} change by 0.004 percentage points or less from 2064 to 2074.
+\item \textbf{First year.} Capital is slow, so all four scenarios start low. In 2026, GDP rises 0.59 and 0.62 per cent with the productivity shock, and 0.34 and 0.40 per cent with both shocks.
+\item \textbf{Private consumption with the closure.} With both shocks it falls in the first years: $-0.27$ per cent in 2026 and $-0.37$ per cent in 2027. It is above the baseline from 2030. The ECB rate rises to 4.48 per cent in 2028 in this scenario, against 4.32 per cent with the productivity shock only.
+\item \textbf{Investment.} In the base model, the fixed cost shock raises investment in the first years: 3.81 per cent in 2027, against 2.93 per cent. More fixed cost needs more inputs for the same output.
+\item \textbf{End of the period.} With the closure and both shocks, all quantities in Table~\ref{tab:demand} change by less than 0.001 percentage points from 2064 to 2074.
 \end{itemize}
 
 \section{What the test shows}
 
 \begin{itemize}
-\item \textbf{With the closure, the model is close to homogeneous in productivity and fixed cost.} One per cent more of both gives 0.98 to 0.99 per cent more of all quantities, with no change in the terms of trade or the consumer price, and an ECB rate of 4.01 per cent against 4.00. The rise of 1.22 per cent in GDP for the productivity shock alone comes from the fixed cost, which is 11 per cent of the input bundle and does not grow with the economy.
-\item \textbf{In the base model, it is not.} One per cent more of both gives 0.90 per cent more GDP. The home economy alone becomes more productive, the terms of trade fall, and capital and intermediate inputs rise less than labour in efficiency units.
-\item \textbf{The difference between the two models is the closure, not the fixed cost.} The gap in GDP is 0.20 percentage points with the productivity shock and 0.09 points with both shocks.
+\item \textbf{With the closure, the model is close to homogeneous in productivity and fixed cost.} One per cent more of both gives about one per cent more of all quantities, with no change in the terms of trade. The rise of 1.29 per cent in GDP for the productivity shock alone comes from the fixed cost, which is 11 per cent of the input bundle and does not grow with the economy.
+\item \textbf{In the base model, it is not.} One per cent more of both gives 0.88 per cent more GDP. The home economy alone becomes more productive, the terms of trade fall, and capital and intermediate inputs rise less than labour in efficiency units.
+\item \textbf{The difference between the two models is the closure, not the fixed cost.} The gap in GDP is 0.29 percentage points with the productivity shock and 0.16 points with both shocks.
 \end{itemize}
 
 \section{Limits}
 
 \begin{itemize}
-\item \textbf{First-order accounting.} Equation (\ref{eq:bundle}) uses cost shares on the baseline. It fits the solved input bundle to three decimals in all four scenarios.
+\item \textbf{First-order accounting.} Equation (\ref{eq:bundle}) uses cost shares on the baseline. It fits the solved input bundle to two decimals in all four scenarios.
 \item \textbf{Causes are read from the solution.} Steps 2 and 3 of Section~\ref{sec:why} compare prices and quantities in the solved scenarios. No scenario holds the terms of trade or the ECB rate fixed to isolate one cause. The effect of the ECB rate in step 5 is a rough calculation.
-\item \textbf{Rates per unit.} The net production taxes on capital, labour, and intermediate inputs are rates per unit, and they do not change. The file \code{HomogeneityShock.jl} scales the rate on labour with productivity. This note did not.
-\item \textbf{One GDP for all cells.} Each amount follows nominal GDP of the whole economy. The amount of an industry does not follow the output of that industry.
-\item \textbf{For shocks only.} The baseline holds the amounts constant, so their ratios to GDP change over time on the baseline. The module keeps these paths of the ratios.
+\item \textbf{Other items that do not grow.} The file \code{HomogeneityShock.jl} also scales net taxes on labour, other net production taxes, taxes and subsidies on production, net pension saving, and the foreign markets. This note did not. The 0.04 percentage points that are left with the closure can come from these items or from the ECB rate.
 \item \textbf{Aggregates.} Capital, intermediate inputs, the input bundle, and output are sums over industries at baseline prices of the same year.
 \item \textbf{Files.} The scenario files and the scripts that made the tables and the chart data are not in the repository. The chart data are in \code{docs/foreign\_closure\_fixed\_cost\_data.tex}.
 \end{itemize}
