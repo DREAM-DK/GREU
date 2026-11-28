@@ -6,9 +6,9 @@
 # ==============================================================================
 # Common Eurostat industry and product resolution
 # ==============================================================================
-include(joinpath(@__DIR__, "modules", "IndustryResolutionData.jl"))
+# include(joinpath(@__DIR__, "modules", "IndustryResolutionData.jl"))
 
-IndustryResolutionData.refresh_industry_resolution!()
+# IndustryResolutionData.refresh_industry_resolution!()
 
 # ==============================================================================
 # Input-output data
@@ -27,9 +27,9 @@ IntermediatesData.refresh_intermediates_data!()
 # ==============================================================================
 # Capital data
 # ==============================================================================
-include(joinpath(@__DIR__, "modules", "CapitalData.jl"))
+# include(joinpath(@__DIR__, "modules", "CapitalData.jl"))
 
-CapitalData.refresh_capital_data!()
+# CapitalData.refresh_capital_data!()
 
 # ==============================================================================
 # Gross value added data

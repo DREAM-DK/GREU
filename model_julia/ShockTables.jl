@@ -132,6 +132,12 @@ function employment_change(baseline, scenario, l, i, year)
 end
 
 # Persons by type, summed over the industries that employ the type.
+function total_employment(db, l, year)
+    values = [model_value(db, nL_l_i[l,i,year]) for (k, i) in labor_l_i if k == l]
+    return (isempty(values) || any(ismissing, values)) ? missing : sum(values)
+end
+
+# Change in those persons: scenario minus baseline.
 function total_employment_change(baseline, scenario, l, year)
     changes = [employment_change(baseline, scenario, l, i, year) for (k, i) in labor_l_i if k == l]
     return (isempty(changes) || any(ismissing, changes)) ? missing : sum(changes)

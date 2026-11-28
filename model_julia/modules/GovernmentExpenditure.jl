@@ -16,8 +16,8 @@ import ..Government:
   vGovSocBenefitExp,
   vSocTransKind
 import ..GrowthInflationAdjustment: GrowthAdjusted, InflationAdjusted, fv
-import ..IndustrySectors: vM_s, vtProduction_s, vWages_s
-import ..InputOutput: product, qG_p, vG, pPurchaserUse_p_u
+import ..IndustrySectors: vLaborFee_s, vM_s, vtProduction_s, vWages_s
+import ..InputOutput: product, qG_p, vG, vG_p
 import ..Labor: vHhWages
 import ..model
 import ..SectorAccounts:
@@ -33,7 +33,7 @@ import ..Taxes:
   vsRoWProduct,
   vsRoWProduction
 import ..Time: t, t1, T
-import ..Tags: ForecastConstant
+import ..Tags: ForecastConstant, ForecastZero
 
 # ============================================================================
 # Variables
@@ -55,6 +55,7 @@ end
 
 @variables model :: (GovernmentExpenditureTag, GrowthAdjusted, InflationAdjusted) begin
   vTransferIncomeIndex[t], "Index for cash transfer income payments."
+  vHhLumpSum[t] :: ForecastZero, "Lump-sum cash transfer from government to households."
 end
 
 # ============================================================================
@@ -70,7 +71,7 @@ end
 function define_equations()
   return @block model begin
     # Government consumption by product is a fixed share of nominal GDP.
-    qG_p[p=product, t=t1:T], pPurchaserUse_p_u[p,:G,t] * qG_p[p,t] == rG2GDP_p[p,t] * vGDP[t]
+    vG_p[p=product, t=t1:T], vG_p[p,t] == rG2GDP_p[p,t] * vGDP[t]
 
     # Primary expenditure.
     vGovPrimaryExpenditure[t=t1:T],
@@ -86,6 +87,7 @@ function define_equations()
                                   + vGovCapTransExp[t]
                                   + vGovLumpSum[t]
                                   + vNonProducedAssetAcquisitions[:Gov,t]
+                                  + vLaborFee_s[:Gov,t]
 
     # Expenditure without a detailed rule follows GVA or government consumption.
     vGovOthCurrentTransExp[t=t1:T],
@@ -95,10 +97,10 @@ function define_equations()
     vNonProducedAssetAcquisitions[s,t] == rGovNonProducedAssetAcquisitions2GVA[t] * vGVA[t]
     vSocTransKind[t=t1:T], vSocTransKind[t] == rSocTransKind2G[t] * vG[t]
 
-    # Cash benefits follow a simple income index.
+    # Cash benefits follow a simple income index. Households receive the lump sum.
     vTransferIncomeIndex[t=t1:T], vTransferIncomeIndex[t] == vHhWages[t-2]/fv^2
     vGovSocBenefitExp[t=t1:T],
-    vGovSocBenefitExp[t] == vSocTransKind[t] + rGovTransferIncome[t] * vTransferIncomeIndex[t]
+    vGovSocBenefitExp[t] == vSocTransKind[t] + rGovTransferIncome[t] * vTransferIncomeIndex[t] + vHhLumpSum[t]
 
     # Social benefits use government spending and source flows for other sectors.
     vSocialBenefits[s=[:Gov], t=t1:T],
@@ -133,7 +135,7 @@ function define_calibration(base=define_equations())
   block = copy(base)
 
   @endo_exo_swap! block begin
-    rG2GDP_p[:,t1], qG_p[:,t1]
+    rG2GDP_p[:,t1], vG_p[:,t1]
     rGovTransferIncome[t1], vGovSocBenefitExp[t1]
     rRoWTransferIncome[t1], vSocialBenefits[:RoW,t1]
     rSocTransKind2G[t1], vSocTransKind[t1]

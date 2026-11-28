@@ -5,6 +5,7 @@
 module RestOfWorld
 
 using SquareModels
+import ..IndustrySectors: vLaborFee_s
 import ..InputOutput: vM, vX
 import ..Labor: vRoWNetWages
 import ..model
@@ -47,6 +48,7 @@ function define_equations()
                                 + vNetTransfers[s,t] + vtRoWProduct[t]
                                 - vsRoWProduct[t] - vsRoWProduction[t]
                                 - vNonProducedAssetAcquisitions[s,t]
+                                + ∑(vLaborFee_s[s2,t] for s2 in sector)
 
     # Portfolio.
     # Debt assets clear the debt market. RoW is residual lender.

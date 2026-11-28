@@ -32,6 +32,7 @@ const macro_core_modules = [
 
   :Production,
   :Labor,
+  # :Labor_exogenous_relative_wages,
   :Intermediates,
   :Capital,
   :Taxes,
@@ -71,6 +72,11 @@ const closure_modules = [
   :SluggishScaling,
 ]
 
+# Shock scripts add the equations of these modules. The baseline does not use them.
+const shock_modules = [
+  :LaborFee,
+]
+
 
 # Loaded modules define variables, assign data, and set start values.
 const loaded_modules = [
@@ -79,6 +85,7 @@ const loaded_modules = [
   # macro_rigidity_modules...,
   # green_transition_modules...,
   closure_modules...,
+  shock_modules...,
 ]
 
 # Model modules also add equations to the base model and calibration.

@@ -82,6 +82,9 @@ assert_no_diff(baseline, zero_shock; atol=1e-5, msg="Zero shock test failed")
 mkpath(output_dir)
 unload(joinpath(output_dir, "baseline.parquet"), baseline)
 
+# Load the baseline from a previous run instead of calibrating again (run the sections up to Model modules first):
+# baseline = load(joinpath(output_dir, "baseline.parquet"), base_block.model)
+
 # ==============================================================================
 # Write baseline report
 # ==============================================================================
@@ -89,3 +92,31 @@ include("BaselineReport.jl")
 isnothing(previous_solution) ?
   BaselineReport.write_report("Baseline" => baseline) :
   BaselineReport.write_report("Baseline" => baseline, "Previous baseline" => previous_solution)
+
+# ==============================================================================
+# Write baseline tables (optional)
+# ==============================================================================
+# Production inputs and persons by labor type for each industry in one year, as tables and figures.
+# Figures 1-7 also show the comparison year as a diamond.
+# The government balance and its parts: tables for chosen years, figures for a range of years.
+write_baseline_tables = true
+baseline_tables_year = 2050
+baseline_tables_compare_year = 2019
+write_government_tables = true
+government_table_years = [2019, 2025, 2030, 2040, 2050, 2060]
+government_figure_years = 2019:2065
+if write_baseline_tables || write_government_tables
+  include("DAProductivityShockFigures.jl")
+  include("BaselineTables.jl")
+end
+if write_baseline_tables
+  BaselineTables.write_tables(joinpath(output_dir, "baseline_tables_$(baseline_tables_year).html"), baseline;
+    year=baseline_tables_year)
+  BaselineTables.write_figures(joinpath(output_dir, "baseline_figures_$(baseline_tables_year).html"), baseline;
+    year=baseline_tables_year, compare_year=baseline_tables_compare_year)
+end
+if write_government_tables
+  include("GovernmentTables.jl")
+  GovernmentTables.write_tables(joinpath(output_dir, "government_tables.html"), baseline; years=government_table_years)
+  GovernmentTables.write_figures(joinpath(output_dir, "government_figures.html"), baseline; years=government_figure_years)
+end
